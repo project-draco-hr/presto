@@ -1,0 +1,23 @@
+{
+  if (last != null) {
+    Preconditions.checkArgument(position >= last.getRange().lowerEndpoint(),"Cannot seek to position %s before current range [%s, %s]",position,last.getRange().lowerEndpoint(),last.getRange().upperEndpoint());
+    if (last.getRange().contains(position)) {
+      seekedTo=last;
+      return true;
+    }
+  }
+  while (iterator.hasNext()) {
+    last=iterator.next();
+    if (last.getRange().contains(position)) {
+      seekedTo=last;
+      return true;
+    }
+ else     if (last.getRange().lowerEndpoint() > position) {
+      seekedTo=last;
+      return false;
+    }
+  }
+  seekedTo=null;
+  last=null;
+  return false;
+}
