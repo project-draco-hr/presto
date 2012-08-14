@@ -1,0 +1,22 @@
+{
+  if (aggregations == null) {
+    Map<Object,AggregationFunction> aggregationMap=new HashMap<>();
+    while (groupBySource.hasNext()) {
+      RunLengthEncodedBlock group=groupBySource.next();
+      AggregationFunction aggregation=aggregationMap.get(group.getValue());
+      if (aggregation == null) {
+        aggregation=functionProvider.get();
+        aggregationMap.put(group.getValue(),aggregation);
+      }
+      processGroup(aggregationSource,aggregation,group.getRange());
+    }
+    this.aggregations=aggregationMap.entrySet().iterator();
+  }
+  if (!aggregations.hasNext()) {
+    endOfData();
+    return null;
+  }
+  Entry<Object,AggregationFunction> aggregation=aggregations.next();
+  Object value=aggregation.getValue().evaluate();
+  return new UncompressedValueBlock(position++,new Tuple(aggregation.getKey(),value));
+}
