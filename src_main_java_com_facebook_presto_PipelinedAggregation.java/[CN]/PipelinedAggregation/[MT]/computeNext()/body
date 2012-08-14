@@ -1,23 +1,11 @@
 {
-  if (!advanceGroupByBlock()) {
+  if (!groupBySource.hasNext()) {
     endOfData();
     return null;
   }
-  Pair entry=currentGroupByBlock.next();
-  Object groupByKey=entry.getValue();
-  long startPosition=entry.getPosition();
-  while (true) {
-    while (currentGroupByBlock.hasNext() && currentGroupByBlock.peek().getValue().equals(groupByKey)) {
-      entry=currentGroupByBlock.next();
-    }
-    if (currentGroupByBlock.hasNext()) {
-      break;
-    }
-    if (!groupBySource.hasNext()) {
-      break;
-    }
-    currentGroupByBlock=groupBySource.next().pairIterator();
-  }
-  long endPosition=entry.getPosition();
-  return processGroup(Ranges.closed(startPosition,endPosition));
+  RunLengthEncodedBlock group=groupBySource.next();
+  AggregationFunction aggregationFunction=functionProvider.get();
+  AggregationUtil.processGroup(aggregationSource,aggregationFunction,group.getRange());
+  Object value=aggregationFunction.evaluate();
+  return new UncompressedValueBlock(group.getRange().lowerEndpoint(),new Tuple(group.getValue(),value));
 }

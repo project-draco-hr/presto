@@ -1,0 +1,20 @@
+{
+  GroupBy groupBy=new GroupBy(newGroupColumn());
+  PipelinedAggregation aggregation=new PipelinedAggregation(groupBy,new ForwardingSeekableIterator<>(newAggregateColumn()),new Provider<AggregationFunction>(){
+    @Override public AggregationFunction get(){
+      return new SumAggregation();
+    }
+  }
+);
+  List<Pair> expected=ImmutableList.of(new Pair(0,new Tuple("a",10L)),new Pair(4,new Tuple("b",17L)),new Pair(23,new Tuple("c",15L)),new Pair(30,new Tuple("d",6L)));
+  List<Pair> actual=new ArrayList<>();
+  while (aggregation.hasNext()) {
+    ValueBlock block=aggregation.next();
+    PeekingIterator<Pair> pairs=block.pairIterator();
+    while (pairs.hasNext()) {
+      Pair pair=pairs.next();
+      actual.add(pair);
+    }
+  }
+  Assert.assertEquals(actual,expected);
+}

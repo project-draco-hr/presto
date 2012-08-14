@@ -1,11 +1,8 @@
 {
-  AggregationFunction aggregationFunction=functionProvider.get();
   RangePositionBlock positionBlock=new RangePositionBlock(positions);
   aggregationSource.seekTo(positions.lowerEndpoint());
   Preconditions.checkState(aggregationSource.hasNext(),"Group start position not found in aggregation source");
   while (aggregationSource.hasNext() && aggregationSource.peek().getRange().isConnected(positions)) {
-    aggregationFunction.add(aggregationSource.next(),positionBlock);
+    aggregation.add(aggregationSource.next(),positionBlock);
   }
-  Object value=aggregationFunction.evaluate();
-  return new UncompressedValueBlock(positions.lowerEndpoint(),value);
 }
