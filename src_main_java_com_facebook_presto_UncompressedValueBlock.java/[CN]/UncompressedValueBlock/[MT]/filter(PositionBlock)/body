@@ -1,7 +1,17 @@
 {
-  ImmutableList<Pair> pairs=ImmutableList.copyOf(Iterables.filter(this.pairs,Predicates.compose(positions,positionGetter())));
-  if (pairs.isEmpty()) {
+  List<Long> indexes=new ArrayList<>();
+  for (  long position : positions.getPositions()) {
+    if (range.contains(position)) {
+      indexes.add(position - range.lowerEndpoint());
+    }
+  }
+  if (indexes.isEmpty()) {
     return new EmptyValueBlock();
   }
-  return new UncompressedValueBlock(pairs);
+  Slice newSlice=Slices.allocate(indexes.size() * tupleInfo.size());
+  SliceOutput sliceOutput=newSlice.output();
+  for (  long index : indexes) {
+    sliceOutput.writeBytes(slice,(int)(index * tupleInfo.size()),tupleInfo.size());
+  }
+  return new UncompressedValueBlock(0,tupleInfo,newSlice);
 }

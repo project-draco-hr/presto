@@ -1,0 +1,18 @@
+{
+  final CharsetDecoder decoder=getDecoder(charset);
+  final CharBuffer dst=CharBuffer.allocate((int)((double)src.remaining() * decoder.maxCharsPerByte()));
+  try {
+    CoderResult cr=decoder.decode(src,dst,true);
+    if (!cr.isUnderflow()) {
+      cr.throwException();
+    }
+    cr=decoder.flush(dst);
+    if (!cr.isUnderflow()) {
+      cr.throwException();
+    }
+  }
+ catch (  CharacterCodingException x) {
+    throw new IllegalStateException(x);
+  }
+  return dst.flip().toString();
+}

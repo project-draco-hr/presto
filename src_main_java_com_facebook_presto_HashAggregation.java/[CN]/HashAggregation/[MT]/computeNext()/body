@@ -1,6 +1,6 @@
 {
   if (aggregations == null) {
-    Map<Object,AggregationFunction> aggregationMap=new HashMap<>();
+    Map<Tuple,AggregationFunction> aggregationMap=new HashMap<>();
     while (groupBySource.hasNext()) {
       RunLengthEncodedBlock group=groupBySource.next();
       AggregationFunction aggregation=aggregationMap.get(group.getValue());
@@ -16,7 +16,15 @@
     endOfData();
     return null;
   }
-  Entry<Object,AggregationFunction> aggregation=aggregations.next();
-  Object value=aggregation.getValue().evaluate();
-  return new UncompressedValueBlock(position++,new Tuple(aggregation.getKey(),value));
+  BlockBuilder blockBuilder=new BlockBuilder(position,tupleInfo);
+  while (!blockBuilder.isFull() && aggregations.hasNext()) {
+    Entry<Tuple,AggregationFunction> aggregation=aggregations.next();
+    Tuple key=aggregation.getKey();
+    Tuple value=aggregation.getValue().evaluate();
+    blockBuilder.append(key);
+    blockBuilder.append(value);
+  }
+  ValueBlock block=blockBuilder.build();
+  position+=block.getCount();
+  return block;
 }

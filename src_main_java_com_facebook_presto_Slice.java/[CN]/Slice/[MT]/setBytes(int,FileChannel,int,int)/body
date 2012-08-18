@@ -1,0 +1,29 @@
+{
+  Preconditions.checkPositionIndexes(index,index + length,this.length);
+  index+=offset;
+  ByteBuffer buf=ByteBuffer.wrap(data,index,length);
+  int readBytes=0;
+  do {
+    int localReadBytes;
+    try {
+      localReadBytes=in.read(buf,position + readBytes);
+    }
+ catch (    ClosedChannelException e) {
+      localReadBytes=-1;
+    }
+    if (localReadBytes < 0) {
+      if (readBytes == 0) {
+        return -1;
+      }
+ else {
+        break;
+      }
+    }
+ else     if (localReadBytes == 0) {
+      break;
+    }
+    readBytes+=localReadBytes;
+  }
+ while (readBytes < length);
+  return readBytes;
+}

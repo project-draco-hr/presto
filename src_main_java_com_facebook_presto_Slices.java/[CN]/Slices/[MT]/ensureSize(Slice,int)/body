@@ -1,0 +1,22 @@
+{
+  if (existingSlice == null) {
+    existingSlice=EMPTY_SLICE;
+  }
+  if (minWritableBytes <= existingSlice.length()) {
+    return existingSlice;
+  }
+  int newCapacity;
+  if (existingSlice.length() == 0) {
+    newCapacity=1;
+  }
+ else {
+    newCapacity=existingSlice.length();
+  }
+  int minNewCapacity=existingSlice.length() + minWritableBytes;
+  while (newCapacity < minNewCapacity) {
+    newCapacity<<=1;
+  }
+  Slice newSlice=Slices.allocate(newCapacity);
+  newSlice.setBytes(0,existingSlice,0,existingSlice.length());
+  return newSlice;
+}

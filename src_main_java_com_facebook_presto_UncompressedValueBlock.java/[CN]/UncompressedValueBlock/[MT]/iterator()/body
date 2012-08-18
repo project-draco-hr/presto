@@ -1,3 +1,15 @@
 {
-  return Lists.transform(pairs,valueGetter()).iterator();
+  return new AbstractIterator<Tuple>(){
+    private long index=0;
+    @Override protected Tuple computeNext(){
+      if (index >= getCount()) {
+        endOfData();
+        return null;
+      }
+      Slice row=slice.slice((int)(index * tupleInfo.size()),tupleInfo.size());
+      index++;
+      return new Tuple(row,tupleInfo);
+    }
+  }
+;
 }

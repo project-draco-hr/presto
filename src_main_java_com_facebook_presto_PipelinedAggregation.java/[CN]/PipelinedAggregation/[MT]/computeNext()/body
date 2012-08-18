@@ -3,9 +3,17 @@
     endOfData();
     return null;
   }
-  RunLengthEncodedBlock group=groupBySource.next();
-  AggregationFunction aggregationFunction=functionProvider.get();
-  AggregationUtil.processGroup(aggregationSource,aggregationFunction,group.getRange());
-  Object value=aggregationFunction.evaluate();
-  return new UncompressedValueBlock(group.getRange().lowerEndpoint(),new Tuple(group.getValue(),value));
+  BlockBuilder builder=new BlockBuilder(position,tupleInfo);
+  do {
+    RunLengthEncodedBlock group=groupBySource.next();
+    AggregationFunction aggregationFunction=functionProvider.get();
+    AggregationUtil.processGroup(aggregationSource,aggregationFunction,group.getRange());
+    Tuple value=aggregationFunction.evaluate();
+    builder.append(group.getValue());
+    builder.append(value);
+  }
+ while (!builder.isFull() && groupBySource.hasNext());
+  UncompressedValueBlock block=builder.build();
+  position+=block.getCount();
+  return block;
 }

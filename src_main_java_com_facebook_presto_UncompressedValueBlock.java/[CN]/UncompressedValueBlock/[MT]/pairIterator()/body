@@ -1,3 +1,16 @@
 {
-  return Iterators.peekingIterator(pairs.iterator());
+  return Iterators.peekingIterator(new AbstractIterator<Pair>(){
+    private long index=0;
+    @Override protected Pair computeNext(){
+      if (index >= getCount()) {
+        endOfData();
+        return null;
+      }
+      Slice row=slice.slice((int)(index * tupleInfo.size()),tupleInfo.size());
+      long position=index + range.lowerEndpoint();
+      index++;
+      return new Pair(position,new Tuple(row,tupleInfo));
+    }
+  }
+);
 }

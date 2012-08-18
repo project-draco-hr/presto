@@ -3,13 +3,17 @@
     endOfData();
     return null;
   }
-  List<Tuple> tuples=new ArrayList<>(TUPLES_PER_BLOCK);
-  while (tuples.size() < TUPLES_PER_BLOCK && Iterables.all(sources,hasNextPredicate())) {
-    ImmutableList.Builder<Object> builder=ImmutableList.builder();
-    for (    Iterator<Object> source : sources) {
-      builder.add(source.next());
+  BlockBuilder blockBuilder=new BlockBuilder(position,tupleInfo);
+  do {
+    for (    Iterator<Tuple> source : sources) {
+      blockBuilder.append(source.next());
     }
-    tuples.add(new Tuple(builder.build()));
+    if (blockBuilder.isFull()) {
+      break;
+    }
   }
-  return new UncompressedValueBlock(0,(List<?>)tuples);
+ while (Iterables.all(sources,hasNextPredicate()));
+  UncompressedValueBlock block=blockBuilder.build();
+  position+=block.getCount();
+  return block;
 }
