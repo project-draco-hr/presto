@@ -1,6 +1,14 @@
 {
   checkState(types.get(index) == VARIABLE_BINARY,"Expected VARIABLE_BINARY");
-  int start=slice.getShort(getOffset(index));
-  int end=slice.getShort(getOffset(index) + SIZE_OF_SHORT);
+  int start;
+  int end;
+  if (index == firstVariableLengthField) {
+    start=fixedSizePart;
+    end=slice.getShort(getOffset(secondVariableLengthField));
+  }
+ else {
+    start=slice.getShort(getOffset(index));
+    end=slice.getShort(getOffset(index) + SIZE_OF_SHORT);
+  }
   return slice.slice(start,end - start);
 }
