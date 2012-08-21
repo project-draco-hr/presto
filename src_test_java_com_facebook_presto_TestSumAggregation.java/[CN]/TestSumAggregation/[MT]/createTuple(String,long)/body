@@ -1,6 +1,5 @@
 {
-  byte[] bytes=key.getBytes(Charsets.UTF_8);
-  Slice slice=Slices.allocate(SIZE_OF_LONG + SIZE_OF_SHORT + bytes.length);
-  slice.output().appendLong(count).appendShort(10 + bytes.length).appendBytes(bytes);
-  return new Tuple(slice,new TupleInfo(VARIABLE_BINARY,FIXED_INT_64));
+  TupleInfo tupleInfo=new TupleInfo(VARIABLE_BINARY,FIXED_INT_64);
+  Tuple tuple=tupleInfo.builder().append(Slices.wrappedBuffer(key.getBytes(UTF_8))).append(count).build();
+  return tuple;
 }

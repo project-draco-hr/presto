@@ -14,9 +14,11 @@
   boolean hasVariableLengthFields=false;
   int firstVariableLengthField=-1;
   int secondVariableLengthField=-1;
+  int variableLengthFieldCount=0;
   for (int i=0; i < types.size(); i++) {
     Type type=types.get(i);
     if (!type.isFixedSize()) {
+      ++variableLengthFieldCount;
       offsets[i]=currentOffset;
       if (hasVariableLengthFields) {
         currentOffset+=SIZE_OF_SHORT;
@@ -43,5 +45,21 @@
   fixedSizePart=currentOffset + SIZE_OF_SHORT;
   this.firstVariableLengthField=firstVariableLengthField;
   this.secondVariableLengthField=secondVariableLengthField;
+  this.variableLengthFieldCount=variableLengthFieldCount;
   this.offsets=ImmutableList.copyOf(Ints.asList(offsets));
+  int variablePartOffset=0;
+  boolean isFirst=true;
+  for (  TupleInfo.Type type : getTypes()) {
+    if (!type.isFixedSize()) {
+      if (!isFirst) {
+        variablePartOffset+=SizeOf.SIZE_OF_SHORT;
+      }
+      isFirst=false;
+    }
+ else {
+      variablePartOffset+=type.getSize();
+    }
+  }
+  variablePartOffset+=SizeOf.SIZE_OF_SHORT;
+  this.variablePartOffset=variablePartOffset;
 }

@@ -1,23 +1,6 @@
 {
-  if (currentField < tupleInfo.getTypes().size()) {
-    return;
+  if (tupleBuilder.isComplete()) {
+    tupleBuilder.finish();
+    count++;
   }
-  boolean isFirst=true;
-  int offset=fixedPartSize;
-  for (  Slice field : variableLengthFields) {
-    if (!isFirst) {
-      sliceOutput.writeShort(offset);
-    }
-    offset+=field.length();
-    isFirst=false;
-  }
-  if (!variableLengthFields.isEmpty()) {
-    sliceOutput.writeShort(offset);
-  }
-  for (  Slice field : variableLengthFields) {
-    sliceOutput.writeBytes(field);
-  }
-  count++;
-  currentField=0;
-  variableLengthFields.clear();
 }

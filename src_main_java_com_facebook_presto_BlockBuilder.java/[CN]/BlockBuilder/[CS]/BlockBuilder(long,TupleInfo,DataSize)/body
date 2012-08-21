@@ -5,20 +5,5 @@
   this.tupleInfo=tupleInfo;
   maxBlockSize=(int)blockSize.toBytes();
   sliceOutput=new DynamicSliceOutput((int)blockSize.toBytes());
-  int fixedPartSize=0;
-  int variableLengthFieldCount=0;
-  for (  TupleInfo.Type type : tupleInfo.getTypes()) {
-    if (!type.isFixedSize()) {
-      if (variableLengthFieldCount > 0) {
-        fixedPartSize+=SizeOf.SIZE_OF_SHORT;
-      }
-      variableLengthFieldCount++;
-    }
- else {
-      fixedPartSize+=type.getSize();
-    }
-  }
-  fixedPartSize+=SizeOf.SIZE_OF_SHORT;
-  this.fixedPartSize=fixedPartSize;
-  variableLengthFields=new ArrayList<>(variableLengthFieldCount);
+  tupleBuilder=tupleInfo.builder(sliceOutput);
 }
