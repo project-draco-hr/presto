@@ -1,3 +1,8 @@
 {
-  return new UncompressedValueBlock(startPosition,tupleInfo,sliceOutput.slice());
+  flushTupleIfNecessary();
+  Preconditions.checkState(currentField == 0,"Last tuple is incomplete");
+  if (count == 0) {
+    return EmptyValueBlock.INSTANCE;
+  }
+  return new UncompressedValueBlock(Ranges.closed(startPosition,startPosition + count - 1),tupleInfo,sliceOutput.slice());
 }

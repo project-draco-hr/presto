@@ -1,0 +1,19 @@
+{
+  if (currentField < tupleInfo.getTypes().size()) {
+    return;
+  }
+  int offset=fixedPartSize;
+  for (  Slice field : variableLengthFields) {
+    sliceOutput.writeShort(offset);
+    offset+=field.length();
+  }
+  if (!variableLengthFields.isEmpty()) {
+    sliceOutput.writeShort(offset);
+  }
+  for (  Slice field : variableLengthFields) {
+    sliceOutput.writeBytes(field);
+  }
+  count++;
+  currentField=0;
+  variableLengthFields.clear();
+}

@@ -1,12 +1,12 @@
 {
   GroupBy groupBy=new GroupBy(newGroupColumn());
-  HashAggregation aggregation=new HashAggregation(new TupleInfo(SIZE_OF_BYTE,SIZE_OF_LONG),groupBy,new ForwardingSeekableIterator<>(newAggregateColumn()),new Provider<AggregationFunction>(){
+  HashAggregation aggregation=new HashAggregation(new TupleInfo(VARIABLE_BINARY,FIXED_INT_64),groupBy,new ForwardingSeekableIterator<>(newAggregateColumn()),new Provider<AggregationFunction>(){
     @Override public AggregationFunction get(){
       return new SumAggregation();
     }
   }
 );
-  Map<Object,Object> expected=ImmutableMap.<Object,Object>of("a",createTuple("a",10L),"b",createTuple("b",17L),"c",createTuple("c",15L),"d",createTuple("d",6L));
+  Map<Object,Object> expected=ImmutableMap.<Object,Object>of("apple",createTuple("apple",10L),"banana",createTuple("banana",17L),"cherry",createTuple("cherry",15L),"date",createTuple("date",6L));
   Map<Object,Object> actual=new HashMap<>();
   while (aggregation.hasNext()) {
     ValueBlock block=aggregation.next();
@@ -14,7 +14,7 @@
     while (pairs.hasNext()) {
       Pair pair=pairs.next();
       Tuple tuple=pair.getValue();
-      actual.put(tuple.getSlice(0).toString(Charsets.UTF_8),tuple);
+      actual.put(tuple.getSlice(0).toString(UTF_8),tuple);
     }
   }
   Assert.assertEquals(actual,expected);

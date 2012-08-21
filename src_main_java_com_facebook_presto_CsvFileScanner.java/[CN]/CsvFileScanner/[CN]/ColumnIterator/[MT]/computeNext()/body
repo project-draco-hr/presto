@@ -8,14 +8,19 @@
   do {
     Iterable<String> split=columnSplitter.split(line);
     String value=Iterables.get(split,columnIndex);
-    blockBuilder.append(Long.valueOf(value));
+    if (columnType == TupleInfo.Type.FIXED_INT_64) {
+      blockBuilder.append(Long.valueOf(value));
+    }
+ else {
+      blockBuilder.append(value.getBytes(UTF_8));
+    }
     if (blockBuilder.isFull()) {
       break;
     }
     line=nextLine();
   }
  while (line != null);
-  UncompressedValueBlock block=blockBuilder.build();
+  ValueBlock block=blockBuilder.build();
   position+=block.getCount();
   return block;
 }

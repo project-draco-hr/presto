@@ -1,0 +1,31 @@
+{
+  Preconditions.checkNotNull(types,"types is null");
+  Preconditions.checkArgument(!types.isEmpty(),"types is empty");
+  this.types=ImmutableList.copyOf(types);
+  int[] offsets=new int[types.size() + 1];
+  int currentOffset=0;
+  for (int i=0; i < types.size(); i++) {
+    Type type=types.get(i);
+    if (type.isFixedSize()) {
+      offsets[i]=currentOffset;
+      currentOffset+=type.getSize();
+    }
+  }
+  boolean hasVariableLengthFields=false;
+  for (int i=0; i < types.size(); i++) {
+    Type type=types.get(i);
+    if (!type.isFixedSize()) {
+      hasVariableLengthFields=true;
+      offsets[i]=currentOffset;
+      currentOffset+=SIZE_OF_SHORT;
+    }
+  }
+  offsets[offsets.length - 1]=currentOffset;
+  if (hasVariableLengthFields) {
+    size=-1;
+  }
+ else {
+    size=currentOffset;
+  }
+  this.offsets=ImmutableList.copyOf(Ints.asList(offsets));
+}

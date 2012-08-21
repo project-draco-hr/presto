@@ -1,12 +1,16 @@
 {
   return Iterators.peekingIterator(new AbstractIterator<Pair>(){
+    private int currentOffset=0;
     private long index=0;
     @Override protected Pair computeNext(){
       if (index >= getCount()) {
         endOfData();
         return null;
       }
-      Slice row=slice.slice((int)(index * tupleInfo.size()),tupleInfo.size());
+      Slice currentPositionToEnd=slice.slice(currentOffset,slice.length() - currentOffset);
+      int size=tupleInfo.size(currentPositionToEnd);
+      currentOffset+=size;
+      Slice row=currentPositionToEnd.slice(0,size);
       long position=index + range.lowerEndpoint();
       index++;
       return new Pair(position,new Tuple(row,tupleInfo));

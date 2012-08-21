@@ -1,17 +1,22 @@
 {
-  List<Long> indexes=new ArrayList<>();
+  Set<Integer> indexes=new HashSet<>();
   for (  long position : positions.getPositions()) {
     if (range.contains(position)) {
-      indexes.add(position - range.lowerEndpoint());
+      indexes.add((int)(position - range.lowerEndpoint()));
     }
   }
   if (indexes.isEmpty()) {
-    return new EmptyValueBlock();
+    return EmptyValueBlock.INSTANCE;
   }
-  Slice newSlice=Slices.allocate(indexes.size() * tupleInfo.size());
-  SliceOutput sliceOutput=newSlice.output();
-  for (  long index : indexes) {
-    sliceOutput.writeBytes(slice,(int)(index * tupleInfo.size()),tupleInfo.size());
+  DynamicSliceOutput sliceOutput=new DynamicSliceOutput(1024);
+  int currentOffset=0;
+  for (int index=0; index < getCount(); ++index) {
+    Slice currentPositionToEnd=slice.slice(currentOffset,slice.length() - currentOffset);
+    int size=tupleInfo.size(currentPositionToEnd);
+    if (indexes.contains(index)) {
+      sliceOutput.writeBytes(slice,currentOffset,size);
+    }
+    currentOffset+=size;
   }
-  return new UncompressedValueBlock(0,tupleInfo,newSlice);
+  return new UncompressedValueBlock(Ranges.closed(0L,(long)indexes.size() - 1),tupleInfo,sliceOutput.slice());
 }

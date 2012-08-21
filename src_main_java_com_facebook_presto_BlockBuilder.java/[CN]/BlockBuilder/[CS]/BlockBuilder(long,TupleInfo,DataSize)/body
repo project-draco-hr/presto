@@ -1,8 +1,22 @@
 {
-  Preconditions.checkArgument(startPosition >= 0,"startPosition is negative");
-  Preconditions.checkNotNull(blockSize,"blockSize is null");
+  checkArgument(startPosition >= 0,"startPosition is negative");
+  checkNotNull(blockSize,"blockSize is null");
   this.startPosition=startPosition;
   this.tupleInfo=tupleInfo;
   maxBlockSize=(int)blockSize.toBytes();
   sliceOutput=new DynamicSliceOutput((int)blockSize.toBytes());
+  int fixedPartSize=0;
+  int variableLengthFieldCount=0;
+  for (  TupleInfo.Type type : tupleInfo.getTypes()) {
+    if (!type.isFixedSize()) {
+      variableLengthFieldCount++;
+      fixedPartSize+=SizeOf.SIZE_OF_SHORT;
+    }
+ else {
+      fixedPartSize+=type.getSize();
+    }
+  }
+  fixedPartSize+=SizeOf.SIZE_OF_SHORT;
+  this.fixedPartSize=fixedPartSize;
+  variableLengthFields=new ArrayList<>(variableLengthFieldCount);
 }

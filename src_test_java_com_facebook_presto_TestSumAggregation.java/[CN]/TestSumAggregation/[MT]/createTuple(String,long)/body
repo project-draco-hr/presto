@@ -1,6 +1,6 @@
 {
-  Slice slice=Slices.allocate(SIZE_OF_BYTE + SIZE_OF_LONG);
-  slice.setByte(0,character.charAt(0));
-  slice.setLong(1,count);
-  return new Tuple(slice,new TupleInfo(SIZE_OF_BYTE,SIZE_OF_LONG));
+  byte[] bytes=key.getBytes(Charsets.UTF_8);
+  Slice slice=Slices.allocate(SIZE_OF_LONG + SIZE_OF_SHORT + SIZE_OF_SHORT+ bytes.length);
+  slice.output().appendLong(count).appendShort(12).appendShort(12 + bytes.length).appendBytes(bytes);
+  return new Tuple(slice,new TupleInfo(VARIABLE_BINARY,FIXED_INT_64));
 }
