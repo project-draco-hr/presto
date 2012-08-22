@@ -1,0 +1,14 @@
+{
+  ValueBlock valueBlock=createBlock(10,"alice","bob","charlie","david","eric","frank","greg","hank","ian","jenny");
+  ValueBlock tuples=MaskedValueBlock.maskBlock(valueBlock,new UncompressedPositionBlock(8,10,12,14,16,100));
+  assertFalse(tuples.isEmpty());
+  assertEquals(tuples.getCount(),4);
+  assertEquals(ImmutableList.copyOf(tuples.getPositions()),ImmutableList.of(10L,12L,14L,16L));
+  assertEquals(tuples.getRange(),Ranges.closed(10L,16L));
+  assertFalse(tuples.isPositionsContiguous());
+  assertFalse(tuples.isSingleValue());
+  assertFalse(tuples.isSorted());
+  assertEquals(ImmutableList.copyOf(tuples.iterator()),ImmutableList.of(createTuple("alice"),createTuple("charlie"),createTuple("eric"),createTuple("greg")));
+  assertEquals(ImmutableList.copyOf(tuples.pairIterator()),ImmutableList.of(new Pair(10,createTuple("alice")),new Pair(12,createTuple("charlie")),new Pair(14,createTuple("eric")),new Pair(16,createTuple("greg"))));
+  assertEquals(ImmutableList.copyOf(tuples.filter(new UncompressedPositionBlock(12,16)).pairIterator()),ImmutableList.of(new Pair(12,createTuple("charlie")),new Pair(16,createTuple("greg"))));
+}

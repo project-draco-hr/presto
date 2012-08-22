@@ -1,0 +1,21 @@
+{
+  if (positions.isEmpty()) {
+    return EmptyValueBlock.INSTANCE;
+  }
+  Range<Long> intersection=valueBlock.getRange().intersection(positions.getRange());
+  if (intersection.isEmpty()) {
+    return EmptyValueBlock.INSTANCE;
+  }
+  if (valueBlock.isSingleValue() && positions.isPositionsContiguous()) {
+    Tuple value=valueBlock.iterator().next();
+    return new RunLengthEncodedBlock(value,intersection);
+  }
+  PositionBlock newPositionBlock;
+  if (valueBlock.isPositionsContiguous()) {
+    newPositionBlock=positions.filter(new RangePositionBlock(valueBlock.getRange()));
+  }
+ else {
+    newPositionBlock=positions.filter(valueBlock.toPositionBlock());
+  }
+  return new MaskedValueBlock(valueBlock,newPositionBlock);
+}

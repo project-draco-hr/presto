@@ -1,0 +1,22 @@
+{
+  if (positionBlock.isEmpty()) {
+    return positionBlock;
+  }
+  if (positionBlock.isPositionsContiguous()) {
+    Range<Long> intersection=range.intersection(positionBlock.getRange());
+    if (intersection.isEmpty()) {
+      return EmptyPositionBlock.INSTANCE;
+    }
+    return new RangePositionBlock(intersection);
+  }
+  ImmutableList.Builder<Long> builder=ImmutableList.builder();
+  for (  Long position : positionBlock.getPositions()) {
+    if (this.apply(position)) {
+      builder.add(position);
+    }
+  }
+  if (positionBlock.isEmpty()) {
+    return EmptyPositionBlock.INSTANCE;
+  }
+  return new UncompressedPositionBlock(builder.build());
+}

@@ -1,0 +1,18 @@
+{
+  ValueBlock valueBlock=new RunLengthEncodedBlock(createTuple("run"),Ranges.closed(10L,19L));
+  ValueBlock tuples=MaskedValueBlock.maskBlock(valueBlock,new RangePositionBlock(Ranges.closed(12L,15L)));
+  assertFalse(tuples.isEmpty());
+  assertEquals(tuples.getCount(),4);
+  assertEquals(ImmutableList.copyOf(tuples.getPositions()),ImmutableList.of(12L,13L,14L,15L));
+  assertEquals(tuples.getRange(),Ranges.closed(12L,15L));
+  assertTrue(tuples.isPositionsContiguous());
+  assertTrue(tuples.isSingleValue());
+  assertTrue(tuples.isSorted());
+  assertEquals(ImmutableList.copyOf(tuples.iterator()),ImmutableList.of(createTuple("run"),createTuple("run"),createTuple("run"),createTuple("run")));
+  assertEquals(ImmutableList.copyOf(tuples.pairIterator()),ImmutableList.of(new Pair(12,createTuple("run")),new Pair(13,createTuple("run")),new Pair(14,createTuple("run")),new Pair(15,createTuple("run"))));
+  ValueBlock secondFilter=tuples.filter(new UncompressedPositionBlock(13,15));
+  assertFalse(secondFilter.isPositionsContiguous());
+  assertTrue(secondFilter.isSingleValue());
+  assertTrue(secondFilter.isSorted());
+  assertEquals(ImmutableList.copyOf(secondFilter.pairIterator()),ImmutableList.of(new Pair(13,createTuple("run")),new Pair(15,createTuple("run"))));
+}

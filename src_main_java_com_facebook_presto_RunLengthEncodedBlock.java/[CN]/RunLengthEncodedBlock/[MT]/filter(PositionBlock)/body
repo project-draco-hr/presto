@@ -1,17 +1,3 @@
 {
-  int matches=0;
-  for (  long position : positions.getPositions()) {
-    if (range.contains(position)) {
-      matches++;
-    }
-  }
-  if (matches == 0) {
-    return EmptyValueBlock.INSTANCE;
-  }
-  Slice newSlice=Slices.allocate(matches * value.size());
-  SliceOutput sliceOutput=newSlice.output();
-  for (int i=0; i < matches; i++) {
-    value.writeTo(sliceOutput);
-  }
-  return new UncompressedValueBlock(Ranges.closed(0L,(long)matches),value.getTupleInfo(),newSlice);
+  return MaskedValueBlock.maskBlock(this,positions);
 }
