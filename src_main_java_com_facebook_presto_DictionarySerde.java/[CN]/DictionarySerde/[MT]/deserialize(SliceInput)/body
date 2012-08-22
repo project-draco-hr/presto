@@ -1,0 +1,27 @@
+{
+  int totalBytes=sliceInput.available();
+  sliceInput.skipBytes(totalBytes - SizeOf.SIZE_OF_INT);
+  int idMapByteLength=sliceInput.readInt();
+  sliceInput.setPosition(totalBytes - idMapByteLength - SizeOf.SIZE_OF_INT);
+  Footer footer=Footer.deserialize(sliceInput.readSlice(idMapByteLength).input());
+  final Map<Long,Slice> idMap=footer.getIdMap();
+  sliceInput.setPosition(0);
+  final SliceInput paylodSliceInput=sliceInput.readSlice(totalBytes - idMapByteLength - SizeOf.SIZE_OF_INT).input();
+  return new Iterable<Slice>(){
+    @Override public Iterator<Slice> iterator(){
+      return new AbstractIterator<Slice>(){
+        Iterator<Long> iterator=PackedLongSerde.deserialize(paylodSliceInput).iterator();
+        @Override protected Slice computeNext(){
+          if (!iterator.hasNext()) {
+            return endOfData();
+          }
+          Slice slice=idMap.get(iterator.next());
+          Preconditions.checkNotNull(slice,"Missing entry in dictionary");
+          return slice;
+        }
+      }
+;
+    }
+  }
+;
+}

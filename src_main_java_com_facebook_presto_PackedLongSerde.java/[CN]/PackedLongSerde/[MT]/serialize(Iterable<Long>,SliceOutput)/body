@@ -1,0 +1,25 @@
+{
+  int packCapacity=Long.SIZE / bitWidth;
+  long mask=(~0L) >>> (Long.SIZE - bitWidth);
+  int itemCount=0;
+  Iterator<Long> iter=items.iterator();
+  while (iter.hasNext()) {
+    long pack=0;
+    boolean packUsed=false;
+    for (int idx=0; idx < packCapacity; idx++) {
+      if (!iter.hasNext()) {
+        break;
+      }
+      long rawValue=iter.next();
+      Preconditions.checkArgument(allowedRange.contains(rawValue),"Provided value does not fit into bitspace");
+      long maskedValue=rawValue & mask;
+      itemCount++;
+      pack|=maskedValue << (bitWidth * idx);
+      packUsed=true;
+    }
+    if (packUsed) {
+      sliceOutput.writeLong(pack);
+    }
+  }
+  new Footer(itemCount,bitWidth).serialize(sliceOutput);
+}
