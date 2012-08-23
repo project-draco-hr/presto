@@ -1,0 +1,12 @@
+{
+  if (!sliceInput.isReadable()) {
+    endOfData();
+    return null;
+  }
+  int blockSize=sliceInput.readInt();
+  int tupleCount=sliceInput.readInt();
+  Range range=Range.create(position,position + tupleCount - 1);
+  position+=tupleCount;
+  Slice block=sliceInput.readSlice(blockSize);
+  return new UncompressedValueBlock(range,tupleInfo,block);
+}
