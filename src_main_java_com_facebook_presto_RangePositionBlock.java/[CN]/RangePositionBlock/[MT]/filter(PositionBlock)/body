@@ -1,12 +1,9 @@
 {
-  if (positionBlock.isEmpty()) {
-    return positionBlock;
-  }
   if (positionBlock.isPositionsContiguous()) {
     if (!range.overlaps(positionBlock.getRange())) {
-      return EmptyPositionBlock.INSTANCE;
+      return Optional.absent();
     }
-    return new RangePositionBlock(range.intersect(positionBlock.getRange()));
+    return Optional.<PositionBlock>of(new RangePositionBlock(range.intersect(positionBlock.getRange())));
   }
   ImmutableList.Builder<Long> builder=ImmutableList.builder();
   for (  Long position : positionBlock.getPositions()) {
@@ -14,8 +11,5 @@
       builder.add(position);
     }
   }
-  if (positionBlock.isEmpty()) {
-    return EmptyPositionBlock.INSTANCE;
-  }
-  return new UncompressedPositionBlock(builder.build());
+  return Optional.<PositionBlock>of(new UncompressedPositionBlock(builder.build()));
 }

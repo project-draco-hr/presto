@@ -1,10 +1,7 @@
 {
-  if (positions.isEmpty()) {
-    return EmptyValueBlock.INSTANCE;
+  Optional<PositionBlock> activePositions=positionBlock.filter(positions);
+  if (!activePositions.isPresent()) {
+    return Optional.absent();
   }
-  PositionBlock activePositions=positionBlock.filter(positions);
-  if (activePositions.isEmpty()) {
-    return EmptyValueBlock.INSTANCE;
-  }
-  return new MaskedValueBlock(valueBlock,activePositions);
+  return Optional.<ValueBlock>of(new MaskedValueBlock(valueBlock,activePositions.get()));
 }

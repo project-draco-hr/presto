@@ -1,21 +1,21 @@
 {
-  if (positions.isEmpty()) {
-    return EmptyValueBlock.INSTANCE;
-  }
   if (!valueBlock.getRange().overlaps(positions.getRange())) {
-    return EmptyValueBlock.INSTANCE;
+    return Optional.absent();
   }
   Range intersection=valueBlock.getRange().intersect(positions.getRange());
   if (valueBlock.isSingleValue() && positions.isPositionsContiguous()) {
     Tuple value=valueBlock.iterator().next();
-    return new RunLengthEncodedBlock(value,intersection);
+    return Optional.<ValueBlock>of(new RunLengthEncodedBlock(value,intersection));
   }
-  PositionBlock newPositionBlock;
+  Optional<PositionBlock> newPositionBlock;
   if (valueBlock.isPositionsContiguous()) {
     newPositionBlock=positions.filter(new RangePositionBlock(valueBlock.getRange()));
   }
  else {
     newPositionBlock=positions.filter(valueBlock.toPositionBlock());
   }
-  return new MaskedValueBlock(valueBlock,newPositionBlock);
+  if (newPositionBlock.isPresent()) {
+    return Optional.<ValueBlock>of(new MaskedValueBlock(valueBlock,newPositionBlock.get()));
+  }
+  return Optional.absent();
 }
