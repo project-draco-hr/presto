@@ -3,11 +3,10 @@
     return positionBlock;
   }
   if (positionBlock.isPositionsContiguous()) {
-    Range<Long> intersection=range.intersection(positionBlock.getRange());
-    if (intersection.isEmpty()) {
+    if (!range.overlaps(positionBlock.getRange())) {
       return EmptyPositionBlock.INSTANCE;
     }
-    return new RangePositionBlock(intersection);
+    return new RangePositionBlock(range.intersect(positionBlock.getRange()));
   }
   ImmutableList.Builder<Long> builder=ImmutableList.builder();
   for (  Long position : positionBlock.getPositions()) {
