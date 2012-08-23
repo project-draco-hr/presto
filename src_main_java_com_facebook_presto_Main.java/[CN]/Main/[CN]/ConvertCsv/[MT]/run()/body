@@ -1,0 +1,32 @@
+{
+  Preconditions.checkArgument(types != null && !types.isEmpty(),"Type is required");
+  File dir=new File(outputDir);
+  ImmutableList.Builder<ColumnProcessor> processors=ImmutableList.builder();
+  int index=0;
+  for (  String type : types) {
+    File file=new File(dir,"column" + index++ + ".data");
+switch (type) {
+case "long":
+      processors.add(new UncompressedColumnWriter(newCreateDirectoryOutputStreamSupplier(file),FIXED_INT_64));
+    break;
+case "string":
+  processors.add(new UncompressedColumnWriter(newCreateDirectoryOutputStreamSupplier(file),VARIABLE_BINARY));
+break;
+default :
+throw new IllegalArgumentException("Unsupported type " + type);
+}
+}
+InputSupplier<InputStreamReader> inputSupplier;
+if (csvFile != null) {
+inputSupplier=Files.newReaderSupplier(new File(csvFile),Charsets.UTF_8);
+}
+ else {
+inputSupplier=new InputSupplier<InputStreamReader>(){
+public InputStreamReader getInput(){
+return new InputStreamReader(System.in,Charsets.UTF_8);
+}
+}
+;
+}
+Csv.processCsv(inputSupplier,columnSeparator,processors.build());
+}
