@@ -1,6 +1,6 @@
 {
-  Preconditions.checkArgument(sliceInput.available() >= Footer.BYTE_SIZE,"sliceInput not large enough to read a footer");
-  Preconditions.checkArgument((sliceInput.available() - Footer.BYTE_SIZE) % (SizeOf.SIZE_OF_LONG) == 0,"sliceInput byte alignment incorrect");
+  checkArgument(sliceInput.available() >= Footer.BYTE_SIZE,"sliceInput not large enough to read a footer");
+  checkArgument((sliceInput.available() - Footer.BYTE_SIZE) % (SizeOf.SIZE_OF_LONG) == 0,"sliceInput byte alignment incorrect");
   int totalBytes=sliceInput.available();
   sliceInput.skipBytes(totalBytes - Footer.BYTE_SIZE);
   final Footer footer=Footer.deserialize(sliceInput.readSlice(Footer.BYTE_SIZE).input());
@@ -9,19 +9,19 @@
   return new Iterable<Long>(){
     @Override public Iterator<Long> iterator(){
       return new AbstractIterator<Long>(){
-        int itemIdx=0;
-        int packInternalIdx=0;
-        long packValue=0;
+        private int itemIndex=0;
+        private int packInternalIndex=0;
+        private long packValue=0;
         @Override protected Long computeNext(){
-          if (itemIdx >= footer.getItemCount()) {
+          if (itemIndex >= footer.getItemCount()) {
             return endOfData();
           }
-          if (packInternalIdx == 0) {
+          if (packInternalIndex == 0) {
             packValue=sliceInput.readLong();
           }
-          long value=(packValue << (Long.SIZE - ((packInternalIdx + 1) * footer.getBitWidth()))) >> (Long.SIZE - footer.getBitWidth());
-          itemIdx++;
-          packInternalIdx=(packInternalIdx + 1) % packCapacity;
+          long value=(packValue << (Long.SIZE - ((packInternalIndex + 1) * footer.getBitWidth()))) >> (Long.SIZE - footer.getBitWidth());
+          itemIndex++;
+          packInternalIndex=(packInternalIndex + 1) % packCapacity;
           return value;
         }
       }

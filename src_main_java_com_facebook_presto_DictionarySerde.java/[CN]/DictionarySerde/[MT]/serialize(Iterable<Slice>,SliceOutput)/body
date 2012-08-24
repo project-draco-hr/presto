@@ -1,26 +1,21 @@
 {
   final BiMap<Slice,Long> idMap=HashBiMap.create();
-  PackedLongSerde packedLongSerde=new PackedLongSerde(reqBitSpace);
+  PackedLongSerde packedLongSerde=new PackedLongSerde(requiredBitSpace);
   packedLongSerde.serialize(new Iterable<Long>(){
     @Override public Iterator<Long> iterator(){
-      return new AbstractIterator<Long>(){
-        Iterator<Slice> sliceIterator=slices.iterator();
-        long nextId=-1L << (reqBitSpace - 1);
-        @Override protected Long computeNext(){
-          if (!sliceIterator.hasNext()) {
-            return endOfData();
-          }
-          Slice slice=sliceIterator.next();
-          Long id=idMap.get(slice);
+      return Iterators.transform(slices.iterator(),new Function<Slice,Long>(){
+        long nextId=-1L << (requiredBitSpace - 1);
+        @Override public Long apply(        Slice input){
+          Long id=idMap.get(input);
           if (id == null) {
             id=nextId;
             nextId++;
-            idMap.put(slice,id);
+            idMap.put(input,id);
           }
           return id;
         }
       }
-;
+);
     }
   }
 ,sliceOutput);
