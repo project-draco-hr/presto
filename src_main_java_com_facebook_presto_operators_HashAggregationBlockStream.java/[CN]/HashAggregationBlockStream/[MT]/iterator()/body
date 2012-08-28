@@ -1,0 +1,40 @@
+{
+  final Iterator<RunLengthEncodedBlock> groupByIterator=groupBySource.iterator();
+  final Cursor aggregationCursor=aggregationSource.cursor();
+  aggregationCursor.advanceNextPosition();
+  return new AbstractIterator<UncompressedValueBlock>(){
+    private Iterator<Entry<Tuple,AggregationFunction>> aggregations;
+    private long position;
+    @Override protected UncompressedValueBlock computeNext(){
+      if (aggregations == null) {
+        Map<Tuple,AggregationFunction> aggregationMap=new HashMap<>();
+        while (groupByIterator.hasNext()) {
+          RunLengthEncodedBlock group=groupByIterator.next();
+          AggregationFunction aggregation=aggregationMap.get(group.getValue());
+          if (aggregation == null) {
+            aggregation=functionProvider.get();
+            aggregationMap.put(group.getValue(),aggregation);
+          }
+          aggregation.add(aggregationCursor,group.getRange());
+        }
+        this.aggregations=aggregationMap.entrySet().iterator();
+      }
+      if (!aggregations.hasNext()) {
+        endOfData();
+        return null;
+      }
+      BlockBuilder blockBuilder=new BlockBuilder(position,info);
+      while (!blockBuilder.isFull() && aggregations.hasNext()) {
+        Entry<Tuple,AggregationFunction> aggregation=aggregations.next();
+        Tuple key=aggregation.getKey();
+        Tuple value=aggregation.getValue().evaluate();
+        blockBuilder.append(key);
+        blockBuilder.append(value);
+      }
+      UncompressedValueBlock block=blockBuilder.build();
+      position+=block.getCount();
+      return block;
+    }
+  }
+;
+}
