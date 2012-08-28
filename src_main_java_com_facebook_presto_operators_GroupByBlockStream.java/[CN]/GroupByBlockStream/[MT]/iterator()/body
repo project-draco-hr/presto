@@ -1,0 +1,26 @@
+{
+  final Cursor cursor=source.cursor();
+  cursor.advanceNextValue();
+  return new AbstractIterator<RunLengthEncodedBlock>(){
+    @Override protected RunLengthEncodedBlock computeNext(){
+      if (!cursor.hasNextValue()) {
+        endOfData();
+        return null;
+      }
+      Slice key=cursor.getSlice(0);
+      long startPosition=cursor.getPosition();
+      if (!cursor.hasNextValue()) {
+        Range range=Range.create(startPosition,startPosition);
+        return new RunLengthEncodedBlock(new Tuple(key,getTupleInfo()),range);
+      }
+      do {
+        cursor.advanceNextValue();
+      }
+ while (cursor.equals(0,key) && cursor.hasNextValue());
+      long endPosition=cursor.getPosition() - 1;
+      Range range=Range.create(startPosition,endPosition);
+      return new RunLengthEncodedBlock(new Tuple(key,getTupleInfo()),range);
+    }
+  }
+;
+}
