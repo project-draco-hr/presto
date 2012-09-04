@@ -1,20 +1,14 @@
 {
-  GroupBy groupBy=new GroupBy(newGroupColumn());
-  PipelinedAggregation aggregation=new PipelinedAggregation(new TupleInfo(VARIABLE_BINARY,FIXED_INT_64),groupBy,new ForwardingSeekableIterator<>(newAggregateColumn()),new Provider<AggregationFunction>(){
-    @Override public AggregationFunction get(){
-      return new SumAggregation();
-    }
-  }
-);
+  GroupByBlockStream groupBy=new GroupByBlockStream(newGroupColumn());
+  PipelinedAggregationBlockStream aggregation=new PipelinedAggregationBlockStream(groupBy,newAggregateColumn(),SumAggregation.PROVIDER);
   List<Pair> expected=ImmutableList.of(new Pair(0,createTuple("apple",10L)),new Pair(1,createTuple("banana",17L)),new Pair(2,createTuple("cherry",15L)),new Pair(3,createTuple("date",6L)));
   List<Pair> actual=new ArrayList<>();
-  while (aggregation.hasNext()) {
-    ValueBlock block=aggregation.next();
-    PeekingIterator<Pair> pairs=block.pairIterator();
-    while (pairs.hasNext()) {
-      Pair pair=pairs.next();
-      actual.add(pair);
-    }
+  Cursor cursor=aggregation.cursor();
+  while (cursor.hasNextValue()) {
+    cursor.advanceNextValue();
+    long position=cursor.getPosition();
+    Tuple tuple=cursor.getTuple();
+    actual.add(new Pair(position,tuple));
   }
   Assert.assertEquals(actual,expected);
 }

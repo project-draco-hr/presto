@@ -1,21 +1,14 @@
 {
-  GroupBy groupBy=new GroupBy(newGroupColumn());
-  HashAggregation aggregation=new HashAggregation(new TupleInfo(VARIABLE_BINARY,FIXED_INT_64),groupBy,new ForwardingSeekableIterator<>(newAggregateColumn()),new Provider<AggregationFunction>(){
-    @Override public AggregationFunction get(){
-      return new SumAggregation();
-    }
-  }
-);
+  GroupByBlockStream groupBy=new GroupByBlockStream(newGroupColumn());
+  HashAggregationBlockStream aggregation=new HashAggregationBlockStream(groupBy,newAggregateColumn(),SumAggregation.PROVIDER);
   Map<Object,Object> expected=ImmutableMap.<Object,Object>of("apple",createTuple("apple",10L),"banana",createTuple("banana",17L),"cherry",createTuple("cherry",15L),"date",createTuple("date",6L));
   Map<Object,Object> actual=new HashMap<>();
-  while (aggregation.hasNext()) {
-    ValueBlock block=aggregation.next();
-    PeekingIterator<Pair> pairs=block.pairIterator();
-    while (pairs.hasNext()) {
-      Pair pair=pairs.next();
-      Tuple tuple=pair.getValue();
-      actual.put(tuple.getSlice(0).toString(UTF_8),tuple);
-    }
+  Cursor cursor=aggregation.cursor();
+  while (cursor.hasNextValue()) {
+    cursor.advanceNextValue();
+    Tuple tuple=cursor.getTuple();
+    String key=tuple.getSlice(0).toString(UTF_8);
+    actual.put(key,tuple);
   }
   Assert.assertEquals(actual,expected);
 }

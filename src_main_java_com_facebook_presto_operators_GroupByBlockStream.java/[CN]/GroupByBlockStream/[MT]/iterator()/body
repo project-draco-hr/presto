@@ -3,23 +3,32 @@
   cursor.advanceNextValue();
   return new AbstractIterator<RunLengthEncodedBlock>(){
     @Override protected RunLengthEncodedBlock computeNext(){
-      if (!cursor.hasNextValue()) {
+      if (done) {
         endOfData();
         return null;
       }
       Tuple key=cursor.getTuple();
       long startPosition=cursor.getPosition();
       if (!cursor.hasNextValue()) {
+        done=true;
         Range range=Range.create(startPosition,startPosition);
         return new RunLengthEncodedBlock(key,range);
       }
+      long lastPosition;
       do {
+        lastPosition=cursor.getPosition();
         cursor.advanceNextValue();
       }
  while (cursor.equals(key) && cursor.hasNextValue());
-      long endPosition=cursor.getPosition() - 1;
-      Range range=Range.create(startPosition,endPosition);
-      return new RunLengthEncodedBlock(key,range);
+      if (cursor.equals(key) && !cursor.hasNextValue()) {
+        done=true;
+        Range range=Range.create(startPosition,cursor.getPosition());
+        return new RunLengthEncodedBlock(key,range);
+      }
+ else {
+        Range range=Range.create(startPosition,lastPosition);
+        return new RunLengthEncodedBlock(key,range);
+      }
     }
   }
 ;
