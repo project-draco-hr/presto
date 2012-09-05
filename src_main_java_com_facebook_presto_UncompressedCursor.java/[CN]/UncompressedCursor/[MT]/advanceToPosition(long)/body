@@ -1,0 +1,35 @@
+{
+  Preconditions.checkArgument(blockForCurrentValue == null || position >= getPosition(),"Can't advance backwards");
+  if (blockForCurrentValue != null && position == getPosition()) {
+    return;
+  }
+  if (blockForNextValue == null) {
+    throw new NoSuchElementException();
+  }
+  if (position > blockForNextValue.getRange().getEnd()) {
+    do {
+      blockForNextValue=iterator.next();
+    }
+ while (position > blockForNextValue.getRange().getEnd());
+    nextBlockIndex=0;
+    nextOffset=0;
+    nextSize=info.size(blockForNextValue.getSlice(),nextOffset);
+  }
+  while (blockForNextValue.getRange().getStart() + nextBlockIndex < position) {
+    nextBlockIndex++;
+    nextOffset+=nextSize;
+    nextSize=info.size(blockForNextValue.getSlice(),nextOffset);
+  }
+  blockForCurrentValue=blockForNextValue;
+  currentBlockIndex=nextBlockIndex;
+  currentOffset=nextOffset;
+  currentSize=nextSize;
+  if (nextBlockIndex < blockForNextValue.getCount() - 1) {
+    nextBlockIndex++;
+    nextOffset=currentOffset + currentSize;
+    nextSize=info.size(blockForNextValue.getSlice(),nextOffset);
+  }
+ else {
+    moveToNextBlock();
+  }
+}
