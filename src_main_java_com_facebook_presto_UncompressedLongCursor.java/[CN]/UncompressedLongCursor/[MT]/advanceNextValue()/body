@@ -1,14 +1,17 @@
 {
-  if (currentBlock == null || index >= currentBlock.getCount() - 1) {
-    currentBlock=iterator.next();
-    index=0;
-    offset=0;
+  if (nextBlock == null) {
+    throw new NoSuchElementException();
   }
- else   if (index < currentBlock.getCount() - 1) {
-    index++;
-    offset+=SIZE_OF_LONG;
+  currentBlock=nextBlock;
+  currentBlockIndex=nextBlockIndex;
+  currentOffset=nextOffset;
+  if (nextBlock != null && nextBlockIndex < nextBlock.getCount() - 1) {
+    nextBlock=currentBlock;
+    nextBlockIndex++;
+    nextOffset+=SIZE_OF_LONG;
   }
  else {
-    throw new NoSuchElementException();
+    iterator.next();
+    moveToNextValue();
   }
 }
