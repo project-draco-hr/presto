@@ -1,0 +1,20 @@
+{
+  if (done) {
+    return endOfData();
+  }
+  BlockBuilder blockBuilder=new BlockBuilder(position,tupleInfo);
+  BasicRowBuilder rowBuilder=new BasicRowBuilder(blockBuilder);
+  do {
+    if (!rowGenerator.generate(rowBuilder)) {
+      done=true;
+      if (blockBuilder.isEmpty()) {
+        return endOfData();
+      }
+      break;
+    }
+  }
+ while (!blockBuilder.isFull());
+  UncompressedValueBlock block=blockBuilder.build();
+  position+=block.getCount();
+  return block;
+}

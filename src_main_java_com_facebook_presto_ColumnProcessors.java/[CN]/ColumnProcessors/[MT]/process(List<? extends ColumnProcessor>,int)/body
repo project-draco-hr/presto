@@ -1,0 +1,15 @@
+{
+  checkNotNull(processors,"processors is null");
+  long end=0;
+  while (true) {
+    end=Math.min(end + batchSize,Integer.MAX_VALUE);
+    boolean moreData=false;
+    for (    ColumnProcessor processor : processors) {
+      moreData|=processor.processPositions(end);
+    }
+    if (!moreData) {
+      return;
+    }
+    checkState(end < Integer.MAX_VALUE,"processor should be complete");
+  }
+}
