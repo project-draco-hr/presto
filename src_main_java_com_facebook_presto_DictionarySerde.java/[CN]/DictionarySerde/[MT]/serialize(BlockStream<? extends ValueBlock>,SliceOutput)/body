@@ -1,0 +1,29 @@
+{
+  checkNotNull(blockStream,"blockStream is null");
+  checkNotNull(sliceOutput,"sliceOutput is null");
+  checkArgument(blockStream.getTupleInfo().getFieldCount() == 1,"Can only dictionary encode single columns");
+  final BiMap<Slice,Integer> idMap=HashBiMap.create();
+  idSerde.serialize(new UncompressedBlockStream(blockStream.getTupleInfo(),Iterables.transform(blockStream,new Function<ValueBlock,UncompressedValueBlock>(){
+    int nextId=0;
+    @Override public UncompressedValueBlock apply(    ValueBlock input){
+      BlockBuilder blockBuilder=new BlockBuilder(input.getRange().getStart(),TupleInfo.SINGLE_LONG_TUPLEINFO);
+      for (      Tuple tuple : input) {
+        Integer id=idMap.get(tuple.getTupleSlice());
+        if (id == null) {
+          id=nextId;
+          nextId++;
+          idMap.put(tuple.getTupleSlice(),id);
+        }
+        blockBuilder.append((long)id);
+      }
+      return blockBuilder.build();
+    }
+  }
+)),sliceOutput);
+  Slice[] dictionary=new Slice[idMap.size()];
+  for (  Map.Entry<Integer,Slice> entry : idMap.inverse().entrySet()) {
+    dictionary[entry.getKey()]=entry.getValue();
+  }
+  int footerBytes=new Footer(blockStream.getTupleInfo(),dictionary).serialize(sliceOutput);
+  sliceOutput.writeInt(footerBytes);
+}

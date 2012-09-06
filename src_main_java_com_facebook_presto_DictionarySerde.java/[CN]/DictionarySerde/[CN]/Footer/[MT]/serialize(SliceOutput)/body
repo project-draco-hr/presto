@@ -1,9 +1,10 @@
 {
   int startBytesWriteable=sliceOutput.writableBytes();
-  for (  Map.Entry<Long,Slice> entry : idMap.entrySet()) {
-    sliceOutput.writeLong(entry.getKey());
-    sliceOutput.writeInt(entry.getValue().length());
-    sliceOutput.writeBytes(entry.getValue());
+  UncompressedTupleInfoSerde.serialize(tupleInfo,sliceOutput);
+  sliceOutput.writeInt(dictionary.length);
+  for (  Slice slice : dictionary) {
+    sliceOutput.writeInt(slice.length());
+    sliceOutput.writeBytes(slice);
   }
   int endBytesWriteable=sliceOutput.writableBytes();
   return startBytesWriteable - endBytesWriteable;

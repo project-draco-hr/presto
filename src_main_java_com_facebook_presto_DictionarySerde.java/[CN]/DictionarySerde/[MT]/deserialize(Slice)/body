@@ -1,0 +1,8 @@
+{
+  checkNotNull(slice,"slice is null");
+  int footerLen=slice.slice(slice.length() - SizeOf.SIZE_OF_INT,SizeOf.SIZE_OF_INT).input().readInt();
+  Slice footerSlice=slice.slice(slice.length() - footerLen - SizeOf.SIZE_OF_INT,footerLen);
+  Footer footer=Footer.deserialize(footerSlice);
+  Slice payloadSlice=slice.slice(0,slice.length() - footerLen - SizeOf.SIZE_OF_INT);
+  return new DictionaryEncodedBlockStream(footer.getTupleInfo(),footer.getDictionary(),idSerde.deserialize(payloadSlice));
+}
