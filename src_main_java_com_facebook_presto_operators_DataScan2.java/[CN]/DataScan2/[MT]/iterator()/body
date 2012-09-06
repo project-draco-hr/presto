@@ -1,0 +1,16 @@
+{
+  return new AbstractIterator<ValueBlock>(){
+    private final Iterator<? extends ValueBlock> blockIterator=source.iterator();
+    @Override protected ValueBlock computeNext(){
+      while (blockIterator.hasNext()) {
+        Optional<ValueBlock> block=blockIterator.next().selectPairs(predicate);
+        if (block.isPresent()) {
+          return block.get();
+        }
+      }
+      endOfData();
+      return null;
+    }
+  }
+;
+}
