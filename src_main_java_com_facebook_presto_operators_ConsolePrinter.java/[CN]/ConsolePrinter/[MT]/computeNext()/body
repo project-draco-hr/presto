@@ -4,8 +4,14 @@
     return null;
   }
   ValueBlock block=input.next();
-  for (  Tuple tuple : block) {
-    printer.print(tuple);
+  BlockCursor blockCursor=block.blockCursor();
+  while (blockCursor.hasNextValue()) {
+    blockCursor.advanceNextValue();
+    printer.print(blockCursor.getTuple());
+    while (blockCursor.hasNextValuePosition()) {
+      blockCursor.advanceNextValuePosition();
+      printer.print(blockCursor.getTuple());
+    }
   }
   return block;
 }

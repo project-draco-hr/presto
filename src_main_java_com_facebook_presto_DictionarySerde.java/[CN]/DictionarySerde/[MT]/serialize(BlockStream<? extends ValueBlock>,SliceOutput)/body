@@ -2,28 +2,34 @@
   checkNotNull(blockStream,"blockStream is null");
   checkNotNull(sliceOutput,"sliceOutput is null");
   checkArgument(blockStream.getTupleInfo().getFieldCount() == 1,"Can only dictionary encode single columns");
-  final BiMap<Slice,Integer> idMap=HashBiMap.create();
-  idSerde.serialize(new UncompressedBlockStream(blockStream.getTupleInfo(),Iterables.transform(blockStream,new Function<ValueBlock,UncompressedValueBlock>(){
-    int nextId=0;
-    @Override public UncompressedValueBlock apply(    ValueBlock input){
-      BlockBuilder blockBuilder=new BlockBuilder(input.getRange().getStart(),TupleInfo.SINGLE_LONG_TUPLEINFO);
-      for (      Tuple tuple : input) {
-        Integer id=idMap.get(tuple.getTupleSlice());
-        if (id == null) {
-          id=nextId;
-          nextId++;
-          idMap.put(tuple.getTupleSlice(),id);
+  final DictionaryBuilder dictionaryBuilder=new DictionaryBuilder();
+  BlockStream<ValueBlock> encodedBlockStream=new BlockStream<ValueBlock>(){
+    @Override public TupleInfo getTupleInfo(){
+      return blockStream.getTupleInfo();
+    }
+    @Override public Cursor cursor(){
+      return new ForwardingCursor(blockStream.cursor()){
+        @Override public TupleInfo getTupleInfo(){
+          return TupleInfo.SINGLE_LONG_TUPLEINFO;
         }
-        blockBuilder.append((long)id);
+        @Override public long getLong(        int field){
+          return dictionaryBuilder.getId(getDelegate().getTuple());
+        }
+        @Override public Tuple getTuple(){
+          return TupleInfo.SINGLE_LONG_TUPLEINFO.builder().append(getLong(0)).build();
+        }
+        @Override public Slice getSlice(        int field){
+          throw new UnsupportedOperationException();
+        }
       }
-      return blockBuilder.build();
+;
+    }
+    @Override public Iterator<ValueBlock> iterator(){
+      throw new UnsupportedOperationException();
     }
   }
-)),sliceOutput);
-  Slice[] dictionary=new Slice[idMap.size()];
-  for (  Map.Entry<Integer,Slice> entry : idMap.inverse().entrySet()) {
-    dictionary[entry.getKey()]=entry.getValue();
-  }
-  int footerBytes=new Footer(blockStream.getTupleInfo(),dictionary).serialize(sliceOutput);
+;
+  idSerde.serialize(encodedBlockStream,sliceOutput);
+  int footerBytes=new Footer(blockStream.getTupleInfo(),dictionaryBuilder.build()).serialize(sliceOutput);
   sliceOutput.writeInt(footerBytes);
 }
