@@ -1,11 +1,31 @@
 {
-  if (blockForNextValue == null) {
+  if (block == null) {
     return false;
   }
-  blockForCurrentValue=blockForNextValue;
-  currentBlockIndex=nextBlockIndex;
-  currentOffset=nextOffset;
-  currentSize=nextSize;
-  moveToNextValue();
-  return true;
+  if (index < 0) {
+    index=0;
+    offset=0;
+    size=info.size(block.getSlice(),offset);
+    return true;
+  }
+ else   if (index < block.getCount() - 1) {
+    index++;
+    offset+=size;
+    size=info.size(block.getSlice(),offset);
+    return true;
+  }
+ else   if (iterator.hasNext()) {
+    block=iterator.next();
+    index=0;
+    offset=0;
+    size=info.size(block.getSlice(),offset);
+    return true;
+  }
+ else {
+    block=null;
+    index=-1;
+    offset=-1;
+    size=-1;
+    return false;
+  }
 }

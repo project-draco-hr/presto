@@ -1,18 +1,31 @@
 {
-  if (blockForNextValue == null) {
+  if (block == null) {
     return false;
   }
-  blockForCurrentValue=blockForNextValue;
-  currentBlockIndex=nextBlockIndex;
-  currentOffset=nextOffset;
-  currentSize=nextSize;
-  if (nextBlockIndex < blockForNextValue.getCount() - 1) {
-    nextBlockIndex++;
-    nextOffset=currentOffset + currentSize;
-    nextSize=blockForNextValue.getSlice().getShort(nextOffset);
+  if (index < 0) {
+    index=0;
+    offset=0;
+    size=block.getSlice().getShort(offset);
+    return true;
+  }
+ else   if (index < block.getCount() - 1) {
+    index++;
+    offset+=size;
+    size=block.getSlice().getShort(offset);
+    return true;
+  }
+ else   if (iterator.hasNext()) {
+    block=iterator.next();
+    index=0;
+    offset=0;
+    size=block.getSlice().getShort(offset);
+    return true;
   }
  else {
-    moveToNextBlock();
+    block=null;
+    index=-1;
+    offset=-1;
+    size=-1;
+    return false;
   }
-  return true;
 }

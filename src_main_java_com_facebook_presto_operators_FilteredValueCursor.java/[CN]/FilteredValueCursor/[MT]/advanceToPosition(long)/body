@@ -1,22 +1,24 @@
 {
-  Preconditions.checkArgument(currentValueBlockCursor == null || newPosition >= getPosition(),"Can't advance backwards");
-  if (currentValueBlockCursor != null && newPosition == getPosition()) {
-    return true;
-  }
-  if (nextValueBlockCursor == null) {
+  Preconditions.checkArgument(blockCursor == null || newPosition >= getPosition(),"Can't advance backwards");
+  if (blockCursor == null) {
     return false;
   }
-  if (newPosition > nextValueBlockCursor.getRange().getEnd()) {
-    do {
-      nextValueBlockCursor=iterator.next().blockCursor();
-    }
- while (newPosition > nextValueBlockCursor.getRange().getEnd());
+  if (newPosition == getPosition()) {
+    return true;
   }
-  nextValueBlockCursor.advanceToPosition(newPosition);
-  if (predicate.apply(nextValueBlockCursor)) {
+  while (blockCursor == null || newPosition > blockCursor.getRange().getEnd() && iterator.hasNext()) {
+    blockCursor=iterator.next().blockCursor();
+  }
+  if (newPosition > blockCursor.getRange().getEnd()) {
+    blockCursor=null;
+    return false;
+  }
+  if (!blockCursor.advanceToPosition(newPosition)) {
+    throw new IllegalStateException("Internal error: position not found");
+  }
+  if (!predicate.apply(blockCursor)) {
     return advanceNextPosition();
   }
- else {
-    return advanceNextValue();
-  }
+  isValid=true;
+  return true;
 }

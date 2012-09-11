@@ -1,32 +1,27 @@
 {
-  Preconditions.checkArgument(blockForCurrentValue == null || position >= getPosition(),"Can't advance backwards");
-  if (blockForCurrentValue != null && position == getPosition()) {
-    return true;
-  }
-  if (blockForNextValue == null) {
+  Preconditions.checkArgument(index < 0 || newPosition >= getPosition(),"Can't advance backwards");
+  if (block == null) {
     return false;
   }
-  if (position > blockForNextValue.getRange().getEnd()) {
-    do {
-      blockForNextValue=iterator.next();
+  if (index >= 0 && newPosition == getPosition()) {
+    return true;
+  }
+  if (index < 0 || newPosition > block.getRange().getEnd()) {
+    while (newPosition > block.getRange().getEnd() && iterator.hasNext()) {
+      block=iterator.next();
     }
- while (position > blockForNextValue.getRange().getEnd());
-    nextBlockIndex=0;
-    nextOffset=0;
+    if (newPosition > block.getRange().getEnd()) {
+      block=null;
+      index=-1;
+      offset=-1;
+      return false;
+    }
+    index=0;
+    offset=0;
   }
-  while (blockForNextValue.getRange().getStart() + nextBlockIndex < position) {
-    nextBlockIndex++;
-    nextOffset+=SIZE_OF_LONG;
-  }
-  blockForCurrentValue=blockForNextValue;
-  currentBlockIndex=nextBlockIndex;
-  currentOffset=nextOffset;
-  if (nextBlockIndex < blockForNextValue.getCount() - 1) {
-    nextBlockIndex++;
-    nextOffset=currentOffset + SIZE_OF_LONG;
-  }
- else {
-    moveToNextBlock();
+  while (block.getRange().getStart() + index < newPosition) {
+    index++;
+    offset+=SIZE_OF_LONG;
   }
   return true;
 }
