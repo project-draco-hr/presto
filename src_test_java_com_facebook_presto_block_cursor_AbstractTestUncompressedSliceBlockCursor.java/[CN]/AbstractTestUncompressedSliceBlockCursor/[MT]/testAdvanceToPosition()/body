@@ -1,14 +1,28 @@
 {
   BlockCursor cursor=createCursor();
+  cursor.advanceToPosition(0);
+  assertCurrentValue(cursor,0,"apple");
+  cursor.advanceToPosition(2);
+  assertCurrentValue(cursor,2,"apple");
   cursor.advanceToPosition(2);
   assertCurrentValue(cursor,2,"apple");
   cursor.advanceToPosition(4);
   assertCurrentValue(cursor,4,"banana");
-  cursor.advanceToPosition(6);
-  assertCurrentValue(cursor,6,"banana");
   cursor.advanceToPosition(8);
   assertCurrentValue(cursor,8,"cherry");
   cursor.advanceToPosition(10);
   assertCurrentValue(cursor,10,"date");
-  assertFalse(cursor.hasNextValue());
+  try {
+    cursor.advanceToPosition(2);
+    fail("Expected IllegalArgumentException");
+  }
+ catch (  IllegalArgumentException e) {
+    assertCurrentValue(cursor,10,"date");
+  }
+  try {
+    cursor.advanceToPosition(100);
+    fail("Expected NoSuchElementException");
+  }
+ catch (  IllegalArgumentException e) {
+  }
 }
