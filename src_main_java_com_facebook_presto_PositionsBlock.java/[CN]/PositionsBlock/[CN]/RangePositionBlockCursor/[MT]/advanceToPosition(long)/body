@@ -1,6 +1,10 @@
 {
   Preconditions.checkArgument(newPosition >= this.position,"Can't advance backwards");
-  Preconditions.checkArgument(newPosition <= totalRange.getEnd(),"Can't advance off the end of the block");
+  if (newPosition > totalRange.getEnd()) {
+    index=ranges.size();
+    position=newPosition;
+    return false;
+  }
   for (int i=index; i < ranges.size(); i++) {
     if (newPosition <= ranges.get(i).getEnd()) {
       index=i;
@@ -10,8 +14,8 @@
  else {
         position=ranges.get(i).getStart();
       }
-      return;
+      return true;
     }
   }
-  Preconditions.checkArgument(ranges.get(index).contains(newPosition),"Invalid position");
+  throw new IllegalStateException("Invalid position");
 }

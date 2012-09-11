@@ -1,16 +1,16 @@
 {
-  if (!hasNextPosition()) {
-    throw new NoSuchElementException();
-  }
   isValid=true;
-  if (currentValueBlockCursor.hasNextPosition()) {
-    currentValueBlockCursor.advanceNextPosition();
-    if (nextValueBlockCursor.getPosition() <= currentValueBlockCursor.getPosition()) {
+  if (currentValueBlockCursor.advanceNextPosition()) {
+    if (nextValueBlockCursor != null && nextValueBlockCursor.getPosition() <= currentValueBlockCursor.getPosition()) {
       findNext();
     }
   }
- else {
+ else   if (nextValueBlockCursor != null) {
     currentValueBlockCursor.moveTo(nextValueBlockCursor);
     findNext();
   }
+ else {
+    return false;
+  }
+  return true;
 }

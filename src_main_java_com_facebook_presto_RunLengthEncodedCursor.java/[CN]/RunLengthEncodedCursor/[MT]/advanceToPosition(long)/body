@@ -1,10 +1,12 @@
 {
   Preconditions.checkArgument(current == null || position >= getPosition(),"Can't advance backwards");
   if (current == null) {
-    advanceNextValue();
+    return advanceNextValue();
   }
-  while (position > current.getRange().getEnd()) {
-    advanceNextValue();
+  while (position > current.getRange().getEnd() && advanceNextPosition())   ;
+  if (position > current.getRange().getEnd()) {
+    return false;
   }
   this.position=Math.max(position,current.getRange().getStart());
+  return true;
 }

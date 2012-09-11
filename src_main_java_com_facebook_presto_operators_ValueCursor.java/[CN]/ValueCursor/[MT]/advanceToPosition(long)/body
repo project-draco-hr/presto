@@ -1,17 +1,17 @@
 {
   Preconditions.checkArgument(currentValueBlockCursor == null || position >= getPosition(),"Can't advance backwards");
   if (currentValueBlockCursor != null && position == getPosition()) {
-    return;
+    return true;
   }
   if (nextValueBlockCursor == null) {
-    throw new NoSuchElementException();
+    return false;
   }
-  if (position > nextValueBlockCursor.getRange().getEnd()) {
+  if (iterator.hasNext() && position > nextValueBlockCursor.getRange().getEnd()) {
     do {
       nextValueBlockCursor=iterator.next().blockCursor();
     }
- while (position > nextValueBlockCursor.getRange().getEnd());
+ while (iterator.hasNext() && position > nextValueBlockCursor.getRange().getEnd());
   }
   nextValueBlockCursor.advanceToPosition(position);
-  advanceNextPosition();
+  return advanceNextPosition();
 }
