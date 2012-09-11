@@ -1,0 +1,12 @@
+{
+  checkNotNull(ranges,"positions is null");
+  checkArgument(!ranges.isEmpty(),"positions is empty");
+  this.ranges=ImmutableList.copyOf(ranges);
+  Range previousRange=ranges.get(0);
+  for (int index=1; index < ranges.size(); index++) {
+    Range currentRange=ranges.get(index);
+    checkArgument(currentRange.overlaps(previousRange),"Ranges are overlapping");
+    previousRange=currentRange;
+  }
+  this.totalRange=Range.create(ranges.get(0).getStart(),ranges.get(ranges.size() - 1).getEnd());
+}

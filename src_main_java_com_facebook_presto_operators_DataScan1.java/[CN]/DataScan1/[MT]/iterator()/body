@@ -1,3 +1,25 @@
 {
-  throw new UnsupportedOperationException();
+  return new AbstractIterator<ValueBlock>(){
+    Iterator<? extends ValueBlock> sourceIterator=source.iterator();
+    @Override protected ValueBlock computeNext(){
+      int rangesCount=0;
+      ImmutableList.Builder<Range> ranges=ImmutableList.builder();
+      while (rangesCount < 100 && sourceIterator.hasNext()) {
+        BlockCursor blockCursor=sourceIterator.next().blockCursor();
+        while (blockCursor.hasNextValue()) {
+          blockCursor.advanceNextValue();
+          if (predicate.apply(blockCursor)) {
+            ranges.add(new Range(blockCursor.getPosition(),blockCursor.getValuePositionEnd()));
+            rangesCount++;
+          }
+        }
+      }
+      if (rangesCount == 0) {
+        endOfData();
+        return null;
+      }
+      return new PositionsBlock(ranges.build());
+    }
+  }
+;
 }
