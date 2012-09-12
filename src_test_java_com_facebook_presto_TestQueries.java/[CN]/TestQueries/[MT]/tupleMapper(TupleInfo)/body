@@ -1,0 +1,26 @@
+{
+  return new ResultSetMapper<Tuple>(){
+    @Override public Tuple map(    int index,    ResultSet rs,    StatementContext ctx) throws SQLException {
+      List<TupleInfo.Type> types=tupleInfo.getTypes();
+      int count=rs.getMetaData().getColumnCount();
+      checkArgument(types.size() == count,"tuple info does not match result");
+      TupleInfo.Builder builder=tupleInfo.builder();
+      for (int i=1; i <= count; i++) {
+        TupleInfo.Type type=types.get(i - 1);
+switch (type) {
+case FIXED_INT_64:
+          builder.append(rs.getLong(i));
+        break;
+case VARIABLE_BINARY:
+      String value=rs.getString(i);
+    builder.append(Slices.wrappedBuffer(value.getBytes(Charsets.UTF_8)));
+  break;
+default :
+throw new AssertionError("unhandled type: " + type);
+}
+}
+return builder.build();
+}
+}
+;
+}
