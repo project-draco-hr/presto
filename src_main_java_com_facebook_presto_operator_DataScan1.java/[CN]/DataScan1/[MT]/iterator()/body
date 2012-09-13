@@ -1,16 +1,13 @@
 {
   return new AbstractIterator<Block>(){
-    Iterator<? extends Block> sourceIterator=source.iterator();
+    Cursor cursor=source.cursor();
     @Override protected Block computeNext(){
       int rangesCount=0;
       ImmutableList.Builder<Range> ranges=ImmutableList.builder();
-      while (rangesCount < RANGES_PER_BLOCK && sourceIterator.hasNext()) {
-        BlockCursor blockCursor=sourceIterator.next().blockCursor();
-        while (blockCursor.advanceToNextValue()) {
-          if (predicate.apply(blockCursor)) {
-            ranges.add(new Range(blockCursor.getPosition(),blockCursor.getValuePositionEnd()));
-            rangesCount++;
-          }
+      while (rangesCount < RANGES_PER_BLOCK && cursor.advanceNextValue()) {
+        if (predicate.apply(cursor)) {
+          ranges.add(new Range(cursor.getPosition(),cursor.getCurrentValueEndPosition()));
+          rangesCount++;
         }
       }
       if (rangesCount == 0) {
