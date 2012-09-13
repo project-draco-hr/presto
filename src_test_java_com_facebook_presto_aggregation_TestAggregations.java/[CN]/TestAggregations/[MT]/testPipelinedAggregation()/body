@@ -1,13 +1,5 @@
 {
   GroupByBlockStream groupBy=new GroupByBlockStream(newGroupColumn());
   PipelinedAggregationBlockStream aggregation=new PipelinedAggregationBlockStream(groupBy,newAggregateColumn(),SumAggregation.PROVIDER);
-  List<Pair> expected=ImmutableList.of(new Pair(0,createTuple("apple",10L)),new Pair(1,createTuple("banana",17L)),new Pair(2,createTuple("cherry",15L)),new Pair(3,createTuple("date",6L)));
-  List<Pair> actual=new ArrayList<>();
-  Cursor cursor=aggregation.cursor();
-  while (cursor.advanceNextValue()) {
-    long position=cursor.getPosition();
-    Tuple tuple=cursor.getTuple();
-    actual.add(new Pair(position,tuple));
-  }
-  Assert.assertEquals(actual,expected);
+  assertBlockStreamEquals(aggregation,blockStreamBuilder(VARIABLE_BINARY,FIXED_INT_64).append("apple").append(10L).append("banana").append(17L).append("cherry").append(15L).append("date").append(6L).build());
 }
