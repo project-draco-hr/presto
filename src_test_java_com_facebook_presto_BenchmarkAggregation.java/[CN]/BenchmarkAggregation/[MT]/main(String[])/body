@@ -1,0 +1,14 @@
+{
+  File file=new File("data/columns/column4.data");
+  Slice columnSlice=Slices.mapFileReadOnly(file);
+  for (int i=0; i < 100000; ++i) {
+    BlockStream<? extends ValueBlock> column=UncompressedBlockSerde.readAsStream(columnSlice);
+    AggregationOperator sum=new AggregationOperator(column,CountAggregation.PROVIDER);
+    Result result=doIt(sum);
+    long count=result.count;
+    Duration duration=result.duration;
+    DataSize fileSize=new DataSize(file.length(),DataSize.Unit.BYTE);
+    System.out.println(String.format("%s, %s, %.2f/s, %2.2f MB/s",duration,count,count / duration.toMillis() * 1000,fileSize.getValue(DataSize.Unit.MEGABYTE) / duration.convertTo(TimeUnit.SECONDS)));
+  }
+  Thread.sleep(1000);
+}
