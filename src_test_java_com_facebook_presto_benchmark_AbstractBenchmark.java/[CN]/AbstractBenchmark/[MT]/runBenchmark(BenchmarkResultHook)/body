@@ -1,0 +1,21 @@
+{
+  System.out.println(String.format("Running benchmark: %s",getBenchmarkResultName()));
+  long start=System.nanoTime();
+  setUp();
+  for (int i=0; i < warmupIterations; i++) {
+    runOnce();
+  }
+  for (int i=0; i < measuredIterations; i++) {
+    long result=runOnce();
+    System.out.println(String.format("%s: %d",getBenchmarkResultName(),result));
+    if (benchmarkResultHook != null) {
+      benchmarkResultHook.addResult(result);
+    }
+  }
+  tearDown();
+  if (benchmarkResultHook != null) {
+    benchmarkResultHook.finished();
+  }
+  Duration duration=Duration.nanosSince(start);
+  System.out.println(String.format("Finished benchmark: %s, Elapsed: %s",getBenchmarkResultName(),duration));
+}
