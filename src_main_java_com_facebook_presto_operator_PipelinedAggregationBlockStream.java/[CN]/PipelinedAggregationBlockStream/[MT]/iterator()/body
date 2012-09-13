@@ -2,9 +2,9 @@
   final Cursor groupByCursor=groupBySource.cursor();
   final Cursor aggregationCursor=aggregationSource.cursor();
   aggregationCursor.advanceNextPosition();
-  return new AbstractIterator<UncompressedValueBlock>(){
+  return new AbstractIterator<UncompressedBlock>(){
     private long position;
-    @Override protected UncompressedValueBlock computeNext(){
+    @Override protected UncompressedBlock computeNext(){
       if (!groupByCursor.advanceNextValue()) {
         endOfData();
         return null;
@@ -20,7 +20,7 @@
         builder.append(value);
       }
  while (!builder.isFull() && groupByCursor.advanceNextValue());
-      UncompressedValueBlock block=builder.build();
+      UncompressedBlock block=builder.build();
       position+=block.getCount();
       return block;
     }
