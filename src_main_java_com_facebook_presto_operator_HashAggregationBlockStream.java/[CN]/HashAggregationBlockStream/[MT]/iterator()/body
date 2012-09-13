@@ -15,7 +15,9 @@
             aggregation=functionProvider.get();
             aggregationMap.put(key,aggregation);
           }
-          aggregation.add(aggregationCursor,new Range(groupByCursor.getPosition(),groupByCursor.getCurrentValueEndPosition()));
+          if (aggregationCursor.advanceToPosition(groupByCursor.getPosition())) {
+            aggregation.add(aggregationCursor,groupByCursor.getCurrentValueEndPosition());
+          }
         }
         this.aggregations=aggregationMap.entrySet().iterator();
       }

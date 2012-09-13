@@ -3,7 +3,9 @@
   cursor.advanceNextPosition();
   CountAggregation count=new CountAggregation();
   for (  Range range : ranges) {
-    count.add(cursor,range);
+    if (cursor.advanceToPosition(range.getStart())) {
+      count.add(cursor,range.getEnd());
+    }
   }
   assertEquals(count.evaluate().getLong(0),expected);
 }
