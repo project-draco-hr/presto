@@ -1,24 +1,23 @@
 {
-  final Iterator<RunLengthEncodedBlock> groupByIterator=groupBySource.iterator();
+  final Cursor groupByCursor=groupBySource.cursor();
   final Cursor aggregationCursor=aggregationSource.cursor();
   aggregationCursor.advanceNextPosition();
   return new AbstractIterator<UncompressedValueBlock>(){
     private long position;
     @Override protected UncompressedValueBlock computeNext(){
-      if (!groupByIterator.hasNext()) {
+      if (!groupByCursor.advanceNextValue()) {
         endOfData();
         return null;
       }
       BlockBuilder builder=new BlockBuilder(position,info);
       do {
-        RunLengthEncodedBlock group=groupByIterator.next();
-        AggregationFunction aggregationFunction=functionProvider.get();
-        aggregationFunction.add(aggregationCursor,group.getRange());
-        Tuple value=aggregationFunction.evaluate();
-        builder.append(group.getValue());
+        AggregationFunction aggregation=functionProvider.get();
+        aggregation.add(aggregationCursor,new Range(groupByCursor.getPosition(),groupByCursor.getCurrentValueEndPosition()));
+        Tuple value=aggregation.evaluate();
+        builder.append(groupByCursor.getTuple());
         builder.append(value);
       }
- while (!builder.isFull() && groupByIterator.hasNext());
+ while (!builder.isFull() && groupByCursor.advanceNextValue());
       UncompressedValueBlock block=builder.build();
       position+=block.getCount();
       return block;

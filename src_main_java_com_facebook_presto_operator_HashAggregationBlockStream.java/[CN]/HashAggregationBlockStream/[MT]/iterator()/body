@@ -1,5 +1,5 @@
 {
-  final Iterator<RunLengthEncodedBlock> groupByIterator=groupBySource.iterator();
+  final Cursor groupByCursor=groupBySource.cursor();
   final Cursor aggregationCursor=aggregationSource.cursor();
   aggregationCursor.advanceNextPosition();
   return new AbstractIterator<UncompressedValueBlock>(){
@@ -8,14 +8,14 @@
     @Override protected UncompressedValueBlock computeNext(){
       if (aggregations == null) {
         Map<Tuple,AggregationFunction> aggregationMap=new HashMap<>();
-        while (groupByIterator.hasNext()) {
-          RunLengthEncodedBlock group=groupByIterator.next();
-          AggregationFunction aggregation=aggregationMap.get(group.getValue());
+        while (groupByCursor.advanceNextValue()) {
+          Tuple key=groupByCursor.getTuple();
+          AggregationFunction aggregation=aggregationMap.get(key);
           if (aggregation == null) {
             aggregation=functionProvider.get();
-            aggregationMap.put(group.getValue(),aggregation);
+            aggregationMap.put(key,aggregation);
           }
-          aggregation.add(aggregationCursor,group.getRange());
+          aggregation.add(aggregationCursor,new Range(groupByCursor.getPosition(),groupByCursor.getCurrentValueEndPosition()));
         }
         this.aggregations=aggregationMap.entrySet().iterator();
       }
