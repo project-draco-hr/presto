@@ -1,0 +1,41 @@
+{
+  final Cursor left=leftSource.cursor();
+  final Cursor right=rightSource.cursor();
+  boolean advancedLeft=left.advanceNextPosition();
+  boolean advancedRight=right.advanceNextPosition();
+  Preconditions.checkState(advancedLeft && advancedRight || !advancedLeft && !advancedRight,"Left and right don't have the same cardinality");
+  if (!advancedLeft || !advancedRight) {
+    return Iterators.emptyIterator();
+  }
+  return new AbstractIterator<UncompressedPositionBlock>(){
+    private boolean done=false;
+    @Override protected UncompressedPositionBlock computeNext(){
+      if (done) {
+        endOfData();
+        return null;
+      }
+      ImmutableList.Builder<Long> positions=ImmutableList.builder();
+      int count=0;
+      do {
+        long endPosition=Math.min(left.getCurrentValueEndPosition(),right.getCurrentValueEndPosition());
+        if (operation.evaluate(left,right)) {
+          while (!done && left.getPosition() <= endPosition && count < MAX_POSITIONS_PER_BLOCK) {
+            positions.add(left.getPosition());
+            ++count;
+            done=!left.advanceNextPosition() || !right.advanceNextPosition();
+          }
+        }
+ else {
+          done=!left.advanceToPosition(endPosition + 1) || !right.advanceToPosition(endPosition + 1);
+        }
+      }
+ while (!done && count < MAX_POSITIONS_PER_BLOCK);
+      if (count == 0) {
+        endOfData();
+        return null;
+      }
+      return new UncompressedPositionBlock(positions.build());
+    }
+  }
+;
+}
