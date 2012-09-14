@@ -1,0 +1,23 @@
+{
+  List<Tuple> expected=computeExpected("SELECT COUNT(*) FROM lineitem WHERE tax < discount AND tax > 0.01 AND discount < 10.0",FIXED_INT_64);
+  TupleStream discount=createTupleStream(lineitemData,Column.LINEITEM_DISCOUNT,DOUBLE);
+  TupleStream filteredDiscount=new ApplyPredicateOperator(discount,new Predicate<Cursor>(){
+    @Override public boolean apply(    Cursor input){
+      return input.getDouble(0) < 10.0;
+    }
+  }
+);
+  TupleStream tax=createTupleStream(lineitemData,Column.LINEITEM_TAX,DOUBLE);
+  TupleStream filteredTax=new ApplyPredicateOperator(tax,new Predicate<Cursor>(){
+    @Override public boolean apply(    Cursor input){
+      return input.getDouble(0) > 0.01;
+    }
+  }
+);
+  TupleStream tax2=createTupleStream(lineitemData,Column.LINEITEM_TAX,DOUBLE);
+  TupleStream discount2=createTupleStream(lineitemData,Column.LINEITEM_DISCOUNT,DOUBLE);
+  ComparisonOperator comparison=new ComparisonOperator(tax2,discount2,new DoubleLessThanComparison());
+  AndOperator and=new AndOperator(filteredDiscount,filteredTax,comparison);
+  AggregationOperator count=new AggregationOperator(and,CountAggregation.PROVIDER);
+  assertEqualsIgnoreOrder(tuples(count),expected);
+}
