@@ -1,8 +1,8 @@
 {
   List<Tuple> expected=computeExpected("SELECT orderstatus, SUM(totalprice) FROM orders GROUP BY orderstatus",VARIABLE_BINARY,DOUBLE);
-  BlockStream groupBySource=createBlockStream(ordersData,Column.ORDER_ORDERSTATUS,VARIABLE_BINARY);
-  BlockStream aggregateSource=createBlockStream(ordersData,Column.ORDER_TOTALPRICE,DOUBLE);
-  GroupByBlockStream groupBy=new GroupByBlockStream(groupBySource);
-  HashAggregationBlockStream aggregation=new HashAggregationBlockStream(groupBy,aggregateSource,DoubleSumAggregation.PROVIDER);
+  TupleStream groupBySource=createBlockStream(ordersData,Column.ORDER_ORDERSTATUS,VARIABLE_BINARY);
+  TupleStream aggregateSource=createBlockStream(ordersData,Column.ORDER_TOTALPRICE,DOUBLE);
+  GroupByOperator groupBy=new GroupByOperator(groupBySource);
+  HashAggregationOperator aggregation=new HashAggregationOperator(groupBy,aggregateSource,DoubleSumAggregation.PROVIDER);
   assertEqualsIgnoreOrder(tuples(aggregation),expected);
 }

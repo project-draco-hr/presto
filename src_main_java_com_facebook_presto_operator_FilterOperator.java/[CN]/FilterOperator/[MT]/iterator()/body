@@ -1,13 +1,13 @@
 {
-  return new AbstractIterator<Block>(){
-    Iterator<? extends Block> valueBlocks=source.iterator();
+  return new AbstractIterator<TupleStream>(){
+    Iterator<? extends TupleStream> valueBlocks=source.iterator();
     Cursor positionsCursor=positions.cursor();
 {
       positionsCursor.advanceNextPosition();
     }
-    @Override protected Block computeNext(){
+    @Override protected TupleStream computeNext(){
       while (valueBlocks.hasNext()) {
-        Block currentValueBlock=valueBlocks.next();
+        TupleStream currentValueBlock=valueBlocks.next();
         if (positionsCursor.getPosition() < currentValueBlock.getRange().getStart() && !positionsCursor.advanceToPosition(currentValueBlock.getRange().getStart())) {
           endOfData();
           return null;
@@ -28,9 +28,9 @@
       endOfData();
       return null;
     }
-    private List<Long> getValidPositions(    Block currentValueBlock,    List<Long> positionsForCurrentBlock){
+    private List<Long> getValidPositions(    TupleStream currentValueBlock,    List<Long> positionsForCurrentBlock){
       ImmutableList.Builder<Long> validPositions=ImmutableList.builder();
-      Cursor valueCursor=currentValueBlock.blockCursor();
+      Cursor valueCursor=currentValueBlock.cursor();
       valueCursor.advanceNextPosition();
       for (      Long nextPosition : positionsForCurrentBlock) {
         if (nextPosition > valueCursor.getRange().getEnd()) {
