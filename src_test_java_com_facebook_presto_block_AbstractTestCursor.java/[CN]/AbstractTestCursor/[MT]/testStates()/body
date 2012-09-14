@@ -1,5 +1,7 @@
 {
   Cursor cursor=createCursor();
+  assertFalse(cursor.isValid());
+  assertFalse(cursor.isFinished());
   try {
     cursor.getTuple();
     fail("Expected IllegalStateException");
@@ -12,7 +14,14 @@
   }
  catch (  IllegalStateException expected) {
   }
-  while (cursor.advanceNextPosition())   ;
+  while (cursor.advanceNextPosition()) {
+    assertTrue(cursor.isValid());
+    assertFalse(cursor.isFinished());
+  }
+  assertFalse(cursor.isValid());
+  assertTrue(cursor.isFinished());
   assertFalse(cursor.advanceNextValue());
   assertFalse(cursor.advanceNextPosition());
+  assertFalse(cursor.isValid());
+  assertTrue(cursor.isFinished());
 }
