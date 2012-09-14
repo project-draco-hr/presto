@@ -1,0 +1,11 @@
+{
+  TupleInfo info=new TupleInfo(TupleInfo.Type.FIXED_INT_64);
+  RunLengthEncodedBlockStream left=new RunLengthEncodedBlockStream(info,ImmutableList.of(new RunLengthEncodedBlock(Tuples.createTuple(3),Range.create(0,4))));
+  RunLengthEncodedBlockStream right=new RunLengthEncodedBlockStream(info,ImmutableList.of(new RunLengthEncodedBlock(Tuples.createTuple(1),Range.create(0,4))));
+  RunLengthBinaryOperator operator=new RunLengthBinaryOperator(left,right,new SubtractionOperation());
+  Cursor cursor=operator.cursor();
+  assertNextValue(cursor,0,2);
+  assertEquals(cursor.getCurrentValueEndPosition(),4);
+  assertFalse(cursor.advanceNextValue());
+  assertTrue(cursor.isFinished());
+}

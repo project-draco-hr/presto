@@ -1,0 +1,28 @@
+{
+  final Cursor left=leftOperandSource.cursor();
+  final Cursor right=rightOperandSource.cursor();
+  boolean advancedLeft=left.advanceNextPosition();
+  boolean advancedRight=right.advanceNextPosition();
+  Preconditions.checkState(advancedLeft && advancedRight,"Empty source cursor");
+  return new AbstractIterator<UncompressedBlock>(){
+    private boolean done=false;
+    @Override protected UncompressedBlock computeNext(){
+      if (done) {
+        endOfData();
+        return null;
+      }
+      BlockBuilder builder=new BlockBuilder(left.getPosition(),getTupleInfo());
+      do {
+        long endPosition=Math.min(left.getCurrentValueEndPosition(),right.getCurrentValueEndPosition());
+        long value=operation.evaluateAsLong(left,right);
+        while (!done && left.getPosition() <= endPosition && !builder.isFull()) {
+          builder.append(value);
+          done=!left.advanceNextPosition() || !right.advanceNextPosition();
+        }
+      }
+ while (!done && !builder.isFull());
+      return builder.build();
+    }
+  }
+;
+}

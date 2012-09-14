@@ -1,0 +1,19 @@
+{
+  TupleInfo info=new TupleInfo(TupleInfo.Type.FIXED_INT_64);
+  UncompressedBlockStream left=new UncompressedBlockStream(info,ImmutableList.of(createLongsBlock(0,10,11,12,13,14),createLongsBlock(5,15,16,17,18,19)));
+  UncompressedBlockStream right=new UncompressedBlockStream(info,ImmutableList.of(createLongsBlock(0,10,9,8,7,6,5,4,3),createLongsBlock(8,2,1)));
+  RunLengthBinaryOperator operator=new RunLengthBinaryOperator(left,right,new SubtractionOperation());
+  Cursor cursor=operator.cursor();
+  assertNextValue(cursor,0,0);
+  assertNextValue(cursor,1,2);
+  assertNextValue(cursor,2,4);
+  assertNextValue(cursor,3,6);
+  assertNextValue(cursor,4,8);
+  assertNextValue(cursor,5,10);
+  assertNextValue(cursor,6,12);
+  assertNextValue(cursor,7,14);
+  assertNextValue(cursor,8,16);
+  assertNextValue(cursor,9,18);
+  assertFalse(cursor.advanceNextValue());
+  assertFalse(cursor.advanceNextPosition());
+}
