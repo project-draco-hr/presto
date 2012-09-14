@@ -11,13 +11,14 @@
       }
       BlockBuilder builder=new BlockBuilder(position,info);
       do {
-        AggregationFunction aggregation=functionProvider.get();
-        if (aggregationCursor.advanceToPosition(groupByCursor.getPosition())) {
-          aggregation.add(aggregationCursor,groupByCursor.getCurrentValueEndPosition());
+        long groupEndPosition=groupByCursor.getCurrentValueEndPosition();
+        if (aggregationCursor.advanceToPosition(groupByCursor.getPosition()) && aggregationCursor.getPosition() <= groupEndPosition) {
+          AggregationFunction aggregation=functionProvider.get();
+          aggregation.add(aggregationCursor,groupEndPosition);
+          Tuple value=aggregation.evaluate();
+          builder.append(groupByCursor.getTuple());
+          builder.append(value);
         }
-        Tuple value=aggregation.evaluate();
-        builder.append(groupByCursor.getTuple());
-        builder.append(value);
       }
  while (!builder.isFull() && groupByCursor.advanceNextValue());
       UncompressedBlock block=builder.build();
