@@ -1,10 +1,11 @@
 {
-  int startBytesWritable=sliceOutput.writableBytes();
-  UncompressedTupleInfoSerde.serialize(tupleInfo,sliceOutput);
+  int bytesWritten=0;
+  bytesWritten+=UncompressedTupleInfoSerde.serialize(tupleInfo,sliceOutput);
   sliceOutput.writeInt(dictionary.length);
+  bytesWritten+=SizeOf.SIZE_OF_INT;
   for (  Slice slice : dictionary) {
     sliceOutput.writeBytes(slice);
+    bytesWritten+=slice.length();
   }
-  int endBytesWritable=sliceOutput.writableBytes();
-  return startBytesWritable - endBytesWritable;
+  return bytesWritten;
 }

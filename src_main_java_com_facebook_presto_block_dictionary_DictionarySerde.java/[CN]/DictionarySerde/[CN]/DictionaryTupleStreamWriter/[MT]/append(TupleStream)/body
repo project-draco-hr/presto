@@ -1,0 +1,42 @@
+{
+  checkNotNull(tupleStream,"tupleStream is null");
+  checkState(!finished,"already finished");
+  if (tupleInfo == null) {
+    tupleInfo=tupleStream.getTupleInfo();
+    checkArgument(tupleInfo.getFieldCount() == 1,"Can only dictionary encode single columns");
+  }
+  TupleStream encodedTupleStream=new TupleStream(){
+    @Override public TupleInfo getTupleInfo(){
+      return TupleInfo.SINGLE_LONG;
+    }
+    @Override public Range getRange(){
+      return Range.ALL;
+    }
+    @Override public Cursor cursor(){
+      return new ForwardingCursor(tupleStream.cursor()){
+        @Override public TupleInfo getTupleInfo(){
+          return TupleInfo.SINGLE_LONG;
+        }
+        @Override public long getLong(        int field){
+          return dictionaryBuilder.getId(getDelegate().getTuple());
+        }
+        @Override public Tuple getTuple(){
+          return TupleInfo.SINGLE_LONG.builder().append(getLong(0)).build();
+        }
+        @Override public Slice getSlice(        int field){
+          return getTuple().getSlice(field);
+        }
+        @Override public double getDouble(        int field){
+          throw new UnsupportedOperationException();
+        }
+        @Override public boolean currentTupleEquals(        Tuple value){
+          return value.getTupleInfo().equals(TupleInfo.SINGLE_LONG) && value.getLong(0) == getLong(0);
+        }
+      }
+;
+    }
+  }
+;
+  idTupleStreamWriter.append(encodedTupleStream);
+  return this;
+}

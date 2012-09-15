@@ -1,35 +1,5 @@
 {
-  checkNotNull(tupleStream,"blockStream is null");
+  checkNotNull(tupleStream,"tupleStream is null");
   checkNotNull(sliceOutput,"sliceOutput is null");
-  checkArgument(tupleStream.getTupleInfo().getFieldCount() == 1,"Can only dictionary encode single columns");
-  final DictionaryBuilder dictionaryBuilder=new DictionaryBuilder();
-  TupleStream encodedTupleStream=new TupleStream(){
-    @Override public TupleInfo getTupleInfo(){
-      return TupleInfo.SINGLE_LONG;
-    }
-    @Override public Range getRange(){
-      return Range.ALL;
-    }
-    @Override public Cursor cursor(){
-      return new ForwardingCursor(tupleStream.cursor()){
-        @Override public TupleInfo getTupleInfo(){
-          return TupleInfo.SINGLE_LONG;
-        }
-        @Override public long getLong(        int field){
-          return dictionaryBuilder.getId(getDelegate().getTuple());
-        }
-        @Override public Tuple getTuple(){
-          return TupleInfo.SINGLE_LONG.builder().append(getLong(0)).build();
-        }
-        @Override public Slice getSlice(        int field){
-          throw new UnsupportedOperationException();
-        }
-      }
-;
-    }
-  }
-;
-  idSerde.serialize(encodedTupleStream,sliceOutput);
-  int footerBytes=new Footer(tupleStream.getTupleInfo(),dictionaryBuilder.build()).serialize(sliceOutput);
-  sliceOutput.writeInt(footerBytes);
+  createTupleStreamWriter(sliceOutput).append(tupleStream).finished();
 }

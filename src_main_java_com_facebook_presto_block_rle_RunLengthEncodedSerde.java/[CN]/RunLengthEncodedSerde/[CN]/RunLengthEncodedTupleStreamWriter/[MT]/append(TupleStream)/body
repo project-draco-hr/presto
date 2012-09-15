@@ -1,0 +1,29 @@
+{
+  checkNotNull(tupleStream,"tupleStream is null");
+  checkState(!finished,"already finished");
+  Cursor cursor=tupleStream.cursor();
+  if (!initialized) {
+    checkArgument(tupleStream.getTupleInfo().getFieldCount() == 1,"Can only run length encode single columns");
+    UncompressedTupleInfoSerde.serialize(tupleStream.getTupleInfo(),sliceOutput);
+    initialized=true;
+  }
+  while (cursor.advanceNextValue()) {
+    if (lastTuple == null) {
+      startPosition=cursor.getPosition();
+      endPosition=cursor.getCurrentValueEndPosition();
+      lastTuple=cursor.getTuple();
+    }
+ else {
+      checkArgument(cursor.getPosition() > endPosition,"positions are not increasing");
+      if (cursor.getPosition() != endPosition + 1 || !cursor.currentTupleEquals(lastTuple)) {
+        sliceOutput.writeLong(startPosition);
+        sliceOutput.writeLong(endPosition);
+        sliceOutput.writeBytes(lastTuple.getTupleSlice());
+        lastTuple=cursor.getTuple();
+        startPosition=cursor.getPosition();
+      }
+      endPosition=cursor.getCurrentValueEndPosition();
+    }
+  }
+  return this;
+}
