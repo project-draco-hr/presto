@@ -1,0 +1,15 @@
+{
+  Iterator<String> partsIterator=Splitter.on('-').limit(2).split(encoding).iterator();
+  checkArgument(partsIterator.hasNext(),"encoding malformed: " + encoding);
+switch (partsIterator.next()) {
+case "raw":
+    return new UncompressedSerde();
+case "rle":
+  return new RunLengthEncodedSerde();
+case "dic":
+checkArgument(partsIterator.hasNext(),"dictionary encoding requires an embedded serde");
+return new DictionarySerde(getTupleStreamSerde(partsIterator.next()));
+default :
+throw new IllegalArgumentException("Unsupported encoding " + encoding);
+}
+}
