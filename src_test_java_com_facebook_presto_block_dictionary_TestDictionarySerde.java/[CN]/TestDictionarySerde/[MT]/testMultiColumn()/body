@@ -1,0 +1,6 @@
+{
+  TupleInfo tupleInfo=new TupleInfo(TupleInfo.Type.FIXED_INT_64,TupleInfo.Type.VARIABLE_BINARY);
+  TupleStream tupleStream=new UncompressedTupleStream(new TupleInfo(TupleInfo.Type.FIXED_INT_64,TupleInfo.Type.VARIABLE_BINARY),new BlockBuilder(0,tupleInfo).append(0L).append(Slices.wrappedBuffer("a".getBytes(UTF_8))).append(5L).append(Slices.wrappedBuffer("b".getBytes(UTF_8))).append(-1L).append(Slices.wrappedBuffer("ccc".getBytes(UTF_8))).build());
+  TupleStreamSerdes.serialize(dictionarySerde,tupleStream,sliceOutput);
+  Blocks.assertTupleStreamEquals(tupleStream,dictionarySerde.deserialize(sliceOutput.slice()));
+}

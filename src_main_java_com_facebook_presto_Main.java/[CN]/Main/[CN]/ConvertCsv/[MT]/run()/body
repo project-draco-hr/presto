@@ -17,10 +17,10 @@
   ImmutableList.Builder<CsvColumnProcessor> csvColumns=ImmutableList.builder();
   ImmutableList.Builder<TupleStreamSerde> columnSerdeBuilder=ImmutableList.builder();
   for (  String type : types) {
-    Iterator<String> partsIterator=Splitter.on('_').split(type).iterator();
-    String dataType=partsIterator.next();
-    String encoding=partsIterator.next();
-    checkState(!partsIterator.hasNext(),"malformed type input");
+    List<String> parts=ImmutableList.copyOf(Splitter.on('_').split(type));
+    checkState(parts.size() == 2,"type format: <data_type>_<encoding> (e.g. long_raw, string_rle)");
+    String dataType=parts.get(0);
+    String encoding=parts.get(1);
 switch (dataType) {
 case "long":
       typeBuilder.add(Type.FIXED_INT_64);
@@ -52,7 +52,7 @@ ImmutableList.Builder<OutputStream> outputs=ImmutableList.builder();
 for (int index=0; index < columnTypes.size(); index++) {
 RowSource rowSource=csvReader.getInput();
 OutputStream out=new FileOutputStream(new File(dir,"column" + index + "."+ types.get(index)+ ".data"));
-columnSerdes.get(index).createTupleStreamWriter(new OutputStreamSliceOutput(out)).append(ColumnMappingTupleStream.map(rowSource,index)).finished();
+columnSerdes.get(index).createTupleStreamWriter(new OutputStreamSliceOutput(out)).append(ColumnMappingTupleStream.map(rowSource,index)).close();
 rowSources.add(rowSource);
 outputs.add(out);
 }

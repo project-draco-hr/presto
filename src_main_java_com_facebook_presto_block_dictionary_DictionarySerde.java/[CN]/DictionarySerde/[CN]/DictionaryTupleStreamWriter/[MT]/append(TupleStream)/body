@@ -3,14 +3,13 @@
   checkState(!finished,"already finished");
   if (tupleInfo == null) {
     tupleInfo=tupleStream.getTupleInfo();
-    checkArgument(tupleInfo.getFieldCount() == 1,"Can only dictionary encode single columns");
   }
   TupleStream encodedTupleStream=new TupleStream(){
     @Override public TupleInfo getTupleInfo(){
       return TupleInfo.SINGLE_LONG;
     }
     @Override public Range getRange(){
-      return Range.ALL;
+      return tupleStream.getRange();
     }
     @Override public Cursor cursor(){
       return new ForwardingCursor(tupleStream.cursor()){
