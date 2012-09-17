@@ -1,0 +1,21 @@
+{
+  ImmutableList.Builder<Long> positions=ImmutableList.builder();
+  int count=0;
+  while (count < MAX_POSITIONS_PER_BLOCK && queue.size() > 0) {
+    Cursor head=queue.remove();
+    long position=head.getPosition();
+    if (position >= threshold) {
+      positions.add(position);
+      threshold=position + 1;
+      ++count;
+    }
+    if (head.advanceToPosition(threshold)) {
+      queue.add(head);
+    }
+  }
+  if (count == 0) {
+    endOfData();
+    return null;
+  }
+  return new UncompressedPositionBlock(positions.build());
+}
