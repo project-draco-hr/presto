@@ -50,14 +50,14 @@ ImmutableList<TupleStreamSerde> columnSerdes=columnSerdeBuilder.build();
 ImmutableList.Builder<OutputStream> outputs=ImmutableList.builder();
 ImmutableList.Builder<TupleStreamWriter> tupleStreamWritersBuilder=ImmutableList.builder();
 for (int index=0; index < columnTypes.size(); index++) {
-OutputStream out=newOutputStreamSupplier(new File(dir,"column" + index + "."+ types.get(index)+ ".data")).getOutput();
+OutputStream out=newOutputStreamSupplier(new File(dir,String.format("column%d.%s.data",index,types.get(index)))).getOutput();
 tupleStreamWritersBuilder.add(columnSerdes.get(index).createTupleStreamWriter(new OutputStreamSliceOutput(out)));
 outputs.add(out);
 }
 RowSource rowSource=csvReader.getInput();
 ImmutableList<TupleStreamWriter> tupleStreamWriters=tupleStreamWritersBuilder.build();
-for (TupleStream tupleStreamChunk : new TupleStreamChunker(1024,rowSource)) {
-DynamicSliceOutput sliceOutput=new DynamicSliceOutput(1048576);
+for (TupleStream tupleStreamChunk : TupleStreamChunker.chunk(CHUNK_POSITION_WIDTH,rowSource)) {
+DynamicSliceOutput sliceOutput=new DynamicSliceOutput((int)ESTIMATED_CHUNK_SIZE.toBytes());
 TupleStreamSerdes.serialize(UncompressedSerde.INSTANCE,tupleStreamChunk,sliceOutput);
 TupleStream copiedTupleStreamChunk=TupleStreamSerdes.deserialize(UncompressedSerde.INSTANCE,sliceOutput.slice());
 for (int index=0; index < columnTypes.size(); index++) {
