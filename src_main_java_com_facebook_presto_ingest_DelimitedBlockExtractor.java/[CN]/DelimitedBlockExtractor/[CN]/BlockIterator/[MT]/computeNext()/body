@@ -1,0 +1,19 @@
+{
+  if (!lineIterator.hasNext()) {
+    return endOfData();
+  }
+  BlockBuilder blockBuilder=new BlockBuilder(position,tupleInfo);
+  do {
+    String line=lineIterator.next();
+    List<String> values=ImmutableList.copyOf(columnSplitter.split(line));
+    for (    ColumnDefinition definition : columnDefinitions) {
+      checkElementIndex(definition.getColumnIndex(),values.size(),"columnIndex larger than split size");
+      String value=values.get(definition.getColumnIndex());
+      definition.getType().getStringValueConverter().convert(value,blockBuilder);
+    }
+  }
+ while (!blockBuilder.isFull() && lineIterator.hasNext());
+  UncompressedBlock block=blockBuilder.build();
+  position+=block.getCount();
+  return block;
+}

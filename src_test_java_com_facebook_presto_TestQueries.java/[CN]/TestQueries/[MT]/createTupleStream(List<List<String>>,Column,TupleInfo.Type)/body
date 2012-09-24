@@ -1,28 +1,25 @@
 {
+  final TupleInfo tupleInfo=new TupleInfo(type);
   final Iterator<List<String>> iterator=data.iterator();
-  return new RowSourceBuilder(new TupleInfo(type),new RowGenerator(){
-    @Override public boolean generate(    RowSourceBuilder.RowBuilder rowBuilder){
-      if (!iterator.hasNext()) {
-        return false;
+  return new UncompressedTupleStream(tupleInfo,new Iterable<UncompressedBlock>(){
+    @Override public Iterator<UncompressedBlock> iterator(){
+      return new AbstractIterator<UncompressedBlock>(){
+        long position=0;
+        @Override protected UncompressedBlock computeNext(){
+          if (!iterator.hasNext()) {
+            return endOfData();
+          }
+          BlockBuilder blockBuilder=new BlockBuilder(position,tupleInfo);
+          while (iterator.hasNext() && !blockBuilder.isFull()) {
+            type.getStringValueConverter().convert(iterator.next().get(column.getIndex()),blockBuilder);
+          }
+          UncompressedBlock block=blockBuilder.build();
+          position+=block.getCount();
+          return block;
+        }
       }
-      String value=iterator.next().get(column.getIndex());
-switch (type) {
-case FIXED_INT_64:
-        rowBuilder.append(Long.parseLong(value));
-      break;
-case DOUBLE:
-    rowBuilder.append(Double.parseDouble(value));
-  break;
-case VARIABLE_BINARY:
-rowBuilder.append(value.getBytes(Charsets.UTF_8));
-break;
-default :
-throw new AssertionError("unhandled type: " + type);
-}
-return true;
-}
-@Override public void close(){
-}
-}
+;
+    }
+  }
 );
 }
