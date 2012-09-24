@@ -1,7 +1,7 @@
 {
   List<Tuple> expected=computeExpected("SELECT orderstatus, CAST(COUNT(*) AS INTEGER) FROM orders GROUP BY orderstatus",VARIABLE_BINARY,FIXED_INT_64);
-  TupleStream groupBySource=createTupleStream(ordersData,Column.ORDER_ORDERSTATUS,VARIABLE_BINARY);
-  TupleStream aggregateSource=createTupleStream(ordersData,Column.ORDER_ORDERSTATUS,VARIABLE_BINARY);
+  TupleStream groupBySource=createTupleStream(ordersData,TpchSchema.Orders.ORDERSTATUS,VARIABLE_BINARY);
+  TupleStream aggregateSource=createTupleStream(ordersData,TpchSchema.Orders.ORDERSTATUS,VARIABLE_BINARY);
   GroupByOperator groupBy=new GroupByOperator(groupBySource);
   HashAggregationOperator aggregation=new HashAggregationOperator(groupBy,aggregateSource,CountAggregation.PROVIDER);
   assertEqualsIgnoreOrder(tuples(aggregation),expected);

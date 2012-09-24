@@ -1,21 +1,21 @@
 {
   List<Tuple> expected=computeExpected("SELECT COUNT(*) FROM lineitem WHERE tax < discount AND tax > 0.01 AND discount < 0.05",FIXED_INT_64);
-  TupleStream discount=createTupleStream(lineitemData,Column.LINEITEM_DISCOUNT,DOUBLE);
+  TupleStream discount=createTupleStream(lineitemData,TpchSchema.LineItem.DISCOUNT,DOUBLE);
   TupleStream filteredDiscount=new ApplyPredicateOperator(discount,new Predicate<Cursor>(){
     @Override public boolean apply(    Cursor input){
       return input.getDouble(0) < 0.05;
     }
   }
 );
-  TupleStream tax=createTupleStream(lineitemData,Column.LINEITEM_TAX,DOUBLE);
+  TupleStream tax=createTupleStream(lineitemData,TpchSchema.LineItem.TAX,DOUBLE);
   TupleStream filteredTax=new ApplyPredicateOperator(tax,new Predicate<Cursor>(){
     @Override public boolean apply(    Cursor input){
       return input.getDouble(0) > 0.01;
     }
   }
 );
-  TupleStream tax2=createTupleStream(lineitemData,Column.LINEITEM_TAX,DOUBLE);
-  TupleStream discount2=createTupleStream(lineitemData,Column.LINEITEM_DISCOUNT,DOUBLE);
+  TupleStream tax2=createTupleStream(lineitemData,TpchSchema.LineItem.TAX,DOUBLE);
+  TupleStream discount2=createTupleStream(lineitemData,TpchSchema.LineItem.DISCOUNT,DOUBLE);
   ComparisonOperator comparison=new ComparisonOperator(tax2,discount2,new DoubleLessThanComparison());
   AndOperator and=new AndOperator(filteredDiscount,filteredTax,comparison);
   AggregationOperator count=new AggregationOperator(and,CountAggregation.PROVIDER);

@@ -1,0 +1,16 @@
+{
+  checkNotNull(column,"column is null");
+  checkNotNull(encoding,"encoding is null");
+  URL sourceTableUrl=Resources.getResource(column.getTableName() + ".tbl");
+  String hash=ByteStreams.hash(Resources.newInputStreamSupplier(sourceTableUrl),Hashing.sha1()).toString();
+  File cachedFile=new File(new File(cacheDirectory,column.getTableName() + "-" + hash),createFileName(column,encoding));
+  if (cachedFile.exists()) {
+    return cachedFile;
+  }
+  Files.createParentDirs(cachedFile);
+  InputSupplier<InputStreamReader> inputSupplier=Resources.newReaderSupplier(sourceTableUrl,Charsets.UTF_8);
+  BlockExtractor blockExtractor=new DelimitedBlockExtractor(ImmutableList.of(new DelimitedBlockExtractor.ColumnDefinition(column.getIndex(),column.getType())),Splitter.on('|'));
+  BlockDataImporter importer=new BlockDataImporter(blockExtractor,ImmutableList.of(new BlockDataImporter.ColumnImportSpec(TupleStreamSerdes.createTupleStreamSerde(encoding),Files.newOutputStreamSupplier(cachedFile))));
+  importer.importFrom(inputSupplier);
+  return cachedFile;
+}
