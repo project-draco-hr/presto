@@ -1,9 +1,7 @@
 {
   for (  AbstractBenchmark benchmark : BENCHMARKS) {
-    OutputStream jmeterOut=new FileOutputStream(createOutputFile(String.format("%s/jmeter/%s.jtl",outputDirectory,benchmark.getBenchmarkResultName())));
-    OutputStream csvOut=new FileOutputStream(createOutputFile(String.format("%s/csv/%s.csv",outputDirectory,benchmark.getBenchmarkResultName())));
-    benchmark.runBenchmark(new ForwardingBenchmarkResultWriter(ImmutableList.of(new JMeterBenchmarkResultWriter(jmeterOut),new SimpleLineBenchmarkResultWriter(csvOut))));
-    csvOut.close();
-    jmeterOut.close();
-  }
+    try (OutputStream jmeterOut=new FileOutputStream(createOutputFile(String.format("%s/jmeter/%s.jtl",outputDirectory,benchmark.getBenchmarkName())));OutputStream jsonOut=new FileOutputStream(createOutputFile(String.format("%s/json/%s.json",outputDirectory,benchmark.getBenchmarkName())));OutputStream csvOut=new FileOutputStream(createOutputFile(String.format("%s/csv/%s.csv",outputDirectory,benchmark.getBenchmarkName())))){
+      benchmark.runBenchmark(new ForwardingBenchmarkResultWriter(ImmutableList.of(new JMeterBenchmarkResultWriter(benchmark.getDefaultResult(),jmeterOut),new JsonBenchmarkResultWriter(jsonOut),new SimpleLineBenchmarkResultWriter(csvOut))));
+    }
+   }
 }

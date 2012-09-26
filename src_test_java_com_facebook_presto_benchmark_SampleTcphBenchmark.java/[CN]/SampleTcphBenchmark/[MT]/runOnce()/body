@@ -1,0 +1,15 @@
+{
+  long start=System.nanoTime();
+  TupleStream tupleStream=TupleStreamSerdes.createTupleStreamSerde(TupleStreamSerdes.Encoding.RAW).deserialize(totalPriceSlice);
+  Cursor cursor=tupleStream.cursor();
+  long count=0;
+  double sum=0;
+  while (cursor.advanceNextValue()) {
+    count++;
+    sum+=cursor.getDouble(0);
+  }
+  Duration duration=Duration.nanosSince(start);
+  double elapsedSeconds=duration.convertTo(TimeUnit.SECONDS);
+  DataSize fileSize=new DataSize(totalPriceColumnFile.length(),DataSize.Unit.BYTE);
+  return ImmutableMap.<String,Long>builder().put("elapsed_seconds",(long)elapsedSeconds).put("lines",count).put("sum",(long)sum).put("lines_per_second",(long)(count / elapsedSeconds)).put("megabytes_per_second",(long)(fileSize.getValue(DataSize.Unit.MEGABYTE) / elapsedSeconds)).build();
+}
