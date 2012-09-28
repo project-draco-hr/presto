@@ -7,7 +7,7 @@
     return cachedFile;
   }
   Files.createParentDirs(cachedFile);
-  BlockExtractor blockExtractor=new DelimitedBlockExtractor(ImmutableList.of(new DelimitedBlockExtractor.ColumnDefinition(column.getIndex(),column.getType())),Splitter.on('|'));
+  BlockExtractor blockExtractor=new DelimitedBlockExtractor(Splitter.on('|'),ImmutableList.of(new DelimitedBlockExtractor.ColumnDefinition(column.getIndex(),column.getType())));
   BlockDataImporter importer=new BlockDataImporter(blockExtractor,ImmutableList.of(new BlockDataImporter.ColumnImportSpec(TupleStreamSerdes.createTupleStreamSerde(encoding),Files.newOutputStreamSupplier(cachedFile))));
   importer.importFrom(new InputSupplier<InputStreamReader>(){
     @Override public InputStreamReader getInput() throws IOException {
