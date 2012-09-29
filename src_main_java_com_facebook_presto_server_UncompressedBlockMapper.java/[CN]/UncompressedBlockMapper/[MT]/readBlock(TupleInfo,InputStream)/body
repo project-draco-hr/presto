@@ -1,0 +1,20 @@
+{
+  byte[] blockHeader=new byte[SIZE_OF_INT + SIZE_OF_INT + SIZE_OF_LONG];
+  int bytesRead=ByteStreams.read(input,blockHeader,0,blockHeader.length);
+  if (bytesRead == 0) {
+    return null;
+  }
+  if (bytesRead != blockHeader.length) {
+    throw new IOException("Unexpected end of data");
+  }
+  SliceInput headerInput=Slices.wrappedBuffer(blockHeader).input();
+  int blockSize=headerInput.readInt();
+  int tupleCount=headerInput.readInt();
+  long startPosition=headerInput.readLong();
+  ByteArraySlice blockSlice=Slices.allocate(blockSize);
+  if (blockSlice.setBytes(0,input,blockSize) != blockSize) {
+    throw new IOException("Unexpected end of data");
+  }
+  Range range=Range.create(startPosition,startPosition + tupleCount - 1);
+  return new UncompressedBlock(range,tupleInfo,blockSlice);
+}

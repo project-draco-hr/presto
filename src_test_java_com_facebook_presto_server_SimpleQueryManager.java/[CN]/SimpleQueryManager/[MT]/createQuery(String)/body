@@ -1,0 +1,19 @@
+{
+  Preconditions.checkNotNull(query,"query is null");
+  String queryId=String.valueOf(nextQueryId++);
+  QueryState queryState=new QueryState(1,blockBufferMax);
+  queries.put(queryId,queryState);
+  List<String> data=ImmutableList.of("apple","banana","cherry","date");
+  for (int i=0; i < 12; i++) {
+    UncompressedBlock block=createStringBlock(0,Iterables.concat(Collections.nCopies(i + 1,data)));
+    try {
+      queryState.addBlock(block);
+    }
+ catch (    InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw Throwables.propagate(e);
+    }
+  }
+  queryState.sourceFinished();
+  return queryId;
+}

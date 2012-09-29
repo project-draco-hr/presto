@@ -1,0 +1,21 @@
+{
+  try {
+    if (queryState.isCanceled()) {
+      endOfData();
+      return null;
+    }
+    List<UncompressedBlock> nextBlocks=queryState.getNextBlocks(1);
+    if (nextBlocks.isEmpty()) {
+      endOfData();
+      return null;
+    }
+    UncompressedBlock block=Iterables.getOnlyElement(nextBlocks);
+    block=new UncompressedBlock(new Range(position,position + block.getCount() - 1),block.getTupleInfo(),block.getSlice());
+    position=block.getRange().getEnd();
+    return block;
+  }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    throw Throwables.propagate(e);
+  }
+}

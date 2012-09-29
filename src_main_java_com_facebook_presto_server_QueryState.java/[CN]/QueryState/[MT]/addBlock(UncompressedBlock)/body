@@ -1,0 +1,15 @@
+{
+  notFull.acquire();
+synchronized (blockBuffer) {
+    if (state == State.CANCELED || state == State.FAILED) {
+      notFull.release();
+      return;
+    }
+    if (sourceCount == 0) {
+      notFull.release();
+      throw new IllegalStateException("All sources are finished");
+    }
+    blockBuffer.addLast(block);
+    notEmpty.release();
+  }
+}

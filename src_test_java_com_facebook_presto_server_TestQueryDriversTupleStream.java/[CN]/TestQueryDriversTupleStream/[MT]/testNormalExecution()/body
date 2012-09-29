@@ -1,0 +1,21 @@
+{
+  List<UncompressedBlock> blocks=createBlocks();
+  int expectedCount=0;
+  for (  UncompressedBlock block : blocks) {
+    expectedCount+=block.getCount();
+  }
+  ExecutorService executor=Executors.newCachedThreadPool();
+  try {
+    QueryDriversTupleStream tupleStream=new QueryDriversTupleStream(TupleInfo.SINGLE_VARBINARY,10,new StaticQueryDriverProvider(executor,blocks),new StaticQueryDriverProvider(executor,blocks),new StaticQueryDriverProvider(executor,blocks));
+    assertEquals(tupleStream.getTupleInfo(),TupleInfo.SINGLE_VARBINARY);
+    int count=0;
+    Cursor cursor=tupleStream.cursor();
+    while (cursor.advanceNextPosition()) {
+      count++;
+    }
+    assertEquals(count,expectedCount * 3);
+  }
+  finally {
+    executor.shutdownNow();
+  }
+}

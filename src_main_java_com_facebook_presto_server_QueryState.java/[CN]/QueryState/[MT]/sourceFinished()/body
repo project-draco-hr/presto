@@ -1,0 +1,15 @@
+{
+synchronized (blockBuffer) {
+    if (state != State.RUNNING) {
+      return;
+    }
+    sourceCount--;
+    if (sourceCount == 0) {
+      if (blockBuffer.isEmpty()) {
+        state=State.FINISHED;
+      }
+      notEmpty.release();
+      notFull.release(Integer.MAX_VALUE - notFull.availablePermits() - 1000);
+    }
+  }
+}

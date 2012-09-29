@@ -1,0 +1,14 @@
+{
+synchronized (blockBuffer) {
+    if (state == State.CANCELED || state == State.FINISHED) {
+      causes.add(cause);
+      return;
+    }
+    state=State.FAILED;
+    causes.add(cause);
+    sourceCount=0;
+    blockBuffer.clear();
+    notEmpty.release();
+    notFull.release(Integer.MAX_VALUE - notFull.availablePermits() - 1000);
+  }
+}

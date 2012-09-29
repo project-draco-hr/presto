@@ -1,0 +1,25 @@
+{
+  QueryState queryState=new QueryState(1,5);
+  assertRunning(queryState);
+  GetBlocksJob getBlocksJob=new GetBlocksJob(queryState,2,1);
+  executor.submit(getBlocksJob);
+  getBlocksJob.waitForStarted();
+  getBlocksJob.assertBlockedWithCount(0);
+  queryState.addBlock(Blocks.createLongsBlock(0,0));
+  getBlocksJob.assertBlockedWithCount(1);
+  queryState.addBlock(Blocks.createLongsBlock(1,1));
+  getBlocksJob.waitForFinished();
+  assertEquals(getBlocksJob.getBlocks().size(),2);
+  for (int i=0; i < 5; i++) {
+    queryState.addBlock(Blocks.createLongsBlock(i,i));
+  }
+  AddBlocksJob addBlocksJob=new AddBlocksJob(queryState,Blocks.createLongsBlock(2,2),Blocks.createLongsBlock(3,3));
+  executor.submit(addBlocksJob);
+  addBlocksJob.waitForStarted();
+  addBlocksJob.assertBlockedWithCount(2);
+  assertEquals(queryState.getNextBlocks(1).size(),1);
+  addBlocksJob.assertBlockedWithCount(1);
+  assertEquals(queryState.getNextBlocks(1).size(),1);
+  addBlocksJob.waitForFinished();
+  assertEquals(addBlocksJob.getBlocks().size(),0);
+}

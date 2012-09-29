@@ -1,0 +1,16 @@
+{
+  ExecutorService executor=Executors.newCachedThreadPool();
+  try {
+    AsyncHttpClient httpClient=new AsyncHttpClient(client,executor);
+    QueryDriversTupleStream tupleStream=new QueryDriversTupleStream(TupleInfo.SINGLE_VARBINARY,10,new HttpQueryProvider(httpClient,server1.getBaseUrl().resolve("/v1/presto/query")),new HttpQueryProvider(httpClient,server2.getBaseUrl().resolve("/v1/presto/query")),new HttpQueryProvider(httpClient,server3.getBaseUrl().resolve("/v1/presto/query")));
+    int count=0;
+    Cursor cursor=tupleStream.cursor();
+    while (cursor.advanceNextPosition()) {
+      count++;
+    }
+    assertEquals(count,312 * 3);
+  }
+  finally {
+    executor.shutdownNow();
+  }
+}

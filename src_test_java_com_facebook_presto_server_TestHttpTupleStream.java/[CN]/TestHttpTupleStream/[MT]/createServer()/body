@@ -1,0 +1,14 @@
+{
+  Injector injector=Guice.createInjector(new TestingNodeModule(),new InMemoryEventModule(),new TestingHttpServerModule(),new JsonModule(),new JaxrsModule(),new Module(){
+    @Override public void configure(    Binder binder){
+      binder.bind(QueryResource.class).in(Scopes.SINGLETON);
+      binder.bind(QueryManager.class).to(SimpleQueryManager.class).in(Scopes.SINGLETON);
+      binder.bind(UncompressedBlockMapper.class).in(Scopes.SINGLETON);
+      binder.bind(UncompressedBlocksMapper.class).in(Scopes.SINGLETON);
+    }
+  }
+,new ConfigurationModule(new ConfigurationFactory(ImmutableMap.<String,String>of())));
+  TestingHttpServer server=injector.getInstance(TestingHttpServer.class);
+  server.start();
+  return server;
+}

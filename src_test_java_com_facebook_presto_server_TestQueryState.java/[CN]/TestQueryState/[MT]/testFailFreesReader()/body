@@ -1,0 +1,17 @@
+{
+  QueryState queryState=new QueryState(1,5);
+  assertRunning(queryState);
+  ExecutorService executor=Executors.newCachedThreadPool();
+  GetBlocksJob getBlocksJob=new GetBlocksJob(queryState,2,1);
+  executor.submit(getBlocksJob);
+  getBlocksJob.waitForStarted();
+  getBlocksJob.assertBlockedWithCount(0);
+  queryState.addBlock(Blocks.createLongsBlock(0,0));
+  getBlocksJob.assertBlockedWithCount(1);
+  RuntimeException exception=new RuntimeException("failed");
+  queryState.queryFailed(exception);
+  assertFailed(queryState,exception);
+  getBlocksJob.waitForFinished();
+  assertEquals(getBlocksJob.getBlocks().size(),1);
+  assertFailedQuery(getBlocksJob.getFailedQueryException(),exception);
+}

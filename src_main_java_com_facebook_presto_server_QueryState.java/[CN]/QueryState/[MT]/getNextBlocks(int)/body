@@ -1,0 +1,34 @@
+{
+  Preconditions.checkArgument(maxBlockCount > 0,"blockBufferMax must be at least 1");
+  notEmpty.acquire();
+synchronized (blockBuffer) {
+    if (state == State.CANCELED || state == State.FINISHED) {
+      notEmpty.release();
+      return ImmutableList.of();
+    }
+    if (state == State.FAILED) {
+      notEmpty.release();
+      throw new FailedQueryException(causes);
+    }
+    ImmutableList.Builder<UncompressedBlock> nextBlocks=ImmutableList.builder();
+    int count=0;
+    do {
+      if (blockBuffer.isEmpty()) {
+        Preconditions.checkState(sourceCount == 0,"All sources to be finished");
+        notEmpty.release();
+        break;
+      }
+ else {
+        nextBlocks.add(blockBuffer.removeFirst());
+      }
+      count++;
+    }
+ while (count < maxBlockCount && notEmpty.tryAcquire());
+    notFull.release(count);
+    List<UncompressedBlock> blocks=nextBlocks.build();
+    if (sourceCount == 0 && blockBuffer.isEmpty()) {
+      state=State.FINISHED;
+    }
+    return blocks;
+  }
+}
