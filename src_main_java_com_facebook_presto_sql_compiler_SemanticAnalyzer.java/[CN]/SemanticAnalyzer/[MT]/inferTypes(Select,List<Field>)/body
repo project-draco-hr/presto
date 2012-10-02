@@ -1,0 +1,27 @@
+{
+  return new Schema(ImmutableList.copyOf(concat(transform(select.getSelectItems(),new Function<Expression,List<Field>>(){
+    @Override public List<Field> apply(    Expression input){
+      if (input instanceof AliasedExpression) {
+        return ImmutableList.of(new Field(QualifiedName.of(((AliasedExpression)input).getAlias()),null));
+      }
+ else       if (input instanceof QualifiedNameReference) {
+        return ImmutableList.of(new Field(((QualifiedNameReference)input).getSuffix(),null));
+      }
+ else       if (input instanceof AllColumns) {
+        final AllColumns all=(AllColumns)input;
+        if (all.getPrefix().isPresent()) {
+          return ImmutableList.copyOf(Iterables.filter(exported,new Predicate<Field>(){
+            @Override public boolean apply(            Field field){
+              Optional<QualifiedName> prefix=field.getName().getPrefix();
+              return prefix.isPresent() && prefix.get().hasSuffix(all.getPrefix().get());
+            }
+          }
+));
+        }
+        return exported;
+      }
+      return ImmutableList.of(new Field(null,null));
+    }
+  }
+))));
+}

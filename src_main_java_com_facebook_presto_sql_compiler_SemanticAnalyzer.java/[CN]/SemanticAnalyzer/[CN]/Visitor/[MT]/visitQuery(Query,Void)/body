@@ -1,11 +1,11 @@
 {
-  Set<QualifiedName> exported=new HashSet<>();
+  List<Field> exported=new ArrayList<>();
   for (  Relation relation : query.getFrom()) {
     SemanticAnalyzer analyzer=new SemanticAnalyzer(metadata,symbols);
     AnalysisResult analysis=analyzer.analyze(relation);
     resolvedNames.putAll(analysis.getResolvedNames());
     types.putAll(analysis.getTypes());
-    Iterables.addAll(exported,Iterables.transform(analysis.getType().getFields(),nameGetter()));
+    Iterables.addAll(exported,analysis.getType().getFields());
   }
   SymbolTable newSymbols=new SymbolTable(symbols,exported);
   ReferenceResolver resolver=new ReferenceResolver(newSymbols);
@@ -32,6 +32,6 @@
       types.putAll(analysis.getTypes());
     }
   }
-  types.put(query,inferTypes(query.getSelect()));
+  types.put(query,inferTypes(query.getSelect(),exported));
   return null;
 }
