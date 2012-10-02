@@ -1,0 +1,12 @@
+{
+  process(relation.getRelation());
+  Schema relationSchema=types.get(relation.getRelation());
+  List<Field> fields=ImmutableList.copyOf(Iterables.transform(relationSchema.getFields(),new Function<Field,Field>(){
+    @Override public Field apply(    Field input){
+      return new Field(QualifiedName.of(relation.getAlias(),Iterables.getLast(input.getName().getParts())),null);
+    }
+  }
+));
+  types.put(relation,new Schema(fields));
+  return null;
+}
