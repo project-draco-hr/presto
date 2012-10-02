@@ -1,0 +1,19 @@
+{
+  Preconditions.checkNotNull(query,"query is null");
+  String queryId=String.valueOf(nextQueryId++);
+  final QueryState queryState=new QueryState(1,blockBufferMax);
+  Runnable queryTask;
+switch (query) {
+case "sum":
+    queryTask=new SumQuery(queryState,executor,URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"));
+  break;
+case "sum-partial":
+queryTask=new PartialSumQuery(queryState);
+break;
+default :
+throw new IllegalArgumentException("Unsupported query " + query);
+}
+queries.put(queryId,queryState);
+executor.submit(queryTask);
+return queryId;
+}

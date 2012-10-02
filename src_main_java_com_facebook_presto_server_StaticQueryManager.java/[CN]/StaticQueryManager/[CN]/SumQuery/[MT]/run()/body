@@ -1,0 +1,33 @@
+{
+  try {
+    QueryDriversTupleStream tupleStream=new QueryDriversTupleStream(new TupleInfo(Type.VARIABLE_BINARY,Type.FIXED_INT_64),10,Iterables.transform(servers,new Function<URI,QueryDriverProvider>(){
+      @Override public QueryDriverProvider apply(      @Nullable URI uri){
+        return new HttpQueryProvider("sum-partial",asyncHttpClient,uri);
+      }
+    }
+));
+    FinalHashAggregationOperator aggregation=new FinalHashAggregationOperator(tupleStream,SumAggregation.provider(1));
+    Cursor cursor=aggregation.cursor();
+    long position=0;
+    while (cursor.advanceNextPosition()) {
+      BlockBuilder blockBuilder=new BlockBuilder(position,cursor.getTupleInfo());
+      do {
+        blockBuilder.append(cursor.getTuple());
+      }
+ while (!blockBuilder.isFull() && cursor.advanceNextPosition());
+      UncompressedBlock block=blockBuilder.build();
+      queryState.addBlock(block);
+      position+=block.getCount();
+    }
+    queryState.sourceFinished();
+  }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    queryState.queryFailed(e);
+    throw Throwables.propagate(e);
+  }
+catch (  Exception|Error e) {
+    queryState.queryFailed(e);
+    throw Throwables.propagate(e);
+  }
+}

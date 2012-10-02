@@ -1,0 +1,21 @@
+{
+  initializeLogging(false);
+  ExecutorService executor=Executors.newCachedThreadPool();
+  try {
+    long start=System.nanoTime();
+    AsyncHttpClient asyncHttpClient=new AsyncHttpClient(new ApacheHttpClient(),executor);
+    QueryDriversTupleStream tupleStream=new QueryDriversTupleStream(new TupleInfo(Type.VARIABLE_BINARY,Type.FIXED_INT_64),10,new HttpQueryProvider("sum",asyncHttpClient,server));
+    TuplePrinter tuplePrinter=new DelimitedTuplePrinter();
+    int count=0;
+    Cursor cursor=tupleStream.cursor();
+    while (cursor.advanceNextPosition()) {
+      count++;
+      tuplePrinter.print(cursor.getTuple());
+    }
+    Duration duration=Duration.nanosSince(start);
+    System.out.printf("%d rows in %4.2f ms\n",count,duration.toMillis());
+  }
+  finally {
+    executor.shutdownNow();
+  }
+}

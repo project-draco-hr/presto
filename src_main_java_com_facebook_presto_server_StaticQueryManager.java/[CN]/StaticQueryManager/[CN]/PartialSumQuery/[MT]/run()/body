@@ -1,0 +1,36 @@
+{
+  try {
+    File groupByFile=new File("data/dic-rle/column5.string_dic-rle.data");
+    TupleStreamSerde groupBySerde=new DictionarySerde(new RunLengthEncodedSerde());
+    File aggregateFile=new File("data/dic-rle/column3.fmillis_raw.data");
+    TupleStreamSerde aggregateSerde=UncompressedSerde.INSTANCE;
+    Slice groupBySlice=Slices.mapFileReadOnly(groupByFile);
+    Slice aggregateSlice=Slices.mapFileReadOnly(aggregateFile);
+    TupleStream groupBySource=groupBySerde.deserialize(groupBySlice);
+    TupleStream aggregateSource=aggregateSerde.deserialize(aggregateSlice);
+    GroupByOperator groupBy=new GroupByOperator(groupBySource);
+    HashAggregationOperator aggregation=new HashAggregationOperator(groupBy,aggregateSource,CountAggregation.PROVIDER);
+    Cursor cursor=aggregation.cursor();
+    long position=0;
+    while (cursor.advanceNextPosition()) {
+      BlockBuilder blockBuilder=new BlockBuilder(position,cursor.getTupleInfo());
+      do {
+        blockBuilder.append(cursor.getTuple());
+      }
+ while (!blockBuilder.isFull() && cursor.advanceNextPosition());
+      UncompressedBlock block=blockBuilder.build();
+      queryState.addBlock(block);
+      position+=block.getCount();
+    }
+    queryState.sourceFinished();
+  }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    queryState.queryFailed(e);
+    throw Throwables.propagate(e);
+  }
+catch (  Exception|Error e) {
+    queryState.queryFailed(e);
+    throw Throwables.propagate(e);
+  }
+}
