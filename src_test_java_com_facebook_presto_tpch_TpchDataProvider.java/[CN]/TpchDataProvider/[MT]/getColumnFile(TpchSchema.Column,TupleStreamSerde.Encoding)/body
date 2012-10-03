@@ -1,14 +1,14 @@
 {
   checkNotNull(column,"column is null");
   checkNotNull(encoding,"encoding is null");
-  String hash=ByteStreams.hash(tableInputSupplierFactory.getInputSupplier(column.getTableName()),Hashing.sha1()).toString();
+  String hash=ByteStreams.hash(tableInputSupplierFactory.getInputSupplier(column.getTableName()),Hashing.md5()).toString();
   File cachedFile=new File(new File(cacheDirectory,column.getTableName() + "-" + hash),createFileName(column,encoding));
   if (cachedFile.exists()) {
     return cachedFile;
   }
   Files.createParentDirs(cachedFile);
   BlockExtractor blockExtractor=new DelimitedBlockExtractor(Splitter.on('|'),ImmutableList.of(new DelimitedBlockExtractor.ColumnDefinition(column.getIndex(),column.getType())));
-  BlockDataImporter importer=new BlockDataImporter(blockExtractor,ImmutableList.of(new BlockDataImporter.ColumnImportSpec(encoding.createSerde().createSerializer(),Files.newOutputStreamSupplier(cachedFile))));
+  BlockDataImporter importer=new BlockDataImporter(blockExtractor,ImmutableList.of(new BlockDataImporter.ColumnImportSpec(TupleStreamSerdes.createDefaultSerializer(encoding.createSerde()),Files.newOutputStreamSupplier(cachedFile))));
   importer.importFrom(new InputSupplier<InputStreamReader>(){
     @Override public InputStreamReader getInput() throws IOException {
       return new InputStreamReader(tableInputSupplierFactory.getInputSupplier(column.getTableName()).getInput(),Charsets.UTF_8);
