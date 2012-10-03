@@ -1,6 +1,6 @@
 {
   List<UncompressedBlock> values=ImmutableList.<UncompressedBlock>builder().add(createBlock(0,"a","b","c","d","e","f","g")).add(createBlock(20,"h","i","j","k","l","m")).add(createBlock(30,"n","o","p","q","r","s")).build();
-  UncompressedTupleStream data=new UncompressedTupleStream(TupleInfo.SINGLE_VARBINARY,values);
+  TupleStream data=new GenericTupleStream<>(TupleInfo.SINGLE_VARBINARY,values);
   MergeOperator merge=new MergeOperator(data,data,data);
   TupleInfo expectedTupleInfo=new TupleInfo(VARIABLE_BINARY,VARIABLE_BINARY,VARIABLE_BINARY);
   BlockBuilder expectedBlock=new BlockBuilder(0,expectedTupleInfo);
@@ -9,5 +9,5 @@
     expectedBlock.append(new byte[]{(byte)i});
     expectedBlock.append(new byte[]{(byte)i});
   }
-  assertTupleStreamEquals(merge,new UncompressedTupleStream(expectedTupleInfo,expectedBlock.build()));
+  assertTupleStreamEquals(merge,new GenericTupleStream<>(expectedTupleInfo,expectedBlock.build()));
 }

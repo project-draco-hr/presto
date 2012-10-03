@@ -1,23 +1,35 @@
 {
   if (isFinished()) {
-    return false;
+    return FINISHED;
   }
   if (!isValid) {
     isValid=true;
-    if (!validPositions.advanceNextPosition()) {
+    AdvanceResult result=validPositions.advanceNextPosition();
+    if (result == MUST_YIELD) {
+      valueCursor.advanceToPosition(validPositions.getPosition());
+      return MUST_YIELD;
+    }
+    if (result == FINISHED) {
       valueCursor.advanceToPosition(Long.MAX_VALUE);
-      return false;
+      return FINISHED;
     }
   }
  else {
     long currentValueEndPosition=valueCursor.getCurrentValueEndPosition();
     do {
-      if (!validPositions.advanceNextPosition()) {
+      AdvanceResult result=validPositions.advanceNextPosition();
+      if (result == MUST_YIELD) {
+        valueCursor.advanceToPosition(validPositions.getPosition());
+        return MUST_YIELD;
+      }
+      if (result == FINISHED) {
         valueCursor.advanceToPosition(Long.MAX_VALUE);
-        return false;
+        return FINISHED;
       }
     }
  while (validPositions.getPosition() <= currentValueEndPosition);
   }
-  return valueCursor.advanceToPosition(validPositions.getPosition());
+  AdvanceResult result=valueCursor.advanceToPosition(validPositions.getPosition());
+  Preconditions.checkState(result == SUCCESS);
+  return result;
 }

@@ -1,17 +1,13 @@
 {
   if (isFinished()) {
-    return false;
+    return FINISHED;
   }
+  AdvanceResult result;
   if (!initialized) {
-    if (!initializeUnderlyingCursor()) {
-      return false;
-    }
+    result=initializeUnderlyingCursor();
   }
  else {
-    if (!cursor.advanceNextPosition()) {
-      return false;
-    }
+    result=cursor.advanceNextPosition();
   }
-  checkState(cursor.getPosition() >= validRange.getStart(),"invariant");
-  return cursor.getPosition() <= validRange.getEnd();
+  return processResult(result);
 }

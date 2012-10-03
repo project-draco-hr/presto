@@ -1,13 +1,18 @@
 {
   if (isFinished()) {
-    return false;
+    return FINISHED;
   }
   isValid=true;
-  if (validPositions.advanceToPosition(newPosition)) {
-    return valueCursor.advanceToPosition(validPositions.getPosition());
+  AdvanceResult result=validPositions.advanceToPosition(newPosition);
+  if (result == MUST_YIELD) {
+    valueCursor.advanceToPosition(validPositions.getPosition());
+    return MUST_YIELD;
   }
- else {
+  if (result == FINISHED) {
     valueCursor.advanceToPosition(Long.MAX_VALUE);
-    return false;
+    return FINISHED;
   }
+  result=valueCursor.advanceToPosition(validPositions.getPosition());
+  Preconditions.checkState(result == SUCCESS);
+  return SUCCESS;
 }

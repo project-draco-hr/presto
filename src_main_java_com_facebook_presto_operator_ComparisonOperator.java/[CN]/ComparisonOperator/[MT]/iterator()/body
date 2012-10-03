@@ -1,35 +1,67 @@
 {
   final Cursor left=leftSource.cursor();
   final Cursor right=rightSource.cursor();
-  boolean advancedLeft=left.advanceNextPosition();
-  boolean advancedRight=right.advanceNextPosition();
+  boolean advancedLeft=Cursors.advanceNextPositionNoYield(left);
+  boolean advancedRight=Cursors.advanceNextPositionNoYield(right);
   Preconditions.checkState(advancedLeft && advancedRight || !advancedLeft && !advancedRight,"Left and right don't have the same cardinality");
   if (!advancedLeft || !advancedRight) {
-    return Iterators.emptyIterator();
+    return BlockIterators.emptyIterator();
   }
-  return new AbstractIterator<UncompressedPositionBlock>(){
-    private boolean done=false;
+  return new AbstractBlockIterator<UncompressedPositionBlock>(){
     @Override protected UncompressedPositionBlock computeNext(){
-      if (done) {
-        endOfData();
-        return null;
+      if (left.isFinished()) {
+        return endOfData();
+      }
+      if (right.getPosition() < left.getPosition()) {
+        if (right.advanceNextPosition() == MUST_YIELD) {
+          return setMustYield();
+        }
+        Preconditions.checkState(right.getPosition() == left.getPosition());
       }
       ImmutableList.Builder<Long> positions=ImmutableList.builder();
       int count=0;
       do {
         long endPosition=Math.min(left.getCurrentValueEndPosition(),right.getCurrentValueEndPosition());
         if (operation.evaluate(left,right)) {
-          while (!done && left.getPosition() <= endPosition && count < MAX_POSITIONS_PER_BLOCK) {
+          while (left.getPosition() <= endPosition && count < MAX_POSITIONS_PER_BLOCK) {
             positions.add(left.getPosition());
             ++count;
-            done=!left.advanceNextPosition() || !right.advanceNextPosition();
+            AdvanceResult result=left.advanceNextPosition();
+            if (result == SUCCESS) {
+              result=right.advanceNextPosition();
+            }
+            if (result != SUCCESS) {
+              if (count != 0) {
+                return new UncompressedPositionBlock(positions.build());
+              }
+              if (result == MUST_YIELD) {
+                return setMustYield();
+              }
+              if (result == FINISHED) {
+                return endOfData();
+              }
+            }
           }
         }
  else {
-          done=!left.advanceToPosition(endPosition + 1) || !right.advanceToPosition(endPosition + 1);
+          AdvanceResult result=left.advanceToPosition(endPosition + 1);
+          if (result == SUCCESS) {
+            result=right.advanceToPosition(endPosition + 1);
+          }
+          if (result != SUCCESS) {
+            if (count != 0) {
+              return new UncompressedPositionBlock(positions.build());
+            }
+            if (result == MUST_YIELD) {
+              return setMustYield();
+            }
+            if (result == FINISHED) {
+              return endOfData();
+            }
+          }
         }
       }
- while (!done && count < MAX_POSITIONS_PER_BLOCK);
+ while (count < MAX_POSITIONS_PER_BLOCK);
       if (count == 0) {
         endOfData();
         return null;

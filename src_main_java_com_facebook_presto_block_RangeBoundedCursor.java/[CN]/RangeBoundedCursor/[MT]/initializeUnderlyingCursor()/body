@@ -1,13 +1,12 @@
 {
-  initialized=true;
+  checkState(!initialized,"cursor is already initialized");
+  checkState(!cursor.isFinished(),"cursor is already finished");
+  AdvanceResult result=SUCCESS;
   if (!cursor.isValid()) {
-    if (!cursor.advanceNextPosition()) {
-      return false;
-    }
+    result=cursor.advanceToPosition(validRange.getStart());
   }
-  checkState(cursor.isValid(),"invariant");
-  if (cursor.getPosition() < validRange.getStart()) {
-    return cursor.advanceToPosition(validRange.getStart());
+ else   if (cursor.getPosition() < validRange.getStart()) {
+    result=cursor.advanceToPosition(validRange.getStart());
   }
-  return true;
+  return result;
 }

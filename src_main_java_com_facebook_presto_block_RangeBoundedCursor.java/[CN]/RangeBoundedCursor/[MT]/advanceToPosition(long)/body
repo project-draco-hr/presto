@@ -1,14 +1,11 @@
 {
   if (isFinished()) {
-    return false;
+    return FINISHED;
   }
   checkArgument(position >= validRange.getStart(),"target position is before start");
   if (!initialized) {
     initialized=true;
   }
-  if (!cursor.advanceToPosition(Math.min(position,validRange.getEnd() + 1))) {
-    return false;
-  }
-  checkState(cursor.getPosition() >= validRange.getStart(),"invariant");
-  return cursor.getPosition() <= validRange.getEnd();
+  AdvanceResult result=cursor.advanceToPosition(Math.min(position,validRange.getEnd() + 1));
+  return processResult(result);
 }

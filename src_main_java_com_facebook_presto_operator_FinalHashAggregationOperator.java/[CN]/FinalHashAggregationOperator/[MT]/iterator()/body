@@ -1,12 +1,21 @@
 {
   final Cursor cursor=groupBySource.cursor();
-  return new AbstractIterator<UncompressedBlock>(){
+  return new AbstractBlockIterator<UncompressedBlock>(){
+    private final Map<Tuple,AggregationFunction> aggregationMap=new HashMap<>();
     private Iterator<Entry<Tuple,AggregationFunction>> aggregations;
     private long position;
     @Override protected UncompressedBlock computeNext(){
       if (aggregations == null) {
-        Map<Tuple,AggregationFunction> aggregationMap=new HashMap<>();
-        while (cursor.advanceNextPosition()) {
+        while (cursor.isFinished()) {
+          AdvanceResult result=cursor.advanceNextValue();
+          if (result != AdvanceResult.SUCCESS) {
+            if (result == MUST_YIELD) {
+              return setMustYield();
+            }
+ else             if (result == AdvanceResult.FINISHED) {
+              break;
+            }
+          }
           Tuple key=getKey();
           AggregationFunction aggregation=aggregationMap.get(key);
           if (aggregation == null) {

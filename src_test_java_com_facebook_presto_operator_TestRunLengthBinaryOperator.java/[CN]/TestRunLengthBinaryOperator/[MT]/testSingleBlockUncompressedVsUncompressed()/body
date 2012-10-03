@@ -1,6 +1,6 @@
 {
-  UncompressedTupleStream left=new UncompressedTupleStream(TupleInfo.SINGLE_LONG,createLongsBlock(0,10,11,12,13,14));
-  UncompressedTupleStream right=new UncompressedTupleStream(TupleInfo.SINGLE_LONG,createLongsBlock(0,9,8,7,6,5));
+  TupleStream left=new GenericTupleStream<>(TupleInfo.SINGLE_LONG,createLongsBlock(0,10,11,12,13,14));
+  TupleStream right=new GenericTupleStream<>(TupleInfo.SINGLE_LONG,createLongsBlock(0,9,8,7,6,5));
   RunLengthBinaryOperator operator=new RunLengthBinaryOperator(left,right,new SubtractionOperation());
   Cursor cursor=operator.cursor();
   assertNextValue(cursor,0,1);
@@ -13,7 +13,7 @@
   assertEquals(cursor.getCurrentValueEndPosition(),3);
   assertNextValue(cursor,4,9);
   assertEquals(cursor.getCurrentValueEndPosition(),4);
-  assertFalse(cursor.advanceNextValue());
-  assertFalse(cursor.advanceNextPosition());
+  assertAdvanceNextValue(cursor,FINISHED);
+  assertAdvanceNextPosition(cursor,FINISHED);
   assertTrue(cursor.isFinished());
 }

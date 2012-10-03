@@ -1,21 +1,25 @@
 {
   Preconditions.checkArgument(!hasAdvanced || newPosition >= getPosition(),"Can't advance backwards");
   if (blockCursor == null) {
-    return false;
+    return FINISHED;
   }
   if (hasAdvanced && newPosition == getPosition()) {
-    return true;
+    return SUCCESS;
   }
   hasAdvanced=true;
-  while (newPosition > blockCursor.getRange().getEnd() && iterator.hasNext()) {
+  while (newPosition > blockCursor.getRange().getEnd() && iterator.canAdvance()) {
     blockCursor=iterator.next().cursor();
+  }
+  if (iterator.mustYield()) {
+    return MUST_YIELD;
   }
   if (newPosition > blockCursor.getRange().getEnd()) {
     blockCursor=null;
-    return false;
+    return FINISHED;
   }
-  if (!blockCursor.advanceToPosition(newPosition)) {
+  AdvanceResult result=blockCursor.advanceToPosition(newPosition);
+  if (result == FINISHED) {
     throw new IllegalStateException("Internal error: position not found");
   }
-  return true;
+  return result;
 }

@@ -1,26 +1,44 @@
 {
   final Cursor left=leftOperandSource.cursor();
   final Cursor right=rightOperandSource.cursor();
-  boolean advancedLeft=left.advanceNextPosition();
-  boolean advancedRight=right.advanceNextPosition();
+  boolean advancedLeft=Cursors.advanceNextPositionNoYield(left);
+  boolean advancedRight=Cursors.advanceNextPositionNoYield(right);
   Preconditions.checkState(advancedLeft && advancedRight,"Empty source cursor");
-  return new AbstractIterator<UncompressedBlock>(){
-    private boolean done=false;
+  return new AbstractBlockIterator<UncompressedBlock>(){
     @Override protected UncompressedBlock computeNext(){
-      if (done) {
-        endOfData();
-        return null;
+      if (left.isFinished()) {
+        return endOfData();
+      }
+      if (right.getPosition() < left.getPosition()) {
+        if (right.advanceNextPosition() == MUST_YIELD) {
+          return setMustYield();
+        }
+        Preconditions.checkState(right.getPosition() == left.getPosition());
       }
       BlockBuilder builder=new BlockBuilder(left.getPosition(),getTupleInfo());
       do {
         long endPosition=Math.min(left.getCurrentValueEndPosition(),right.getCurrentValueEndPosition());
         long value=operation.evaluateAsLong(left,right);
-        while (!done && left.getPosition() <= endPosition && !builder.isFull()) {
+        while (left.getPosition() <= endPosition && !builder.isFull()) {
           builder.append(value);
-          done=!left.advanceNextPosition() || !right.advanceNextPosition();
+          AdvanceResult result=left.advanceNextPosition();
+          if (result == SUCCESS) {
+            result=right.advanceNextPosition();
+          }
+          if (result != SUCCESS) {
+            if (!builder.isEmpty()) {
+              return builder.build();
+            }
+            if (result == MUST_YIELD) {
+              return setMustYield();
+            }
+            if (result == FINISHED) {
+              return endOfData();
+            }
+          }
         }
       }
- while (!done && !builder.isFull());
+ while (!builder.isFull());
       return builder.build();
     }
   }

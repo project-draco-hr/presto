@@ -2,23 +2,48 @@
   final DictionaryEncodedCursor groupByCursor=groupBySource.cursor();
   final Cursor aggregationCursor=aggregationSource.cursor();
   aggregationCursor.advanceNextPosition();
-  return new AbstractIterator<UncompressedBlock>(){
+  return new AbstractBlockIterator<UncompressedBlock>(){
     private final AggregationFunction[] aggregationMap=new AggregationFunction[dictionary.size()];
     private int index=-1;
     private int position=0;
     @Override protected UncompressedBlock computeNext(){
       if (index < 0) {
-        while (groupByCursor.advanceNextValue()) {
-          int key=groupByCursor.getDictionaryKey();
+        while (!groupByCursor.isFinished() && !aggregationCursor.isFinished()) {
           long groupEndPosition=groupByCursor.getCurrentValueEndPosition();
-          if (aggregationCursor.advanceToPosition(groupByCursor.getPosition()) && aggregationCursor.getPosition() <= groupEndPosition) {
-            AggregationFunction aggregation=aggregationMap[key];
-            if (aggregation == null) {
-              aggregation=functionProvider.get();
-              aggregationMap[key]=aggregation;
+          if (groupEndPosition < aggregationCursor.getPosition()) {
+            AdvanceResult result=groupByCursor.advanceNextValue();
+            if (result != AdvanceResult.SUCCESS) {
+              if (result == MUST_YIELD) {
+                return setMustYield();
+              }
+ else               if (result == AdvanceResult.FINISHED) {
+                if (aggregationCursor.advanceToPosition(Long.MAX_VALUE) == MUST_YIELD) {
+                  return setMustYield();
+                }
+                break;
+              }
             }
-            aggregation.add(aggregationCursor,groupEndPosition);
+            groupEndPosition=groupByCursor.getCurrentValueEndPosition();
           }
+          if (aggregationCursor.getPosition() < groupEndPosition) {
+            AdvanceResult result=aggregationCursor.advanceToPosition(groupByCursor.getPosition());
+            if (result == MUST_YIELD) {
+              return setMustYield();
+            }
+ else             if (result == AdvanceResult.FINISHED) {
+              if (groupByCursor.advanceToPosition(Long.MAX_VALUE) == MUST_YIELD) {
+                return setMustYield();
+              }
+              break;
+            }
+          }
+          int key=groupByCursor.getDictionaryKey();
+          AggregationFunction aggregation=aggregationMap[key];
+          if (aggregation == null) {
+            aggregation=functionProvider.get();
+            aggregationMap[key]=aggregation;
+          }
+          aggregation.add(aggregationCursor,groupEndPosition);
         }
         index=0;
       }

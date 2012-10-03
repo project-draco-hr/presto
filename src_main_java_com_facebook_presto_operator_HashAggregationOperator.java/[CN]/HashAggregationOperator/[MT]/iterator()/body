@@ -1,24 +1,54 @@
 {
   final Cursor groupByCursor=groupBySource.cursor();
   final Cursor aggregationCursor=aggregationSource.cursor();
-  aggregationCursor.advanceNextPosition();
-  return new AbstractIterator<UncompressedBlock>(){
+  if (!Cursors.advanceNextPositionNoYield(groupByCursor)) {
+    return BlockIterators.emptyIterator();
+  }
+  if (!Cursors.advanceNextPositionNoYield(aggregationCursor)) {
+    return BlockIterators.emptyIterator();
+  }
+  return new AbstractBlockIterator<UncompressedBlock>(){
+    private final Map<Tuple,AggregationFunction> aggregationMap=new HashMap<>();
     private Iterator<Entry<Tuple,AggregationFunction>> aggregations;
     private long position;
     @Override protected UncompressedBlock computeNext(){
       if (aggregations == null) {
-        Map<Tuple,AggregationFunction> aggregationMap=new HashMap<>();
-        while (groupByCursor.advanceNextValue()) {
-          Tuple key=groupByCursor.getTuple();
+        while (!groupByCursor.isFinished() && !aggregationCursor.isFinished()) {
           long groupEndPosition=groupByCursor.getCurrentValueEndPosition();
-          if (aggregationCursor.advanceToPosition(groupByCursor.getPosition()) && aggregationCursor.getPosition() <= groupEndPosition) {
-            AggregationFunction aggregation=aggregationMap.get(key);
-            if (aggregation == null) {
-              aggregation=functionProvider.get();
-              aggregationMap.put(key,aggregation);
+          if (groupEndPosition <= aggregationCursor.getPosition()) {
+            AdvanceResult result=groupByCursor.advanceNextValue();
+            if (result != AdvanceResult.SUCCESS) {
+              if (result == MUST_YIELD) {
+                return setMustYield();
+              }
+ else               if (result == AdvanceResult.FINISHED) {
+                if (aggregationCursor.advanceToPosition(Long.MAX_VALUE) == MUST_YIELD) {
+                  return setMustYield();
+                }
+                break;
+              }
             }
-            aggregation.add(aggregationCursor,groupEndPosition);
+            groupEndPosition=groupByCursor.getCurrentValueEndPosition();
           }
+          if (aggregationCursor.getPosition() < groupEndPosition) {
+            AdvanceResult result=aggregationCursor.advanceToPosition(groupByCursor.getPosition());
+            if (result == MUST_YIELD) {
+              return setMustYield();
+            }
+ else             if (result == AdvanceResult.FINISHED) {
+              if (groupByCursor.advanceToPosition(Long.MAX_VALUE) == MUST_YIELD) {
+                return setMustYield();
+              }
+              break;
+            }
+          }
+          Tuple key=groupByCursor.getTuple();
+          AggregationFunction aggregation=aggregationMap.get(key);
+          if (aggregation == null) {
+            aggregation=functionProvider.get();
+            aggregationMap.put(key,aggregation);
+          }
+          aggregation.add(aggregationCursor,groupEndPosition);
         }
         this.aggregations=aggregationMap.entrySet().iterator();
       }

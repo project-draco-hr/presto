@@ -12,12 +12,12 @@
     HashAggregationOperator aggregation=new HashAggregationOperator(groupBy,aggregateSource,CountAggregation.PROVIDER);
     Cursor cursor=aggregation.cursor();
     long position=0;
-    while (cursor.advanceNextPosition()) {
+    while (Cursors.advanceNextPositionNoYield(cursor)) {
       BlockBuilder blockBuilder=new BlockBuilder(position,cursor.getTupleInfo());
       do {
         blockBuilder.append(cursor.getTuple());
       }
- while (!blockBuilder.isFull() && cursor.advanceNextPosition());
+ while (!blockBuilder.isFull() && Cursors.advanceNextPositionNoYield(cursor));
       UncompressedBlock block=blockBuilder.build();
       queryState.addBlock(block);
       position+=block.getCount();

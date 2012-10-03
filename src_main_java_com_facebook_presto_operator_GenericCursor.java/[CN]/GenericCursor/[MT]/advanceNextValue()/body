@@ -1,17 +1,22 @@
 {
   if (blockCursor == null) {
-    return false;
+    return FINISHED;
   }
   hasAdvanced=true;
-  if (blockCursor.advanceNextValue()) {
-    return true;
+  AdvanceResult result=blockCursor.advanceNextValue();
+  if (result != FINISHED) {
+    return result;
   }
-  while (iterator.hasNext()) {
+  while (iterator.canAdvance()) {
     blockCursor=iterator.next().cursor();
-    if (blockCursor.advanceNextPosition()) {
-      return true;
+    result=blockCursor.advanceNextPosition();
+    if (result != FINISHED) {
+      return result;
     }
   }
+  if (iterator.mustYield()) {
+    return MUST_YIELD;
+  }
   blockCursor=null;
-  return false;
+  return FINISHED;
 }

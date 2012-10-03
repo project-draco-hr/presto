@@ -1,14 +1,14 @@
 {
-  return new AbstractIterator<TupleStream>(){
+  return new AbstractBlockIterator<MaskedBlock>(){
     Iterator<? extends TupleStream> valueBlocks=source.iterator();
     Cursor positionsCursor=positions.cursor();
 {
-      positionsCursor.advanceNextPosition();
+      Cursors.advanceNextPositionNoYield(positionsCursor);
     }
-    @Override protected TupleStream computeNext(){
+    @Override protected MaskedBlock computeNext(){
       while (valueBlocks.hasNext()) {
         TupleStream currentValueBlock=valueBlocks.next();
-        if (positionsCursor.getPosition() < currentValueBlock.getRange().getStart() && !positionsCursor.advanceToPosition(currentValueBlock.getRange().getStart())) {
+        if (positionsCursor.getPosition() < currentValueBlock.getRange().getStart() && !Cursors.advanceToPositionNoYield(positionsCursor,currentValueBlock.getRange().getStart())) {
           endOfData();
           return null;
         }
@@ -19,7 +19,7 @@
         do {
           positionsForCurrentBlock.add(positionsCursor.getPosition());
         }
- while (positionsCursor.advanceNextPosition() && positionsCursor.getPosition() <= currentValueBlock.getRange().getEnd());
+ while (Cursors.advanceNextPositionNoYield(positionsCursor) && positionsCursor.getPosition() <= currentValueBlock.getRange().getEnd());
         List<Long> validPositions=getValidPositions(currentValueBlock,positionsForCurrentBlock.build());
         if (!validPositions.isEmpty()) {
           return new MaskedBlock(currentValueBlock,validPositions);

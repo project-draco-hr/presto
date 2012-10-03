@@ -2,17 +2,25 @@
   final Cursor groupByCursor=groupBySource.cursor();
   final Cursor aggregationCursor=aggregationSource.cursor();
   aggregationCursor.advanceNextPosition();
-  return new AbstractIterator<UncompressedBlock>(){
+  return new AbstractBlockIterator<UncompressedBlock>(){
     private long position;
     @Override protected UncompressedBlock computeNext(){
-      if (!groupByCursor.advanceNextValue()) {
-        endOfData();
-        return null;
-      }
       BlockBuilder builder=new BlockBuilder(position,info);
-      do {
+      while (!builder.isFull()) {
+        AdvanceResult result=groupByCursor.advanceNextValue();
+        if (result != AdvanceResult.SUCCESS) {
+          if (!builder.isEmpty()) {
+            break;
+          }
+ else           if (result == AdvanceResult.MUST_YIELD) {
+            return setMustYield();
+          }
+ else           if (result == AdvanceResult.FINISHED) {
+            return endOfData();
+          }
+        }
         long groupEndPosition=groupByCursor.getCurrentValueEndPosition();
-        if (aggregationCursor.advanceToPosition(groupByCursor.getPosition()) && aggregationCursor.getPosition() <= groupEndPosition) {
+        if (Cursors.advanceToPositionNoYield(aggregationCursor,groupByCursor.getPosition()) && aggregationCursor.getPosition() <= groupEndPosition) {
           AggregationFunction aggregation=functionProvider.get();
           aggregation.add(aggregationCursor,groupEndPosition);
           Tuple value=aggregation.evaluate();
@@ -20,7 +28,6 @@
           builder.append(value);
         }
       }
- while (!builder.isFull() && groupByCursor.advanceNextValue());
       UncompressedBlock block=builder.build();
       position+=block.getCount();
       return block;

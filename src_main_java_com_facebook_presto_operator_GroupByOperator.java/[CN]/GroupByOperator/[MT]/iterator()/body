@@ -1,26 +1,36 @@
 {
   final Cursor cursor=source.cursor();
-  return new AbstractIterator<RunLengthEncodedBlock>(){
-    private boolean done;
-{
-      done=!cursor.advanceNextPosition();
-    }
+  if (!Cursors.advanceNextPositionNoYield(cursor)) {
+    return BlockIterators.emptyIterator();
+  }
+  return new AbstractBlockIterator<RunLengthEncodedBlock>(){
+    private Tuple currentKey;
+    private long currentKeyStartPosition;
     @Override protected RunLengthEncodedBlock computeNext(){
-      if (done) {
-        endOfData();
-        return null;
-      }
-      Tuple key=cursor.getTuple();
-      long startPosition=cursor.getPosition();
-      long endPosition=cursor.getCurrentValueEndPosition();
-      while (cursor.advanceNextValue() && cursor.currentTupleEquals(key)) {
-        endPosition=cursor.getCurrentValueEndPosition();
-      }
       if (cursor.isFinished()) {
-        done=true;
+        return endOfData();
       }
-      Range range=Range.create(startPosition,endPosition);
-      return new RunLengthEncodedBlock(key,range);
+      if (currentKey == null) {
+        currentKey=cursor.getTuple();
+        currentKeyStartPosition=cursor.getPosition();
+      }
+      long endPosition;
+      do {
+        endPosition=cursor.getCurrentValueEndPosition();
+        AdvanceResult result=cursor.advanceNextValue();
+        if (result == MUST_YIELD) {
+          return setMustYield();
+        }
+ else         if (result == FINISHED) {
+          break;
+        }
+      }
+ while (cursor.currentTupleEquals(currentKey));
+      Range range=Range.create(currentKeyStartPosition,endPosition);
+      RunLengthEncodedBlock block=new RunLengthEncodedBlock(currentKey,range);
+      currentKey=null;
+      currentKeyStartPosition=-1;
+      return block;
     }
   }
 ;
