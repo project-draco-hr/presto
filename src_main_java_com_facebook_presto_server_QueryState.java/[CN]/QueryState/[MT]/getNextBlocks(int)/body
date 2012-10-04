@@ -1,6 +1,7 @@
 {
   Preconditions.checkArgument(maxBlockCount > 0,"blockBufferMax must be at least 1");
-  notEmpty.acquire();
+  while (!isDone() && !notEmpty.tryAcquire(1,TimeUnit.SECONDS)) {
+  }
 synchronized (blockBuffer) {
     if (state == State.CANCELED || state == State.FINISHED) {
       notEmpty.release();
@@ -14,7 +15,7 @@ synchronized (blockBuffer) {
     int count=0;
     do {
       if (blockBuffer.isEmpty()) {
-        Preconditions.checkState(sourceCount == 0,"All sources to be finished");
+        Preconditions.checkState(sourceCount == 0,"A read permit was acquired but no blocks are available");
         notEmpty.release();
         break;
       }

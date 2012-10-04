@@ -1,22 +1,15 @@
 {
-  ExecutorService executor=Executors.newCachedThreadPool();
-  try {
-    AsyncHttpClient httpClient=new AsyncHttpClient(client,executor);
-    QueryDriversTupleStream tupleStream=new QueryDriversTupleStream(TupleInfo.SINGLE_VARBINARY,10,new HttpQueryProvider("query",httpClient,server1.getBaseUrl().resolve("/v1/presto/query")),new HttpQueryProvider("query",httpClient,server2.getBaseUrl().resolve("/v1/presto/query")),new HttpQueryProvider("query",httpClient,server3.getBaseUrl().resolve("/v1/presto/query")));
-    int count=0;
-    QueryDriversBlockIterator iterator=tupleStream.iterator();
-    while (count < 20 && iterator.hasNext()) {
-      iterator.next();
-      count++;
-    }
-    assertEquals(count,20);
-    assertTrue(iterator.hasNext());
-    iterator.cancel();
-    assertTrue(iterator.hasNext());
-    assertNotNull(iterator.next());
-    assertFalse(iterator.hasNext());
+  QueryDriversTupleStream tupleStream=new QueryDriversTupleStream(TupleInfo.SINGLE_VARBINARY,10,new HttpQueryProvider("query",httpClient,server1.getBaseUrl().resolve("/v1/presto/query")),new HttpQueryProvider("query",httpClient,server2.getBaseUrl().resolve("/v1/presto/query")),new HttpQueryProvider("query",httpClient,server3.getBaseUrl().resolve("/v1/presto/query")));
+  int count=0;
+  QueryDriversBlockIterator iterator=tupleStream.iterator();
+  while (count < 20 && iterator.hasNext()) {
+    iterator.next();
+    count++;
   }
-  finally {
-    executor.shutdownNow();
-  }
+  assertEquals(count,20);
+  assertTrue(iterator.hasNext());
+  iterator.cancel();
+  assertTrue(iterator.hasNext());
+  assertNotNull(iterator.next());
+  assertFalse(iterator.hasNext());
 }
