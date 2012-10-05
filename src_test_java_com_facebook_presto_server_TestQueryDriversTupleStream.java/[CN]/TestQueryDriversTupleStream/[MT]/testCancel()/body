@@ -2,7 +2,8 @@
   List<UncompressedBlock> blocks=createBlocks();
   ExecutorService executor=Executors.newCachedThreadPool();
   try {
-    QueryDriversTupleStream tupleStream=new QueryDriversTupleStream(TupleInfo.SINGLE_VARBINARY,10,new StaticQueryDriverProvider(executor,blocks),new StaticQueryDriverProvider(executor,blocks),new StaticQueryDriverProvider(executor,blocks));
+    StaticQueryDriverProvider provider=new StaticQueryDriverProvider(executor,blocks);
+    QueryDriversTupleStream tupleStream=new QueryDriversTupleStream(TupleInfo.SINGLE_VARBINARY,1,provider,provider,provider);
     int count=0;
     QueryDriversBlockIterator iterator=tupleStream.iterator();
     while (count < 20 && iterator.hasNext()) {
@@ -11,7 +12,16 @@
     }
     assertEquals(count,20);
     assertTrue(iterator.hasNext());
+    IdentityHashMap<StaticQueryDriver,Integer> driverBlocksAdded=new IdentityHashMap<>();
+    for (    StaticQueryDriver driver : provider.getCreatedDrivers()) {
+      assertFalse(driver.isDone());
+      driverBlocksAdded.put(driver,driver.getBlocksAdded());
+    }
     iterator.cancel();
+    for (    StaticQueryDriver driver : provider.getCreatedDrivers()) {
+      assertTrue(driver.isDone());
+      assertEquals(driver.getBlocksAdded(),(int)driverBlocksAdded.get(driver));
+    }
     while (iterator.hasNext()) {
       iterator.next();
     }
