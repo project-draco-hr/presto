@@ -1,14 +1,17 @@
 {
-  for (  ArrayDeque<TupleStream> queue : queues) {
+  for (  ArrayDeque<T> queue : queues) {
     if (queue.size() >= maxBufferSize) {
       return MUST_YIELD;
     }
   }
+  if (source.mustYield()) {
+    return MUST_YIELD;
+  }
   if (!source.hasNext()) {
     return FINISHED;
   }
-  TupleStream next=source.next();
-  for (  ArrayDeque<TupleStream> queue : queues) {
+  T next=source.next();
+  for (  ArrayDeque<T> queue : queues) {
     queue.addLast(next);
   }
   return SUCCESS;
