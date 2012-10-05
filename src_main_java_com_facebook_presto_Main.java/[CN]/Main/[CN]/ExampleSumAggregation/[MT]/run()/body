@@ -3,7 +3,8 @@
   ExecutorService executor=Executors.newCachedThreadPool();
   try {
     long start=System.nanoTime();
-    AsyncHttpClient asyncHttpClient=new AsyncHttpClient(new ApacheHttpClient(),executor);
+    ApacheHttpClient httpClient=new ApacheHttpClient(new HttpClientConfig().setConnectTimeout(new Duration(1,TimeUnit.MINUTES)).setReadTimeout(new Duration(1,TimeUnit.MINUTES)));
+    AsyncHttpClient asyncHttpClient=new AsyncHttpClient(httpClient,executor);
     QueryDriversTupleStream tupleStream=new QueryDriversTupleStream(new TupleInfo(Type.VARIABLE_BINARY,Type.FIXED_INT_64),10,new HttpQueryProvider("sum",asyncHttpClient,server));
     TuplePrinter tuplePrinter=new DelimitedTuplePrinter();
     int count=0;
