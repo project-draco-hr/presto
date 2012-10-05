@@ -3,12 +3,12 @@
   final Cursor groupByCursor=groupBySource.cursor(session);
   final Cursor aggregationCursor=aggregationSource.cursor(session);
   if (!Cursors.advanceNextPositionNoYield(groupByCursor)) {
-    return BlockIterators.emptyIterator();
+    return YieldingIterators.emptyIterator();
   }
   if (!Cursors.advanceNextPositionNoYield(aggregationCursor)) {
-    return BlockIterators.emptyIterator();
+    return YieldingIterators.emptyIterator();
   }
-  return new AbstractBlockIterator<UncompressedBlock>(){
+  return new AbstractYieldingIterator<UncompressedBlock>(){
     private final Map<Tuple,AggregationFunction> aggregationMap=new HashMap<>();
     private Iterator<Entry<Tuple,AggregationFunction>> aggregations;
     private long position;
