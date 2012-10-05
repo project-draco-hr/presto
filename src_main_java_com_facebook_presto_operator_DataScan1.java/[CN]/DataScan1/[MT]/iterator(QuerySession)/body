@@ -1,0 +1,30 @@
+{
+  Preconditions.checkNotNull(session,"session is null");
+  return new AbstractBlockIterator<PositionsBlock>(){
+    Cursor cursor=source.cursor(new QuerySession());
+    @Override protected PositionsBlock computeNext(){
+      int rangesCount=0;
+      ImmutableList.Builder<Range> ranges=ImmutableList.builder();
+      while (rangesCount < RANGES_PER_BLOCK) {
+        AdvanceResult result=cursor.advanceNextValue();
+        if (result != SUCCESS) {
+          if (rangesCount != 0) {
+            break;
+          }
+          if (result == MUST_YIELD) {
+            return setMustYield();
+          }
+ else           if (result == FINISHED) {
+            return endOfData();
+          }
+        }
+        if (predicate.apply(cursor)) {
+          ranges.add(new Range(cursor.getPosition(),cursor.getCurrentValueEndPosition()));
+          rangesCount++;
+        }
+      }
+      return new PositionsBlock(ranges.build());
+    }
+  }
+;
+}

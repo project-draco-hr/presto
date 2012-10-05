@@ -1,0 +1,38 @@
+{
+  Preconditions.checkNotNull(session,"session is null");
+  final Cursor groupByCursor=groupBySource.cursor(session);
+  final Cursor aggregationCursor=aggregationSource.cursor(session);
+  aggregationCursor.advanceNextPosition();
+  return new AbstractBlockIterator<UncompressedBlock>(){
+    private long position;
+    @Override protected UncompressedBlock computeNext(){
+      BlockBuilder builder=new BlockBuilder(position,info);
+      while (!builder.isFull()) {
+        AdvanceResult result=groupByCursor.advanceNextValue();
+        if (result != AdvanceResult.SUCCESS) {
+          if (!builder.isEmpty()) {
+            break;
+          }
+ else           if (result == AdvanceResult.MUST_YIELD) {
+            return setMustYield();
+          }
+ else           if (result == AdvanceResult.FINISHED) {
+            return endOfData();
+          }
+        }
+        long groupEndPosition=groupByCursor.getCurrentValueEndPosition();
+        if (Cursors.advanceToPositionNoYield(aggregationCursor,groupByCursor.getPosition()) && aggregationCursor.getPosition() <= groupEndPosition) {
+          AggregationFunction aggregation=functionProvider.get();
+          aggregation.add(aggregationCursor,groupEndPosition);
+          Tuple value=aggregation.evaluate();
+          builder.append(groupByCursor.getTuple());
+          builder.append(value);
+        }
+      }
+      UncompressedBlock block=builder.build();
+      position+=block.getCount();
+      return block;
+    }
+  }
+;
+}

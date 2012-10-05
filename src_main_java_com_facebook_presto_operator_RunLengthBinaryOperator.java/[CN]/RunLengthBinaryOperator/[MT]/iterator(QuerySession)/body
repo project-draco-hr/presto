@@ -1,0 +1,25 @@
+{
+  Preconditions.checkNotNull(session,"session is null");
+  final Cursor left=leftSource.cursor(session);
+  final Cursor right=rightSource.cursor(session);
+  left.advanceNextPosition();
+  right.advanceNextPosition();
+  Preconditions.checkState(!left.isFinished() && !right.isFinished(),"Source cursors are empty");
+  return new AbstractBlockIterator<RunLengthEncodedBlock>(){
+    @Override protected RunLengthEncodedBlock computeNext(){
+      Preconditions.checkState(left.isFinished() && right.isFinished() || !left.isFinished() && !right.isFinished(),"Left and right streams don't have the same cardinality");
+      if (left.isFinished() || right.isFinished()) {
+        endOfData();
+        return null;
+      }
+      Preconditions.checkState(left.getPosition() == right.getPosition(),"Left and right streams are out of sync");
+      long endPosition=Math.min(left.getCurrentValueEndPosition(),right.getCurrentValueEndPosition());
+      Tuple value=operation.evaluate(left,right);
+      RunLengthEncodedBlock result=new RunLengthEncodedBlock(value,Range.create(left.getPosition(),endPosition));
+      left.advanceToPosition(endPosition + 1);
+      right.advanceToPosition(endPosition + 1);
+      return result;
+    }
+  }
+;
+}

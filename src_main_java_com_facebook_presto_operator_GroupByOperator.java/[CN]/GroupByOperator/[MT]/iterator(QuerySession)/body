@@ -1,0 +1,38 @@
+{
+  Preconditions.checkNotNull(session,"session is null");
+  final Cursor cursor=source.cursor(session);
+  if (!Cursors.advanceNextPositionNoYield(cursor)) {
+    return BlockIterators.emptyIterator();
+  }
+  return new AbstractBlockIterator<RunLengthEncodedBlock>(){
+    private Tuple currentKey;
+    private long currentKeyStartPosition;
+    @Override protected RunLengthEncodedBlock computeNext(){
+      if (cursor.isFinished()) {
+        return endOfData();
+      }
+      if (currentKey == null) {
+        currentKey=cursor.getTuple();
+        currentKeyStartPosition=cursor.getPosition();
+      }
+      long endPosition;
+      do {
+        endPosition=cursor.getCurrentValueEndPosition();
+        AdvanceResult result=cursor.advanceNextValue();
+        if (result == MUST_YIELD) {
+          return setMustYield();
+        }
+ else         if (result == FINISHED) {
+          break;
+        }
+      }
+ while (cursor.currentTupleEquals(currentKey));
+      Range range=Range.create(currentKeyStartPosition,endPosition);
+      RunLengthEncodedBlock block=new RunLengthEncodedBlock(currentKey,range);
+      currentKey=null;
+      currentKeyStartPosition=-1;
+      return block;
+    }
+  }
+;
+}

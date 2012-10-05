@@ -12,8 +12,9 @@
     @Override public Range getRange(){
       return tupleStream.getRange();
     }
-    @Override public Cursor cursor(){
-      return new ForwardingCursor(tupleStream.cursor()){
+    @Override public Cursor cursor(    QuerySession session){
+      Preconditions.checkNotNull(session,"session is null");
+      return new ForwardingCursor(tupleStream.cursor(session)){
         @Override public TupleInfo getTupleInfo(){
           return TupleInfo.SINGLE_LONG;
         }
