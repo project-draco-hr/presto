@@ -1,0 +1,13 @@
+{
+  checkNotNull(slice,"slice is null");
+  int headerLength=slice.getInt(0);
+  int headerOffset=SizeOf.SIZE_OF_INT;
+  int dataOffset=headerOffset + headerLength;
+  try {
+    TupleStreamSerde tupleStreamSerde=OBJECT_MAPPER.readValue(slice.slice(headerOffset,headerLength).input(),TupleStreamSerde.class);
+    return tupleStreamSerde.createDeserializer().deserialize(slice.slice(dataOffset,slice.length() - dataOffset));
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+}

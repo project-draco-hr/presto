@@ -1,0 +1,17 @@
+{
+  return new TupleStreamSerializer(){
+    @Override public TupleStreamWriter createTupleStreamWriter(    SliceOutput sliceOutput){
+      checkNotNull(sliceOutput,"sliceOutput is null");
+      try {
+        byte[] header=OBJECT_MAPPER.writeValueAsBytes(serializationSerde);
+        sliceOutput.writeInt(header.length);
+        sliceOutput.writeBytes(header);
+      }
+ catch (      IOException e) {
+        throw Throwables.propagate(e);
+      }
+      return serializationSerde.createSerializer().createTupleStreamWriter(sliceOutput);
+    }
+  }
+;
+}

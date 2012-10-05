@@ -27,7 +27,7 @@
     String dataTypeName=parts.get(1);
     String encodingName=parts.get(2);
     columnDefinitionBuilder.add(new ColumnDefinition(columnIndex,TupleInfo.Type.fromName(dataTypeName)));
-    columnImportSpecBuilder.add(new ColumnImportSpec(TupleStreamSerdes.createTupleStreamSerde(TupleStreamSerdes.Encoding.fromName(encodingName)),newOutputStreamSupplier(new File(outputDir,String.format("column%d.%s_%s.data",columnIndex,dataTypeName,encodingName.replace('/','-'))))));
+    columnImportSpecBuilder.add(new ColumnImportSpec(TupleStreamSerde.Encoding.fromName(encodingName).createSerde().createSerializer(),newOutputStreamSupplier(new File(outputDir,String.format("column%d.%s_%s.data",columnIndex,dataTypeName,encodingName)))));
   }
   BlockExtractor blockExtractor=new DelimitedBlockExtractor(Splitter.on(toChar(columnSeparator)),columnDefinitionBuilder.build());
   BlockDataImporter importer=new BlockDataImporter(blockExtractor,columnImportSpecBuilder.build());

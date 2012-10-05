@@ -1,0 +1,17 @@
+{
+  return new TupleStreamDeserializer(){
+    @Override public TupleStream deserialize(    Slice slice){
+      checkNotNull(slice,"slice is null");
+      SliceInput input=slice.input();
+      final TupleInfo tupleInfo=UncompressedTupleInfoSerde.deserialize(input);
+      final Slice dataSlice=input.slice();
+      return new RunLengthEncodedTupleStream(tupleInfo,new Iterable<RunLengthEncodedBlock>(){
+        @Override public Iterator<RunLengthEncodedBlock> iterator(){
+          return new RunLengthEncodedIterator(tupleInfo,dataSlice.input());
+        }
+      }
+);
+    }
+  }
+;
+}
