@@ -1,0 +1,14 @@
+{
+  this.tupleInfo=tupleInfo;
+  this.maxBufferSize=maxBufferSize;
+  this.source=source.iterator(new QuerySession());
+  ImmutableList.Builder<ArrayDeque<T>> queueBuilder=ImmutableList.builder();
+  ImmutableList.Builder<SplitBlockIterator<T>> splitBuilder=ImmutableList.builder();
+  for (int i=0; i < splitCount; i++) {
+    ArrayDeque<T> queue=new ArrayDeque<>(maxBufferSize);
+    queueBuilder.add(queue);
+    splitBuilder.add(new SplitBlockIterator<>(this,queue));
+  }
+  queues=queueBuilder.build();
+  splits=splitBuilder.build();
+}

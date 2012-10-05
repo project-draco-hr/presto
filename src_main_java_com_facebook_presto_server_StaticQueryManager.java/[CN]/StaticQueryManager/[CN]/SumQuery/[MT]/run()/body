@@ -6,9 +6,9 @@
       }
     }
 ));
-    SplitIterator<UncompressedBlock> splitIterator=new SplitIterator<>(tupleStream.getTupleInfo(),2,10,tupleStream);
-    TupleStream groupBy=new ColumnMappingTupleStream(new OneTimeUseTupleStream(tupleStream.getTupleInfo(),splitIterator.getSplit(0)),0);
-    TupleStream aggregateSource=new ColumnMappingTupleStream(new OneTimeUseTupleStream(tupleStream.getTupleInfo(),splitIterator.getSplit(1)),1);
+    Splitter<UncompressedBlock> splitIterator=new Splitter<>(tupleStream.getTupleInfo(),2,10,tupleStream);
+    TupleStream groupBy=new ColumnMappingTupleStream(splitIterator.getSplit(0),0);
+    TupleStream aggregateSource=new ColumnMappingTupleStream(splitIterator.getSplit(1),1);
     HashAggregationOperator aggregation=new HashAggregationOperator(groupBy,aggregateSource,SumAggregation.PROVIDER);
     Cursor cursor=aggregation.cursor(new QuerySession());
     long position=0;
