@@ -1,11 +1,17 @@
 {
-  if (successfulAdvance) {
+switch (advanceResult) {
+case SUCCESS:
     if (getDelegate().getPosition() > measuredPosition) {
       statsBuilder.process(getDelegate().getTuple(),Range.create(getDelegate().getPosition(),getDelegate().getCurrentValueEndPosition()));
       measuredPosition=getDelegate().getCurrentValueEndPosition();
     }
-  }
- else {
-    statsBuilder.markFinished();
-  }
+  break;
+case MUST_YIELD:
+break;
+case FINISHED:
+statsBuilder.markFinished();
+break;
+default :
+throw new AssertionError("Missing advance state");
+}
 }

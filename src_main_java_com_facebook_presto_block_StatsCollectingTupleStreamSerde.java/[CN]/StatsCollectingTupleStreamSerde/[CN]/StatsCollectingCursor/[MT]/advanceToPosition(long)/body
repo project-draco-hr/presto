@@ -1,6 +1,10 @@
 {
-  Preconditions.checkArgument(position <= getDelegate().getCurrentValueEndPosition() + 1,"Serializer should not be skipping over values");
-  boolean result=getDelegate().advanceToPosition(position);
-  processCurrentValueIfNecessary(result);
-  return result;
+  while (position > getDelegate().getCurrentValueEndPosition()) {
+    AdvanceResult result=getDelegate().advanceNextValue();
+    processCurrentValueIfNecessary(result);
+    if (result == AdvanceResult.MUST_YIELD || result == AdvanceResult.FINISHED) {
+      return result;
+    }
+  }
+  return (position == getDelegate().getPosition()) ? AdvanceResult.SUCCESS : getDelegate().advanceToPosition(position);
 }
