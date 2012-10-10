@@ -1,13 +1,8 @@
 {
   delegate.finish();
-  try {
-    int startingIndex=sliceOutput.size();
-    OBJECT_MAPPER.writeValue(sliceOutput,statsMerger.build());
-    int endingIndex=sliceOutput.size();
-    checkState(endingIndex > startingIndex);
-    sliceOutput.writeInt(endingIndex - startingIndex);
-  }
- catch (  IOException e) {
-    throw Throwables.propagate(e);
-  }
+  int startingIndex=sliceOutput.size();
+  TupleStreamSerdes.serialize(TupleStreamSerdes.Encoding.RAW.createSerde(),statsInlinedOperator.getResult(),sliceOutput);
+  int endingIndex=sliceOutput.size();
+  checkState(endingIndex > startingIndex);
+  sliceOutput.writeInt(endingIndex - startingIndex);
 }

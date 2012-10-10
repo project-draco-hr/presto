@@ -1,24 +1,20 @@
 {
-  Preconditions.checkState(!dataSources.isEmpty(),"No data sources requested!");
   long start=System.nanoTime();
-  ImmutableList.Builder<StatsCollectingTupleStreamSerde.StatsAnnotatedTupleStream> builder=ImmutableList.builder();
-  for (  TupleStreamDataSource dataSource : dataSources) {
-    builder.add(TupleStreamSerdes.createDefaultDeserializer().deserialize(dataSource.getSlice()));
-  }
-  ImmutableList<StatsCollectingTupleStreamSerde.StatsAnnotatedTupleStream> inputTupleStreams=builder.build();
-  TupleStream tupleStream=createBenchmarkedTupleStream(inputTupleStreams);
+  MetricRecordingTpchDataProvider metricRecordingTpchDataProvider=new MetricRecordingTpchDataProvider(tpchDataProvider);
+  StatsTpchTupleStreamProvider statsTpchTupleStreamProvider=new StatsTpchTupleStreamProvider(metricRecordingTpchDataProvider);
+  TupleStream tupleStream=createBenchmarkedTupleStream(statsTpchTupleStreamProvider);
   Cursor cursor=tupleStream.cursor(new QuerySession());
   long outputRows=0;
   while (Cursors.advanceNextValueNoYield(cursor)) {
     outputRows+=cursor.getCurrentValueEndPosition() - cursor.getPosition() + 1;
   }
-  Duration duration=Duration.nanosSince(start);
-  long elapsedMillis=(long)duration.convertTo(TimeUnit.MILLISECONDS);
-  double elapsedSeconds=duration.convertTo(TimeUnit.SECONDS);
-  double inputBytes=0;
-  for (  TupleStreamDataSource dataSource : dataSources) {
-    inputBytes+=dataSource.getFile().length();
-  }
-  DataSize totalDataSize=new DataSize(inputBytes,DataSize.Unit.BYTE);
-  return ImmutableMap.<String,Long>builder().put("elapsed_millis",elapsedMillis).put("input_rows",inputTupleStreams.get(0).getStats().getRowCount()).put("input_rows_per_second",(long)(inputTupleStreams.get(0).getStats().getRowCount() / elapsedSeconds)).put("output_rows",outputRows).put("output_rows_per_second",(long)(outputRows / elapsedSeconds)).put("input_megabytes",(long)totalDataSize.getValue(DataSize.Unit.MEGABYTE)).put("input_megabytes_per_second",(long)(totalDataSize.getValue(DataSize.Unit.MEGABYTE) / elapsedSeconds)).build();
+  Duration totalDuration=Duration.nanosSince(start);
+  Duration dataGenerationDuration=metricRecordingTpchDataProvider.getDataFetchElapsedTime();
+  checkState(totalDuration.compareTo(dataGenerationDuration) >= 0,"total time should be at least as large as data generation time");
+  double executionMillis=totalDuration.convertTo(TimeUnit.MILLISECONDS) - dataGenerationDuration.toMillis();
+  double executionSeconds=executionMillis / TimeUnit.SECONDS.toMillis(1);
+  DataSize totalDataSize=metricRecordingTpchDataProvider.getCumulativeDataSize();
+  checkState(!statsTpchTupleStreamProvider.getStats().isEmpty(),"no columns were fetched");
+  long inputRows=statsTpchTupleStreamProvider.getStats().get(0).getRowCount();
+  return ImmutableMap.<String,Long>builder().put("elapsed_millis",(long)executionMillis).put("input_rows",inputRows).put("input_rows_per_second",(long)(inputRows / executionSeconds)).put("output_rows",outputRows).put("output_rows_per_second",(long)(outputRows / executionSeconds)).put("input_megabytes",(long)totalDataSize.getValue(DataSize.Unit.MEGABYTE)).put("input_megabytes_per_second",(long)(totalDataSize.getValue(DataSize.Unit.MEGABYTE) / executionSeconds)).build();
 }

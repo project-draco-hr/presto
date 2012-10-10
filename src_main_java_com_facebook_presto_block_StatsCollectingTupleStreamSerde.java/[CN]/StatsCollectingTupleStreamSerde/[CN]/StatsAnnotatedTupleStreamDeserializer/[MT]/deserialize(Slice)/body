@@ -2,11 +2,5 @@
   checkNotNull(slice,"slice is null");
   int footerLength=slice.getInt(slice.length() - SizeOf.SIZE_OF_INT);
   int footerOffset=slice.length() - footerLength - SizeOf.SIZE_OF_INT;
-  try {
-    Stats stats=OBJECT_MAPPER.readValue(slice.slice(footerOffset,footerLength).input(),Stats.class);
-    return new StatsAnnotatedTupleStream(tupleStreamDeserializer.deserialize(slice.slice(0,footerOffset)),stats);
-  }
- catch (  IOException e) {
-    throw Throwables.propagate(e);
-  }
+  return tupleStreamDeserializer.deserialize(slice.slice(0,footerOffset));
 }
