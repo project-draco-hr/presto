@@ -9,63 +9,79 @@
     private int position=0;
     @Override protected UncompressedBlock computeNext(){
       if (index < 0) {
-        while (!groupByCursor.isFinished() && !aggregationCursor.isFinished()) {
-          long groupEndPosition=groupByCursor.getCurrentValueEndPosition();
-          if (groupEndPosition < aggregationCursor.getPosition()) {
-            AdvanceResult result=groupByCursor.advanceNextValue();
-            if (result != AdvanceResult.SUCCESS) {
-              if (result == MUST_YIELD) {
-                return setMustYield();
-              }
- else               if (result == AdvanceResult.FINISHED) {
-                if (aggregationCursor.advanceToPosition(Long.MAX_VALUE) == MUST_YIELD) {
-                  return setMustYield();
-                }
-                break;
-              }
-            }
-            groupEndPosition=groupByCursor.getCurrentValueEndPosition();
-          }
-          if (aggregationCursor.getPosition() < groupByCursor.getPosition()) {
-            AdvanceResult result=aggregationCursor.advanceToPosition(groupByCursor.getPosition());
-            if (result == MUST_YIELD) {
-              return setMustYield();
-            }
- else             if (result == AdvanceResult.FINISHED) {
-              if (groupByCursor.advanceToPosition(Long.MAX_VALUE) == MUST_YIELD) {
-                return setMustYield();
-              }
-              break;
-            }
-          }
-          int key=groupByCursor.getDictionaryKey();
-          AggregationFunction aggregation=aggregationMap[key];
-          if (aggregation == null) {
-            aggregation=functionProvider.get();
-            aggregationMap[key]=aggregation;
-          }
-          aggregation.add(aggregationCursor,groupEndPosition);
+        if (!groupByCursor.isValid()) {
+switch (groupByCursor.advanceNextPosition()) {
+case MUST_YIELD:
+            return setMustYield();
+case FINISHED:
+          return endOfData();
+      }
+    }
+    if (!aggregationCursor.isValid()) {
+switch (aggregationCursor.advanceNextPosition()) {
+case MUST_YIELD:
+        return setMustYield();
+case FINISHED:
+      return endOfData();
+  }
+}
+while (!groupByCursor.isFinished() && !aggregationCursor.isFinished()) {
+  long groupEndPosition=groupByCursor.getCurrentValueEndPosition();
+  if (groupEndPosition < aggregationCursor.getPosition()) {
+    AdvanceResult result=groupByCursor.advanceNextValue();
+    if (result != AdvanceResult.SUCCESS) {
+      if (result == MUST_YIELD) {
+        return setMustYield();
+      }
+ else       if (result == AdvanceResult.FINISHED) {
+        if (aggregationCursor.advanceToPosition(Long.MAX_VALUE) == MUST_YIELD) {
+          return setMustYield();
         }
-        index=0;
+        break;
       }
-      if (index >= aggregationMap.length) {
-        endOfData();
-        return null;
+    }
+    groupEndPosition=groupByCursor.getCurrentValueEndPosition();
+  }
+  if (aggregationCursor.getPosition() < groupByCursor.getPosition()) {
+    AdvanceResult result=aggregationCursor.advanceToPosition(groupByCursor.getPosition());
+    if (result == MUST_YIELD) {
+      return setMustYield();
+    }
+ else     if (result == AdvanceResult.FINISHED) {
+      if (groupByCursor.advanceToPosition(Long.MAX_VALUE) == MUST_YIELD) {
+        return setMustYield();
       }
-      BlockBuilder blockBuilder=new BlockBuilder(position,info);
-      while (!blockBuilder.isFull() && index < aggregationMap.length) {
-        if (aggregationMap[index] != null) {
-          Tuple key=dictionary.getTuple(index);
-          Tuple value=aggregationMap[index].evaluate();
-          blockBuilder.append(key);
-          blockBuilder.append(value);
-        }
-        index++;
-      }
-      UncompressedBlock block=blockBuilder.build();
-      position+=block.getCount();
-      return block;
+      break;
     }
   }
+  int key=groupByCursor.getDictionaryKey();
+  AggregationFunction aggregation=aggregationMap[key];
+  if (aggregation == null) {
+    aggregation=functionProvider.get();
+    aggregationMap[key]=aggregation;
+  }
+  aggregation.add(aggregationCursor,groupEndPosition);
+}
+index=0;
+}
+if (index >= aggregationMap.length) {
+endOfData();
+return null;
+}
+BlockBuilder blockBuilder=new BlockBuilder(position,info);
+while (!blockBuilder.isFull() && index < aggregationMap.length) {
+if (aggregationMap[index] != null) {
+  Tuple key=dictionary.getTuple(index);
+  Tuple value=aggregationMap[index].evaluate();
+  blockBuilder.append(key);
+  blockBuilder.append(value);
+}
+index++;
+}
+UncompressedBlock block=blockBuilder.build();
+position+=block.getCount();
+return block;
+}
+}
 ;
 }
