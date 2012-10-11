@@ -1,0 +1,25 @@
+{
+  MockInlinedOperatorWriter mockInlinedOperatorWriter=new MockInlinedOperatorWriter();
+  TupleStream tupleStream=new InlinedOperatorHook(new GroupByOperator(Blocks.createTupleStream(0,"a","a","b","b","c","d","e")),mockInlinedOperatorWriter);
+  Cursor cursor=tupleStream.cursor(new QuerySession());
+  Assert.assertTrue(mockInlinedOperatorWriter.getPositionList().isEmpty());
+  Assert.assertFalse(mockInlinedOperatorWriter.isFinished());
+  cursor.advanceNextPosition();
+  Assert.assertEquals(mockInlinedOperatorWriter.getPositionList(),ImmutableList.of(0L));
+  Assert.assertFalse(mockInlinedOperatorWriter.isFinished());
+  cursor.advanceNextPosition();
+  Assert.assertEquals(mockInlinedOperatorWriter.getPositionList(),ImmutableList.of(0L));
+  Assert.assertFalse(mockInlinedOperatorWriter.isFinished());
+  cursor.advanceNextValue();
+  Assert.assertEquals(mockInlinedOperatorWriter.getPositionList(),ImmutableList.of(0L,2L));
+  Assert.assertFalse(mockInlinedOperatorWriter.isFinished());
+  cursor.advanceNextValue();
+  Assert.assertEquals(mockInlinedOperatorWriter.getPositionList(),ImmutableList.of(0L,2L,4L));
+  Assert.assertFalse(mockInlinedOperatorWriter.isFinished());
+  cursor.advanceToPosition(6);
+  Assert.assertEquals(mockInlinedOperatorWriter.getPositionList(),ImmutableList.of(0L,2L,4L,5L,6L));
+  Assert.assertFalse(mockInlinedOperatorWriter.isFinished());
+  cursor.advanceNextPosition();
+  Assert.assertEquals(mockInlinedOperatorWriter.getPositionList(),ImmutableList.of(0L,2L,4L,5L,6L));
+  Assert.assertTrue(mockInlinedOperatorWriter.isFinished());
+}
