@@ -1,0 +1,33 @@
+{
+  if (!context.isDefaultRewrite()) {
+    Node result=nodeRewriter.rewriteQuery(node,context.get(),TreeRewriter.this);
+    if (result != null) {
+      return result;
+    }
+  }
+  Select select=rewrite(node.getSelect(),context.get());
+  ImmutableList.Builder<Relation> from=ImmutableList.builder();
+  for (  Relation relation : node.getFrom()) {
+    from.add(rewrite(relation,context.get()));
+  }
+  Expression where=null;
+  if (node.getWhere() != null) {
+    where=rewrite(node.getWhere(),context.get());
+  }
+  ImmutableList.Builder<Expression> groupBy=ImmutableList.builder();
+  for (  Expression expression : node.getGroupBy()) {
+    groupBy.add(rewrite(expression,context.get()));
+  }
+  Expression having=null;
+  if (node.getHaving() != null) {
+    having=rewrite(node.getHaving(),context.get());
+  }
+  ImmutableList.Builder<SortItem> orderBy=ImmutableList.builder();
+  for (  SortItem sortItem : node.getOrderBy()) {
+    orderBy.add(rewrite(sortItem,context.get()));
+  }
+  if (select != node.getSelect() || !sameElements(node.getFrom(),from.build()) || where != node.getWhere() || !sameElements(node.getGroupBy(),groupBy.build()) || having != node.getHaving() || !sameElements(orderBy.build(),node.getOrderBy())) {
+    return new Query(select,from.build(),where,groupBy.build(),having,orderBy.build(),node.getLimit());
+  }
+  return node;
+}
