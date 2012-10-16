@@ -1,0 +1,13 @@
+{
+  boolean resultInitialized=false;
+  boolean lastResult=false;
+  for (  Cursor cursor : sources) {
+    boolean result=Cursors.advanceToPositionNoYield(cursor,position);
+    if (resultInitialized && result != lastResult) {
+      throw new IllegalStateException("Unaligned cursors");
+    }
+    lastResult=result;
+    resultInitialized=true;
+  }
+  return lastResult ? AdvanceResult.SUCCESS : AdvanceResult.FINISHED;
+}
