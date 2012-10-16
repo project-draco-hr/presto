@@ -1,0 +1,34 @@
+{
+  process(node.getSelect(),indent);
+  append(indent,"FROM ");
+  if (node.getFrom().size() > 1) {
+    builder.append('\n');
+    Iterator<Relation> relations=node.getFrom().iterator();
+    while (relations.hasNext()) {
+      process(relations.next(),indent);
+      if (relations.hasNext()) {
+        builder.append(", ");
+      }
+    }
+  }
+ else {
+    process(Iterables.getOnlyElement(node.getFrom()),indent);
+  }
+  builder.append('\n');
+  if (node.getWhere() != null) {
+    append(indent,"WHERE " + ExpressionFormatter.toString(node.getWhere())).append('\n');
+  }
+  if (!node.getGroupBy().isEmpty()) {
+    append(indent,"GROUP BY " + Joiner.on(", ").join(Iterables.transform(node.getGroupBy(),expressionFormatterFunction()))).append('\n');
+  }
+  if (node.getHaving() != null) {
+    append(indent,"HAVING " + ExpressionFormatter.toString(node.getHaving())).append('\n');
+  }
+  if (!node.getOrderBy().isEmpty()) {
+    append(indent,"ORDER BY " + Joiner.on(", ").join(Iterables.transform(node.getOrderBy(),orderByFormatterFunction())));
+  }
+  if (node.getLimit() != null) {
+    append(indent,"LIMIT " + node.getLimit());
+  }
+  return null;
+}
