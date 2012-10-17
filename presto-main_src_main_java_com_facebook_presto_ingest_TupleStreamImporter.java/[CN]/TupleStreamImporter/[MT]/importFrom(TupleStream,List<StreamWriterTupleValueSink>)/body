@@ -1,0 +1,20 @@
+{
+  checkNotNull(tupleStream,"tupleStream is null");
+  checkNotNull(tupleValueSinks,"tupleValueSinks is null");
+  checkArgument(tupleStream.getTupleInfo().getFieldCount() == tupleValueSinks.size(),"TupleStream does not match the provided sinks");
+  MaterializingTupleStream materializingTupleStream=new MaterializingTupleStream(tupleStream);
+  Splitter<TupleStream> splitter=new Splitter<>(materializingTupleStream.getTupleInfo(),tupleStream.getTupleInfo().getFieldCount(),(int)DEFAULT_MAX_SPLIT_SIZE.toBytes(),materializingTupleStream);
+  ImmutableList.Builder<TupleStream> splits=ImmutableList.builder();
+  for (int field=0; field < tupleStream.getTupleInfo().getFieldCount(); field++) {
+    TupleStream splitTupleStream=splitter.getSplit(field);
+    Tap writerTupleStream=new Tap(ColumnMappingTupleStream.map(splitTupleStream,field),tupleValueSinks.get(field));
+    splits.add(writerTupleStream);
+  }
+  MergeOperator mergeOperator=new MergeOperator(splits.build());
+  Cursor cursor=mergeOperator.cursor(new QuerySession());
+  long rowCount=0;
+  while (Cursors.advanceNextValueNoYield(cursor)) {
+    rowCount+=cursor.getCurrentValueEndPosition() - cursor.getPosition() + 1;
+  }
+  return rowCount;
+}
