@@ -1,0 +1,31 @@
+{
+  Query query=treeRewriter.defaultRewrite(node,context);
+  if (!Iterables.any(query.getSelect().getSelectItems(),instanceOf(AllColumns.class))) {
+    return query;
+  }
+  Preconditions.checkArgument(Iterables.all(node.getSelect().getSelectItems(),or(instanceOf(AllColumns.class),instanceOf(AliasedExpression.class))),"SELECT terms must be wildcard (* or T.*) or aliased expressions");
+  Map<QualifiedName,Relation> relationsByName=Maps.uniqueIndex(query.getFrom(),extractRelationName());
+  ImmutableList.Builder<Expression> builder=ImmutableList.builder();
+  for (  Expression term : query.getSelect().getSelectItems()) {
+    if (term instanceof AllColumns) {
+      Optional<QualifiedName> optionalPrefix=((AllColumns)term).getPrefix();
+      List<Relation> relations=query.getFrom();
+      if (optionalPrefix.isPresent()) {
+        relations=ImmutableList.of(relationsByName.get(optionalPrefix.get()));
+      }
+      for (      Relation relation : relations) {
+        SchemaExtractor extractor=new SchemaExtractor(metadata);
+        for (        QualifiedName name : extractor.extract(relation)) {
+          builder.add(new AliasedExpression(new QualifiedNameReference(name),name.getSuffix()));
+        }
+      }
+    }
+ else {
+      builder.add(term);
+    }
+  }
+  if (!sameElements(query.getSelect().getSelectItems(),builder.build())) {
+    return new Query(new Select(query.getSelect().isDistinct(),builder.build()),query.getFrom(),query.getWhere(),query.getGroupBy(),query.getHaving(),query.getOrderBy(),query.getLimit());
+  }
+  return query;
+}

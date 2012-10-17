@@ -1,0 +1,24 @@
+{
+  AstVisitor<List<QualifiedName>,Void> extractor=new AstVisitor<List<QualifiedName>,Void>(){
+    @Override protected List<QualifiedName> visitNode(    Node node,    Void context){
+      throw new UnsupportedOperationException("not yet implemented: " + node.getClass().getName());
+    }
+    @Override protected List<QualifiedName> visitTable(    Table node,    Void context){
+      return metadata.getTable(node.getName()).getSchema();
+    }
+    @Override protected List<QualifiedName> visitAliasedRelation(    AliasedRelation node,    Void context){
+      Preconditions.checkArgument(node.getColumnNames() == null || node.getColumnNames().isEmpty(),"column aliasing not yet supported");
+      List<QualifiedName> child=process(node.getRelation(),context);
+      return Lists.transform(child,AliasedRelation.applyAlias(node));
+    }
+    @Override protected List<QualifiedName> visitSubquery(    Subquery node,    Void context){
+      return process(node.getQuery(),context);
+    }
+    @Override protected List<QualifiedName> visitQuery(    Query node,    Void context){
+      Preconditions.checkArgument(Iterables.all(node.getSelect().getSelectItems(),instanceOf(AliasedExpression.class)),"SELECT terms in subquery must be aliased");
+      return IterableTransformer.on(node.getSelect().getSelectItems()).cast(AliasedExpression.class).transform(aliasGetter()).list();
+    }
+  }
+;
+  return extractor.process(relation,null);
+}
