@@ -1,0 +1,32 @@
+{
+  Query query=treeRewriter.defaultRewrite(node,context);
+  Preconditions.checkArgument(query.getHaving() == null,"Queries with HAVING not supported by this transformer");
+  Preconditions.checkArgument(Iterables.all(query.getSelect().getSelectItems(),instanceOf(AliasedExpression.class)),"All SELECT terms must have explicit aliases");
+  Preconditions.checkArgument(query.getLimit() == null,"Queries with LIMIT not yet supported");
+  Preconditions.checkArgument(query.getOrderBy().isEmpty(),"Queries with ORDER BY not yet supported");
+  if (query.getWhere() != null || !query.getGroupBy().isEmpty() || query.getFrom().size() > 1 || !Iterables.all(transform(query.getSelect().getSelectItems(),unalias()),instanceOf(QualifiedNameReference.class))) {
+    return query;
+  }
+  Relation source=unaliasRelation(Iterables.getOnlyElement(query.getFrom()));
+  if (!(source instanceof Subquery)) {
+    return query;
+  }
+  Query subquery=((Subquery)source).getQuery();
+  if (!subquery.getGroupBy().isEmpty()) {
+    return query;
+  }
+  Preconditions.checkArgument(!Iterables.any(subquery.getSelect().getSelectItems(),instanceOf(AllColumns.class)),"Wildcards must be expanded");
+  Preconditions.checkArgument(Iterables.all(subquery.getSelect().getSelectItems(),instanceOf(AliasedExpression.class)),"All SELECT terms must have explicit aliases");
+  ImmutableList.Builder<Expression> builder=ImmutableList.builder();
+  for (  AliasedExpression aliased : transform(query.getSelect().getSelectItems(),cast(AliasedExpression.class))) {
+    QualifiedNameReference reference=(QualifiedNameReference)aliased.getExpression();
+    for (    AliasedExpression aliasedChild : transform(subquery.getSelect().getSelectItems(),cast(AliasedExpression.class))) {
+      if (reference.getName().hasSuffix(QualifiedName.of(aliasedChild.getAlias()))) {
+        builder.add(new AliasedExpression(aliasedChild.getExpression(),aliased.getAlias()));
+        break;
+      }
+    }
+  }
+  Select select=new Select(query.getSelect().isDistinct() || subquery.getSelect().isDistinct(),builder.build());
+  return new Query(select,subquery.getFrom(),subquery.getWhere(),subquery.getGroupBy(),subquery.getHaving(),subquery.getOrderBy(),subquery.getLimit());
+}
