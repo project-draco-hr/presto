@@ -1,0 +1,14 @@
+{
+  return new Predicate<Expression>(){
+    @Override public boolean apply(    Expression input){
+      if (input instanceof AliasedExpression) {
+        return apply(((AliasedExpression)input).getExpression());
+      }
+      if (input instanceof FunctionCall) {
+        return metadata.getFunction(((FunctionCall)input).getName()).isAggregate();
+      }
+      return false;
+    }
+  }
+;
+}

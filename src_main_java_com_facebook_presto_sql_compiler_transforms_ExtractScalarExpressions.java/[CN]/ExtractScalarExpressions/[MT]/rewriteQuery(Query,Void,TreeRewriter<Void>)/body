@@ -1,0 +1,43 @@
+{
+  Preconditions.checkArgument(!Iterables.all(query.getSelect().getSelectItems(),Predicates.instanceOf(AllColumns.class)),"'*' column specifier must be expanded");
+  Preconditions.checkArgument(query.getHaving() == null,"Queries with HAVING clause not supported by this transformer");
+  Preconditions.checkArgument(Iterables.all(query.getSelect().getSelectItems(),Predicates.instanceOf(AliasedExpression.class)),"All SELECT terms must be properly aliased");
+  if (!query.getOrderBy().isEmpty()) {
+    throw new UnsupportedOperationException("not yet implemented: queries with ORDER BY");
+  }
+  if (query.getLimit() != null) {
+    throw new UnsupportedOperationException("not yet implemented: queries with LIMIT");
+  }
+  query=treeRewriter.defaultRewrite(query,context);
+  if (!isCandidate(query.getSelect().getSelectItems())) {
+    return query;
+  }
+  ImmutableSet.Builder<Expression> expressions=ImmutableSet.builder();
+  for (  AliasedExpression aliased : transform(query.getSelect().getSelectItems(),cast(AliasedExpression.class))) {
+    Expression expression=aliased.getExpression();
+    if (expression instanceof FunctionCall) {
+      FunctionCall function=(FunctionCall)expression;
+      Preconditions.checkState(metadata.getFunction(function.getName()).isAggregate(),"Expected function '%s' to be an aggregation",function.getName());
+      expressions.addAll(function.getArguments());
+    }
+ else     if (expression instanceof QualifiedNameReference) {
+      expressions.add(expression);
+    }
+ else {
+      throw new IllegalArgumentException("SELECT terms must be either aggregate functions or qualified name references");
+    }
+  }
+  Map<Expression,String> syntheticAttributes=IterableUtils.toMap(expressions.build(),NameGenerator.<Expression>fieldAliasGenerator(namer));
+  ImmutableList.Builder<Expression> fields=ImmutableList.builder();
+  for (  Map.Entry<Expression,String> entry : syntheticAttributes.entrySet()) {
+    fields.add(new AliasedExpression(entry.getKey(),entry.getValue()));
+  }
+  Query subquery=new Query(new Select(false,fields.build()),query.getFrom(),query.getWhere(),ImmutableList.<Expression>of(),null,ImmutableList.<SortItem>of(),null);
+  String syntheticRelation=namer.newRelationAlias();
+  Map<Expression,QualifiedName> qualified=Maps.transformValues(syntheticAttributes,QualifiedName.addPrefixFunction(QualifiedName.of(syntheticRelation)));
+  Function<Node,Expression> rewriter=TreeRewriter.rewriteFunction(new ReplaceWithAttributeReference(qualified));
+  List<Expression> rewrittenSelect=Lists.transform(query.getSelect().getSelectItems(),rewriter);
+  List<Expression> rewrittenGroupBy=Lists.transform(query.getGroupBy(),rewriter);
+  Query result=new Query(new Select(query.getSelect().isDistinct(),rewrittenSelect),ImmutableList.<Relation>of(new AliasedRelation(new Subquery(subquery),syntheticRelation,null)),null,rewrittenGroupBy,null,ImmutableList.<SortItem>of(),query.getLimit());
+  return result;
+}
