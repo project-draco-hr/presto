@@ -1,0 +1,25 @@
+{
+  MockTupleValueSink mockTupleValueSink=new MockTupleValueSink();
+  TupleStream tupleStream=new Tap(new GroupByOperator(Blocks.createTupleStream(0,"a","a","b","b","c","d","e")),mockTupleValueSink);
+  Cursor cursor=tupleStream.cursor(new QuerySession());
+  Assert.assertTrue(mockTupleValueSink.getPositionList().isEmpty());
+  Assert.assertFalse(mockTupleValueSink.isFinished());
+  cursor.advanceNextPosition();
+  Assert.assertEquals(mockTupleValueSink.getPositionList(),ImmutableList.of(0L));
+  Assert.assertFalse(mockTupleValueSink.isFinished());
+  cursor.advanceNextPosition();
+  Assert.assertEquals(mockTupleValueSink.getPositionList(),ImmutableList.of(0L));
+  Assert.assertFalse(mockTupleValueSink.isFinished());
+  cursor.advanceNextValue();
+  Assert.assertEquals(mockTupleValueSink.getPositionList(),ImmutableList.of(0L,2L));
+  Assert.assertFalse(mockTupleValueSink.isFinished());
+  cursor.advanceNextValue();
+  Assert.assertEquals(mockTupleValueSink.getPositionList(),ImmutableList.of(0L,2L,4L));
+  Assert.assertFalse(mockTupleValueSink.isFinished());
+  cursor.advanceToPosition(6);
+  Assert.assertEquals(mockTupleValueSink.getPositionList(),ImmutableList.of(0L,2L,4L,5L,6L));
+  Assert.assertFalse(mockTupleValueSink.isFinished());
+  cursor.advanceNextPosition();
+  Assert.assertEquals(mockTupleValueSink.getPositionList(),ImmutableList.of(0L,2L,4L,5L,6L));
+  Assert.assertTrue(mockTupleValueSink.isFinished());
+}
