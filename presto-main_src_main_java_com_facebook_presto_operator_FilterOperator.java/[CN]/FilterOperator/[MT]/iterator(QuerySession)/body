@@ -1,50 +1,44 @@
 {
   Preconditions.checkNotNull(session,"session is null");
-  return new AbstractYieldingIterator<MaskedBlock>(){
-    Iterator<? extends TupleStream> valueBlocks=source.iterator(session);
-    Cursor positionsCursor=positions.cursor(session);
-{
-      Cursors.advanceNextPositionNoYield(positionsCursor);
-    }
-    @Override protected MaskedBlock computeNext(){
-      while (valueBlocks.hasNext()) {
-        TupleStream currentValueBlock=valueBlocks.next();
-        if (positionsCursor.getPosition() < currentValueBlock.getRange().getStart() && !Cursors.advanceToPositionNoYield(positionsCursor,currentValueBlock.getRange().getStart())) {
-          endOfData();
-          return null;
-        }
-        if (positionsCursor.getPosition() > currentValueBlock.getRange().getEnd()) {
-          continue;
-        }
-        ImmutableList.Builder<Long> positionsForCurrentBlock=ImmutableList.builder();
-        do {
-          positionsForCurrentBlock.add(positionsCursor.getPosition());
-        }
- while (Cursors.advanceNextPositionNoYield(positionsCursor) && positionsCursor.getPosition() <= currentValueBlock.getRange().getEnd());
-        List<Long> validPositions=getValidPositions(currentValueBlock,positionsForCurrentBlock.build());
-        if (!validPositions.isEmpty()) {
-          return new MaskedBlock(currentValueBlock,validPositions);
-        }
+  final Cursor valueCursor=source.cursor(session);
+  final Cursor positionsCursor=positions.cursor(session);
+  return new AbstractYieldingIterator<UncompressedBlock>(){
+    private long position;
+    @Override protected UncompressedBlock computeNext(){
+      if (valueCursor.isFinished() || positionsCursor.isFinished()) {
+        return endOfData();
       }
-      endOfData();
-      return null;
-    }
-    private List<Long> getValidPositions(    TupleStream currentValueBlock,    List<Long> positionsForCurrentBlock){
-      ImmutableList.Builder<Long> validPositions=ImmutableList.builder();
-      Cursor valueCursor=currentValueBlock.cursor(session);
-      valueCursor.advanceNextPosition();
-      for (      Long nextPosition : positionsForCurrentBlock) {
-        if (nextPosition > valueCursor.getRange().getEnd()) {
+      BlockBuilder blockBuilder=new BlockBuilder(position,tupleInfo);
+      AdvanceResult result;
+      do {
+        if (positionsCursor.isValid() && valueCursor.isValid() && positionsCursor.getPosition() < valueCursor.getPosition()) {
+          result=positionsCursor.advanceToPosition(valueCursor.getPosition());
+        }
+ else {
+          result=positionsCursor.advanceNextPosition();
+        }
+        if (result != SUCCESS) {
           break;
         }
-        if (nextPosition > valueCursor.getPosition()) {
-          valueCursor.advanceToPosition(nextPosition);
+        long nextPosition=positionsCursor.getPosition();
+        result=valueCursor.advanceToPosition(nextPosition);
+        if (result != SUCCESS) {
+          break;
         }
-        if (valueCursor.getPosition() == nextPosition) {
-          validPositions.add(nextPosition);
+        if (nextPosition == valueCursor.getPosition()) {
+          Cursors.appendCurrentTupleToBlockBuilder(valueCursor,blockBuilder);
         }
       }
-      return validPositions.build();
+ while (!blockBuilder.isFull());
+      if (!blockBuilder.isEmpty()) {
+        UncompressedBlock block=blockBuilder.build();
+        position+=block.getCount();
+        return block;
+      }
+      if (result == MUST_YIELD) {
+        return setMustYield();
+      }
+      return endOfData();
     }
   }
 ;
