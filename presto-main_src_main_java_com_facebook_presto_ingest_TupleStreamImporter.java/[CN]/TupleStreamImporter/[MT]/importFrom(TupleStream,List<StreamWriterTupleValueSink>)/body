@@ -7,7 +7,7 @@
   ImmutableList.Builder<TupleStream> splits=ImmutableList.builder();
   for (int field=0; field < tupleStream.getTupleInfo().getFieldCount(); field++) {
     TupleStream splitTupleStream=splitter.getSplit(field);
-    Tap writerTupleStream=new Tap(ColumnMappingTupleStream.map(splitTupleStream,field),tupleValueSinks.get(field));
+    Tap writerTupleStream=new Tap(ProjectionTupleStream.project(splitTupleStream,field),tupleValueSinks.get(field));
     splits.add(writerTupleStream);
   }
   MergeOperator mergeOperator=new MergeOperator(splits.build());

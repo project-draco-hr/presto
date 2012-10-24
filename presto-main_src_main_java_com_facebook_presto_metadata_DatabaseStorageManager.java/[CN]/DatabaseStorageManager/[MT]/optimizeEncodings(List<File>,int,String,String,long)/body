@@ -6,8 +6,8 @@
   for (int field=0; field < fieldCount; field++) {
     Slice slice=Slices.mapFileReadOnly(stagedFiles.get(field));
     StatsTupleValueSink.Stats stats=STATS_STAGING_SERDE.createDeserializer().deserializeStats(slice);
-    boolean rleEncode=stats.getAvgRunLength() > 3;
-    boolean dicEncode=stats.getUniqueCount() < 1000;
+    boolean rleEncode=stats.getAvgRunLength() > RUN_LENGTH_AVERAGE_CUTOFF;
+    boolean dicEncode=stats.getUniqueCount() < DICTIONARY_CARDINALITY_CUTOFF;
     TupleStreamSerdes.Encoding encoding;
     if (dicEncode && rleEncode) {
       encoding=TupleStreamSerdes.Encoding.DICTIONARY_RLE;

@@ -11,13 +11,13 @@
       return hiveClient.getPartitionChunks(databaseName,tableName,partitionName);
     }
   }
-);
+,databaseName + "." + tableName+ "."+ partitionName+ ".getPartitionChunks");
   final List<SchemaField> schemaFields=runWithRetry(new Callable<List<SchemaField>>(){
     @Override public List<SchemaField> call() throws Exception {
       return hiveClient.getTableSchema(databaseName,tableName);
     }
   }
-);
+,databaseName + "." + tableName+ "."+ partitionName+ ".getTableSchema");
   long rowCount=0;
   for (  final PartitionChunk chunk : chunks) {
     rowCount+=runWithRetry(new Callable<Long>(){
@@ -28,7 +28,7 @@
         }
        }
     }
-);
+,databaseName + "." + tableName+ "."+ partitionName+ "."+ chunk+ ".import");
   }
   hiveImportRegistry.markPartitionImported(databaseName,tableName,partitionName);
   return rowCount;
