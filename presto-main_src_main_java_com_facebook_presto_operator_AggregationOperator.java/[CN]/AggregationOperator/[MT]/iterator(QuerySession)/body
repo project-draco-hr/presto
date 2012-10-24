@@ -2,8 +2,9 @@
   Preconditions.checkNotNull(session,"session is null");
   AggregationFunction function=functionProvider.get();
   Cursor cursor=source.cursor(session);
-  cursor.advanceNextPosition();
-  function.add(cursor,Long.MAX_VALUE);
+  if (Cursors.advanceNextPositionNoYield(cursor)) {
+    function.add(cursor,Long.MAX_VALUE);
+  }
   UncompressedBlock block=new BlockBuilder(0,info).append(function.evaluate()).build();
   return YieldingIterators.yieldingIterable(block);
 }
