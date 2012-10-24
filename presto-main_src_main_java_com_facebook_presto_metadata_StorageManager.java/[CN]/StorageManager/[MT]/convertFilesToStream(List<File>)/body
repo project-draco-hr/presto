@@ -1,0 +1,20 @@
+{
+  final TupleStreamDeserializer deserializer=new StatsCollectingTupleStreamSerde.StatsAnnotatedTupleStreamDeserializer(SelfDescriptiveSerde.DESERIALIZER);
+  try {
+    TupleInfo tupleInfo=deserializer.deserialize(Slices.mapFileReadOnly(files.get(0))).getTupleInfo();
+    return new GenericTupleStream<>(tupleInfo,Iterables.transform(files,new Function<File,TupleStream>(){
+      @Override public TupleStream apply(      File file){
+        try {
+          return deserializer.deserialize(Slices.mapFileReadOnly(file));
+        }
+ catch (        IOException e) {
+          throw Throwables.propagate(e);
+        }
+      }
+    }
+));
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+}

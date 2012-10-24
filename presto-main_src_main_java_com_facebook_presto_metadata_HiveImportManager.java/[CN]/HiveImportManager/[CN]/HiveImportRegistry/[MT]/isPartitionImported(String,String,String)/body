@@ -1,0 +1,11 @@
+{
+  checkNotNull(databaseName,"databaseName is null");
+  checkNotNull(tableName,"tableName is null");
+  checkNotNull(partitionName,"partitionName is null");
+  return dbi.withHandle(new HandleCallback<Boolean>(){
+    @Override public Boolean withHandle(    Handle handle) throws Exception {
+      return !handle.createQuery("SELECT * " + "FROM imported_hive_partitions " + "WHERE database = :database "+ "AND table = :table "+ "AND partition = :partition").bind("database",databaseName).bind("table",tableName).bind("partition",partitionName).list().isEmpty();
+    }
+  }
+);
+}

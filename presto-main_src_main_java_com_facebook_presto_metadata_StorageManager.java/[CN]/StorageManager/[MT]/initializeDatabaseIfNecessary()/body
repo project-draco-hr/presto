@@ -1,0 +1,16 @@
+{
+  dbi.withHandle(new HandleCallback<Void>(){
+    @Override public Void withHandle(    Handle handle) throws Exception {
+      handle.createStatement("CREATE TABLE IF NOT EXISTS shards (shard_id BIGINT PRIMARY KEY AUTO_INCREMENT, database VARCHAR(256), table VARCHAR(256))").execute();
+      return null;
+    }
+  }
+);
+  dbi.withHandle(new HandleCallback<Void>(){
+    @Override public Void withHandle(    Handle handle) throws Exception {
+      handle.createStatement("CREATE TABLE IF NOT EXISTS columns (shard_id BIGINT, field_index INT, path VARCHAR(512) UNIQUE, PRIMARY KEY(shard_id, field_index), FOREIGN KEY(shard_id) REFERENCES shards(shard_id))").execute();
+      return null;
+    }
+  }
+);
+}

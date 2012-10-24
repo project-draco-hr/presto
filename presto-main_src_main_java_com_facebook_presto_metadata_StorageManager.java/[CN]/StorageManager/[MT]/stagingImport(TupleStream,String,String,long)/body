@@ -1,0 +1,12 @@
+{
+  ImmutableList.Builder<File> rawFilesBuilder=ImmutableList.builder();
+  ImmutableList.Builder<StreamWriterTupleValueSink> tupleValueSinkBuilder=ImmutableList.builder();
+  for (int field=0; field < sourceTupleStream.getTupleInfo().getFieldCount(); field++) {
+    File outputFile=new File(createNewFileName(baseStagingDir,databaseName,tableName,shardId,field,TupleStreamSerdes.Encoding.RAW));
+    Files.createParentDirs(outputFile);
+    rawFilesBuilder.add(outputFile);
+    tupleValueSinkBuilder.add(new StreamWriterTupleValueSink(Files.newOutputStreamSupplier(outputFile),STATS_STAGING_SERDE.createSerializer()));
+  }
+  long rowCount=TupleStreamImporter.importFrom(sourceTupleStream,tupleValueSinkBuilder.build());
+  return new FilesAndRowCount(rawFilesBuilder.build(),rowCount);
+}

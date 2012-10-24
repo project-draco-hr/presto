@@ -1,0 +1,16 @@
+{
+  dbi.withHandle(new HandleCallback<Void>(){
+    @Override public Void withHandle(    Handle handle) throws Exception {
+      return handle.inTransaction(TransactionIsolationLevel.READ_COMMITTED,new TransactionCallback<Void>(){
+        @Override public Void inTransaction(        Handle conn,        TransactionStatus status) throws Exception {
+          for (int fieldIndex=0; fieldIndex < fieldOutputFiles.size(); fieldIndex++) {
+            conn.createStatement("INSERT INTO columns (shard_id, field_index, path) values (:shard_id, :field_index, :path)").bind("shard_id",shardId).bind("field_index",fieldIndex).bind("path",fieldOutputFiles.get(fieldIndex).getAbsolutePath()).execute();
+          }
+          return null;
+        }
+      }
+);
+    }
+  }
+);
+}

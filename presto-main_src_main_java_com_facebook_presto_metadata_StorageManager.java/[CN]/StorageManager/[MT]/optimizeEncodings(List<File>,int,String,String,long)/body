@@ -1,0 +1,40 @@
+{
+  Preconditions.checkArgument(stagedFiles.size() == fieldCount,"field count does not match provided files");
+  ImmutableList.Builder<StreamWriterTupleValueSink> tupleValueSinkBuilder=ImmutableList.builder();
+  ImmutableList.Builder<TupleStream> sourceStreamsBuilder=ImmutableList.builder();
+  ImmutableList.Builder<File> optimizedFilesBuilder=ImmutableList.builder();
+  for (int field=0; field < fieldCount; field++) {
+    Slice slice=Slices.mapFileReadOnly(stagedFiles.get(field));
+    StatsTupleValueSink.Stats stats=STATS_STAGING_SERDE.createDeserializer().deserializeStats(slice);
+    boolean rleEncode=stats.getAvgRunLength() > 3;
+    boolean dicEncode=stats.getUniqueCount() < 1000;
+    TupleStreamSerdes.Encoding encoding;
+    if (dicEncode && rleEncode) {
+      encoding=TupleStreamSerdes.Encoding.DICTIONARY_RLE;
+    }
+ else     if (dicEncode) {
+      encoding=TupleStreamSerdes.Encoding.DICTIONARY_RAW;
+    }
+ else     if (rleEncode) {
+      encoding=TupleStreamSerdes.Encoding.RLE;
+    }
+ else {
+      encoding=TupleStreamSerdes.Encoding.RAW;
+    }
+    File outputFile=new File(createNewFileName(baseStorageDir,databaseName,tableName,shardId,field,encoding));
+    optimizedFilesBuilder.add(outputFile);
+    Files.createParentDirs(outputFile);
+    if (encoding == TupleStreamSerdes.Encoding.RAW) {
+      Files.move(stagedFiles.get(field),outputFile);
+    }
+ else {
+      sourceStreamsBuilder.add(STATS_STAGING_SERDE.createDeserializer().deserialize(slice));
+      tupleValueSinkBuilder.add(new StreamWriterTupleValueSink(Files.newOutputStreamSupplier(outputFile),new StatsCollectingTupleStreamSerde(new SelfDescriptiveSerde(encoding.createSerde())).createSerializer()));
+    }
+  }
+  List<TupleStream> sourceTupleStreams=sourceStreamsBuilder.build();
+  if (!sourceTupleStreams.isEmpty()) {
+    TupleStreamImporter.importFrom(new MergeOperator(sourceTupleStreams),tupleValueSinkBuilder.build());
+  }
+  return optimizedFilesBuilder.build();
+}

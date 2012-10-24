@@ -1,0 +1,13 @@
+{
+  return dbi.withHandle(new HandleCallback<Long>(){
+    @Override public Long withHandle(    Handle handle) throws Exception {
+      return handle.createStatement("INSERT INTO shards(database, table) values (:database, :table)").bind("database",databaseName).bind("table",tableName).executeAndReturnGeneratedKeys(new ResultSetMapper<Long>(){
+        @Override public Long map(        int index,        ResultSet r,        StatementContext ctx) throws SQLException {
+          return r.getLong(1);
+        }
+      }
+).first();
+    }
+  }
+);
+}

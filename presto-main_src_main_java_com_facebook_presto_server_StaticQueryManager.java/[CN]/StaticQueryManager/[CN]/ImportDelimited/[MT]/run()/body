@@ -1,0 +1,19 @@
+{
+  try {
+    try (InputStreamReader input=Files.newReaderSupplier(delimitedFile,Charsets.UTF_8).getInput()){
+      DelimitedTupleStream delimitedTupleStream=new DelimitedTupleStream(input,splitter,tupleInfo);
+      long rowCount=storageManager.importTableShard(delimitedTupleStream,databaseName,tableName);
+      queryState.addBlock(new BlockBuilder(0,TupleInfo.SINGLE_LONG).append(rowCount).build());
+      queryState.sourceFinished();
+    }
+   }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    queryState.queryFailed(e);
+    throw Throwables.propagate(e);
+  }
+catch (  Exception e) {
+    queryState.queryFailed(e);
+    throw Throwables.propagate(e);
+  }
+}

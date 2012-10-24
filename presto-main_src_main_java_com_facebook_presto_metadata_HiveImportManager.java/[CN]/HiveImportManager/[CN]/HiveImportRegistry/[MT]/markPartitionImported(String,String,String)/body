@@ -1,0 +1,12 @@
+{
+  checkNotNull(databaseName,"databaseName is null");
+  checkNotNull(tableName,"tableName is null");
+  checkNotNull(partitionName,"partitionName is null");
+  dbi.withHandle(new HandleCallback<Void>(){
+    @Override public Void withHandle(    Handle handle) throws Exception {
+      handle.createStatement("INSERT INTO imported_hive_partitions (database, table, partition) values (:database, :table, :partition)").bind("database",databaseName).bind("table",tableName).bind("partition",partitionName).execute();
+      return null;
+    }
+  }
+);
+}

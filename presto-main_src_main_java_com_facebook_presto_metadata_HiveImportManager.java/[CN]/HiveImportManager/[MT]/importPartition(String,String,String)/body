@@ -1,0 +1,35 @@
+{
+  checkNotNull(databaseName,"databaseName is null");
+  checkNotNull(tableName,"tableName is null");
+  checkNotNull(partitionName,"partitionName is null");
+  if (hiveImportRegistry.isPartitionImported(databaseName,tableName,partitionName)) {
+    return 0;
+  }
+  final Tuple partitionTuple=TupleInfo.SINGLE_VARBINARY.builder().append(Slices.wrappedBuffer(partitionName.getBytes(Charsets.UTF_8))).build();
+  List<PartitionChunk> chunks=runWithRetry(new Callable<List<PartitionChunk>>(){
+    @Override public List<PartitionChunk> call() throws Exception {
+      return hiveClient.getPartitionChunks(databaseName,tableName,partitionName);
+    }
+  }
+);
+  final List<SchemaField> schemaFields=runWithRetry(new Callable<List<SchemaField>>(){
+    @Override public List<SchemaField> call() throws Exception {
+      return hiveClient.getTableSchema(databaseName,tableName);
+    }
+  }
+);
+  long rowCount=0;
+  for (  final PartitionChunk chunk : chunks) {
+    rowCount+=runWithRetry(new Callable<Long>(){
+      @Override public Long call() throws Exception {
+        try (RecordIterator records=hiveClient.getRecords(chunk)){
+          TupleStream sourceTupleStream=new StaticTupleAppendingTupleStream(new HiveTupleStream(records,schemaFields),partitionTuple);
+          return storageManager.importTableShard(sourceTupleStream,databaseName,tableName);
+        }
+       }
+    }
+);
+  }
+  hiveImportRegistry.markPartitionImported(databaseName,tableName,partitionName);
+  return rowCount;
+}

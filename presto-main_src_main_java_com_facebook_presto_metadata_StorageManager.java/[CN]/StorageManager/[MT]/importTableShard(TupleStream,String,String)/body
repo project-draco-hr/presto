@@ -1,0 +1,10 @@
+{
+  long shardId=createNewShard(databaseName,tableName);
+  FilesAndRowCount filesAndRowCount=stagingImport(sourceTupleStream,databaseName,tableName,shardId);
+  if (filesAndRowCount.getRowCount() == 0) {
+    return 0;
+  }
+  List<File> finalOutputFiles=optimizeEncodings(filesAndRowCount.getFiles(),sourceTupleStream.getTupleInfo().getFieldCount(),databaseName,tableName,shardId);
+  commitTableShard(shardId,finalOutputFiles);
+  return filesAndRowCount.getRowCount();
+}

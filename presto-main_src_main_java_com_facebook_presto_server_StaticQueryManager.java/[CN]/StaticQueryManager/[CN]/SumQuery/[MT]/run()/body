@@ -6,7 +6,7 @@
       }
     }
 ));
-    Splitter<UncompressedBlock> splitIterator=new Splitter<>(tupleStream.getTupleInfo(),2,10,tupleStream);
+    com.facebook.presto.operator.Splitter<UncompressedBlock> splitIterator=new com.facebook.presto.operator.Splitter<>(tupleStream.getTupleInfo(),2,10,tupleStream);
     TupleStream groupBy=new ColumnMappingTupleStream(splitIterator.getSplit(0),0);
     TupleStream aggregateSource=new ColumnMappingTupleStream(splitIterator.getSplit(1),1);
     HashAggregationOperator aggregation=new HashAggregationOperator(groupBy,aggregateSource,LongSumAggregation.PROVIDER);
@@ -29,7 +29,7 @@
     queryState.queryFailed(e);
     throw Throwables.propagate(e);
   }
-catch (  Exception|Error e) {
+catch (  Exception e) {
     queryState.queryFailed(e);
     throw Throwables.propagate(e);
   }

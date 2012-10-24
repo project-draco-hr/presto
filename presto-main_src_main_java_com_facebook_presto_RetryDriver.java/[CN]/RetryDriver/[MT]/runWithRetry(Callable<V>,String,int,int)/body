@@ -1,0 +1,22 @@
+{
+  checkNotNull(callable,"callable is null");
+  checkNotNull(callableName,"callableName is null");
+  checkArgument(maxRetryAttempts > 0,"maxRetryAttempts must be greater than zero");
+  checkArgument(sleepSecs >= 0,"sleepSecs must be at least than zero");
+  int attempt=0;
+  while (true) {
+    attempt++;
+    try {
+      return callable.call();
+    }
+ catch (    Exception e) {
+      if (attempt == maxRetryAttempts) {
+        throw e;
+      }
+ else {
+        log.warn("Failed on executing %s with attempt %d, will retry. Exception: %s",callableName,attempt,e.getMessage());
+      }
+      TimeUnit.SECONDS.sleep(sleepSecs);
+    }
+  }
+}
