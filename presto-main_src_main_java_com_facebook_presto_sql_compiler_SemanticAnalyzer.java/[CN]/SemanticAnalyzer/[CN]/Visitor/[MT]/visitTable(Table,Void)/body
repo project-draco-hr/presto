@@ -1,11 +1,11 @@
 {
-  TableMetadata tableMetadata=metadata.getTable(table.getName());
-  if (tableMetadata == null) {
+  List<QualifiedName> tableSchema=metadata.getTableSchema(table.getName());
+  if (tableSchema == null) {
     throw new SemanticException(format("Cannot resolve table '%s'",table.getName()),table);
   }
   ImmutableList.Builder<Field> names=ImmutableList.builder();
-  for (  ColumnMetadata column : tableMetadata.getColumns()) {
-    names.add(new Field(QualifiedName.of(tableMetadata.getName(),column.getName()),null));
+  for (  QualifiedName name : tableSchema) {
+    names.add(new Field(name,null));
   }
   types.put(table,new Schema(names.build()));
   return null;
