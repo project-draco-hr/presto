@@ -1,0 +1,29 @@
+{
+  checkNotNull(cursor,"cursor is null");
+  checkArgument(position >= 0,"position must be at least zero");
+  if (cursor.isFinished()) {
+    return FINISHED;
+  }
+  if (isInitialized(cursor)) {
+    checkArgument(position >= cursor.getPosition(),"must advance forward");
+  }
+ else {
+    AdvanceResult advanceResult=cursor.advanceNextPosition();
+    if (advanceResult != SUCCESS) {
+      return advanceResult;
+    }
+  }
+  while (cursor.getCurrentValueEndPosition() < position) {
+    AdvanceResult advanceResult=cursor.advanceNextValue();
+    if (advanceResult != SUCCESS) {
+      return advanceResult;
+    }
+  }
+  while (cursor.getPosition() < position) {
+    AdvanceResult advanceResult=cursor.advanceNextPosition();
+    if (advanceResult != SUCCESS) {
+      return advanceResult;
+    }
+  }
+  return SUCCESS;
+}
