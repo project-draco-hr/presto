@@ -18,6 +18,14 @@
     }
   }
 ,databaseName + "." + tableName+ "."+ partitionName+ ".getTableSchema");
+synchronized (this) {
+    String catalogName="default";
+    String schemaName="default";
+    if (metadata.getTable(catalogName,schemaName,tableName) == null) {
+      List<ColumnMetadata> columns=createColumnMetadata(schemaFields);
+      metadata.createTable(new TableMetadata(catalogName,schemaName,tableName,columns));
+    }
+  }
   long rowCount=0;
   for (  final PartitionChunk chunk : chunks) {
     rowCount+=runWithRetry(new Callable<Long>(){
