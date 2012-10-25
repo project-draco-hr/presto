@@ -1,0 +1,15 @@
+{
+  checkArgument(!dao.tableExists(table),"Table '%s.%s.%s' already defined",table.getSchemaName(),table.getCatalogName(),table.getTableName());
+  dbi.inTransaction(new VoidTransactionCallback(){
+    @Override protected void execute(    Handle handle,    TransactionStatus status) throws Exception {
+      MetadataDao dao=handle.attach(MetadataDao.class);
+      long tableId=dao.insertTable(table);
+      int position=1;
+      for (      ColumnMetadata column : table.getColumns()) {
+        dao.insertColumn(tableId,column.getName(),position,column.getType().getName());
+        position++;
+      }
+    }
+  }
+);
+}
