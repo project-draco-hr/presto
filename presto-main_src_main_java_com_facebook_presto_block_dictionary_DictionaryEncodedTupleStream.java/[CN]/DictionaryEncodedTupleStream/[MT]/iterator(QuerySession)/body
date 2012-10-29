@@ -1,0 +1,15 @@
+{
+  final YieldingIterator<TupleStream> iterator=((YieldingIterable<TupleStream>)sourceTupleStream).iterator(session);
+  return new AbstractYieldingIterator<TupleStream>(){
+    @Override protected TupleStream computeNext(){
+      if (iterator.canAdvance()) {
+        return new DictionaryEncodedTupleStream(dictionary,iterator.next());
+      }
+      if (iterator.mustYield()) {
+        return setMustYield();
+      }
+      return endOfData();
+    }
+  }
+;
+}

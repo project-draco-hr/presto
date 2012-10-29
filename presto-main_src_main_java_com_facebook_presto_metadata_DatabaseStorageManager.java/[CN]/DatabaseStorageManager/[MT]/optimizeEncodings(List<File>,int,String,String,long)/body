@@ -4,7 +4,7 @@
   ImmutableList.Builder<TupleStream> sourceStreamsBuilder=ImmutableList.builder();
   ImmutableList.Builder<File> optimizedFilesBuilder=ImmutableList.builder();
   for (int field=0; field < fieldCount; field++) {
-    Slice slice=Slices.mapFileReadOnly(stagedFiles.get(field));
+    Slice slice=mappedFileCache.getUnchecked(stagedFiles.get(field).getAbsolutePath());
     StatsTupleValueSink.Stats stats=STATS_STAGING_SERDE.createDeserializer().deserializeStats(slice);
     boolean rleEncode=stats.getAvgRunLength() > RUN_LENGTH_AVERAGE_CUTOFF;
     boolean dicEncode=stats.getUniqueCount() < DICTIONARY_CARDINALITY_CUTOFF;
@@ -28,7 +28,7 @@
       Files.move(stagedFiles.get(field),outputFile);
     }
  else {
-      sourceStreamsBuilder.add(STATS_STAGING_SERDE.createDeserializer().deserialize(slice));
+      sourceStreamsBuilder.add(STATS_STAGING_SERDE.createDeserializer().deserialize(Range.ALL,slice));
       tupleValueSinkBuilder.add(new StreamWriterTupleValueSink(Files.newOutputStreamSupplier(outputFile),new StatsCollectingTupleStreamSerde(new SelfDescriptiveSerde(encoding.createSerde())).createSerializer()));
     }
   }

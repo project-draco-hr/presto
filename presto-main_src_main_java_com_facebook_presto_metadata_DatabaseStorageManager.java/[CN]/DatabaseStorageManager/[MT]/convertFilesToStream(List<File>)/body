@@ -1,25 +1,28 @@
 {
+  files=Lists.transform(files,new Function<File,File>(){
+    @Override public File apply(    @Nullable File input){
+      return new File(input.getAbsolutePath().replace("/Users/martint/fb/presto/presto/",""));
+    }
+  }
+);
   Preconditions.checkArgument(!files.isEmpty(),"no files in stream");
   final StatsCollectingTupleStreamSerde.StatsAnnotatedTupleStreamDeserializer deserializer=new StatsCollectingTupleStreamSerde.StatsAnnotatedTupleStreamDeserializer(SelfDescriptiveSerde.DESERIALIZER);
-  try {
-    TupleInfo tupleInfo=deserializer.deserialize(Slices.mapFileReadOnly(files.get(0))).getTupleInfo();
-    return new GenericTupleStream<>(tupleInfo,Iterables.transform(files,new Function<File,TupleStream>(){
-      private long nextStartingPosition=0;
-      @Override public TupleStream apply(      File file){
-        try {
-          Slice slice=Slices.mapFileReadOnly(file);
-          RepositioningTupleStream tupleStream=new RepositioningTupleStream(deserializer.deserialize(slice),nextStartingPosition);
-          nextStartingPosition+=deserializer.deserializeStats(slice).getRowCount();
-          return tupleStream;
-        }
- catch (        IOException e) {
-          throw Throwables.propagate(e);
-        }
+  Slice slice=mappedFileCache.getUnchecked(files.get(0).getAbsolutePath());
+  TupleInfo tupleInfo=deserializer.deserialize(Range.ALL,slice).getTupleInfo();
+  return new GenericTupleStream<>(tupleInfo,Iterables.transform(files,new Function<File,TupleStream>(){
+    private Range range;
+    @Override public TupleStream apply(    File file){
+      Slice slice=mappedFileCache.getUnchecked(file.getAbsolutePath());
+      long rowCount=deserializer.deserializeStats(slice).getRowCount();
+      if (range == null) {
+        range=Range.create(0,rowCount);
       }
+ else {
+        range=Range.create(range.getEnd() + 1,range.getEnd() + rowCount);
+      }
+      TupleStream deserialized=deserializer.deserialize(range,slice);
+      return deserialized;
     }
+  }
 ));
-  }
- catch (  IOException e) {
-    throw Throwables.propagate(e);
-  }
 }
