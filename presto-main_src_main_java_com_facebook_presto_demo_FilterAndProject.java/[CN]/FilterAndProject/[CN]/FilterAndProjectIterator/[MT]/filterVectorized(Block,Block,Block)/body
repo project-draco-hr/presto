@@ -1,0 +1,24 @@
+{
+  int rows=(int)partitionChunk.getRange().length();
+  BitSet bitSet=new BitSet(rows);
+  BlockCursor partitionCursor=partitionChunk.cursor();
+  for (int position=0; position < rows; position++) {
+    checkState(partitionCursor.advanceNextPosition());
+    Slice partition=partitionCursor.getSlice(0);
+    bitSet.set(position,partition.compareTo(constant1) >= 0 && partition.compareTo(constant2) <= 0);
+  }
+  checkState(!partitionCursor.advanceNextPosition());
+  BlockCursor startTimeCursor=startTimeChunk.cursor();
+  for (int position=0; position < rows; position++) {
+    checkState(startTimeCursor.advanceNextPosition());
+    bitSet.set(position,bitSet.get(position) && startTimeCursor.getLong(0) <= 1343350800L);
+  }
+  checkState(!startTimeCursor.advanceNextPosition());
+  BlockCursor endTimeCursor=endTimeChunk.cursor();
+  for (int position=0; position < rows; position++) {
+    checkState(endTimeCursor.advanceNextPosition());
+    bitSet.set(position,bitSet.get(position) && endTimeCursor.getLong(0) > 1343350800L);
+  }
+  checkState(!endTimeCursor.advanceNextPosition());
+  return bitSet;
+}

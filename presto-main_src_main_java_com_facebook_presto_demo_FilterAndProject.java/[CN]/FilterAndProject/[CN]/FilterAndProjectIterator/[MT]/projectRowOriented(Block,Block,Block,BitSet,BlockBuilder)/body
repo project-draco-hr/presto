@@ -1,0 +1,17 @@
+{
+  int rows=(int)cpuMsecChunk.getRange().length();
+  BlockCursor cpuMsecCursor=cpuMsecChunk.cursor();
+  BlockCursor startTimeCursor=startTimeChunk.cursor();
+  BlockCursor endTimeCursor=endTimeChunk.cursor();
+  for (int position=0; position < rows; position++) {
+    checkState(cpuMsecCursor.advanceNextPosition());
+    checkState(startTimeCursor.advanceNextPosition());
+    checkState(endTimeCursor.advanceNextPosition());
+    if (bitSet.get(position)) {
+      blockBuilder.append(eval(cpuMsecCursor.getLong(0),startTimeCursor.getLong(0),endTimeCursor.getLong(0)));
+    }
+  }
+  checkState(!cpuMsecCursor.advanceNextPosition());
+  checkState(!startTimeCursor.advanceNextPosition());
+  checkState(!endTimeCursor.advanceNextPosition());
+}
