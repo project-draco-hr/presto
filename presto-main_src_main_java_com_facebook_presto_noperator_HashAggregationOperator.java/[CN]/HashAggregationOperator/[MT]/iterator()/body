@@ -1,0 +1,44 @@
+{
+  return new AbstractIterator<Page>(){
+    private final Map<Tuple,AggregationFunction> aggregationMap=new HashMap<>();
+    private Iterator<Entry<Tuple,AggregationFunction>> aggregations;
+    private long position;
+    @Override protected Page computeNext(){
+      if (aggregations == null) {
+        for (        Page page : source) {
+          Block groupByBlock=page.getBlock(0);
+          Block aggregationBlock=page.getBlock(1);
+          BlockCursor groupByCursor=groupByBlock.cursor();
+          BlockCursor aggregationCursor=aggregationBlock.cursor();
+          while (groupByCursor.advanceNextPosition()) {
+            Preconditions.checkState(aggregationCursor.advanceNextPosition());
+            Tuple key=groupByCursor.getTuple();
+            AggregationFunction aggregation=aggregationMap.get(key);
+            if (aggregation == null) {
+              aggregation=functionProvider.get();
+              aggregationMap.put(key,aggregation);
+            }
+            aggregation.add(aggregationCursor);
+          }
+        }
+        this.aggregations=aggregationMap.entrySet().iterator();
+      }
+      if (!aggregations.hasNext()) {
+        endOfData();
+        return null;
+      }
+      BlockBuilder blockBuilder=new BlockBuilder(position,new TupleInfo(Type.VARIABLE_BINARY,Type.FIXED_INT_64));
+      while (!blockBuilder.isFull() && aggregations.hasNext()) {
+        Entry<Tuple,AggregationFunction> aggregation=aggregations.next();
+        Tuple key=aggregation.getKey();
+        Tuple value=aggregation.getValue().evaluate();
+        blockBuilder.append(key);
+        blockBuilder.append(value);
+      }
+      UncompressedBlock block=blockBuilder.build();
+      position+=block.getCount();
+      return new Page(block);
+    }
+  }
+;
+}

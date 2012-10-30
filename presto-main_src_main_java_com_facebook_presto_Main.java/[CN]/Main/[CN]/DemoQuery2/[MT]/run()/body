@@ -1,0 +1,29 @@
+{
+  for (int i=0; i < 30; i++) {
+    try {
+      long start=System.nanoTime();
+      Blocks partition=getColumn("hivedba_query_stats","partition");
+      Blocks poolName=getColumn("hivedba_query_stats","pool_name");
+      Blocks cpuMsec=getColumn("hivedba_query_stats","cpu_msec");
+      AlignmentOperator alignmentOperator=new AlignmentOperator(partition,poolName,cpuMsec);
+      Query2FilterAndProjectOperator filterAndProject=new Query2FilterAndProjectOperator(alignmentOperator);
+      HashAggregationOperator aggregation=new HashAggregationOperator(filterAndProject,LongSumAggregation.PROVIDER);
+      TuplePrinter tuplePrinter=new DelimitedTuplePrinter();
+      int count=0;
+      long grandTotal=0;
+      for (      Page page : aggregation) {
+        BlockCursor cursor=page.getBlock(0).cursor();
+        while (cursor.advanceNextPosition()) {
+          count++;
+          Tuple tuple=cursor.getTuple();
+          tuplePrinter.print(tuple);
+        }
+      }
+      Duration duration=Duration.nanosSince(start);
+      System.out.printf("%d rows in %4.2f ms %d grandTotal\n",count,duration.toMillis(),grandTotal);
+    }
+ catch (    Exception e) {
+      throw Throwables.propagate(e);
+    }
+  }
+}

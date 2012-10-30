@@ -1,0 +1,16 @@
+{
+  BlockBuilder blockBuilder=new BlockBuilder(outputPosition,TupleInfo.SINGLE_LONG);
+  while (!blockBuilder.isFull() && iterator.hasNext()) {
+    Page page=iterator.next();
+    BlockCursor cpuMsecCursor=page.getBlock(0).cursor();
+    while (cpuMsecCursor.advanceNextPosition()) {
+      blockBuilder.append(eval(cpuMsecCursor.getLong(0),cpuMsecCursor.getLong(0),cpuMsecCursor.getLong(0)));
+    }
+  }
+  if (blockBuilder.isEmpty()) {
+    return endOfData();
+  }
+  UncompressedBlock block=blockBuilder.build();
+  outputPosition+=block.getCount();
+  return new Page(block);
+}
