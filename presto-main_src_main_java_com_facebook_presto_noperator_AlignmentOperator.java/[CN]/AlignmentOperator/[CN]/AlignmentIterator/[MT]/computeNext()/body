@@ -1,5 +1,5 @@
 {
-  if (blocks[0].getRange().getEnd() < startPosition && !iterators[0].hasNext()) {
+  if (blocks[0].getRawRange().getEnd() < startPosition && !iterators[0].hasNext()) {
     for (    Iterator<? extends Block> iterator : iterators) {
       checkState(!iterator.hasNext());
     }
@@ -9,19 +9,18 @@
   for (int i=0; i < iterators.length; i++) {
     Iterator<? extends Block> iterator=iterators[i];
     Block block=blocks[i];
-    Range range=block.getRange();
-    if (range.getEnd() < startPosition) {
+    long blockEndPosition=block.getRawRange().getEnd();
+    if (blockEndPosition < startPosition) {
       block=iterator.next();
-      range=block.getRange();
       blocks[i]=block;
+      blockEndPosition=block.getRawRange().getEnd();
     }
-    endPosition=Math.min(endPosition,range.getEnd());
+    endPosition=Math.min(endPosition,blockEndPosition);
   }
   Range range=new Range(startPosition,endPosition);
   startPosition=endPosition + 1;
-  Block[] page=new Block[blocks.length];
-  for (int i=0; i < page.length; i++) {
-    page[i]=new RangeBoundedBlock(range,blocks[i].cursor());
+  for (int i=0; i < blocks.length; i++) {
+    blocks[i]=blocks[i].createViewPort(range);
   }
-  return new Page(page);
+  return new Page(blocks);
 }
