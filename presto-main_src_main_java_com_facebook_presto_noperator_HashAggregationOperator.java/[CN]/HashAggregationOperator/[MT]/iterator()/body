@@ -1,43 +1,81 @@
 {
   return new AbstractIterator<Page>(){
-    private final Map<Tuple,AggregationFunction> aggregationMap=new HashMap<>();
-    private Iterator<Entry<Tuple,AggregationFunction>> aggregations;
+    private final Map<Tuple,AggregationFunction[]> aggregationMap=new HashMap<>();
+    private Iterator<Entry<Tuple,AggregationFunction[]>> aggregations;
     private long position;
     @Override protected Page computeNext(){
       if (aggregations == null) {
-        for (        Page page : source) {
-          Block groupByBlock=page.getBlock(0);
-          Block aggregationBlock=page.getBlock(1);
-          BlockCursor groupByCursor=groupByBlock.cursor();
-          BlockCursor aggregationCursor=aggregationBlock.cursor();
-          while (groupByCursor.advanceNextPosition()) {
-            Preconditions.checkState(aggregationCursor.advanceNextPosition());
-            Tuple key=groupByCursor.getTuple();
-            AggregationFunction aggregation=aggregationMap.get(key);
-            if (aggregation == null) {
-              aggregation=functionProvider.get();
-              aggregationMap.put(key,aggregation);
-            }
-            aggregation.add(aggregationCursor);
-          }
-        }
-        this.aggregations=aggregationMap.entrySet().iterator();
+        aggregate();
       }
       if (!aggregations.hasNext()) {
         endOfData();
         return null;
       }
-      BlockBuilder blockBuilder=new BlockBuilder(position,new TupleInfo(Type.VARIABLE_BINARY,Type.FIXED_INT_64));
-      while (!blockBuilder.isFull() && aggregations.hasNext()) {
-        Entry<Tuple,AggregationFunction> aggregation=aggregations.next();
-        Tuple key=aggregation.getKey();
-        Tuple value=aggregation.getValue().evaluate();
-        blockBuilder.append(key);
-        blockBuilder.append(value);
+      BlockBuilder[] outputs=new BlockBuilder[projections.size()];
+      for (int i=0; i < outputs.length; i++) {
+        outputs[i]=new BlockBuilder(position,projections.get(i).getTupleInfo());
       }
-      UncompressedBlock block=blockBuilder.build();
-      position+=block.getCount();
-      return new Page(block);
+      while (!isFull(outputs) && aggregations.hasNext()) {
+        Entry<Tuple,AggregationFunction[]> aggregation=aggregations.next();
+        Tuple[] results=new Tuple[functionProviders.size() + 1];
+        results[0]=aggregation.getKey();
+        AggregationFunction[] aggregations=aggregation.getValue();
+        for (int i=1; i < results.length; i++) {
+          results[i]=aggregations[i - 1].evaluate();
+        }
+        for (int i=0; i < projections.size(); i++) {
+          projections.get(i).project(results,outputs[i]);
+        }
+      }
+      if (outputs[0].isEmpty()) {
+        return endOfData();
+      }
+      Block[] blocks=new Block[projections.size()];
+      for (int i=0; i < blocks.length; i++) {
+        blocks[i]=outputs[i].build();
+      }
+      Page page=new Page(blocks);
+      position+=blocks[0].getCount();
+      return page;
+    }
+    private boolean isFull(    BlockBuilder... outputs){
+      for (      BlockBuilder output : outputs) {
+        if (output.isFull()) {
+          return true;
+        }
+      }
+      return false;
+    }
+    private void aggregate(){
+      for (      Page page : source) {
+        Block[] blocks=page.getBlocks();
+        int rows=(int)blocks[0].getRange().length();
+        BlockCursor[] cursors=new BlockCursor[blocks.length];
+        for (int i=0; i < blocks.length; i++) {
+          cursors[i]=blocks[i].cursor();
+        }
+        for (int position=0; position < rows; position++) {
+          for (          BlockCursor cursor : cursors) {
+            checkState(cursor.advanceNextPosition());
+          }
+          Tuple key=cursors[groupByChannel].getTuple();
+          AggregationFunction[] functions=aggregationMap.get(key);
+          if (functions == null) {
+            functions=new AggregationFunction[functionProviders.size()];
+            for (int i=0; i < functions.length; i++) {
+              functions[i]=functionProviders.get(i).get();
+            }
+            aggregationMap.put(key,functions);
+          }
+          for (          AggregationFunction function : functions) {
+            function.add(cursors);
+          }
+        }
+        for (        BlockCursor cursor : cursors) {
+          checkState(!cursor.advanceNextPosition());
+        }
+      }
+      this.aggregations=aggregationMap.entrySet().iterator();
     }
   }
 ;

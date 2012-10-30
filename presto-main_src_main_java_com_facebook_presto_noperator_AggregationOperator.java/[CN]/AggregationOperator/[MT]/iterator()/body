@@ -1,11 +1,36 @@
 {
-  AggregationFunction function=functionProvider.get();
+  AggregationFunction[] functions=new AggregationFunction[functionProviders.size()];
+  for (int i=0; i < functions.length; i++) {
+    functions[i]=functionProviders.get(i).get();
+  }
   for (  Page page : source) {
-    BlockCursor cursor=page.getBlock(0).cursor();
-    while (cursor.advanceNextPosition()) {
-      function.add(cursor);
+    Block[] blocks=page.getBlocks();
+    int rows=(int)blocks[0].getRange().length();
+    BlockCursor[] cursors=new BlockCursor[blocks.length];
+    for (int i=0; i < blocks.length; i++) {
+      cursors[i]=blocks[i].cursor();
+    }
+    for (int position=0; position < rows; position++) {
+      for (      BlockCursor cursor : cursors) {
+        checkState(cursor.advanceNextPosition());
+      }
+      for (      AggregationFunction function : functions) {
+        function.add(cursors);
+      }
+    }
+    for (    BlockCursor cursor : cursors) {
+      checkState(!cursor.advanceNextPosition());
     }
   }
-  Block block=new BlockBuilder(0,info).append(function.evaluate()).build();
-  return Iterators.singletonIterator(block);
+  Tuple[] results=new Tuple[functions.length];
+  for (int i=0; i < functions.length; i++) {
+    results[i]=functions[i].evaluate();
+  }
+  Block[] blocks=new Block[projections.size()];
+  for (int i=0; i < blocks.length; i++) {
+    BlockBuilder output=new BlockBuilder(0,projections.get(i).getTupleInfo());
+    projections.get(i).project(results,output);
+    blocks[i]=output.build();
+  }
+  return Iterators.singletonIterator(new Page(blocks));
 }
