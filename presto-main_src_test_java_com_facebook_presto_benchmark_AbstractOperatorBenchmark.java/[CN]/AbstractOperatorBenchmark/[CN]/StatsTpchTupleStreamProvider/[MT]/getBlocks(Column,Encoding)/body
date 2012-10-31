@@ -1,0 +1,13 @@
+{
+  checkNotNull(column,"column is null");
+  checkNotNull(encoding,"encoding is null");
+  StatsCollectingTupleStreamSerde serde=new StatsCollectingTupleStreamSerde(encoding.createSerde());
+  try {
+    Slice slice=Slices.mapFileReadOnly(tpchDataProvider.getColumnFile(column,serde.createSerializer(),encoding.getName()));
+    statsBuilder.add(serde.createDeserializer().deserializeStats(slice));
+    return serde.createDeserializer().deserializeBlocks(Range.ALL,slice);
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+}
