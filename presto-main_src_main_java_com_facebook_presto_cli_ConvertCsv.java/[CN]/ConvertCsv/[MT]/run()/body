@@ -12,7 +12,7 @@
     }
 ;
   }
-  ImmutableSortedMap.Builder<Integer,Type> schemaBuilder=ImmutableSortedMap.naturalOrder();
+  ImmutableSortedMap.Builder<Integer,TupleInfo.Type> schemaBuilder=ImmutableSortedMap.naturalOrder();
   ImmutableList.Builder<Integer> extractionColumnsBuilder=ImmutableList.builder();
   ImmutableList.Builder<TupleStreamSerializer> serializerBuilder=ImmutableList.builder();
   ImmutableList.Builder<OutputSupplier<? extends OutputStream>> outputSupplierBuilder=ImmutableList.builder();
@@ -33,17 +33,17 @@
     serializerBuilder.add(TupleStreamSerdes.Encoding.fromName(encodingName).createSerde().createSerializer());
     outputSupplierBuilder.add(newOutputStreamSupplier(new File(outputDir,String.format("column%d.%s_%s.data",columnIndex,dataTypeName,encodingName))));
   }
-  ImmutableSortedMap<Integer,Type> schema=schemaBuilder.build();
+  ImmutableSortedMap<Integer,TupleInfo.Type> schema=schemaBuilder.build();
   ImmutableList<Integer> extractionColumns=extractionColumnsBuilder.build();
   ImmutableList<TupleStreamSerializer> serializers=serializerBuilder.build();
   ImmutableList<OutputSupplier<? extends OutputStream>> outputSuppliers=outputSupplierBuilder.build();
-  ImmutableList.Builder<Type> inferredTypes=ImmutableList.builder();
+  ImmutableList.Builder<TupleInfo.Type> inferredTypes=ImmutableList.builder();
   for (int index=0; index <= schema.lastKey(); index++) {
     if (schema.containsKey(index)) {
       inferredTypes.add(schema.get(index));
     }
  else {
-      inferredTypes.add(Type.VARIABLE_BINARY);
+      inferredTypes.add(TupleInfo.Type.VARIABLE_BINARY);
     }
   }
   TupleInfo tupleInfo=new TupleInfo(inferredTypes.build());
@@ -57,4 +57,7 @@
     long rowCount=TupleStreamImporter.importFrom(projectedStream,tupleValueSinkBuilder.build());
     log.info("Imported %d rows",rowCount);
   }
- }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+}
