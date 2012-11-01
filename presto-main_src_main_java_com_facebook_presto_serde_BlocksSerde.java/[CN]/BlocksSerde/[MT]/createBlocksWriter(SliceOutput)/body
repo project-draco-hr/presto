@@ -1,21 +1,3 @@
 {
-  checkNotNull(sliceOutput,"sliceOutput is null");
-  return new BlocksWriter(){
-    private BlocksWriter blocksWriter;
-    @Override public BlocksWriter append(    Block block){
-      Preconditions.checkNotNull(block,"block is null");
-      if (blocksWriter == null) {
-        BlockSerde blockSerde=BlockSerdes.getSerdeForBlock(block);
-        blocksWriter=blockSerde.createBlockWriter(sliceOutput);
-        BlockSerdeSerde.writeBlockSerde(sliceOutput,blockSerde);
-        TupleInfoSerde.writeTupleInfo(block.getTupleInfo(),sliceOutput);
-      }
-      blocksWriter.append(block);
-      return this;
-    }
-    @Override public void finish(){
-      blocksWriter.finish();
-    }
-  }
-;
+  return createBlocksWriter(sliceOutput,null);
 }

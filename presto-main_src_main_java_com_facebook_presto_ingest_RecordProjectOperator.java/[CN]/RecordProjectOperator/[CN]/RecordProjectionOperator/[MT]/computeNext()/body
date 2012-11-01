@@ -1,0 +1,22 @@
+{
+  BlockBuilder[] outputs=new BlockBuilder[projections.size()];
+  for (int i=0; i < outputs.length; i++) {
+    outputs[i]=new BlockBuilder(outputPosition,projections.get(i).getTupleInfo());
+  }
+  while (!isFull(outputs) && iterator.hasNext()) {
+    Record record=iterator.next();
+    for (int i=0; i < projections.size(); i++) {
+      projections.get(i).project(record,outputs[i]);
+    }
+  }
+  if (outputs[0].isEmpty()) {
+    return endOfData();
+  }
+  Block[] blocks=new Block[projections.size()];
+  for (int i=0; i < blocks.length; i++) {
+    blocks[i]=outputs[i].build();
+  }
+  Page page=new Page(blocks);
+  outputPosition+=blocks[0].getPositionCount();
+  return page;
+}

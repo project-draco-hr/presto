@@ -1,0 +1,21 @@
+{
+  checkNotNull(column,"column is null");
+  checkNotNull(blockSerde,"blockSerde is null");
+  checkNotNull(serdeName,"serdeName is null");
+  try {
+    String hash=ByteStreams.hash(tableInputSupplierFactory.getInputSupplier(column.getTable().getName()),Hashing.md5()).toString();
+    File cachedFile=new File(new File(cacheDirectory,column.getTable().getName() + "-" + hash),"new-" + createFileName(column,serdeName));
+    if (cachedFile.exists()) {
+      return cachedFile;
+    }
+    Files.createParentDirs(cachedFile);
+    InputSupplier<InputStream> inputSupplier=tableInputSupplierFactory.getInputSupplier(column.getTable().getName());
+    DelimitedRecordIterable records=new DelimitedRecordIterable(newReaderSupplier(inputSupplier,UTF_8),Splitter.on("|"));
+    RecordProjectOperator source=new RecordProjectOperator(records,createProjection(column.getIndex(),column.getType()));
+    ImportingOperator.importData(source,new SerdeBlockWriterFactory(blockSerde,newOutputStreamSupplier(cachedFile)));
+    return cachedFile;
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+}

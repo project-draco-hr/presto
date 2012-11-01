@@ -1,14 +1,6 @@
 {
-  final List<File> files=Lists.transform(absoluteFiles,new Function<File,File>(){
-    @Override public File apply(    @Nullable File input){
-      return new File(input.getAbsolutePath().replace("/Users/martint/fb/presto/presto/",""));
-    }
-  }
-);
   Preconditions.checkArgument(!files.isEmpty(),"no files in stream");
   final StatsCollectingTupleStreamSerde.StatsAnnotatedTupleStreamDeserializer deserializer=new StatsCollectingTupleStreamSerde.StatsAnnotatedTupleStreamDeserializer(SelfDescriptiveSerde.DESERIALIZER);
-  Slice slice=mappedFileCache.getUnchecked(files.get(0).getAbsolutePath());
-  TupleInfo tupleInfo=deserializer.deserialize(Range.ALL,slice).getTupleInfo();
   return BlockUtils.toBlocks(Iterables.concat(Lists.transform(files,new Function<File,Iterable<? extends Block>>(){
     private Range range;
     @Override public Iterable<? extends Block> apply(    File file){

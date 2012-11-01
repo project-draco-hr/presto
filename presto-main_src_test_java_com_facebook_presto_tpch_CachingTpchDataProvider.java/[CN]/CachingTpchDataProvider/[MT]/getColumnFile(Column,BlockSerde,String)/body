@@ -1,0 +1,12 @@
+{
+  Preconditions.checkNotNull(column,"column is null");
+  Preconditions.checkNotNull(blockSerde,"blockSerde is null");
+  Preconditions.checkNotNull(serdeName,"serdeName is null");
+  TpchColumnRequest columnRequest=new TpchColumnRequest(column,serdeName);
+  File file=localFileCache.get(columnRequest);
+  if (file == null) {
+    file=delegate.getColumnFile(column,blockSerde,serdeName);
+    localFileCache.put(columnRequest,file);
+  }
+  return file;
+}

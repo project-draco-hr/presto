@@ -26,15 +26,23 @@ synchronized (this) {
       metadata.createTable(new TableMetadata(catalogName,schemaName,tableName,columns));
     }
   }
+  ImmutableList.Builder<String> fieldNamesBuilder=ImmutableList.builder();
+  ImmutableList.Builder<RecordProjection> builder=ImmutableList.builder();
+  for (int i=0; i < schemaFields.size(); i++) {
+    SchemaField schemaField=schemaFields.get(i);
+    fieldNamesBuilder.add(schemaField.getFieldName());
+    builder.add(RecordProjections.createProjection(i,getTupleType(schemaField.getPrimitiveType())));
+  }
+  final List<String> fieldNames=fieldNamesBuilder.build();
+  final List<RecordProjection> recordProjections=builder.build();
   long rowCount=0;
   for (  final PartitionChunk chunk : chunks) {
     rowCount+=runWithRetry(new Callable<Long>(){
       @Override public Long call() throws Exception {
-        try (RecordIterator records=hiveClient.getRecords(chunk)){
-          TupleStream sourceTupleStream=new StaticTupleAppendingTupleStream(new HiveTupleStream(records,schemaFields),partitionTuple);
-          return storageManager.importTableShard(sourceTupleStream,databaseName,tableName);
-        }
-       }
+        HivePartition hivePartition=new HivePartition(hiveClient,chunk,fieldNames);
+        RecordProjectOperator source=new RecordProjectOperator(hivePartition,recordProjections);
+        return storageManager.importTableShard(source,databaseName,tableName);
+      }
     }
 ,databaseName + "." + tableName+ "."+ partitionName+ "."+ chunk+ ".import");
   }

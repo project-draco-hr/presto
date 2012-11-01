@@ -1,0 +1,30 @@
+{
+  ImmutableList.Builder<Blocks> sourcesBuilder=ImmutableList.builder();
+  ImmutableList.Builder<BlockWriterFactory> writersBuilder=ImmutableList.builder();
+  ImmutableList.Builder<File> optimizedFilesBuilder=ImmutableList.builder();
+  for (int channel=0; channel < stagedFiles.size(); channel++) {
+    File stagedFile=stagedFiles.get(channel);
+    Slice slice=mappedFileCache.getUnchecked(stagedFile.getAbsolutePath());
+    StatsTupleValueSink.Stats stats=STATS_STAGING_SERDE.createDeserializer().deserializeStats(slice);
+    boolean rleEncode=stats.getAvgRunLength() > RUN_LENGTH_AVERAGE_CUTOFF;
+    boolean dicEncode=stats.getUniqueCount() < DICTIONARY_CARDINALITY_CUTOFF;
+    BlockSerdes.Encoding encoding=BlockSerdes.Encoding.RAW;
+    File outputFile=new File(createNewFileName(baseStorageDir,databaseName,tableName,shardId,channel,encoding));
+    Files.createParentDirs(outputFile);
+    optimizedFilesBuilder.add(outputFile);
+    if (encoding == BlockSerdes.Encoding.RAW) {
+      Files.move(stagedFiles.get(channel),outputFile);
+    }
+ else {
+      sourcesBuilder.add(STATS_STAGING_SERDE.createDeserializer().deserializeBlocks(Range.ALL,slice));
+      writersBuilder.add(new SerdeBlockWriterFactory(encoding.createSerde(),Files.newOutputStreamSupplier(outputFile)));
+    }
+  }
+  List<Blocks> sources=sourcesBuilder.build();
+  List<BlockWriterFactory> writers=writersBuilder.build();
+  if (!sources.isEmpty()) {
+    AlignmentOperator source=new AlignmentOperator(sources);
+    ImportingOperator.importData(source,writers);
+  }
+  return optimizedFilesBuilder.build();
+}

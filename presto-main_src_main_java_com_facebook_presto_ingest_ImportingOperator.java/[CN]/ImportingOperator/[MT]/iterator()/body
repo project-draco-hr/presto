@@ -1,0 +1,29 @@
+{
+  return new AbstractIterator<Page>(){
+    private final Iterator<Page> iterator=source.iterator();
+    private List<BlocksWriter> writers;
+    @Override protected Page computeNext(){
+      if (!iterator.hasNext()) {
+        for (        BlocksWriter writer : writers) {
+          writer.finish();
+        }
+        return endOfData();
+      }
+      if (writers == null) {
+        ImmutableList.Builder<BlocksWriter> builder=ImmutableList.builder();
+        for (        BlockWriterFactory blockWriterFactory : blockWriterFactories) {
+          builder.add(blockWriterFactory.create());
+        }
+        writers=builder.build();
+      }
+      Page page=iterator.next();
+      Block[] blocks=page.getBlocks();
+      for (int i=0; i < blocks.length; i++) {
+        Block block=blocks[i];
+        writers.get(i).append(block);
+      }
+      return page;
+    }
+  }
+;
+}
