@@ -1,18 +1,12 @@
 {
   Preconditions.checkArgument(!files.isEmpty(),"no files in stream");
-  final StatsCollectingTupleStreamSerde.StatsAnnotatedTupleStreamDeserializer deserializer=new StatsCollectingTupleStreamSerde.StatsAnnotatedTupleStreamDeserializer(SelfDescriptiveSerde.DESERIALIZER);
   return BlockUtils.toBlocks(Iterables.concat(Lists.transform(files,new Function<File,Iterable<? extends Block>>(){
-    private Range range;
+    private long startPosition;
     @Override public Iterable<? extends Block> apply(    File file){
       Slice slice=mappedFileCache.getUnchecked(file.getAbsolutePath());
-      long rowCount=deserializer.deserializeStats(slice).getRowCount();
-      if (range == null) {
-        range=Range.create(0,rowCount - 1);
-      }
- else {
-        range=Range.create(range.getEnd() + 1,range.getEnd() + rowCount);
-      }
-      return deserializer.deserializeBlocks(range,slice);
+      Blocks blocks=StatsCollectingBlocksSerde.readBlocks(slice,startPosition);
+      startPosition+=StatsCollectingBlocksSerde.readStats(slice).getRowCount() + 1;
+      return blocks;
     }
   }
 )));

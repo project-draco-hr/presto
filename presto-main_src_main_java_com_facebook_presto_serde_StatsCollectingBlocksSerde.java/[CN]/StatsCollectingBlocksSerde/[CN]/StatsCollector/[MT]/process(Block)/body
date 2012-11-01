@@ -1,0 +1,23 @@
+{
+  Preconditions.checkNotNull(block,"block is null");
+  Preconditions.checkState(!finished,"already finished");
+  BlockCursor cursor=block.cursor();
+  while (cursor.advanceNextPosition()) {
+    if (lastTuple == null) {
+      lastTuple=cursor.getTuple();
+      if (set.size() < MAX_UNIQUE_COUNT) {
+        set.add(lastTuple);
+      }
+    }
+ else     if (!cursor.currentTupleEquals(lastTuple)) {
+      runsCount++;
+      lastTuple=cursor.getTuple();
+      if (set.size() < MAX_UNIQUE_COUNT) {
+        set.add(lastTuple);
+      }
+    }
+  }
+  minPosition=Math.min(minPosition,block.getRange().getStart());
+  maxPosition=Math.max(maxPosition,block.getRange().getEnd());
+  rowCount+=block.getPositionCount();
+}

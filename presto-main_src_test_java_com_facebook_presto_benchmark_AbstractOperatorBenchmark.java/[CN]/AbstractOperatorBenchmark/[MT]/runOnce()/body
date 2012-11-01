@@ -16,6 +16,7 @@
   double executionMillis=totalDuration.convertTo(TimeUnit.MILLISECONDS) - dataGenerationDuration.toMillis();
   double executionSeconds=executionMillis / TimeUnit.SECONDS.toMillis(1);
   DataSize totalDataSize=metricRecordingTpchDataProvider.getCumulativeDataSize();
-  long inputRows=1;
+  checkState(!statsTpchTupleStreamProvider.getStats().isEmpty(),"no columns were fetched");
+  long inputRows=statsTpchTupleStreamProvider.getStats().get(0).getRowCount();
   return ImmutableMap.<String,Long>builder().put("elapsed_millis",(long)executionMillis).put("input_rows",inputRows).put("input_rows_per_second",(long)(inputRows / executionSeconds)).put("output_rows",outputRows).put("output_rows_per_second",(long)(outputRows / executionSeconds)).put("input_megabytes",(long)totalDataSize.getValue(DataSize.Unit.MEGABYTE)).put("input_megabytes_per_second",(long)(totalDataSize.getValue(DataSize.Unit.MEGABYTE) / executionSeconds)).build();
 }

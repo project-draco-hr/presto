@@ -4,7 +4,8 @@
   try {
     File columnFile=tpchDataProvider.getColumnFile(column,encoding.createSerde(),encoding.getName());
     Slice slice=Slices.mapFileReadOnly(columnFile);
-    return BlocksSerde.readBlocks(slice);
+    statsBuilder.add(StatsCollectingBlocksSerde.readStats(slice));
+    return StatsCollectingBlocksSerde.readBlocks(slice);
   }
  catch (  IOException e) {
     throw Throwables.propagate(e);
