@@ -3,7 +3,7 @@
     try (InputStreamReader input=Files.newReaderSupplier(delimitedFile,Charsets.UTF_8).getInput()){
       DelimitedTupleStream delimitedTupleStream=new DelimitedTupleStream(input,splitter,tupleInfo);
       long rowCount=storageManager.importTableShard(delimitedTupleStream,databaseName,tableName);
-      queryState.addBlock(new BlockBuilder(0,TupleInfo.SINGLE_LONG).append(rowCount).build());
+      queryState.addPage(new Page(new BlockBuilder(0,TupleInfo.SINGLE_LONG).append(rowCount).build()));
       queryState.sourceFinished();
     }
    }

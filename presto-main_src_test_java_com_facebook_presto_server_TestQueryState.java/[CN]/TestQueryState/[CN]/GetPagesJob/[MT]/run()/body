@@ -1,0 +1,23 @@
+{
+  started.countDown();
+  try {
+    while (pages.size() < pagesToGet) {
+      try {
+        List<Page> pages=queryState.getNextPages(batchSize);
+        assertTrue(!pages.isEmpty());
+        this.pages.addAll(pages);
+      }
+ catch (      FailedQueryException e) {
+        failedQueryException.set(e);
+        break;
+      }
+catch (      InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw Throwables.propagate(e);
+      }
+    }
+  }
+  finally {
+    finished.countDown();
+  }
+}

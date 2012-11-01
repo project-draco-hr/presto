@@ -1,0 +1,37 @@
+{
+  Preconditions.checkArgument(maxPageCount > 0,"pageBufferMax must be at least 1");
+  while (!isDone() && !notEmpty.tryAcquire(1,TimeUnit.SECONDS)) {
+  }
+synchronized (pageBuffer) {
+    if (state == State.CANCELED || state == State.FINISHED) {
+      notEmpty.release();
+      return ImmutableList.of();
+    }
+    if (state == State.FAILED) {
+      notEmpty.release();
+      FailedQueryException failedQueryException=new FailedQueryException(causes);
+      failedQueryException.printStackTrace(System.err);
+      throw failedQueryException;
+    }
+    ImmutableList.Builder<Page> nextPages=ImmutableList.builder();
+    int count=0;
+    do {
+      if (pageBuffer.isEmpty()) {
+        Preconditions.checkState(sourceCount == 0,"A read permit was acquired but no pages are available");
+        notEmpty.release();
+        break;
+      }
+ else {
+        nextPages.add(pageBuffer.removeFirst());
+      }
+      count++;
+    }
+ while (count < maxPageCount && notEmpty.tryAcquire());
+    notFull.release(count);
+    List<Page> pages=nextPages.build();
+    if (sourceCount == 0 && pageBuffer.isEmpty()) {
+      state=State.FINISHED;
+    }
+    return pages;
+  }
+}

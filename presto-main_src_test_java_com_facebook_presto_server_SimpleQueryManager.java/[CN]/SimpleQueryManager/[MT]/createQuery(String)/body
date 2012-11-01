@@ -1,13 +1,12 @@
 {
   Preconditions.checkNotNull(query,"query is null");
   String queryId=String.valueOf(nextQueryId++);
-  QueryState queryState=new QueryState(1,blockBufferMax);
+  QueryState queryState=new QueryState(1,pageBufferMax);
   queries.put(queryId,queryState);
   List<String> data=ImmutableList.of("apple","banana","cherry","date");
-  for (int i=0; i < initialBlocks; i++) {
-    UncompressedBlock block=createStringBlock(0,Iterables.concat(Collections.nCopies(i + 1,data)));
+  for (int i=0; i < initialPages; i++) {
     try {
-      queryState.addBlock(block);
+      queryState.addPage(new Page(createStringBlock(0,Iterables.concat(Collections.nCopies(i + 1,data)))));
     }
  catch (    InterruptedException e) {
       Thread.currentThread().interrupt();

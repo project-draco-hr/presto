@@ -1,0 +1,22 @@
+{
+  if (response.getStatusCode() != Status.OK.getStatusCode()) {
+    if (response.getStatusCode() == Status.GONE.getStatusCode()) {
+      return ImmutableList.of();
+    }
+    throw new UnexpectedResponseException(String.format("Expected response code to be 200, but was %d: %s",response.getStatusCode(),response.getStatusMessage()),request,response);
+  }
+  String contentType=response.getHeader("Content-Type");
+  if (!MediaType.valueOf(contentType).isCompatible(PRESTO_PAGES_TYPE)) {
+    throw new UnexpectedResponseException(String.format("Expected %s response from server but got %s",PRESTO_PAGES_TYPE,contentType),request,response);
+  }
+  try {
+    SliceInput sliceInput=new InputStreamSliceInput(response.getInputStream());
+    byte[] bytes=ByteStreams.toByteArray(sliceInput);
+    ByteArraySlice byteArraySlice=Slices.wrappedBuffer(bytes);
+    List<Page> pages=ImmutableList.copyOf(PagesSerde.readPages(byteArraySlice.getInput()));
+    return pages;
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+}

@@ -1,9 +1,8 @@
 {
-  Iterator<UncompressedBlock> blockIterator=client.execute(prepareGet().setUri(location).build(),new BlockResponseHandler(TupleInfo.SINGLE_VARBINARY));
+  List<Page> pages=client.execute(prepareGet().setUri(location).build(),new PageResponseHandler(TupleInfo.SINGLE_VARBINARY));
   int count=0;
-  while (blockIterator.hasNext()) {
-    UncompressedBlock block=blockIterator.next();
-    count+=block.getCount();
+  for (  Page page : pages) {
+    count+=page.getCount();
   }
   return count;
 }

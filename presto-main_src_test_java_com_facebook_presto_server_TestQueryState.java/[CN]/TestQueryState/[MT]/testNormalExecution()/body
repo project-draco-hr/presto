@@ -2,32 +2,34 @@
   QueryState queryState=new QueryState(1,20);
   assertRunning(queryState);
   for (int i=0; i < 5; i++) {
-    queryState.addBlock(Blocks.createLongsBlock(i,i));
+    queryState.addPage(createLongPage(i,i));
   }
   assertRunning(queryState);
-  List<UncompressedBlock> nextBlocks=queryState.getNextBlocks(2);
-  assertEquals(nextBlocks.size(),2);
-  assertEquals(getBlockOnlyValue(nextBlocks.get(0)),0);
-  assertEquals(getBlockOnlyValue(nextBlocks.get(1)),1);
+  List<Page> nextPages=queryState.getNextPages(2);
+  assertEquals(nextPages.size(),2);
+  assertEquals(getPageOnlyValue(nextPages.get(0)),0);
+  assertEquals(getPageOnlyValue(nextPages.get(1)),1);
   assertRunning(queryState);
-  nextBlocks=queryState.getNextBlocks(2);
-  assertEquals(nextBlocks.size(),2);
-  assertEquals(getBlockOnlyValue(nextBlocks.get(0)),2);
-  assertEquals(getBlockOnlyValue(nextBlocks.get(1)),3);
+  nextPages=queryState.getNextPages(2);
+  assertEquals(nextPages.size(),2);
+  assertEquals(getPageOnlyValue(nextPages.get(0)),2);
+  assertEquals(getPageOnlyValue(nextPages.get(1)),3);
   assertRunning(queryState);
-  nextBlocks=queryState.getNextBlocks(2);
-  assertEquals(nextBlocks.size(),1);
-  assertEquals(getBlockOnlyValue(nextBlocks.get(0)),4);
+  nextPages=queryState.getNextPages(2);
+  assertEquals(nextPages.size(),1);
+  assertEquals(getPageOnlyValue(nextPages.get(0)),4);
   assertRunning(queryState);
-  queryState.addBlock(Blocks.createLongsBlock(9,9));
+  int position=9;
+  int value=9;
+  queryState.addPage(createLongPage(position,value));
   queryState.sourceFinished();
   assertRunning(queryState);
-  nextBlocks=queryState.getNextBlocks(2);
-  assertEquals(nextBlocks.size(),1);
-  assertEquals(getBlockOnlyValue(nextBlocks.get(0)),9);
+  nextPages=queryState.getNextPages(2);
+  assertEquals(nextPages.size(),1);
+  assertEquals(getPageOnlyValue(nextPages.get(0)),9);
   assertFinished(queryState);
   try {
-    queryState.addBlock(Blocks.createLongsBlock(22,22));
+    queryState.addPage(createLongPage(22,22));
     fail("expected IllegalStateException");
   }
  catch (  IllegalStateException e) {

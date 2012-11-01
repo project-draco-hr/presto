@@ -1,0 +1,22 @@
+{
+  Preconditions.checkNotNull(block,"block is null");
+  checkState(!finished,"already finished");
+  if (!initialized) {
+    initialized=true;
+  }
+  BlockCursor cursor=block.cursor();
+  while (cursor.advanceNextPosition()) {
+    if (currentStartPosition == -1) {
+      currentStartPosition=cursor.getPosition();
+    }
+    cursor.getTuple().writeTo(buffer);
+    tupleCount++;
+    if (buffer.size() >= MAX_BLOCK_SIZE) {
+      writeUncompressedBlock(sliceOutput,currentStartPosition,tupleCount,buffer.slice());
+      tupleCount=0;
+      buffer=new DynamicSliceOutput(MAX_BLOCK_SIZE);
+      currentStartPosition=-1;
+    }
+  }
+  return this;
+}

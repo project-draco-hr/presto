@@ -1,0 +1,24 @@
+{
+  try {
+    if (queryState.isCanceled()) {
+      return endOfData();
+    }
+    List<Page> nextPages=queryState.getNextPages(1);
+    if (nextPages.isEmpty()) {
+      return endOfData();
+    }
+    Page page=Iterables.getOnlyElement(nextPages);
+    Block[] blocks=page.getBlocks();
+    for (int i=0; i < blocks.length; i++) {
+      UncompressedBlock block=(UncompressedBlock)blocks[i];
+      blocks[i]=new UncompressedBlock(new Range(position,position + block.getCount() - 1),block.getTupleInfo(),block.getSlice());
+    }
+    page=new Page(blocks);
+    position=page.getBlock(0).getRange().getEnd();
+    return page;
+  }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    throw Throwables.propagate(e);
+  }
+}

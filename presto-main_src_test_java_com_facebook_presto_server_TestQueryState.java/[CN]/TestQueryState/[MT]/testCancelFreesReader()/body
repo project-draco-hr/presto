@@ -2,14 +2,14 @@
   QueryState queryState=new QueryState(1,5);
   assertRunning(queryState);
   ExecutorService executor=Executors.newCachedThreadPool();
-  GetBlocksJob getBlocksJob=new GetBlocksJob(queryState,2,1);
-  executor.submit(getBlocksJob);
-  getBlocksJob.waitForStarted();
-  getBlocksJob.assertBlockedWithCount(0);
-  queryState.addBlock(Blocks.createLongsBlock(0,0));
-  getBlocksJob.assertBlockedWithCount(1);
+  GetPagesJob getPagesJob=new GetPagesJob(queryState,2,1);
+  executor.submit(getPagesJob);
+  getPagesJob.waitForStarted();
+  getPagesJob.assertBlockedWithCount(0);
+  queryState.addPage(createLongPage(0,0));
+  getPagesJob.assertBlockedWithCount(1);
   queryState.cancel();
   assertCanceled(queryState);
-  getBlocksJob.waitForFinished();
-  assertEquals(getBlocksJob.getBlocks().size(),1);
+  getPagesJob.waitForFinished();
+  assertEquals(getPagesJob.getPages().size(),1);
 }

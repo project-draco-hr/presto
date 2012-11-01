@@ -1,27 +1,27 @@
 {
   QueryState queryState=new QueryState(3,20);
   assertRunning(queryState);
-  queryState.addBlock(Blocks.createLongsBlock(0,0));
-  queryState.addBlock(Blocks.createLongsBlock(1,1));
+  queryState.addPage(createLongPage(0,0));
+  queryState.addPage(createLongPage(1,1));
   assertRunning(queryState);
-  List<UncompressedBlock> nextBlocks=queryState.getNextBlocks(2);
-  assertEquals(nextBlocks.size(),2);
-  assertEquals(getBlockOnlyValue(nextBlocks.get(0)),0);
-  assertEquals(getBlockOnlyValue(nextBlocks.get(1)),1);
+  List<Page> nextPages=queryState.getNextPages(2);
+  assertEquals(nextPages.size(),2);
+  assertEquals(getPageOnlyValue(nextPages.get(0)),0);
+  assertEquals(getPageOnlyValue(nextPages.get(1)),1);
   assertRunning(queryState);
   queryState.sourceFinished();
   assertRunning(queryState);
-  queryState.addBlock(Blocks.createLongsBlock(9,9));
+  queryState.addPage(createLongPage(9,9));
   queryState.sourceFinished();
   assertRunning(queryState);
-  nextBlocks=queryState.getNextBlocks(2);
-  assertEquals(nextBlocks.size(),1);
-  assertEquals(getBlockOnlyValue(nextBlocks.get(0)),9);
+  nextPages=queryState.getNextPages(2);
+  assertEquals(nextPages.size(),1);
+  assertEquals(getPageOnlyValue(nextPages.get(0)),9);
   assertRunning(queryState);
   queryState.sourceFinished();
   assertFinished(queryState);
   try {
-    queryState.addBlock(Blocks.createLongsBlock(22,22));
+    queryState.addPage(createLongPage(22,22));
     fail("expected IllegalStateException");
   }
  catch (  IllegalStateException e) {

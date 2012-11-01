@@ -5,19 +5,8 @@
     long start=System.nanoTime();
     ApacheHttpClient httpClient=new ApacheHttpClient(new HttpClientConfig().setConnectTimeout(new Duration(1,TimeUnit.MINUTES)).setReadTimeout(new Duration(1,TimeUnit.MINUTES)));
     AsyncHttpClient asyncHttpClient=new AsyncHttpClient(httpClient,executor);
-    QueryDriversTupleStream tupleStream=new QueryDriversTupleStream(new TupleInfo(VARIABLE_BINARY,Type.FIXED_INT_64),10,new HttpQueryProvider("sum",asyncHttpClient,server));
-    TuplePrinter tuplePrinter=new DelimitedTuplePrinter();
-    int count=0;
-    long grandTotal=0;
-    Cursor cursor=tupleStream.cursor(new QuerySession());
-    while (advanceNextPositionNoYield(cursor)) {
-      count++;
-      Tuple tuple=cursor.getTuple();
-      grandTotal+=tuple.getLong(1);
-      tuplePrinter.print(tuple);
-    }
-    Duration duration=Duration.nanosSince(start);
-    System.out.printf("%d rows in %4.2f ms %d grandTotal\n",count,duration.toMillis(),grandTotal);
+    QueryDriversOperator operator=new QueryDriversOperator(10,new HttpQueryProvider("sum",asyncHttpClient,server));
+    printResults(start,operator);
   }
   finally {
     executor.shutdownNow();

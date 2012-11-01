@@ -1,0 +1,17 @@
+{
+  while (!isDone() && !notFull.tryAcquire(1,TimeUnit.SECONDS)) {
+  }
+synchronized (pageBuffer) {
+    if (state == State.CANCELED || state == State.FAILED) {
+      notFull.release();
+      return false;
+    }
+    if (sourceCount == 0) {
+      notFull.release();
+      throw new IllegalStateException("All sources are finished");
+    }
+    pageBuffer.addLast(page);
+    notEmpty.release();
+  }
+  return true;
+}

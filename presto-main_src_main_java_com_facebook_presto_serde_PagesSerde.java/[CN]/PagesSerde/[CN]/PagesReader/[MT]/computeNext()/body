@@ -1,0 +1,12 @@
+{
+  if (!sliceInput.isReadable()) {
+    return endOfData();
+  }
+  Block[] blocks=new Block[tupleInfos.length];
+  for (int i=0; i < blocks.length; i++) {
+    blocks[i]=blockSerdes[i].readBlock(sliceInput,tupleInfos[i],positionOffset);
+  }
+  Page page=new Page(blocks);
+  positionOffset+=page.getCount();
+  return page;
+}

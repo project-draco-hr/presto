@@ -11,9 +11,11 @@
       for (      String subPartitionName : subPartitionList) {
         queryDriverProviderBuilder.add(new HttpQueryProvider("import-hive-table-partition:" + databaseName + ":"+ tableName+ ":"+ subPartitionName,asyncHttpClient,URI.create("http://localhost:8080/v1/presto/query")));
       }
-      QueryDriversTupleStream tupleStream=new QueryDriversTupleStream(TupleInfo.SINGLE_LONG,10,queryDriverProviderBuilder.build());
-      AggregationOperator sumOperator=new AggregationOperator(tupleStream,LongSumAggregation.PROVIDER);
-      queryState.addBlock(Iterators.getOnlyElement(sumOperator.iterator(new QuerySession())));
+      QueryDriversOperator operator=new QueryDriversOperator(10,queryDriverProviderBuilder.build());
+      AggregationOperator sumOperator=new AggregationOperator(operator,ImmutableList.of(LongSumAggregation.provider(0,0)),ImmutableList.of(concat(singleColumn(Type.FIXED_INT_64,0,0))));
+      for (      Page page : sumOperator) {
+        queryState.addPage(page);
+      }
     }
     queryState.sourceFinished();
   }

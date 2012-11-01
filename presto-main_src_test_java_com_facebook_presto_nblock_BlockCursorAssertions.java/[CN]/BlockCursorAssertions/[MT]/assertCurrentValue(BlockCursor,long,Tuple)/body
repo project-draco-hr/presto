@@ -1,0 +1,56 @@
+{
+  TupleInfo tupleInfo=tuple.getTupleInfo();
+  assertEquals(cursor.getTupleInfo(),tupleInfo);
+  assertEquals(cursor.getTuple(),tuple);
+  assertEquals(cursor.getPosition(),position);
+  assertTrue(cursor.currentTupleEquals(tuple));
+  for (int index=0; index < tupleInfo.getFieldCount(); index++) {
+switch (tupleInfo.getTypes().get(index)) {
+case FIXED_INT_64:
+      assertEquals(cursor.getLong(index),tuple.getLong(index));
+    try {
+      cursor.getDouble(index);
+      fail("Expected IllegalStateException or UnsupportedOperationException");
+    }
+ catch (    IllegalStateException|UnsupportedOperationException expected) {
+    }
+  try {
+    cursor.getSlice(index);
+    fail("Expected IllegalStateException or UnsupportedOperationException");
+  }
+ catch (  IllegalStateException|UnsupportedOperationException expected) {
+  }
+break;
+case VARIABLE_BINARY:
+assertEquals(cursor.getSlice(index),tuple.getSlice(index));
+try {
+cursor.getDouble(index);
+fail("Expected IllegalStateException or UnsupportedOperationException");
+}
+ catch (IllegalStateException|UnsupportedOperationException expected) {
+}
+try {
+cursor.getLong(index);
+fail("Expected IllegalStateException or UnsupportedOperationException");
+}
+ catch (IllegalStateException|UnsupportedOperationException expected) {
+}
+break;
+case DOUBLE:
+assertEquals(cursor.getDouble(index),tuple.getDouble(index));
+try {
+cursor.getSlice(index);
+fail("Expected IllegalStateException or UnsupportedOperationException");
+}
+ catch (IllegalStateException|UnsupportedOperationException expected) {
+}
+try {
+cursor.getSlice(index);
+fail("Expected IllegalStateException or UnsupportedOperationException");
+}
+ catch (IllegalStateException|UnsupportedOperationException expected) {
+}
+break;
+}
+}
+}

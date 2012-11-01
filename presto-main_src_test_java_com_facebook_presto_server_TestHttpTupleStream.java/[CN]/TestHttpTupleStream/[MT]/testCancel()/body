@@ -1,10 +1,13 @@
 {
-  QueryDriversTupleStream tupleStream=new QueryDriversTupleStream(TupleInfo.SINGLE_VARBINARY,10,new HttpQueryProvider("query",httpClient,server1.getBaseUrl().resolve("/v1/presto/query")),new HttpQueryProvider("query",httpClient,server2.getBaseUrl().resolve("/v1/presto/query")),new HttpQueryProvider("query",httpClient,server3.getBaseUrl().resolve("/v1/presto/query")));
+  QueryDriversOperator operator=new QueryDriversOperator(10,new HttpQueryProvider("query",httpClient,server1.getBaseUrl().resolve("/v1/presto/query")),new HttpQueryProvider("query",httpClient,server2.getBaseUrl().resolve("/v1/presto/query")),new HttpQueryProvider("query",httpClient,server3.getBaseUrl().resolve("/v1/presto/query")));
   int count=0;
-  QueryDriversYieldingIterator iterator=tupleStream.iterator(new QuerySession());
+  QueryDriversIterator iterator=operator.iterator();
   while (count < 20 && iterator.hasNext()) {
-    iterator.next();
-    count++;
+    Page page=iterator.next();
+    BlockCursor cursor=page.getBlock(0).cursor();
+    while (count < 20 && cursor.advanceNextPosition()) {
+      count++;
+    }
   }
   assertEquals(count,20);
   assertTrue(iterator.hasNext());
