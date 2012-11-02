@@ -1,0 +1,17 @@
+{
+  List<ImmutableList.Builder<Block>> blockBuilders=new ArrayList<>();
+  for (int i=0; i < operator.getChannelCount(); i++) {
+    blockBuilders.add(ImmutableList.<Block>builder());
+  }
+  for (  Page page : operator) {
+    Block[] blocks=page.getBlocks();
+    for (int i=0; i < blocks.length; i++) {
+      blockBuilders.get(i).add(blocks[i]);
+    }
+  }
+  ImmutableList.Builder<BlockIterable> blockIterables=ImmutableList.builder();
+  for (  ImmutableList.Builder<Block> blockBuilder : blockBuilders) {
+    blockIterables.add(BlockIterables.createBlockIterable(blockBuilder.build()));
+  }
+  return blockIterables.build();
+}
