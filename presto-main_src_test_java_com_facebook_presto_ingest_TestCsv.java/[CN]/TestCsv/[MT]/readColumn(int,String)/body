@@ -1,7 +1,4 @@
 {
   File file=new File(outDir,"column" + columnNumber + "."+ dataType.replace(':','_')+ ".data");
-  Iterator<String> partsIterator=Splitter.on(':').split(dataType).iterator();
-  String typeName=partsIterator.next();
-  String serdeName=partsIterator.next();
-  return TupleStreamSerdes.Encoding.fromName(serdeName).createSerde().createDeserializer().deserialize(Range.ALL,Slices.mapFileReadOnly(file));
+  return StatsCollectingBlocksSerde.readBlocks(Slices.mapFileReadOnly(file));
 }

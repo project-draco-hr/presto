@@ -1,11 +1,11 @@
 {
   checkArgument(extractionSpecs != null && !extractionSpecs.isEmpty(),"Extraction Spec is required");
-  InputSupplier<InputStreamReader> inputSupplier;
+  InputSupplier<InputStreamReader> readerSupplier;
   if (csvFile != null) {
-    inputSupplier=Files.newReaderSupplier(new File(csvFile),Charsets.UTF_8);
+    readerSupplier=Files.newReaderSupplier(new File(csvFile),Charsets.UTF_8);
   }
  else {
-    inputSupplier=new InputSupplier<InputStreamReader>(){
+    readerSupplier=new InputSupplier<InputStreamReader>(){
       public InputStreamReader getInput(){
         return new InputStreamReader(System.in,Charsets.UTF_8);
       }
@@ -13,8 +13,6 @@
 ;
   }
   ImmutableSortedMap.Builder<Integer,Type> schemaBuilder=ImmutableSortedMap.naturalOrder();
-  ImmutableList.Builder<Integer> extractionColumnsBuilder=ImmutableList.builder();
-  ImmutableList.Builder<TupleStreamSerializer> serializerBuilder=ImmutableList.builder();
   ImmutableList.Builder<OutputSupplier<? extends OutputStream>> outputSupplierBuilder=ImmutableList.builder();
   for (  String extractionSpec : extractionSpecs) {
     List<String> parts=ImmutableList.copyOf(Splitter.on(':').split(extractionSpec));
@@ -29,32 +27,24 @@
     String dataTypeName=parts.get(1);
     String encodingName=parts.get(2);
     schemaBuilder.put(columnIndex,TupleInfo.Type.fromName(dataTypeName));
-    extractionColumnsBuilder.add(columnIndex);
-    serializerBuilder.add(TupleStreamSerdes.Encoding.fromName(encodingName).createSerde().createSerializer());
     outputSupplierBuilder.add(newOutputStreamSupplier(new File(outputDir,String.format("column%d.%s_%s.data",columnIndex,dataTypeName,encodingName))));
   }
   ImmutableSortedMap<Integer,Type> schema=schemaBuilder.build();
-  ImmutableList<Integer> extractionColumns=extractionColumnsBuilder.build();
-  ImmutableList<TupleStreamSerializer> serializers=serializerBuilder.build();
   ImmutableList<OutputSupplier<? extends OutputStream>> outputSuppliers=outputSupplierBuilder.build();
-  ImmutableList.Builder<Type> inferredTypes=ImmutableList.builder();
+  ImmutableList.Builder<RecordProjection> recordProjectionBuilder=ImmutableList.builder();
+  ImmutableList.Builder<BlockWriterFactory> writersBuilder=ImmutableList.builder();
   for (int index=0; index <= schema.lastKey(); index++) {
+    Type type=VARIABLE_BINARY;
     if (schema.containsKey(index)) {
-      inferredTypes.add(schema.get(index));
+      type=schema.get(index);
     }
- else {
-      inferredTypes.add(VARIABLE_BINARY);
-    }
+    recordProjectionBuilder.add(RecordProjections.createProjection(index,type));
+    writersBuilder.add(new SerdeBlockWriterFactory(UncompressedBlockSerde.INSTANCE,outputSuppliers.get(index)));
   }
-  TupleInfo tupleInfo=new TupleInfo(inferredTypes.build());
-  try (InputStreamReader input=inputSupplier.getInput()){
-    DelimitedTupleStream delimitedTupleStream=new DelimitedTupleStream(input,Splitter.on(toChar(columnSeparator)),tupleInfo);
-    ProjectionTupleStream projectedStream=new ProjectionTupleStream(delimitedTupleStream,extractionColumns);
-    ImmutableList.Builder<StreamWriterTupleValueSink> tupleValueSinkBuilder=ImmutableList.builder();
-    for (int index=0; index < extractionColumns.size(); index++) {
-      tupleValueSinkBuilder.add(new StreamWriterTupleValueSink(outputSuppliers.get(index),serializers.get(index)));
-    }
-    long rowCount=TupleStreamImporter.importFrom(projectedStream,tupleValueSinkBuilder.build());
-    log.info("Imported %d rows",rowCount);
-  }
- }
+  List<RecordProjection> recordProjections=recordProjectionBuilder.build();
+  List<BlockWriterFactory> writers=writersBuilder.build();
+  DelimitedRecordIterable records=new DelimitedRecordIterable(readerSupplier,Splitter.on(toChar(columnSeparator)));
+  Operator source=new RecordProjectOperator(records,recordProjections);
+  long rowCount=ImportingOperator.importData(source,writers);
+  log.info("Importoed %d rows",rowCount);
+}
