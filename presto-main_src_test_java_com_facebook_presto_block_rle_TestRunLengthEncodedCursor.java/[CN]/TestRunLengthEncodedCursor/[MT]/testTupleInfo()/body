@@ -2,13 +2,14 @@
   Cursor cursor=createCursor();
   assertEquals(cursor.getTupleInfo(),TupleInfo.SINGLE_VARBINARY);
   try {
-    new UncompressedCursor(TupleInfo.SINGLE_VARBINARY,null);
+    new RunLengthEncodedCursor(TupleInfo.SINGLE_VARBINARY,null);
     fail("Expected NullPointerException");
   }
  catch (  NullPointerException expected) {
   }
   try {
-    new UncompressedCursor(null,ImmutableList.of(Blocks.createBlock(0,"a")).iterator());
+    RunLengthEncodedBlock block=new RunLengthEncodedBlock(Tuples.createTuple("apple"),Range.create(0,4));
+    new RunLengthEncodedCursor(null,ImmutableList.of(block).iterator());
     fail("Expected NullPointerException");
   }
  catch (  NullPointerException expected) {

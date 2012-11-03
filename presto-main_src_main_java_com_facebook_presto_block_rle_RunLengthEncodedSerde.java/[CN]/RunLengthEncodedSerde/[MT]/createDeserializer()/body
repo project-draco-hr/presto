@@ -5,12 +5,12 @@
       SliceInput input=slice.getInput();
       final TupleInfo tupleInfo=UncompressedTupleInfoSerde.deserialize(input);
       final Slice dataSlice=slice.slice(input.position(),slice.length() - input.position());
-      RunLengthEncodedTupleStream runLengthEncodedTupleStream=new RunLengthEncodedTupleStream(tupleInfo,new Iterable<RunLengthEncodedBlock>(){
+      GenericTupleStream<RunLengthEncodedBlock> runLengthEncodedTupleStream=new GenericTupleStream<>(tupleInfo,new Iterable<RunLengthEncodedBlock>(){
         @Override public Iterator<RunLengthEncodedBlock> iterator(){
           return new RunLengthEncodedIterator(tupleInfo,dataSlice.getInput(),totalRange.getStart());
         }
       }
-,totalRange);
+);
       return new SingletonTupleStream<>(runLengthEncodedTupleStream);
     }
     @Override public BlockIterable deserializeBlocks(    Range totalRange,    Slice slice){
