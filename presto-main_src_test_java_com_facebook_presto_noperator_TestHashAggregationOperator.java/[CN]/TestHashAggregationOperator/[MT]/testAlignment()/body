@@ -1,0 +1,11 @@
+{
+  Block expectedBlock=new BlockBuilder(0,new TupleInfo(VARIABLE_BINARY,FIXED_INT_64,FIXED_INT_64,DOUBLE)).append("0").append(3).append(0).append(0.0).append("1").append(3).append(3).append(1.0).append("2").append(3).append(6).append(2.0).append("3").append(3).append(9).append(3.0).append("4").append(3).append(12).append(4.0).append("5").append(3).append(15).append(5.0).append("6").append(3).append(18).append(6.0).append("7").append(3).append(21).append(7.0).append("8").append(3).append(24).append(8.0).append("9").append(3).append(27).append(9.0).build();
+  Operator source=createOperator(new Page(BlockAssertions.createStringSequenceBlock(0,10),BlockAssertions.createLongSequenceBlock(0,10),BlockAssertions.createStringSequenceBlock(0,10)),new Page(BlockAssertions.createStringSequenceBlock(0,10),BlockAssertions.createLongSequenceBlock(0,10),BlockAssertions.createStringSequenceBlock(0,10)),new Page(BlockAssertions.createStringSequenceBlock(0,10),BlockAssertions.createLongSequenceBlock(0,10),BlockAssertions.createStringSequenceBlock(0,10)));
+  HashAggregationOperator actual=new HashAggregationOperator(source,2,ImmutableList.of(CountAggregation.PROVIDER,LongSumAggregation.provider(1,0),LongAverageAggregation.provider(1,0)),ImmutableList.of(concat(singleColumn(VARIABLE_BINARY,0,0),singleColumn(FIXED_INT_64,1,0),singleColumn(FIXED_INT_64,2,0),singleColumn(DOUBLE,3,0))));
+  Iterator<Page> pages=actual.iterator();
+  Page page=pages.next();
+  assertEquals(page.getChannelCount(),1);
+  Block actualBlock=page.getBlock(0);
+  BlockAssertions.assertBlockEqualsIgnoreOrder(actualBlock,expectedBlock);
+  assertFalse(pages.hasNext());
+}
