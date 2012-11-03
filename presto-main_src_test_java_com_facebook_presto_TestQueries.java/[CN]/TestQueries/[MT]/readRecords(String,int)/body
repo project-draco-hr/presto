@@ -1,0 +1,12 @@
+{
+  Splitter splitter=Splitter.on('|');
+  List<Record> records=new ArrayList<>();
+  for (  String line : CharStreams.readLines(readResource(name))) {
+    checkArgument(!line.isEmpty(),"line is empty");
+    checkArgument(line.charAt(line.length() - 1) == '|',"line does not end in delimiter");
+    line=line.substring(0,line.length() - 1);
+    records.add(new StringRecord(splitter.split(line)));
+  }
+  checkArgument(records.size() == expectedRows,"expected %s rows, but read %s",expectedRows,records.size());
+  return RecordIterables.asRecordIterable(records);
+}

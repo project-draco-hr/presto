@@ -1,0 +1,17 @@
+{
+  checkArgument(!isEmpty(data),"no data to insert");
+  int columns=Iterables.get(data,0).getFieldCount();
+  String vars=Joiner.on(',').join(nCopies(columns,"?"));
+  String sql=format("INSERT INTO %s VALUES (%s)",table,vars);
+  for (  List<Record> partition : Iterables.partition(data,1000)) {
+    PreparedBatch batch=handle.prepareBatch(sql);
+    for (    Record record : partition) {
+      checkArgument(record.getFieldCount() == columns,"rows have differing column counts");
+      PreparedBatchPart part=batch.add();
+      for (int i=0; i < record.getFieldCount(); i++) {
+        part.bind(i,record.getString(i));
+      }
+    }
+    batch.execute();
+  }
+}

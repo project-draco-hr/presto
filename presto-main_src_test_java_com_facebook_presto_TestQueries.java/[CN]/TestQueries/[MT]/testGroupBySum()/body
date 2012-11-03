@@ -1,8 +1,6 @@
 {
   List<Tuple> expected=computeExpected("SELECT orderstatus, SUM(totalprice) FROM orders GROUP BY orderstatus",VARIABLE_BINARY,DOUBLE);
-  TupleStream groupBySource=createTupleStream(ordersData,TpchSchema.Orders.ORDERSTATUS,VARIABLE_BINARY);
-  TupleStream aggregateSource=createTupleStream(ordersData,TpchSchema.Orders.TOTALPRICE,DOUBLE);
-  GroupByOperator groupBy=new GroupByOperator(groupBySource);
-  HashAggregationOperator aggregation=new HashAggregationOperator(groupBy,aggregateSource,DoubleSumAggregation.PROVIDER);
+  Operator orders=scanTable(ordersRecords,ORDERSTATUS,TOTALPRICE);
+  Operator aggregation=new HashAggregationOperator(orders,0,ImmutableList.of(DoubleSumAggregation.provider(1,0)),ImmutableList.of(concat(singleColumn(VARIABLE_BINARY,0,0),singleColumn(DOUBLE,1,0))));
   assertEqualsIgnoreOrder(tuples(aggregation),expected);
 }

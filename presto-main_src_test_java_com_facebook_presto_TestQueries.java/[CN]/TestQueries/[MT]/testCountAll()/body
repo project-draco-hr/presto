@@ -1,6 +1,6 @@
 {
   List<Tuple> expected=computeExpected("SELECT COUNT(*) FROM orders",FIXED_INT_64);
-  TupleStream orders=createTupleStream(ordersData,TpchSchema.Orders.ORDERKEY,FIXED_INT_64);
-  AggregationOperator aggregation=new AggregationOperator(orders,CountAggregation.PROVIDER);
+  Operator orders=scanTable(ordersRecords,ORDERKEY);
+  Operator aggregation=new AggregationOperator(orders,ImmutableList.of(CountAggregation.PROVIDER),ImmutableList.of(singleColumn(FIXED_INT_64,0,0)));
   assertEqualsIgnoreOrder(tuples(aggregation),expected);
 }
