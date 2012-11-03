@@ -1,0 +1,25 @@
+{
+  checkNotNull(block,"block is null");
+  checkState(!finished,"already finished");
+  if (!initialized) {
+    initialized=true;
+  }
+  BlockCursor cursor=block.cursor();
+  while (cursor.advanceNextPosition()) {
+    if (lastTuple == null) {
+      startPosition=cursor.getPosition();
+      endPosition=cursor.getCurrentValueEndPosition();
+      lastTuple=cursor.getTuple();
+    }
+ else {
+      checkArgument(cursor.getPosition() > endPosition,"positions are not increasing");
+      if (cursor.getPosition() != endPosition + 1 || !cursor.currentTupleEquals(lastTuple)) {
+        writeRunLengthEncodedBlock(sliceOutput,startPosition,(int)(endPosition - startPosition + 1),lastTuple);
+        lastTuple=cursor.getTuple();
+        startPosition=cursor.getPosition();
+      }
+      endPosition=cursor.getCurrentValueEndPosition();
+    }
+  }
+  return this;
+}
