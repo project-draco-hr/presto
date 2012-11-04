@@ -1,0 +1,11 @@
+{
+  SliceInput sliceInput=slice.getInput();
+  TupleInfo tupleInfo=UncompressedTupleInfoSerde.deserialize(sliceInput);
+  int dictionarySize=sliceInput.readInt();
+  checkArgument(dictionarySize >= 0);
+  Slice[] dictionary=new Slice[dictionarySize];
+  for (int i=0; i < dictionarySize; i++) {
+    dictionary[i]=tupleInfo.extractTupleSlice(sliceInput);
+  }
+  return new Dictionary(tupleInfo,dictionary);
+}
