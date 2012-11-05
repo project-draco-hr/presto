@@ -1,0 +1,7 @@
+{
+  TupleInfo tupleInfo=new TupleInfo(VARIABLE_BINARY,FIXED_INT_64);
+  Operator source=createOperator(new Page(new BlockBuilder(0,tupleInfo).append("a").append(1).append("b").append(2).build()),new Page(new BlockBuilder(2,tupleInfo).append("f").append(3).append("a").append(4).build()),new Page(new BlockBuilder(4,tupleInfo).append("d").append(5).append("d").append(7).append("e").append(6).build()));
+  TopNOperator actual=new TopNOperator(source,3,0,ImmutableList.of(ProjectionFunctions.concat(singleColumn(VARIABLE_BINARY,0,0),singleColumn(FIXED_INT_64,0,1))));
+  Operator expected=createOperator(new Page(new BlockBuilder(0,tupleInfo).append("d").append(7).append("e").append(6).append("f").append(3).build()));
+  assertOperatorEqualsUnordered(actual,expected);
+}

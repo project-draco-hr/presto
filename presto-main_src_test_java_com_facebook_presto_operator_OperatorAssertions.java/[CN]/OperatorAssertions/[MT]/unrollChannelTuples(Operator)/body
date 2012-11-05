@@ -1,0 +1,19 @@
+{
+  ImmutableList.Builder<List<Tuple>> builder=ImmutableList.builder();
+  for (  Page page : operator) {
+    Block[] blocks=page.getBlocks();
+    BlockCursor[] cursors=new BlockCursor[blocks.length];
+    for (int i=0; i < blocks.length; i++) {
+      cursors[i]=blocks[i].cursor();
+    }
+    for (int i=0; i < page.getPositionCount(); i++) {
+      ImmutableList.Builder<Tuple> tupleBuilder=ImmutableList.builder();
+      for (      BlockCursor cursor : cursors) {
+        Preconditions.checkState(cursor.advanceNextPosition());
+        tupleBuilder.add(cursor.getTuple());
+      }
+      builder.add(tupleBuilder.build());
+    }
+  }
+  return builder.build();
+}
