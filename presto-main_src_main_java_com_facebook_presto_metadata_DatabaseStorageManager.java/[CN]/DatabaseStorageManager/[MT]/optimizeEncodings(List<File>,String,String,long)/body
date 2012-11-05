@@ -5,19 +5,20 @@
   for (int channel=0; channel < stagedFiles.size(); channel++) {
     File stagedFile=stagedFiles.get(channel);
     Slice slice=mappedFileCache.getUnchecked(stagedFile.getAbsolutePath());
-    Stats stats=StatsCollectingBlocksSerde.readStats(slice);
+    FileBlockIterable blocks=FileBlocksSerde.readBlocks(slice);
+    StatsCollector.Stats stats=blocks.getStats();
     boolean rleEncode=stats.getAvgRunLength() > RUN_LENGTH_AVERAGE_CUTOFF;
     boolean dicEncode=stats.getUniqueCount() < DICTIONARY_CARDINALITY_CUTOFF;
-    BlockSerdes.Encoding encoding=BlockSerdes.Encoding.RAW;
+    FileEncoding encoding=FileEncoding.RAW;
     File outputFile=new File(createNewFileName(baseStorageDir,databaseName,tableName,shardId,channel,encoding));
     Files.createParentDirs(outputFile);
     optimizedFilesBuilder.add(outputFile);
-    if (encoding == BlockSerdes.Encoding.RAW) {
+    if (encoding == FileEncoding.RAW) {
       Files.move(stagedFiles.get(channel),outputFile);
     }
  else {
-      sourcesBuilder.add(StatsCollectingBlocksSerde.readBlocks(slice));
-      writersBuilder.add(new SerdeBlockWriterFactory(encoding.createSerde(),Files.newOutputStreamSupplier(outputFile)));
+      sourcesBuilder.add(blocks);
+      writersBuilder.add(new SerdeBlockWriterFactory(encoding,Files.newOutputStreamSupplier(outputFile)));
     }
   }
   List<BlockIterable> sources=sourcesBuilder.build();

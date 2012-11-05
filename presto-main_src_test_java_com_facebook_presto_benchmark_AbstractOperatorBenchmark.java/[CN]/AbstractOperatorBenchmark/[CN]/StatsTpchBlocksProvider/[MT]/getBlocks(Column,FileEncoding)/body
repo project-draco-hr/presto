@@ -1,0 +1,14 @@
+{
+  checkNotNull(column,"column is null");
+  checkNotNull(encoding,"encoding is null");
+  try {
+    File columnFile=tpchDataProvider.getColumnFile(column,encoding);
+    Slice slice=Slices.mapFileReadOnly(columnFile);
+    FileBlockIterable blocks=FileBlocksSerde.readBlocks(slice);
+    statsBuilder.add(blocks.getStats());
+    return blocks;
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+}

@@ -1,0 +1,15 @@
+{
+  DynamicSliceOutput sliceOutput=new DynamicSliceOutput(1024);
+  writeBlocks(encoding,sliceOutput,expectedBlock,expectedBlock,expectedBlock);
+  Slice slice=sliceOutput.slice();
+  FileBlockIterable actualBlocks=readBlocks(slice,0);
+  List<List<Object>> actualValues=toValues(actualBlocks);
+  assertEquals(actualValues,expectedValues);
+  Stats stats=actualBlocks.getStats();
+  assertEquals(stats.getAvgRunLength(),1);
+  assertEquals(stats.getMinPosition(),0);
+  assertEquals(stats.getMaxPosition(),3);
+  assertEquals(stats.getRowCount(),12);
+  assertEquals(stats.getRunsCount(),12);
+  assertEquals(stats.getUniqueCount(),4);
+}
