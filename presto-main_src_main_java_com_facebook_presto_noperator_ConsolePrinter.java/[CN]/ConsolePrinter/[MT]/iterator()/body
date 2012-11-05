@@ -1,0 +1,28 @@
+{
+  return new AbstractIterator<Page>(){
+    private final Iterator<Page> iterator=source.iterator();
+    private final BlockCursor[] cursors=new BlockCursor[source.getChannelCount()];
+    private final Tuple[] tuples=new Tuple[source.getChannelCount()];
+    @Override protected Page computeNext(){
+      if (!iterator.hasNext()) {
+        return endOfData();
+      }
+      Page page=iterator.next();
+      for (int i=0; i < cursors.length; i++) {
+        cursors[i]=page.getBlock(i).cursor();
+      }
+      for (int position=0; position < page.getPositionCount(); position++) {
+        for (int i=0; i < cursors.length; i++) {
+          checkState(cursors[i].advanceNextPosition());
+          tuples[i]=cursors[i].getTuple();
+        }
+        printer.print(tuples);
+      }
+      for (      BlockCursor cursor : cursors) {
+        checkState(!cursor.advanceNextPosition());
+      }
+      return page;
+    }
+  }
+;
+}
