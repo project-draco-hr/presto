@@ -1,0 +1,14 @@
+{
+  TupleDescriptor descriptor=analysis.getTableDescriptor(table);
+  ImmutableList.Builder<Slot> outputs=ImmutableList.builder();
+  ImmutableList.Builder<PlanNode> sources=ImmutableList.builder();
+  List<NamedSlot> slots=descriptor.getSlots();
+  for (  NamedSlot namedSlot : slots) {
+    Slot slot=namedSlot.getSlot();
+    QualifiedName name=namedSlot.getName().get();
+    ColumnScan scan=new ColumnScan(name.getParts().get(0),name.getParts().get(1),name.getParts().get(2),name.getParts().get(3),slot);
+    sources.add(scan);
+    outputs.add(slot);
+  }
+  return new AlignNode(sources.build(),outputs.build());
+}

@@ -1,0 +1,15 @@
+{
+  PlanNode source=Iterables.getOnlyElement(node.getSources()).accept(this,context);
+  ImmutableMap.Builder<Slot,Expression> builder=ImmutableMap.builder();
+  for (  Map.Entry<Slot,Expression> entry : node.getOutputMap().entrySet()) {
+    Expression expression=canonicalize(entry.getValue());
+    if (entry.getValue() instanceof SlotReference) {
+      Slot slot=((SlotReference)entry.getValue()).getSlot();
+      if (!slot.equals(entry.getKey())) {
+        map(entry.getKey(),slot);
+      }
+    }
+    builder.put(canonicalize(entry.getKey()),expression);
+  }
+  return new ProjectNode(source,builder.build());
+}

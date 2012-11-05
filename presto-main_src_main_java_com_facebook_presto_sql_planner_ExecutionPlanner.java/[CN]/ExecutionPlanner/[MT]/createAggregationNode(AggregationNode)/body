@@ -1,0 +1,20 @@
+{
+  PlanNode source=Iterables.getOnlyElement(node.getSources());
+  Operator sourceOperator=plan(source);
+  Map<Slot,Integer> slotToChannelMappings=mapSlotsToChannels(source.getOutputs());
+  List<Provider<AggregationFunction>> aggregationFunctions=new ArrayList<>();
+  for (  Map.Entry<Slot,FunctionCall> entry : node.getAggregations().entrySet()) {
+    aggregationFunctions.add(getProvider(node.getFunctionInfos().get(entry.getKey()),entry.getValue(),slotToChannelMappings));
+  }
+  List<ProjectionFunction> projections=new ArrayList<>();
+  for (int i=0; i < node.getOutputs().size(); ++i) {
+    Slot slot=node.getOutputs().get(i);
+    projections.add(ProjectionFunctions.singleColumn(slot.getType().getRawType(),i,0));
+  }
+  if (node.getGroupBy().isEmpty()) {
+    return new AggregationOperator(sourceOperator,aggregationFunctions,projections);
+  }
+  Preconditions.checkArgument(node.getGroupBy().size() <= 1,"Only single GROUP BY key supported at this time");
+  Slot groupBySlot=Iterables.getOnlyElement(node.getGroupBy());
+  return new HashAggregationOperator(sourceOperator,slotToChannelMappings.get(groupBySlot),aggregationFunctions,projections);
+}

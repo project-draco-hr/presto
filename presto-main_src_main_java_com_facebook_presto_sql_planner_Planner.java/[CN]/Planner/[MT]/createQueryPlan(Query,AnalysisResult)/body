@@ -1,0 +1,13 @@
+{
+  PlanNode root=createRelationPlan(query.getFrom(),analysis);
+  if (analysis.getPredicate() != null) {
+    root=createFilterPlan(root,analysis.getPredicate());
+  }
+  if (!analysis.getAggregations().isEmpty()) {
+    root=createAggregatePlan(root,analysis.getOutputExpressions(),analysis.getAggregations(),analysis.getGroupByExpressions(),analysis.getSlotAllocator());
+  }
+ else {
+    root=createProjectPlan(root,analysis.getOutputExpressions());
+  }
+  return root;
+}

@@ -1,0 +1,47 @@
+{
+  final Map<Expression,Slot> outputRewriteMap=new HashMap<>();
+  Map<Slot,Expression> slotsForGroupBy=new HashMap<>();
+  for (  AnalyzedExpression groupBy : groupBys) {
+    Slot slot=allocator.newSlot(groupBy);
+    slotsForGroupBy.put(slot,groupBy.getRewrittenExpression());
+    outputRewriteMap.put(groupBy.getRewrittenExpression(),slot);
+  }
+  Map<Slot,FunctionCall> functionCalls=new HashMap<>();
+  Map<Slot,FunctionInfo> functionInfos=new HashMap<>();
+  Map<Slot,Expression> slotsForAggregationArgs=new HashMap<>();
+  for (  AnalyzedAggregation aggregation : aggregations) {
+    List<Expression> argumentExpressions=new ArrayList<>();
+    for (    AnalyzedExpression argument : aggregation.getArguments()) {
+      Slot argumentSlot=allocator.newSlot(argument);
+      slotsForAggregationArgs.put(argumentSlot,argument.getRewrittenExpression());
+      argumentExpressions.add(new SlotReference(argumentSlot));
+    }
+    Slot slot=allocator.newSlot(aggregation.getType());
+    functionCalls.put(slot,new FunctionCall(aggregation.getFunctionName(),argumentExpressions));
+    functionInfos.put(slot,aggregation.getFunctionInfo());
+    outputRewriteMap.put(aggregation.getRewrittenCall(),slot);
+  }
+  Map<Slot,Expression> preProjectOutputs=new HashMap<>();
+  preProjectOutputs.putAll(slotsForGroupBy);
+  preProjectOutputs.putAll(slotsForAggregationArgs);
+  PlanNode preProjectNode=source;
+  if (!preProjectOutputs.isEmpty()) {
+    preProjectNode=new ProjectNode(source,preProjectOutputs);
+  }
+  PlanNode aggregationNode=new AggregationNode(preProjectNode,ImmutableList.copyOf(slotsForGroupBy.keySet()),functionCalls,functionInfos);
+  ImmutableMap.Builder<Slot,Expression> outputBuilder=ImmutableMap.builder();
+  for (  Map.Entry<Slot,AnalyzedExpression> entry : outputs.entrySet()) {
+    Expression rewrittenOutput=TreeRewriter.rewriteWith(new NodeRewriter<Void>(){
+      @Override public Node rewriteExpression(      Expression node,      Void context,      TreeRewriter<Void> treeRewriter){
+        Slot slot=outputRewriteMap.get(node);
+        if (slot != null) {
+          return new SlotReference(slot);
+        }
+        return treeRewriter.defaultRewrite(node,context);
+      }
+    }
+,entry.getValue().getRewrittenExpression());
+    outputBuilder.put(entry.getKey(),rewrittenOutput);
+  }
+  return new ProjectNode(aggregationNode,outputBuilder.build());
+}

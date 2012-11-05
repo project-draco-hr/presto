@@ -1,0 +1,37 @@
+{
+  Object left=process(node.getLeft(),context);
+  Object right=process(node.getRight(),context);
+  if (left instanceof Number && right instanceof Number) {
+switch (node.getType()) {
+case EQUAL:
+      return left.equals(right);
+case NOT_EQUAL:
+    return !left.equals(right);
+case LESS_THAN:
+  return ((Number)left).doubleValue() < ((Number)right).doubleValue();
+case LESS_THAN_OR_EQUAL:
+return ((Number)left).doubleValue() <= ((Number)right).doubleValue();
+case GREATER_THAN:
+return ((Number)left).doubleValue() > ((Number)right).doubleValue();
+case GREATER_THAN_OR_EQUAL:
+return ((Number)left).doubleValue() >= ((Number)right).doubleValue();
+}
+}
+ else if (left instanceof Slice && right instanceof Slice) {
+switch (node.getType()) {
+case EQUAL:
+return left.equals(right);
+case NOT_EQUAL:
+return !left.equals(right);
+case LESS_THAN:
+return ((Slice)left).compareTo((Slice)right) < 0;
+case LESS_THAN_OR_EQUAL:
+return ((Slice)left).compareTo((Slice)right) <= 0;
+case GREATER_THAN:
+return ((Slice)left).compareTo((Slice)right) > 0;
+case GREATER_THAN_OR_EQUAL:
+return ((Slice)left).compareTo((Slice)right) >= 0;
+}
+}
+throw new UnsupportedOperationException(format("not yet implemented: %s(%s, %s)",node.getType(),left.getClass().getName(),right.getClass().getName()));
+}

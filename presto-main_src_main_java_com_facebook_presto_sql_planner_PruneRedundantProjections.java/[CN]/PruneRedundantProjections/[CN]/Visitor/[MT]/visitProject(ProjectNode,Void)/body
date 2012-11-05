@@ -1,0 +1,19 @@
+{
+  PlanNode source=Iterables.getOnlyElement(node.getSources()).accept(this,context);
+  if (source instanceof ProjectNode && node.getOutputs().equals(source.getOutputs())) {
+    return source;
+  }
+  boolean canElide=true;
+  for (  Map.Entry<Slot,Expression> entry : node.getOutputMap().entrySet()) {
+    Expression expression=entry.getValue();
+    Slot slot=entry.getKey();
+    if (!(expression instanceof SlotReference && ((SlotReference)expression).getSlot().equals(slot))) {
+      canElide=false;
+      break;
+    }
+  }
+  if (canElide) {
+    return source;
+  }
+  return new ProjectNode(source,node.getOutputMap());
+}

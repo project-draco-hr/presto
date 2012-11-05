@@ -1,0 +1,13 @@
+{
+  Relation relation=Iterables.getOnlyElement(relations);
+  if (relation instanceof Table) {
+    return createScanNode((Table)relation,analysis);
+  }
+ else   if (relation instanceof AliasedRelation) {
+    return createRelationPlan(ImmutableList.of(((AliasedRelation)relation).getRelation()),analysis);
+  }
+ else   if (relation instanceof Subquery) {
+    return createQueryPlan(((Subquery)relation).getQuery(),analysis.getAnalysis((Subquery)relation));
+  }
+  throw new UnsupportedOperationException("not yet implemented");
+}
