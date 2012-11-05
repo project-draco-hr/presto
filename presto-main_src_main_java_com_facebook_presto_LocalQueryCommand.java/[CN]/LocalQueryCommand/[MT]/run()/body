@@ -1,0 +1,25 @@
+{
+  Statement statement;
+  try {
+    statement=SqlParser.createStatement(Files.toString(new File(file),UTF_8));
+  }
+ catch (  RecognitionException e) {
+    throw Throwables.propagate(e);
+  }
+catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+  SessionMetadata sessionMetadata=new SessionMetadata(metadata);
+  Analyzer analyzer=new Analyzer(sessionMetadata);
+  AnalysisResult analysis=analyzer.analyze(statement);
+  PlanNode plan=new Planner().plan((Query)statement,analysis);
+  new PlanPrinter().print(plan);
+  ExecutionPlanner executionPlanner=new ExecutionPlanner(sessionMetadata,storageManager);
+  Operator operator=executionPlanner.plan(plan);
+  for (int i=0; i < 30; i++) {
+    long start=System.nanoTime();
+    long rows=ConsolePrinter.print(operator);
+    Duration duration=Duration.nanosSince(start);
+    System.out.printf("%d rows in %4.2f ms\n",rows,duration.toMillis());
+  }
+}
