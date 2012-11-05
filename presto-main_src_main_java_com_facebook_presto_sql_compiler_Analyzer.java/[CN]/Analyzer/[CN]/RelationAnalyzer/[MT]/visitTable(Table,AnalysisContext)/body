@@ -1,0 +1,15 @@
+{
+  TableMetadata tableMetadata=metadata.getTable(table.getName());
+  if (tableMetadata == null) {
+    throw new SemanticException(table,"Cannot resolve table '%s'",table.getName());
+  }
+  ImmutableList.Builder<NamedSlot> slots=ImmutableList.builder();
+  for (  ColumnMetadata column : tableMetadata.getColumns()) {
+    Slot slot=context.getSlotAllocator().newSlot(Type.fromRaw(column.getType()));
+    QualifiedName name=QualifiedName.of(tableMetadata.getCatalogName(),tableMetadata.getSchemaName(),tableMetadata.getTableName(),column.getName());
+    slots.add(new NamedSlot(Optional.of(name),slot));
+  }
+  TupleDescriptor descriptor=new TupleDescriptor(slots.build());
+  context.registerTable(table,descriptor);
+  return descriptor;
+}

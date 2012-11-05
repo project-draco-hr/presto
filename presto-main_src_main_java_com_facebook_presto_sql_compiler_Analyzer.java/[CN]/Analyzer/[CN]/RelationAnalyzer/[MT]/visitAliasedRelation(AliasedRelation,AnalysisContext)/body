@@ -1,0 +1,15 @@
+{
+  if (relation.getColumnNames() != null && !relation.getColumnNames().isEmpty()) {
+    throw new UnsupportedOperationException("not yet implemented: column mappings in relation alias");
+  }
+  TupleDescriptor child=process(relation.getRelation(),context);
+  ImmutableList.Builder<NamedSlot> builder=ImmutableList.builder();
+  for (  NamedSlot slot : child.getSlots()) {
+    Optional<QualifiedName> name=slot.getName();
+    if (name.isPresent()) {
+      name=Optional.of(QualifiedName.of(relation.getAlias(),name.get().getSuffix()));
+    }
+    builder.add(new NamedSlot(name,slot.getSlot()));
+  }
+  return new TupleDescriptor(builder.build());
+}

@@ -1,0 +1,17 @@
+{
+  Preconditions.checkArgument(!query.getSelect().isDistinct(),"not yet implemented: DISTINCT");
+  Preconditions.checkArgument(query.getHaving() == null,"not yet implemented: HAVING");
+  Preconditions.checkArgument(query.getOrderBy().isEmpty(),"not yet implemented: ORDER BY");
+  Preconditions.checkArgument(query.getLimit() == null,"not yet implemented: LIMIT");
+  Preconditions.checkArgument(query.getFrom().size() == 1,"not yet implemented: multiple FROM relations");
+  Relation relation=Iterables.getOnlyElement(query.getFrom());
+  TupleDescriptor sourceDescriptor=new RelationAnalyzer(metadata).process(relation,context);
+  AnalyzedExpression predicate=null;
+  if (query.getWhere() != null) {
+    predicate=analyzePredicate(query.getWhere(),sourceDescriptor);
+  }
+  AnalyzedOutput output=analyzeSelect(query.getSelect(),context.getSlotAllocator(),sourceDescriptor);
+  List<AnalyzedExpression> groupBy=analyzeGroupBy(query.getGroupBy(),sourceDescriptor);
+  List<AnalyzedAggregation> aggregations=analyzeAggregations(query.getGroupBy(),query.getSelect(),sourceDescriptor);
+  return AnalysisResult.newInstance(context,output,predicate,groupBy,aggregations);
+}

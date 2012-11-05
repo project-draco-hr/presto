@@ -1,0 +1,37 @@
+{
+  ImmutableList.Builder<Expression> expressions=ImmutableList.builder();
+  ImmutableList.Builder<Optional<QualifiedName>> names=ImmutableList.builder();
+  for (  Expression expression : select.getSelectItems()) {
+    if (expression instanceof AllColumns) {
+      Optional<QualifiedName> starPrefix=((AllColumns)expression).getPrefix();
+      for (      NamedSlot slot : descriptor.getSlots()) {
+        Optional<QualifiedName> slotName=slot.getName();
+        if (!starPrefix.isPresent() || slotName.isPresent() && slotName.get().getPrefix().get().hasSuffix(starPrefix.get())) {
+          names.add(slotName);
+          expressions.add(new SlotReference(slot.getSlot()));
+        }
+      }
+    }
+ else {
+      Optional<QualifiedName> alias=Optional.absent();
+      if (expression instanceof AliasedExpression) {
+        alias=Optional.of(QualifiedName.of(((AliasedExpression)expression).getAlias()));
+        expression=((AliasedExpression)expression).getExpression();
+      }
+ else       if (expression instanceof QualifiedNameReference) {
+        alias=Optional.of(((QualifiedNameReference)expression).getSuffix());
+      }
+      names.add(alias);
+      expressions.add(expression);
+    }
+  }
+  ImmutableList.Builder<Slot> slots=ImmutableList.builder();
+  ImmutableMap.Builder<Slot,AnalyzedExpression> outputExpressions=ImmutableMap.builder();
+  for (  Expression expression : expressions.build()) {
+    AnalyzedExpression analysis=new ExpressionAnalyzer(metadata).analyze(expression,descriptor);
+    Slot slot=allocator.newSlot(analysis);
+    slots.add(slot);
+    outputExpressions.put(slot,analysis);
+  }
+  return new AnalyzedOutput(new TupleDescriptor(names.build(),slots.build()),outputExpressions.build());
+}

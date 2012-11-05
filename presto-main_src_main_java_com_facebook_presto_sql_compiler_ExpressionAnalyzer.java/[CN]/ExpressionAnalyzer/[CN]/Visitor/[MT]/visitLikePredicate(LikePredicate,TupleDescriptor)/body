@@ -1,0 +1,14 @@
+{
+  if (node.getEscape() != null) {
+    throw new UnsupportedOperationException("not yet implemented: LIKE with ESCAPE");
+  }
+  Type value=process(node.getValue(),context);
+  if (value != Type.STRING) {
+    throw new SemanticException(node.getValue(),"Left side of LIKE expression must be a STRING (actual: %s)",value);
+  }
+  Type pattern=process(node.getPattern(),context);
+  if (pattern != Type.STRING) {
+    throw new SemanticException(node.getValue(),"Pattern for LIKE expression must be a STRING (actual: %s)",pattern);
+  }
+  return Type.BOOLEAN;
+}
