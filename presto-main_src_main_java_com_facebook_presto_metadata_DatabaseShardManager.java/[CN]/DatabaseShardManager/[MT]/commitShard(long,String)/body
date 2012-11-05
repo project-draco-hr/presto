@@ -1,0 +1,11 @@
+{
+  final long nodeId=getNodeId(nodeIdentifier);
+  dbi.inTransaction(new VoidTransactionCallback(){
+    @Override protected void execute(    Handle handle,    TransactionStatus status){
+      ShardManagerDao dao=handle.attach(ShardManagerDao.class);
+      dao.commitShard(shardId);
+      dao.insertShardNode(shardId,nodeId);
+    }
+  }
+);
+}

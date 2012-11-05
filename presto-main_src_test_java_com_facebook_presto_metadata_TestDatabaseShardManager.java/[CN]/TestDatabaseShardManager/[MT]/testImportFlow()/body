@@ -1,0 +1,16 @@
+{
+  long tableId=123;
+  for (int i=0; i < 5; i++) {
+    shardManager.createImportTable(tableId,"hive","default","orders");
+  }
+  List<byte[]> partitionChunks=createRandomChunks(5);
+  List<Long> shardIds=shardManager.createImportPartition(tableId,"ds=2012-10-15",partitionChunks);
+  ImmutableList<String> nodes=ImmutableList.of("foo","bar","baz");
+  int nodeIndex=0;
+  for (  long shardId : shardIds) {
+    String node=nodes.get(nodeIndex++ % nodes.size());
+    shardManager.commitShard(shardId,node);
+  }
+  Multimap<Long,String> shardNodes=shardManager.getShardNodes(tableId);
+  assertEquals(shardNodes,ImmutableMultimap.of(1L,"foo",2L,"bar",3L,"baz",4L,"foo",5L,"bar"));
+}
