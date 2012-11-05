@@ -1,12 +1,5 @@
 {
-  List<Tuple> expected=computeExpected("SELECT COUNT(*) FROM orders WHERE orderstatus = 'F'",FIXED_INT_64);
-  Operator orders=scanTable(ordersRecords,ORDERSTATUS);
-  Operator filter=new FilterAndProjectOperator(orders,new FilterFunction(){
-    @Override public boolean filter(    BlockCursor[] cursors){
-      return cursors[0].getSlice(0).equals(Slices.copiedBuffer("F",Charsets.UTF_8));
-    }
-  }
-,singleColumn(VARIABLE_BINARY,0,0));
-  Operator aggregation=new AggregationOperator(filter,ImmutableList.of(CountAggregation.PROVIDER),ImmutableList.of(singleColumn(FIXED_INT_64,0,0)));
-  assertEqualsIgnoreOrder(tuples(aggregation),expected);
+  List<Tuple> expected=computeExpected("SELECT COUNT(*) FROM ORDERS WHERE orderstatus = 'F'",FIXED_INT_64);
+  List<Tuple> actual=computeActual("SELECT COUNT(*) FROM ORDERS WHERE orderstatus = 'F'");
+  assertEqualsIgnoreOrder(actual,expected);
 }

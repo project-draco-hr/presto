@@ -1,6 +1,5 @@
 {
   List<Tuple> expected=computeExpected("SELECT orderstatus, SUM(totalprice) FROM orders GROUP BY orderstatus",VARIABLE_BINARY,DOUBLE);
-  Operator orders=scanTable(ordersRecords,ORDERSTATUS,TOTALPRICE);
-  Operator aggregation=new HashAggregationOperator(orders,0,ImmutableList.of(DoubleSumAggregation.provider(1,0)),ImmutableList.of(concat(singleColumn(VARIABLE_BINARY,0,0),singleColumn(DOUBLE,1,0))));
-  assertEqualsIgnoreOrder(tuples(aggregation),expected);
+  List<Tuple> actual=computeActual("SELECT orderstatus, SUM(totalprice) FROM ORDERS GROUP BY orderstatus");
+  assertEqualsIgnoreOrder(actual,expected);
 }

@@ -1,11 +1,5 @@
 {
   List<Tuple> expected=computeExpected("SELECT orderkey FROM lineitem WHERE tax < discount",FIXED_INT_64);
-  Operator lineItems=scanTable(lineItemRecords,ORDERKEY,DISCOUNT,TAX);
-  Operator filter=new FilterAndProjectOperator(lineItems,new FilterFunction(){
-    @Override public boolean filter(    BlockCursor[] cursors){
-      return cursors[2].getDouble(0) < cursors[1].getDouble(0);
-    }
-  }
-,singleColumn(FIXED_INT_64,0,0));
-  assertEqualsIgnoreOrder(tuples(filter),expected);
+  List<Tuple> actual=computeActual("SELECT orderkey FROM lineitem WHERE tax < discount");
+  assertEqualsIgnoreOrder(actual,expected);
 }

@@ -1,0 +1,42 @@
+{
+  Statement statement;
+  try {
+    statement=SqlParser.createStatement(sql);
+  }
+ catch (  RecognitionException e) {
+    throw Throwables.propagate(e);
+  }
+  SessionMetadata sessionMetadata=new SessionMetadata(metadata);
+  Analyzer analyzer=new Analyzer(sessionMetadata);
+  AnalysisResult analysis=analyzer.analyze(statement);
+  Planner planner=new Planner();
+  PlanNode plan=planner.plan((Query)statement,analysis);
+  new PlanPrinter().print(plan);
+  ExecutionPlanner executionPlanner=new ExecutionPlanner(sessionMetadata,storage);
+  Operator operator=executionPlanner.plan(plan);
+  TupleInfo outputTupleInfo=ExecutionPlanner.toTupleInfo(plan.getOutputs());
+  ImmutableList.Builder<Tuple> output=ImmutableList.builder();
+  for (  Page page : operator) {
+    ImmutableList.Builder<BlockCursor> cursorBuilder=ImmutableList.builder();
+    for (    Block block : page.getBlocks()) {
+      cursorBuilder.add(block.cursor());
+    }
+    List<BlockCursor> cursors=cursorBuilder.build();
+    boolean done=false;
+    while (!done) {
+      TupleInfo.Builder outputBuilder=outputTupleInfo.builder();
+      done=true;
+      for (      BlockCursor cursor : cursors) {
+        if (!cursor.advanceNextPosition()) {
+          break;
+        }
+        done=false;
+        outputBuilder.append(cursor.getTuple());
+      }
+      if (!done) {
+        output.add(outputBuilder.build());
+      }
+    }
+  }
+  return output.build();
+}

@@ -6,4 +6,80 @@
   lineItemRecords=readRecords("tpch/lineitem.dat.gz",60175);
   handle.execute("CREATE TABLE lineitem (\n" + "  orderkey BIGINT NOT NULL,\n" + "  partkey BIGINT NOT NULL,\n"+ "  suppkey BIGINT NOT NULL,\n"+ "  linenumber BIGINT NOT NULL,\n"+ "  quantity BIGINT NOT NULL,\n"+ "  extendedprice DOUBLE NOT NULL,\n"+ "  discount DOUBLE NOT NULL,\n"+ "  tax DOUBLE NOT NULL,\n"+ "  returnflag CHAR(1) NOT NULL,\n"+ "  linestatus CHAR(1) NOT NULL,\n"+ "  shipdate CHAR(10) NOT NULL,\n"+ "  commitdate CHAR(10) NOT NULL,\n"+ "  receiptdate CHAR(10) NOT NULL,\n"+ "  shipinstruct VARCHAR(25) NOT NULL,\n"+ "  shipmode VARCHAR(10) NOT NULL,\n"+ "  comment VARCHAR(44) NOT NULL\n"+ ")");
   insertRows("lineitem",handle,lineItemRecords);
+  List<TableMetadata> tables=ImmutableList.of(new TableMetadata(SessionMetadata.DEFAULT_CATALOG,SessionMetadata.DEFAULT_SCHEMA,"ORDERS",ImmutableList.of(new ColumnMetadata(TupleInfo.Type.FIXED_INT_64,"orderkey"),new ColumnMetadata(TupleInfo.Type.FIXED_INT_64,"custkey"),new ColumnMetadata(TupleInfo.Type.DOUBLE,"totalprice"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"orderdate"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"orderstatus"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"orderpriority"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"clerk"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"shippriority"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"comment"))),new TableMetadata(SessionMetadata.DEFAULT_CATALOG,SessionMetadata.DEFAULT_SCHEMA,"LINEITEM",ImmutableList.of(new ColumnMetadata(TupleInfo.Type.FIXED_INT_64,"orderkey"),new ColumnMetadata(TupleInfo.Type.FIXED_INT_64,"partkey"),new ColumnMetadata(TupleInfo.Type.FIXED_INT_64,"suppkey"),new ColumnMetadata(TupleInfo.Type.FIXED_INT_64,"linenumber"),new ColumnMetadata(TupleInfo.Type.FIXED_INT_64,"quantity"),new ColumnMetadata(TupleInfo.Type.DOUBLE,"extendedprice"),new ColumnMetadata(TupleInfo.Type.DOUBLE,"discount"),new ColumnMetadata(TupleInfo.Type.DOUBLE,"tax"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"returnflag"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"linestatus"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"shipdate"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"commitdate"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"receiptdate"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"shipinstruct"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"shipmode"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"comment"))));
+  metadata=new TestingMetadata();
+  for (  TableMetadata table : tables) {
+    metadata.createTable(table);
+  }
+  storage=new StorageManager(){
+    @Override public BlockIterable getBlocks(    String databaseName,    String tableName,    int fieldIndex){
+      if (tableName.equalsIgnoreCase("ORDERS")) {
+switch (fieldIndex) {
+case 0:
+          return createBlocks(ordersRecords,TpchSchema.Orders.ORDERKEY,FIXED_INT_64);
+case 1:
+        return createBlocks(ordersRecords,TpchSchema.Orders.CUSTKEY,FIXED_INT_64);
+case 2:
+      return createBlocks(ordersRecords,TpchSchema.Orders.TOTALPRICE,DOUBLE);
+case 3:
+    return createBlocks(ordersRecords,TpchSchema.Orders.ORDERDATE,VARIABLE_BINARY);
+case 4:
+  return createBlocks(ordersRecords,TpchSchema.Orders.ORDERSTATUS,VARIABLE_BINARY);
+case 5:
+return createBlocks(ordersRecords,TpchSchema.Orders.ORDERPRIORITY,VARIABLE_BINARY);
+case 6:
+return createBlocks(ordersRecords,TpchSchema.Orders.CLERK,VARIABLE_BINARY);
+case 7:
+return createBlocks(ordersRecords,TpchSchema.Orders.SHIPPRIORITY,VARIABLE_BINARY);
+case 8:
+return createBlocks(ordersRecords,TpchSchema.Orders.COMMENT,VARIABLE_BINARY);
+default :
+throw new UnsupportedOperationException("not yet implemented: " + fieldIndex);
+}
+}
+ else if (tableName.equalsIgnoreCase("LINEITEM")) {
+switch (fieldIndex) {
+case 0:
+return createBlocks(lineItemRecords,TpchSchema.LineItem.ORDERKEY,FIXED_INT_64);
+case 1:
+return createBlocks(lineItemRecords,TpchSchema.LineItem.PARTKEY,FIXED_INT_64);
+case 2:
+return createBlocks(lineItemRecords,TpchSchema.LineItem.SUPPKEY,FIXED_INT_64);
+case 3:
+return createBlocks(lineItemRecords,TpchSchema.LineItem.LINENUMBER,FIXED_INT_64);
+case 4:
+return createBlocks(lineItemRecords,TpchSchema.LineItem.QUANTITY,FIXED_INT_64);
+case 5:
+return createBlocks(lineItemRecords,TpchSchema.LineItem.EXTENDEDPRICE,DOUBLE);
+case 6:
+return createBlocks(lineItemRecords,TpchSchema.LineItem.DISCOUNT,DOUBLE);
+case 7:
+return createBlocks(lineItemRecords,TpchSchema.LineItem.TAX,DOUBLE);
+case 8:
+return createBlocks(lineItemRecords,TpchSchema.LineItem.RETURNFLAG,VARIABLE_BINARY);
+case 9:
+return createBlocks(lineItemRecords,TpchSchema.LineItem.LINESTATUS,VARIABLE_BINARY);
+case 10:
+return createBlocks(lineItemRecords,TpchSchema.LineItem.SHIPDATE,VARIABLE_BINARY);
+case 11:
+return createBlocks(lineItemRecords,TpchSchema.LineItem.COMMITDATE,VARIABLE_BINARY);
+case 12:
+return createBlocks(lineItemRecords,TpchSchema.LineItem.RECEIPTDATE,VARIABLE_BINARY);
+case 13:
+return createBlocks(lineItemRecords,TpchSchema.LineItem.SHIPINSTRUCT,VARIABLE_BINARY);
+case 14:
+return createBlocks(lineItemRecords,TpchSchema.LineItem.SHIPMODE,VARIABLE_BINARY);
+case 15:
+return createBlocks(lineItemRecords,TpchSchema.LineItem.COMMENT,VARIABLE_BINARY);
+default :
+throw new UnsupportedOperationException("not yet implemented: " + fieldIndex);
+}
+}
+throw new UnsupportedOperationException("not yet implemented: " + tableName);
+}
+@Override public long importTableShard(Operator source,String databaseName,String tableName) throws IOException {
+throw new UnsupportedOperationException("not yet implemented");
+}
+}
+;
 }

@@ -1,12 +1,5 @@
 {
   List<Tuple> expected=computeExpected("SELECT COUNT(*) FROM lineitem WHERE tax < discount",FIXED_INT_64);
-  Operator lineItems=scanTable(lineItemRecords,DISCOUNT,TAX);
-  Operator filter=new FilterAndProjectOperator(lineItems,new FilterFunction(){
-    @Override public boolean filter(    BlockCursor[] cursors){
-      return cursors[1].getDouble(0) < cursors[0].getDouble(0);
-    }
-  }
-,singleColumn(DOUBLE,0,0));
-  Operator aggregation=new AggregationOperator(filter,ImmutableList.of(CountAggregation.PROVIDER),ImmutableList.of(singleColumn(FIXED_INT_64,0,0)));
-  assertEqualsIgnoreOrder(tuples(aggregation),expected);
+  List<Tuple> actual=computeActual("SELECT COUNT(*) FROM lineitem WHERE tax < discount");
+  assertEqualsIgnoreOrder(actual,expected);
 }

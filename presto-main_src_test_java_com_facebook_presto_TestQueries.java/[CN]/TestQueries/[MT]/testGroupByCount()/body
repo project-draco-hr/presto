@@ -1,6 +1,5 @@
 {
   List<Tuple> expected=computeExpected("SELECT orderstatus, CAST(COUNT(*) AS INTEGER) FROM orders GROUP BY orderstatus",VARIABLE_BINARY,FIXED_INT_64);
-  Operator orders=scanTable(ordersRecords,ORDERSTATUS);
-  Operator aggregation=new HashAggregationOperator(orders,0,ImmutableList.of(CountAggregation.PROVIDER),ImmutableList.of(concat(singleColumn(VARIABLE_BINARY,0,0),singleColumn(FIXED_INT_64,1,0))));
-  assertEqualsIgnoreOrder(tuples(aggregation),expected);
+  List<Tuple> actual=computeActual("SELECT orderstatus, COUNT(*) FROM ORDERS GROUP BY orderstatus");
+  assertEqualsIgnoreOrder(actual,expected);
 }
