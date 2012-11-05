@@ -1,0 +1,17 @@
+{
+  checkNotNull(tuples,"tuples is null");
+  checkState(!finished,"already finished");
+  Iterable<Tuple> idTuples=Iterables.transform(tuples,new Function<Tuple,Tuple>(){
+    @Override public Tuple apply(    Tuple tuple){
+      if (tupleInfo == null) {
+        tupleInfo=tuple.getTupleInfo();
+        dictionaryBuilder=new DictionaryBuilder(tupleInfo);
+      }
+      long id=dictionaryBuilder.getId(tuple);
+      return createTuple(id);
+    }
+  }
+);
+  idWriter.append(idTuples);
+  return this;
+}

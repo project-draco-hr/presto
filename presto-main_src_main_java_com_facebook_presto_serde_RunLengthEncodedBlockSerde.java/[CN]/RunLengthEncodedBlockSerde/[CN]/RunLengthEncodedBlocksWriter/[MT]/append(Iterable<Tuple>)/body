@@ -1,0 +1,24 @@
+{
+  checkNotNull(tuples,"tuples is null");
+  checkState(!finished,"already finished");
+  if (!initialized) {
+    initialized=true;
+  }
+  for (  Tuple tuple : tuples) {
+    if (lastTuple == null) {
+      startPosition=0;
+      tupleCount=1;
+      lastTuple=tuple;
+    }
+ else {
+      if (!tuple.equals(lastTuple)) {
+        writeRunLengthEncodedBlock(sliceOutput,startPosition,tupleCount,lastTuple);
+        lastTuple=tuple;
+        startPosition+=tupleCount;
+        tupleCount=0;
+      }
+      tupleCount++;
+    }
+  }
+  return this;
+}

@@ -1,7 +1,7 @@
 {
-  UncompressedBlock block=new BlockBuilder(0,SINGLE_VARBINARY).append("alice").append("bob").append("charlie").append("dave").build();
+  ImmutableList<Tuple> tuples=ImmutableList.of(createTuple("alice"),createTuple("bob"),createTuple("charlie"),createTuple("dave"));
   DynamicSliceOutput sliceOutput=new DynamicSliceOutput(1024);
-  UNCOMPRESSED_BLOCK_SERDE.createBlockWriter(sliceOutput).append(block).append(block).finish();
+  UNCOMPRESSED_BLOCK_SERDE.createBlocksWriter(sliceOutput).append(tuples).append(tuples).finish();
   Block actualBlock=UNCOMPRESSED_BLOCK_SERDE.readBlock(sliceOutput.slice().getInput(),SINGLE_VARBINARY,0);
   BlockAssertions.assertBlockEquals(actualBlock,new BlockBuilder(0,SINGLE_VARBINARY).append("alice").append("bob").append("charlie").append("dave").append("alice").append("bob").append("charlie").append("dave").build());
 }
