@@ -1,0 +1,19 @@
+{
+  if (!sourceIterator.hasNext() || remainingLimit == 0) {
+    return endOfData();
+  }
+  Page page=sourceIterator.next();
+  if (page.getPositionCount() <= remainingLimit) {
+    remainingLimit-=page.getPositionCount();
+    return page;
+  }
+ else {
+    Block[] blocks=new Block[page.getChannelCount()];
+    for (int channel=0; channel < page.getChannelCount(); channel++) {
+      Block block=page.getBlock(channel);
+      blocks[channel]=block.createViewPort(Range.create(block.getRange().getStart(),block.getRange().getStart() + remainingLimit - 1));
+    }
+    remainingLimit=0;
+    return new Page(blocks);
+  }
+}
