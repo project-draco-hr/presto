@@ -1,0 +1,18 @@
+{
+  super(benchmarkName,warmupIterations,measuredIterations);
+  Metadata metadata=new TestingMetadata();
+  List<TableMetadata> tables=ImmutableList.of(new TableMetadata(SessionMetadata.DEFAULT_CATALOG,SessionMetadata.DEFAULT_SCHEMA,"ORDERS",ImmutableList.of(new ColumnMetadata(TupleInfo.Type.FIXED_INT_64,"orderkey"),new ColumnMetadata(TupleInfo.Type.FIXED_INT_64,"custkey"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"orderstatus"),new ColumnMetadata(TupleInfo.Type.DOUBLE,"totalprice"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"orderdate"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"orderpriority"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"clerk"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"shippriority"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"comment"))),new TableMetadata(SessionMetadata.DEFAULT_CATALOG,SessionMetadata.DEFAULT_SCHEMA,"LINEITEM",ImmutableList.of(new ColumnMetadata(TupleInfo.Type.FIXED_INT_64,"orderkey"),new ColumnMetadata(TupleInfo.Type.FIXED_INT_64,"partkey"),new ColumnMetadata(TupleInfo.Type.FIXED_INT_64,"suppkey"),new ColumnMetadata(TupleInfo.Type.FIXED_INT_64,"linenumber"),new ColumnMetadata(TupleInfo.Type.FIXED_INT_64,"quantity"),new ColumnMetadata(TupleInfo.Type.DOUBLE,"extendedprice"),new ColumnMetadata(TupleInfo.Type.DOUBLE,"discount"),new ColumnMetadata(TupleInfo.Type.DOUBLE,"tax"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"returnflag"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"linestatus"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"shipdate"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"commitdate"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"receiptdate"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"shipinstruct"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"shipmode"),new ColumnMetadata(TupleInfo.Type.VARIABLE_BINARY,"comment"))));
+  for (  TableMetadata table : tables) {
+    metadata.createTable(table);
+  }
+  try {
+    Statement statement=SqlParser.createStatement(query);
+    sessionMetadata=new SessionMetadata(metadata);
+    AnalysisResult analysis=new Analyzer(sessionMetadata).analyze(statement);
+    plan=new Planner().plan((Query)statement,analysis);
+    new PlanPrinter().print(plan);
+  }
+ catch (  RecognitionException e) {
+    throw Throwables.propagate(e);
+  }
+}
