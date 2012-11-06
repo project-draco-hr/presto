@@ -9,7 +9,7 @@
     for (    List<String> subPartitionList : Lists.partition(partitionNames,MAX_SIMULTANEOUS_IMPORTS)) {
       ImmutableList.Builder<QueryDriverProvider> queryDriverProviderBuilder=ImmutableList.builder();
       for (      String subPartitionName : subPartitionList) {
-        queryDriverProviderBuilder.add(new HttpQueryProvider("import-hive-table-partition:" + databaseName + ":"+ tableName+ ":"+ subPartitionName,asyncHttpClient,URI.create("http://localhost:8080/v1/presto/query")));
+        queryDriverProviderBuilder.add(new HttpQueryProvider("import-hive-table-partition:" + databaseName + ":"+ tableName+ ":"+ subPartitionName,asyncHttpClient,URI.create("http://localhost:8080/v1/presto/query"),1));
       }
       QueryDriversOperator operator=new QueryDriversOperator(10,queryDriverProviderBuilder.build());
       AggregationOperator sumOperator=new AggregationOperator(operator,ImmutableList.of(LongSumAggregation.provider(0,0)),ImmutableList.of(concat(singleColumn(Type.FIXED_INT_64,0,0))));
