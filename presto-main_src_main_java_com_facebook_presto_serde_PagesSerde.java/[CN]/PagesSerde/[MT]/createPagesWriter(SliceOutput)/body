@@ -1,28 +1,25 @@
 {
   checkNotNull(sliceOutput,"sliceOutput is null");
   return new PagesWriter(){
-    private BlockSerde[] blockSerdes;
+    private BlockEncoding[] blockEncodings;
     @Override public PagesWriter append(    Page page){
       Preconditions.checkNotNull(page,"page is null");
-      if (blockSerdes == null) {
+      if (blockEncodings == null) {
         Block[] blocks=page.getBlocks();
-        blockSerdes=new BlockSerde[blocks.length];
+        blockEncodings=new BlockEncoding[blocks.length];
         sliceOutput.writeInt(blocks.length);
         for (int i=0; i < blocks.length; i++) {
           Block block=blocks[i];
-          BlockSerde blockSerde=getSerdeForBlock(block);
-          blockSerdes[i]=blockSerde;
-          BlockSerdeSerde.writeBlockSerde(sliceOutput,blockSerde);
-          TupleInfoSerde.writeTupleInfo(sliceOutput,block.getTupleInfo());
+          BlockEncoding blockEncoding=block.getEncoding();
+          blockEncodings[i]=blockEncoding;
+          BlockEncodings.writeBlockEncoding(sliceOutput,blockEncoding);
         }
       }
       Block[] blocks=page.getBlocks();
       for (int i=0; i < blocks.length; i++) {
-        blockSerdes[i].writeBlock(sliceOutput,blocks[i]);
+        blockEncodings[i].writeBlock(sliceOutput,blocks[i]);
       }
       return this;
-    }
-    @Override public void finish(){
     }
   }
 ;

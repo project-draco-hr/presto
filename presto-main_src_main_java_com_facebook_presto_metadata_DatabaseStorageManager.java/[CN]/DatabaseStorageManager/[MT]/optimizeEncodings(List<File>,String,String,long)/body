@@ -1,28 +1,28 @@
 {
   ImmutableList.Builder<BlockIterable> sourcesBuilder=ImmutableList.builder();
-  ImmutableList.Builder<BlockWriterFactory> writersBuilder=ImmutableList.builder();
+  ImmutableList.Builder<BlocksFileWriter> writersBuilder=ImmutableList.builder();
   ImmutableList.Builder<File> optimizedFilesBuilder=ImmutableList.builder();
   for (int channel=0; channel < stagedFiles.size(); channel++) {
     File stagedFile=stagedFiles.get(channel);
     Slice slice=mappedFileCache.getUnchecked(stagedFile.getAbsolutePath());
-    FileBlockIterable blocks=FileBlocksSerde.readBlocks(slice);
-    StatsCollector.Stats stats=blocks.getStats();
+    BlocksFileReader blocks=BlocksFileReader.readBlocks(slice);
+    BlocksFileStats stats=blocks.getStats();
     boolean rleEncode=stats.getAvgRunLength() > RUN_LENGTH_AVERAGE_CUTOFF;
     boolean dicEncode=stats.getUniqueCount() < DICTIONARY_CARDINALITY_CUTOFF;
-    FileEncoding encoding=FileEncoding.RAW;
+    BlocksFileEncoding encoding=BlocksFileEncoding.RAW;
     File outputFile=new File(createNewFileName(baseStorageDir,databaseName,tableName,shardId,channel,encoding));
     Files.createParentDirs(outputFile);
     optimizedFilesBuilder.add(outputFile);
-    if (encoding == FileEncoding.RAW) {
+    if (encoding == BlocksFileEncoding.RAW) {
       Files.move(stagedFiles.get(channel),outputFile);
     }
  else {
       sourcesBuilder.add(blocks);
-      writersBuilder.add(new SerdeBlockWriterFactory(encoding,Files.newOutputStreamSupplier(outputFile)));
+      writersBuilder.add(new BlocksFileWriter(encoding,Files.newOutputStreamSupplier(outputFile)));
     }
   }
   List<BlockIterable> sources=sourcesBuilder.build();
-  List<BlockWriterFactory> writers=writersBuilder.build();
+  List<BlocksFileWriter> writers=writersBuilder.build();
   if (!sources.isEmpty()) {
     AlignmentOperator source=new AlignmentOperator(sources);
     ImportingOperator.importData(source,writers);

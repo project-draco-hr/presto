@@ -1,8 +1,7 @@
 {
-  DictionaryEncodedBlocksSerde blocksSerde=new DictionaryEncodedBlocksSerde(new SimpleBlocksSerde(UNCOMPRESSED_BLOCK_SERDE));
   ImmutableList<Tuple> tuples=ImmutableList.of(createTuple("alice"),createTuple("bob"),createTuple("charlie"),createTuple("dave"));
   DynamicSliceOutput sliceOutput=new DynamicSliceOutput(1024);
-  blocksSerde.createBlocksWriter(sliceOutput).append(tuples).append(tuples).append(tuples).finish();
-  BlockIterable actualBlocks=blocksSerde.createBlocksReader(sliceOutput.slice(),0);
-  assertBlocksEquals(actualBlocks,createBlockIterable(new BlockBuilder(0,SINGLE_VARBINARY).append("alice").append("bob").append("charlie").append("dave").append("alice").append("bob").append("charlie").append("dave").append("alice").append("bob").append("charlie").append("dave").build()));
+  BlockEncoding blockEncoding=new DictionaryEncoder(new UncompressedEncoder(sliceOutput)).append(tuples).append(tuples).append(tuples).finish();
+  Block actualBlock=blockEncoding.readBlock(sliceOutput.slice().getInput(),0);
+  assertBlockEquals(actualBlock,new BlockBuilder(0,SINGLE_VARBINARY).append("alice").append("bob").append("charlie").append("dave").append("alice").append("bob").append("charlie").append("dave").append("alice").append("bob").append("charlie").append("dave").build());
 }

@@ -1,8 +1,9 @@
 {
   RunLengthEncodedBlock expectedBlock=new RunLengthEncodedBlock(Tuples.createTuple("alice"),Range.create(20,30));
   DynamicSliceOutput sliceOutput=new DynamicSliceOutput(1024);
-  RLE_BLOCK_SERDE.writeBlock(sliceOutput,expectedBlock);
-  RunLengthEncodedBlock actualBlock=RLE_BLOCK_SERDE.readBlock(sliceOutput.slice().getInput(),SINGLE_VARBINARY,0);
+  RunLengthBlockEncoding blockEncoding=new RunLengthBlockEncoding(SINGLE_VARBINARY);
+  blockEncoding.writeBlock(sliceOutput,expectedBlock);
+  RunLengthEncodedBlock actualBlock=blockEncoding.readBlock(sliceOutput.slice().getInput(),0);
   assertEquals(actualBlock.getSingleValue(),expectedBlock.getSingleValue());
   BlockAssertions.assertBlockEquals(actualBlock,expectedBlock);
 }

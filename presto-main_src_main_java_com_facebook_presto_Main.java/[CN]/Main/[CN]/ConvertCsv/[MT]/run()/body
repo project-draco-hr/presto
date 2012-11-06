@@ -32,17 +32,17 @@
   ImmutableSortedMap<Integer,Type> schema=schemaBuilder.build();
   ImmutableList<OutputSupplier<? extends OutputStream>> outputSuppliers=outputSupplierBuilder.build();
   ImmutableList.Builder<RecordProjection> recordProjectionBuilder=ImmutableList.builder();
-  ImmutableList.Builder<BlockWriterFactory> writersBuilder=ImmutableList.builder();
+  ImmutableList.Builder<BlocksFileWriter> writersBuilder=ImmutableList.builder();
   for (int index=0; index <= schema.lastKey(); index++) {
     Type type=VARIABLE_BINARY;
     if (schema.containsKey(index)) {
       type=schema.get(index);
     }
     recordProjectionBuilder.add(RecordProjections.createProjection(index,type));
-    writersBuilder.add(new SerdeBlockWriterFactory(FileEncoding.RAW,outputSuppliers.get(index)));
+    writersBuilder.add(new BlocksFileWriter(BlocksFileEncoding.RAW,outputSuppliers.get(index)));
   }
   List<RecordProjection> recordProjections=recordProjectionBuilder.build();
-  List<BlockWriterFactory> writers=writersBuilder.build();
+  List<BlocksFileWriter> writers=writersBuilder.build();
   DelimitedRecordIterable records=new DelimitedRecordIterable(readerSupplier,Splitter.on(toChar(columnSeparator)));
   Operator source=new RecordProjectOperator(records,recordProjections);
   long rowCount=ImportingOperator.importData(source,writers);

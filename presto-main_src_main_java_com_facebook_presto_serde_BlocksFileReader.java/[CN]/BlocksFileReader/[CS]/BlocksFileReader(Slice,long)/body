@@ -1,0 +1,12 @@
+{
+  Preconditions.checkNotNull(slice,"slice is null");
+  Preconditions.checkArgument(positionOffset >= 0,"positionOffset is negative");
+  int footerLength=slice.getInt(slice.length() - SizeOf.SIZE_OF_INT);
+  int footerOffset=slice.length() - footerLength - SizeOf.SIZE_OF_INT;
+  Slice footerSlice=slice.slice(footerOffset,footerLength);
+  SliceInput input=footerSlice.getInput();
+  blockEncoding=BlockEncodings.readBlockEncoding(input);
+  stats=BlocksFileStats.deserialize(input);
+  blocksSlice=slice.slice(0,footerOffset);
+  blockIterable=new EncodedBlockIterable(blockEncoding,blocksSlice,positionOffset);
+}

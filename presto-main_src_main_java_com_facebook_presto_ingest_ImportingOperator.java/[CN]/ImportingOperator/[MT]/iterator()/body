@@ -1,28 +1,20 @@
 {
+  Preconditions.checkState(!used,"Import operator can only be used once");
+  used=true;
   return new AbstractIterator<Page>(){
     private final Iterator<Page> iterator=source.iterator();
-    private List<BlocksWriter> writers;
     @Override protected Page computeNext(){
       if (!iterator.hasNext()) {
-        if (writers != null) {
-          for (          BlocksWriter writer : writers) {
-            writer.finish();
-          }
+        for (        BlocksFileWriter fileWriter : fileWriters) {
+          fileWriter.close();
         }
         return endOfData();
-      }
-      if (writers == null) {
-        ImmutableList.Builder<BlocksWriter> builder=ImmutableList.builder();
-        for (        BlockWriterFactory blockWriterFactory : blockWriterFactories) {
-          builder.add(blockWriterFactory.create());
-        }
-        writers=builder.build();
       }
       Page page=iterator.next();
       Block[] blocks=page.getBlocks();
       for (int i=0; i < blocks.length; i++) {
         Block block=blocks[i];
-        writers.get(i).append(toTupleIterable(block));
+        fileWriters.get(i).append(toTupleIterable(block));
       }
       return page;
     }

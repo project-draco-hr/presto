@@ -1,0 +1,17 @@
+{
+  if (encoder != null) {
+    BlockEncoding blockEncoding=encoder.finish();
+    int startingIndex=sliceOutput.size();
+    BlockEncodings.writeBlockEncoding(sliceOutput,blockEncoding);
+    BlocksFileStats.serialize(statsCollector.getStats(),sliceOutput);
+    int footerSize=sliceOutput.size() - startingIndex;
+    checkState(footerSize > 0);
+    sliceOutput.writeInt(footerSize);
+    try {
+      sliceOutput.close();
+    }
+ catch (    IOException e) {
+      throw Throwables.propagate(e);
+    }
+  }
+}

@@ -1,30 +1,25 @@
 {
-  BlockIterable blocks=blockIterableBuilder(0,SINGLE_VARBINARY).append("alice").append("alice").append("bob").append("bob").newBlock().append("bob").append("bob").append("charlie").newBlock().append("charlie").append("charlie").newBlock().append("charlie").append("charlie").append("charlie").build();
-  SimpleBlocksSerde blocksSerde=new SimpleBlocksSerde(RLE_BLOCK_SERDE);
+  ImmutableList<Tuple> tuples=ImmutableList.of(createTuple("alice"),createTuple("alice"),createTuple("bob"),createTuple("bob"),createTuple("bob"),createTuple("bob"),createTuple("charlie"),createTuple("charlie"),createTuple("charlie"),createTuple("charlie"),createTuple("charlie"),createTuple("charlie"));
   DynamicSliceOutput sliceOutput=new DynamicSliceOutput(1024);
-  blocksSerde.writeBlocks(sliceOutput,blocks);
-  BlockIterable actualBlocks=blocksSerde.createBlocksReader(sliceOutput.slice(),0);
-  Iterator<Block> blockIterator=actualBlocks.iterator();
-  assertTrue(blockIterator.hasNext());
-  Block block=blockIterator.next();
+  BlockEncoding blockEncoding=new RunLengthEncoder(sliceOutput).append(tuples).finish();
+  SliceInput sliceInput=sliceOutput.slice().getInput();
+  Block block=blockEncoding.readBlock(sliceInput,0);
   assertInstanceOf(block,RunLengthEncodedBlock.class);
   RunLengthEncodedBlock rleBlock=(RunLengthEncodedBlock)block;
   assertEquals(rleBlock.getSingleValue(),createTuple("alice"));
   assertEquals(rleBlock.getPositionCount(),2);
   assertEquals(rleBlock.getRange(),Range.create(0,1));
-  assertTrue(blockIterator.hasNext());
-  block=blockIterator.next();
+  block=blockEncoding.readBlock(sliceInput,0);
   assertInstanceOf(block,RunLengthEncodedBlock.class);
   rleBlock=(RunLengthEncodedBlock)block;
   assertEquals(rleBlock.getSingleValue(),createTuple("bob"));
   assertEquals(rleBlock.getPositionCount(),4);
   assertEquals(rleBlock.getRange(),Range.create(2,5));
-  assertTrue(blockIterator.hasNext());
-  block=blockIterator.next();
+  block=blockEncoding.readBlock(sliceInput,0);
   assertInstanceOf(block,RunLengthEncodedBlock.class);
   rleBlock=(RunLengthEncodedBlock)block;
   assertEquals(rleBlock.getSingleValue(),createTuple("charlie"));
   assertEquals(rleBlock.getPositionCount(),6);
   assertEquals(rleBlock.getRange(),Range.create(6,11));
-  assertFalse(blockIterator.hasNext());
+  assertFalse(sliceInput.isReadable());
 }
