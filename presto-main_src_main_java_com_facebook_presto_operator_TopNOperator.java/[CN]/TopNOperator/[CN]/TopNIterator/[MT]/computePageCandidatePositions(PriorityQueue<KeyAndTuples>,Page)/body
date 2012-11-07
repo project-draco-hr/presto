@@ -1,8 +1,9 @@
 {
   PriorityQueue<KeyAndPosition> pageCandidates=new PriorityQueue<>(n,KeyAndPosition.keyComparator(ordering));
+  KeyAndTuples smallestGlobalCandidate=globalCandidates.peek();
   BlockCursor cursor=page.getBlock(keyChannelIndex).cursor();
   while (cursor.advanceNextPosition()) {
-    if (globalCandidates.size() < n || ordering.compare(cursor,globalCandidates.peek().getKey()) > 0) {
+    if (globalCandidates.size() < n || ordering.compare(cursor,smallestGlobalCandidate.getKey()) > 0) {
       if (pageCandidates.size() < n) {
         pageCandidates.add(new KeyAndPosition(cursor.getTuple(),cursor.getPosition()));
       }

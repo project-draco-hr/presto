@@ -1,20 +1,26 @@
 {
-  if (globalCandidateIterator == null) {
+  if (outputIterator == null) {
+    PriorityQueue<KeyAndTuples> globalCandidates=new PriorityQueue<>(n,KeyAndTuples.keyComparator(ordering));
     while (pageIterator.hasNext()) {
       Page page=pageIterator.next();
-      mergeWithGlobalCandidates(page,computePageCandidatePositions(page));
+      Iterable<KeyAndPosition> keyAndPositions=computePageCandidatePositions(globalCandidates,page);
+      mergeWithGlobalCandidates(globalCandidates,page,keyAndPositions);
     }
-    globalCandidateIterator=globalCandidates.iterator();
+    ImmutableList.Builder<KeyAndTuples> minSortedGlobalCandidates=ImmutableList.builder();
+    while (!globalCandidates.isEmpty()) {
+      minSortedGlobalCandidates.add(globalCandidates.remove());
+    }
+    outputIterator=minSortedGlobalCandidates.build().reverse().iterator();
   }
-  if (!globalCandidateIterator.hasNext()) {
+  if (!outputIterator.hasNext()) {
     return endOfData();
   }
   BlockBuilder[] outputs=new BlockBuilder[projections.size()];
   for (int i=0; i < outputs.length; i++) {
     outputs[i]=new BlockBuilder(position,projections.get(i).getTupleInfo());
   }
-  while (!isFull(outputs) && globalCandidateIterator.hasNext()) {
-    KeyAndTuples next=globalCandidateIterator.next();
+  while (!isFull(outputs) && outputIterator.hasNext()) {
+    KeyAndTuples next=outputIterator.next();
     for (int i=0; i < projections.size(); i++) {
       projections.get(i).project(next.getTuples(),outputs[i]);
     }
