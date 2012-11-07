@@ -3,9 +3,9 @@
   Preconditions.checkNotNull(encoding,"encoding is null");
   long start=System.nanoTime();
   try {
-    File file=tpchDataProvider.getColumnFile(column,encoding);
-    cumulativeDataByteSize+=file.length();
-    return file;
+    BlockIterable blocks=tpchBlocksProvider.getBlocks(column,encoding);
+    cumulativeDataByteSize+=tpchBlocksProvider.getColumnDataSize(column,encoding).toBytes();
+    return blocks;
   }
   finally {
     dataFetchElapsedMillis+=Duration.nanosSince(start).toMillis();

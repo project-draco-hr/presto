@@ -1,8 +1,8 @@
 {
   long start=System.nanoTime();
-  MetricRecordingTpchDataProvider metricRecordingTpchDataProvider=new MetricRecordingTpchDataProvider(tpchDataProvider);
-  StatsTpchBlocksProvider tpchBlocksProvider=new StatsTpchBlocksProvider(metricRecordingTpchDataProvider);
-  Operator operator=createBenchmarkedOperator(tpchBlocksProvider);
+  StatsTpchBlocksProvider statsTpchBlocksProvider=new StatsTpchBlocksProvider(tpchDataProvider);
+  MetricRecordingTpchBlocksProvider metricRecordingTpchBlocksProvider=new MetricRecordingTpchBlocksProvider(statsTpchBlocksProvider);
+  Operator operator=createBenchmarkedOperator(metricRecordingTpchBlocksProvider);
   long outputRows=0;
   for (  Page page : operator) {
     BlockCursor cursor=page.getBlock(0).cursor();
@@ -11,12 +11,14 @@
     }
   }
   Duration totalDuration=Duration.nanosSince(start);
-  Duration dataGenerationDuration=metricRecordingTpchDataProvider.getDataFetchElapsedTime();
+  Duration dataGenerationDuration=metricRecordingTpchBlocksProvider.getDataFetchElapsedTime();
   checkState(totalDuration.compareTo(dataGenerationDuration) >= 0,"total time should be at least as large as data generation time");
-  double executionMillis=totalDuration.convertTo(TimeUnit.MILLISECONDS) - dataGenerationDuration.toMillis();
+  double totalElapsedMillis=totalDuration.convertTo(TimeUnit.MILLISECONDS);
+  double dataGenerationElapsedMillis=dataGenerationDuration.toMillis();
+  double executionMillis=totalElapsedMillis - dataGenerationElapsedMillis;
   double executionSeconds=executionMillis / TimeUnit.SECONDS.toMillis(1);
-  DataSize totalDataSize=metricRecordingTpchDataProvider.getCumulativeDataSize();
-  checkState(!tpchBlocksProvider.getStats().isEmpty(),"no columns were fetched");
-  long inputRows=tpchBlocksProvider.getStats().get(0).getRowCount();
+  DataSize totalDataSize=metricRecordingTpchBlocksProvider.getCumulativeDataSize();
+  checkState(!statsTpchBlocksProvider.getStats().isEmpty(),"no columns were fetched");
+  long inputRows=statsTpchBlocksProvider.getStats().get(0).getRowCount();
   return ImmutableMap.<String,Long>builder().put("elapsed_millis",(long)executionMillis).put("input_rows",inputRows).put("input_rows_per_second",(long)(inputRows / executionSeconds)).put("output_rows",outputRows).put("output_rows_per_second",(long)(outputRows / executionSeconds)).put("input_megabytes",(long)totalDataSize.getValue(DataSize.Unit.MEGABYTE)).put("input_megabytes_per_second",(long)(totalDataSize.getValue(DataSize.Unit.MEGABYTE) / executionSeconds)).build();
 }
