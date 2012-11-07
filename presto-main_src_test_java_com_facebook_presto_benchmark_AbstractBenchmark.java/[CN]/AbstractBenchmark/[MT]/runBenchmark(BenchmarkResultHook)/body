@@ -1,6 +1,6 @@
 {
   LOGGER.info("Running benchmark: %s",getBenchmarkName());
-  long start=System.nanoTime();
+  AverageBenchmarkResults averageBenchmarkResults=new AverageBenchmarkResults();
   setUp();
   try {
     for (int i=0; i < warmupIterations; i++) {
@@ -11,6 +11,7 @@
       if (benchmarkResultHook != null) {
         benchmarkResultHook.addResults(results);
       }
+      averageBenchmarkResults.addResults(results);
     }
   }
   finally {
@@ -19,6 +20,7 @@
   if (benchmarkResultHook != null) {
     benchmarkResultHook.finished();
   }
-  Duration duration=Duration.nanosSince(start);
-  LOGGER.info("Finished benchmark: %s, Elapsed: %s",getBenchmarkName(),duration);
+  Map<String,String> resultsAvg=averageBenchmarkResults.getAverageResultsStrings();
+  String avg=Joiner.on(", ").withKeyValueSeparator(": ").join(resultsAvg);
+  LOGGER.info("Finished benchmark: %s avg results :: %s",getBenchmarkName(),avg);
 }

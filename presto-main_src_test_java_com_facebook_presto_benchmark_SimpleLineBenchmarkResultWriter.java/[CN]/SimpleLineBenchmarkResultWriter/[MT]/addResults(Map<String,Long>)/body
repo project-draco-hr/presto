@@ -1,17 +1,9 @@
 {
-  Preconditions.checkNotNull(results,"results is null");
+  checkNotNull(results,"results is null");
   try {
-    boolean first=true;
-    for (    Map.Entry<String,Long> entry : results.entrySet()) {
-      if (first) {
-        first=false;
-      }
- else {
-        outputStream.write(",".getBytes(Charsets.UTF_8));
-      }
-      outputStream.write(String.format("%s:%d",entry.getKey(),entry.getValue()).getBytes(Charsets.UTF_8));
-    }
-    outputStream.write("\n".getBytes(Charsets.UTF_8));
+    Joiner.on(",").withKeyValueSeparator(":").appendTo(writer,results);
+    writer.write('\n');
+    writer.flush();
   }
  catch (  IOException e) {
     Throwables.propagate(e);
