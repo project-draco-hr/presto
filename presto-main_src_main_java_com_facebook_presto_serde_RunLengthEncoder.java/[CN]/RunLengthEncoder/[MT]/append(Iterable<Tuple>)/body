@@ -2,17 +2,16 @@
   checkNotNull(tuples,"tuples is null");
   checkState(!finished,"already finished");
   for (  Tuple tuple : tuples) {
-    if (lastTuple == null) {
+    if (encoding == null) {
+      encoding=new RunLengthBlockEncoding(tuple.getTupleInfo());
       startPosition=0;
       tupleCount=1;
       lastTuple=tuple;
     }
  else {
       if (!tuple.equals(lastTuple)) {
-        writeRunLengthEncodedBlock(sliceOutput,startPosition,tupleCount,lastTuple);
+        writeBlock();
         lastTuple=tuple;
-        startPosition+=tupleCount;
-        tupleCount=0;
       }
       tupleCount++;
     }

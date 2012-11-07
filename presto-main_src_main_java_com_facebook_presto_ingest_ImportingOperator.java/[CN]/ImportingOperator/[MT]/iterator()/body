@@ -5,9 +5,7 @@
     private final Iterator<Page> iterator=source.iterator();
     @Override protected Page computeNext(){
       if (!iterator.hasNext()) {
-        for (        BlocksFileWriter fileWriter : fileWriters) {
-          fileWriter.close();
-        }
+        close();
         return endOfData();
       }
       Page page=iterator.next();
@@ -17,6 +15,12 @@
         fileWriters.get(i).append(toTupleIterable(block));
       }
       return page;
+    }
+    public void close(){
+      for (      BlocksFileWriter fileWriter : fileWriters) {
+        fileWriter.close();
+      }
+      endOfData();
     }
   }
 ;

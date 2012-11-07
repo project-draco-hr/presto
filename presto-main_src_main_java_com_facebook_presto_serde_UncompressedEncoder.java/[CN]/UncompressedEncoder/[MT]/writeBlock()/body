@@ -1,6 +1,8 @@
 {
   Slice slice=buffer.slice();
-  sliceOutput.appendInt(slice.length()).appendInt(tupleCount).appendLong(blockStartPosition).writeBytes(slice);
+  Range range=new Range(blockStartPosition,blockStartPosition + tupleCount - 1);
+  UncompressedBlock block=new UncompressedBlock(range,encoding.getTupleInfo(),slice);
+  encoding.writeBlock(sliceOutput,block);
   buffer.reset();
   blockStartPosition+=tupleCount;
   tupleCount=0;
