@@ -6,8 +6,8 @@
   ImmutableList.Builder<NamedSlot> slots=ImmutableList.builder();
   for (  ColumnMetadata column : tableMetadata.getColumns()) {
     Slot slot=context.getSlotAllocator().newSlot(Type.fromRaw(column.getType()));
-    QualifiedName name=QualifiedName.of(tableMetadata.getCatalogName(),tableMetadata.getSchemaName(),tableMetadata.getTableName(),column.getName());
-    slots.add(new NamedSlot(Optional.of(name),slot));
+    QualifiedName prefix=QualifiedName.of(tableMetadata.getCatalogName(),tableMetadata.getSchemaName(),tableMetadata.getTableName());
+    slots.add(new NamedSlot(Optional.of(prefix),Optional.of(column.getName()),slot));
   }
   TupleDescriptor descriptor=new TupleDescriptor(slots.build());
   context.registerTable(table,descriptor);

@@ -1,7 +1,10 @@
 {
   return ImmutableList.copyOf(Iterables.filter(slots,new Predicate<NamedSlot>(){
     @Override public boolean apply(    NamedSlot input){
-      return input.getName().isPresent() && input.getName().get().hasSuffix(name);
+      if (!input.getPrefix().isPresent() || !input.getAttribute().isPresent()) {
+        return false;
+      }
+      return QualifiedName.of(input.getPrefix().get(),input.getAttribute().get()).hasSuffix(name);
     }
   }
 ));
