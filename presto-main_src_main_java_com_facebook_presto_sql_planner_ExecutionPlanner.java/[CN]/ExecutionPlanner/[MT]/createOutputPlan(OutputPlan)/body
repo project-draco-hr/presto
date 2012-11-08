@@ -2,9 +2,12 @@
   PlanNode source=Iterables.getOnlyElement(node.getSources());
   Operator sourceOperator=plan(Iterables.getOnlyElement(node.getSources()));
   Map<Slot,Integer> slotToChannelMappings=mapSlotsToChannels(source.getOutputs());
+  List<Slot> resultSlots=Lists.transform(node.getColumnNames(),forMap(node.getAssignments()));
+  if (resultSlots.equals(source.getOutputs())) {
+    return sourceOperator;
+  }
   List<ProjectionFunction> projections=new ArrayList<>();
-  for (  String name : node.getColumnNames()) {
-    Slot slot=node.getAssignments().get(name);
+  for (  Slot slot : resultSlots) {
     ProjectionFunction function=new InterpretedProjectionFunction(slot.getType(),new SlotReference(slot),slotToChannelMappings);
     projections.add(function);
   }
