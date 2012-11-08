@@ -5,10 +5,13 @@
   }
   Map<Expression,Slot> substitutions=new HashMap<>();
   if (!analysis.getAggregations().isEmpty()) {
-    root=createAggregatePlan(root,ImmutableList.copyOf(analysis.getOutputExpressions().values()),analysis.getAggregations(),analysis.getGroupByExpressions(),analysis.getSlotAllocator(),substitutions);
+    root=createAggregatePlan(root,ImmutableList.copyOf(analysis.getOutputExpressions().values()),Lists.transform(analysis.getOrderBy(),expressionGetter()),analysis.getAggregations(),analysis.getGroupByExpressions(),analysis.getSlotAllocator(),substitutions);
+  }
+  if (analysis.getLimit() != null && !analysis.getOrderBy().isEmpty()) {
+    root=createTopNPlan(root,analysis.getLimit(),analysis.getOrderBy(),analysis.getSlotAllocator(),substitutions);
   }
   root=createProjectPlan(root,analysis.getOutputExpressions(),substitutions);
-  if (analysis.getLimit() != null) {
+  if (analysis.getLimit() != null && analysis.getOrderBy().isEmpty()) {
     root=createLimitPlan(root,analysis.getLimit());
   }
   return root;

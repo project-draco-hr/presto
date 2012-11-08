@@ -1,0 +1,11 @@
+{
+  ImmutableList.Builder<AnalyzedOrdering> builder=ImmutableList.builder();
+  for (  SortItem sortItem : orderBy) {
+    if (sortItem.getNullOrdering() != SortItem.NullOrdering.UNDEFINED) {
+      throw new SemanticException(sortItem,"Custom null ordering not yet supported");
+    }
+    AnalyzedExpression expression=new ExpressionAnalyzer(metadata).analyze(sortItem.getSortKey(),descriptor);
+    builder.add(new AnalyzedOrdering(expression,sortItem.getOrdering()));
+  }
+  return builder.build();
+}

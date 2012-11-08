@@ -1,0 +1,33 @@
+{
+  if (!groupBy.isEmpty() && Iterables.any(select.getSelectItems(),instanceOf(AllColumns.class))) {
+    throw new SemanticException(select,"Wildcard selector not supported when GROUP BY is present");
+  }
+  List<Expression> scalarTerms=new ArrayList<>();
+  ImmutableSet.Builder<AnalyzedAggregation> aggregateTermsBuilder=ImmutableSet.builder();
+  for (  Expression term : concat(select.getSelectItems(),transform(orderBy,sortKeyGetter()))) {
+    AggregateAnalyzer analyzer=new AggregateAnalyzer(metadata,descriptor);
+    List<AnalyzedAggregation> aggregations=analyzer.analyze(term);
+    if (aggregations.isEmpty()) {
+      scalarTerms.add(term);
+    }
+ else {
+      aggregateTermsBuilder.addAll(aggregations);
+    }
+  }
+  Set<AnalyzedAggregation> aggregateTerms=aggregateTermsBuilder.build();
+  if (!groupBy.isEmpty()) {
+    if (aggregateTerms.isEmpty()) {
+      throw new SemanticException(groupBy.get(0),"GROUP BY without aggregations currently not supported");
+    }
+    Iterable<Expression> notInGroupBy=Iterables.filter(scalarTerms,not(in(groupBy)));
+    if (!Iterables.isEmpty(notInGroupBy)) {
+      throw new SemanticException(select,"Expressions must appear in GROUP BY clause or be used in an aggregate function: %s",Iterables.transform(notInGroupBy,ExpressionFormatter.expressionFormatterFunction()));
+    }
+  }
+ else {
+    if (!scalarTerms.isEmpty() && !aggregateTerms.isEmpty()) {
+      throw new SemanticException(select,"Mixing of aggregate and non-aggregate columns is illegal if there is no GROUP BY clause: %s",Iterables.transform(scalarTerms,ExpressionFormatter.expressionFormatterFunction()));
+    }
+  }
+  return aggregateTerms;
+}

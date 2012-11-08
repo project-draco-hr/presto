@@ -1,0 +1,11 @@
+{
+  PlanNode source=node.getSource().accept(this,context);
+  ImmutableList.Builder<Slot> slots=ImmutableList.<Slot>builder();
+  ImmutableMap.Builder<Slot,SortItem.Ordering> orderings=ImmutableMap.<Slot,SortItem.Ordering>builder();
+  for (  Slot slot : node.getOrderBy()) {
+    Slot canonical=canonicalize(slot);
+    slots.add(canonical);
+    orderings.put(canonical,node.getOrderings().get(slot));
+  }
+  return new TopNNode(source,node.getCount(),slots.build(),orderings.build());
+}
