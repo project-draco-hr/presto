@@ -2,7 +2,8 @@
   checkNotNull(typeIterable,"typeIterable is null");
   this.types=ImmutableList.copyOf(typeIterable);
   int[] offsets=new int[types.size() + 1];
-  int currentOffset=0;
+  int nullBytes=((types.size() - 1) >> 3) + 1;
+  int currentOffset=nullBytes;
   for (int i=0; i < types.size(); i++) {
     Type type=types.get(i);
     if (type.isFixedSize()) {
@@ -45,7 +46,7 @@
   this.secondVariableLengthField=secondVariableLengthField;
   this.variableLengthFieldCount=variableLengthFieldCount;
   this.offsets=ImmutableList.copyOf(Ints.asList(offsets));
-  int variablePartOffset=0;
+  int variablePartOffset=nullBytes;
   boolean isFirst=true;
   for (  TupleInfo.Type type : getTypes()) {
     if (!type.isFixedSize()) {
