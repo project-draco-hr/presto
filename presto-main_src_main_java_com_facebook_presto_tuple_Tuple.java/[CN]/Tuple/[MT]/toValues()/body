@@ -1,19 +1,24 @@
 {
-  ImmutableList.Builder<Object> values=ImmutableList.builder();
+  ArrayList<Object> values=new ArrayList<>();
   int index=0;
   for (  Type type : tupleInfo.getTypes()) {
+    if (isNull(index)) {
+      values.add(null);
+    }
+ else {
 switch (type) {
 case FIXED_INT_64:
-      values.add(getLong(index));
-    break;
+        values.add(getLong(index));
+      break;
 case DOUBLE:
-  values.add(getDouble(index));
-break;
+    values.add(getDouble(index));
+  break;
 case VARIABLE_BINARY:
 values.add(getSlice(index).toString(UTF_8));
 break;
 }
+}
 index++;
 }
-return values.build();
+return Collections.unmodifiableList(values);
 }
