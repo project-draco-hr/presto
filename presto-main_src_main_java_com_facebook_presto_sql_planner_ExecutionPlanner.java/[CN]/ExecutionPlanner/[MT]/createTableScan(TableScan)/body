@@ -1,0 +1,18 @@
+{
+  TableMetadata tableMetadata=metadata.getTable(QualifiedName.of(node.getCatalogName(),node.getSchemaName(),node.getTableName()));
+  BlockIterable[] blocks=new BlockIterable[node.getAttributes().size()];
+  Map<Slot,Integer> slotToChannelMappings=mapSlotsToChannels(node.getOutputs());
+  for (  Map.Entry<String,Slot> entry : node.getAttributes().entrySet()) {
+    int index=0;
+    for (    ColumnMetadata columnMetadata : tableMetadata.getColumns()) {
+      String attribute=entry.getKey();
+      if (columnMetadata.getName().equals(attribute)) {
+        break;
+      }
+      ++index;
+    }
+    int channel=slotToChannelMappings.get(entry.getValue());
+    blocks[channel]=storage.getBlocks(node.getSchemaName(),node.getTableName(),index);
+  }
+  return new AlignmentOperator(blocks);
+}
