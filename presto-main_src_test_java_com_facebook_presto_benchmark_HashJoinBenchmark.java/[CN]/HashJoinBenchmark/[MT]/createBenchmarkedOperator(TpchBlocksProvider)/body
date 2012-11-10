@@ -1,0 +1,9 @@
+{
+  BlockIterable orderOrderKey=getBlockIterable(blocksProvider,"orders","orderkey",BlocksFileEncoding.RAW);
+  BlockIterable totalPrice=getBlockIterable(blocksProvider,"orders","totalprice",BlocksFileEncoding.RAW);
+  AlignmentOperator ordersTableScan=new AlignmentOperator(orderOrderKey,totalPrice);
+  BlockIterable lineItemOrderKey=getBlockIterable(blocksProvider,"lineitem","orderkey",BlocksFileEncoding.RAW);
+  BlockIterable lineNumber=getBlockIterable(blocksProvider,"lineitem","quantity",BlocksFileEncoding.RAW);
+  AlignmentOperator lineItemTableScan=new AlignmentOperator(lineItemOrderKey,lineNumber);
+  return new HashJoinOperator(ordersTableScan,0,lineItemTableScan,0);
+}

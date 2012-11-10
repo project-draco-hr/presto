@@ -1,0 +1,20 @@
+{
+  Preconditions.checkNotNull(buildSource,"buildSource is null");
+  Preconditions.checkArgument(buildJoinChannel >= 0,"buildJoinChannel is negative");
+  Preconditions.checkNotNull(probeSource,"probeSource is null");
+  Preconditions.checkArgument(probeJoinChannel >= 0,"probeJoinChannel is negative");
+  this.buildSource=buildSource;
+  this.buildJoinChannel=buildJoinChannel;
+  this.probeSource=probeSource;
+  this.probeJoinChannel=probeJoinChannel;
+  ImmutableList.Builder<TupleInfo> tupleInfos=ImmutableList.builder();
+  tupleInfos.addAll(probeSource.getTupleInfos());
+  int buildChannel=0;
+  for (  TupleInfo tupleInfo : buildSource.getTupleInfos()) {
+    if (buildChannel != buildJoinChannel) {
+      tupleInfos.add(tupleInfo);
+    }
+    buildChannel++;
+  }
+  this.tupleInfos=tupleInfos.build();
+}
