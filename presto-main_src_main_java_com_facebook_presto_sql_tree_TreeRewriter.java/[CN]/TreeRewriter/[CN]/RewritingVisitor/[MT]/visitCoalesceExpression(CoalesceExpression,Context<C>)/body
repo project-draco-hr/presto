@@ -1,0 +1,16 @@
+{
+  if (!context.isDefaultRewrite()) {
+    Node result=nodeRewriter.rewriteCoalesceExpression(node,context.get(),TreeRewriter.this);
+    if (result != null) {
+      return result;
+    }
+  }
+  ImmutableList.Builder<Expression> builder=ImmutableList.builder();
+  for (  Expression expression : node.getOperands()) {
+    builder.add(rewrite(expression,context.get()));
+  }
+  if (!sameElements(node.getOperands(),builder.build())) {
+    return new CoalesceExpression(builder.build());
+  }
+  return node;
+}
