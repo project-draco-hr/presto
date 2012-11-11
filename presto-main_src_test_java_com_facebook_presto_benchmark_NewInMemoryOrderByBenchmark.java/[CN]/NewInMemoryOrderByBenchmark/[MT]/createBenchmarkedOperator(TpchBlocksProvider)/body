@@ -1,0 +1,8 @@
+{
+  BlockIterable totalPrice=getBlockIterable(blocksProvider,"orders","totalprice",BlocksFileEncoding.RAW);
+  BlockIterable clerk=getBlockIterable(blocksProvider,"orders","clerk",BlocksFileEncoding.RAW);
+  AlignmentOperator alignmentOperator=new AlignmentOperator(concat(nCopies(100,totalPrice)),concat(nCopies(100,clerk)));
+  LimitOperator limitOperator=new LimitOperator(alignmentOperator,rows);
+  NewInMemoryOrderByOperator orderByOperator=new NewInMemoryOrderByOperator(limitOperator,0,1,rows);
+  return orderByOperator;
+}

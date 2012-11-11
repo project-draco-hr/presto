@@ -1,0 +1,21 @@
+{
+  if (!sortedOffsets.hasNext()) {
+    return endOfData();
+  }
+  DynamicSliceOutput output=new DynamicSliceOutput((int)(MAX_BLOCK_SIZE * BlockBuilder.DEFAULT_STORAGE_MULTIPLIER));
+  int tupleCount=0;
+  while (output.size() < MAX_BLOCK_SIZE && sortedOffsets.hasNext()) {
+    long sliceAddress=sortedOffsets.nextLong();
+    Slice slice=slices[((int)(sliceAddress >> 32))];
+    int offset=(int)sliceAddress;
+    int length=tupleInfo.size(slice,offset);
+    output.writeBytes(slice,offset,length);
+    tupleCount++;
+  }
+  if (tupleCount == 0) {
+    return endOfData();
+  }
+  UncompressedBlock block=new UncompressedBlock(tupleCount,tupleInfo,output.slice());
+  Page page=new Page(block);
+  return page;
+}

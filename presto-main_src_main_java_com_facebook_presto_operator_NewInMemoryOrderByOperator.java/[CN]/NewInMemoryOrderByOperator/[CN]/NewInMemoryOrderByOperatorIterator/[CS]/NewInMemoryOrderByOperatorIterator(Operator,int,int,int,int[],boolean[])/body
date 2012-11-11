@@ -1,0 +1,30 @@
+{
+  this.tupleInfo=source.getTupleInfos().get(valueChannel);
+  if (sortFields == null) {
+    sortFields=new int[tupleInfo.getFieldCount()];
+    for (int i=0; i < sortFields.length; i++) {
+      sortFields[i]=i;
+    }
+  }
+  if (sortOrder == null) {
+    sortOrder=new boolean[tupleInfo.getFieldCount()];
+    BooleanArrays.fill(sortOrder,true);
+  }
+  ObjectArrayList<Slice> orderByBlocks=ObjectArrayList.wrap(new Slice[1024]);
+  LongArrayList orderByOffsets=new LongArrayList(expectedPositions);
+  ObjectArrayList<Slice> valueBlocks=ObjectArrayList.wrap(new Slice[1024]);
+  LongArrayList valueOffsets=new LongArrayList(expectedPositions);
+  int blockIndex=0;
+  for (  Page page : source) {
+    UncompressedBlock orderByBlock=(UncompressedBlock)page.getBlock(orderByChannel);
+    indexBlock(orderByBlocks,blockIndex,orderByBlock,orderByOffsets);
+    UncompressedBlock valueBlock=(UncompressedBlock)page.getBlock(valueChannel);
+    indexBlock(valueBlocks,blockIndex,valueBlock,valueOffsets);
+    blockIndex++;
+  }
+  MultiSliceFieldOrderedTupleComparator comparator=new MultiSliceFieldOrderedTupleComparator(sortFields,sortOrder,source.getTupleInfos().get(orderByChannel),orderByOffsets.elements(),orderByBlocks.elements());
+  ParallelLongArraySwapper swapper=new ParallelLongArraySwapper(orderByOffsets.elements(),valueOffsets.elements());
+  Arrays.quickSort(0,orderByOffsets.size(),comparator,swapper);
+  this.sortedOffsets=valueOffsets.iterator();
+  this.slices=valueBlocks.elements();
+}
