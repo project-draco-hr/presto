@@ -1,19 +1,25 @@
 {
   int field=0;
   for (  TupleInfo.Type type : tuple.getTupleInfo().getTypes()) {
+    if (tuple.isNull(field)) {
+      appendNull();
+    }
+ else {
 switch (type) {
 case FIXED_INT_64:
-      append(tuple.getLong(field));
-    break;
+        append(tuple.getLong(field));
+      break;
 case DOUBLE:
-  append(tuple.getDouble(field));
-break;
+    append(tuple.getDouble(field));
+  break;
 case VARIABLE_BINARY:
 append(tuple.getSlice(field));
 break;
 default :
 throw new IllegalStateException("Type not yet supported: " + type);
 }
+}
 field++;
 }
+return this;
 }
