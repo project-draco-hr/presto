@@ -3,7 +3,7 @@
     BlockIterable groupBySource=getColumn("hivedba_query_stats","pool_name");
     BlockIterable aggregateSource=getColumn("hivedba_query_stats","cpu_msec");
     AlignmentOperator alignmentOperator=new AlignmentOperator(groupBySource,aggregateSource);
-    HashAggregationOperator sumOperator=new HashAggregationOperator(alignmentOperator,0,ImmutableList.of(LongSumAggregation.provider(0,0)),ImmutableList.of(concat(singleColumn(VARIABLE_BINARY,0,0),singleColumn(FIXED_INT_64,1,0))));
+    HashAggregationOperator sumOperator=new HashAggregationOperator(alignmentOperator,0,ImmutableList.of(partialAggregation(longSumAggregation(0,0))),ImmutableList.of(concat(singleColumn(VARIABLE_BINARY,0,0),singleColumn(FIXED_INT_64,1,0))));
     for (    Page page : sumOperator) {
       queryState.addPage(page);
     }

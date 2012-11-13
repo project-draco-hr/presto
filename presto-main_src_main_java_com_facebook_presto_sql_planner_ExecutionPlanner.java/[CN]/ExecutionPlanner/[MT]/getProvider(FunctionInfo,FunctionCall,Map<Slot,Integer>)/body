@@ -1,24 +1,3 @@
 {
-  if (info.getName().equals(QualifiedName.of("count"))) {
-    return CountAggregation.PROVIDER;
-  }
-  if (info.getName().equals(QualifiedName.of("sum"))) {
-    Slot input=((SlotReference)call.getArguments().get(0)).getSlot();
-    if (info.getArgumentTypes().get(0) == TupleInfo.Type.FIXED_INT_64) {
-      return LongSumAggregation.provider(slotToChannelMappings.get(input),0);
-    }
- else     if (info.getArgumentTypes().get(0) == TupleInfo.Type.DOUBLE) {
-      return DoubleSumAggregation.provider(slotToChannelMappings.get(input),0);
-    }
-  }
- else   if (info.getName().equals(QualifiedName.of("avg"))) {
-    Slot input=((SlotReference)call.getArguments().get(0)).getSlot();
-    if (info.getArgumentTypes().get(0) == TupleInfo.Type.FIXED_INT_64) {
-      return LongAverageAggregation.provider(slotToChannelMappings.get(input),0);
-    }
- else     if (info.getArgumentTypes().get(0) == TupleInfo.Type.DOUBLE) {
-      return DoubleAverageAggregation.provider(slotToChannelMappings.get(input),0);
-    }
-  }
-  throw new UnsupportedOperationException(format("not yet implemented: %s(%s)",info.getName(),Joiner.on(", ").join(info.getArgumentTypes())));
+  return getProvider(info,call,slotToChannelMappings,false,false);
 }

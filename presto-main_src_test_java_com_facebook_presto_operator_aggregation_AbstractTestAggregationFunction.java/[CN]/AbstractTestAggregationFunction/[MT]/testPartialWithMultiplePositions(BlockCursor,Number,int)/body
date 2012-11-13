@@ -1,0 +1,19 @@
+{
+  BlockBuilder blockBuilder=new BlockBuilder(getFullFunction().getIntermediateTupleInfo());
+  for (int i=0; i < positions; i++) {
+    AggregationFunction function=partialAggregation(getFullFunction());
+    assertTrue(cursor.advanceNextPosition());
+    function.add(cursor);
+    Tuple tuple=function.evaluate();
+    blockBuilder.append(tuple);
+  }
+  AggregationFunction function=finalAggregation(getFullFunction());
+  BlockCursor partialsCursor=blockBuilder.build().cursor();
+  while (partialsCursor.advanceNextPosition()) {
+    function.add(partialsCursor);
+  }
+  assertEquals(getActualValue(function),expectedValue);
+  if (positions > 0) {
+    assertEquals(cursor.getPosition(),positions - 1);
+  }
+}

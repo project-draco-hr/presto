@@ -1,0 +1,32 @@
+{
+  List<Block> blocks=new ArrayList<>();
+  for (int i=0; i < positions; i++) {
+    AggregationFunction function=partialAggregation(getFullFunction());
+    assertTrue(cursor.advanceNextPosition());
+    function.add(cursor);
+    Tuple tuple=function.evaluate();
+    blocks.add(new BlockBuilder(getFullFunction().getIntermediateTupleInfo()).append(tuple).build());
+  }
+  Block combinedBlock=null;
+  for (  Block block : blocks) {
+    AggregationFunction function=combinerAggregation(getFullFunction());
+    if (combinedBlock != null) {
+      BlockCursor intermediateCursor=combinedBlock.cursor();
+      assertTrue(intermediateCursor.advanceNextPosition());
+      function.add(intermediateCursor);
+    }
+    BlockCursor intermediateCursor=block.cursor();
+    assertTrue(intermediateCursor.advanceNextPosition());
+    function.add(intermediateCursor);
+    Tuple tuple=function.evaluate();
+    combinedBlock=new BlockBuilder(getFullFunction().getIntermediateTupleInfo()).append(tuple).build();
+  }
+  AggregationFunction function=finalAggregation(getFullFunction());
+  BlockCursor combinedCursor=combinedBlock.cursor();
+  assertTrue(combinedCursor.advanceNextPosition());
+  function.add(combinedCursor);
+  assertEquals(getActualValue(function),expectedValue);
+  if (positions > 0) {
+    assertEquals(cursor.getPosition(),positions - 1);
+  }
+}
