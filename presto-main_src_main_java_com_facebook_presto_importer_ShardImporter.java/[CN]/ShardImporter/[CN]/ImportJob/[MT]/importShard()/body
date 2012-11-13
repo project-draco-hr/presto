@@ -1,0 +1,9 @@
+{
+  PartitionChunk chunk=importClient.deserializePartitionChunk(shardImport.getPartitionChunk());
+  List<String> fieldNames=getFieldNames(shardImport.getFields());
+  List<Long> columnIds=getColumnIds(shardImport.getFields());
+  List<RecordProjection> projections=getRecordProjections(shardImport.getFields());
+  ImportPartition importPartition=new ImportPartition(importClient,chunk,fieldNames);
+  RecordProjectOperator source=new RecordProjectOperator(importPartition,projections);
+  storageManager.importShard(shardId,columnIds,source);
+}

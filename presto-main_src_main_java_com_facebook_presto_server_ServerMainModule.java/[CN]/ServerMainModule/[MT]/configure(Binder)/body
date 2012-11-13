@@ -2,8 +2,17 @@
   binder.bind(QueryResource.class).in(Scopes.SINGLETON);
   binder.bind(QueryManager.class).to(StaticQueryManager.class).in(Scopes.SINGLETON);
   binder.bind(PagesMapper.class).in(Scopes.SINGLETON);
-  binder.bind(HiveClient.class).toInstance(new HiveClient("localhost",9083));
   binder.bind(StorageManager.class).to(DatabaseStorageManager.class).in(Scopes.SINGLETON);
-  binder.bind(HiveImportManager.class).in(Scopes.SINGLETON);
   binder.bind(Metadata.class).to(DatabaseMetadata.class).in(Scopes.SINGLETON);
+  binder.bind(LegacyStorageManager.class).to(LegacyStorageManagerFacade.class).in(Scopes.SINGLETON);
+  discoveryBinder(binder).bindSelector("presto");
+  binder.bind(NodeManager.class).in(Scopes.SINGLETON);
+  binder.bind(NodeWorkerQueue.class).in(Scopes.SINGLETON);
+  binder.bind(ShardManager.class).to(DatabaseShardManager.class).in(Scopes.SINGLETON);
+  binder.bind(ImportManager.class).in(Scopes.SINGLETON);
+  httpClientBinder(binder).bindHttpClient("importer",ForImportManager.class).withFilter(NodeIdUserAgentRequestFilter.class);
+  binder.bind(ShardImporter.class).in(Scopes.SINGLETON);
+  binder.bind(ShardResource.class).in(Scopes.SINGLETON);
+  jsonCodecBinder(binder).bindJsonCodec(ShardImport.class);
+  discoveryBinder(binder).bindHttpAnnouncement("presto");
 }

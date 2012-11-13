@@ -1,0 +1,19 @@
+{
+  URI shardUri=URI.create(worker.getHttpUri() + "/v1/shard/" + shardId);
+  Request request=preparePut().setUri(shardUri).setHeader("Content-Type",MediaType.APPLICATION_JSON).setBodyGenerator(jsonBodyGenerator(shardImportCodec,shardImport)).build();
+  StatusResponse response;
+  try {
+    response=httpClient.execute(request,createStatusResponseHandler());
+  }
+ catch (  RuntimeException e) {
+    log.warn(e,"request failed: %s",shardId);
+    return false;
+  }
+  if (response.getStatusCode() != Status.ACCEPTED.getStatusCode()) {
+    log.warn("unexpected response status: %s: %s",shardId,response.getStatusCode());
+    return false;
+  }
+  log.debug("initiated shard creation: %s",shardId);
+  shardExecutor.schedule(new ShardJob(shardId,worker),1,TimeUnit.SECONDS);
+  return true;
+}

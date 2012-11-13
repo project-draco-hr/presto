@@ -1,0 +1,22 @@
+{
+  URI shardUri=URI.create(worker.getHttpUri() + "/v1/shard/" + shardId);
+  Request request=prepareGet().setUri(shardUri).build();
+  Status status;
+  try {
+    StatusResponse response=httpClient.execute(request,createStatusResponseHandler());
+    status=Status.fromStatusCode(response.getStatusCode());
+  }
+ catch (  RuntimeException e) {
+    log.warn(e,"request failed: %s",shardId);
+    return false;
+  }
+  log.debug("shard status: %s: %s",shardId,status);
+  if (status == Status.ACCEPTED) {
+    return false;
+  }
+  if (status == Status.OK) {
+    return true;
+  }
+  log.warn("unexpected response status: %s: %s",shardId,status.getStatusCode());
+  return false;
+}

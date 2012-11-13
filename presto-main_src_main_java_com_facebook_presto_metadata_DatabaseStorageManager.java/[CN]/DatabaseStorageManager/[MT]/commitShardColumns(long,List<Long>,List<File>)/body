@@ -1,0 +1,14 @@
+{
+  checkArgument(columnIds.size() == files.size(),"columnId list does not match file list");
+  dbi.inTransaction(new VoidTransactionCallback(){
+    @Override protected void execute(    Handle handle,    TransactionStatus status) throws Exception {
+      StorageManagerDao dao=handle.attach(StorageManagerDao.class);
+      for (int i=0; i < columnIds.size(); i++) {
+        long columnId=columnIds.get(i);
+        String filename=files.get(i).getName();
+        dao.insertColumn(shardId,columnId,filename);
+      }
+    }
+  }
+);
+}

@@ -1,6 +1,9 @@
 {
+  DBI shardManagerDbi=new DBI("jdbc:h2:file:var/presto-data/db/ShardManager;DB_CLOSE_DELAY=-1");
   DBI storageManagerDbi=new DBI("jdbc:h2:file:var/presto-data/db/StorageManager;DB_CLOSE_DELAY=-1");
   DBI metadataDbi=new DBI("jdbc:h2:file:var/presto-data/db/Metadata;DB_CLOSE_DELAY=-1");
-  storageManager=new DatabaseStorageManager(storageManagerDbi);
+  DatabaseStorageManager newStorageManager=new DatabaseStorageManager(storageManagerDbi);
+  ShardManager shardManager=new DatabaseShardManager(shardManagerDbi);
   metadata=new DatabaseMetadata(metadataDbi);
+  storageManager=new LegacyStorageManagerFacade(newStorageManager,metadata,shardManager);
 }

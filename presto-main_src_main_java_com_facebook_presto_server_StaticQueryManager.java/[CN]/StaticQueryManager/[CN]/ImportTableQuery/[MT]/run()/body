@@ -1,0 +1,25 @@
+{
+  try {
+    String catalogName="default";
+    String schemaName="default";
+    List<SchemaField> schema=importClient.getTableSchema(databaseName,tableName);
+    List<ColumnMetadata> columns=ImportSchemaUtil.createColumnMetadata(schema);
+    TableMetadata table=new TableMetadata(catalogName,schemaName,tableName,columns);
+    metadata.createTable(table);
+    table=metadata.getTable(catalogName,schemaName,tableName);
+    long tableId=((NativeTableHandle)table.getTableHandle().get()).getTableId();
+    List<ImportField> fields=getImportFields(table.getColumns());
+    importManager.importTable(tableId,sourceName,databaseName,tableName,fields);
+    queryState.addPage(new Page(new BlockBuilder(TupleInfo.SINGLE_LONG).append(0).build()));
+    queryState.sourceFinished();
+  }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    queryState.queryFailed(e);
+    throw Throwables.propagate(e);
+  }
+catch (  Exception e) {
+    queryState.queryFailed(e);
+    throw Throwables.propagate(e);
+  }
+}
