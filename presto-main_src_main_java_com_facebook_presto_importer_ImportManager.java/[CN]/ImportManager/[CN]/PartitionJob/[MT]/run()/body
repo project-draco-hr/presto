@@ -1,9 +1,9 @@
 {
-  List<byte[]> chunks=supplier.get();
+  List<SerializedPartitionChunk> chunks=supplier.get();
   List<Long> shardIds=shardManager.createImportPartition(tableId,partitionName,chunks);
   log.debug("retrieved partition chunks: %s: %s: %s",partitionName,chunks.size(),shardIds);
   for (int i=0; i < chunks.size(); i++) {
-    byte[] chunk=chunks.get(i);
+    SerializedPartitionChunk chunk=chunks.get(i);
     long shardId=shardIds.get(i);
     chunkExecutor.execute(new ChunkJob(sourceName,shardId,chunk,fields));
   }

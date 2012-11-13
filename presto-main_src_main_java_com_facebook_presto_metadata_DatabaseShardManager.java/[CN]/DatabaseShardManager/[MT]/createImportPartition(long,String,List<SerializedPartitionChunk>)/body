@@ -4,9 +4,9 @@
       ShardManagerDao dao=handle.attach(ShardManagerDao.class);
       ImmutableList.Builder<Long> shardIds=ImmutableList.builder();
       long importPartitionId=dao.insertImportPartition(tableId,partitionName);
-      for (      byte[] chunk : partitionChunks) {
+      for (      SerializedPartitionChunk chunk : partitionChunks) {
         long shardId=dao.insertShard(tableId,false);
-        dao.insertImportPartitionChunk(importPartitionId,shardId,chunk);
+        dao.insertImportPartitionChunk(importPartitionId,shardId,chunk.getBytes());
         dao.insertImportPartitionShard(importPartitionId,shardId);
         shardIds.add(shardId);
       }
