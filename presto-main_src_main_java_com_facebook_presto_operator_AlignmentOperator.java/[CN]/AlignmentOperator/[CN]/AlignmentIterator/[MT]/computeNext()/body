@@ -1,26 +1,28 @@
 {
-  if (startPosition > blocks[0].getRawRange().getEnd() && !iterators[0].hasNext()) {
+  if (rawPosition[0] >= blocks[0].getRawPositionCount() && !iterators[0].hasNext()) {
     for (    Iterator<? extends Block> iterator : iterators) {
       checkState(!iterator.hasNext());
     }
     return endOfData();
   }
-  long endPosition=Long.MAX_VALUE;
+  int length=Integer.MAX_VALUE;
   for (int i=0; i < iterators.length; i++) {
     Iterator<? extends Block> iterator=iterators[i];
     Block block=blocks[i];
-    long blockEndPosition=block.getRawRange().getEnd();
-    if (blockEndPosition < startPosition) {
+    int rawPositionCount=block.getRawPositionCount();
+    if (rawPosition[i] >= rawPositionCount) {
       block=iterator.next();
       blocks[i]=block;
-      blockEndPosition=block.getRawRange().getEnd();
+      rawPosition[i]=0;
+      rawPositionCount=block.getRawPositionCount();
     }
-    endPosition=Math.min(endPosition,blockEndPosition);
+    length=Math.min(length,rawPositionCount - rawPosition[i]);
   }
-  Range range=new Range(startPosition,endPosition);
-  startPosition=endPosition + 1;
   for (int i=0; i < blocks.length; i++) {
-    blocks[i]=blocks[i].createViewPort(range);
+    blocks[i]=blocks[i].createViewPort(rawPosition[i],length);
+  }
+  for (int i=0; i < rawPosition.length; i++) {
+    rawPosition[i]+=length;
   }
   return new Page(blocks);
 }

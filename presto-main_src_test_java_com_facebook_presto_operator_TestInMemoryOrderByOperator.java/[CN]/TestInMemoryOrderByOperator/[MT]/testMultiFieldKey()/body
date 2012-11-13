@@ -1,7 +1,7 @@
 {
   TupleInfo tupleInfo=new TupleInfo(VARIABLE_BINARY,FIXED_INT_64);
-  Operator source=createOperator(new Page(new BlockBuilder(0,tupleInfo).append("a").append(1).append("b").append(2).build()),new Page(new BlockBuilder(2,tupleInfo).append("b").append(3).append("a").append(4).build()));
+  Operator source=createOperator(new Page(new BlockBuilder(tupleInfo).append("a").append(1).append("b").append(2).build()),new Page(new BlockBuilder(tupleInfo).append("b").append(3).append("a").append(4).build()));
   InMemoryOrderByOperator actual=new InMemoryOrderByOperator(source,0,ImmutableList.of(ProjectionFunctions.concat(singleColumn(VARIABLE_BINARY,0,0),singleColumn(FIXED_INT_64,0,1))));
-  Operator expected=createOperator(new Page(new BlockBuilder(0,tupleInfo).append("a").append(1).append("a").append(4).append("b").append(2).append("b").append(3).build()));
+  Operator expected=createOperator(new Page(new BlockBuilder(tupleInfo).append("a").append(1).append("a").append(4).append("b").append(2).append("b").append(3).build()));
   assertOperatorEquals(actual,expected);
 }

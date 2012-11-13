@@ -2,21 +2,21 @@
   if (tupleInfo.getFieldCount() == 1) {
     Type type=tupleInfo.getTypes().get(0);
     if (type == Type.FIXED_INT_64 || type == Type.DOUBLE) {
-      return (int)((SIZE_OF_LONG + SIZE_OF_BYTE) * (start - rawRange.getStart()));
+      return (int)((SIZE_OF_LONG + SIZE_OF_BYTE) * newPosition);
     }
     if (type == Type.VARIABLE_BINARY) {
       long position;
       int offset;
-      if (start >= range.getStart()) {
-        position=range.getStart();
+      if (newPosition >= rawPositionOffset) {
+        position=rawPositionOffset;
         offset=rawOffset;
       }
  else {
-        position=rawRange.getStart();
+        position=0;
         offset=0;
       }
       int size=slice.getInt(offset + SIZE_OF_BYTE);
-      while (position < start) {
+      while (position < newPosition) {
         position++;
         offset+=size;
         size=slice.getInt(offset + SIZE_OF_BYTE);
@@ -26,16 +26,16 @@
   }
   long position;
   int offset;
-  if (start >= range.getStart()) {
-    position=range.getStart();
+  if (newPosition >= rawPositionOffset) {
+    position=rawPositionOffset;
     offset=rawOffset;
   }
  else {
-    position=rawRange.getStart();
+    position=0;
     offset=0;
   }
   int size=tupleInfo.size(slice,offset);
-  while (position < start) {
+  while (position < newPosition) {
     position++;
     offset+=size;
     size=tupleInfo.size(slice,offset);

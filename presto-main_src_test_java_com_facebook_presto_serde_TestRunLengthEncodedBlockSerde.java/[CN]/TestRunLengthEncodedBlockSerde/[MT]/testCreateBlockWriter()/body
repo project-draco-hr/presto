@@ -3,23 +3,20 @@
   DynamicSliceOutput sliceOutput=new DynamicSliceOutput(1024);
   BlockEncoding blockEncoding=new RunLengthEncoder(sliceOutput).append(tuples).finish();
   SliceInput sliceInput=sliceOutput.slice().getInput();
-  Block block=blockEncoding.readBlock(sliceInput,0);
+  Block block=blockEncoding.readBlock(sliceInput);
   assertInstanceOf(block,RunLengthEncodedBlock.class);
   RunLengthEncodedBlock rleBlock=(RunLengthEncodedBlock)block;
   assertEquals(rleBlock.getSingleValue(),createTuple("alice"));
   assertEquals(rleBlock.getPositionCount(),2);
-  assertEquals(rleBlock.getRange(),Range.create(0,1));
-  block=blockEncoding.readBlock(sliceInput,0);
+  block=blockEncoding.readBlock(sliceInput);
   assertInstanceOf(block,RunLengthEncodedBlock.class);
   rleBlock=(RunLengthEncodedBlock)block;
   assertEquals(rleBlock.getSingleValue(),createTuple("bob"));
   assertEquals(rleBlock.getPositionCount(),4);
-  assertEquals(rleBlock.getRange(),Range.create(2,5));
-  block=blockEncoding.readBlock(sliceInput,0);
+  block=blockEncoding.readBlock(sliceInput);
   assertInstanceOf(block,RunLengthEncodedBlock.class);
   rleBlock=(RunLengthEncodedBlock)block;
   assertEquals(rleBlock.getSingleValue(),createTuple("charlie"));
   assertEquals(rleBlock.getPositionCount(),6);
-  assertEquals(rleBlock.getRange(),Range.create(6,11));
   assertFalse(sliceInput.isReadable());
 }

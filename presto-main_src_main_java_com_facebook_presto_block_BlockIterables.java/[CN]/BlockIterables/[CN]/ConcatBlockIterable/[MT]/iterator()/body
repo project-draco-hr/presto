@@ -2,7 +2,6 @@
   return new AbstractIterator<Block>(){
     private final Iterator<? extends BlockIterable> blockIterables=ConcatBlockIterable.this.blockIterables.iterator();
     private Iterator<Block> blocks;
-    private long position;
     @Override protected Block computeNext(){
       while ((blocks == null || !blocks.hasNext()) && blockIterables.hasNext()) {
         blocks=blockIterables.next().iterator();
@@ -11,8 +10,6 @@
         return endOfData();
       }
       UncompressedBlock block=(UncompressedBlock)blocks.next();
-      block=new UncompressedBlock(new Range(position,position + block.getPositionCount() - 1),block.getTupleInfo(),block.getSlice());
-      position+=block.getPositionCount();
       return block;
     }
   }
