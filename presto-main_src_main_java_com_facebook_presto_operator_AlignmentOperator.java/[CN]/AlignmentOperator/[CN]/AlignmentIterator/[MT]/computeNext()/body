@@ -1,5 +1,5 @@
 {
-  if (rawPosition[0] >= blocks[0].getRawPositionCount() && !iterators[0].hasNext()) {
+  if (cursors[0].getRemainingPositions() <= 0 && !iterators[0].hasNext()) {
     for (    Iterator<? extends Block> iterator : iterators) {
       checkState(!iterator.hasNext());
     }
@@ -8,21 +8,16 @@
   int length=Integer.MAX_VALUE;
   for (int i=0; i < iterators.length; i++) {
     Iterator<? extends Block> iterator=iterators[i];
-    Block block=blocks[i];
-    int rawPositionCount=block.getRawPositionCount();
-    if (rawPosition[i] >= rawPositionCount) {
-      block=iterator.next();
-      blocks[i]=block;
-      rawPosition[i]=0;
-      rawPositionCount=block.getRawPositionCount();
+    BlockCursor cursor=cursors[i];
+    if (cursor.getRemainingPositions() <= 0) {
+      cursor=iterator.next().cursor();
+      cursors[i]=cursor;
     }
-    length=Math.min(length,rawPositionCount - rawPosition[i]);
+    length=Math.min(length,cursor.getRemainingPositions());
   }
-  for (int i=0; i < blocks.length; i++) {
-    blocks[i]=blocks[i].createViewPort(rawPosition[i],length);
-  }
-  for (int i=0; i < rawPosition.length; i++) {
-    rawPosition[i]+=length;
+  Block[] blocks=new Block[iterators.length];
+  for (int i=0; i < cursors.length; i++) {
+    blocks[i]=cursors[i].createBlockViewPort(length);
   }
   return new Page(blocks);
 }
