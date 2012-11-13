@@ -3,32 +3,26 @@ switch (node.getType()) {
 case AND:
 {
       Boolean left=(Boolean)process(node.getLeft(),context);
-      if (left == FALSE) {
-        return FALSE;
+      if (left == null || !left) {
+        return left;
       }
       Boolean right=(Boolean)process(node.getRight(),context);
-      if (right == FALSE) {
-        return FALSE;
-      }
-      if (left == null || right == null) {
-        return null;
-      }
-      return TRUE;
+      return right;
     }
 case OR:
 {
     Boolean left=(Boolean)process(node.getLeft(),context);
-    if (left == TRUE) {
+    if (left != null && left) {
       return TRUE;
     }
     Boolean right=(Boolean)process(node.getRight(),context);
-    if (right == TRUE) {
-      return TRUE;
-    }
-    if (left == null || right == null) {
+    if (right == null) {
       return null;
     }
-    return false;
+    if (right) {
+      return TRUE;
+    }
+    return (left == null) ? null : false;
   }
 }
 throw new UnsupportedOperationException("not yet implemented");

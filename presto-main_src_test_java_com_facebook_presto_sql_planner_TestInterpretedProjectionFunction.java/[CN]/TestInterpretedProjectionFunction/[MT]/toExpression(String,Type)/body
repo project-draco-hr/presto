@@ -1,0 +1,15 @@
+{
+  try {
+    StatementLexer lexer=new StatementLexer(new CaseInsensitiveStream(new ANTLRStringStream(expression)));
+    StatementParser parser=new StatementParser(new CommonTokenStream(lexer));
+    StatementBuilder builder=new StatementBuilder(new BufferedTreeNodeStream(parser.expr().getTree()));
+    Expression raw=builder.expr().value;
+    Optional<QualifiedName> prefix=Optional.of(QualifiedName.of("T"));
+    TupleDescriptor descriptor=new TupleDescriptor(ImmutableList.of(new NamedSlot(prefix,Optional.of("slot"),new Slot(0,slotType))));
+    Expression rewritten=TreeRewriter.rewriteWith(new NameToSlotRewriter(descriptor),raw);
+    return rewritten;
+  }
+ catch (  RecognitionException e) {
+    throw Throwables.propagate(e);
+  }
+}
