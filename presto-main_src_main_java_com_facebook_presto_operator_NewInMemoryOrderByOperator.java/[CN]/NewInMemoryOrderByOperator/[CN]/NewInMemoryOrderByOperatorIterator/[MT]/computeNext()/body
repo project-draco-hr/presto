@@ -1,21 +1,17 @@
 {
-  if (!sortedOffsets.hasNext()) {
+  if (currentPosition >= pageIndex.getPositionCount()) {
     return endOfData();
   }
-  DynamicSliceOutput output=new DynamicSliceOutput((int)(MAX_BLOCK_SIZE * BlockBuilder.DEFAULT_STORAGE_MULTIPLIER));
-  int tupleCount=0;
-  while (output.size() < MAX_BLOCK_SIZE && sortedOffsets.hasNext()) {
-    long sliceAddress=sortedOffsets.nextLong();
-    Slice slice=slices[((int)(sliceAddress >> 32))];
-    int offset=(int)sliceAddress;
-    int length=tupleInfo.size(slice,offset);
-    output.writeBytes(slice,offset,length);
-    tupleCount++;
+  PageBuilder pageBuilder=new PageBuilder(tupleInfos);
+  while (!pageBuilder.isFull() && currentPosition < pageIndex.getPositionCount()) {
+    for (int i=0; i < outputChannels.length; i++) {
+      pageIndex.appendTupleTo(outputChannels[i],currentPosition,pageBuilder.getBlockBuilder(i));
+    }
+    currentPosition++;
   }
-  if (tupleCount == 0) {
+  if (pageBuilder.isEmpty()) {
     return endOfData();
   }
-  UncompressedBlock block=new UncompressedBlock(tupleCount,tupleInfo,output.slice());
-  Page page=new Page(block);
+  Page page=pageBuilder.build();
   return page;
 }

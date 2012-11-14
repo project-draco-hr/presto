@@ -1,0 +1,17 @@
+{
+  channelCount=source.getChannelCount();
+  indexes=new BlocksIndex[channelCount];
+  List<TupleInfo> tupleInfos=source.getTupleInfos();
+  for (int channel=0; channel < indexes.length; channel++) {
+    indexes[channel]=new BlocksIndex(expectedPositions,tupleInfos.get(channel));
+  }
+  int positionCount=0;
+  for (  Page page : source) {
+    positionCount+=page.getPositionCount();
+    Block[] blocks=page.getBlocks();
+    for (int channel=0; channel < indexes.length; channel++) {
+      indexes[channel].indexBlock((UncompressedBlock)blocks[channel]);
+    }
+  }
+  this.positionCount=positionCount;
+}
