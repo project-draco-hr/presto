@@ -1,0 +1,20 @@
+{
+  TypedByteCodeNode left=process(node.getLeft(),context);
+  Preconditions.checkState(left.type == boolean.class);
+  TypedByteCodeNode right=process(node.getRight(),context);
+  Preconditions.checkState(right.type == boolean.class);
+  Block block=new Block(context).append(left.node).append(right.node);
+switch (node.getType()) {
+case AND:
+{
+      block.invokeStatic(Operations.class,"and",boolean.class,boolean.class,boolean.class);
+      return typedByteCodeNode(block,boolean.class);
+    }
+case OR:
+{
+    block.invokeStatic(Operations.class,"or",boolean.class,boolean.class,boolean.class);
+    return typedByteCodeNode(block,boolean.class);
+  }
+}
+throw new UnsupportedOperationException(String.format("not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type));
+}

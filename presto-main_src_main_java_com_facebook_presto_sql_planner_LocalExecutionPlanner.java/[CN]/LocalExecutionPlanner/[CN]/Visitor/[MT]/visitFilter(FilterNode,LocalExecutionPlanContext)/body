@@ -1,6 +1,13 @@
 {
   PhysicalOperation source=node.getSource().accept(this,context);
-  FilterFunction filter=new InterpretedFilterFunction(node.getPredicate(),source.getLayout(),metadata,context.getSession());
+  ExpressionCompiler compiler=new ExpressionCompiler(context.getSession(),source.getLayout(),source.getOperator().getTupleInfos());
+  FilterFunction filter;
+  try {
+    filter=compiler.compileFilterFunction(node.getPredicate());
+  }
+ catch (  Exception e) {
+    throw Throwables.propagate(e);
+  }
   IdentityProjectionInfo mappings=computeIdentityMapping(node.getOutputSymbols(),source.getLayout(),context.getTypes());
   FilterAndProjectOperator operator=new FilterAndProjectOperator(source.getOperator(),filter,mappings.getProjections());
   return new PhysicalOperation(operator,mappings.getOutputLayout());

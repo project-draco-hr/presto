@@ -21,7 +21,13 @@
       function=ProjectionFunctions.singleColumn(context.getTypes().get(reference).getRawType(),source.getLayout().get(symbol));
     }
  else {
-      function=new InterpretedProjectionFunction(context.getTypes().get(symbol),expression,source.getLayout(),metadata,context.getSession());
+      ExpressionCompiler compiler=new ExpressionCompiler(context.getSession(),source.getLayout(),source.getOperator().getTupleInfos());
+      try {
+        function=compiler.compileProjectionFunction(expression);
+      }
+ catch (      Exception e) {
+        throw Throwables.propagate(e);
+      }
     }
     projections.add(function);
     outputMappings.put(symbol,new Input(i,0));

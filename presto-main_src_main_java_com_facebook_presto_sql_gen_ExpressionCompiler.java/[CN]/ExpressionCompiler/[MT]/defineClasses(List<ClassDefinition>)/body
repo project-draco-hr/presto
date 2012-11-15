@@ -1,0 +1,15 @@
+{
+  ClassInfoLoader classInfoLoader=ClassInfoLoader.createClassInfoLoader(classDefinitions,classLoader);
+  DumpByteCodeVisitor dumpByteCode=new DumpByteCodeVisitor(System.out);
+  for (  ClassDefinition classDefinition : classDefinitions) {
+    dumpByteCode.visitClass(classDefinition);
+  }
+  Map<ParameterizedType,byte[]> byteCodes=new LinkedHashMap<>();
+  for (  ClassDefinition classDefinition : classDefinitions) {
+    ClassWriter cw=new SmartClassWriter(classInfoLoader);
+    classDefinition.visit(cw);
+    byte[] byteCode=cw.toByteArray();
+    byteCodes.put(classDefinition.getType(),byteCode);
+  }
+  return classLoader.defineClasses(byteCodes);
+}

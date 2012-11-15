@@ -1,0 +1,27 @@
+{
+  Input input=node.getInput();
+  int channel=input.getChannel();
+  Type type=inputTypes.get(input);
+  checkState(type != null,"No type for input %s",input);
+  int field=0;
+  Block block=new Block(context).setDescription(String.format("channels[%d].get%s(%d)",channel,type,field)).loadVariable("channels").loadConstant(channel).loadObjectArray().loadConstant(field);
+  Class<?> nodeType;
+switch (type) {
+case FIXED_INT_64:
+    block.invokeInterface(TupleReadable.class,"getLong",long.class,int.class);
+  nodeType=long.class;
+break;
+case DOUBLE:
+block.invokeInterface(TupleReadable.class,"getDouble",double.class,int.class);
+nodeType=double.class;
+break;
+case VARIABLE_BINARY:
+block.invokeInterface(TupleReadable.class,"getSlice",Slice.class,int.class);
+block.invokeStatic(Operations.class,"toString",String.class,Slice.class);
+nodeType=String.class;
+break;
+default :
+throw new UnsupportedOperationException("not yet implemented: " + type);
+}
+return typedByteCodeNode(block,nodeType);
+}

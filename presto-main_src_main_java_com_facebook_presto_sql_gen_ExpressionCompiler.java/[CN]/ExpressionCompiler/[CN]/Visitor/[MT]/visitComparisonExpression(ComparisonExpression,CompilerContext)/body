@@ -1,0 +1,109 @@
+{
+  TypedByteCodeNode left=process(node.getLeft(),context);
+  TypedByteCodeNode right=process(node.getRight(),context);
+  Block block=new Block(context);
+  if (isNumber(left.type) && isNumber(right.type)) {
+    if (left.type == long.class && right.type == long.class) {
+      block.append(left.node);
+      block.append(right.node);
+switch (node.getType()) {
+case EQUAL:
+        block.invokeStatic(Operations.class,"equal",boolean.class,long.class,long.class);
+      break;
+case NOT_EQUAL:
+    block.invokeStatic(Operations.class,"notEqual",boolean.class,long.class,long.class);
+  break;
+case LESS_THAN:
+block.invokeStatic(Operations.class,"lessThan",boolean.class,long.class,long.class);
+break;
+case LESS_THAN_OR_EQUAL:
+block.invokeStatic(Operations.class,"lessThanOrEqual",boolean.class,long.class,long.class);
+break;
+case GREATER_THAN:
+block.invokeStatic(Operations.class,"greaterThan",boolean.class,long.class,long.class);
+break;
+case GREATER_THAN_OR_EQUAL:
+block.invokeStatic(Operations.class,"greaterThanOrEqual",boolean.class,long.class,long.class);
+break;
+default :
+throw new UnsupportedOperationException(String.format("not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type));
+}
+}
+ else {
+block.append(left.node);
+if (left.type == long.class) {
+block.append(L2D);
+}
+block.append(right.node);
+if (right.type == long.class) {
+block.append(L2D);
+}
+switch (node.getType()) {
+case EQUAL:
+block.invokeStatic(Operations.class,"equal",boolean.class,double.class,double.class);
+break;
+case NOT_EQUAL:
+block.invokeStatic(Operations.class,"notEqual",boolean.class,double.class,double.class);
+break;
+case LESS_THAN:
+block.invokeStatic(Operations.class,"lessThan",boolean.class,double.class,double.class);
+break;
+case LESS_THAN_OR_EQUAL:
+block.invokeStatic(Operations.class,"lessThanOrEqual",boolean.class,double.class,double.class);
+break;
+case GREATER_THAN:
+block.invokeStatic(Operations.class,"greaterThan",boolean.class,double.class,double.class);
+break;
+case GREATER_THAN_OR_EQUAL:
+block.invokeStatic(Operations.class,"greaterThanOrEqual",boolean.class,double.class,double.class);
+break;
+default :
+throw new UnsupportedOperationException(String.format("not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type));
+}
+}
+}
+ else if (left.type == String.class && right.type == String.class) {
+block.append(left.node);
+block.append(right.node);
+switch (node.getType()) {
+case EQUAL:
+block.invokeStatic(Operations.class,"equal",boolean.class,String.class,String.class);
+break;
+case NOT_EQUAL:
+block.invokeStatic(Operations.class,"notEqual",boolean.class,String.class,String.class);
+break;
+case LESS_THAN:
+block.invokeStatic(Operations.class,"lessThan",boolean.class,String.class,String.class);
+break;
+case LESS_THAN_OR_EQUAL:
+block.invokeStatic(Operations.class,"lessThanOrEqual",boolean.class,String.class,String.class);
+break;
+case GREATER_THAN:
+block.invokeStatic(Operations.class,"greaterThan",boolean.class,String.class,String.class);
+break;
+case GREATER_THAN_OR_EQUAL:
+block.invokeStatic(Operations.class,"greaterThanOrEqual",boolean.class,String.class,String.class);
+break;
+default :
+throw new UnsupportedOperationException(String.format("not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type));
+}
+}
+ else if (left.type == boolean.class && right.type == boolean.class) {
+block.append(left.node);
+block.append(right.node);
+switch (node.getType()) {
+case EQUAL:
+block.invokeStatic(Operations.class,"equal",boolean.class,boolean.class,boolean.class);
+break;
+case NOT_EQUAL:
+block.invokeStatic(Operations.class,"notEqual",boolean.class,boolean.class,boolean.class);
+break;
+default :
+throw new UnsupportedOperationException(String.format("not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type));
+}
+}
+ else {
+throw new UnsupportedOperationException(String.format("not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type));
+}
+return typedByteCodeNode(block,boolean.class);
+}

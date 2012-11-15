@@ -1,0 +1,35 @@
+{
+  expression=TreeRewriter.rewriteWith(new SymbolToInputRewriter(layout),expression);
+  ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(),a(PUBLIC,FINAL),typeFromPathName("ProjectionFunction_" + CLASS_ID.incrementAndGet()),type(Object.class),type(ProjectionFunction.class));
+  classDefinition.declareConstructor(new CompilerContext(),a(PUBLIC)).getBody().loadThis().invokeConstructor(Object.class).ret();
+  MethodDefinition projectionMethod=classDefinition.declareMethod(new CompilerContext(),a(PUBLIC),"project",type(void.class),NamedParameterDefinition.arg("channels",TupleReadable[].class),NamedParameterDefinition.arg("output",BlockBuilder.class));
+  TypedByteCodeNode body=new Visitor(session,inputTypes).process(expression,projectionMethod.getCompilerContext());
+  projectionMethod.getBody().loadVariable("output").append(body.node);
+  if (body.type == long.class) {
+    projectionMethod.getBody().invokeVirtual(BlockBuilder.class,"append",BlockBuilder.class,long.class).ret();
+  }
+ else   if (body.type == double.class) {
+    projectionMethod.getBody().invokeVirtual(BlockBuilder.class,"append",BlockBuilder.class,double.class).ret();
+  }
+ else   if (body.type == String.class) {
+    projectionMethod.getBody().invokeVirtual(BlockBuilder.class,"append",BlockBuilder.class,String.class).ret();
+  }
+  MethodDefinition getTupleInfoMethod=classDefinition.declareMethod(new CompilerContext(),a(PUBLIC),"getTupleInfo",type(TupleInfo.class));
+  if (body.type == long.class) {
+    getTupleInfoMethod.getBody().getStaticField(type(TupleInfo.class),"SINGLE_LONG",type(TupleInfo.class)).retObject();
+  }
+ else   if (body.type == double.class) {
+    getTupleInfoMethod.getBody().getStaticField(type(TupleInfo.class),"SINGLE_DOUBLE",type(TupleInfo.class)).retObject();
+  }
+ else   if (body.type == String.class) {
+    getTupleInfoMethod.getBody().getStaticField(type(TupleInfo.class),"SINGLE_VARBINARY",type(TupleInfo.class)).retObject();
+  }
+  Class<? extends ProjectionFunction> projectionClass=defineClasses(ImmutableList.of(classDefinition)).values().iterator().next().asSubclass(ProjectionFunction.class);
+  try {
+    ProjectionFunction function=projectionClass.newInstance();
+    return function;
+  }
+ catch (  Throwable e) {
+    throw Throwables.propagate(e);
+  }
+}
