@@ -1,0 +1,12 @@
+{
+  checkNotNull(split,"split is null");
+  checkNotNull(columns,"columns is null");
+  checkArgument(!columns.isEmpty(),"must provide at least one column");
+  NativeSplit nativeSplit=(NativeSplit)split;
+  ImmutableList.Builder<BlockIterable> builder=ImmutableList.builder();
+  for (  ColumnHandle column : columns) {
+    NativeColumnHandle nativeColumn=(NativeColumnHandle)column;
+    builder.add(storageManager.getBlocks(nativeSplit.getShardId(),nativeColumn.getColumnId()));
+  }
+  return new AlignmentOperator(builder.build());
+}
