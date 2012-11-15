@@ -1,0 +1,52 @@
+{
+  ClassNode classNode=classNodes.get(type);
+  if (classNode != null) {
+    return new ClassInfo(this,classNode);
+  }
+  ClassReader classReader;
+  byte[] byteCode=byteCodes.get(type);
+  if (byteCode != null) {
+    classReader=new ClassReader(byteCode);
+  }
+ else {
+    String classFileName=type.getClassName() + ".class";
+    try (InputStream is=classLoader.getResourceAsStream(classFileName)){
+      classReader=new ClassReader(is);
+    }
+ catch (    IOException e) {
+      try {
+        Class<?> aClass=classLoader.loadClass(type.getJavaClassName());
+        return new ClassInfo(this,aClass);
+      }
+ catch (      ClassNotFoundException e1) {
+        throw new RuntimeException("Class not found " + type,e);
+      }
+    }
+  }
+  if (loadMethodNodes) {
+    classNode=new ClassNode();
+    classReader.accept(new CheckClassAdapter(classNode,false),ClassReader.SKIP_DEBUG);
+    return new ClassInfo(this,classNode);
+  }
+ else {
+    int header=classReader.header;
+    int access=classReader.readUnsignedShort(header);
+    char[] buf=new char[2048];
+    int superClassIndex=classReader.getItem(classReader.readUnsignedShort(header + 4));
+    ParameterizedType superClass;
+    if (superClassIndex == 0) {
+      superClass=null;
+    }
+ else {
+      superClass=typeFromPathName(classReader.readUTF8(superClassIndex,buf));
+    }
+    int interfaceCount=classReader.readUnsignedShort(header + 6);
+    ImmutableList.Builder<ParameterizedType> interfaces=ImmutableList.builder();
+    header+=8;
+    for (int i=0; i < interfaceCount; ++i) {
+      interfaces.add(typeFromPathName(classReader.readClass(header,buf)));
+      header+=2;
+    }
+    return new ClassInfo(this,type,access,superClass,interfaces.build(),null);
+  }
+}

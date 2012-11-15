@@ -1,0 +1,28 @@
+{
+  for (  AnnotationDefinition annotationDefinition : classDefinition.getAnnotations()) {
+    visitAnnotation(classDefinition,annotationDefinition);
+  }
+  Line classDeclaration=line().addAll(classDefinition.getAccess()).add("class").add(classDefinition.getType().getJavaClassName());
+  if (!classDefinition.getSuperClass().equals(type(Object.class))) {
+    classDeclaration.add("extends").add(classDefinition.getSuperClass().getJavaClassName());
+  }
+  if (!classDefinition.getInterfaces().isEmpty()) {
+    classDeclaration.add("implements");
+    for (    ParameterizedType interfaceType : classDefinition.getInterfaces()) {
+      classDeclaration.add(interfaceType.getJavaClassName());
+    }
+  }
+  classDeclaration.print();
+  printLine("{");
+  indentLevel++;
+  for (  FieldDefinition fieldDefinition : classDefinition.getFields()) {
+    visitField(classDefinition,fieldDefinition);
+  }
+  for (  MethodDefinition methodDefinition : classDefinition.getMethods()) {
+    visitMethod(classDefinition,methodDefinition);
+  }
+  indentLevel--;
+  printLine("}");
+  printLine();
+  return null;
+}

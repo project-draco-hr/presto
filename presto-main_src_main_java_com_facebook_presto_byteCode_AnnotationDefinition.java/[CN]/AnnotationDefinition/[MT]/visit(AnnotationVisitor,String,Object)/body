@@ -1,0 +1,29 @@
+{
+  if (value instanceof AnnotationDefinition) {
+    AnnotationDefinition annotation=(AnnotationDefinition)value;
+    AnnotationVisitor annotationVisitor=visitor.visitAnnotation(name,annotation.type.getType());
+    annotation.visit(annotationVisitor);
+  }
+ else   if (value instanceof Enum) {
+    Enum<?> enumConstant=(Enum<?>)value;
+    visitor.visitEnum(name,type(enumConstant.getDeclaringClass()).getClassName(),enumConstant.name());
+  }
+ else   if (value instanceof ParameterizedType) {
+    ParameterizedType parameterizedType=(ParameterizedType)value;
+    visitor.visit(name,Type.getType(parameterizedType.getType()));
+  }
+ else   if (value instanceof Class) {
+    Class<?> clazz=(Class<?>)value;
+    visitor.visit(name,Type.getType(clazz));
+  }
+ else   if (value instanceof List) {
+    AnnotationVisitor arrayVisitor=visitor.visitArray(name);
+    for (    Object element : (List<?>)value) {
+      visit(arrayVisitor,null,element);
+    }
+    arrayVisitor.visitEnd();
+  }
+ else {
+    visitor.visit(name,value);
+  }
+}
