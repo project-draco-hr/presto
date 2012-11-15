@@ -1,0 +1,17 @@
+{
+  Block combinedBlock=null;
+  for (  Block block : blocks) {
+    AggregationFunction function=combinerAggregation(getFullFunction());
+    if (combinedBlock != null) {
+      BlockCursor intermediateCursor=combinedBlock.cursor();
+      assertTrue(intermediateCursor.advanceNextPosition());
+      function.add(intermediateCursor);
+    }
+    BlockCursor intermediateCursor=block.cursor();
+    assertTrue(intermediateCursor.advanceNextPosition());
+    function.add(intermediateCursor);
+    Tuple tuple=function.evaluate();
+    combinedBlock=new BlockBuilder(getFullFunction().getIntermediateTupleInfo()).append(tuple).build();
+  }
+  assertFinalAggregation(combinedBlock,expectedValue);
+}

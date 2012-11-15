@@ -3,23 +3,9 @@
   for (int i=0; i < functions.length; i++) {
     functions[i]=functionProviders.get(i).get();
   }
-  BlockCursor[] cursors=new BlockCursor[source.getChannelCount()];
   for (  Page page : source) {
-    Block[] blocks=page.getBlocks();
-    for (int i=0; i < blocks.length; i++) {
-      cursors[i]=blocks[i].cursor();
-    }
-    int rows=(int)page.getPositionCount();
-    for (int position=0; position < rows; position++) {
-      for (      BlockCursor cursor : cursors) {
-        checkState(cursor.advanceNextPosition());
-      }
-      for (      AggregationFunction function : functions) {
-        function.add(cursors);
-      }
-    }
-    for (    BlockCursor cursor : cursors) {
-      checkState(!cursor.advanceNextPosition());
+    for (    AggregationFunction function : functions) {
+      function.add(page);
     }
   }
   Tuple[] results=new Tuple[functions.length];
