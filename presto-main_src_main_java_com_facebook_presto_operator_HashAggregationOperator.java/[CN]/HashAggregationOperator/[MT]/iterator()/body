@@ -1,7 +1,7 @@
 {
   return new AbstractIterator<Page>(){
-    private final Map<Tuple,AggregationFunction[]> aggregationMap=new HashMap<>();
-    private Iterator<Entry<Tuple,AggregationFunction[]>> aggregations;
+    private final Map<Tuple,AggregationFunctionStep[]> aggregationMap=new HashMap<>();
+    private Iterator<Entry<Tuple,AggregationFunctionStep[]>> aggregations;
     @Override protected Page computeNext(){
       if (aggregations == null) {
         aggregate();
@@ -15,10 +15,10 @@
         outputs[i]=new BlockBuilder(projections.get(i).getTupleInfo());
       }
       while (!isFull(outputs) && aggregations.hasNext()) {
-        Entry<Tuple,AggregationFunction[]> aggregation=aggregations.next();
+        Entry<Tuple,AggregationFunctionStep[]> aggregation=aggregations.next();
         Tuple[] results=new Tuple[functionProviders.size() + 1];
         results[0]=aggregation.getKey();
-        AggregationFunction[] aggregations=aggregation.getValue();
+        AggregationFunctionStep[] aggregations=aggregation.getValue();
         for (int i=1; i < results.length; i++) {
           results[i]=aggregations[i - 1].evaluate();
         }
@@ -57,15 +57,15 @@
             checkState(cursor.advanceNextPosition());
           }
           Tuple key=cursors[groupByChannel].getTuple();
-          AggregationFunction[] functions=aggregationMap.get(key);
+          AggregationFunctionStep[] functions=aggregationMap.get(key);
           if (functions == null) {
-            functions=new AggregationFunction[functionProviders.size()];
+            functions=new AggregationFunctionStep[functionProviders.size()];
             for (int i=0; i < functions.length; i++) {
               functions[i]=functionProviders.get(i).get();
             }
             aggregationMap.put(key,functions);
           }
-          for (          AggregationFunction function : functions) {
+          for (          AggregationFunctionStep function : functions) {
             function.add(cursors);
           }
         }
