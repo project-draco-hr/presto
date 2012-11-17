@@ -1,3 +1,9 @@
 {
-  return new ImportRecordIterator(importClient.getRecords(chunk),columnNames);
+  com.facebook.presto.spi.RecordIterator records=runWithRetryUnchecked(new Callable<com.facebook.presto.spi.RecordIterator>(){
+    @Override public com.facebook.presto.spi.RecordIterator call() throws Exception {
+      return importClient.getRecords(chunk);
+    }
+  }
+);
+  return new ImportRecordIterator(records,columnNames);
 }
