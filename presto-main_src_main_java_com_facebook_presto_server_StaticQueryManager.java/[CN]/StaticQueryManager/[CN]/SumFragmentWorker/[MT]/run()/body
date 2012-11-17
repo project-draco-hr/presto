@@ -1,0 +1,19 @@
+{
+  try {
+    Operator dataStream=dataStreamProvider.createDataStream(split,columnHandles);
+    HashAggregationOperator sumOperator=new HashAggregationOperator(dataStream,0,ImmutableList.of(partialAggregation(longSumAggregation(1,0))),ImmutableList.of(singleColumn(VARIABLE_BINARY,0,0),singleColumn(FIXED_INT_64,1,0)));
+    for (    Page page : sumOperator) {
+      queryState.addPage(page);
+    }
+    queryState.sourceFinished();
+  }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    queryState.queryFailed(e);
+    throw Throwables.propagate(e);
+  }
+catch (  Exception e) {
+    queryState.queryFailed(e);
+    throw Throwables.propagate(e);
+  }
+}

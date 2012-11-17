@@ -1,0 +1,26 @@
+{
+  try {
+    final TableMetadata table=metadata.getTable("hive","default","hivedba_query_stats");
+    Iterable<SplitAssignments> splitAssignments=splitManager.getSplitAssignments(table.getTableHandle().get());
+    QueryDriversOperator operator=new QueryDriversOperator(10,Iterables.transform(splitAssignments,new Function<SplitAssignments,QueryDriverProvider>(){
+      @Override public QueryDriverProvider apply(      SplitAssignments splits){
+        return new JsonHttpQueryProvider<>(new QueryFragmentRequest(splits.getSplit(),new PlanFragment("sum-frag-worker",ImmutableList.of(table.getColumns().get(2).getColumnHandle().get(),table.getColumns().get(6).getColumnHandle().get()))),codec,asyncHttpClient,splits.getNodes().get(0).getHttpUri().resolve("/v1/presto/query"),ImmutableList.of(SINGLE_VARBINARY,SINGLE_LONG));
+      }
+    }
+));
+    HashAggregationOperator aggregation=new HashAggregationOperator(operator,0,ImmutableList.of(finalAggregation(longSumAggregation(1,0))),ImmutableList.of(concat(singleColumn(VARIABLE_BINARY,0,0),singleColumn(FIXED_INT_64,1,0))));
+    for (    Page page : aggregation) {
+      queryState.addPage(page);
+    }
+    queryState.sourceFinished();
+  }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    queryState.queryFailed(e);
+    throw Throwables.propagate(e);
+  }
+catch (  Exception e) {
+    queryState.queryFailed(e);
+    throw Throwables.propagate(e);
+  }
+}

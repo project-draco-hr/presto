@@ -8,7 +8,7 @@
   QueryTask queryTask;
 switch (queryBase) {
 case "sum":
-    queryTask=new SumQuery(queryState,executor,URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"));
+    queryTask=new SumQuery(queryState,masterExecutor,URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"),URI.create("http://localhost:8080/v1/presto/query"));
   break;
 case "sum-partial":
 queryTask=new PartialSumQuery(metadata,storageManager,queryState);
@@ -25,10 +25,13 @@ break;
 case "import-table":
 queryTask=new ImportTableQuery(queryState,importClient,importManager,metadata,strings.get(1),strings.get(2),strings.get(3));
 break;
+case "sum-frag":
+queryTask=new SumFragmentMaster(queryState,masterExecutor,metadata,splitManager,queryFragmentRequestJsonCodec);
+break;
 default :
 throw new IllegalArgumentException("Unsupported query " + query);
 }
 queries.put(queryId,queryState);
-executor.submit(queryTask);
+masterExecutor.submit(queryTask);
 return new QueryInfo(queryId,queryTask.getTupleInfos());
 }
