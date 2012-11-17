@@ -14,7 +14,7 @@
   binder.bind(ImportMetadata.class).in(Scopes.SINGLETON);
   binder.bind(SplitManager.class).in(Scopes.SINGLETON);
   jsonCodecBinder(binder).bindJsonCodec(QueryFragmentRequest.class);
-  discoveryBinder(binder).bindSelector("presto");
+  binder.bind(ServiceSelector.class).annotatedWith(ServiceTypes.serviceType("presto")).toInstance(new StaticServiceSelector(new ServiceDescriptor(UUID.randomUUID(),"myid","default","local","localhost",ServiceState.RUNNING,ImmutableMap.<String,String>of("http","http://localhost:8080"))));
   binder.bind(NodeManager.class).in(Scopes.SINGLETON);
   binder.bind(NodeWorkerQueue.class).in(Scopes.SINGLETON);
   binder.bind(ShardManager.class).to(DatabaseShardManager.class).in(Scopes.SINGLETON);
