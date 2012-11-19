@@ -1,16 +1,2 @@
 {
-  checkNotNull(split,"split is null");
-  checkNotNull(columns,"columns is null");
-  checkArgument(!columns.isEmpty(),"must provide at least one column");
-  ImportSplit importSplit=(ImportSplit)split;
-  ImportClient client=importClientFactory.getClient(importSplit.getSourceName());
-  ImmutableList.Builder<RecordProjection> builder=ImmutableList.builder();
-  for (int i=0; i < columns.size(); i++) {
-    ImportColumnHandle importColumn=(ImportColumnHandle)columns.get(i);
-    ColumnMetadata columnMetadata=metadata.getColumn(importColumn);
-    builder.add(RecordProjections.createProjection(i,columnMetadata.getType()));
-  }
-  PartitionChunk partitionChunk=client.deserializePartitionChunk(importSplit.getSerializedChunk().getBytes());
-  ImportPartition importPartition=new ImportPartition(client,partitionChunk,convertToColumnNames(columns));
-  return new RecordProjectOperator(importPartition,builder.build());
 }
