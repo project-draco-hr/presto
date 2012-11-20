@@ -4,7 +4,8 @@
     Iterable<SplitAssignments> splitAssignments=splitManager.getSplitAssignments(table.getTableHandle().get());
     QueryDriversOperator operator=new QueryDriversOperator(10,Iterables.transform(splitAssignments,new Function<SplitAssignments,QueryDriverProvider>(){
       @Override public QueryDriverProvider apply(      SplitAssignments splits){
-        return new JsonHttpQueryProvider<>(new QueryFragmentRequest(splits.getSplit(),new PlanFragment("sum-frag-worker",ImmutableList.of(table.getColumns().get(2).getColumnHandle().get(),table.getColumns().get(6).getColumnHandle().get()))),codec,asyncHttpClient,splits.getNodes().get(0).getHttpUri().resolve("/v1/presto/query"),ImmutableList.of(SINGLE_VARBINARY,SINGLE_LONG));
+        QueryFragmentRequest queryFragmentRequest=new QueryFragmentRequest(splits.getSplit(),new PlanFragment("sum-frag-worker",ImmutableList.of(table.getColumns().get(2).getColumnHandle().get(),table.getColumns().get(6).getColumnHandle().get())));
+        return new HttpQueryProvider(JsonBodyGenerator.jsonBodyGenerator(codec,queryFragmentRequest),Optional.of(MediaType.APPLICATION_JSON),asyncHttpClient,splits.getNodes().get(0).getHttpUri().resolve("/v1/presto/query"),ImmutableList.of(SINGLE_VARBINARY,SINGLE_LONG));
       }
     }
 ));
