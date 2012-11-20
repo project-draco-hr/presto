@@ -1,6 +1,22 @@
 {
-  checkNotNull(sourceName,"sourceName is null");
-  ImportClient importClient=importClientMap.get(sourceName);
-  checkArgument(importClient != null,"source does not exist: %s",sourceName);
-  return importClient;
+  checkArgument("hive".equals(sourceName),"bad source name: %s",sourceName);
+  List<ServiceDescriptor> descriptors=ImmutableList.copyOf(selector.selectAllServices());
+  List<HostAndPort> metastores=new ArrayList<>();
+  for (  ServiceDescriptor descriptor : descriptors) {
+    String thrift=descriptor.getProperties().get("thrift");
+    if (thrift != null) {
+      try {
+        HostAndPort metastore=HostAndPort.fromString(thrift);
+        checkArgument(metastore.hasPort());
+        metastores.add(metastore);
+      }
+ catch (      IllegalArgumentException ignored) {
+      }
+    }
+  }
+  if (metastores.isEmpty()) {
+    throw new RuntimeException("hive metastore not available: " + selector.getPool());
+  }
+  HostAndPort metastore=shuffle(metastores).get(0);
+  return new HiveClient(metastore.getHostText(),metastore.getPort());
 }
