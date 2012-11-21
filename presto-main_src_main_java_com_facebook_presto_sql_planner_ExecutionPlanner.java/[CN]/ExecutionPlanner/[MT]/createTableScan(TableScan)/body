@@ -1,10 +1,10 @@
 {
   TableMetadata tableMetadata=metadata.getTable(QualifiedName.of(node.getCatalogName(),node.getSchemaName(),node.getTableName()));
-  Integer[] indicies=new Integer[node.getAttributes().size()];
-  Map<Slot,Integer> slotToChannelMappings=mapSlotsToChannels(node.getOutputs());
-  for (  Map.Entry<String,Slot> entry : node.getAttributes().entrySet()) {
-    int channel=slotToChannelMappings.get(entry.getValue());
-    indicies[channel]=findIndex(entry.getKey(),tableMetadata);
+  Integer[] indices=new Integer[node.getAttributes().size()];
+  Map<Symbol,Integer> symbolToChannelMappings=mapSymbolsToChannels(node.getOutputSymbols());
+  for (  Map.Entry<String,Symbol> entry : node.getAttributes().entrySet()) {
+    int channel=symbolToChannelMappings.get(entry.getValue());
+    indices[channel]=findIndex(entry.getKey(),tableMetadata);
   }
-  return storage.getOperator(node.getSchemaName(),node.getTableName(),Arrays.asList(indicies));
+  return storage.getOperator(node.getSchemaName(),node.getTableName(),Arrays.asList(indices));
 }

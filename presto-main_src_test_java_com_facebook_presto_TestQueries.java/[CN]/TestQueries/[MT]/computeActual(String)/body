@@ -12,10 +12,10 @@
   AnalysisResult analysis=analyzer.analyze(statement);
   Planner planner=new Planner();
   PlanNode plan=planner.plan((Query)statement,analysis);
-  new PlanPrinter().print(plan);
-  ExecutionPlanner executionPlanner=new ExecutionPlanner(sessionMetadata,storage);
+  new PlanPrinter().print(plan,analysis.getTypes());
+  ExecutionPlanner executionPlanner=new ExecutionPlanner(new SessionMetadata(metadata),storage,analysis);
   Operator operator=executionPlanner.plan(plan);
-  TupleInfo outputTupleInfo=ExecutionPlanner.toTupleInfo(plan.getOutputs());
+  TupleInfo outputTupleInfo=ExecutionPlanner.toTupleInfo(analysis,plan.getOutputSymbols());
   ImmutableList.Builder<Tuple> output=ImmutableList.builder();
   for (  Page page : operator) {
     ImmutableList.Builder<BlockCursor> cursorBuilder=ImmutableList.builder();

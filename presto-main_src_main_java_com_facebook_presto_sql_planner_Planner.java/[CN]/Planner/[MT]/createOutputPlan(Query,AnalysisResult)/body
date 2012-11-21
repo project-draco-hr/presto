@@ -2,11 +2,11 @@
   PlanNode result=createQueryPlan(query,analysis);
   int i=0;
   ImmutableList.Builder<String> names=ImmutableList.builder();
-  ImmutableMap.Builder<String,Slot> assignments=ImmutableMap.builder();
-  for (  NamedSlot namedSlot : analysis.getOutputDescriptor().getSlots()) {
-    String name=namedSlot.getAttribute().or("_col" + i);
+  ImmutableMap.Builder<String,Symbol> assignments=ImmutableMap.builder();
+  for (  Field field : analysis.getOutputDescriptor().getFields()) {
+    String name=field.getAttribute().or("_col" + i);
     names.add(name);
-    assignments.put(name,namedSlot.getSlot());
+    assignments.put(name,field.getSymbol());
     i++;
   }
   return new OutputPlan(result,names.build(),assignments.build());

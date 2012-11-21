@@ -1,0 +1,14 @@
+{
+  ImmutableSet.Builder<Symbol> expectedInputs=ImmutableSet.builder();
+  ImmutableMap.Builder<Symbol,Expression> builder=ImmutableMap.builder();
+  for (int i=0; i < node.getOutputSymbols().size(); i++) {
+    Symbol output=node.getOutputSymbols().get(i);
+    Expression expression=node.getExpressions().get(i);
+    if (expectedOutputs.contains(output)) {
+      expectedInputs.addAll(new DependencyExtractor().extract(expression));
+      builder.put(output,expression);
+    }
+  }
+  PlanNode source=node.getSource().accept(this,expectedInputs.build());
+  return new ProjectNode(source,builder.build());
+}

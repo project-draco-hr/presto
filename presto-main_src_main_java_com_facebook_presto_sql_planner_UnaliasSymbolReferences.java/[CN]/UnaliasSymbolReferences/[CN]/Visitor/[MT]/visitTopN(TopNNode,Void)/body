@@ -1,0 +1,11 @@
+{
+  PlanNode source=node.getSource().accept(this,context);
+  ImmutableList.Builder<Symbol> symbols=ImmutableList.builder();
+  ImmutableMap.Builder<Symbol,SortItem.Ordering> orderings=ImmutableMap.builder();
+  for (  Symbol symbol : node.getOrderBy()) {
+    Symbol canonical=canonicalize(symbol);
+    symbols.add(canonical);
+    orderings.put(canonical,node.getOrderings().get(symbol));
+  }
+  return new TopNNode(source,node.getCount(),symbols.build(),orderings.build());
+}

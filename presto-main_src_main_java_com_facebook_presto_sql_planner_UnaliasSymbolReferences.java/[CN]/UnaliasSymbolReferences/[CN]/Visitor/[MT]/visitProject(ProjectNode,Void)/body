@@ -1,0 +1,18 @@
+{
+  PlanNode source=node.getSource().accept(this,context);
+  Map<Symbol,Expression> assignments=new HashMap<>();
+  for (  Map.Entry<Symbol,Expression> entry : node.getOutputMap().entrySet()) {
+    Expression expression=canonicalize(entry.getValue());
+    if (entry.getValue() instanceof QualifiedNameReference) {
+      Symbol symbol=Symbol.fromQualifiedName(((QualifiedNameReference)entry.getValue()).getName());
+      if (!symbol.equals(entry.getKey())) {
+        map(entry.getKey(),symbol);
+      }
+    }
+    Symbol canonical=canonicalize(entry.getKey());
+    if (!assignments.containsKey(canonical)) {
+      assignments.put(canonical,expression);
+    }
+  }
+  return new ProjectNode(source,assignments);
+}

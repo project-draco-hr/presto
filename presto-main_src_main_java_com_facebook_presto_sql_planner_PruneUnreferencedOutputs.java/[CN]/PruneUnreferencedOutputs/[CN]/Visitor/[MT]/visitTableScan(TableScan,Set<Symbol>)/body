@@ -1,0 +1,17 @@
+{
+  Map<String,Symbol> assignments=new HashMap<>();
+  for (  Map.Entry<String,Symbol> entry : node.getAttributes().entrySet()) {
+    Symbol symbol=entry.getValue();
+    if (expectedOutputs.contains(symbol) || expectedOutputs.isEmpty() && Type.isNumeric(types.get(symbol))) {
+      assignments.put(entry.getKey(),symbol);
+      if (expectedOutputs.isEmpty()) {
+        break;
+      }
+    }
+  }
+  if (assignments.isEmpty()) {
+    Map.Entry<String,Symbol> first=Iterables.getFirst(node.getAttributes().entrySet(),null);
+    assignments.put(first.getKey(),first.getValue());
+  }
+  return new TableScan(node.getCatalogName(),node.getSchemaName(),node.getTableName(),assignments);
+}

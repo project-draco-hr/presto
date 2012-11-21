@@ -1,17 +1,17 @@
 {
   Preconditions.checkArgument(node.getOrderBy().size() == 1,"Order by multiple fields not yet supported");
-  Slot orderBySlot=Iterables.getOnlyElement(node.getOrderBy());
+  Symbol orderBySymbol=Iterables.getOnlyElement(node.getOrderBy());
   PlanNode source=Iterables.getOnlyElement(node.getSources());
-  Map<Slot,Integer> slotToChannelMappings=mapSlotsToChannels(source.getOutputs());
+  Map<Symbol,Integer> symbolToChannelMappings=mapSymbolsToChannels(source.getOutputSymbols());
   List<ProjectionFunction> projections=new ArrayList<>();
-  for (int i=0; i < node.getOutputs().size(); i++) {
-    Slot slot=node.getOutputs().get(i);
-    ProjectionFunction function=ProjectionFunctions.singleColumn(slot.getType().getRawType(),slotToChannelMappings.get(slot),0);
+  for (int i=0; i < node.getOutputSymbols().size(); i++) {
+    Symbol symbol=node.getOutputSymbols().get(i);
+    ProjectionFunction function=ProjectionFunctions.singleColumn(analysis.getType(symbol).getRawType(),symbolToChannelMappings.get(symbol),0);
     projections.add(function);
   }
   Ordering<TupleReadable> ordering=Ordering.from(FieldOrderedTupleComparator.INSTANCE);
-  if (node.getOrderings().get(orderBySlot) == SortItem.Ordering.ASCENDING) {
+  if (node.getOrderings().get(orderBySymbol) == SortItem.Ordering.ASCENDING) {
     ordering=ordering.reverse();
   }
-  return new TopNOperator(plan(source),(int)node.getCount(),slotToChannelMappings.get(orderBySlot),projections,ordering);
+  return new TopNOperator(plan(source),(int)node.getCount(),symbolToChannelMappings.get(orderBySymbol),projections,ordering);
 }

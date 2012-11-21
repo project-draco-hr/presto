@@ -3,16 +3,21 @@
   Preconditions.checkArgument(query.getHaving() == null,"not yet implemented: HAVING");
   Preconditions.checkArgument(query.getFrom().size() == 1,"not yet implemented: multiple FROM relations");
   Preconditions.checkArgument(query.getLimit() != null && !query.getOrderBy().isEmpty() || query.getOrderBy().isEmpty(),"not yet implemented: ORDER BY without LIMIT");
+  for (  Expression expression : query.getSelect().getSelectItems()) {
+    if (expression instanceof AliasedExpression) {
+      context.getSymbolAllocator().blacklist(((AliasedExpression)expression).getAlias());
+    }
+  }
   Relation relation=Iterables.getOnlyElement(query.getFrom());
   TupleDescriptor sourceDescriptor=new RelationAnalyzer(metadata).process(relation,context);
   AnalyzedExpression predicate=null;
   if (query.getWhere() != null) {
     predicate=analyzePredicate(query.getWhere(),sourceDescriptor);
   }
-  List<AnalyzedExpression> groupBy=analyzeGroupBy(query.getGroupBy(),sourceDescriptor);
-  Set<AnalyzedAggregation> aggregations=analyzeAggregations(query.getGroupBy(),query.getSelect(),query.getOrderBy(),sourceDescriptor);
+  List<AnalyzedExpression> groupBy=analyzeGroupBy(query.getGroupBy(),sourceDescriptor,context.getSymbols());
+  Set<AnalyzedAggregation> aggregations=analyzeAggregations(query.getGroupBy(),query.getSelect(),query.getOrderBy(),sourceDescriptor,context.getSymbols());
   List<AnalyzedOrdering> orderBy=analyzeOrderBy(query.getOrderBy(),sourceDescriptor);
-  AnalyzedOutput output=analyzeOutput(query.getSelect(),context.getSlotAllocator(),sourceDescriptor);
+  AnalyzedOutput output=analyzeOutput(query.getSelect(),context.getSymbolAllocator(),sourceDescriptor);
   Long limit=null;
   if (query.getLimit() != null) {
     limit=Long.parseLong(query.getLimit());

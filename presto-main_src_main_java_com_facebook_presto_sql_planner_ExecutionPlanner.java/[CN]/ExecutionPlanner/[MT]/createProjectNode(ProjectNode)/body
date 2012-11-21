@@ -1,12 +1,12 @@
 {
   PlanNode source=Iterables.getOnlyElement(node.getSources());
   Operator sourceOperator=plan(Iterables.getOnlyElement(node.getSources()));
-  Map<Slot,Integer> slotToChannelMappings=mapSlotsToChannels(source.getOutputs());
+  Map<Symbol,Integer> symbolToChannelMappings=mapSymbolsToChannels(source.getOutputSymbols());
   List<ProjectionFunction> projections=new ArrayList<>();
   for (int i=0; i < node.getExpressions().size(); i++) {
-    Slot slot=node.getOutputs().get(i);
+    Symbol symbol=node.getOutputSymbols().get(i);
     Expression expression=node.getExpressions().get(i);
-    ProjectionFunction function=new InterpretedProjectionFunction(slot.getType(),expression,slotToChannelMappings);
+    ProjectionFunction function=new InterpretedProjectionFunction(analysis.getType(symbol),expression,symbolToChannelMappings,analysis.getTypes());
     projections.add(function);
   }
   return new FilterAndProjectOperator(sourceOperator,FilterFunctions.TRUE_FUNCTION,projections);

@@ -1,13 +1,13 @@
 {
   PlanNode source=node.getSource().accept(this,context);
-  if (node.getOutputs().size() != source.getOutputs().size()) {
+  if (node.getOutputSymbols().size() != source.getOutputSymbols().size()) {
     return new ProjectNode(source,node.getOutputMap());
   }
   boolean canElide=true;
-  for (  Map.Entry<Slot,Expression> entry : node.getOutputMap().entrySet()) {
+  for (  Map.Entry<Symbol,Expression> entry : node.getOutputMap().entrySet()) {
     Expression expression=entry.getValue();
-    Slot slot=entry.getKey();
-    if (!(expression instanceof SlotReference && ((SlotReference)expression).getSlot().equals(slot))) {
+    Symbol symbol=entry.getKey();
+    if (!(expression instanceof QualifiedNameReference && ((QualifiedNameReference)expression).getName().equals(symbol.toQualifiedName()))) {
       canElide=false;
       break;
     }

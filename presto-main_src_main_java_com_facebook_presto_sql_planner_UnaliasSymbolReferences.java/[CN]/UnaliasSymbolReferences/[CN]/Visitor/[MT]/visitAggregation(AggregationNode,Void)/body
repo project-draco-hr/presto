@@ -1,0 +1,12 @@
+{
+  PlanNode source=node.getSource().accept(this,context);
+  ImmutableMap.Builder<Symbol,FunctionInfo> functionInfos=ImmutableMap.builder();
+  ImmutableMap.Builder<Symbol,FunctionCall> functionCalls=ImmutableMap.builder();
+  for (  Map.Entry<Symbol,FunctionCall> entry : node.getAggregations().entrySet()) {
+    Symbol symbol=entry.getKey();
+    Symbol canonical=canonicalize(symbol);
+    functionCalls.put(canonical,(FunctionCall)canonicalize(entry.getValue()));
+    functionInfos.put(canonical,node.getFunctionInfos().get(symbol));
+  }
+  return new AggregationNode(source,canonicalize(node.getGroupBy()),functionCalls.build(),functionInfos.build());
+}

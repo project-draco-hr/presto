@@ -1,0 +1,46 @@
+{
+  ImmutableList.Builder<Expression> expressions=ImmutableList.builder();
+  ImmutableList.Builder<Optional<String>> names=ImmutableList.builder();
+  for (  Expression expression : select.getSelectItems()) {
+    if (expression instanceof AllColumns) {
+      Optional<QualifiedName> starPrefix=((AllColumns)expression).getPrefix();
+      for (      Field field : descriptor.getFields()) {
+        Optional<QualifiedName> prefix=field.getPrefix();
+        if (!starPrefix.isPresent() || prefix.isPresent() && prefix.get().hasSuffix(starPrefix.get())) {
+          names.add(field.getAttribute());
+          expressions.add(new QualifiedNameReference(field.getSymbol().toQualifiedName()));
+        }
+      }
+    }
+ else {
+      Optional<String> alias=Optional.absent();
+      if (expression instanceof AliasedExpression) {
+        AliasedExpression aliased=(AliasedExpression)expression;
+        alias=Optional.of(aliased.getAlias());
+        expression=aliased.getExpression();
+      }
+ else       if (expression instanceof QualifiedNameReference) {
+        alias=Optional.of(((QualifiedNameReference)expression).getName().getSuffix());
+      }
+      names.add(alias);
+      expressions.add(expression);
+    }
+  }
+  BiMap<Symbol,AnalyzedExpression> assignments=HashBiMap.create();
+  ImmutableList.Builder<Symbol> symbols=ImmutableList.builder();
+  ImmutableList.Builder<Type> types=ImmutableList.builder();
+  for (  Expression expression : expressions.build()) {
+    AnalyzedExpression analysis=new ExpressionAnalyzer(metadata,allocator.getTypes()).analyze(expression,descriptor);
+    Symbol symbol;
+    if (assignments.containsValue(analysis)) {
+      symbol=assignments.inverse().get(analysis);
+    }
+ else {
+      symbol=allocator.newSymbol(analysis.getRewrittenExpression(),analysis.getType());
+      assignments.put(symbol,analysis);
+    }
+    symbols.add(symbol);
+    types.add(analysis.getType());
+  }
+  return new AnalyzedOutput(new TupleDescriptor(names.build(),symbols.build(),types.build()),assignments);
+}

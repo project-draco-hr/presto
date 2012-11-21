@@ -1,0 +1,18 @@
+{
+  Map<Symbol,Expression> preProjectAssignments=new HashMap<>();
+  for (  Symbol symbol : source.getOutputSymbols()) {
+    QualifiedNameReference expression=new QualifiedNameReference(symbol.toQualifiedName());
+    preProjectAssignments.put(symbol,expression);
+  }
+  List<Symbol> orderBySymbols=new ArrayList<>();
+  Map<Symbol,SortItem.Ordering> orderings=new HashMap<>();
+  for (  AnalyzedOrdering item : orderBy) {
+    Expression rewritten=TreeRewriter.rewriteWith(substitution(substitutions),item.getExpression().getRewrittenExpression());
+    Symbol symbol=allocator.newSymbol(rewritten,item.getExpression().getType());
+    orderBySymbols.add(symbol);
+    preProjectAssignments.put(symbol,rewritten);
+    orderings.put(symbol,item.getOrdering());
+  }
+  ProjectNode preProject=new ProjectNode(source,preProjectAssignments);
+  return new TopNNode(preProject,limit,orderBySymbols,orderings);
+}

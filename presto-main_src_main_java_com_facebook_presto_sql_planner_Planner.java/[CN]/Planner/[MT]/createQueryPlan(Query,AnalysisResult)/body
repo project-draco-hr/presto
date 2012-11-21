@@ -3,12 +3,12 @@
   if (analysis.getPredicate() != null) {
     root=createFilterPlan(root,analysis.getPredicate());
   }
-  Map<Expression,Slot> substitutions=new HashMap<>();
+  Map<Expression,Symbol> substitutions=new HashMap<>();
   if (!analysis.getAggregations().isEmpty()) {
-    root=createAggregatePlan(root,ImmutableList.copyOf(analysis.getOutputExpressions().values()),Lists.transform(analysis.getOrderBy(),expressionGetter()),analysis.getAggregations(),analysis.getGroupByExpressions(),analysis.getSlotAllocator(),substitutions);
+    root=createAggregatePlan(root,ImmutableList.copyOf(analysis.getOutputExpressions().values()),Lists.transform(analysis.getOrderBy(),expressionGetter()),analysis.getAggregations(),analysis.getGroupByExpressions(),analysis.getSymbolAllocator(),substitutions);
   }
   if (analysis.getLimit() != null && !analysis.getOrderBy().isEmpty()) {
-    root=createTopNPlan(root,analysis.getLimit(),analysis.getOrderBy(),analysis.getSlotAllocator(),substitutions);
+    root=createTopNPlan(root,analysis.getLimit(),analysis.getOrderBy(),analysis.getSymbolAllocator(),substitutions);
   }
   root=createProjectPlan(root,analysis.getOutputExpressions(),substitutions);
   if (analysis.getLimit() != null && analysis.getOrderBy().isEmpty()) {
