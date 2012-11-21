@@ -1,6 +1,9 @@
 {
   print(indent,"- Project => [%s]",formatOutputs(node.getOutputs()));
   for (  Map.Entry<Slot,Expression> entry : node.getOutputMap().entrySet()) {
+    if (entry.getValue() instanceof SlotReference && ((SlotReference)entry.getValue()).getSlot().equals(entry.getKey())) {
+      continue;
+    }
     print(indent + 2,"%s := %s",entry.getKey(),ExpressionFormatter.toString(entry.getValue()));
   }
   return processChildren(node,indent + 1);
