@@ -1,6 +1,7 @@
 {
   return new Function<PartitionChunk,SplitAssignments>(){
     @Override public SplitAssignments apply(    PartitionChunk chunk){
+      ImportClient importClient=importClientFactory.getClient(sourceName);
       Split split=new ImportSplit(sourceName,SerializedPartitionChunk.create(importClient,chunk));
       List<Node> nodes=limit(shuffle(nodeManager.getActiveNodes()),3);
       return new SplitAssignments(split,nodes);

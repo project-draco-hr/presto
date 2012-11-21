@@ -4,12 +4,17 @@
   checkNotNull(tableName,"tableName is null");
   checkNotNull(fields,"fields is null");
   checkArgument(!fields.isEmpty(),"fields is empty");
-  checkArgument(sourceName.equals("hive"),"bad source name: %s",sourceName);
   shardManager.createImportTable(tableId,sourceName,databaseName,tableName);
-  List<String> partitions=importClient.getPartitionNames(databaseName,tableName);
+  List<String> partitions=runWithRetryUnchecked(new Callable<List<String>>(){
+    @Override public List<String> call() throws Exception {
+      ImportClient importClient=importClientFactory.getClient(sourceName);
+      return importClient.getPartitionNames(databaseName,tableName);
+    }
+  }
+);
   log.debug("scheduling %s partitions: %s",partitions.size(),tableId);
   for (  String partition : partitions) {
-    PartitionChunkSupplier supplier=new PartitionChunkSupplier(importClient,databaseName,tableName,partition);
+    PartitionChunkSupplier supplier=new PartitionChunkSupplier(importClientFactory,sourceName,databaseName,tableName,partition);
     PartitionJob job=new PartitionJob(tableId,sourceName,partition,supplier,fields);
     partitionExecutor.execute(job);
   }

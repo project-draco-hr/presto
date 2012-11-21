@@ -1,16 +1,17 @@
 {
-  String sourceName=handle.getSourceName();
+  final String sourceName=handle.getSourceName();
   final String databaseName=handle.getDatabaseName();
   final String tableName=handle.getTableName();
-  checkArgument(sourceName.equals("hive"),"unsupported source name: %s",sourceName);
   final List<String> partitions=runWithRetryUnchecked(new Callable<List<String>>(){
     @Override public List<String> call() throws Exception {
+      ImportClient importClient=importClientFactory.getClient(sourceName);
       return importClient.getPartitionNames(databaseName,tableName);
     }
   }
 );
   Iterable<List<PartitionChunk>> chunks=runWithRetryUnchecked(new Callable<Iterable<List<PartitionChunk>>>(){
     @Override public Iterable<List<PartitionChunk>> call() throws Exception {
+      ImportClient importClient=importClientFactory.getClient(sourceName);
       return importClient.getPartitionChunks(databaseName,tableName,partitions);
     }
   }

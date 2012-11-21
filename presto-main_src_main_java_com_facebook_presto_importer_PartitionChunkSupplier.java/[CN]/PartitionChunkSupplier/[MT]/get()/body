@@ -1,10 +1,12 @@
 {
   List<PartitionChunk> chunks=runWithRetryUnchecked(new Callable<List<PartitionChunk>>(){
     @Override public List<PartitionChunk> call() throws Exception {
+      ImportClient importClient=importClientFactory.getClient(sourceName);
       return importClient.getPartitionChunks(databaseName,tableName,partitionName);
     }
   }
 );
+  ImportClient importClient=importClientFactory.getClient(sourceName);
   ImmutableList.Builder<SerializedPartitionChunk> serialized=ImmutableList.builder();
   for (  PartitionChunk chunk : chunks) {
     serialized.add(SerializedPartitionChunk.create(importClient,chunk));
