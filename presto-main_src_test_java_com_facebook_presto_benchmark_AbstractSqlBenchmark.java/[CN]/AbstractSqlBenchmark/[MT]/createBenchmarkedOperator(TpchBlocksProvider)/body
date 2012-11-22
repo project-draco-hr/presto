@@ -1,27 +1,5 @@
 {
-  LegacyStorageManager storage=new LegacyStorageManager(){
-    @Override public BlockIterable getBlocks(    String databaseName,    String tableName,    int fieldIndex){
-      Preconditions.checkArgument(SessionMetadata.DEFAULT_CATALOG.equals(databaseName),"Unknown database: %s",databaseName);
-      TpchSchema.Column[] columns;
-switch (tableName) {
-case "orders":
-        columns=TpchSchema.Orders.values();
-      break;
-case "lineitem":
-    columns=TpchSchema.LineItem.values();
-  break;
-default :
-throw new IllegalArgumentException("Unknown table: " + tableName);
-}
-for (TpchSchema.Column column : columns) {
-if (column.getIndex() == fieldIndex) {
-return provider.getBlocks(column,BlocksFileEncoding.RAW);
-}
-}
-throw new IllegalArgumentException("Unknown field index: " + fieldIndex);
-}
-}
-;
-ExecutionPlanner executionPlanner=new ExecutionPlanner(sessionMetadata,storage);
-return executionPlanner.plan(plan);
+  LegacyStorageManager storage=new TpchLegacyStorageManagerAdapter(new TpchDataStreamProvider(provider));
+  ExecutionPlanner executionPlanner=new ExecutionPlanner(sessionMetadata,storage);
+  return executionPlanner.plan(plan);
 }

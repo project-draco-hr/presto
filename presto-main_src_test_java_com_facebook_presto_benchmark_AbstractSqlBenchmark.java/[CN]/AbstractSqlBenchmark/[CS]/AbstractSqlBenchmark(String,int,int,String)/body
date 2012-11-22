@@ -1,13 +1,9 @@
 {
   super(benchmarkName,warmupIterations,measuredIterations);
-  Metadata metadata=new TestingMetadata();
-  List<TableMetadata> tables=ImmutableList.of(new TableMetadata(SessionMetadata.DEFAULT_CATALOG,SessionMetadata.DEFAULT_SCHEMA,"ORDERS",ImmutableList.of(new ColumnMetadata("orderkey",TupleInfo.Type.FIXED_INT_64),new ColumnMetadata("custkey",TupleInfo.Type.FIXED_INT_64),new ColumnMetadata("orderstatus",TupleInfo.Type.VARIABLE_BINARY),new ColumnMetadata("totalprice",TupleInfo.Type.DOUBLE),new ColumnMetadata("orderdate",TupleInfo.Type.VARIABLE_BINARY),new ColumnMetadata("orderpriority",TupleInfo.Type.VARIABLE_BINARY),new ColumnMetadata("clerk",TupleInfo.Type.VARIABLE_BINARY),new ColumnMetadata("shippriority",TupleInfo.Type.VARIABLE_BINARY),new ColumnMetadata("comment",TupleInfo.Type.VARIABLE_BINARY))),new TableMetadata(SessionMetadata.DEFAULT_CATALOG,SessionMetadata.DEFAULT_SCHEMA,"LINEITEM",ImmutableList.of(new ColumnMetadata("orderkey",TupleInfo.Type.FIXED_INT_64),new ColumnMetadata("partkey",TupleInfo.Type.FIXED_INT_64),new ColumnMetadata("suppkey",TupleInfo.Type.FIXED_INT_64),new ColumnMetadata("linenumber",TupleInfo.Type.FIXED_INT_64),new ColumnMetadata("quantity",TupleInfo.Type.FIXED_INT_64),new ColumnMetadata("extendedprice",TupleInfo.Type.DOUBLE),new ColumnMetadata("discount",TupleInfo.Type.DOUBLE),new ColumnMetadata("tax",TupleInfo.Type.DOUBLE),new ColumnMetadata("returnflag",TupleInfo.Type.VARIABLE_BINARY),new ColumnMetadata("linestatus",TupleInfo.Type.VARIABLE_BINARY),new ColumnMetadata("shipdate",TupleInfo.Type.VARIABLE_BINARY),new ColumnMetadata("commitdate",TupleInfo.Type.VARIABLE_BINARY),new ColumnMetadata("receiptdate",TupleInfo.Type.VARIABLE_BINARY),new ColumnMetadata("shipinstruct",TupleInfo.Type.VARIABLE_BINARY),new ColumnMetadata("shipmode",TupleInfo.Type.VARIABLE_BINARY),new ColumnMetadata("comment",TupleInfo.Type.VARIABLE_BINARY))));
-  for (  TableMetadata table : tables) {
-    metadata.createTable(table);
-  }
   try {
     Statement statement=SqlParser.createStatement(query);
-    sessionMetadata=new SessionMetadata(metadata);
+    sessionMetadata=new SessionMetadata(TpchSchema.createMetadata());
+    sessionMetadata.using(TpchSchema.CATALOG_NAME,TpchSchema.SCHEMA_NAME);
     AnalysisResult analysis=new Analyzer(sessionMetadata).analyze(statement);
     plan=new Planner().plan((Query)statement,analysis);
     new PlanPrinter().print(plan);

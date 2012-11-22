@@ -1,5 +1,7 @@
 {
-  BlockIterable totalPrice=inputStreamProvider.getBlocks(Orders.TOTALPRICE,BlocksFileEncoding.RAW);
-  AlignmentOperator alignmentOperator=new AlignmentOperator(totalPrice);
+  TpchTableHandle orders=tableHandle("orders");
+  TpchColumnHandle totalprice=columnHandle(orders,"totalprice");
+  BlockIterable blockIterable=blocksProvider.getBlocks(orders,totalprice,BlocksFileEncoding.RAW);
+  AlignmentOperator alignmentOperator=new AlignmentOperator(blockIterable);
   return new FilterAndProjectOperator(alignmentOperator,new DoubleFilter(50000.00),singleColumn(Type.DOUBLE,0,0));
 }

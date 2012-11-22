@@ -1,0 +1,22 @@
+{
+  checkNotNull(tableHandle,"tableHandle is null");
+  checkNotNull(columnHandle,"columnHandle is null");
+  checkNotNull(encoding,"encoding is null");
+  String tableName=tableHandle.getTableName();
+  try {
+    String hash=ByteStreams.hash(ByteStreams.slice(tableInputSupplierFactory.getInputSupplier(tableName),0,1024 * 1024),Hashing.murmur3_32()).toString();
+    File cachedFile=new File(new File(cacheDirectory,tableName + "-" + hash),"new-" + createFileName(columnHandle,encoding));
+    if (cachedFile.exists()) {
+      return cachedFile;
+    }
+    Files.createParentDirs(cachedFile);
+    InputSupplier<InputStream> inputSupplier=tableInputSupplierFactory.getInputSupplier(tableName);
+    DelimitedRecordIterable records=new DelimitedRecordIterable(newReaderSupplier(inputSupplier,UTF_8),Splitter.on("|"));
+    RecordProjectOperator source=new RecordProjectOperator(records,createProjection(columnHandle.getFieldIndex(),columnHandle.getType()));
+    ImportingOperator.importData(source,new BlocksFileWriter(encoding,newOutputStreamSupplier(cachedFile)));
+    return cachedFile;
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+}

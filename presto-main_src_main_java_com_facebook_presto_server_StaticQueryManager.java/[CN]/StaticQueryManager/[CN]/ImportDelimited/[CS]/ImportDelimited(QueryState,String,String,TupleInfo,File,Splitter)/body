@@ -1,0 +1,13 @@
+{
+  this.queryState=queryState;
+  this.databaseName=databaseName;
+  this.tableName=tableName;
+  ImmutableList.Builder<RecordProjection> builder=ImmutableList.builder();
+  for (int i=0; i < tupleInfo.getFieldCount(); i++) {
+    builder.add(RecordProjections.createProjection(i,tupleInfo.getTypes().get(i)));
+  }
+  List<RecordProjection> recordProjections=builder.build();
+  InputSupplier<InputStreamReader> readerSupplier=Files.newReaderSupplier(delimitedFile,Charsets.UTF_8);
+  DelimitedRecordIterable records=new DelimitedRecordIterable(readerSupplier,splitter);
+  source=new RecordProjectOperator(records,recordProjections);
+}

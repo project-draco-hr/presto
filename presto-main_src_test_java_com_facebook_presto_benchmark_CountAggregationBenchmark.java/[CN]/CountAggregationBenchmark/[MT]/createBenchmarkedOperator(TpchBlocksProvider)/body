@@ -1,5 +1,7 @@
 {
-  BlockIterable orderKey=inputStreamProvider.getBlocks(Orders.ORDERKEY,BlocksFileEncoding.RAW);
-  AlignmentOperator alignmentOperator=new AlignmentOperator(orderKey);
+  TpchTableHandle orders=tableHandle("orders");
+  TpchColumnHandle orderkey=columnHandle(orders,"orderkey");
+  BlockIterable blockIterable=blocksProvider.getBlocks(orders,orderkey,BlocksFileEncoding.RAW);
+  AlignmentOperator alignmentOperator=new AlignmentOperator(blockIterable);
   return new AggregationOperator(alignmentOperator,ImmutableList.of(singleNodeAggregation(countAggregation(0,0))),ImmutableList.of(singleColumn(Type.FIXED_INT_64,0,0)));
 }

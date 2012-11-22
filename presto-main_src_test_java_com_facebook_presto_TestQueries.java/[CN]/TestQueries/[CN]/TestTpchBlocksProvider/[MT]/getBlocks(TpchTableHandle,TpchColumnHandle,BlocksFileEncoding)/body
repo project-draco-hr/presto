@@ -1,0 +1,26 @@
+{
+  return new BlockIterable(){
+    @Override public TupleInfo getTupleInfo(){
+      return new TupleInfo(columnHandle.getType());
+    }
+    @Override public Iterator<Block> iterator(){
+      return new AbstractIterator<Block>(){
+        private final RecordIterator iterator=data.get(tableHandle.getTableName()).iterator();
+        private final RecordProjection projection=RecordProjections.createProjection(columnHandle.getFieldIndex(),columnHandle.getType());
+        @Override protected Block computeNext(){
+          BlockBuilder builder=new BlockBuilder(new TupleInfo(columnHandle.getType()));
+          while (iterator.hasNext() && !builder.isFull()) {
+            Record record=iterator.next();
+            projection.project(record,builder);
+          }
+          if (builder.isEmpty()) {
+            return endOfData();
+          }
+          return builder.build();
+        }
+      }
+;
+    }
+  }
+;
+}
