@@ -1,11 +1,19 @@
 {
-  if (!probeIterator.hasNext()) {
-    return endOfData();
-  }
   PageBuilder pageBuilder=new PageBuilder(tupleInfos);
-  while (!pageBuilder.isFull() && probeIterator.hasNext()) {
-    Page page=probeIterator.next();
-    join(page,pageBuilder);
+  while (joinPosition(pageBuilder)) {
+    if (cursors[0] == null || !advanceNextPosition()) {
+      if (!probeIterator.hasNext()) {
+        break;
+      }
+      Page page=probeIterator.next();
+      for (int i=0; i < page.getChannelCount(); i++) {
+        cursors[i]=page.getBlock(i).cursor();
+        cursors[i].advanceNextPosition();
+      }
+      UncompressedBlock probeJoinBlock=(UncompressedBlock)page.getBlock(probeJoinChannel);
+      hash.setProbeSlice(probeJoinBlock.getSlice());
+    }
+    joinPosition=hash.getJoinPosition(cursors[probeJoinChannel]);
   }
   if (pageBuilder.isEmpty()) {
     return endOfData();

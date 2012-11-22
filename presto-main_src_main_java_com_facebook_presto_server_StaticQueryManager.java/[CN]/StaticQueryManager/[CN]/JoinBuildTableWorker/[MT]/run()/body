@@ -1,0 +1,21 @@
+{
+  try {
+    List<Future<Void>> results=shardExecutor.invokeAll(Lists.transform(splits,new Function<Split,Callable<Void>>(){
+      @Override public Callable<Void> apply(      Split split){
+        return new SplitJoinBuildTableWorker(queryState,split,columnHandles,dataStreamProvider);
+      }
+    }
+));
+    checkQueryResults(results);
+    queryState.sourceFinished();
+  }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    queryState.queryFailed(e);
+    throw Throwables.propagate(e);
+  }
+catch (  Exception e) {
+    queryState.queryFailed(e);
+    throw Throwables.propagate(e);
+  }
+}

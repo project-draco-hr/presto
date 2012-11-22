@@ -1,0 +1,23 @@
+{
+  TableMetadata table=metadata.getTable("default","default","hivedba_query_stats");
+  Iterable<SplitAssignments> splitAssignments=splitManager.getSplitAssignments(table.getTableHandle().get());
+  final PlanFragment buildPlanFragment=null;
+  Multimap<Node,Split> nodeSplits=SplitAssignments.randomNodeAssignment(new Random(),splitAssignments);
+  List<HttpQueryProvider> queryProviders=ImmutableList.copyOf(transform(nodeSplits.asMap().entrySet(),new Function<Entry<Node,Collection<Split>>,HttpQueryProvider>(){
+    @Override public HttpQueryProvider apply(    Entry<Node,Collection<Split>> splits){
+      ImmutableMap<String,List<Split>> sources=ImmutableMap.<String,List<Split>>of("source",ImmutableList.copyOf(splits.getValue()));
+      QueryFragmentRequest queryFragmentRequest=new QueryFragmentRequest(sources,buildPlanFragment);
+      return new HttpQueryProvider(jsonBodyGenerator(codec,queryFragmentRequest),Optional.of(MediaType.APPLICATION_JSON),httpClient,executor,splits.getKey().getHttpUri().resolve("/v1/presto/query"));
+    }
+  }
+));
+  masterQueryState.addStage("join-build-worker",queryProviders);
+  waitForRunning(queryProviders);
+  List<Split> splits=ImmutableList.copyOf(Lists.transform(queryProviders,new Function<HttpQueryProvider,Split>(){
+    @Override public Split apply(    HttpQueryProvider queryProvider){
+      return new ExchangeSplit(queryProvider.getLocation());
+    }
+  }
+));
+  return splits;
+}

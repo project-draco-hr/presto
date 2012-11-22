@@ -1,0 +1,35 @@
+{
+  QueryState queryState=masterQueryState.getOutputQueryState();
+  try {
+    final List<Split> buildSplits=scheduleBuildTableScan();
+    final TableMetadata table=metadata.getTable("default","default","hivedba_query_stats");
+    Iterable<SplitAssignments> splitAssignments=splitManager.getSplitAssignments(table.getTableHandle().get());
+    final PlanFragment planFragment=null;
+    Multimap<Node,Split> nodeSplits=SplitAssignments.randomNodeAssignment(new Random(),splitAssignments);
+    List<HttpQueryProvider> driverProviders=ImmutableList.copyOf(transform(nodeSplits.asMap().entrySet(),new Function<Entry<Node,Collection<Split>>,HttpQueryProvider>(){
+      @Override public HttpQueryProvider apply(      Entry<Node,Collection<Split>> splits){
+        ImmutableMap<String,List<Split>> sources=ImmutableMap.<String,List<Split>>of("probe",ImmutableList.copyOf(splits.getValue()),"build",ImmutableList.copyOf(buildSplits));
+        QueryFragmentRequest queryFragmentRequest=new QueryFragmentRequest(sources,planFragment);
+        return new HttpQueryProvider(jsonBodyGenerator(codec,queryFragmentRequest),Optional.of(MediaType.APPLICATION_JSON),httpClient,executor,splits.getKey().getHttpUri().resolve("/v1/presto/query"));
+      }
+    }
+));
+    masterQueryState.addStage("join-worker",driverProviders);
+    waitForRunning(driverProviders);
+    QueryDriversOperator operator=new QueryDriversOperator(10,driverProviders);
+    AggregationOperator aggregation=new AggregationOperator(operator,ImmutableList.of(finalAggregation(countAggregation(0,0)),finalAggregation(longSumAggregation(1,0)),finalAggregation(longSumAggregation(2,0))),ImmutableList.of(concat(singleColumn(FIXED_INT_64,0,0),singleColumn(FIXED_INT_64,1,0),singleColumn(FIXED_INT_64,2,0))));
+    for (    Page page : aggregation) {
+      queryState.addPage(page);
+    }
+    queryState.sourceFinished();
+  }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    queryState.queryFailed(e);
+    throw Throwables.propagate(e);
+  }
+catch (  Exception e) {
+    queryState.queryFailed(e);
+    throw Throwables.propagate(e);
+  }
+}

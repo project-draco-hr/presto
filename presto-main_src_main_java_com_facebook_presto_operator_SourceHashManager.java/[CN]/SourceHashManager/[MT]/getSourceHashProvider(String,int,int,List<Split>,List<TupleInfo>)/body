@@ -1,0 +1,15 @@
+{
+  SourceHashProvider sourceHashProvider=hashProvidersByQueryId.get(queryId);
+  if (sourceHashProvider == null) {
+    QueryDriversOperator operator=new QueryDriversOperator(10,Iterables.transform(splits,new Function<Split,QueryDriverProvider>(){
+      @Override public QueryDriverProvider apply(      Split split){
+        ExchangeSplit exchangeSplit=(ExchangeSplit)split;
+        return new HttpQueryProvider(httpClient,executor,exchangeSplit.getLocation(),outputTupleInfos);
+      }
+    }
+));
+    sourceHashProvider=new SourceHashProvider(operator,hashChannel,expectedPositions);
+    hashProvidersByQueryId.put(queryId,sourceHashProvider);
+  }
+  return sourceHashProvider;
+}
