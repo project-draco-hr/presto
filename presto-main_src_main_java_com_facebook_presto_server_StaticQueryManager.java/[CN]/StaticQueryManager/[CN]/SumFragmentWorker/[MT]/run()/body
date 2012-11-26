@@ -1,10 +1,12 @@
 {
   try {
-    Operator dataStream=dataStreamProvider.createDataStream(split,columnHandles);
-    HashAggregationOperator sumOperator=new HashAggregationOperator(dataStream,0,ImmutableList.of(partialAggregation(longSumAggregation(1,0))),ImmutableList.of(singleColumn(VARIABLE_BINARY,0,0),singleColumn(FIXED_INT_64,1,0)));
-    for (    Page page : sumOperator) {
-      queryState.addPage(page);
+    List<Future<Void>> results=shardExecutor.invokeAll(Lists.transform(splits,new Function<Split,Callable<Void>>(){
+      @Override public Callable<Void> apply(      Split split){
+        return new SplitSumFragmentWorker(queryState,split,columnHandles,dataStreamProvider);
+      }
     }
+));
+    checkQueryResults(results);
     queryState.sourceFinished();
   }
  catch (  InterruptedException e) {

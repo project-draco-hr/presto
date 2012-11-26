@@ -4,12 +4,12 @@
   QueryTask queryTask;
 switch (planFragment.getQuery()) {
 case "sum-frag-worker":
-    queryTask=new SumFragmentWorker(queryState,split,planFragment.getColumnHandles(),dataStreamProvider);
+    queryTask=new SumFragmentWorker(queryState,splits,planFragment.getColumnHandles(),dataStreamProvider,shardExecutor);
   break;
 default :
 throw new IllegalArgumentException("Unsupported fragment query: " + planFragment.getQuery());
 }
 queries.put(queryId,queryState);
-slaveExecutor.submit(queryTask);
+queryExecutor.submit(queryTask);
 return new QueryInfo(queryId,queryTask.getTupleInfos());
 }

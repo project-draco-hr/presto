@@ -1,8 +1,9 @@
 {
   Preconditions.checkArgument(pageBufferMax > 0,"blockBufferMax must be at least 1");
   this.pageBufferMax=pageBufferMax;
-  masterExecutor=Executors.newFixedThreadPool(10,threadsNamed("master-query-processor-%d"));
-  slaveExecutor=Executors.newFixedThreadPool(1000,threadsNamed("slave-query-processor-%d"));
+  int processors=Runtime.getRuntime().availableProcessors();
+  queryExecutor=new ThreadPoolExecutor(processors,1000,1,TimeUnit.MINUTES,new LinkedBlockingQueue<Runnable>(),threadsNamed("query-processor-%d"));
+  shardExecutor=new ThreadPoolExecutor(processors,processors,1,TimeUnit.MINUTES,new SynchronousQueue<Runnable>(),threadsNamed("shard-query-processor-%d"),new ThreadPoolExecutor.CallerRunsPolicy());
   this.importClientFactory=importClientFactory;
   this.importManager=importManager;
   this.metadata=metadata;

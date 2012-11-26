@@ -1,0 +1,18 @@
+{
+  RuntimeException queryFailedException=null;
+  for (  Future<Void> result : results) {
+    try {
+      result.get();
+    }
+ catch (    ExecutionException e) {
+      if (queryFailedException == null) {
+        queryFailedException=new RuntimeException("Query failed");
+      }
+      Throwable cause=e.getCause();
+      queryFailedException.addSuppressed(cause);
+    }
+  }
+  if (queryFailedException != null) {
+    throw queryFailedException;
+  }
+}
