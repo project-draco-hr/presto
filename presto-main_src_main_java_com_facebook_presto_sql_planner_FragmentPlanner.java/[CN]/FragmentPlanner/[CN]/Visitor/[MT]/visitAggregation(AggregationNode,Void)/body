@@ -1,0 +1,22 @@
+{
+  PlanFragmentBuilder current=node.getSource().accept(this,context);
+  if (!current.isPartitioned()) {
+    current.setRoot(new AggregationNode(current.getRoot(),node.getGroupBy(),node.getAggregations(),node.getFunctionInfos(),SINGLE));
+    return current;
+  }
+  Map<Symbol,FunctionCall> finalCalls=new HashMap<>();
+  Map<Symbol,FunctionCall> intermediateCalls=new HashMap<>();
+  Map<Symbol,FunctionInfo> intermediateInfos=new HashMap<>();
+  for (  Map.Entry<Symbol,FunctionCall> entry : node.getAggregations().entrySet()) {
+    FunctionInfo info=node.getFunctionInfos().get(entry.getKey());
+    Symbol intermediateSymbol=allocator.newSymbol(info.getName().getSuffix(),Type.fromRaw(info.getIntermediateType()));
+    intermediateCalls.put(intermediateSymbol,entry.getValue());
+    intermediateInfos.put(intermediateSymbol,info);
+    finalCalls.put(entry.getKey(),new FunctionCall(info.getName(),ImmutableList.<Expression>of(new QualifiedNameReference(intermediateSymbol.toQualifiedName()))));
+  }
+  current.setRoot(new AggregationNode(current.getRoot(),node.getGroupBy(),intermediateCalls,intermediateInfos,PARTIAL));
+  ExchangeNode source=new ExchangeNode(current.getId(),current.getRoot().getOutputSymbols());
+  AggregationNode merged=new AggregationNode(source,node.getGroupBy(),finalCalls,node.getFunctionInfos(),FINAL);
+  current=newPlanFragment(merged,false);
+  return current;
+}

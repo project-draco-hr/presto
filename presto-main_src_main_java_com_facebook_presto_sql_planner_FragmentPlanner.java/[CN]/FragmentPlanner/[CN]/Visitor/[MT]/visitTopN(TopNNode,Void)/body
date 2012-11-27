@@ -1,0 +1,10 @@
+{
+  PlanFragmentBuilder current=node.getSource().accept(this,context);
+  current.setRoot(new TopNNode(current.getRoot(),node.getCount(),node.getOrderBy(),node.getOrderings()));
+  if (current.isPartitioned()) {
+    PlanNode source=new ExchangeNode(current.getId(),current.getRoot().getOutputSymbols());
+    TopNNode merge=new TopNNode(source,node.getCount(),node.getOrderBy(),node.getOrderings());
+    current=newPlanFragment(merge,false);
+  }
+  return current;
+}
