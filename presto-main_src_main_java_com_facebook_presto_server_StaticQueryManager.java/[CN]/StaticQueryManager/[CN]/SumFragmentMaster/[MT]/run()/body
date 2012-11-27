@@ -5,7 +5,7 @@
     Multimap<Node,Split> nodeSplits=SplitAssignments.randomNodeAssignment(new Random(),splitAssignments);
     QueryDriversOperator operator=new QueryDriversOperator(10,Iterables.transform(nodeSplits.asMap().entrySet(),new Function<Entry<Node,Collection<Split>>,QueryDriverProvider>(){
       @Override public QueryDriverProvider apply(      Entry<Node,Collection<Split>> splits){
-        QueryFragmentRequest queryFragmentRequest=new QueryFragmentRequest(ImmutableList.copyOf(splits.getValue()),new PlanFragment("sum-frag-worker",ImmutableList.of(table.getColumns().get(2).getColumnHandle().get(),table.getColumns().get(6).getColumnHandle().get())));
+        QueryFragmentRequest queryFragmentRequest=new QueryFragmentRequest(ImmutableMap.<String,List<Split>>of("source",ImmutableList.copyOf(splits.getValue())),new PlanFragment("sum-frag-worker",ImmutableList.of(table.getColumns().get(2).getColumnHandle().get(),table.getColumns().get(6).getColumnHandle().get())));
         return new HttpQueryProvider(JsonBodyGenerator.jsonBodyGenerator(codec,queryFragmentRequest),Optional.of(MediaType.APPLICATION_JSON),asyncHttpClient,splits.getKey().getHttpUri().resolve("/v1/presto/query"),ImmutableList.of(SINGLE_VARBINARY,SINGLE_LONG));
       }
     }
