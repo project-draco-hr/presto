@@ -1,0 +1,26 @@
+{
+  while (true) {
+    long start=System.nanoTime();
+    queryProviders=ImmutableList.copyOf(Iterables.filter(queryProviders,new Predicate<HttpQueryProvider>(){
+      @Override public boolean apply(      HttpQueryProvider queryProvider){
+        QueryInfo queryInfo=queryProvider.getQueryInfo();
+        return queryInfo.getState() == State.PREPARING;
+      }
+    }
+));
+    if (queryProviders.isEmpty()) {
+      return;
+    }
+    Duration duration=Duration.nanosSince(start);
+    long waitTime=(long)(100 - duration.toMillis());
+    if (waitTime > 0) {
+      try {
+        Thread.sleep(waitTime);
+      }
+ catch (      InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw Throwables.propagate(e);
+      }
+    }
+  }
+}
