@@ -2,10 +2,9 @@
   Preconditions.checkNotNull(query,"query is null");
   Preconditions.checkArgument(query.length() > 0,"query must not be empty string");
   String queryId=String.valueOf(nextQueryId++);
-  final QueryState queryState=new QueryState(1,pageBufferMax);
   ImmutableList<String> strings=ImmutableList.copyOf(Splitter.on(":").split(query));
   String queryBase=strings.get(0);
-  QueryTask queryTask;
+  MasterQueryTask queryTask;
 switch (queryBase) {
 case "import-delimited":
     List<Type> types=ImmutableList.copyOf(transform(Splitter.on(",").split(strings.get(2)),new Function<String,Type>(){
@@ -14,18 +13,20 @@ case "import-delimited":
       }
     }
 ));
-  queryTask=new ImportDelimited(queryState,strings.get(1),strings.get(2),new TupleInfo(types),new File(strings.get(3)),Splitter.on(strings.get(4)));
+  queryTask=new ImportDelimited(queryId,pageBufferMax,strings.get(1),strings.get(2),new TupleInfo(types),new File(strings.get(3)),Splitter.on(strings.get(4)));
 break;
 case "import-table":
-queryTask=new ImportTableQuery(queryState,importClientFactory,importManager,metadata,strings.get(1),strings.get(2),strings.get(3));
+queryTask=new ImportTableQuery(queryId,pageBufferMax,importClientFactory,importManager,metadata,strings.get(1),strings.get(2),strings.get(3));
 break;
 case "sum-frag":
-queryTask=new SumFragmentMaster(queryState,queryExecutor,metadata,splitManager,queryFragmentRequestJsonCodec,strings.get(1));
+queryTask=new SumFragmentMaster(queryId,pageBufferMax,queryExecutor,metadata,splitManager,queryFragmentRequestJsonCodec,strings.get(1));
 break;
 default :
 throw new IllegalArgumentException("Unsupported query " + query);
 }
-queries.put(queryId,queryState);
+MasterQueryState masterQueryState=queryTask.getMasterQueryState();
+masterQueries.put(queryId,masterQueryState);
+queries.put(queryId,masterQueryState.getOutputQueryState());
 queryExecutor.submit(queryTask);
-return new QueryInfo(queryId,queryTask.getTupleInfos());
+return new QueryInfo(queryId,queryTask.getTupleInfos(),State.PREPARING,0);
 }

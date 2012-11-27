@@ -1,7 +1,11 @@
 {
   URI location=client.execute(preparePost().setUri(uriFor("/v1/presto/query")).build(),new CreatedResponseHandler());
+  assertQueryStatus(location,State.RUNNING);
   assertEquals(loadData(location),220);
+  assertQueryStatus(location,State.RUNNING);
   assertEquals(loadData(location),44 + 48);
-  StatusResponse response=client.execute(prepareDelete().setUri(location).build(),StatusResponseHandler.createStatusResponseHandler());
+  assertQueryStatus(location,State.FINISHED);
+  StatusResponse response=client.execute(prepareDelete().setUri(location).build(),createStatusResponseHandler());
+  assertQueryStatus(location,State.FINISHED);
   assertEquals(response.getStatusCode(),Status.NO_CONTENT.getStatusCode());
 }
