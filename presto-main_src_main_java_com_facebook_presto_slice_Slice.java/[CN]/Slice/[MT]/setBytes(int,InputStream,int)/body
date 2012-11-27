@@ -1,0 +1,17 @@
+{
+  checkIndexLength(index,length);
+  byte[] bytes=new byte[4096];
+  int remaining=length;
+  while (remaining > 0) {
+    int bytesRead=in.read(bytes,0,Math.min(bytes.length,remaining));
+    if (bytesRead < 0) {
+      if (remaining == length) {
+        return -1;
+      }
+      break;
+    }
+    unsafe.copyMemory(bytes,BYTE_ARRAY_OFFSET,base,address + index,bytesRead);
+    remaining-=bytesRead;
+  }
+  return length - remaining;
+}

@@ -2,8 +2,21 @@
   if (existingSlice == null) {
     return EMPTY_SLICE;
   }
-  if (existingSlice instanceof ByteArraySlice) {
-    return ensureSize((ByteArraySlice)existingSlice,minWritableBytes);
+  if (minWritableBytes <= existingSlice.length()) {
+    return existingSlice;
   }
-  return ensureSize(new ByteArraySlice(existingSlice.getBytes()),minWritableBytes);
+  int newCapacity;
+  if (existingSlice.length() == 0) {
+    newCapacity=1;
+  }
+ else {
+    newCapacity=existingSlice.length();
+  }
+  int minNewCapacity=existingSlice.length() + minWritableBytes;
+  while (newCapacity < minNewCapacity) {
+    newCapacity<<=1;
+  }
+  Slice newSlice=Slices.allocate(newCapacity);
+  newSlice.setBytes(0,existingSlice,0,existingSlice.length());
+  return newSlice;
 }
