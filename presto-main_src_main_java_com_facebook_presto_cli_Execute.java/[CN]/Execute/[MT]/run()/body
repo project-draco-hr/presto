@@ -5,8 +5,18 @@
   try {
     long start=System.nanoTime();
     ApacheHttpClient httpClient=new ApacheHttpClient(new HttpClientConfig().setConnectTimeout(new Duration(1,TimeUnit.MINUTES)).setReadTimeout(new Duration(30,TimeUnit.MINUTES)));
-    AsyncHttpClient asyncHttpClient=new AsyncHttpClient(httpClient,executor);
     queryProvider=new HttpQueryProvider(createStaticBodyGenerator(query,Charsets.UTF_8),Optional.<String>absent(),httpClient,executor,server);
+    try {
+      for (QueryInfo queryInfo=queryProvider.getQueryInfo(); queryInfo.getState() == State.PREPARING; queryInfo=queryProvider.getQueryInfo()) {
+        System.err.print("\r" + toInfoString(queryInfo,start));
+        System.err.flush();
+        Uninterruptibles.sleepUninterruptibly(50,TimeUnit.MILLISECONDS);
+      }
+    }
+  finally {
+      System.err.println("\r");
+      System.err.flush();
+    }
     QueryDriversOperator operator=new QueryDriversOperator(10,queryProvider);
     Utils.printResults(start,operator);
   }

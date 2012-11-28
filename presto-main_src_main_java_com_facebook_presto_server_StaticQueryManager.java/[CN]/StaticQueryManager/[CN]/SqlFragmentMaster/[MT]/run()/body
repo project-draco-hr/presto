@@ -13,9 +13,9 @@
     }
 ));
     masterQueryState.addStage("sql-frag-worker",providers);
-    waitForRunning(providers);
     QueryDriversOperator operator=new QueryDriversOperator(10,providers);
     ExecutionPlanner executionPlanner=new ExecutionPlanner(sessionMetadata,null,top.getSymbols(),ImmutableMap.<Integer,Operator>of(bottom.getId(),operator),null);
+    Uninterruptibles.sleepUninterruptibly(3,TimeUnit.SECONDS);
     Operator aggregation=executionPlanner.plan(top.getRoot());
     for (    Page page : aggregation) {
       queryState.addPage(page);
