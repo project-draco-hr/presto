@@ -1,14 +1,7 @@
 {
   String queryId=String.valueOf(nextQueryId++);
-  QueryTask queryTask;
-switch (planFragment.getQuery()) {
-case "sum-frag-worker":
-    queryTask=new SumFragmentWorker(pageBufferMax,sourceSplits,planFragment.getColumnHandles(),dataStreamProvider,shardExecutor);
-  break;
-default :
-throw new IllegalArgumentException("Unsupported fragment query: " + planFragment.getQuery());
-}
-queries.put(queryId,queryTask.getQueryState());
-queryExecutor.submit(queryTask);
-return new QueryInfo(queryId,queryTask.getTupleInfos(),State.PREPARING,0);
+  QueryTask queryTask=new FragmentWorker(pageBufferMax,planFragment,sourceSplits,dataStreamProvider,metadata,shardExecutor);
+  queries.put(queryId,queryTask.getQueryState());
+  queryExecutor.submit(queryTask);
+  return new QueryInfo(queryId,queryTask.getTupleInfos(),State.PREPARING,0);
 }

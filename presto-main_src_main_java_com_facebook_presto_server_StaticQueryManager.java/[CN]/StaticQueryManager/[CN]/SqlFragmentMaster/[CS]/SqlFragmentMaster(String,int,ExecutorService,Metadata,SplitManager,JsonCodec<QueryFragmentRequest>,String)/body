@@ -1,0 +1,34 @@
+{
+  this.executor=executor;
+  this.codec=codec;
+  httpClient=new ApacheHttpClient(new HttpClientConfig().setConnectTimeout(new Duration(5,TimeUnit.MINUTES)).setReadTimeout(new Duration(5,TimeUnit.MINUTES)));
+  this.splitManager=splitManager;
+  try {
+    Statement statement;
+    try {
+      statement=SqlParser.createStatement(sql);
+    }
+ catch (    RecognitionException e) {
+      throw Throwables.propagate(e);
+    }
+    sessionMetadata=new SessionMetadata(metadata);
+    Analyzer analyzer=new Analyzer(sessionMetadata);
+    final AnalysisResult analysis=analyzer.analyze(statement);
+    Planner planner=new Planner();
+    PlanNode plan=planner.plan((Query)statement,analysis);
+    fragments=new FragmentPlanner(sessionMetadata).createFragments(plan,analysis.getSymbolAllocator(),false);
+    Preconditions.checkArgument(fragments.size() == 2,"Distributed plans with more than 2 levels not yet supported");
+  }
+ catch (  Exception e) {
+    throw Throwables.propagate(e);
+  }
+  PlanFragment top=fragments.get(1);
+  List<TupleInfo> tupleInfos=ImmutableList.copyOf(IterableTransformer.on(top.getRoot().getOutputSymbols()).transform(Functions.forMap(top.getSymbols())).transform(com.facebook.presto.sql.compiler.Type.toRaw()).transform(new Function<Type,TupleInfo>(){
+    @Override public TupleInfo apply(    Type input){
+      return new TupleInfo(input);
+    }
+  }
+).list());
+  this.masterQueryState=new MasterQueryState(queryId,new QueryState(tupleInfos,1,pageBufferMax));
+  queryState=masterQueryState.getOutputQueryState();
+}
