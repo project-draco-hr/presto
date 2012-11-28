@@ -5,25 +5,27 @@
   ImmutableList<String> strings=ImmutableList.copyOf(Splitter.on(":").split(query));
   String queryBase=strings.get(0);
   MasterQueryTask queryTask;
+  if (query.startsWith("sql:")) {
+    String sql=query.substring("sql:".length());
+    queryTask=new SqlFragmentMaster(queryId,pageBufferMax,queryExecutor,metadata,splitManager,queryFragmentRequestJsonCodec,sql);
+  }
+ else {
 switch (queryBase) {
 case "import-delimited":
-    List<Type> types=ImmutableList.copyOf(transform(Splitter.on(",").split(strings.get(2)),new Function<String,Type>(){
-      @Override public Type apply(      String input){
-        return Type.fromName(input);
+      List<Type> types=ImmutableList.copyOf(transform(Splitter.on(",").split(strings.get(2)),new Function<String,Type>(){
+        @Override public Type apply(        String input){
+          return Type.fromName(input);
+        }
       }
-    }
 ));
-  queryTask=new ImportDelimited(queryId,pageBufferMax,strings.get(1),strings.get(2),new TupleInfo(types),new File(strings.get(3)),Splitter.on(strings.get(4)));
-break;
+    queryTask=new ImportDelimited(queryId,pageBufferMax,strings.get(1),strings.get(2),new TupleInfo(types),new File(strings.get(3)),Splitter.on(strings.get(4)));
+  break;
 case "import-table":
 queryTask=new ImportTableQuery(queryId,pageBufferMax,importClientFactory,importManager,metadata,strings.get(1),strings.get(2),strings.get(3));
 break;
-case "sql":
-String sql=Joiner.on(':').join(strings.subList(1,strings.size()));
-queryTask=new SqlFragmentMaster(queryId,pageBufferMax,queryExecutor,metadata,splitManager,queryFragmentRequestJsonCodec,sql);
-break;
 default :
 throw new IllegalArgumentException("Unsupported query " + query);
+}
 }
 MasterQueryState masterQueryState=queryTask.getMasterQueryState();
 masterQueries.put(queryId,masterQueryState);
