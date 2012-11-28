@@ -1,0 +1,18 @@
+{
+  Map<Integer,PlanFragment> fragmentsById=Maps.uniqueIndex(fragments,new Function<PlanFragment,Integer>(){
+    @Override public Integer apply(    PlanFragment input){
+      return input.getId();
+    }
+  }
+);
+  StringBuilder output=new StringBuilder();
+  output.append("digraph Plan {").append('\n');
+  for (  PlanFragment fragment : fragments) {
+    printFragmentNodes(output,fragment);
+  }
+  for (  PlanFragment fragment : fragments) {
+    fragment.getRoot().accept(new EdgePrinter(output,fragmentsById),null);
+  }
+  output.append("}").append('\n');
+  return output.toString();
+}

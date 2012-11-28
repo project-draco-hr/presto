@@ -1,0 +1,12 @@
+{
+  StringBuilder builder=new StringBuilder();
+  for (  Map.Entry<Symbol,Expression> entry : node.getOutputMap().entrySet()) {
+    if (entry.getValue() instanceof QualifiedNameReference && ((QualifiedNameReference)entry.getValue()).getName().equals(entry.getKey().toQualifiedName())) {
+      continue;
+    }
+    String expression=ExpressionFormatter.toString(entry.getValue());
+    builder.append(format("%s := %s\\n",entry.getKey(),expression));
+  }
+  printNode(node,"Project",builder.toString());
+  return node.getSource().accept(this,context);
+}
