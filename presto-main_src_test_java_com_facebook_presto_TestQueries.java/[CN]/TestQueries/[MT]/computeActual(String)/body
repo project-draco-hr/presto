@@ -13,7 +13,12 @@
   Planner planner=new Planner();
   PlanNode plan=planner.plan((Query)statement,analysis);
   new PlanPrinter().print(plan,analysis.getTypes());
-  ExecutionPlanner executionPlanner=new ExecutionPlanner(new SessionMetadata(metadata),storage,analysis);
+  FragmentPlanner fragmentPlanner=new FragmentPlanner(sessionMetadata);
+  List<PlanFragment> fragments=fragmentPlanner.createFragments(plan,analysis.getSymbolAllocator(),true);
+  TableScan tableScan=(TableScan)Iterables.getOnlyElement(fragments).getSources().get(0);
+  TpchTableHandle table=(TpchTableHandle)tableScan.getTable();
+  Split split=new TpchSplit(table);
+  ExecutionPlanner executionPlanner=new ExecutionPlanner(new SessionMetadata(metadata),dataProvider,analysis,split);
   Operator operator=executionPlanner.plan(plan);
   TupleInfo outputTupleInfo=ExecutionPlanner.toTupleInfo(analysis,plan.getOutputSymbols());
   ImmutableList.Builder<Tuple> output=ImmutableList.builder();

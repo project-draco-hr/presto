@@ -1,15 +1,10 @@
 {
   TupleDescriptor descriptor=analysis.getTableDescriptor(table);
-  ImmutableMap.Builder<String,Symbol> attributes=ImmutableMap.builder();
+  TableMetadata metadata=analysis.getTableMetadata(table);
+  ImmutableMap.Builder<Symbol,ColumnHandle> columns=ImmutableMap.builder();
   List<Field> fields=descriptor.getFields();
   for (  Field field : fields) {
-    Symbol symbol=field.getSymbol();
-    String attribute=field.getAttribute().get();
-    attributes.put(attribute,symbol);
+    columns.put(field.getSymbol(),field.getColumn().get());
   }
-  QualifiedName tableFullName=Iterables.getFirst(fields,null).getPrefix().get();
-  String catalogName=tableFullName.getParts().get(0);
-  String schemaName=tableFullName.getParts().get(1);
-  String tableName=tableFullName.getParts().get(2);
-  return new TableScan(catalogName,schemaName,tableName,attributes.build());
+  return new TableScan(metadata.getTableHandle().get(),columns.build());
 }

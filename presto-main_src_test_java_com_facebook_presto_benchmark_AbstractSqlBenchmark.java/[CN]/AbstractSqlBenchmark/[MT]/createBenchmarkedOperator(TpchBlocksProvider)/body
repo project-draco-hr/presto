@@ -1,5 +1,5 @@
 {
-  LegacyStorageManager storage=new TpchLegacyStorageManagerAdapter(new TpchDataStreamProvider(provider));
-  ExecutionPlanner executionPlanner=new ExecutionPlanner(sessionMetadata,storage,analysis);
-  return executionPlanner.plan(plan);
+  TpchTableHandle table=(TpchTableHandle)((TableScan)Iterables.getOnlyElement(fragment.getSources())).getTable();
+  ExecutionPlanner executionPlanner=new ExecutionPlanner(sessionMetadata,new TpchDataStreamProvider(provider),analysis,new TpchSplit(table));
+  return executionPlanner.plan(fragment.getRoot());
 }

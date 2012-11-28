@@ -5,8 +5,9 @@
     sessionMetadata=new SessionMetadata(TpchSchema.createMetadata());
     sessionMetadata.using(TpchSchema.CATALOG_NAME,TpchSchema.SCHEMA_NAME);
     analysis=new Analyzer(sessionMetadata).analyze(statement);
-    plan=new Planner().plan((Query)statement,analysis);
-    new PlanPrinter().print(plan,analysis.getTypes());
+    PlanNode plan=new Planner().plan((Query)statement,analysis);
+    fragment=Iterables.getOnlyElement(new FragmentPlanner(sessionMetadata).createFragments(plan,analysis.getSymbolAllocator(),true));
+    new PlanPrinter().print(fragment.getRoot(),analysis.getTypes());
   }
  catch (  RecognitionException e) {
     throw Throwables.propagate(e);
