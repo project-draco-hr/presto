@@ -1,0 +1,8 @@
+{
+  node.getLeft().accept(this,context);
+  node.getRight().accept(this,context);
+  Set<Symbol> dependencies=new DependencyExtractor().extract(node.getCriteria());
+  Set<Symbol> sourceSymbols=ImmutableSet.copyOf(Iterables.concat(node.getLeft().getOutputSymbols(),node.getRight().getOutputSymbols()));
+  Preconditions.checkArgument(sourceSymbols.containsAll(dependencies),"Invalid node. Join criteria dependencies (%s) not in source plan output (%s)",dependencies,sourceSymbols);
+  return null;
+}

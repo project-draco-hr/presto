@@ -1,0 +1,9 @@
+{
+  PlanNode source=node.getSource();
+  source.accept(this,context);
+  for (  Expression expression : node.getExpressions()) {
+    Set<Symbol> dependencies=new DependencyExtractor().extract(expression);
+    Preconditions.checkArgument(source.getOutputSymbols().containsAll(dependencies),"Invalid node. Expression dependencies (%s) not in source plan output (%s)",dependencies,node.getSource().getOutputSymbols());
+  }
+  return null;
+}

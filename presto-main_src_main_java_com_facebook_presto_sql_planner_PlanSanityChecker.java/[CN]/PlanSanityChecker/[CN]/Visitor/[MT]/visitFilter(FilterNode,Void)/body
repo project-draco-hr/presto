@@ -1,0 +1,8 @@
+{
+  PlanNode source=node.getSource();
+  source.accept(this,context);
+  Preconditions.checkArgument(source.getOutputSymbols().containsAll(node.getOutputSymbols()),"Invalid node. Output symbols (%s) not in source plan output (%s)",node.getOutputSymbols(),node.getSource().getOutputSymbols());
+  Set<Symbol> dependencies=new DependencyExtractor().extract(node.getPredicate());
+  Preconditions.checkArgument(source.getOutputSymbols().containsAll(dependencies),"Invalid node. Predicate dependencies (%s) not in source plan output (%s)",dependencies,node.getSource().getOutputSymbols());
+  return null;
+}
