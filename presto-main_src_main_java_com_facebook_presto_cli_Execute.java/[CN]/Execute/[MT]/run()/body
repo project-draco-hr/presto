@@ -5,7 +5,8 @@
     long start=System.nanoTime();
     ApacheHttpClient httpClient=new ApacheHttpClient(new HttpClientConfig().setConnectTimeout(new Duration(1,TimeUnit.MINUTES)).setReadTimeout(new Duration(30,TimeUnit.MINUTES)));
     AsyncHttpClient asyncHttpClient=new AsyncHttpClient(httpClient,executor);
-    QueryDriversOperator operator=new QueryDriversOperator(10,new CliHttpQueryProvider(query,asyncHttpClient,server));
+    HttpQueryProvider queryProvider=new HttpQueryProvider(createStaticBodyGenerator(query,Charsets.UTF_8),Optional.<String>absent(),asyncHttpClient,server);
+    QueryDriversOperator operator=new QueryDriversOperator(10,queryProvider);
     Utils.printResults(start,operator);
   }
   finally {

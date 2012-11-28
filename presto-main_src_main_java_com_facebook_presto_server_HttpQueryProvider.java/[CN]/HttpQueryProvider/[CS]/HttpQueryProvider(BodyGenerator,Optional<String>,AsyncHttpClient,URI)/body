@@ -1,0 +1,26 @@
+{
+  checkNotNull(bodyGenerator,"bodyGenerator is null");
+  checkNotNull(mediaType,"mediaType is null");
+  checkNotNull(httpClient,"httpClient is null");
+  this.httpClient=httpClient;
+  Request.Builder requestBuilder=preparePost().setUri(uri).setBodyGenerator(bodyGenerator);
+  if (mediaType.isPresent()) {
+    requestBuilder.setHeader(HttpHeaders.CONTENT_TYPE,mediaType.get());
+  }
+  Request request=requestBuilder.build();
+  try {
+    JsonResponse<QueryInfo> response=httpClient.execute(request,createFullJsonResponseHandler(jsonCodec(QueryInfo.class))).get();
+    Preconditions.checkState(response.getStatusCode() == 201);
+    String location=response.getHeader("Location");
+    Preconditions.checkState(location != null);
+    this.location=URI.create(location);
+    this.tupleInfos=response.getValue().getTupleInfos();
+  }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    throw Throwables.propagate(e);
+  }
+catch (  ExecutionException e) {
+    throw Throwables.propagate(e);
+  }
+}
