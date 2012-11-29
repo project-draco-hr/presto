@@ -4,20 +4,9 @@
   HttpQueryProvider queryProvider=null;
   try {
     long start=System.nanoTime();
-    ApacheHttpClient httpClient=new ApacheHttpClient(new HttpClientConfig().setConnectTimeout(new Duration(1,TimeUnit.MINUTES)).setReadTimeout(new Duration(30,TimeUnit.MINUTES)));
+    ApacheHttpClient httpClient=new ApacheHttpClient(new HttpClientConfig().setConnectTimeout(new Duration(1,TimeUnit.SECONDS)).setReadTimeout(new Duration(1,TimeUnit.SECONDS)));
     queryProvider=new HttpQueryProvider(createStaticBodyGenerator(query,Charsets.UTF_8),Optional.<String>absent(),httpClient,executor,server);
-    try {
-      for (QueryInfo queryInfo=queryProvider.getQueryInfo(); queryInfo.getState() == State.PREPARING; queryInfo=queryProvider.getQueryInfo()) {
-        System.err.print("\r" + toInfoString(queryInfo,start));
-        System.err.flush();
-        Uninterruptibles.sleepUninterruptibly(50,TimeUnit.MILLISECONDS);
-      }
-    }
-  finally {
-      System.err.printf("%-" + maxInfoString + "s\r","");
-      System.err.flush();
-      System.err.print("\r");
-    }
+    printInitialStatusUpdates(queryProvider,start);
     QueryDriversOperator operator=new QueryDriversOperator(10,queryProvider);
     ConsolePrinter consolePrinter=new ConsolePrinter(operator,new DelimitedTuplePrinter());
     long outputPositions=0;

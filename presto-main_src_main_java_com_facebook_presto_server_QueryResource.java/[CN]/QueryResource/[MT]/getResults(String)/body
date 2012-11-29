@@ -1,8 +1,14 @@
 {
   Preconditions.checkNotNull(operatorId,"operatorId is null");
-  List<Page> pages=queryManager.getQueryResults(operatorId,DEFAULT_MAX_PAGE_COUNT);
+  List<Page> pages=queryManager.getQueryResults(operatorId,DEFAULT_MAX_PAGE_COUNT,DEFAULT_MAX_WAIT);
   if (pages.isEmpty()) {
-    return Response.status(Status.GONE).build();
+    State queryStatus=queryManager.getQueryStatus(operatorId);
+    if (queryStatus == State.PREPARING || queryStatus == State.RUNNING) {
+      return Response.status(Status.NO_CONTENT).build();
+    }
+ else {
+      return Response.status(Status.GONE).build();
+    }
   }
   GenericEntity<?> entity=new GenericEntity<>(pages,new TypeToken<List<Page>>(){
   }

@@ -1,8 +1,13 @@
 {
-  return ImmutableList.copyOf(transform(masterQueries.values(),new Function<MasterQueryState,QueryInfo>(){
+  return ImmutableList.copyOf(filter(transform(masterQueries.values(),new Function<MasterQueryState,QueryInfo>(){
     @Override public QueryInfo apply(    MasterQueryState masterQueryState){
-      return masterQueryState.toQueryInfo();
+      try {
+        return masterQueryState.toQueryInfo();
+      }
+ catch (      Exception ignored) {
+        return null;
+      }
     }
   }
-));
+),Predicates.notNull()));
 }

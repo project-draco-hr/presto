@@ -4,6 +4,11 @@
     map.put(stage.getKey(),ImmutableList.copyOf(Iterables.transform(stage.getValue(),new Function<HttpQueryProvider,QueryInfo>(){
       @Override public QueryInfo apply(      HttpQueryProvider queryProvider){
         QueryInfo queryInfo=queryProvider.getQueryInfo();
+        if (queryInfo == null) {
+          RuntimeException exception=new RuntimeException(String.format("Query %s sub task %s has been deleted",queryId,queryProvider.getLocation()));
+          outputQueryState.queryFailed(exception);
+          throw exception;
+        }
         return new QueryInfo(queryProvider.getLocation().toString(),queryProvider.getTupleInfos(),queryInfo.getState(),queryInfo.getBufferedPages(),queryInfo.getSplits(),queryInfo.getStartedSplits(),queryInfo.getCompletedSplits(),queryInfo.getSplitCpuTime(),queryInfo.getInputDataSize(),queryInfo.getInputPositionCount(),queryInfo.getCompletedDataSize(),queryInfo.getCompletedPositionCount(),ImmutableMap.<String,List<QueryInfo>>of());
       }
     }
