@@ -1,4 +1,10 @@
 {
   List<ColumnHandle> columns=IterableTransformer.on(node.getAssignments().entrySet()).orderBy(Ordering.explicit(node.getOutputSymbols()).onResultOf(MoreFunctions.<Symbol,ColumnHandle>keyGetter())).transform(MoreFunctions.<Symbol,ColumnHandle>valueGetter()).list();
-  return dataProvider.createDataStream(split,columns);
+  Operator operator=dataProvider.createDataStream(split,columns);
+  if (operator instanceof AlignmentOperator) {
+    AlignmentOperator alignmentOperator=(AlignmentOperator)operator;
+    inputDataSize=alignmentOperator.getDataSize();
+    inputPositionCount=alignmentOperator.getPositionCount();
+  }
+  return operator;
 }

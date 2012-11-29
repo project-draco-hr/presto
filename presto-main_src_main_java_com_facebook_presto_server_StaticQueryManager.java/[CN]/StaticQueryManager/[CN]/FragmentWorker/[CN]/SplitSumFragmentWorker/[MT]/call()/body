@@ -1,4 +1,6 @@
 {
+  queryState.splitStarted();
+  long startTime=System.nanoTime();
   try {
     for (    Page page : operator) {
       queryState.addPage(page);
@@ -10,6 +12,13 @@
     throw Throwables.propagate(e);
   }
  finally {
+    queryState.addSplitCpuTime(Duration.nanosSince(startTime));
     queryState.splitCompleted();
+    if (inputDataSize.isPresent()) {
+      queryState.addCompletedDataSize(inputDataSize.get());
+    }
+    if (inputPositionCount.isPresent()) {
+      queryState.addCompletedPositions(inputPositionCount.get());
+    }
   }
 }

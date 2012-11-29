@@ -4,10 +4,10 @@
     map.put(stage.getKey(),ImmutableList.copyOf(Iterables.transform(stage.getValue(),new Function<HttpQueryProvider,QueryInfo>(){
       @Override public QueryInfo apply(      HttpQueryProvider queryProvider){
         QueryInfo queryInfo=queryProvider.getQueryInfo();
-        return new QueryInfo(queryProvider.getLocation().toString(),queryProvider.getTupleInfos(),queryInfo.getState(),queryInfo.getBufferedPages(),queryInfo.getSplits(),queryInfo.getCompletedSplits());
+        return new QueryInfo(queryProvider.getLocation().toString(),queryProvider.getTupleInfos(),queryInfo.getState(),queryInfo.getBufferedPages(),queryInfo.getSplits(),queryInfo.getStartedSplits(),queryInfo.getCompletedSplits(),queryInfo.getSplitCpuTime(),queryInfo.getInputDataSize(),queryInfo.getInputPositionCount(),queryInfo.getCompletedDataSize(),queryInfo.getCompletedPositionCount(),ImmutableMap.<String,List<QueryInfo>>of());
       }
     }
 )));
   }
-  return new QueryInfo(queryId,outputQueryState.getTupleInfos(),outputQueryState.getState(),outputQueryState.getBufferedPageCount(),outputQueryState.getSplits(),outputQueryState.getCompletedSplits(),map.build());
+  return outputQueryState.toQueryInfo(queryId,map.build());
 }

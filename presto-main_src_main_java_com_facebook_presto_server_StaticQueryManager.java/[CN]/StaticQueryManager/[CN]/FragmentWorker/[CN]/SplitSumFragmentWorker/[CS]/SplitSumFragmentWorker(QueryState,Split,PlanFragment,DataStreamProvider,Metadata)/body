@@ -2,4 +2,12 @@
   this.queryState=queryState;
   ExecutionPlanner planner=new ExecutionPlanner(new SessionMetadata(metadata),dataStreamProvider,fragment.getSymbols(),ImmutableMap.<Integer,Operator>of(),split);
   operator=planner.plan(fragment.getRoot());
+  inputDataSize=planner.getInputDataSize();
+  if (inputDataSize.isPresent()) {
+    queryState.addInputDataSize(inputDataSize.get());
+  }
+  inputPositionCount=planner.getInputPositionCount();
+  if (inputPositionCount.isPresent()) {
+    queryState.addInputPositions(inputPositionCount.get());
+  }
 }
