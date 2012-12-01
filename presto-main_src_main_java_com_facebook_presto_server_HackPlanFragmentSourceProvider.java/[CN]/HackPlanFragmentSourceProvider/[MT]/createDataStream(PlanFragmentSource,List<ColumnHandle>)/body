@@ -1,0 +1,17 @@
+{
+  checkNotNull(source,"source is null");
+  if (source instanceof ExchangePlanFragmentSource) {
+    final ExchangePlanFragmentSource exchangeSource=(ExchangePlanFragmentSource)source;
+    return new QueryDriversOperator(pageBufferMax,transform(exchangeSource.getSources().entrySet(),new Function<Entry<String,URI>,QueryDriverProvider>(){
+      @Override public QueryDriverProvider apply(      Entry<String,URI> source){
+        return new HttpTaskClient(source.getKey(),source.getValue(),exchangeSource.getOutputId(),exchangeSource.getTupleInfos(),httpClient,executor,queryTaskInfoCodec);
+      }
+    }
+));
+  }
+ else   if (source instanceof TableScanPlanFragmentSource) {
+    TableScanPlanFragmentSource tableScanSource=(TableScanPlanFragmentSource)source;
+    return dataStreamProvider.createDataStream(tableScanSource.getSplit(),columns);
+  }
+  throw new IllegalArgumentException("Unsupported source type " + source.getClass().getName());
+}

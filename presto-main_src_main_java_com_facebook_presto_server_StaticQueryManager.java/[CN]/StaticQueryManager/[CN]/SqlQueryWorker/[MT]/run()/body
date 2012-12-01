@@ -1,0 +1,39 @@
+{
+  queryState.set(State.RUNNING);
+  try {
+    PlanFragment top=fragments.get(1);
+    final PlanFragment bottom=fragments.get(0);
+    TableScan tableScan=(TableScan)Iterables.getOnlyElement(bottom.getSources());
+    final String tableScanSourceId=tableScan.getTable().getHandleId();
+    Iterable<SplitAssignments> splitAssignments=splitManager.getSplitAssignments(tableScan.getTable());
+    Multimap<Node,Split> nodeSplits=SplitAssignments.randomNodeAssignment(new Random(),splitAssignments);
+    List<HttpTaskClient> providers=ImmutableList.copyOf(transform(nodeSplits.asMap().entrySet(),new Function<Entry<Node,Collection<Split>>,HttpTaskClient>(){
+      @Override public HttpTaskClient apply(      Entry<Node,Collection<Split>> splits){
+        List<PlanFragmentSource> tableScanSources=ImmutableList.copyOf(transform(splits.getValue(),new Function<Split,PlanFragmentSource>(){
+          @Override public PlanFragmentSource apply(          Split split){
+            return new TableScanPlanFragmentSource(split);
+          }
+        }
+));
+        ImmutableMap<String,List<PlanFragmentSource>> sourceSplits=ImmutableMap.of(tableScanSourceId,tableScanSources);
+        return new HttpTaskClient(bottom,sourceSplits,httpClient,executor,queryFragmentRequestCodec,queryTaskInfoCodec,splits.getKey().getHttpUri().resolve("/v1/presto/task"),"out");
+      }
+    }
+));
+    List<TupleInfo> exchangeTupleInfos=providers.get(0).getTupleInfos();
+    addStage(String.valueOf(bottom.getId()),providers);
+    ImmutableMap.Builder<String,URI> exchangeSources=ImmutableMap.builder();
+    for (    HttpTaskClient provider : providers) {
+      exchangeSources.put(provider.getTaskId(),provider.getLocation());
+    }
+    PlanFragmentSource exchangeSource=new ExchangePlanFragmentSource(exchangeSources.build(),"out",exchangeTupleInfos);
+    Map<String,List<PlanFragmentSource>> topSources=ImmutableMap.<String,List<PlanFragmentSource>>of(String.valueOf(bottom.getId()),ImmutableList.of(exchangeSource));
+    QueryTask queryTask=queryTaskManager.createQueryTask(top,topSources);
+    stages.put("out",ImmutableList.of(queryTask));
+  }
+ catch (  Exception e) {
+    queryState.set(State.FAILED);
+    cancel();
+    throw Throwables.propagate(e);
+  }
+}

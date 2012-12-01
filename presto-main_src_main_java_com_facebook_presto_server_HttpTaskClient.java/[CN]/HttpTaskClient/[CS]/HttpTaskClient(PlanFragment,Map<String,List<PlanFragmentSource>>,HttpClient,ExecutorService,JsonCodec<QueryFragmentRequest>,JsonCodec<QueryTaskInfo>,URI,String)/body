@@ -1,0 +1,19 @@
+{
+  Preconditions.checkNotNull(planFragment,"planFragment is null");
+  Preconditions.checkNotNull(fragmentSources,"fragmentSources is null");
+  checkNotNull(httpClient,"httpClient is null");
+  checkNotNull(executor,"executor is null");
+  this.httpClient=httpClient;
+  this.executor=executor;
+  Request request=preparePost().setUri(serverURI).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON).setBodyGenerator(jsonBodyGenerator(queryFragmentRequestCodec,new QueryFragmentRequest(planFragment,fragmentSources))).build();
+  JsonResponse<QueryTaskInfo> response=httpClient.execute(request,createFullJsonResponseHandler(jsonCodec(QueryTaskInfo.class)));
+  Preconditions.checkState(response.getStatusCode() == 201,"Expected response code from %s to be 201, but was %d: %s",request.getUri(),response.getStatusCode(),response.getStatusMessage());
+  String location=response.getHeader("Location");
+  Preconditions.checkState(location != null);
+  this.location=URI.create(location);
+  QueryTaskInfo queryTaskInfo=response.getValue();
+  this.taskId=queryTaskInfo.getTaskId();
+  this.tupleInfos=queryTaskInfo.getTupleInfos();
+  this.queryTaskInfoCodec=queryTaskInfoCodec;
+  this.outputId=outputId;
+}

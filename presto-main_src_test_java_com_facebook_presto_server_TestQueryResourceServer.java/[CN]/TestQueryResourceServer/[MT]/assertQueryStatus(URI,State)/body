@@ -1,5 +1,9 @@
 {
-  URI statusUri=uriBuilderFrom(location).appendPath("info").build();
-  QueryInfo queryInfo=client.execute(prepareGet().setUri(statusUri).build(),createJsonResponseHandler(jsonCodec(QueryInfo.class)));
+  URI statusUri=uriBuilderFrom(location).build();
+  JsonResponse<QueryInfo> response=client.execute(prepareGet().setUri(statusUri).build(),createFullJsonResponseHandler(jsonCodec(QueryInfo.class)));
+  if (expectedState == State.FINISHED && response.getStatusCode() == Status.GONE.getStatusCode()) {
+    return;
+  }
+  QueryInfo queryInfo=response.getValue();
   assertEquals(queryInfo.getState(),expectedState);
 }

@@ -1,0 +1,10 @@
+{
+  URI statusUri=uriBuilderFrom(location).build();
+  JsonResponse<QueryTaskInfo> response=httpClient.execute(prepareGet().setUri(statusUri).build(),createFullJsonResponseHandler(queryTaskInfoCodec));
+  if (response.getStatusCode() == Status.GONE.getStatusCode()) {
+    return null;
+  }
+  Preconditions.checkState(response.getStatusCode() == Status.OK.getStatusCode(),"Expected response code to be 201, but was %d: %s",response.getStatusCode(),response.getStatusMessage());
+  QueryTaskInfo queryTaskInfo=response.getValue();
+  return queryTaskInfo;
+}

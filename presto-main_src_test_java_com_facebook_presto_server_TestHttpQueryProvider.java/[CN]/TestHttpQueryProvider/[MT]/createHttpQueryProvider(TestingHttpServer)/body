@@ -1,3 +1,5 @@
 {
-  return new HttpQueryProvider(createStaticBodyGenerator("query",Charsets.UTF_8),Optional.<String>absent(),httpClient,executor,httpServer.getBaseUrl().resolve("/v1/presto/query"));
+  ImmutableMap<String,List<PlanFragmentSource>> sourceSplits=ImmutableMap.of();
+  PlanFragment planFragment=new PlanFragment(32,false,ImmutableMap.<Symbol,Type>of(),new ExchangeNode(22,ImmutableList.<Symbol>of()));
+  return new HttpTaskClient(planFragment,sourceSplits,httpClient,executor,jsonCodec(QueryFragmentRequest.class),jsonCodec(QueryTaskInfo.class),httpServer.getBaseUrl().resolve("/v1/presto/task"),"out");
 }

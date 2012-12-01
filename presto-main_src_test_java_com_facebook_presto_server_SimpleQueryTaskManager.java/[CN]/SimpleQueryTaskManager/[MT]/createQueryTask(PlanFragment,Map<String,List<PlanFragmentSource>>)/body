@@ -1,0 +1,18 @@
+{
+  String queryId=String.valueOf(nextQueryId.getAndIncrement());
+  QueryState queryState=new QueryState(ImmutableList.of(SINGLE_VARBINARY),1,pageBufferMax);
+  SimpleQueryTask queryTask=new SimpleQueryTask(queryId,queryState);
+  queries.put(queryId,queryTask);
+  List<String> data=ImmutableList.of("apple","banana","cherry","date");
+  for (int i=0; i < initialPages; i++) {
+    try {
+      queryState.addPage(new Page(createStringsBlock(Iterables.concat(Collections.nCopies(i + 1,data)))));
+    }
+ catch (    InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw Throwables.propagate(e);
+    }
+  }
+  queryState.sourceFinished();
+  return queryTask;
+}

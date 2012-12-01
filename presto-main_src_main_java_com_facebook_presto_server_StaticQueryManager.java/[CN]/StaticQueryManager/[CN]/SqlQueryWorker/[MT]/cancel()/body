@@ -1,0 +1,14 @@
+{
+  while (true) {
+    State state=queryState.get();
+    if (state != State.PREPARING && state != State.RUNNING) {
+      break;
+    }
+    if (queryState.compareAndSet(state,State.CANCELED)) {
+      break;
+    }
+  }
+  for (  QueryTask taskClient : Iterables.concat(stages.values())) {
+    taskClient.cancel();
+  }
+}

@@ -1,20 +1,20 @@
 {
   Main.initializeLogging(false);
   ExecutorService executor=Executors.newCachedThreadPool();
-  HttpQueryProvider queryProvider=null;
+  HttpQueryClient queryClient=null;
   try {
     long start=System.nanoTime();
-    ApacheHttpClient httpClient=new ApacheHttpClient(new HttpClientConfig().setConnectTimeout(new Duration(1,TimeUnit.SECONDS)).setReadTimeout(new Duration(1,TimeUnit.SECONDS)));
-    queryProvider=new HttpQueryProvider(createStaticBodyGenerator(query,Charsets.UTF_8),Optional.<String>absent(),httpClient,executor,server);
-    printInitialStatusUpdates(queryProvider,start);
-    QueryDriversOperator operator=new QueryDriversOperator(10,queryProvider);
+    ApacheHttpClient httpClient=new ApacheHttpClient(new HttpClientConfig().setConnectTimeout(new Duration(1,TimeUnit.SECONDS)).setReadTimeout(new Duration(10,TimeUnit.SECONDS)));
+    queryClient=new HttpQueryClient(query,server,httpClient,executor,jsonCodec(QueryInfo.class),jsonCodec(QueryTaskInfo.class));
+    printInitialStatusUpdates(queryClient,start);
+    Operator operator=queryClient.getResultsOperator();
     OutputProcessor processor=new OutputProcessor(operator,new TuplePrinters.DelimitedTuplePrinter());
     OutputStats stats=processor.process();
-    System.err.println(toFinalInfo(queryProvider.getQueryInfo(),start,stats.getRows(),stats.getBytes()));
+    System.err.println(toFinalInfo(queryClient.getQueryInfo(),start,stats.getRows(),stats.getBytes()));
   }
   finally {
-    if (queryProvider != null) {
-      queryProvider.destroy();
+    if (queryClient != null) {
+      queryClient.destroy();
     }
     executor.shutdownNow();
   }

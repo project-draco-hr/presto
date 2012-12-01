@@ -1,0 +1,33 @@
+{
+  try {
+    while (true) {
+      try {
+        QueryInfo queryInfo=queryClient.getQueryInfo();
+        if (queryInfo == null) {
+          throw new IllegalStateException("Query has been canceled");
+        }
+        if (queryInfo.getState() != State.PREPARING) {
+          if (queryInfo.getState() != State.RUNNING) {
+            return;
+          }
+          List<QueryTaskInfo> outStage=queryInfo.getStages().get("out");
+          for (          QueryTaskInfo outputTask : outStage) {
+            if (outputTask.getBufferedPages() > 0) {
+              return;
+            }
+          }
+        }
+        System.err.print("\r" + toInfoString(queryInfo,start));
+        System.err.flush();
+        Uninterruptibles.sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
+      }
+ catch (      Exception ignored) {
+      }
+    }
+  }
+  finally {
+    System.err.printf("%-" + maxInfoString + "s\r","");
+    System.err.flush();
+    System.err.print("\r");
+  }
+}

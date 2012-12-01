@@ -1,0 +1,19 @@
+{
+  checkNotNull(query,"query is null");
+  checkNotNull(coordinatorLocation,"coordinatorLocation is null");
+  checkNotNull(httpClient,"httpClient is null");
+  checkNotNull(executor,"executor is null");
+  checkNotNull(queryInfoCodec,"queryInfoCodec is null");
+  checkNotNull(queryTaskInfoCodec,"queryTaskInfoCodec is null");
+  this.httpClient=httpClient;
+  this.executor=executor;
+  this.queryInfoCodec=queryInfoCodec;
+  this.queryTaskInfoCodec=queryTaskInfoCodec;
+  Request.Builder requestBuilder=preparePost().setUri(coordinatorLocation).setBodyGenerator(createStaticBodyGenerator(query,Charsets.UTF_8));
+  Request request=requestBuilder.build();
+  JsonResponse<QueryInfo> response=httpClient.execute(request,createFullJsonResponseHandler(queryInfoCodec));
+  Preconditions.checkState(response.getStatusCode() == 201,"Expected response code to be 201, but was %d: %s",response.getStatusCode(),response.getStatusMessage());
+  String location=response.getHeader("Location");
+  Preconditions.checkState(location != null);
+  this.queryLocation=URI.create(location);
+}
