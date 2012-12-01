@@ -1,0 +1,29 @@
+{
+  try {
+    runWithRetryUnchecked(new Callable<Void>(){
+      @Override public Void call() throws Exception {
+        log.debug("acquiring worker for shard: %s",shardId);
+        final Node worker;
+        try {
+          worker=nodeWorkerQueue.acquireNodeWorker();
+        }
+ catch (        InterruptedException e) {
+          log.warn("interrupted while acquiring node worker");
+          Thread.currentThread().interrupt();
+          return null;
+        }
+        log.debug("acquired worker for shard: %s: %s",shardId,worker);
+        if (!initiateShardCreation(worker)) {
+          nodeWorkerQueue.releaseNodeWorker(worker);
+          throw new RuntimeException("Failed to initiate shard creation on " + worker);
+        }
+        return null;
+      }
+    }
+);
+  }
+ catch (  Exception e) {
+    partitionOperationTracker.decrementActiveTasks(partitionMarker);
+    log.error(e);
+  }
+}

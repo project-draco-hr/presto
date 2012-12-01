@@ -5,23 +5,31 @@
   checkNotNull(fields,"fields is null");
   checkArgument(!fields.isEmpty(),"fields is empty");
   shardManager.createImportTable(tableId,sourceName,databaseName,tableName);
-  List<String> partitions=runWithRetryUnchecked(new Callable<List<String>>(){
-    @Override public List<String> call() throws Exception {
+  Set<String> activePartitions=runWithRetryUnchecked(new Callable<Set<String>>(){
+    @Override public Set<String> call() throws Exception {
       ImportClient importClient=importClientFactory.getClient(sourceName);
-      return importClient.getPartitionNames(databaseName,tableName);
+      return ImmutableSet.copyOf(importClient.getPartitionNames(databaseName,tableName));
     }
   }
 );
-  log.debug("Found %d current partitions: %d",partitions.size(),tableId);
-  Set<String> importedPartitions=shardManager.getImportedPartitions(tableId);
-  int newPartitionCount=0;
-  for (  String partition : partitions) {
-    if (!importedPartitions.contains(partition)) {
-      PartitionChunkSupplier supplier=new PartitionChunkSupplier(importClientFactory,sourceName,databaseName,tableName,partition);
-      PartitionJob job=new PartitionJob(tableId,sourceName,partition,supplier,fields);
-      partitionExecutor.execute(job);
-      newPartitionCount++;
-    }
+  log.info("Found %d current remote partitions: table %d",activePartitions.size(),tableId);
+  Set<String> allPartitions=shardManager.getAllPartitions(tableId);
+  Set<String> committedPartitions=shardManager.getCommittedPartitions(tableId);
+  Set<String> uncommittedPartitions=Sets.difference(allPartitions,committedPartitions);
+  Set<String> operatingPartitions=partitionOperationTracker.getOperatingPartitions(tableId);
+  Set<String> erroredPartitions=Sets.difference(uncommittedPartitions,operatingPartitions);
+  Set<String> repairPartitions=Sets.intersection(erroredPartitions,activePartitions);
+  log.info("Repairing %d failed partitions from before: table %d",repairPartitions.size(),tableId);
+  Set<String> partitionsToAdd=Sets.difference(activePartitions,allPartitions);
+  Set<String> partitionsToRemove=Sets.difference(allPartitions,activePartitions);
+  for (  String partition : Iterables.concat(partitionsToRemove,repairPartitions)) {
+    partitionBoundedExecutor.execute(PartitionMarker.from(tableId,partition),new PartitionDropJob(tableId,partition));
   }
-  log.debug("Loading %d new partitions: %d",newPartitionCount,tableId);
+  log.info("Dropping %d old partitions: table %d",partitionsToRemove.size(),tableId);
+  for (  String partition : Iterables.concat(partitionsToAdd,repairPartitions)) {
+    PartitionChunkSupplier supplier=new PartitionChunkSupplier(importClientFactory,sourceName,databaseName,tableName,partition);
+    PartitionImportJob importJob=new PartitionImportJob(tableId,sourceName,partition,supplier,fields);
+    partitionBoundedExecutor.execute(PartitionMarker.from(tableId,partition),importJob);
+  }
+  log.info("Loading %d new partitions: table %d",partitionsToAdd.size(),tableId);
 }

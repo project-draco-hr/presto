@@ -1,0 +1,15 @@
+{
+  dbi.inTransaction(new VoidTransactionCallback(){
+    @Override protected void execute(    Handle handle,    TransactionStatus status) throws Exception {
+      ShardManagerDao dao=handle.attach(ShardManagerDao.class);
+      List<Long> shardIds=dao.getAllShards(tableId,partitionName);
+      for (      Long shardId : shardIds) {
+        dao.deleteShardFromShardNodes(shardId);
+        dao.deleteShardFromImportPartitionShards(shardId);
+        dao.deleteShard(shardId);
+      }
+      dao.dropPartition(tableId,partitionName);
+    }
+  }
+);
+}

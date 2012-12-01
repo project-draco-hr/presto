@@ -6,10 +6,11 @@
     }
   }
 );
-  ImportClient importClient=importClientFactory.getClient(sourceName);
-  ImmutableList.Builder<SerializedPartitionChunk> serialized=ImmutableList.builder();
-  for (  PartitionChunk chunk : chunks) {
-    serialized.add(SerializedPartitionChunk.create(importClient,chunk));
+  final ImportClient importClient=importClientFactory.getClient(sourceName);
+  return Iterables.transform(chunks,new Function<PartitionChunk,SerializedPartitionChunk>(){
+    @Override public SerializedPartitionChunk apply(    PartitionChunk chunk){
+      return SerializedPartitionChunk.create(importClient,chunk);
+    }
   }
-  return serialized.build();
+);
 }

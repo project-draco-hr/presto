@@ -1,0 +1,16 @@
+{
+  Multimap<Long,String> shardNodes=shardManager.getShardNodes(tableId,partitionName);
+  if (!shardNodes.isEmpty()) {
+    PartitionMarker partitionMarker=PartitionMarker.from(tableId,partitionName);
+    checkState(partitionOperationTracker.claimPartition(partitionMarker,shardNodes.size()));
+    Map<String,Node> nodeMap=getNodeMap(nodeManager.getActiveNodes());
+    for (    Map.Entry<Long,String> shardNode : shardNodes.entries()) {
+      Node node=nodeMap.get(shardNode.getValue());
+      if (node != null) {
+        Long shardId=shardNode.getKey();
+        chunkBoundedExecutor.execute(shardId,new ShardDropJob(partitionMarker,shardId,node));
+      }
+    }
+  }
+  shardManager.dropPartition(tableId,partitionName);
+}

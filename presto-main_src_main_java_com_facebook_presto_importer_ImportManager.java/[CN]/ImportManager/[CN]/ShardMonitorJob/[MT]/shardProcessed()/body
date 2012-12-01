@@ -1,0 +1,29 @@
+{
+  Status status;
+  try {
+    status=shardStatus();
+  }
+ catch (  RuntimeException e) {
+    log.warn(e,"Failed to get shard status: %s",shardId);
+    return false;
+  }
+switch (status) {
+case ACCEPTED:
+    return false;
+case OK:
+  try {
+    shardManager.commitShard(shardId,worker.getNodeIdentifier());
+  }
+ catch (  UnableToExecuteStatementException e) {
+    log.warn(e,"Shard commit error: %s",shardId);
+    return false;
+  }
+log.info("shard imported: %s",shardId);
+return true;
+case NOT_FOUND:
+log.info("shard import error or was dropped before commit: %s",shardId);
+return true;
+default :
+throw new AssertionError("Unknown shard status: " + status);
+}
+}
