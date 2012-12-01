@@ -12,10 +12,16 @@
     }
   }
 );
-  log.debug("scheduling %s partitions: %s",partitions.size(),tableId);
+  log.debug("Found %d current partitions: %d",partitions.size(),tableId);
+  Set<String> importedPartitions=shardManager.getImportedPartitions(tableId);
+  int newPartitionCount=0;
   for (  String partition : partitions) {
-    PartitionChunkSupplier supplier=new PartitionChunkSupplier(importClientFactory,sourceName,databaseName,tableName,partition);
-    PartitionJob job=new PartitionJob(tableId,sourceName,partition,supplier,fields);
-    partitionExecutor.execute(job);
+    if (!importedPartitions.contains(partition)) {
+      PartitionChunkSupplier supplier=new PartitionChunkSupplier(importClientFactory,sourceName,databaseName,tableName,partition);
+      PartitionJob job=new PartitionJob(tableId,sourceName,partition,supplier,fields);
+      partitionExecutor.execute(job);
+      newPartitionCount++;
+    }
   }
+  log.debug("Loading %d new partitions: %d",newPartitionCount,tableId);
 }
