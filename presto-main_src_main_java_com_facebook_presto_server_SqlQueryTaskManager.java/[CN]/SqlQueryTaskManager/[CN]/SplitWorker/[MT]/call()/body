@@ -1,24 +1,24 @@
 {
-  queryState.splitStarted();
+  taskOutput.splitStarted();
   long startTime=System.nanoTime();
   try {
     for (    Page page : operator) {
-      queryState.addPage(page);
+      taskOutput.addPage(page);
     }
     return null;
   }
  catch (  Exception e) {
-    queryState.queryFailed(e);
+    taskOutput.queryFailed(e);
     throw Throwables.propagate(e);
   }
  finally {
-    queryState.addSplitCpuTime(Duration.nanosSince(startTime));
-    queryState.splitCompleted();
+    taskOutput.addSplitCpuTime(Duration.nanosSince(startTime));
+    taskOutput.splitCompleted();
     if (inputDataSize.isPresent()) {
-      queryState.addCompletedDataSize(inputDataSize.get());
+      taskOutput.addCompletedDataSize(inputDataSize.get());
     }
     if (inputPositionCount.isPresent()) {
-      queryState.addCompletedPositions(inputPositionCount.get());
+      taskOutput.addCompletedPositions(inputPositionCount.get());
     }
   }
 }
