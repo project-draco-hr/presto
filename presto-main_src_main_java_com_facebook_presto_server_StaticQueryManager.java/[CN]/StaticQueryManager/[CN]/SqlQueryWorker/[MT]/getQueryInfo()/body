@@ -1,7 +1,7 @@
 {
   ImmutableMap.Builder<String,List<QueryTaskInfo>> map=ImmutableMap.builder();
-  for (  Entry<String,List<QueryTask>> stage : stages.entrySet()) {
-    map.put(stage.getKey(),ImmutableList.copyOf(Iterables.transform(stage.getValue(),new Function<QueryTask,QueryTaskInfo>(){
+  for (  Entry<Integer,List<HttpTaskClient>> stage : stages.entrySet()) {
+    map.put(String.valueOf(stage.getKey()),ImmutableList.copyOf(Iterables.transform(stage.getValue(),new Function<QueryTask,QueryTaskInfo>(){
       @Override public QueryTaskInfo apply(      QueryTask queryTask){
         QueryTaskInfo taskInfo=queryTask.getQueryTaskInfo();
         if (taskInfo == null) {
@@ -17,6 +17,10 @@
   ImmutableMap<String,List<QueryTaskInfo>> stages=map.build();
   State overallState=queryState.get();
   if (!stages.isEmpty()) {
+    if (overallState == State.PREPARING) {
+      overallState=State.RUNNING;
+      queryState.set(overallState);
+    }
     Iterable<State> taskStates=transform(concat(stages.values()),new Function<QueryTaskInfo,State>(){
       @Override public State apply(      QueryTaskInfo queryTaskInfo){
         return queryTaskInfo.getState();
@@ -40,5 +44,5 @@
       }
     }
   }
-  return new QueryInfo(queryId,tupleInfos,overallState,stages);
+  return new QueryInfo(queryId,tupleInfos,overallState,outputStage.get(),stages);
 }

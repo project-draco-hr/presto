@@ -1,0 +1,42 @@
+{
+  if (plan instanceof TableScan) {
+    final TableScan tableScan=(TableScan)plan;
+    Iterable<SplitAssignments> splitAssignments=splitManager.getSplitAssignments(tableScan.getTable());
+    Multimap<Node,Split> nodeSplits=SplitAssignments.randomNodeAssignment(random,splitAssignments);
+    ImmutableList.Builder<Partition> partitions=ImmutableList.builder();
+    for (    Entry<Node,Collection<Split>> entry : nodeSplits.asMap().entrySet()) {
+      List<PlanFragmentSource> sources=ImmutableList.copyOf(transform(entry.getValue(),new Function<Split,PlanFragmentSource>(){
+        @Override public PlanFragmentSource apply(        Split split){
+          return new TableScanPlanFragmentSource(split);
+        }
+      }
+));
+      partitions.add(new Partition(entry.getKey(),tableScan.getTable().getHandleId(),sources));
+    }
+    return partitions.build();
+  }
+ else   if (plan instanceof ExchangeNode) {
+    return ImmutableList.of();
+  }
+ else   if (plan instanceof ProjectNode) {
+    return getPartitions(((ProjectNode)plan).getSource());
+  }
+ else   if (plan instanceof FilterNode) {
+    return getPartitions(((FilterNode)plan).getSource());
+  }
+ else   if (plan instanceof OutputPlan) {
+    return getPartitions(((OutputPlan)plan).getSource());
+  }
+ else   if (plan instanceof AggregationNode) {
+    return getPartitions(((AggregationNode)plan).getSource());
+  }
+ else   if (plan instanceof LimitNode) {
+    return getPartitions(((LimitNode)plan).getSource());
+  }
+ else   if (plan instanceof TopNNode) {
+    return getPartitions(((TopNNode)plan).getSource());
+  }
+ else {
+    throw new UnsupportedOperationException("not yet implemented: " + plan.getClass().getName());
+  }
+}

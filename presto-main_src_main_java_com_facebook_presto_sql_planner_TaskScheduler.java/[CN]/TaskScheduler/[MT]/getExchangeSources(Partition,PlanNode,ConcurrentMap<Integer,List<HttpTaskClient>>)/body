@@ -1,0 +1,36 @@
+{
+  if (plan instanceof ExchangeNode) {
+    int sourceFragmentId=((ExchangeNode)plan).getSourceFragmentId();
+    List<HttpTaskClient> queryTasks=stages.get(sourceFragmentId);
+    ImmutableMap.Builder<String,URI> sources=ImmutableMap.builder();
+    for (    HttpTaskClient provider : queryTasks) {
+      sources.put(provider.getTaskId(),provider.getLocation());
+    }
+    PlanFragmentSource exchangeSource=new ExchangePlanFragmentSource(sources.build(),partition.getNode().getNodeIdentifier(),queryTasks.get(0).getTupleInfos());
+    return ImmutableMap.of(String.valueOf(sourceFragmentId),exchangeSource);
+  }
+ else   if (plan instanceof ProjectNode) {
+    return getExchangeSources(partition,((ProjectNode)plan).getSource(),stages);
+  }
+ else   if (plan instanceof FilterNode) {
+    return getExchangeSources(partition,((FilterNode)plan).getSource(),stages);
+  }
+ else   if (plan instanceof OutputPlan) {
+    return getExchangeSources(partition,((OutputPlan)plan).getSource(),stages);
+  }
+ else   if (plan instanceof AggregationNode) {
+    return getExchangeSources(partition,((AggregationNode)plan).getSource(),stages);
+  }
+ else   if (plan instanceof LimitNode) {
+    return getExchangeSources(partition,((LimitNode)plan).getSource(),stages);
+  }
+ else   if (plan instanceof TopNNode) {
+    return getExchangeSources(partition,((TopNNode)plan).getSource(),stages);
+  }
+ else   if (plan instanceof TableScan) {
+    return ImmutableMap.of();
+  }
+ else {
+    throw new UnsupportedOperationException("not yet implemented: " + plan.getClass().getName());
+  }
+}

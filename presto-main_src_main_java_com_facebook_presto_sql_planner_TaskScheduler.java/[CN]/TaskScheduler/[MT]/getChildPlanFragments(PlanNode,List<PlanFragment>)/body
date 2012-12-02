@@ -1,0 +1,30 @@
+{
+  if (plan instanceof ExchangeNode) {
+    int sourceFragmentId=((ExchangeNode)plan).getSourceFragmentId();
+    return ImmutableList.of(fragments.get(sourceFragmentId));
+  }
+ else   if (plan instanceof ProjectNode) {
+    return getChildPlanFragments(((ProjectNode)plan).getSource(),fragments);
+  }
+ else   if (plan instanceof FilterNode) {
+    return getChildPlanFragments(((FilterNode)plan).getSource(),fragments);
+  }
+ else   if (plan instanceof OutputPlan) {
+    return getChildPlanFragments(((OutputPlan)plan).getSource(),fragments);
+  }
+ else   if (plan instanceof AggregationNode) {
+    return getChildPlanFragments(((AggregationNode)plan).getSource(),fragments);
+  }
+ else   if (plan instanceof LimitNode) {
+    return getChildPlanFragments(((LimitNode)plan).getSource(),fragments);
+  }
+ else   if (plan instanceof TopNNode) {
+    return getChildPlanFragments(((TopNNode)plan).getSource(),fragments);
+  }
+ else   if (plan instanceof TableScan) {
+    return ImmutableList.of();
+  }
+ else {
+    throw new UnsupportedOperationException("not yet implemented: " + plan.getClass().getName());
+  }
+}

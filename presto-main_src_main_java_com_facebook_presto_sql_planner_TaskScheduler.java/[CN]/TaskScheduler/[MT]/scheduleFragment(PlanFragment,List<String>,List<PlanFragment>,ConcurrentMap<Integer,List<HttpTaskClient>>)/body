@@ -1,0 +1,40 @@
+{
+  List<Partition> partitions;
+  if (currentFragment.isPartitioned()) {
+    partitions=getPartitions(currentFragment.getRoot());
+  }
+ else {
+    ArrayList<Node> nodes=new ArrayList<>(nodeManager.getActiveNodes());
+    Preconditions.checkState(!nodes.isEmpty(),"Cluster does not have any active nodes");
+    Collections.shuffle(nodes,random);
+    Node node=nodes.get(0);
+    partitions=ImmutableList.of(new Partition(node,String.valueOf(currentFragment.getId()),ImmutableList.<PlanFragmentSource>of()));
+  }
+  for (  PlanFragment childPlanFragment : getChildPlanFragments(currentFragment.getRoot(),allFragments)) {
+    scheduleFragment(childPlanFragment,toOutputIds(partitions),allFragments,stages);
+  }
+  List<HttpTaskClient> taskClients=ImmutableList.copyOf(transform(partitions,new Function<Partition,HttpTaskClient>(){
+    @Override public HttpTaskClient apply(    Partition partition){
+      Map<String,PlanFragmentSource> fragmentSources=getExchangeSources(partition,currentFragment.getRoot(),stages);
+      Preconditions.checkState(fragmentSources.size() <= 1,"Expected single source");
+      Node node=partition.getNode();
+      ImmutableMap.Builder<String,List<PlanFragmentSource>> partitionSources=ImmutableMap.builder();
+      if (!partition.getSources().isEmpty()) {
+        partitionSources.put(partition.getSourceId(),partition.getSources());
+      }
+      for (      Entry<String,PlanFragmentSource> entry : fragmentSources.entrySet()) {
+        partitionSources.put(entry.getKey(),ImmutableList.of(entry.getValue()));
+      }
+      Request request=preparePost().setUri(uriBuilderFrom(node.getHttpUri()).replacePath("/v1/presto/task").build()).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON).setBodyGenerator(jsonBodyGenerator(queryFragmentRequestCodec,new QueryFragmentRequest(currentFragment,outputIds,partitionSources.build()))).build();
+      JsonResponse<QueryTaskInfo> response=httpClient.execute(request,createFullJsonResponseHandler(jsonCodec(QueryTaskInfo.class)));
+      Preconditions.checkState(response.getStatusCode() == 201,"Expected response code from %s to be 201, but was %d: %s",request.getUri(),response.getStatusCode(),response.getStatusMessage());
+      String location=response.getHeader("Location");
+      Preconditions.checkState(location != null);
+      QueryTaskInfo queryTaskInfo=response.getValue();
+      return new HttpTaskClient(queryTaskInfo.getTaskId(),URI.create(location),"unused",queryTaskInfo.getTupleInfos(),httpClient,executor,queryTaskInfoCodec);
+    }
+  }
+));
+  stages.put(currentFragment.getId(),taskClients);
+  waitForRunning(taskClients);
+}

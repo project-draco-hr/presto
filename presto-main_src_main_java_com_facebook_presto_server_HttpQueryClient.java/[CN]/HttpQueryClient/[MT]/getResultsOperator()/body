@@ -1,7 +1,6 @@
 {
   QueryInfo queryInfo=getQueryInfo();
-  List<QueryTaskInfo> outputStage=queryInfo.getStages().get("out");
-  if (outputStage == null) {
+  if (queryInfo == null || queryInfo.getOutputStage() == null) {
     return new Operator(){
       @Override public int getChannelCount(){
         return 0;
@@ -15,6 +14,7 @@
     }
 ;
   }
+  List<QueryTaskInfo> outputStage=queryInfo.getStages().get(queryInfo.getOutputStage());
   return new QueryDriversOperator(10,Iterables.transform(outputStage,new Function<QueryTaskInfo,QueryDriverProvider>(){
     @Override public QueryDriverProvider apply(    QueryTaskInfo taskInfo){
       return new HttpTaskClient(taskInfo.getTaskId(),uriBuilderFrom(queryLocation).replacePath("/v1/presto/task").appendPath(taskInfo.getTaskId()).build(),"out",taskInfo.getTupleInfos(),httpClient,executor,queryTaskInfoCodec);

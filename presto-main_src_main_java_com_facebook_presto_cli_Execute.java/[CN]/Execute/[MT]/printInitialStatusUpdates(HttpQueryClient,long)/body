@@ -4,13 +4,13 @@
       try {
         QueryInfo queryInfo=queryClient.getQueryInfo();
         if (queryInfo == null) {
-          throw new IllegalStateException("Query has been canceled");
+          return;
         }
-        if (queryInfo.getState() != State.PREPARING) {
-          if (queryInfo.getState() != State.RUNNING) {
-            return;
-          }
-          List<QueryTaskInfo> outStage=queryInfo.getStages().get("out");
+        if (queryInfo.getState() != State.PREPARING && queryInfo.getState() != State.RUNNING) {
+          return;
+        }
+        if (queryInfo.getOutputStage() != null) {
+          List<QueryTaskInfo> outStage=queryInfo.getStages().get(queryInfo.getOutputStage());
           for (          QueryTaskInfo outputTask : outStage) {
             if (outputTask.getBufferedPages() > 0) {
               return;
