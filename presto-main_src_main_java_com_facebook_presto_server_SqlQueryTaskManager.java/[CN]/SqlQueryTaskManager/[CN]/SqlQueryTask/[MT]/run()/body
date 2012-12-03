@@ -1,15 +1,14 @@
 {
   try {
-    Preconditions.checkState(fragmentSources.size() == 1,"Expected single source");
-    final String sourceName=fragmentSources.keySet().iterator().next();
-    List<PlanFragmentSource> sources=fragmentSources.values().iterator().next();
-    if (sources.size() == 1) {
-      new SplitWorker(taskOutput,fragment,ImmutableMap.<String,PlanFragmentSource>of(sourceName,sources.get(0)),sourceProvider,metadata).call();
+    final SourceHashProviderFactory sourceHashProviderFactory=new SourceHashProviderFactory();
+    if (splits.size() <= 1) {
+      PlanFragmentSource split=splits.isEmpty() ? null : splits.get(0);
+      new SplitWorker(taskOutput,fragment,split,exchangeSources,sourceHashProviderFactory,sourceProvider,metadata).call();
     }
  else {
-      List<Future<Void>> results=shardExecutor.invokeAll(Lists.transform(sources,new Function<PlanFragmentSource,Callable<Void>>(){
-        @Override public Callable<Void> apply(        PlanFragmentSource fragmentSource){
-          return new SplitWorker(taskOutput,fragment,ImmutableMap.of(sourceName,fragmentSource),sourceProvider,metadata);
+      List<Future<Void>> results=shardExecutor.invokeAll(Lists.transform(splits,new Function<PlanFragmentSource,Callable<Void>>(){
+        @Override public Callable<Void> apply(        PlanFragmentSource split){
+          return new SplitWorker(taskOutput,fragment,split,exchangeSources,sourceHashProviderFactory,sourceProvider,metadata);
         }
       }
 ));

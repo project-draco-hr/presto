@@ -6,8 +6,14 @@
     for (    HttpTaskClient provider : queryTasks) {
       sources.put(provider.getTaskId(),provider.getLocation());
     }
-    PlanFragmentSource exchangeSource=new ExchangePlanFragmentSource(sources.build(),partition.getNode().getNodeIdentifier(),queryTasks.get(0).getTupleInfos());
+    ExchangePlanFragmentSource exchangeSource=new ExchangePlanFragmentSource(sources.build(),partition.getNode().getNodeIdentifier(),queryTasks.get(0).getTupleInfos());
     return ImmutableMap.of(String.valueOf(sourceFragmentId),exchangeSource);
+  }
+ else   if (plan instanceof JoinNode) {
+    JoinNode joinNode=(JoinNode)plan;
+    Map<String,ExchangePlanFragmentSource> leftExchangeSources=getExchangeSources(partition,joinNode.getLeft(),stages);
+    Map<String,ExchangePlanFragmentSource> rightExchangeSources=getExchangeSources(partition,joinNode.getRight(),stages);
+    return ImmutableMap.<String,ExchangePlanFragmentSource>builder().putAll(leftExchangeSources).putAll(rightExchangeSources).build();
   }
  else   if (plan instanceof ProjectNode) {
     return getExchangeSources(partition,((ProjectNode)plan).getSource(),stages);

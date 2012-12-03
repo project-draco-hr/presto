@@ -3,6 +3,12 @@
     int sourceFragmentId=((ExchangeNode)plan).getSourceFragmentId();
     return ImmutableList.of(fragments.get(sourceFragmentId));
   }
+ else   if (plan instanceof JoinNode) {
+    JoinNode joinNode=(JoinNode)plan;
+    List<PlanFragment> leftChildPlanFragments=getChildPlanFragments(joinNode.getLeft(),fragments);
+    List<PlanFragment> rightChildPlanFragments=getChildPlanFragments(joinNode.getRight(),fragments);
+    return ImmutableList.<PlanFragment>builder().addAll(leftChildPlanFragments).addAll(rightChildPlanFragments).build();
+  }
  else   if (plan instanceof ProjectNode) {
     return getChildPlanFragments(((ProjectNode)plan).getSource(),fragments);
   }

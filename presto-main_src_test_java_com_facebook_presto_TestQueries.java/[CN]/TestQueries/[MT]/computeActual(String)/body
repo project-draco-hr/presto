@@ -18,7 +18,7 @@
   TableScan tableScan=(TableScan)Iterables.getOnlyElement(fragments).getSources().get(0);
   TpchTableHandle table=(TpchTableHandle)tableScan.getTable();
   PlanFragmentSource tableScanSource=new TableScanPlanFragmentSource(new TpchSplit(table));
-  ExecutionPlanner executionPlanner=new ExecutionPlanner(sessionMetadata,new HackPlanFragmentSourceProvider(dataProvider,QUERY_TASK_INFO_CODEC),analysis.getTypes(),ImmutableMap.<String,PlanFragmentSource>of(table.getHandleId(),tableScanSource));
+  ExecutionPlanner executionPlanner=new ExecutionPlanner(sessionMetadata,new HackPlanFragmentSourceProvider(dataProvider,QUERY_TASK_INFO_CODEC),analysis.getTypes(),tableScanSource,ImmutableMap.<String,ExchangePlanFragmentSource>of(),new SourceHashProviderFactory());
   Operator operator=executionPlanner.plan(plan);
   TupleInfo outputTupleInfo=ExecutionPlanner.toTupleInfo(analysis,plan.getOutputSymbols());
   ImmutableList.Builder<Tuple> output=ImmutableList.builder();

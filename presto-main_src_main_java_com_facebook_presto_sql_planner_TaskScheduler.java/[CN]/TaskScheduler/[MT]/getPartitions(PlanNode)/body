@@ -11,12 +11,26 @@
         }
       }
 ));
-      partitions.add(new Partition(entry.getKey(),tableScan.getTable().getHandleId(),sources));
+      partitions.add(new Partition(entry.getKey(),sources));
     }
     return partitions.build();
   }
  else   if (plan instanceof ExchangeNode) {
     return ImmutableList.of();
+  }
+ else   if (plan instanceof JoinNode) {
+    JoinNode joinNode=(JoinNode)plan;
+    List<Partition> leftPartitions=getPartitions(joinNode.getLeft());
+    List<Partition> rightPartitions=getPartitions(joinNode.getRight());
+    if (!leftPartitions.isEmpty() && !rightPartitions.isEmpty()) {
+      throw new IllegalArgumentException("Both left and right join nodes are partitioned");
+    }
+    if (!leftPartitions.isEmpty()) {
+      return leftPartitions;
+    }
+ else {
+      return rightPartitions;
+    }
   }
  else   if (plan instanceof ProjectNode) {
     return getPartitions(((ProjectNode)plan).getSource());

@@ -1,9 +1,7 @@
 {
   List<ColumnHandle> columns=IterableTransformer.on(node.getAssignments().entrySet()).orderBy(Ordering.explicit(node.getOutputSymbols()).onResultOf(MoreFunctions.<Symbol,ColumnHandle>keyGetter())).transform(MoreFunctions.<Symbol,ColumnHandle>valueGetter()).list();
-  String fragmentSourceId=node.getTable().getHandleId();
-  PlanFragmentSource source=fragmentSources.get(fragmentSourceId);
-  Preconditions.checkState(source != null,"Source for fragment %s was not found: available sources %s",fragmentSourceId,fragmentSources.keySet());
-  Operator operator=sourceProvider.createDataStream(source,columns);
+  Preconditions.checkState(split != null,"This fragment does not have a split");
+  Operator operator=sourceProvider.createDataStream(split,columns);
   if (operator instanceof AlignmentOperator) {
     AlignmentOperator alignmentOperator=(AlignmentOperator)operator;
     inputDataSize=alignmentOperator.getDataSize();
