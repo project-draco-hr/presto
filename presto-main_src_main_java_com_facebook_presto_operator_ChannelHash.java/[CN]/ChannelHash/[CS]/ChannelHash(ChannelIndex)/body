@@ -1,0 +1,14 @@
+{
+  hashStrategy=new SliceHashStrategy(channelIndex.getTupleInfo(),channelIndex.getSlices().elements());
+  addressToPositionMap=new Long2IntOpenCustomHashMap(channelIndex.getPositionCount(),hashStrategy);
+  addressToPositionMap.defaultReturnValue(-1);
+  positionLinks=new IntArrayList(new int[channelIndex.getValueAddresses().size()]);
+  Arrays.fill(positionLinks.elements(),-1);
+  for (int position=0; position < channelIndex.getValueAddresses().size(); position++) {
+    long sliceAddress=channelIndex.getValueAddresses().elements()[position];
+    int oldPosition=addressToPositionMap.put(sliceAddress,position);
+    if (oldPosition >= 0) {
+      positionLinks.set(position,oldPosition);
+    }
+  }
+}
