@@ -1,6 +1,6 @@
 {
   ImmutableMap.Builder<String,List<QueryTaskInfo>> map=ImmutableMap.builder();
-  for (  Entry<Integer,List<HttpTaskClient>> stage : stages.entrySet()) {
+  for (  Entry<String,List<HttpTaskClient>> stage : stages.entrySet()) {
     map.put(String.valueOf(stage.getKey()),ImmutableList.copyOf(Iterables.transform(stage.getValue(),new Function<HttpTaskClient,QueryTaskInfo>(){
       @Override public QueryTaskInfo apply(      HttpTaskClient taskClient){
         QueryTaskInfo taskInfo=taskClient.getQueryTaskInfo();
@@ -44,5 +44,5 @@
       }
     }
   }
-  return new QueryInfo(queryId,tupleInfos,overallState,outputStage.get(),stages);
+  return new QueryInfo(queryId,outputStage.getTupleInfos(),overallState,outputStage.getStageId(),stages);
 }

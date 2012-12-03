@@ -1,0 +1,13 @@
+{
+  ImmutableMap.Builder<String,ExchangePlanFragmentSource> exchangeSources=ImmutableMap.builder();
+  for (  Stage dependency : stage.getDependencies()) {
+    List<HttpTaskClient> queryTasks=stages.get(dependency.getStageId());
+    ImmutableMap.Builder<String,URI> sources=ImmutableMap.builder();
+    for (    HttpTaskClient provider : queryTasks) {
+      sources.put(provider.getTaskId(),provider.getLocation());
+    }
+    ExchangePlanFragmentSource exchangeSource=new ExchangePlanFragmentSource(sources.build(),node.getNodeIdentifier(),queryTasks.get(0).getTupleInfos());
+    exchangeSources.put(dependency.getStageId(),exchangeSource);
+  }
+  return exchangeSources.build();
+}
