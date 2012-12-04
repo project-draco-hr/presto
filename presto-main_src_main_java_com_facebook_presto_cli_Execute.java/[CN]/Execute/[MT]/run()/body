@@ -3,15 +3,15 @@
   ExecutorService executor=Executors.newCachedThreadPool();
   HttpQueryClient queryClient=null;
   try {
-    long start=System.nanoTime();
     ApacheHttpClient httpClient=new ApacheHttpClient(new HttpClientConfig().setConnectTimeout(new Duration(1,TimeUnit.DAYS)).setReadTimeout(new Duration(10,TimeUnit.DAYS)));
     queryClient=new HttpQueryClient(query,server,httpClient,executor,jsonCodec(QueryInfo.class),jsonCodec(QueryTaskInfo.class));
-    printInitialStatusUpdates(queryClient,start);
+    StatusPrinter statusPrinter=new StatusPrinter(queryClient);
+    statusPrinter.printInitialStatusUpdates(System.err);
     Operator operator=queryClient.getResultsOperator();
     List<String> fieldNames=queryClient.getQueryInfo().getFieldNames();
     OutputProcessor processor=new OutputProcessor(operator,new AlignedTuplePrinter(fieldNames));
     OutputStats stats=processor.process();
-    System.err.println(toFinalInfo(queryClient.getQueryInfo(),start,stats.getRows(),stats.getBytes()));
+    System.out.println(statusPrinter.getFinalInfo(stats));
   }
   finally {
     if (queryClient != null) {
