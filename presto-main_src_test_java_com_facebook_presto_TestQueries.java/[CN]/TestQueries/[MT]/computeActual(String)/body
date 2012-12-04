@@ -20,9 +20,9 @@
     TpchTableHandle handle=(TpchTableHandle)tableScan.getTable();
     builder.put(handle,new TableScanPlanFragmentSource(new TpchSplit(handle)));
   }
-  ExecutionPlanner executionPlanner=new ExecutionPlanner(metadata,new HackPlanFragmentSourceProvider(dataProvider,QUERY_TASK_INFO_CODEC),analysis.getTypes(),null,builder.build(),ImmutableMap.<String,ExchangePlanFragmentSource>of(),new SourceHashProviderFactory());
+  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(metadata,new HackPlanFragmentSourceProvider(dataProvider,QUERY_TASK_INFO_CODEC),analysis.getTypes(),null,builder.build(),ImmutableMap.<String,ExchangePlanFragmentSource>of(),new SourceHashProviderFactory());
   Operator operator=executionPlanner.plan(plan);
-  TupleInfo outputTupleInfo=ExecutionPlanner.toTupleInfo(analysis,plan.getOutputSymbols());
+  TupleInfo outputTupleInfo=LocalExecutionPlanner.toTupleInfo(analysis,plan.getOutputSymbols());
   ImmutableList.Builder<Tuple> output=ImmutableList.builder();
   for (  Page page : operator) {
     ImmutableList.Builder<BlockCursor> cursorBuilder=ImmutableList.builder();
