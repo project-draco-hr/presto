@@ -1,7 +1,15 @@
 {
-  TableMetadata tableMetadata=metadata.getTable(table.getName());
+  QualifiedName name=table.getName();
+  if (name.getParts().size() > 3) {
+    throw new SemanticException(table,"Too many dots in table name: %s",name);
+  }
+  List<String> parts=Lists.reverse(name.getParts());
+  String tableName=parts.get(0);
+  String schemaName=(parts.size() > 1) ? parts.get(1) : session.getCurrentSchema();
+  String catalogName=(parts.size() > 2) ? parts.get(2) : session.getCurrentCatalog();
+  TableMetadata tableMetadata=metadata.getTable(catalogName,schemaName,tableName);
   if (tableMetadata == null) {
-    throw new SemanticException(table,"Cannot resolve table '%s'",table.getName());
+    throw new SemanticException(table,"Table %s does not exist",name);
   }
   ImmutableList.Builder<Field> fields=ImmutableList.builder();
   for (  ColumnMetadata column : tableMetadata.getColumns()) {

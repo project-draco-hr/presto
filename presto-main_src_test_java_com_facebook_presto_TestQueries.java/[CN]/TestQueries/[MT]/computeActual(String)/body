@@ -6,14 +6,13 @@
  catch (  RecognitionException e) {
     throw Throwables.propagate(e);
   }
-  SessionMetadata sessionMetadata=new SessionMetadata(metadata);
-  sessionMetadata.using(TpchSchema.CATALOG_NAME,TpchSchema.SCHEMA_NAME);
-  Analyzer analyzer=new Analyzer(sessionMetadata);
+  Session session=new Session(TpchSchema.CATALOG_NAME,TpchSchema.SCHEMA_NAME);
+  Analyzer analyzer=new Analyzer(session,metadata);
   AnalysisResult analysis=analyzer.analyze(statement);
   Planner planner=new Planner();
   PlanNode plan=planner.plan((Query)statement,analysis);
   new PlanPrinter().print(plan,analysis.getTypes());
-  FragmentPlanner fragmentPlanner=new FragmentPlanner(sessionMetadata);
+  FragmentPlanner fragmentPlanner=new FragmentPlanner(metadata);
   List<PlanFragment> fragments=fragmentPlanner.createFragments(plan,analysis.getSymbolAllocator(),true);
   ImmutableMap.Builder<TableHandle,TableScanPlanFragmentSource> builder=ImmutableMap.builder();
   for (  PlanNode source : Iterables.getOnlyElement(fragments).getSources()) {
@@ -21,7 +20,7 @@
     TpchTableHandle handle=(TpchTableHandle)tableScan.getTable();
     builder.put(handle,new TableScanPlanFragmentSource(new TpchSplit(handle)));
   }
-  ExecutionPlanner executionPlanner=new ExecutionPlanner(sessionMetadata,new HackPlanFragmentSourceProvider(dataProvider,QUERY_TASK_INFO_CODEC),analysis.getTypes(),null,builder.build(),ImmutableMap.<String,ExchangePlanFragmentSource>of(),new SourceHashProviderFactory());
+  ExecutionPlanner executionPlanner=new ExecutionPlanner(metadata,new HackPlanFragmentSourceProvider(dataProvider,QUERY_TASK_INFO_CODEC),analysis.getTypes(),null,builder.build(),ImmutableMap.<String,ExchangePlanFragmentSource>of(),new SourceHashProviderFactory());
   Operator operator=executionPlanner.plan(plan);
   TupleInfo outputTupleInfo=ExecutionPlanner.toTupleInfo(analysis,plan.getOutputSymbols());
   ImmutableList.Builder<Tuple> output=ImmutableList.builder();

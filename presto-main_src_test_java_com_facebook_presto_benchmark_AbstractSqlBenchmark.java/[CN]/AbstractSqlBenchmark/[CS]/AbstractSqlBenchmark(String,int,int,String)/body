@@ -2,11 +2,11 @@
   super(benchmarkName,warmupIterations,measuredIterations);
   try {
     Statement statement=SqlParser.createStatement(query);
-    sessionMetadata=new SessionMetadata(TpchSchema.createMetadata());
-    sessionMetadata.using(TpchSchema.CATALOG_NAME,TpchSchema.SCHEMA_NAME);
-    analysis=new Analyzer(sessionMetadata).analyze(statement);
+    metadata=TpchSchema.createMetadata();
+    Session session=new Session(TpchSchema.CATALOG_NAME,TpchSchema.SCHEMA_NAME);
+    analysis=new Analyzer(session,metadata).analyze(statement);
     PlanNode plan=new Planner().plan((Query)statement,analysis);
-    fragment=Iterables.getOnlyElement(new FragmentPlanner(sessionMetadata).createFragments(plan,analysis.getSymbolAllocator(),true));
+    fragment=Iterables.getOnlyElement(new FragmentPlanner(metadata).createFragments(plan,analysis.getSymbolAllocator(),true));
     new PlanPrinter().print(fragment.getRoot(),analysis.getTypes());
   }
  catch (  RecognitionException e) {
