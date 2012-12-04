@@ -2,14 +2,7 @@
   long start=System.nanoTime();
   StatsTpchBlocksProvider statsTpchBlocksProvider=new StatsTpchBlocksProvider(TPCH_DATA_PROVIDER);
   MetricRecordingTpchBlocksProvider metricRecordingTpchBlocksProvider=new MetricRecordingTpchBlocksProvider(statsTpchBlocksProvider);
-  Operator operator=createBenchmarkedOperator(metricRecordingTpchBlocksProvider);
-  long outputRows=0;
-  for (  Page page : operator) {
-    BlockCursor cursor=page.getBlock(0).cursor();
-    while (cursor.advanceNextPosition()) {
-      outputRows++;
-    }
-  }
+  long outputRows=execute(metricRecordingTpchBlocksProvider);
   Duration totalDuration=Duration.nanosSince(start);
   Duration dataGenerationDuration=metricRecordingTpchBlocksProvider.getDataFetchElapsedTime();
   checkState(totalDuration.compareTo(dataGenerationDuration) >= 0,"total time should be at least as large as data generation time");
