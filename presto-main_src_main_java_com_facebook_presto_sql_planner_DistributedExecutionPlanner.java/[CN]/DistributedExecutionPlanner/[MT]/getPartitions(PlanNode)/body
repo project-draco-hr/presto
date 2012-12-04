@@ -1,6 +1,6 @@
 {
-  if (plan instanceof TableScan) {
-    final TableScan tableScan=(TableScan)plan;
+  if (plan instanceof TableScanNode) {
+    final TableScanNode tableScan=(TableScanNode)plan;
     Iterable<SplitAssignments> splitAssignments=splitManager.getSplitAssignments(tableScan.getTable());
     Multimap<Node,Split> nodeSplits=SplitAssignments.randomNodeAssignment(random,splitAssignments);
     ImmutableList.Builder<Partition> partitions=ImmutableList.builder();
@@ -38,8 +38,8 @@
  else   if (plan instanceof FilterNode) {
     return getPartitions(((FilterNode)plan).getSource());
   }
- else   if (plan instanceof OutputPlan) {
-    return getPartitions(((OutputPlan)plan).getSource());
+ else   if (plan instanceof OutputNode) {
+    return getPartitions(((OutputNode)plan).getSource());
   }
  else   if (plan instanceof AggregationNode) {
     return getPartitions(((AggregationNode)plan).getSource());
