@@ -15,10 +15,13 @@
   new PlanPrinter().print(plan,analysis.getTypes());
   FragmentPlanner fragmentPlanner=new FragmentPlanner(sessionMetadata);
   List<PlanFragment> fragments=fragmentPlanner.createFragments(plan,analysis.getSymbolAllocator(),true);
-  TableScan tableScan=(TableScan)Iterables.getOnlyElement(fragments).getSources().get(0);
-  TpchTableHandle table=(TpchTableHandle)tableScan.getTable();
-  PlanFragmentSource tableScanSource=new TableScanPlanFragmentSource(new TpchSplit(table));
-  ExecutionPlanner executionPlanner=new ExecutionPlanner(sessionMetadata,new HackPlanFragmentSourceProvider(dataProvider,QUERY_TASK_INFO_CODEC),analysis.getTypes(),tableScanSource,ImmutableMap.<String,ExchangePlanFragmentSource>of(),new SourceHashProviderFactory());
+  ImmutableMap.Builder<TableHandle,TableScanPlanFragmentSource> builder=ImmutableMap.builder();
+  for (  PlanNode source : Iterables.getOnlyElement(fragments).getSources()) {
+    TableScan tableScan=(TableScan)source;
+    TpchTableHandle handle=(TpchTableHandle)tableScan.getTable();
+    builder.put(handle,new TableScanPlanFragmentSource(new TpchSplit(handle)));
+  }
+  ExecutionPlanner executionPlanner=new ExecutionPlanner(sessionMetadata,new HackPlanFragmentSourceProvider(dataProvider,QUERY_TASK_INFO_CODEC),analysis.getTypes(),null,builder.build(),ImmutableMap.<String,ExchangePlanFragmentSource>of(),new SourceHashProviderFactory());
   Operator operator=executionPlanner.plan(plan);
   TupleInfo outputTupleInfo=ExecutionPlanner.toTupleInfo(analysis,plan.getOutputSymbols());
   ImmutableList.Builder<Tuple> output=ImmutableList.builder();

@@ -1,6 +1,10 @@
 {
-  TpchTableHandle table=(TpchTableHandle)((TableScan)Iterables.getOnlyElement(fragment.getSources())).getTable();
-  PlanFragmentSource tableScanSource=new TableScanPlanFragmentSource(new TpchSplit(table));
-  ExecutionPlanner executionPlanner=new ExecutionPlanner(sessionMetadata,new HackPlanFragmentSourceProvider(new TpchDataStreamProvider(provider),jsonCodec(QueryTaskInfo.class)),analysis.getTypes(),tableScanSource,ImmutableMap.<String,ExchangePlanFragmentSource>of(),new SourceHashProviderFactory());
+  ImmutableMap.Builder<TableHandle,TableScanPlanFragmentSource> builder=ImmutableMap.builder();
+  for (  PlanNode source : fragment.getSources()) {
+    TableScan tableScan=(TableScan)source;
+    TpchTableHandle handle=(TpchTableHandle)tableScan.getTable();
+    builder.put(handle,new TableScanPlanFragmentSource(new TpchSplit(handle)));
+  }
+  ExecutionPlanner executionPlanner=new ExecutionPlanner(sessionMetadata,new HackPlanFragmentSourceProvider(new TpchDataStreamProvider(provider),jsonCodec(QueryTaskInfo.class)),analysis.getTypes(),null,builder.build(),ImmutableMap.<String,ExchangePlanFragmentSource>of(),new SourceHashProviderFactory());
   return executionPlanner.plan(fragment.getRoot());
 }
