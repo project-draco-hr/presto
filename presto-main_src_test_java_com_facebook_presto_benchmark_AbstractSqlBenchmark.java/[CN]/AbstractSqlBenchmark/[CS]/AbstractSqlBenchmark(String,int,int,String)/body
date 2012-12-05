@@ -6,7 +6,7 @@
     Session session=new Session(TpchSchema.CATALOG_NAME,TpchSchema.SCHEMA_NAME);
     analysis=new Analyzer(session,metadata).analyze(statement);
     PlanNode plan=new Planner().plan((Query)statement,analysis);
-    fragment=Iterables.getOnlyElement(new FragmentPlanner(metadata).createFragments(plan,analysis.getSymbolAllocator(),true));
+    fragment=new DistributedLogicalPlanner(metadata).createSubplans(plan,analysis.getSymbolAllocator(),true).getFragment();
     new PlanPrinter().print(fragment.getRoot(),analysis.getTypes());
   }
  catch (  RecognitionException e) {

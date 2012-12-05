@@ -12,10 +12,10 @@
   Planner planner=new Planner();
   PlanNode plan=planner.plan((Query)statement,analysis);
   new PlanPrinter().print(plan,analysis.getTypes());
-  FragmentPlanner fragmentPlanner=new FragmentPlanner(metadata);
-  List<PlanFragment> fragments=fragmentPlanner.createFragments(plan,analysis.getSymbolAllocator(),true);
+  SubPlan subplan=new DistributedLogicalPlanner(metadata).createSubplans(plan,analysis.getSymbolAllocator(),true);
+  assertTrue(subplan.getChildren().isEmpty(),"Expected subplan to have no children");
   ImmutableMap.Builder<TableHandle,TableScanPlanFragmentSource> builder=ImmutableMap.builder();
-  for (  PlanNode source : Iterables.getOnlyElement(fragments).getSources()) {
+  for (  PlanNode source : subplan.getFragment().getSources()) {
     TableScanNode tableScan=(TableScanNode)source;
     TpchTableHandle handle=(TpchTableHandle)tableScan.getTable();
     builder.put(handle,new TableScanPlanFragmentSource(new TpchSplit(handle)));
