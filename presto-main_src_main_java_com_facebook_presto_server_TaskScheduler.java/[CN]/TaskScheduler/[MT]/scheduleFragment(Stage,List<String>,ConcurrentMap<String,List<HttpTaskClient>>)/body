@@ -5,14 +5,14 @@
   List<HttpTaskClient> taskClients=ImmutableList.copyOf(transform(stage.getPartitions(),new Function<Partition,HttpTaskClient>(){
     @Override public HttpTaskClient apply(    Partition partition){
       Map<String,ExchangePlanFragmentSource> exchangeSources=getExchangeSources(partition.getNode(),stage,stages);
-      Preconditions.checkState(exchangeSources.size() <= 1,"Expected single source");
+      checkState(exchangeSources.size() <= 1,"Expected single source");
       Node node=partition.getNode();
       QueryFragmentRequest queryFragmentRequest=new QueryFragmentRequest(stage.getFragment(),partition.getSplits(),exchangeSources,outputIds);
       Request request=preparePost().setUri(uriBuilderFrom(node.getHttpUri()).replacePath("/v1/presto/task").build()).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON).setBodyGenerator(jsonBodyGenerator(queryFragmentRequestCodec,queryFragmentRequest)).build();
       JsonResponse<QueryTaskInfo> response=httpClient.execute(request,createFullJsonResponseHandler(jsonCodec(QueryTaskInfo.class)));
-      Preconditions.checkState(response.getStatusCode() == 201,"Expected response code from %s to be 201, but was %d: %s",request.getUri(),response.getStatusCode(),response.getStatusMessage());
+      checkState(response.getStatusCode() == 201,"Expected response code from %s to be 201, but was %d: %s",request.getUri(),response.getStatusCode(),response.getStatusMessage());
       String location=response.getHeader("Location");
-      Preconditions.checkState(location != null);
+      checkState(location != null);
       QueryTaskInfo queryTaskInfo=response.getValue();
       return new HttpTaskClient(queryTaskInfo.getTaskId(),URI.create(location),"unused",queryTaskInfo.getTupleInfos(),httpClient,executor,queryTaskInfoCodec);
     }
