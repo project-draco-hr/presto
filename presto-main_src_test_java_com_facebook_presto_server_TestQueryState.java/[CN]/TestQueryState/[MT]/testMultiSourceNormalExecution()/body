@@ -1,8 +1,8 @@
 {
   QueryState queryState=new QueryState(TUPLE_INFOS,3,20);
   assertRunning(queryState);
-  queryState.addPage(createLongPage(0,0));
-  queryState.addPage(createLongPage(1,1));
+  queryState.addPage(createLongPage(0));
+  queryState.addPage(createLongPage(1));
   assertRunning(queryState);
   List<Page> nextPages=queryState.getNextPages(2,MAX_WAIT);
   assertEquals(nextPages.size(),2);
@@ -11,7 +11,7 @@
   assertRunning(queryState);
   queryState.sourceFinished();
   assertRunning(queryState);
-  queryState.addPage(createLongPage(9,9));
+  queryState.addPage(createLongPage(9));
   queryState.sourceFinished();
   assertRunning(queryState);
   nextPages=queryState.getNextPages(2,MAX_WAIT);
@@ -20,17 +20,12 @@
   assertRunning(queryState);
   queryState.sourceFinished();
   assertFinished(queryState);
-  try {
-    queryState.addPage(createLongPage(22,22));
-    fail("expected IllegalStateException");
-  }
- catch (  IllegalStateException e) {
-  }
+  assertFalse(queryState.addPage(createLongPage(22)));
   assertFinished(queryState);
   queryState.sourceFinished();
   assertFinished(queryState);
   queryState.queryFailed(new RuntimeException());
   assertFinished(queryState);
-  queryState.cancel();
+  queryState.finish();
   assertFinished(queryState);
 }

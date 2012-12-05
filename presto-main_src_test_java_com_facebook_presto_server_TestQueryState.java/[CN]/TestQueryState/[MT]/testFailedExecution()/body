@@ -2,7 +2,7 @@
   QueryState queryState=new QueryState(ImmutableList.of(SINGLE_LONG),1,20);
   assertRunning(queryState);
   for (int i=0; i < 5; i++) {
-    queryState.addPage(createLongPage(i,i));
+    queryState.addPage(createLongPage(i));
   }
   assertRunning(queryState);
   List<Page> nextPages=queryState.getNextPages(2,MAX_WAIT);
@@ -18,14 +18,14 @@
   RuntimeException exception=new RuntimeException("failed");
   queryState.queryFailed(exception);
   assertFailed(queryState,exception);
-  queryState.addPage(createLongPage(22,22));
+  queryState.addPage(createLongPage(22));
   assertFailed(queryState,exception);
   RuntimeException anotherException=new RuntimeException("failed again");
   queryState.queryFailed(anotherException);
   assertFailed(queryState,exception,anotherException);
-  queryState.cancel();
+  queryState.finish();
   assertFailed(queryState,exception,anotherException);
-  queryState.cancel();
+  queryState.finish();
   assertFailed(queryState,exception,anotherException);
   queryState.sourceFinished();
   assertFailed(queryState,exception,anotherException);

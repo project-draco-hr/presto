@@ -2,7 +2,7 @@
   QueryState queryState=new QueryState(ImmutableList.of(SINGLE_LONG),1,20);
   assertRunning(queryState);
   for (int i=0; i < 5; i++) {
-    queryState.addPage(createLongPage(i,i));
+    queryState.addPage(createLongPage(i));
   }
   assertRunning(queryState);
   List<Page> nextPages=queryState.getNextPages(2,MAX_WAIT);
@@ -19,26 +19,20 @@
   assertEquals(nextPages.size(),1);
   assertEquals(getPageOnlyValue(nextPages.get(0)),4);
   assertRunning(queryState);
-  int position=9;
   int value=9;
-  queryState.addPage(createLongPage(position,value));
+  queryState.addPage(createLongPage(value));
   queryState.sourceFinished();
   assertRunning(queryState);
   nextPages=queryState.getNextPages(2,MAX_WAIT);
   assertEquals(nextPages.size(),1);
   assertEquals(getPageOnlyValue(nextPages.get(0)),9);
   assertFinished(queryState);
-  try {
-    queryState.addPage(createLongPage(22,22));
-    fail("expected IllegalStateException");
-  }
- catch (  IllegalStateException e) {
-  }
+  assertFalse(queryState.addPage(createLongPage(22)));
   assertFinished(queryState);
   queryState.sourceFinished();
   assertFinished(queryState);
   queryState.queryFailed(new RuntimeException());
   assertFinished(queryState);
-  queryState.cancel();
+  queryState.finish();
   assertFinished(queryState);
 }

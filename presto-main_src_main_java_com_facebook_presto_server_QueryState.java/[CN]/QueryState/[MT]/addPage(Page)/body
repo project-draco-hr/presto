@@ -2,13 +2,9 @@
   while (!isDone() && !notFull.tryAcquire(1,TimeUnit.SECONDS)) {
   }
 synchronized (pageBuffer) {
-    if (state == State.CANCELED || state == State.FAILED) {
+    if (state.isDone()) {
       notFull.release();
       return false;
-    }
-    if (sourceCount == 0) {
-      notFull.release();
-      throw new IllegalStateException("All sources are finished");
     }
     state=State.RUNNING;
     pageBuffer.addLast(page);

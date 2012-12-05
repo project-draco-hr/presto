@@ -8,15 +8,15 @@
     }
   }
 synchronized (pageBuffer) {
-    if (state == State.CANCELED || state == State.FINISHED) {
-      notEmpty.release();
-      return ImmutableList.of();
-    }
     if (state == State.FAILED) {
       notEmpty.release();
       FailedQueryException failedQueryException=new FailedQueryException(causes);
       failedQueryException.printStackTrace(System.err);
       throw failedQueryException;
+    }
+    if (state.isDone()) {
+      notEmpty.release();
+      return ImmutableList.of();
     }
     ImmutableList.Builder<Page> nextPages=ImmutableList.builder();
     int count=0;
