@@ -5,6 +5,9 @@
   Page page=sourceIterator.next();
   if (page.getPositionCount() <= remainingLimit) {
     remainingLimit-=page.getPositionCount();
+    if (remainingLimit == 0) {
+      sourceIterator.close();
+    }
     return page;
   }
  else {
@@ -14,6 +17,7 @@
       blocks[channel]=block.getRegion(0,(int)remainingLimit);
     }
     remainingLimit=0;
+    sourceIterator.close();
     return new Page(blocks);
   }
 }

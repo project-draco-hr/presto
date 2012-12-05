@@ -1,0 +1,22 @@
+{
+  List<KeyAndTuples> keyAndTuplesList=Lists.newArrayList();
+  try (PageIterator pageIterator=source.iterator()){
+    while (pageIterator.hasNext()) {
+      Page page=pageIterator.next();
+      Block[] blocks=page.getBlocks();
+      BlockCursor[] cursors=new BlockCursor[blocks.length];
+      for (int i=0; i < cursors.length; i++) {
+        cursors[i]=blocks[i].cursor();
+      }
+      for (int position=0; position < page.getPositionCount(); position++) {
+        for (        BlockCursor cursor : cursors) {
+          checkState(cursor.advanceNextPosition());
+        }
+        keyAndTuplesList.add(getKeyAndTuples(cursors));
+      }
+      checkState(keyAndTuplesList.size() <= MAX_IN_MEMORY_SORT_SIZE,"Too many tuples for in memory sort");
+    }
+  }
+   Collections.sort(keyAndTuplesList,KeyAndTuples.keyComparator(ordering));
+  return keyAndTuplesList;
+}

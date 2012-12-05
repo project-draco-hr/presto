@@ -1,0 +1,20 @@
+{
+  if (!source.hasNext()) {
+    return endOfData();
+  }
+  Page page=source.next();
+  for (int i=0; i < cursors.length; i++) {
+    cursors[i]=page.getBlock(i).cursor();
+  }
+  for (int position=0; position < page.getPositionCount(); position++) {
+    for (int i=0; i < cursors.length; i++) {
+      checkState(cursors[i].advanceNextPosition());
+      tuples[i]=cursors[i].getTuple();
+    }
+    handler.process(tuples);
+  }
+  for (  BlockCursor cursor : cursors) {
+    checkState(!cursor.advanceNextPosition());
+  }
+  return page;
+}

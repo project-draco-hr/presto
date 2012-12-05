@@ -1,9 +1,12 @@
 {
   taskOutput.splitStarted();
   long startTime=System.nanoTime();
-  try {
-    for (    Page page : operator) {
-      taskOutput.addPage(page);
+  try (PageIterator pages=operator.iterator()){
+    while (pages.hasNext()) {
+      Page page=pages.next();
+      if (!taskOutput.addPage(page)) {
+        pages.close();
+      }
     }
     return null;
   }

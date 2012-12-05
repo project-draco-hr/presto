@@ -1,6 +1,12 @@
 {
   taskState.compareAndSet(State.PREPARING,State.RUNNING);
   for (  QueryState outputBuffer : outputBuffers.values()) {
-    outputBuffer.addPage(page);
+    if (!outputBuffer.addPage(page)) {
+      updateState();
+      State state=getState();
+      Preconditions.checkState(state.isDone(),"Expected a done state but state is %s",state);
+      return false;
+    }
   }
+  return true;
 }

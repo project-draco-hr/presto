@@ -1,0 +1,32 @@
+{
+  Map<Tuple,AggregationFunctionStep[]> aggregationMap=new HashMap<>();
+  BlockCursor[] cursors=new BlockCursor[source.getChannelCount()];
+  for (  Page page : source) {
+    Block[] blocks=page.getBlocks();
+    for (int i=0; i < blocks.length; i++) {
+      cursors[i]=blocks[i].cursor();
+    }
+    int rows=page.getPositionCount();
+    for (int position=0; position < rows; position++) {
+      for (      BlockCursor cursor : cursors) {
+        checkState(cursor.advanceNextPosition());
+      }
+      Tuple key=cursors[groupByChannel].getTuple();
+      AggregationFunctionStep[] functions=aggregationMap.get(key);
+      if (functions == null) {
+        functions=new AggregationFunctionStep[functionProviders.size()];
+        for (int i=0; i < functions.length; i++) {
+          functions[i]=functionProviders.get(i).get();
+        }
+        aggregationMap.put(key,functions);
+      }
+      for (      AggregationFunctionStep function : functions) {
+        function.add(cursors);
+      }
+    }
+    for (    BlockCursor cursor : cursors) {
+      checkState(!cursor.advanceNextPosition());
+    }
+  }
+  return aggregationMap;
+}
