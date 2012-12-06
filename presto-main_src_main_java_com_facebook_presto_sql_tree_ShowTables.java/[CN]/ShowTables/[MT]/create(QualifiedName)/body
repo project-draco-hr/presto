@@ -1,0 +1,21 @@
+{
+  String catalogName=null;
+  String schemaName=null;
+  if (schema != null) {
+    List<String> parts=schema.getParts();
+    checkArgument(parts.size() <= 2,"too many parts in schema name: %s",schema);
+    if (parts.size() == 2) {
+      catalogName=parts.get(0);
+    }
+    schemaName=schema.getSuffix();
+  }
+  QualifiedName tableName=QualifiedName.of(INFORMATION_SCHEMA,TABLE_TABLES);
+  if (catalogName != null) {
+    tableName=prepend(catalogName,tableName);
+  }
+  Expression where=null;
+  if (schemaName != null) {
+    where=new ComparisonExpression(Type.EQUAL,nameReference("table_schema"),new StringLiteral(schemaName));
+  }
+  return new Query(new Select(false,ImmutableList.<Expression>of(nameReference("table_name"))),ImmutableList.<Relation>of(new Table(tableName)),where,ImmutableList.<Expression>of(),null,ImmutableList.<SortItem>of(),null);
+}
