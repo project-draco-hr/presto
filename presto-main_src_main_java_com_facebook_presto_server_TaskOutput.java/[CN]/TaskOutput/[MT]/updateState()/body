@@ -1,21 +1,12 @@
 {
   State overallState=taskState.get();
   if (!overallState.isDone()) {
-    Iterable<State> taskStates=transform(outputBuffers.values(),new Function<QueryState,State>(){
-      @Override public State apply(      QueryState outputBuffer){
-        return outputBuffer.getState();
-      }
-    }
-);
-    if (Iterables.any(taskStates,Predicates.equalTo(State.FAILED))) {
+    Map<String,State> outputBufferStates=getOutputBufferStates();
+    if (Iterables.any(outputBufferStates.values(),equalTo(State.FAILED))) {
       taskState.set(State.FAILED);
       finishAllBuffers();
     }
- else     if (Iterables.any(taskStates,Predicates.equalTo(State.CANCELED))) {
-      taskState.set(State.CANCELED);
-      finishAllBuffers();
-    }
- else     if (Iterables.all(taskStates,Predicates.equalTo(State.FINISHED))) {
+ else     if (Iterables.all(outputBufferStates.values(),equalTo(State.FINISHED))) {
       taskState.set(State.FINISHED);
     }
   }

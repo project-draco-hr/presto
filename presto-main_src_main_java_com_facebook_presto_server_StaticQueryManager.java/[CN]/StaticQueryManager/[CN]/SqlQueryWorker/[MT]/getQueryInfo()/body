@@ -22,21 +22,16 @@
       queryState.set(overallState);
     }
     if (overallState == State.RUNNING) {
-      Iterable<State> taskStates=transform(concat(stages.values()),new Function<QueryTaskInfo,State>(){
-        @Override public State apply(        QueryTaskInfo queryTaskInfo){
-          return queryTaskInfo.getState();
-        }
+      List<QueryTaskInfo> outputTasks=stages.get(outputStage.getStageId());
+      if (outputTasks != null && !outputTasks.isEmpty() && all(transform(outputTasks,stateGetter()),inDoneState())) {
+        overallState=State.FINISHED;
+        queryState.set(overallState);
       }
-);
-      if (Iterables.any(taskStates,equalTo(State.FAILED))) {
+ else       if (any(transform(concat(stages.values()),stateGetter()),equalTo(State.FAILED))) {
         overallState=State.FAILED;
         queryState.set(overallState);
         log.debug("A task for query %s failed, canceling all tasks: stages %s",queryId,this.stages);
         cancel();
-      }
- else       if (Iterables.all(taskStates,Predicates.in(EnumSet.of(State.FINISHED,State.CANCELED)))) {
-        overallState=State.FINISHED;
-        queryState.set(overallState);
       }
     }
   }
