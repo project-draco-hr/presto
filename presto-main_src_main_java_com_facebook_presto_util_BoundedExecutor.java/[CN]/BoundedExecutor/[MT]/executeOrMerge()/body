@@ -2,7 +2,12 @@
   int size=queueSize.incrementAndGet();
   if (size <= maxThreads) {
     do {
-      queue.poll().run();
+      try {
+        queue.poll().run();
+      }
+ catch (      Throwable e) {
+        log.error(e,"Task failed");
+      }
     }
  while (queueSize.getAndDecrement() > maxThreads);
   }
