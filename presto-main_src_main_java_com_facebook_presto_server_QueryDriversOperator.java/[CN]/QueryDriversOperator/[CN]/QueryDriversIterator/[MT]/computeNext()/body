@@ -1,14 +1,13 @@
 {
   try {
-    if (queryState.isDone()) {
-      return endOfData();
+    while (!queryState.isDone()) {
+      List<Page> nextPages=queryState.getNextPages(1,new Duration(1,TimeUnit.SECONDS));
+      if (!nextPages.isEmpty()) {
+        Page page=Iterables.getOnlyElement(nextPages);
+        return page;
+      }
     }
-    List<Page> nextPages=queryState.getNextPages(1,new Duration(365,TimeUnit.DAYS));
-    if (nextPages.isEmpty()) {
-      return endOfData();
-    }
-    Page page=Iterables.getOnlyElement(nextPages);
-    return page;
+    return endOfData();
   }
  catch (  InterruptedException e) {
     Thread.currentThread().interrupt();
