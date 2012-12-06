@@ -5,7 +5,6 @@
   List<HttpTaskClient> taskClients=ImmutableList.copyOf(transform(stage.getPartitions(),new Function<Partition,HttpTaskClient>(){
     @Override public HttpTaskClient apply(    Partition partition){
       Map<String,ExchangePlanFragmentSource> exchangeSources=getExchangeSources(partition.getNode(),stage,stages);
-      checkState(exchangeSources.size() <= 1,"Expected single source");
       Node node=partition.getNode();
       QueryFragmentRequest queryFragmentRequest=new QueryFragmentRequest(stage.getFragment(),partition.getSplits(),exchangeSources,outputIds);
       Request request=preparePost().setUri(uriBuilderFrom(node.getHttpUri()).replacePath("/v1/presto/task").build()).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON).setBodyGenerator(jsonBodyGenerator(queryFragmentRequestCodec,queryFragmentRequest)).build();
