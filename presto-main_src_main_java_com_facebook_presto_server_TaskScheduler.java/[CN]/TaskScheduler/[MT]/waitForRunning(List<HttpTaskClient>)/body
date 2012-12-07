@@ -4,7 +4,11 @@
     taskClients=ImmutableList.copyOf(filter(taskClients,new Predicate<HttpTaskClient>(){
       @Override public boolean apply(      HttpTaskClient taskClient){
         TaskInfo taskInfo=taskClient.getTaskInfo();
-        return taskInfo != null && taskInfo.getState() == State.PREPARING;
+        if (taskInfo == null) {
+          return false;
+        }
+        TaskState state=taskInfo.getState();
+        return state == TaskState.PLANNED || state == TaskState.QUEUED;
       }
     }
 ));

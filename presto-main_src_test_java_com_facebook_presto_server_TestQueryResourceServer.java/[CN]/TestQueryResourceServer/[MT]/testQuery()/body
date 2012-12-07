@@ -1,14 +1,14 @@
 {
   URI location=client.execute(preparePost().setUri(uriFor("/v1/presto/query")).build(),new CreatedResponseHandler());
-  assertQueryStatus(location,State.RUNNING);
+  assertQueryStatus(location,QueryState.RUNNING);
   QueryInfo queryInfo=client.execute(prepareGet().setUri(location).build(),createJsonResponseHandler(jsonCodec(QueryInfo.class)));
   TaskInfo taskInfo=queryInfo.getStages().get("out").get(0);
   URI outputLocation=uriFor("/v1/presto/task/" + taskInfo.getTaskId() + "/results/out");
   assertEquals(loadData(outputLocation),220);
-  assertQueryStatus(location,State.RUNNING);
+  assertQueryStatus(location,QueryState.RUNNING);
   assertEquals(loadData(outputLocation),44 + 48);
-  assertQueryStatus(location,State.FINISHED);
+  assertQueryStatus(location,QueryState.FINISHED);
   StatusResponse response=client.execute(prepareDelete().setUri(location).build(),createStatusResponseHandler());
-  assertQueryStatus(location,State.FINISHED);
+  assertQueryStatus(location,QueryState.FINISHED);
   assertEquals(response.getStatusCode(),Status.NO_CONTENT.getStatusCode());
 }

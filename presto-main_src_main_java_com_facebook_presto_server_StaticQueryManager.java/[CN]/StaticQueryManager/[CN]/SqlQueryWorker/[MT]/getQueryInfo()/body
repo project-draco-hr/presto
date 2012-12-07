@@ -15,25 +15,25 @@
 )));
   }
   ImmutableMap<String,List<TaskInfo>> stages=map.build();
-  State overallState=queryState.get();
+  QueryState queryState=this.queryState.get();
   if (!stages.isEmpty()) {
-    if (overallState == State.PREPARING) {
-      overallState=State.RUNNING;
-      queryState.set(overallState);
+    if (queryState == QueryState.QUEUED) {
+      queryState=QueryState.RUNNING;
+      this.queryState.set(queryState);
     }
-    if (overallState == State.RUNNING) {
+    if (queryState == QueryState.RUNNING) {
       List<TaskInfo> outputTasks=stages.get(outputStage.getStageId());
-      if (outputTasks != null && !outputTasks.isEmpty() && all(transform(outputTasks,stateGetter()),inDoneState())) {
-        overallState=State.FINISHED;
-        queryState.set(overallState);
+      if (outputTasks != null && !outputTasks.isEmpty() && all(transform(outputTasks,taskStateGetter()),TaskState.inDoneState())) {
+        queryState=QueryState.FINISHED;
+        this.queryState.set(queryState);
       }
- else       if (any(transform(concat(stages.values()),stateGetter()),equalTo(State.FAILED))) {
-        overallState=State.FAILED;
-        queryState.set(overallState);
+ else       if (any(transform(concat(stages.values()),taskStateGetter()),equalTo(TaskState.FAILED))) {
+        queryState=QueryState.FAILED;
+        this.queryState.set(queryState);
         log.debug("A task for query %s failed, canceling all tasks: stages %s",queryId,this.stages);
         cancel();
       }
     }
   }
-  return new QueryInfo(queryId,outputStage.getTupleInfos(),outputStage.getFieldNames(),overallState,outputStage.getStageId(),stages);
+  return new QueryInfo(queryId,outputStage.getTupleInfos(),outputStage.getFieldNames(),queryState,outputStage.getStageId(),stages);
 }
