@@ -1,32 +1,32 @@
 {
-  QueryState queryState=new QueryState(ImmutableList.of(SINGLE_LONG),1,20);
-  assertRunning(queryState);
+  PageBuffer pageBuffer=new PageBuffer(ImmutableList.of(SINGLE_LONG),1,20);
+  assertRunning(pageBuffer);
   for (int i=0; i < 5; i++) {
-    queryState.addPage(createLongPage(i));
+    pageBuffer.addPage(createLongPage(i));
   }
-  assertRunning(queryState);
-  List<Page> nextPages=queryState.getNextPages(2,MAX_WAIT);
+  assertRunning(pageBuffer);
+  List<Page> nextPages=pageBuffer.getNextPages(2,MAX_WAIT);
   assertEquals(nextPages.size(),2);
   assertEquals(getPageOnlyValue(nextPages.get(0)),0);
   assertEquals(getPageOnlyValue(nextPages.get(1)),1);
-  assertRunning(queryState);
-  nextPages=queryState.getNextPages(2,MAX_WAIT);
+  assertRunning(pageBuffer);
+  nextPages=pageBuffer.getNextPages(2,MAX_WAIT);
   assertEquals(nextPages.size(),2);
   assertEquals(getPageOnlyValue(nextPages.get(0)),2);
   assertEquals(getPageOnlyValue(nextPages.get(1)),3);
-  assertRunning(queryState);
+  assertRunning(pageBuffer);
   RuntimeException exception=new RuntimeException("failed");
-  queryState.queryFailed(exception);
-  assertFailed(queryState,exception);
-  queryState.addPage(createLongPage(22));
-  assertFailed(queryState,exception);
+  pageBuffer.queryFailed(exception);
+  assertFailed(pageBuffer,exception);
+  pageBuffer.addPage(createLongPage(22));
+  assertFailed(pageBuffer,exception);
   RuntimeException anotherException=new RuntimeException("failed again");
-  queryState.queryFailed(anotherException);
-  assertFailed(queryState,exception,anotherException);
-  queryState.finish();
-  assertFailed(queryState,exception,anotherException);
-  queryState.finish();
-  assertFailed(queryState,exception,anotherException);
-  queryState.sourceFinished();
-  assertFailed(queryState,exception,anotherException);
+  pageBuffer.queryFailed(anotherException);
+  assertFailed(pageBuffer,exception,anotherException);
+  pageBuffer.finish();
+  assertFailed(pageBuffer,exception,anotherException);
+  pageBuffer.finish();
+  assertFailed(pageBuffer,exception,anotherException);
+  pageBuffer.sourceFinished();
+  assertFailed(pageBuffer,exception,anotherException);
 }

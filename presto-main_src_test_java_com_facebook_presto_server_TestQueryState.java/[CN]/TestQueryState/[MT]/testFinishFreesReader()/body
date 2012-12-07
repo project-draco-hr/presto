@@ -1,15 +1,15 @@
 {
-  QueryState queryState=new QueryState(TUPLE_INFOS,1,5);
-  assertRunning(queryState);
+  PageBuffer pageBuffer=new PageBuffer(TUPLE_INFOS,1,5);
+  assertRunning(pageBuffer);
   ExecutorService executor=Executors.newCachedThreadPool();
-  GetPagesJob getPagesJob=new GetPagesJob(queryState,2,1);
+  GetPagesJob getPagesJob=new GetPagesJob(pageBuffer,2,1);
   executor.submit(getPagesJob);
   getPagesJob.waitForStarted();
   getPagesJob.assertBlockedWithCount(0);
-  queryState.addPage(createLongPage(0));
+  pageBuffer.addPage(createLongPage(0));
   getPagesJob.assertBlockedWithCount(1);
-  queryState.finish();
-  assertFinished(queryState);
+  pageBuffer.finish();
+  assertFinished(pageBuffer);
   getPagesJob.waitForFinished();
   assertEquals(getPagesJob.getPages().size(),1);
 }

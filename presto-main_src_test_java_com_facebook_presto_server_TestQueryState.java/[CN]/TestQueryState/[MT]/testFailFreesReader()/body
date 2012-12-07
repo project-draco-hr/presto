@@ -1,16 +1,16 @@
 {
-  QueryState queryState=new QueryState(TUPLE_INFOS,1,5);
-  assertRunning(queryState);
+  PageBuffer pageBuffer=new PageBuffer(TUPLE_INFOS,1,5);
+  assertRunning(pageBuffer);
   ExecutorService executor=Executors.newCachedThreadPool();
-  GetPagesJob getPagesJob=new GetPagesJob(queryState,2,1);
+  GetPagesJob getPagesJob=new GetPagesJob(pageBuffer,2,1);
   executor.submit(getPagesJob);
   getPagesJob.waitForStarted();
   getPagesJob.assertBlockedWithCount(0);
-  queryState.addPage(createLongPage(0));
+  pageBuffer.addPage(createLongPage(0));
   getPagesJob.assertBlockedWithCount(1);
   RuntimeException exception=new RuntimeException("failed");
-  queryState.queryFailed(exception);
-  assertFailed(queryState,exception);
+  pageBuffer.queryFailed(exception);
+  assertFailed(pageBuffer,exception);
   getPagesJob.waitForFinished();
   assertEquals(getPagesJob.getPages().size(),1);
   assertFailedQuery(getPagesJob.getFailedQueryException(),exception);
