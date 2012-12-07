@@ -1,0 +1,18 @@
+{
+  Statement statement=SqlParser.createStatement(sql);
+  Session session=new Session(TpchSchema.CATALOG_NAME,TpchSchema.SCHEMA_NAME);
+  Analyzer analyzer=new Analyzer(session,metadata);
+  AnalysisResult analysis=analyzer.analyze(statement);
+  PlanNode plan=new LogicalPlanner().plan((Query)statement,analysis);
+  new PlanPrinter().print(plan,analysis.getTypes());
+  SubPlan subplan=new DistributedLogicalPlanner(metadata).createSubplans(plan,analysis.getSymbolAllocator(),true);
+  assertTrue(subplan.getChildren().isEmpty(),"Expected subplan to have no children");
+  ImmutableMap.Builder<TableHandle,TableScanPlanFragmentSource> builder=ImmutableMap.builder();
+  for (  PlanNode source : subplan.getFragment().getSources()) {
+    TableScanNode tableScan=(TableScanNode)source;
+    TpchTableHandle handle=(TpchTableHandle)tableScan.getTable();
+    builder.put(handle,new TableScanPlanFragmentSource(new TpchSplit(handle)));
+  }
+  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(metadata,new HackPlanFragmentSourceProvider(dataProvider,null,QUERY_TASK_INFO_CODEC),analysis.getTypes(),null,builder.build(),ImmutableMap.<String,ExchangePlanFragmentSource>of(),new SourceHashProviderFactory());
+  return new FilterAndProjectOperator(executionPlanner.plan(plan),FilterFunctions.TRUE_FUNCTION,new Concat(executionPlanner.plan(plan).getTupleInfos()));
+}
