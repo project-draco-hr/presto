@@ -5,8 +5,8 @@
     Statement statement=SqlParser.createStatement(sql);
     Analyzer analyzer=new Analyzer(session,metadata);
     AnalysisResult analysis=analyzer.analyze(statement);
-    LogicalPlanner planner=new LogicalPlanner();
-    PlanNode plan=planner.plan((Query)statement,analysis);
+    LogicalPlanner logicalPlanner=new LogicalPlanner();
+    PlanNode plan=logicalPlanner.plan((Query)statement,analysis);
     SubPlan subplan=new DistributedLogicalPlanner(metadata).createSubplans(plan,analysis.getSymbolAllocator(),false);
     DistributedExecutionPlanner distributedPlanner=new DistributedExecutionPlanner(nodeManager,splitManager);
     outputStageExecutionPlan=distributedPlanner.plan(subplan);

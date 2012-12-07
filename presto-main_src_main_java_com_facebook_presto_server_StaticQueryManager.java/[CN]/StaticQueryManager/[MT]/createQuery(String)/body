@@ -1,23 +1,23 @@
 {
   Preconditions.checkNotNull(query,"query is null");
   Preconditions.checkArgument(query.length() > 0,"query must not be empty string");
-  QueryWorker queryWorker;
+  QueryExecution queryExecution;
   if (query.startsWith("sql:")) {
     String sql=query.substring("sql:".length());
-    queryWorker=new SqlQueryWorker(String.valueOf(nextQueryId.getAndIncrement()),sql,taskScheduler,new Session(),metadata,nodeManager,splitManager);
+    queryExecution=new SqlQueryExecution(String.valueOf(nextQueryId.getAndIncrement()),sql,taskScheduler,new Session(),metadata,nodeManager,splitManager);
   }
  else {
     ImmutableList<String> strings=ImmutableList.copyOf(Splitter.on(":").split(query));
     String queryBase=strings.get(0);
 switch (queryBase) {
 case "import-table":
-      queryWorker=new ImportTableWorker(String.valueOf(nextQueryId.getAndIncrement()),importClientFactory,importManager,metadata,strings.get(1),strings.get(2),strings.get(3));
+      queryExecution=new ImportTableExecution(String.valueOf(nextQueryId.getAndIncrement()),importClientFactory,importManager,metadata,strings.get(1),strings.get(2),strings.get(3));
     break;
 default :
   throw new IllegalArgumentException("Unsupported query " + query);
 }
 }
-queries.put(queryWorker.getQueryId(),queryWorker);
-queryExecutor.submit(queryWorker);
-return queryWorker.getQueryInfo();
+queries.put(queryExecution.getQueryId(),queryExecution);
+queryExecutor.submit(new QueryStarter(queryExecution));
+return queryExecution.getQueryInfo();
 }
