@@ -1,0 +1,15 @@
+{
+  Iterable<SplitAssignments> splitAssignments=splitManager.getSplitAssignments(node.getTable(),inheritedPredicate,node.getAssignments());
+  Multimap<Node,Split> nodeSplits=SplitAssignments.randomNodeAssignment(random,splitAssignments);
+  ImmutableList.Builder<Partition> partitions=ImmutableList.builder();
+  for (  Entry<Node,Collection<Split>> entry : nodeSplits.asMap().entrySet()) {
+    List<PlanFragmentSource> sources=ImmutableList.copyOf(transform(entry.getValue(),new Function<Split,PlanFragmentSource>(){
+      @Override public PlanFragmentSource apply(      Split split){
+        return new TableScanPlanFragmentSource(split);
+      }
+    }
+));
+    partitions.add(new Partition(entry.getKey(),sources));
+  }
+  return partitions.build();
+}
