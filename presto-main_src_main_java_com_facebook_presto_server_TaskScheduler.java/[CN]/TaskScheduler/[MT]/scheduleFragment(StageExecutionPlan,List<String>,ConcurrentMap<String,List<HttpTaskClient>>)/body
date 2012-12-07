@@ -1,12 +1,12 @@
 {
-  for (  Stage dependency : stage.getDependencies()) {
-    scheduleFragment(dependency,toOutputIds(stage.getPartitions()),stages);
+  for (  StageExecutionPlan dependency : stageExecutionPlan.getDependencies()) {
+    scheduleFragment(dependency,toOutputIds(stageExecutionPlan.getPartitions()),stages);
   }
-  List<HttpTaskClient> taskClients=ImmutableList.copyOf(transform(stage.getPartitions(),new Function<Partition,HttpTaskClient>(){
+  List<HttpTaskClient> taskClients=ImmutableList.copyOf(transform(stageExecutionPlan.getPartitions(),new Function<Partition,HttpTaskClient>(){
     @Override public HttpTaskClient apply(    Partition partition){
-      Map<String,ExchangePlanFragmentSource> exchangeSources=getExchangeSources(partition.getNode(),stage,stages);
+      Map<String,ExchangePlanFragmentSource> exchangeSources=getExchangeSources(partition.getNode(),stageExecutionPlan,stages);
       Node node=partition.getNode();
-      QueryFragmentRequest queryFragmentRequest=new QueryFragmentRequest(stage.getFragment(),partition.getSplits(),exchangeSources,outputIds);
+      QueryFragmentRequest queryFragmentRequest=new QueryFragmentRequest(stageExecutionPlan.getFragment(),partition.getSplits(),exchangeSources,outputIds);
       Request request=preparePost().setUri(uriBuilderFrom(node.getHttpUri()).replacePath("/v1/presto/task").build()).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON).setBodyGenerator(jsonBodyGenerator(queryFragmentRequestCodec,queryFragmentRequest)).build();
       JsonResponse<TaskInfo> response=httpClient.execute(request,createFullJsonResponseHandler(jsonCodec(TaskInfo.class)));
       checkState(response.getStatusCode() == 201,"Expected response code from %s to be 201, but was %d: %s",request.getUri(),response.getStatusCode(),response.getStatusMessage());
@@ -17,5 +17,5 @@
     }
   }
 ));
-  stages.put(stage.getStageId(),taskClients);
+  stages.put(stageExecutionPlan.getStageId(),taskClients);
 }
