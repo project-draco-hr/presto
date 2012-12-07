@@ -1,0 +1,13 @@
+{
+  checkCatalogName(catalogName);
+  ImportClient client=importClientFactory.getClient(catalogName);
+  ImmutableList.Builder<QualifiedTableName> list=ImmutableList.builder();
+  List<String> schemas=getDatabaseNames(client);
+  for (  String schema : schemas) {
+    List<String> tables=getTableNames(client,schema);
+    for (    String table : tables) {
+      list.add(new QualifiedTableName(catalogName,schema,table));
+    }
+  }
+  return list.build();
+}
