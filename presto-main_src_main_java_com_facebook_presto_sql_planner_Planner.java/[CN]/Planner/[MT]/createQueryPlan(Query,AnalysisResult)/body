@@ -7,8 +7,13 @@
   if (!analysis.getAggregations().isEmpty() || !analysis.getGroupByExpressions().isEmpty()) {
     root=createAggregatePlan(root,ImmutableList.copyOf(analysis.getOutputExpressions().values()),Lists.transform(analysis.getOrderBy(),expressionGetter()),analysis.getAggregations(),analysis.getGroupByExpressions(),analysis.getSymbolAllocator(),substitutions);
   }
-  if (analysis.getLimit() != null && !analysis.getOrderBy().isEmpty()) {
-    root=createTopNPlan(root,analysis.getLimit(),analysis.getOrderBy(),analysis.getSymbolAllocator(),substitutions);
+  if (!analysis.getOrderBy().isEmpty()) {
+    if (analysis.getLimit() != null) {
+      root=createTopNPlan(root,analysis.getLimit(),analysis.getOrderBy(),analysis.getSymbolAllocator(),substitutions);
+    }
+ else {
+      root=createSortPlan(root,analysis.getOrderBy(),analysis.getSymbolAllocator(),substitutions);
+    }
   }
   root=createProjectPlan(root,analysis.getOutputExpressions(),substitutions);
   if (analysis.getLimit() != null && analysis.getOrderBy().isEmpty()) {
