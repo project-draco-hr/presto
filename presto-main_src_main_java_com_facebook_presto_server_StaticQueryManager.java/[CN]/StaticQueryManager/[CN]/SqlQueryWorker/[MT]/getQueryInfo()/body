@@ -1,9 +1,9 @@
 {
-  ImmutableMap.Builder<String,List<QueryTaskInfo>> map=ImmutableMap.builder();
+  ImmutableMap.Builder<String,List<TaskInfo>> map=ImmutableMap.builder();
   for (  Entry<String,List<HttpTaskClient>> stage : stages.entrySet()) {
-    map.put(String.valueOf(stage.getKey()),ImmutableList.copyOf(Iterables.transform(stage.getValue(),new Function<HttpTaskClient,QueryTaskInfo>(){
-      @Override public QueryTaskInfo apply(      HttpTaskClient taskClient){
-        QueryTaskInfo taskInfo=taskClient.getQueryTaskInfo();
+    map.put(String.valueOf(stage.getKey()),ImmutableList.copyOf(Iterables.transform(stage.getValue(),new Function<HttpTaskClient,TaskInfo>(){
+      @Override public TaskInfo apply(      HttpTaskClient taskClient){
+        TaskInfo taskInfo=taskClient.getTaskInfo();
         if (taskInfo == null) {
           RuntimeException exception=new RuntimeException(String.format("Query %s task %s has been deleted",queryId,taskClient.getTaskId()));
           cancel();
@@ -14,7 +14,7 @@
     }
 )));
   }
-  ImmutableMap<String,List<QueryTaskInfo>> stages=map.build();
+  ImmutableMap<String,List<TaskInfo>> stages=map.build();
   State overallState=queryState.get();
   if (!stages.isEmpty()) {
     if (overallState == State.PREPARING) {
@@ -22,7 +22,7 @@
       queryState.set(overallState);
     }
     if (overallState == State.RUNNING) {
-      List<QueryTaskInfo> outputTasks=stages.get(outputStage.getStageId());
+      List<TaskInfo> outputTasks=stages.get(outputStage.getStageId());
       if (outputTasks != null && !outputTasks.isEmpty() && all(transform(outputTasks,stateGetter()),inDoneState())) {
         overallState=State.FINISHED;
         queryState.set(overallState);

@@ -8,12 +8,12 @@
       Node node=partition.getNode();
       QueryFragmentRequest queryFragmentRequest=new QueryFragmentRequest(stage.getFragment(),partition.getSplits(),exchangeSources,outputIds);
       Request request=preparePost().setUri(uriBuilderFrom(node.getHttpUri()).replacePath("/v1/presto/task").build()).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON).setBodyGenerator(jsonBodyGenerator(queryFragmentRequestCodec,queryFragmentRequest)).build();
-      JsonResponse<QueryTaskInfo> response=httpClient.execute(request,createFullJsonResponseHandler(jsonCodec(QueryTaskInfo.class)));
+      JsonResponse<TaskInfo> response=httpClient.execute(request,createFullJsonResponseHandler(jsonCodec(TaskInfo.class)));
       checkState(response.getStatusCode() == 201,"Expected response code from %s to be 201, but was %d: %s",request.getUri(),response.getStatusCode(),response.getStatusMessage());
       String location=response.getHeader("Location");
       checkState(location != null);
-      QueryTaskInfo queryTaskInfo=response.getValue();
-      return new HttpTaskClient(queryTaskInfo.getTaskId(),URI.create(location),"unused",queryTaskInfo.getTupleInfos(),httpClient,executor,queryTaskInfoCodec);
+      TaskInfo taskInfo=response.getValue();
+      return new HttpTaskClient(taskInfo.getTaskId(),URI.create(location),"unused",taskInfo.getTupleInfos(),httpClient,executor,taskInfoCodec);
     }
   }
 ));
