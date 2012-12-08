@@ -1,0 +1,34 @@
+{
+  List<String> partitionKeys=getPartitionKeys(sourceName,databaseName,tableName);
+  Set<ComparisonExpression> comparisons=IterableTransformer.on(extractConjuncts(predicate)).select(instanceOf(ComparisonExpression.class)).cast(ComparisonExpression.class).select(or(matchesPattern(ComparisonExpression.Type.EQUAL,QualifiedNameReference.class,StringLiteral.class),matchesPattern(ComparisonExpression.Type.EQUAL,StringLiteral.class,QualifiedNameReference.class))).set();
+  final Map<String,Object> bindings=new HashMap<>();
+  for (  ComparisonExpression comparison : comparisons) {
+    QualifiedNameReference reference;
+    StringLiteral literal;
+    if (comparison.getLeft() instanceof QualifiedNameReference) {
+      reference=(QualifiedNameReference)comparison.getLeft();
+      literal=(StringLiteral)comparison.getRight();
+    }
+ else {
+      reference=(QualifiedNameReference)comparison.getRight();
+      literal=(StringLiteral)comparison.getRight();
+    }
+    Symbol symbol=Symbol.fromQualifiedName(reference.getName());
+    String value=literal.getValue();
+    String columnName=symbolToColumnName.get(symbol);
+    if (columnName != null && partitionKeys.contains(columnName)) {
+      Object previous=bindings.get(columnName);
+      if (previous != null && !previous.equals(value)) {
+        return ImmutableList.of();
+      }
+      bindings.put(columnName,value);
+    }
+  }
+  return runWithRetryUnchecked(new Callable<List<PartitionInfo>>(){
+    @Override public List<PartitionInfo> call() throws Exception {
+      ImportClient importClient=importClientFactory.getClient(sourceName);
+      return importClient.getPartitions(databaseName,tableName,bindings);
+    }
+  }
+);
+}

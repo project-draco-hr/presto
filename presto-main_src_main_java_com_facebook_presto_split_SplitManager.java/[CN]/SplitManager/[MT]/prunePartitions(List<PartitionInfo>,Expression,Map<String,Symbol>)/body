@@ -1,0 +1,15 @@
+{
+  ImmutableList.Builder<PartitionInfo> builder=ImmutableList.builder();
+  for (  PartitionInfo partition : partitions) {
+    Map<Symbol,String> assignments=new HashMap<>();
+    for (    Map.Entry<String,String> entry : partition.getKeyFields().entrySet()) {
+      Symbol symbol=columnNameToSymbol.get(entry.getKey());
+      assignments.put(symbol,entry.getValue());
+    }
+    Expression optimized=new ExpressionOptimizer(assignments).optimize(predicate);
+    if (!optimized.equals(BooleanLiteral.FALSE_LITERAL) && !(optimized instanceof NullLiteral)) {
+      builder.add(partition);
+    }
+  }
+  return builder.build();
+}

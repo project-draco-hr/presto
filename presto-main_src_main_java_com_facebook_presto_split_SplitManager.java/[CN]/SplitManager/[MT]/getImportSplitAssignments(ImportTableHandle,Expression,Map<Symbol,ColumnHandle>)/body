@@ -2,13 +2,7 @@
   final String sourceName=handle.getSourceName();
   final String databaseName=handle.getDatabaseName();
   final String tableName=handle.getTableName();
-  final List<String> partitions=runWithRetryUnchecked(new Callable<List<String>>(){
-    @Override public List<String> call() throws Exception {
-      ImportClient importClient=importClientFactory.getClient(sourceName);
-      return importClient.getPartitionNames(databaseName,tableName);
-    }
-  }
-);
+  final List<String> partitions=getPartitions(sourceName,databaseName,tableName,predicate,mappings);
   Iterable<List<PartitionChunk>> chunks=runWithRetryUnchecked(new Callable<Iterable<List<PartitionChunk>>>(){
     @Override public Iterable<List<PartitionChunk>> call() throws Exception {
       ImportClient importClient=importClientFactory.getClient(sourceName);
