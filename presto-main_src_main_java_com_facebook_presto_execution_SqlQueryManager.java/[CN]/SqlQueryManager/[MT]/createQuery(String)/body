@@ -1,13 +1,14 @@
 {
   Preconditions.checkNotNull(query,"query is null");
   Preconditions.checkArgument(query.length() > 0,"query must not be empty string");
+  String queryId=String.valueOf(nextQueryId.getAndIncrement());
   QueryExecution queryExecution;
   if (query.startsWith("import-table:")) {
     ImmutableList<String> strings=ImmutableList.copyOf(Splitter.on(":").split(query));
-    queryExecution=new ImportTableExecution(String.valueOf(nextQueryId.getAndIncrement()),importClientFactory,importManager,metadata,strings.get(1),strings.get(2),strings.get(3));
+    queryExecution=new ImportTableExecution(queryId,locationFactory.createQueryLocation(queryId),importClientFactory,importManager,metadata,strings.get(1),strings.get(2),strings.get(3));
   }
  else {
-    queryExecution=new SqlQueryExecution(String.valueOf(nextQueryId.getAndIncrement()),query,new Session(),metadata,nodeManager,splitManager,stageManager,remoteTaskFactory,locationFactory);
+    queryExecution=new SqlQueryExecution(queryId,query,new Session(),metadata,nodeManager,splitManager,stageManager,remoteTaskFactory,locationFactory);
   }
   queries.put(queryExecution.getQueryId(),queryExecution);
   queryExecutor.submit(new QueryStarter(queryExecution));
