@@ -1,13 +1,11 @@
 {
   try {
+    hideCursor();
     while (true) {
       try {
-        Uninterruptibles.sleepUninterruptibly(50,TimeUnit.MILLISECONDS);
+        Uninterruptibles.sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
         QueryInfo queryInfo=queryClient.getQueryInfo();
-        if (queryInfo == null) {
-          return;
-        }
-        if (queryInfo.getState().isDone()) {
+        if (queryInfo == null || queryInfo.getState().isDone()) {
           return;
         }
         if (queryInfo.getOutputStage() != null) {
@@ -18,16 +16,15 @@
             }
           }
         }
-        out.print("\r" + toInfoString(queryInfo,start));
-        out.flush();
-        Uninterruptibles.sleepUninterruptibly(50,TimeUnit.MILLISECONDS);
+        resetScreen();
+        printQueryInfo(queryInfo);
       }
  catch (      Exception ignored) {
       }
     }
   }
   finally {
-    out.printf("\r%-" + maxInfoString + "s\r","");
-    out.flush();
+    resetScreen();
+    showCursor();
   }
 }

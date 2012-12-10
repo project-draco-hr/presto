@@ -1,0 +1,10 @@
+{
+  Duration elapsedTime=Duration.nanosSince(start);
+  ExecutionStats executionStats=new ExecutionStats();
+  sumTaskStats(stage,executionStats);
+  String stageSummary=String.format("%s%s [%s] i[%,d %s %s] o[%,d %s %s] splits[%,d/%,d/%,d]",indent,stage.getStageId(),stage.getState().toString().charAt(0),executionStats.getInputPositionCount(),formatDataSize(executionStats.getInputDataSize()),formatDataRate(executionStats.getCompletedDataSize(),elapsedTime),executionStats.getOutputPositionCount(),formatDataSize(executionStats.getOutputDataSize()),formatDataRate(executionStats.getOutputDataSize(),elapsedTime),max(0,executionStats.getSplits() - executionStats.getStartedSplits()),max(0,executionStats.getStartedSplits() - executionStats.getCompletedSplits()),executionStats.getCompletedSplits());
+  reprintLine(stageSummary);
+  for (  StageInfo subStage : stage.getSubStages()) {
+    printStageTree(subStage,indent + "  ");
+  }
+}

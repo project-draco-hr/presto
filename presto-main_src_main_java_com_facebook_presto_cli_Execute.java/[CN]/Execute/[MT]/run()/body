@@ -1,16 +1,18 @@
 {
+  AnsiConsole.systemInstall();
   Main.initializeLogging(false);
   ExecutorService executor=Executors.newCachedThreadPool();
   HttpQueryClient queryClient=null;
   try {
     ApacheHttpClient httpClient=new ApacheHttpClient(new HttpClientConfig().setConnectTimeout(new Duration(1,TimeUnit.DAYS)).setReadTimeout(new Duration(10,TimeUnit.DAYS)));
     queryClient=new HttpQueryClient(query,server,httpClient,executor,jsonCodec(QueryInfo.class),jsonCodec(TaskInfo.class));
-    StatusPrinter statusPrinter=new StatusPrinter(queryClient);
-    statusPrinter.printInitialStatusUpdates(System.err);
+    out().print("\n");
+    StatusPrinter statusPrinter=new StatusPrinter(queryClient,out());
+    statusPrinter.printInitialStatusUpdates();
     Operator operator=queryClient.getResultsOperator();
     List<String> fieldNames=queryClient.getQueryInfo().getFieldNames();
     OutputStats stats=pageOutput(operator,fieldNames);
-    System.out.println(statusPrinter.getFinalInfo(stats));
+    statusPrinter.printFinalInfo(stats);
   }
   finally {
     if (queryClient != null) {

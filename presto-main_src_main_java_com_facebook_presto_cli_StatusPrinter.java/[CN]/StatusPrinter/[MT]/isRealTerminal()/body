@@ -1,0 +1,21 @@
+{
+  if (Boolean.getBoolean("jansi.passthrough")) {
+    return true;
+  }
+  if (Boolean.getBoolean("jansi.strip")) {
+    return false;
+  }
+  String os=System.getProperty("os.name");
+  if (os.startsWith("Windows")) {
+    return true;
+  }
+  try {
+    int rc=isatty(STDOUT_FILENO);
+    if (rc == 0) {
+      return false;
+    }
+  }
+ catch (  NoClassDefFoundError|UnsatisfiedLinkError ignore) {
+  }
+  return true;
+}
