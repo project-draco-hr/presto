@@ -7,7 +7,7 @@
       Map<String,ExchangePlanFragmentSource> exchangeSources=getExchangeSources(partition.getNode(),stageExecutionPlan,stages);
       Node node=partition.getNode();
       QueryFragmentRequest queryFragmentRequest=new QueryFragmentRequest(stageExecutionPlan.getFragment(),partition.getSplits(),exchangeSources,outputIds);
-      Request request=preparePost().setUri(uriBuilderFrom(node.getHttpUri()).replacePath("/v1/presto/task").build()).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON).setBodyGenerator(jsonBodyGenerator(queryFragmentRequestCodec,queryFragmentRequest)).build();
+      Request request=preparePost().setUri(uriBuilderFrom(node.getHttpUri()).replacePath("/v1/task").build()).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON).setBodyGenerator(jsonBodyGenerator(queryFragmentRequestCodec,queryFragmentRequest)).build();
       JsonResponse<TaskInfo> response=httpClient.execute(request,createFullJsonResponseHandler(jsonCodec(TaskInfo.class)));
       checkState(response.getStatusCode() == 201,"Expected response code from %s to be 201, but was %d: %s",request.getUri(),response.getStatusCode(),response.getStatusMessage());
       String location=response.getHeader("Location");
