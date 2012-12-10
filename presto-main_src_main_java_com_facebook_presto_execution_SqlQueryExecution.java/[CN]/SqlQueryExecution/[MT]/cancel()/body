@@ -2,13 +2,14 @@
   while (true) {
     QueryState queryState=this.queryState.get();
     if (queryState.isDone()) {
-      break;
+      return;
     }
     if (this.queryState.compareAndSet(queryState,QueryState.CANCELED)) {
       break;
     }
   }
-  for (  HttpTaskClient taskClient : Iterables.concat(stages.values())) {
-    taskClient.cancel();
+  StageExecution stageExecution=outputStage.get();
+  if (stageExecution != null) {
+    stageExecution.cancel();
   }
 }

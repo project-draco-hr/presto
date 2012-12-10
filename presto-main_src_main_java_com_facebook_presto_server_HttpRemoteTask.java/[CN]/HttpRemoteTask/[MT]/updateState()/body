@@ -1,0 +1,18 @@
+{
+  TaskInfo taskInfo=this.taskInfo.get();
+  TaskState currentState=taskInfo.getState();
+  if (currentState == TaskState.PLANNED || currentState.isDone()) {
+    return;
+  }
+  URI statusUri=uriBuilderFrom(taskInfo.getSelf()).build();
+  JsonResponse<TaskInfo> response=httpClient.execute(prepareGet().setUri(statusUri).build(),createFullJsonResponseHandler(taskInfoCodec));
+  if (response.getStatusCode() == Status.GONE.getStatusCode()) {
+    if (!currentState.isDone()) {
+      this.taskInfo.set(new TaskInfo(taskInfo.getTaskId(),taskInfo.getSelf(),taskInfo.getOutputBufferStates(),taskInfo.getTupleInfos(),TaskState.CANCELED,taskInfo.getStats()));
+    }
+  }
+ else {
+    Preconditions.checkState(response.getStatusCode() == Status.OK.getStatusCode(),"Expected response code to be 201, but was %s: %s",response.getStatusCode(),response.getStatusMessage());
+    this.taskInfo.set(response.getValue());
+  }
+}

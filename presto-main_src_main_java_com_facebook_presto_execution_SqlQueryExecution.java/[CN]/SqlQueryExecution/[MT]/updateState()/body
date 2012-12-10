@@ -1,0 +1,28 @@
+{
+  StageExecution outputStage=this.outputStage.get();
+  if (outputStage == null) {
+    return;
+  }
+  outputStage.updateState();
+  StageInfo outputStageInfo=outputStage.getStageInfo();
+  if (queryState.get().isDone()) {
+    return;
+  }
+switch (outputStageInfo.getState()) {
+case PLANNED:
+case CANCELED:
+    break;
+case SCHEDULED:
+  this.queryState.set(QueryState.QUEUED);
+break;
+case RUNNING:
+this.queryState.set(QueryState.RUNNING);
+break;
+case FINISHED:
+this.queryState.set(QueryState.FINISHED);
+break;
+case FAILED:
+this.queryState.set(QueryState.FAILED);
+break;
+}
+}

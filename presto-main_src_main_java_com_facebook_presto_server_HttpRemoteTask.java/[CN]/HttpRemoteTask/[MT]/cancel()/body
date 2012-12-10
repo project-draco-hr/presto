@@ -1,0 +1,13 @@
+{
+  TaskInfo taskInfo=this.taskInfo.get();
+  if (taskInfo.getSelf() == null) {
+    this.taskInfo.set(new TaskInfo(taskInfo.getTaskId(),taskInfo.getSelf(),taskInfo.getOutputBufferStates(),taskInfo.getTupleInfos(),TaskState.CANCELED,taskInfo.getStats()));
+    return;
+  }
+  try {
+    Request request=prepareDelete().setUri(taskInfo.getSelf()).build();
+    httpClient.execute(request,createStatusResponseHandler());
+  }
+ catch (  RuntimeException ignored) {
+  }
+}

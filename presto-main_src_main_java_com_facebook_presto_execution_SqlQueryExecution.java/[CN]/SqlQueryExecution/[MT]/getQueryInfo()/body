@@ -1,39 +1,8 @@
 {
-  ImmutableMap.Builder<String,List<TaskInfo>> map=ImmutableMap.builder();
-  for (  Entry<String,List<HttpTaskClient>> stage : stages.entrySet()) {
-    map.put(String.valueOf(stage.getKey()),ImmutableList.copyOf(Iterables.transform(stage.getValue(),new Function<HttpTaskClient,TaskInfo>(){
-      @Override public TaskInfo apply(      HttpTaskClient taskClient){
-        TaskInfo taskInfo=taskClient.getTaskInfo();
-        if (taskInfo == null) {
-          RuntimeException exception=new RuntimeException(String.format("Query %s task %s has been deleted",queryId,taskClient.getTaskId()));
-          cancel();
-          throw exception;
-        }
-        return taskInfo;
-      }
-    }
-)));
+  StageExecution outputStage=this.outputStage.get();
+  StageInfo stageInfo=null;
+  if (outputStage != null) {
+    stageInfo=outputStage.getStageInfo();
   }
-  ImmutableMap<String,List<TaskInfo>> stages=map.build();
-  QueryState queryState=this.queryState.get();
-  if (!stages.isEmpty()) {
-    if (queryState == QueryState.QUEUED) {
-      queryState=QueryState.RUNNING;
-      this.queryState.set(queryState);
-    }
-    if (queryState == QueryState.RUNNING) {
-      List<TaskInfo> outputTasks=stages.get(outputStageExecutionPlan.getStageId());
-      if (outputTasks != null && !outputTasks.isEmpty() && all(transform(outputTasks,taskStateGetter()),TaskState.inDoneState())) {
-        queryState=QueryState.FINISHED;
-        this.queryState.set(queryState);
-      }
- else       if (any(transform(concat(stages.values()),taskStateGetter()),equalTo(TaskState.FAILED))) {
-        queryState=QueryState.FAILED;
-        this.queryState.set(queryState);
-        log.debug("A task for query %s failed, canceling all tasks: stages %s",queryId,this.stages);
-        cancel();
-      }
-    }
-  }
-  return new QueryInfo(queryId,outputStageExecutionPlan.getTupleInfos(),outputStageExecutionPlan.getFieldNames(),queryState,outputStageExecutionPlan.getStageId(),stages);
+  return new QueryInfo(queryId,queryState.get(),fieldNames,tupleInfos,stageInfo);
 }

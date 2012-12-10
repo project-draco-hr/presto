@@ -1,0 +1,32 @@
+{
+  Preconditions.checkNotNull(importClientFactory,"importClientFactory is null");
+  Preconditions.checkNotNull(importManager,"importManager is null");
+  Preconditions.checkNotNull(metadata,"metadata is null");
+  Preconditions.checkNotNull(nodeManager,"nodeManager is null");
+  Preconditions.checkNotNull(splitManager,"splitManager is null");
+  Preconditions.checkNotNull(stageManager,"stageManager is null");
+  Preconditions.checkNotNull(remoteTaskFactory,"remoteTaskFactory is null");
+  Preconditions.checkNotNull(locationFactory,"locationFactory is null");
+  this.queryExecutor=new ScheduledThreadPoolExecutor(1000,threadsNamed("query-processor-%d"));
+  this.importClientFactory=importClientFactory;
+  this.importManager=importManager;
+  this.metadata=metadata;
+  this.nodeManager=nodeManager;
+  this.splitManager=splitManager;
+  this.stageManager=stageManager;
+  this.remoteTaskFactory=remoteTaskFactory;
+  this.locationFactory=locationFactory;
+  queryExecutor.scheduleAtFixedRate(new Runnable(){
+    @Override public void run(){
+      for (      QueryExecution queryExecution : queries.values()) {
+        try {
+          queryExecution.updateState();
+        }
+ catch (        Throwable e) {
+          log.warn(e,"Error updating state for query %s",queryExecution.getQueryId());
+        }
+      }
+    }
+  }
+,200,200,TimeUnit.MILLISECONDS);
+}

@@ -1,12 +1,9 @@
 {
-  ImmutableMap<String,List<PlanFragmentSource>> fragmentSources=ImmutableMap.of();
   PlanFragment planFragment=new PlanFragment(32,false,ImmutableMap.<Symbol,Type>of(),new ExchangeNode(22,ImmutableList.<Symbol>of()));
   QueryFragmentRequest fragmentRequest=new QueryFragmentRequest(planFragment,ImmutableList.<PlanFragmentSource>of(),ImmutableMap.<String,ExchangePlanFragmentSource>of(),ImmutableList.of("out"));
-  Request request=preparePost().setUri(httpServer.getBaseUrl().resolve("/v1/task")).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON).setBodyGenerator(jsonBodyGenerator(jsonCodec(QueryFragmentRequest.class),fragmentRequest)).build();
+  Request request=preparePut().setUri(httpServer.getBaseUrl().resolve("/v1/task/foo-" + httpServer.getPort())).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON).setBodyGenerator(jsonBodyGenerator(jsonCodec(QueryFragmentRequest.class),fragmentRequest)).build();
   JsonResponse<TaskInfo> response=httpClient.execute(request,createFullJsonResponseHandler(jsonCodec(TaskInfo.class)));
   Preconditions.checkState(response.getStatusCode() == 201,"Expected response code from %s to be 201, but was %s: %s",request.getUri(),response.getStatusCode(),response.getStatusMessage());
-  String location=response.getHeader("Location");
-  Preconditions.checkState(location != null);
   TaskInfo taskInfo=response.getValue();
-  return new HttpTaskClient(taskInfo.getTaskId(),URI.create(location),"out",taskInfo.getTupleInfos(),httpClient,executor,jsonCodec(TaskInfo.class));
+  return new HttpTaskClient(taskInfo.getTaskId(),taskInfo.getSelf(),"out",taskInfo.getTupleInfos(),httpClient,executor,jsonCodec(TaskInfo.class));
 }
