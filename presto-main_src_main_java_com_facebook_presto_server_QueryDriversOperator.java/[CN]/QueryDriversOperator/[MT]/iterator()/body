@@ -1,13 +1,13 @@
 {
   ImmutableList.Builder<QueryDriver> queries=ImmutableList.builder();
   try {
-    PageBuffer outputBuffer=new PageBuffer("out",tupleInfos,driverProviders.size(),pageBufferMax);
+    PageBuffer outputBuffer=new PageBuffer("out",driverProviders.size(),pageBufferMax);
     for (    QueryDriverProvider provider : driverProviders) {
       QueryDriver queryDriver=provider.create(outputBuffer);
       queries.add(queryDriver);
       queryDriver.start();
     }
-    return new QueryDriversIterator(outputBuffer,queries.build());
+    return new QueryDriversIterator(outputBuffer,queries.build(),tupleInfos);
   }
  catch (  Throwable e) {
     for (    QueryDriver queryDriver : queries.build()) {

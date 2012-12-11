@@ -9,17 +9,16 @@
         return ImmutableList.of();
       }
       @Override public PageIterator iterator(){
-        return PageIterators.emptyIterator(tupleInfos);
+        return PageIterators.emptyIterator(ImmutableList.<TupleInfo>of());
       }
     }
 ;
   }
-  List<TaskInfo> outputStage=queryInfo.getOutputStage().getTasks();
-  return new QueryDriversOperator(10,Iterables.transform(outputStage,new Function<TaskInfo,QueryDriverProvider>(){
+  StageInfo outputStage=queryInfo.getOutputStage();
+  return new QueryDriversOperator(10,outputStage.getTupleInfos(),Iterables.transform(outputStage.getTasks(),new Function<TaskInfo,QueryDriverProvider>(){
     @Override public QueryDriverProvider apply(    TaskInfo taskInfo){
       Preconditions.checkState(taskInfo.getOutputBuffers().size() == 1,"Expected a single output buffer for task %s, but found %s",taskInfo.getTaskId(),taskInfo.getOutputBuffers());
-      URI taskUri=uriBuilderFrom(taskInfo.getSelf()).replacePath("/v1/task").appendPath(taskInfo.getTaskId()).build();
-      return new HttpTaskClient(taskInfo.getTaskId(),taskUri,Iterables.getOnlyElement(taskInfo.getOutputBuffers()).getBufferId(),taskInfo.getTupleInfos(),httpClient,executor,taskInfoCodec);
+      return new HttpTaskClient(taskInfo.getTaskId(),taskInfo.getSelf(),Iterables.getOnlyElement(taskInfo.getOutputBuffers()).getBufferId(),httpClient,executor,taskInfoCodec);
     }
   }
 ));

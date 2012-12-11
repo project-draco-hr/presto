@@ -12,4 +12,10 @@
   this.plan=plan;
   this.subStages=ImmutableList.copyOf(subStages);
   this.tasks=ImmutableList.copyOf(tasks);
+  tupleInfos=ImmutableList.copyOf(IterableTransformer.on(plan.getRoot().getOutputSymbols()).transform(Functions.forMap(plan.getSymbols())).transform(com.facebook.presto.sql.analyzer.Type.toRaw()).transform(new Function<Type,TupleInfo>(){
+    @Override public TupleInfo apply(    Type input){
+      return new TupleInfo(input);
+    }
+  }
+).list());
 }
