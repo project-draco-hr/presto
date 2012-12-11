@@ -1,0 +1,19 @@
+{
+  checkState(symbols.containsKey(symbol),"Unknown symbol: %s",symbol);
+  Integer channel=symbolToChannelMapping.get(symbol);
+  checkState(channel != null,"Unknown channel for symbol: %s",symbol);
+  TupleReadable input=inputs[channel];
+  if (input.isNull(0)) {
+    return null;
+  }
+switch (symbols.get(symbol)) {
+case LONG:
+    return input.getLong(0);
+case DOUBLE:
+  return input.getDouble(0);
+case STRING:
+return input.getSlice(0);
+default :
+throw new UnsupportedOperationException("not yet implemented: " + symbols.get(symbol));
+}
+}

@@ -1,0 +1,17 @@
+{
+  ExpressionInterpreter interpreter=new ExpressionInterpreter(new SymbolResolver(){
+    @Override public Object getValue(    Symbol symbol){
+switch (symbol.getName().toLowerCase()) {
+case "boundlong":
+        return 1234L;
+case "boundstring":
+      return Slices.wrappedBuffer("hello".getBytes(UTF_8));
+case "bounddouble":
+    return 12.34;
+}
+return new QualifiedNameReference(symbol.toQualifiedName());
+}
+}
+);
+assertEquals(interpreter.process(createExpression(actual),null),interpreter.process(createExpression(expected),null));
+}
