@@ -15,9 +15,9 @@
     intermediateFunctions.put(intermediateSymbol,functionHandle);
     finalCalls.put(entry.getKey(),new FunctionCall(function.getName(),ImmutableList.<Expression>of(new QualifiedNameReference(intermediateSymbol.toQualifiedName()))));
   }
-  current.setRoot(new AggregationNode(current.getRoot(),node.getGroupBy(),intermediateCalls,intermediateFunctions,PARTIAL));
+  AggregationNode aggregation=new AggregationNode(current.getRoot(),node.getGroupBy(),intermediateCalls,intermediateFunctions,PARTIAL);
+  current.setRoot(new SinkNode(current.getId(),aggregation));
   ExchangeNode source=new ExchangeNode(current.getId(),current.getRoot().getOutputSymbols());
   AggregationNode merged=new AggregationNode(source,node.getGroupBy(),finalCalls,node.getFunctions(),FINAL);
-  current=newSubPlan(merged).setPartitioned(false).addChild(current.build());
-  return current;
+  return newSubPlan(merged).setPartitioned(false).addChild(current.build());
 }
