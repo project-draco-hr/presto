@@ -1,12 +1,10 @@
 {
-  while (true) {
-    StageState stageState=this.stageState.get();
-    if (stageState.isDone()) {
+  Preconditions.checkState(!Thread.holdsLock(this),"Can not cancel while holding a lock on this");
+synchronized (this) {
+    if (stageState.get().isDone()) {
       return;
     }
-    if (this.stageState.compareAndSet(stageState,StageState.CANCELED)) {
-      break;
-    }
+    stageState.set(StageState.CANCELED);
   }
   cancelAll();
 }

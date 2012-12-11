@@ -1,0 +1,22 @@
+{
+  Preconditions.checkState(!Thread.holdsLock(this),"Can not start while holding a lock on this");
+synchronized (this) {
+    Preconditions.checkState(stageState.compareAndSet(StageState.PLANNED,StageState.SCHEDULING),"Stage has already been started");
+  }
+  try {
+    for (    RemoteTask task : tasks) {
+      task.start();
+    }
+synchronized (this) {
+      stageState.compareAndSet(StageState.SCHEDULING,StageState.SCHEDULED);
+    }
+  }
+ catch (  Throwable e) {
+synchronized (this) {
+      stageState.set(StageState.FAILED);
+    }
+    log.error(e,"Stage %s failed to start",stageId);
+    cancel();
+    throw Throwables.propagate(e);
+  }
+}

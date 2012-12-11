@@ -1,25 +1,30 @@
 {
+  Preconditions.checkState(!Thread.holdsLock(this),"Can not update state while holding a lock on this");
   for (  RemoteTask task : tasks) {
     task.updateState();
   }
   for (  StageExecution subStage : subStages) {
     subStage.updateState();
   }
+synchronized (this) {
+    if (stageState.get().isDone()) {
+      return;
+    }
+    List<TaskState> taskStates=ImmutableList.copyOf(transform(transform(tasks,taskInfoGetter()),taskStateGetter()));
+    if (any(taskStates,equalTo(TaskState.FAILED))) {
+      stageState.set(StageState.FAILED);
+    }
+ else     if (all(taskStates,TaskState.inDoneState())) {
+      stageState.set(StageState.FINISHED);
+    }
+ else     if (any(taskStates,equalTo(TaskState.RUNNING))) {
+      stageState.set(StageState.RUNNING);
+    }
+ else     if (any(taskStates,equalTo(TaskState.QUEUED))) {
+      stageState.set(StageState.SCHEDULED);
+    }
+  }
   if (stageState.get().isDone()) {
-    return;
-  }
-  List<TaskState> taskStates=ImmutableList.copyOf(transform(transform(tasks,taskInfoGetter()),taskStateGetter()));
-  if (any(taskStates,equalTo(TaskState.FAILED))) {
-    stageState.set(StageState.FAILED);
     cancelAll();
-  }
- else   if (all(taskStates,TaskState.inDoneState())) {
-    stageState.set(StageState.FINISHED);
-  }
- else   if (any(taskStates,equalTo(TaskState.RUNNING))) {
-    stageState.set(StageState.RUNNING);
-  }
- else   if (any(taskStates,equalTo(TaskState.QUEUED))) {
-    stageState.set(StageState.SCHEDULED);
   }
 }
