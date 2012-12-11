@@ -16,6 +16,11 @@
   this.httpClient=httpClient;
   this.taskInfoCodec=taskInfoCodec;
   this.queryFragmentRequestCodec=queryFragmentRequestCodec;
-  Map<String,BufferState> bufferStates=IterableTransformer.on(outputIds).toMap(Functions.constant(BufferState.CREATED)).map();
+  List<PageBufferInfo> bufferStates=ImmutableList.copyOf(transform(outputIds,new Function<String,PageBufferInfo>(){
+    @Override public PageBufferInfo apply(    String outputId){
+      return new PageBufferInfo(outputId,BufferState.CREATED,0);
+    }
+  }
+));
   taskInfo.set(new TaskInfo(queryId,stageId,taskId,TaskState.PLANNED,location,bufferStates,planFragment.getTupleInfos(),new ExecutionStats()));
 }

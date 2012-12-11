@@ -1,14 +1,13 @@
 {
   TaskState overallState=taskState.get();
   if (!overallState.isDone()) {
-    Map<String,BufferState> outputBufferStates=getOutputBufferStates();
-    if (Iterables.any(outputBufferStates.values(),equalTo(BufferState.FAILED))) {
+    ImmutableList<BufferState> bufferStates=ImmutableList.copyOf(transform(outputBuffers.values(),stateGetter()));
+    if (Iterables.any(bufferStates,equalTo(BufferState.FAILED))) {
       taskState.set(TaskState.FAILED);
       finishAllBuffers();
     }
- else     if (Iterables.all(outputBufferStates.values(),equalTo(BufferState.FINISHED))) {
+ else     if (Iterables.all(bufferStates,equalTo(BufferState.FINISHED))) {
       taskState.set(TaskState.FINISHED);
     }
   }
-  stats.setBufferedPages(getBufferedPageCount());
 }
