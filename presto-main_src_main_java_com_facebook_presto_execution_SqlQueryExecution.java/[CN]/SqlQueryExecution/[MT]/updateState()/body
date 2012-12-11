@@ -1,31 +1,29 @@
 {
+  Preconditions.checkState(!Thread.holdsLock(this),"Can not update while holding a lock on this");
   StageExecution outputStage=this.outputStage.get();
   if (outputStage == null) {
     return;
   }
   outputStage.updateState();
-  StageInfo outputStageInfo=outputStage.getStageInfo();
-  if (queryState.get().isDone()) {
-    return;
+synchronized (this) {
+    if (queryState.get().isDone()) {
+      return;
+    }
+    StageInfo outputStageInfo=outputStage.getStageInfo();
+    StageState outputStageState=outputStageInfo.getState();
+    if (outputStageState.isDone()) {
+      if (outputStageState == StageState.FAILED) {
+        this.queryState.set(QueryState.FAILED);
+      }
+ else {
+        this.queryState.set(QueryState.FINISHED);
+      }
+      queryStats.recordEnd();
+    }
+ else     if (queryState.get() == QueryState.STARTING) {
+      if (any(transform(getAllStages(outputStage.getStageInfo()),stageStateGetter()),isStageRunningOrDone())) {
+        this.queryState.set(QueryState.RUNNING);
+      }
+    }
   }
-switch (outputStageInfo.getState()) {
-case PLANNED:
-case CANCELED:
-    break;
-case SCHEDULING:
-case SCHEDULED:
-  this.queryState.set(QueryState.QUEUED);
-break;
-case RUNNING:
-this.queryState.set(QueryState.RUNNING);
-break;
-case FINISHED:
-this.queryState.set(QueryState.FINISHED);
-queryStats.recordEnd();
-break;
-case FAILED:
-this.queryState.set(QueryState.FAILED);
-queryStats.recordEnd();
-break;
-}
 }

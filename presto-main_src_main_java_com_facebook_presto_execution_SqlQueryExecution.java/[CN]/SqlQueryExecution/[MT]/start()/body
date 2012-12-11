@@ -1,8 +1,15 @@
 {
+  Preconditions.checkState(!Thread.holdsLock(this),"Can not start while holding a lock on this");
+synchronized (this) {
+    Preconditions.checkState(queryState.compareAndSet(QueryState.QUEUED,QueryState.PLANNING),"Stage has already been started");
+  }
   try {
     queryStats.recordStart();
     SubPlan subplan=analyseQuery();
     planDistribution(subplan);
+synchronized (this) {
+      Preconditions.checkState(queryState.compareAndSet(QueryState.PLANNING,QueryState.STARTING),"Expected query to be in state %s",QueryState.PLANNING);
+    }
     startStage(outputStage.get());
   }
  catch (  Exception e) {

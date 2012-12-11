@@ -1,12 +1,10 @@
 {
-  while (true) {
-    QueryState queryState=this.queryState.get();
-    if (queryState.isDone()) {
+  Preconditions.checkState(!Thread.holdsLock(this),"Can not cancel while holding a lock on this");
+synchronized (this) {
+    if (queryState.get().isDone()) {
       return;
     }
-    if (this.queryState.compareAndSet(queryState,QueryState.CANCELED)) {
-      break;
-    }
+    queryState.set(QueryState.CANCELED);
   }
   StageExecution stageExecution=outputStage.get();
   if (stageExecution != null) {
