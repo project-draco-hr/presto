@@ -1,0 +1,8 @@
+{
+  Set<Expression> outputExpressions=ImmutableSet.copyOf(Iterables.transform(output.getExpressions().values(),rewrittenExpressionGetter()));
+  List<AnalyzedOrdering> missingOrderings=IterableTransformer.on(orderBy).select(compose(not(in(outputExpressions)),Functions.compose(rewrittenExpressionGetter(),expressionGetter()))).list();
+  if (!missingOrderings.isEmpty()) {
+    List<String> expressions=IterableTransformer.on(missingOrderings).transform(nodeGetter()).transform(SortItem.sortKeyGetter()).transform(ExpressionFormatter.expressionFormatterFunction()).list();
+    throw new SemanticException(missingOrderings.get(0).getNode(),"Expressions must appear in select list for SELECT DISTINCT, ORDER BY: %s",expressions);
+  }
+}
