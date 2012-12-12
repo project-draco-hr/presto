@@ -13,7 +13,10 @@ synchronized (this) {
     startStage(outputStage.get());
   }
  catch (  Exception e) {
-    e.printStackTrace();
-    throw Throwables.propagate(e);
+synchronized (this) {
+      failureCauses.add(e);
+      queryState.set(QueryState.FAILED);
+    }
+    cancel();
   }
 }

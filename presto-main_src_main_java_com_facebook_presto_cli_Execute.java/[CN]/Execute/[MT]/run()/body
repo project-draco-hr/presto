@@ -9,13 +9,27 @@
     out().print("\n");
     StatusPrinter statusPrinter=new StatusPrinter(queryClient,out());
     statusPrinter.printInitialStatusUpdates();
-    Operator operator=queryClient.getResultsOperator();
-    List<String> fieldNames=queryClient.getQueryInfo().getFieldNames();
-    OutputStats stats=pageOutput(operator,fieldNames);
-    statusPrinter.printFinalInfo(stats);
+    QueryInfo queryInfo=queryClient.getQueryInfo();
+    if (queryInfo.getState().isDone()) {
+      if (queryInfo.getState() == QueryState.CANCELED) {
+        AnsiConsole.out().printf("Query %s was canceled\n",queryInfo.getQueryId());
+      }
+ else       if (queryInfo.getState() == QueryState.FAILED) {
+        renderFailure(queryInfo,AnsiConsole.out());
+      }
+ else {
+        AnsiConsole.out().printf("Query %s finished with no output\n",queryInfo.getQueryId());
+      }
+    }
+ else {
+      Operator operator=queryClient.getResultsOperator();
+      List<String> fieldNames=queryInfo.getFieldNames();
+      OutputStats stats=pageOutput(operator,fieldNames);
+      statusPrinter.printFinalInfo(stats);
+    }
   }
   finally {
-    if (queryClient != null) {
+    if (!debug && queryClient != null) {
       queryClient.destroy();
     }
     executor.shutdownNow();

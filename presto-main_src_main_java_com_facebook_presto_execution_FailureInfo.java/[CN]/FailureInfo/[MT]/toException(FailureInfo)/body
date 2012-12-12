@@ -1,0 +1,16 @@
+{
+  if (failureInfo == null) {
+    return null;
+  }
+  Failure failure=new Failure(failureInfo.getType(),failureInfo.getMessage(),toException(failureInfo.getCause()));
+  for (  FailureInfo suppressed : failureInfo.getSuppressed()) {
+    failure.addSuppressed(toException(suppressed));
+  }
+  ImmutableList.Builder<StackTraceElement> stackTraceBuilder=ImmutableList.builder();
+  for (  String stack : failureInfo.getStack()) {
+    stackTraceBuilder.add(toStackTraceElement(stack));
+  }
+  ImmutableList<StackTraceElement> stackTrace=stackTraceBuilder.build();
+  failure.setStackTrace(stackTrace.toArray(new StackTraceElement[stackTrace.size()]));
+  return failure;
+}
