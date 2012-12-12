@@ -4,7 +4,7 @@ synchronized (this) {
     Preconditions.checkState(queryState.compareAndSet(QueryState.QUEUED,QueryState.PLANNING),"Stage has already been started");
   }
   try {
-    queryStats.recordStart();
+    queryStats.recordAnalysisStart();
     SubPlan subplan=analyseQuery();
     planDistribution(subplan);
 synchronized (this) {
@@ -15,6 +15,7 @@ synchronized (this) {
  catch (  Exception e) {
 synchronized (this) {
       failureCauses.add(e);
+      queryStats.recordEnd();
       queryState.set(QueryState.FAILED);
     }
     cancel();
