@@ -9,7 +9,8 @@
   this.executor=executor;
   this.queryInfoCodec=queryInfoCodec;
   this.taskInfoCodec=taskInfoCodec;
-  Request.Builder requestBuilder=preparePost().setUri(coordinatorLocation).setBodyGenerator(createStaticBodyGenerator(query,Charsets.UTF_8));
+  URI queryUri=HttpUriBuilder.uriBuilderFrom(coordinatorLocation).appendPath("/v1/query").build();
+  Request.Builder requestBuilder=preparePost().setUri(queryUri).setBodyGenerator(createStaticBodyGenerator(query,Charsets.UTF_8));
   Request request=requestBuilder.build();
   JsonResponse<QueryInfo> response=httpClient.execute(request,createFullJsonResponseHandler(queryInfoCodec));
   Preconditions.checkState(response.getStatusCode() == 201,"Expected response code to be 201, but was %s: %s",response.getStatusCode(),response.getStatusMessage());
