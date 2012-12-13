@@ -1,9 +1,8 @@
 {
+  long lastPrint=System.nanoTime();
   try {
-    hideCursor();
     while (true) {
       try {
-        Uninterruptibles.sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
         QueryInfo queryInfo=queryClient.getQueryInfo(false);
         if (queryInfo == null || queryInfo.getState().isDone()) {
           return;
@@ -18,8 +17,12 @@
             }
           }
         }
-        resetScreen();
-        printQueryInfo(queryInfo);
+        if (Duration.nanosSince(lastPrint).convertTo(SECONDS) >= 0.5) {
+          repositionCursor();
+          printQueryInfo(queryInfo);
+          lastPrint=System.nanoTime();
+        }
+        Uninterruptibles.sleepUninterruptibly(100,MILLISECONDS);
       }
  catch (      Exception ignored) {
       }
@@ -27,6 +30,5 @@
   }
   finally {
     resetScreen();
-    showCursor();
   }
 }

@@ -7,17 +7,19 @@
   if (REAL_TERMINAL) {
     String querySummary=String.format("Query %s: %s, %,d nodes",queryInfo.getQueryId(),queryInfo.getState(),nodes);
     reprintLine(querySummary);
-    String splitsSummary=String.format("Splits: %,d total, %,d pending, %,d running, %,d finished",executionStats.getSplits(),max(0,executionStats.getSplits() - executionStats.getStartedSplits()),max(0,executionStats.getStartedSplits() - executionStats.getCompletedSplits()),executionStats.getCompletedSplits());
+    String splitsSummary=String.format("Splits: %,4d total, %,4d pending, %,4d running, %,4d done",executionStats.getSplits(),max(0,executionStats.getSplits() - executionStats.getStartedSplits()),max(0,executionStats.getStartedSplits() - executionStats.getCompletedSplits()),executionStats.getCompletedSplits());
     reprintLine(splitsSummary);
-    Duration wallTime=new Duration(elapsedTime.toMillis() * nodes,TimeUnit.MILLISECONDS);
+    Duration wallTime=new Duration(elapsedTime.toMillis() * nodes,MILLISECONDS);
     Duration wallTimePerNode=elapsedTime;
-    String cpuWallSummary=String.format("CPU wall: %s %s total, %s %s per node",wallTime.toString(TimeUnit.SECONDS),formatDataRate(executionStats.getCompletedDataSize(),wallTime),wallTimePerNode.toString(TimeUnit.SECONDS),formatDataRate(executionStats.getCompletedDataSize(),wallTimePerNode));
+    String cpuWallSummary=String.format("CPU wall: %5.1fs %4sps total, %5.1fs %4sps per node",wallTime.convertTo(SECONDS),formatDataRate(executionStats.getCompletedDataSize(),wallTime),wallTimePerNode.convertTo(SECONDS),formatDataRate(executionStats.getCompletedDataSize(),wallTimePerNode));
     reprintLine(cpuWallSummary);
-    Duration userTime=new Duration(executionStats.getSplitCpuTime(),TimeUnit.MILLISECONDS);
-    Duration userTimePerNode=new Duration(userTime.toMillis() / nodes,TimeUnit.MILLISECONDS);
-    String cpuUserSummary=String.format("CPU user: %s %s total, %s %s per node",userTime.toString(TimeUnit.SECONDS),formatDataRate(executionStats.getCompletedDataSize(),userTime),userTimePerNode.toString(TimeUnit.SECONDS),formatDataRate(executionStats.getCompletedDataSize(),userTimePerNode));
+    Duration userTime=new Duration(executionStats.getSplitCpuTime(),MILLISECONDS);
+    Duration userTimePerNode=new Duration(userTime.toMillis() / nodes,MILLISECONDS);
+    String cpuUserSummary=String.format("CPU user: %5.1fs %4sps total, %5.1fs %4sps per node",userTime.convertTo(SECONDS),formatDataRate(executionStats.getCompletedDataSize(),userTime),userTimePerNode.convertTo(SECONDS),formatDataRate(executionStats.getCompletedDataSize(),userTimePerNode));
     reprintLine(cpuUserSummary);
     reprintLine("");
+    String stagesHeader=String.format("%10s%1s  %5s  %5s  %5s  %5s  %5s  %5s %5s","STAGE","S","ROWS","ROW/S","BYTES","B/S","PEND","RUN","DONE");
+    reprintLine(stagesHeader);
     printStageTree(outputStage,"");
   }
  else {
