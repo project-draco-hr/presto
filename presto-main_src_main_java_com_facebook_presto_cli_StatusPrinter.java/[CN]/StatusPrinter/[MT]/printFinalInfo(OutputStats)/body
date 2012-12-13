@@ -13,11 +13,12 @@
   out.println(querySummary);
   Duration userTime=new Duration(globalExecutionStats.getSplitCpuTime(),MILLISECONDS);
   Duration userTimePerNode=new Duration(userTime.toMillis() / nodes,MILLISECONDS);
-  String cpuUserSummary=String.format("CPU user: %s %s total, %s %s per node",userTime.toString(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),userTime,true),userTimePerNode.toString(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),userTimePerNode,true));
+  long completedDataSizePerNode=inputExecutionStats.getCompletedDataSize() / nodes;
+  String cpuUserSummary=String.format("CPU user: %s %s total, %s %s per node",userTime.toString(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),userTime,true),userTimePerNode.toString(SECONDS),formatDataRate(completedDataSizePerNode,userTimePerNode,true));
   out.println(cpuUserSummary);
-  Duration wallTime=new Duration(elapsedTime.toMillis() * nodes,MILLISECONDS);
-  Duration wallTimePerNode=elapsedTime;
-  String cpuWallSummary=String.format("CPU wall: %s %s total, %s %s per node",wallTime.toString(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),wallTime,true),wallTimePerNode.toString(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),wallTimePerNode,true));
+  Duration wallTime=elapsedTime;
+  Duration wallTimePerNode=new Duration(wallTime.toMillis() / nodes,MILLISECONDS);
+  String cpuWallSummary=String.format("CPU wall: %s %s total, %s %s per node",wallTime.toString(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),wallTime,true),wallTimePerNode.toString(SECONDS),formatDataRate(completedDataSizePerNode,wallTime,true));
   out.println(cpuWallSummary);
   out.println();
 }
