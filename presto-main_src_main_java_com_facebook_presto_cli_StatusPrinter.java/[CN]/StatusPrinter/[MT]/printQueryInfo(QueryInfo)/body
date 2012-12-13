@@ -13,11 +13,11 @@
     reprintLine(splitsSummary);
     Duration wallTime=new Duration(elapsedTime.toMillis() * nodes,MILLISECONDS);
     Duration wallTimePerNode=elapsedTime;
-    String cpuWallSummary=String.format("CPU wall: %5.1fs %4sps total, %5.1fs %4sps per node",wallTime.convertTo(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),wallTime),wallTimePerNode.convertTo(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),wallTimePerNode));
+    String cpuWallSummary=String.format("CPU wall: %5.1fs %7s total, %5.1fs %7s per node",wallTime.convertTo(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),wallTime,true),wallTimePerNode.convertTo(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),wallTimePerNode,true));
     reprintLine(cpuWallSummary);
     Duration userTime=new Duration(globalExecutionStats.getSplitCpuTime(),MILLISECONDS);
     Duration userTimePerNode=new Duration(userTime.toMillis() / nodes,MILLISECONDS);
-    String cpuUserSummary=String.format("CPU user: %5.1fs %4sps total, %5.1fs %4sps per node",userTime.convertTo(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),userTime),userTimePerNode.convertTo(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),userTimePerNode));
+    String cpuUserSummary=String.format("CPU user: %5.1fs %7s total, %5.1fs %7s per node",userTime.convertTo(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),userTime,true),userTimePerNode.convertTo(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),userTimePerNode,true));
     reprintLine(cpuUserSummary);
     reprintLine("");
     String stagesHeader=String.format("%10s%1s  %5s  %5s  %5s  %5s  %5s  %5s %5s","STAGE","S","ROWS","ROW/S","BYTES","B/S","PEND","RUN","DONE");
@@ -25,7 +25,7 @@
     printStageTree(outputStage,"");
   }
  else {
-    String querySummary=String.format("Query %s [%s] i[%,d %s %s] o[%,d %s %s] splits[%,d/%,d/%,d]",queryInfo.getQueryId(),queryInfo.getState().toString().charAt(0),globalExecutionStats.getInputPositionCount(),formatDataSize(globalExecutionStats.getInputDataSize()),formatDataRate(globalExecutionStats.getCompletedDataSize(),elapsedTime),globalExecutionStats.getOutputPositionCount(),formatDataSize(globalExecutionStats.getOutputDataSize()),formatDataRate(globalExecutionStats.getOutputDataSize(),elapsedTime),max(0,globalExecutionStats.getSplits() - globalExecutionStats.getStartedSplits()),max(0,globalExecutionStats.getSplits() - globalExecutionStats.getCompletedSplits()),globalExecutionStats.getCompletedSplits());
+    String querySummary=String.format("Query %s [%s] i[%,d %s %s] o[%,d %s %s] splits[%,d/%,d/%,d]",queryInfo.getQueryId(),queryInfo.getState().toString().charAt(0),globalExecutionStats.getInputPositionCount(),formatDataSize(globalExecutionStats.getInputDataSize()),formatDataRate(globalExecutionStats.getCompletedDataSize(),elapsedTime,false),globalExecutionStats.getOutputPositionCount(),formatDataSize(globalExecutionStats.getOutputDataSize()),formatDataRate(globalExecutionStats.getOutputDataSize(),elapsedTime,false),max(0,globalExecutionStats.getSplits() - globalExecutionStats.getStartedSplits()),max(0,globalExecutionStats.getSplits() - globalExecutionStats.getCompletedSplits()),globalExecutionStats.getCompletedSplits());
     reprintLine(querySummary);
   }
 }
