@@ -1,0 +1,19 @@
+{
+  try {
+    while (!Thread.currentThread().isInterrupted() && !shutdown.get()) {
+      PrioritizedFutureTask task=queue.take();
+      try {
+        task.run();
+      }
+ catch (      Throwable e) {
+        log.error(e,"Task failed");
+      }
+ finally {
+        updateStartingPriority(task.priority);
+      }
+    }
+  }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+  }
+}

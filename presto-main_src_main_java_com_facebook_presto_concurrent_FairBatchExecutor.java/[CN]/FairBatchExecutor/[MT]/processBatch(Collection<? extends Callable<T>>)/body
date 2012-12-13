@@ -1,0 +1,19 @@
+{
+  Preconditions.checkState(!shutdown.get(),"Executor is already shut down");
+  long priority=computeStartingPriority();
+  ImmutableList.Builder<Future<T>> result=ImmutableList.builder();
+  for (  Callable<T> task : tasks) {
+    PrioritizedFutureTask<T> future=new PrioritizedFutureTask<>(priority++,task);
+    queue.add(future);
+    result.add(future);
+  }
+  for (int i=0; i < Math.min(maxConcurrency,tasks.size()); ++i) {
+    executor.execute(new Runnable(){
+      @Override public void run(){
+        trigger();
+      }
+    }
+);
+  }
+  return result.build();
+}
