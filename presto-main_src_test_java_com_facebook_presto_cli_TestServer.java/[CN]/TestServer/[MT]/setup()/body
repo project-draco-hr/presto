@@ -1,6 +1,6 @@
 {
-  databaseDir=Files.createTempDir();
-  Map<String,String> serverProperties=ImmutableMap.<String,String>builder().put("presto-metastore.db.type","h2").put("presto-metastore.db.filename",new File(databaseDir,"Metastore").getAbsolutePath()).build();
+  baseDataDir=Files.createTempDir();
+  Map<String,String> serverProperties=ImmutableMap.<String,String>builder().put("storage-manager.data-directory",baseDataDir.getPath()).put("presto-metastore.db.type","h2").put("presto-metastore.db.filename",new File(baseDataDir,"db/MetaStore").getPath()).build();
   Injector serverInjector=createTestInjector(serverProperties,new TestingNodeModule(),new TestingDiscoveryModule(),new TestingHttpServerModule(),new JsonModule(),new JaxrsModule(),new MBeanModule(),new JmxModule(),new JmxHttpModule(),new LogJmxModule(),new InMemoryEventModule(),new TraceTokenModule(),new ServerMainModule());
   server=serverInjector.getInstance(TestingHttpServer.class);
   server.start();
