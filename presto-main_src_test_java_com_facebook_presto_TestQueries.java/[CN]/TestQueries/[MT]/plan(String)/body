@@ -13,6 +13,6 @@
     TpchTableHandle handle=(TpchTableHandle)tableScan.getTable();
     builder.put(handle,new TableScanPlanFragmentSource(new TpchSplit(handle)));
   }
-  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(metadata,new HackPlanFragmentSourceProvider(dataProvider,null,TASK_INFO_CODEC),analysis.getTypes(),null,builder.build(),ImmutableMap.<String,ExchangePlanFragmentSource>of(),new SourceHashProviderFactory());
+  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(metadata,new HackPlanFragmentSourceProvider(dataProvider,null,TASK_INFO_CODEC),analysis.getTypes(),null,builder.build(),ImmutableMap.<String,ExchangePlanFragmentSource>of(),new OperatorStats(),new SourceHashProviderFactory());
   return new FilterAndProjectOperator(executionPlanner.plan(plan),FilterFunctions.TRUE_FUNCTION,new Concat(executionPlanner.plan(plan).getTupleInfos()));
 }

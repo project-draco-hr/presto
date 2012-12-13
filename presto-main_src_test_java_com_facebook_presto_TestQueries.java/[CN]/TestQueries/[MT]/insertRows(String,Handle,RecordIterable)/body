@@ -1,9 +1,11 @@
 {
-  checkArgument(!isEmpty(data),"no data to insert");
-  int columns=Iterables.get(data,0).getFieldCount();
+  checkArgument(data.iterator(new OperatorStats()).hasNext(),"no data to insert");
+  int columns=data.iterator(new OperatorStats()).next().getFieldCount();
   String vars=Joiner.on(',').join(nCopies(columns,"?"));
   String sql=format("INSERT INTO %s VALUES (%s)",table,vars);
-  for (  List<Record> partition : Iterables.partition(data,1000)) {
+  UnmodifiableIterator<List<Record>> partitions=Iterators.partition(data.iterator(new OperatorStats()),1000);
+  while (partitions.hasNext()) {
+    List<Record> partition=partitions.next();
     PreparedBatch batch=handle.prepareBatch(sql);
     for (    Record record : partition) {
       checkArgument(record.getFieldCount() == columns,"rows have differing column counts");

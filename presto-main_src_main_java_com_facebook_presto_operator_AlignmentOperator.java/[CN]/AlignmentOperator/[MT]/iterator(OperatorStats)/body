@@ -1,0 +1,17 @@
+{
+  Iterator<? extends Block>[] iterators=new Iterator[channels.length];
+  for (int i=0; i < iterators.length; i++) {
+    iterators[i]=channels[i].iterator();
+  }
+  if (!iterators[0].hasNext()) {
+    for (    Iterator<? extends Block> iterator : iterators) {
+      checkState(!iterator.hasNext(),"iterators are not aligned");
+    }
+    return PageIterators.emptyIterator(tupleInfos);
+  }
+  if (expectedDataSize.isPresent()) {
+    operatorStats.addExpectedDataSize(expectedDataSize.get().toBytes());
+  }
+  operatorStats.addExpectedPositionCount(expectedPositionCount.or(0));
+  return new AlignmentIterator(tupleInfos,iterators,operatorStats);
+}

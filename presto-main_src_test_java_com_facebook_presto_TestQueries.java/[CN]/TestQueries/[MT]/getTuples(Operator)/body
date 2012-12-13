@@ -1,6 +1,8 @@
 {
   ImmutableList.Builder<Tuple> output=ImmutableList.builder();
-  for (  Page page : root) {
+  PageIterator iterator=root.iterator(new OperatorStats());
+  while (iterator.hasNext()) {
+    Page page=iterator.next();
     Preconditions.checkState(page.getChannelCount() == 1,"Expected result to produce 1 channel");
     BlockCursor cursor=Iterables.getOnlyElement(Arrays.asList(page.getBlocks())).cursor();
     while (cursor.advanceNextPosition()) {
