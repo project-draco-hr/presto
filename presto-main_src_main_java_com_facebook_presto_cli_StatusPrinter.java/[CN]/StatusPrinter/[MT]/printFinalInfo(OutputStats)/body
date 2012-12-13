@@ -1,20 +1,22 @@
 {
   Duration elapsedTime=Duration.nanosSince(start);
   QueryInfo queryInfo=queryClient.getQueryInfo(true);
-  ExecutionStats executionStats=new ExecutionStats();
   StageInfo outputStage=queryInfo.getOutputStage();
-  sumStats(outputStage,executionStats);
+  ExecutionStats inputExecutionStats=new ExecutionStats();
+  sumStats(outputStage,inputExecutionStats,true);
+  ExecutionStats globalExecutionStats=new ExecutionStats();
+  sumStats(outputStage,globalExecutionStats,false);
   int nodes=uniqueNodes(outputStage).size();
   out.println();
-  String querySummary=String.format("Query %s: %s, %,d nodes, %,d splits",queryInfo.getQueryId(),queryInfo.getState(),nodes,executionStats.getSplits());
+  String querySummary=String.format("Query %s: %s, %,d nodes, %,d splits",queryInfo.getQueryId(),queryInfo.getState(),nodes,globalExecutionStats.getSplits());
   out.println(querySummary);
   Duration wallTime=new Duration(elapsedTime.toMillis() * nodes,MILLISECONDS);
   Duration wallTimePerNode=elapsedTime;
-  String cpuWallSummary=String.format("CPU wall: %s %sps total, %s %sps per node",wallTime.toString(SECONDS),formatDataRate(executionStats.getCompletedDataSize(),wallTime),wallTimePerNode.toString(SECONDS),formatDataRate(executionStats.getCompletedDataSize(),wallTimePerNode));
+  String cpuWallSummary=String.format("CPU wall: %s %sps total, %s %sps per node",wallTime.toString(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),wallTime),wallTimePerNode.toString(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),wallTimePerNode));
   out.println(cpuWallSummary);
-  Duration userTime=new Duration(executionStats.getSplitCpuTime(),MILLISECONDS);
+  Duration userTime=new Duration(globalExecutionStats.getSplitCpuTime(),MILLISECONDS);
   Duration userTimePerNode=new Duration(userTime.toMillis() / nodes,MILLISECONDS);
-  String cpuUserSummary=String.format("CPU user: %s %sps total, %s %sps per node",userTime.toString(SECONDS),formatDataRate(executionStats.getCompletedDataSize(),userTime),userTimePerNode.toString(SECONDS),formatDataRate(executionStats.getCompletedDataSize(),userTimePerNode));
+  String cpuUserSummary=String.format("CPU user: %s %sps total, %s %sps per node",userTime.toString(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),userTime),userTimePerNode.toString(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),userTimePerNode));
   out.println(cpuUserSummary);
   out.println();
 }
