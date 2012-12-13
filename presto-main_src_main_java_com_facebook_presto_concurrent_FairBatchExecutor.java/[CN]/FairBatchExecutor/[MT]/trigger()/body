@@ -1,19 +1,30 @@
 {
+  boolean interrupted=false;
   try {
     while (!Thread.currentThread().isInterrupted() && !shutdown.get()) {
-      PrioritizedFutureTask task=queue.take();
+      PrioritizedFutureTask<?> task=queue.take();
       try {
         task.run();
       }
- catch (      Throwable e) {
-        log.error(e,"Task failed");
-      }
- finally {
+  finally {
         updateStartingPriority(task.priority);
       }
     }
   }
  catch (  InterruptedException e) {
+    interrupted=true;
+  }
+ finally {
+    if (!shutdown.get()) {
+      executor.execute(new Runnable(){
+        @Override public void run(){
+          trigger();
+        }
+      }
+);
+    }
+  }
+  if (interrupted) {
     Thread.currentThread().interrupt();
   }
 }
