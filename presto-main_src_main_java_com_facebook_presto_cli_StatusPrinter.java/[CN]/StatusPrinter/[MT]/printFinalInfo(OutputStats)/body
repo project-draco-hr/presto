@@ -1,6 +1,7 @@
 {
   Duration elapsedTime=Duration.nanosSince(start);
   QueryInfo queryInfo=queryClient.getQueryInfo(true);
+  QueryStats queryStats=queryInfo.getQueryStats();
   StageInfo outputStage=queryInfo.getOutputStage();
   ExecutionStats inputExecutionStats=new ExecutionStats();
   sumStats(outputStage,inputExecutionStats,true);
@@ -8,7 +9,7 @@
   sumStats(outputStage,globalExecutionStats,false);
   int nodes=uniqueNodes(outputStage).size();
   out.println();
-  String querySummary=String.format("Query %s: %s, %,d nodes, %,d splits",queryInfo.getQueryId(),queryInfo.getState(),nodes,globalExecutionStats.getSplits());
+  String querySummary=String.format("Query %s: %s, %,d nodes, %,d splits",queryInfo.getQueryId(),queryInfo.getState(),nodes,queryStats.getSplits());
   out.println(querySummary);
   Duration userTime=new Duration(globalExecutionStats.getSplitCpuTime(),MILLISECONDS);
   Duration userTimePerNode=new Duration(userTime.toMillis() / nodes,MILLISECONDS);
