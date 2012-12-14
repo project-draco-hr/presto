@@ -1,2 +1,14 @@
 {
+  checkState(types.get(field) == VARIABLE_BINARY,"Expected VARIABLE_BINARY");
+  int start;
+  int end;
+  if (field == firstVariableLengthField) {
+    start=variablePartOffset;
+    end=slice.getInt(offset + getOffset(secondVariableLengthField));
+  }
+ else {
+    start=slice.getInt(offset + getOffset(field));
+    end=slice.getInt(offset + getOffset(field) + SIZE_OF_INT);
+  }
+  return slice.slice(offset + start,end - start);
 }
