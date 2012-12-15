@@ -2,10 +2,10 @@
   long shardId=123;
   List<Long> columnIds=ImmutableList.of(7L,11L);
   RecordIterable records=asRecordIterable(ImmutableList.of(new StringRecord("abc","1"),new StringRecord("def","2"),new StringRecord("g","0")));
-  RecordProjectOperator source=new RecordProjectOperator(records,createProjections(VARIABLE_BINARY,FIXED_INT_64));
+  RecordProjectOperator source=new RecordProjectOperator(records,new DataSize(10,BYTE),createProjections(VARIABLE_BINARY,FIXED_INT_64));
   assertFalse(storageManager.shardExists(shardId));
   storageManager.importShard(shardId,columnIds,source);
   assertTrue(storageManager.shardExists(shardId));
-  assertOperatorEquals(new AlignmentOperator(storageManager.getBlocks(shardId,columnIds.get(0))),new RecordProjectOperator(records,createProjection(0,VARIABLE_BINARY)));
-  assertOperatorEquals(new AlignmentOperator(storageManager.getBlocks(shardId,columnIds.get(1))),new RecordProjectOperator(records,createProjection(1,FIXED_INT_64)));
+  assertOperatorEquals(new AlignmentOperator(storageManager.getBlocks(shardId,columnIds.get(0))),new RecordProjectOperator(records,new DataSize(10,BYTE),createProjection(0,VARIABLE_BINARY)));
+  assertOperatorEquals(new AlignmentOperator(storageManager.getBlocks(shardId,columnIds.get(1))),new RecordProjectOperator(records,new DataSize(10,BYTE),createProjection(1,FIXED_INT_64)));
 }
