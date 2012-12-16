@@ -1,0 +1,21 @@
+{
+  Preconditions.checkNotNull(source,"source is null");
+  Preconditions.checkArgument(groupByChannel >= 0,"groupByChannel is negative");
+  Preconditions.checkNotNull(aggregationFunctions,"aggregationFunctions is null");
+  this.source=source;
+  this.groupByChannel=groupByChannel;
+  this.isSourceInitial=isSourceInitial;
+  this.isOutputFinal=isOutputFinal;
+  this.aggregationFunctions=ImmutableList.copyOf(aggregationFunctions);
+  ImmutableList.Builder<TupleInfo> tupleInfos=ImmutableList.builder();
+  tupleInfos.add(source.getTupleInfos().get(groupByChannel));
+  for (  FixedWidthAggregationFunction aggregationFunction : aggregationFunctions) {
+    if (isOutputFinal) {
+      tupleInfos.add(aggregationFunction.getFinalTupleInfo());
+    }
+ else {
+      tupleInfos.add(aggregationFunction.getIntermediateTupleInfo());
+    }
+  }
+  this.tupleInfos=tupleInfos.build();
+}

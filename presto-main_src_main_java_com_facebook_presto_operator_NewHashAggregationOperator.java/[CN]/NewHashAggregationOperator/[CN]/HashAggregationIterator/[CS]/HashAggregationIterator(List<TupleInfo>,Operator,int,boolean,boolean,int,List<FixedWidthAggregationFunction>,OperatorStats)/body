@@ -1,0 +1,64 @@
+{
+  super(tupleInfos);
+  ImmutableList.Builder<Aggregator> builder=ImmutableList.builder();
+  for (  FixedWidthAggregationFunction aggregationFunction : aggregationFunctions) {
+    builder.add(new Aggregator(aggregationFunction,isSourceInitial,isOutputFinal));
+  }
+  aggregates=builder.build();
+  TupleInfo groupByTupleInfo=source.getTupleInfos().get(groupChannel);
+  SliceHashStrategy hashStrategy=new SliceHashStrategy(groupByTupleInfo);
+  Long2IntOpenCustomHashMap addressToGroupId=new Long2IntOpenCustomHashMap(expectedGroups,hashStrategy);
+  addressToGroupId.defaultReturnValue(-1);
+  Slice slice=Slices.allocate((int)BlockBuilder.DEFAULT_MAX_BLOCK_SIZE.toBytes());
+  hashStrategy.addSlice(slice);
+  BlockBuilder blockBuilder=new BlockBuilder(groupByTupleInfo,slice.length(),slice.getOutput());
+  int nextGroupId=0;
+  List<UncompressedBlock> groupByBlocks=new ArrayList<>();
+  BlockCursor[] cursors=new BlockCursor[source.getChannelCount()];
+  PageIterator iterator=source.iterator(operatorStats);
+  while (iterator.hasNext()) {
+    Page page=iterator.next();
+    Block[] blocks=page.getBlocks();
+    Slice groupBySlice=((UncompressedBlock)blocks[groupChannel]).getSlice();
+    hashStrategy.setLookupSlice(groupBySlice);
+    for (int i=0; i < blocks.length; i++) {
+      cursors[i]=blocks[i].cursor();
+    }
+    int rows=page.getPositionCount();
+    for (int position=0; position < rows; position++) {
+      for (      BlockCursor cursor : cursors) {
+        checkState(cursor.advanceNextPosition());
+      }
+      int rawOffset=cursors[groupChannel].getRawOffset();
+      int groupId=addressToGroupId.get(encodeSyntheticAddress(LOOKUP_SLICE_INDEX,rawOffset));
+      if (groupId < 0) {
+        int length=groupByTupleInfo.size(groupBySlice,rawOffset);
+        if (blockBuilder.writableBytes() < length) {
+          UncompressedBlock block=blockBuilder.build();
+          groupByBlocks.add(block);
+          slice=Slices.allocate(Math.max((int)BlockBuilder.DEFAULT_MAX_BLOCK_SIZE.toBytes(),length));
+          blockBuilder=new BlockBuilder(groupByTupleInfo,slice.length(),slice.getOutput());
+          hashStrategy.addSlice(slice);
+        }
+        int groupByValueRawOffset=blockBuilder.size();
+        blockBuilder.appendTuple(groupBySlice,rawOffset,length);
+        groupId=nextGroupId++;
+        addressToGroupId.put(encodeSyntheticAddress(groupByBlocks.size(),groupByValueRawOffset),groupId);
+        for (        Aggregator aggregate : aggregates) {
+          aggregate.initialize(groupId);
+        }
+      }
+      for (int i=0; i < aggregates.size(); i++) {
+        aggregates.get(i).addValue(cursors[i + 1],groupId);
+      }
+    }
+    for (    BlockCursor cursor : cursors) {
+      checkState(!cursor.advanceNextPosition());
+    }
+  }
+  if (!blockBuilder.isEmpty()) {
+    UncompressedBlock block=blockBuilder.build();
+    groupByBlocks.add(block);
+  }
+  groupByBlocksIterator=groupByBlocks.iterator();
+}
