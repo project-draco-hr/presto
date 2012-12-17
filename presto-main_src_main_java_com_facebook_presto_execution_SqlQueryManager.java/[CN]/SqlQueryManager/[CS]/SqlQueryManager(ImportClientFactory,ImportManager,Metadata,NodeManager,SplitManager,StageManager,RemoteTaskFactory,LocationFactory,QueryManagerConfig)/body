@@ -7,6 +7,7 @@
   Preconditions.checkNotNull(stageManager,"stageManager is null");
   Preconditions.checkNotNull(remoteTaskFactory,"remoteTaskFactory is null");
   Preconditions.checkNotNull(locationFactory,"locationFactory is null");
+  Preconditions.checkNotNull(config,"config is null");
   this.queryExecutor=new ScheduledThreadPoolExecutor(1000,threadsNamed("query-processor-%d"));
   this.importClientFactory=importClientFactory;
   this.importManager=importManager;
@@ -16,6 +17,7 @@
   this.stageManager=stageManager;
   this.remoteTaskFactory=remoteTaskFactory;
   this.locationFactory=locationFactory;
+  this.importsEnabled=config.isImportsEnabled();
   queryExecutor.scheduleAtFixedRate(new Runnable(){
     @Override public void run(){
       for (      QueryExecution queryExecution : queries.values()) {
