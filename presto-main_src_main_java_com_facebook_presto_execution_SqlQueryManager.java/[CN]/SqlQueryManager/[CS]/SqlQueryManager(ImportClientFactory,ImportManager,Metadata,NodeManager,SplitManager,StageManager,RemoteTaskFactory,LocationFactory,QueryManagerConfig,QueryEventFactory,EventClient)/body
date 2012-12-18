@@ -1,0 +1,58 @@
+{
+  checkNotNull(importClientFactory,"importClientFactory is null");
+  checkNotNull(importManager,"importManager is null");
+  checkNotNull(metadata,"metadata is null");
+  checkNotNull(nodeManager,"nodeManager is null");
+  checkNotNull(splitManager,"splitManager is null");
+  checkNotNull(stageManager,"stageManager is null");
+  checkNotNull(remoteTaskFactory,"remoteTaskFactory is null");
+  checkNotNull(locationFactory,"locationFactory is null");
+  checkNotNull(config,"config is null");
+  checkNotNull(queryEventFactory,"queryEventFactory is null");
+  checkNotNull(eventClient,"eventClient is null");
+  this.queryExecutor=Executors.newCachedThreadPool(threadsNamed("query-processor-%d"));
+  this.importClientFactory=importClientFactory;
+  this.importManager=importManager;
+  this.metadata=metadata;
+  this.nodeManager=nodeManager;
+  this.splitManager=splitManager;
+  this.stageManager=stageManager;
+  this.remoteTaskFactory=remoteTaskFactory;
+  this.locationFactory=locationFactory;
+  this.queryEventFactory=queryEventFactory;
+  this.eventClient=eventClient;
+  this.importsEnabled=config.isImportsEnabled();
+  this.maxQueryAge=config.getMaxQueryAge();
+  this.clientTimeout=config.getClientTimeout();
+  ScheduledExecutorService queryManagementExecutor=Executors.newScheduledThreadPool(100,threadsNamed("query-management-%d"));
+  queryManagementExecutor.scheduleAtFixedRate(new Runnable(){
+    @Override public void run(){
+      for (      QueryExecution queryExecution : queries.values()) {
+        try {
+          queryExecution.updateState();
+        }
+ catch (        Throwable e) {
+          log.warn(e,"Error updating state for query %s",queryExecution.getQueryId());
+        }
+      }
+    }
+  }
+,200,200,TimeUnit.MILLISECONDS);
+  queryManagementExecutor.scheduleAtFixedRate(new Runnable(){
+    @Override public void run(){
+      try {
+        removeExpiredQueries();
+      }
+ catch (      Throwable e) {
+        log.warn(e,"Error removing old queries");
+      }
+      try {
+        cancelAbandonedQueries();
+      }
+ catch (      Throwable e) {
+        log.warn(e,"Error removing old queries");
+      }
+    }
+  }
+,200,200,TimeUnit.MILLISECONDS);
+}

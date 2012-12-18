@@ -1,0 +1,19 @@
+{
+  try {
+    ResultCode resultCode=scribeClient.log(logEntries);
+switch (resultCode) {
+case OK:
+      return true;
+case TRY_LATER:
+    log.warn("Scribe log returned TRY_LATER");
+  break;
+default :
+throw new AssertionError("Unknown ResultCode: " + resultCode);
+}
+}
+ catch (Exception e) {
+log.warn("Failed to log to Scribe: %s",e.getMessage());
+}
+failedBatch=logEntries;
+return false;
+}

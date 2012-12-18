@@ -1,0 +1,29 @@
+{
+  if (failedBatch != null) {
+    if (!flushToScribe(failedBatch)) {
+      return false;
+    }
+    failedBatch=null;
+  }
+  BatchBuilder batchBuilder=new BatchBuilder();
+  LogEntry logEntry=queue.poll(POLL_WAIT_SECS,TimeUnit.SECONDS);
+  if (logEntry == null) {
+    return true;
+  }
+  do {
+    batchBuilder.add(logEntry);
+    if (batchBuilder.getNumBytes() >= maxBatchSize.toBytes()) {
+      if (!flushToScribe(batchBuilder.build())) {
+        return false;
+      }
+      batchBuilder=new BatchBuilder();
+    }
+  }
+ while ((logEntry=queue.poll()) != null);
+  if (!batchBuilder.isEmpty()) {
+    if (!flushToScribe(batchBuilder.build())) {
+      return false;
+    }
+  }
+  return true;
+}

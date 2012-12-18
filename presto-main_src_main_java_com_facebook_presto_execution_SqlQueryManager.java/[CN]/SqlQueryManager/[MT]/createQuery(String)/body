@@ -1,5 +1,5 @@
 {
-  Preconditions.checkNotNull(query,"query is null");
+  checkNotNull(query,"query is null");
   Preconditions.checkArgument(query.length() > 0,"query must not be empty string");
   String queryId=String.valueOf(nextQueryId.getAndIncrement());
   QueryExecution queryExecution;
@@ -9,7 +9,7 @@
     queryExecution=new ImportTableExecution(queryId,locationFactory.createQueryLocation(queryId),importClientFactory,importManager,metadata,strings.get(1),strings.get(2),strings.get(3),query);
   }
  else {
-    queryExecution=new SqlQueryExecution(queryId,query,new Session(),metadata,nodeManager,splitManager,stageManager,remoteTaskFactory,locationFactory);
+    queryExecution=new SqlQueryExecution(queryId,query,new Session(),metadata,nodeManager,splitManager,stageManager,remoteTaskFactory,locationFactory,queryEventFactory,eventClient);
   }
   queries.put(queryExecution.getQueryId(),queryExecution);
   queryExecutor.submit(new QueryStarter(queryExecution));

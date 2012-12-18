@@ -19,6 +19,7 @@ synchronized (this) {
         this.queryState.set(QueryState.FINISHED);
       }
       queryStats.recordEnd();
+      eventClient.post(queryEventFactory.createCompletionEvent(getQueryInfo()));
     }
  else     if (queryState.get() == QueryState.STARTING) {
       if (any(transform(getAllStages(outputStage.getStageInfo()),stageStateGetter()),isStageRunningOrDone())) {

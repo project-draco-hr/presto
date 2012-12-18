@@ -1,0 +1,27 @@
+{
+  final AtomicBoolean first=new AtomicBoolean(true);
+  Provider<ScribeClient> fixedProvider=new Provider<ScribeClient>(){
+    @Override public ScribeClient get(){
+      if (first.get()) {
+        MockScribeClient mockScribeClient=new MockScribeClient(logRecorder);
+        mockScribeClient.setException(true);
+        first.set(false);
+        return mockScribeClient;
+      }
+ else {
+        return new MockScribeClient(logRecorder);
+      }
+    }
+  }
+;
+  AsyncScribeLogger asyncScribeLogger=new AsyncScribeLogger(1,fixedProvider,DataSize.valueOf("1MB"));
+  AsyncScribeLogger.FlushTask flushTask=asyncScribeLogger.createFlushTask();
+  asyncScribeLogger.log(createLogEntry("cat1","msg"));
+  flushTask.process();
+  assertEquals(logRecorder.getLoggedMessages().size(),0);
+  assertEquals(logRecorder.getLogCallCount(),0);
+  asyncScribeLogger.log(createLogEntry("cat2","msg"));
+  flushTask.process();
+  assertEquals(logRecorder.getLoggedMessages().size(),2);
+  assertEquals(logRecorder.getLogCallCount(),2);
+}

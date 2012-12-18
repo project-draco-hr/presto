@@ -1,0 +1,21 @@
+{
+  try {
+    while (!shutdown.get()) {
+      try {
+        if (!process()) {
+          TimeUnit.SECONDS.sleep(ERROR_BACKOFF_SECS);
+        }
+      }
+ catch (      InterruptedException e) {
+        Thread.currentThread().interrupt();
+        log.warn("Flush task interrupted");
+      }
+catch (      Exception e) {
+        log.warn(e,"Unexpected flush task exception");
+      }
+    }
+  }
+  finally {
+    scribeClient.close();
+  }
+}

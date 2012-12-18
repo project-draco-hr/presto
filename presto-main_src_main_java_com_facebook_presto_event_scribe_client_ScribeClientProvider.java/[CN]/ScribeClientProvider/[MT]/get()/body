@@ -1,0 +1,23 @@
+{
+  Collection<ServiceDescriptor> runningServices=filter(selector.selectAllServices(),runningPredicate());
+  if (runningServices.isEmpty()) {
+    throw new DiscoveryException(format("No scribe servers available for pool '%s'",selector.getPool()));
+  }
+  TTransportException lastException=null;
+  for (  ServiceDescriptor service : shuffle(runningServices)) {
+    String thrift=service.getProperties().get("thrift");
+    if (thrift != null) {
+      try {
+        HostAndPort thriftEndpoint=HostAndPort.fromString(thrift);
+        checkArgument(thriftEndpoint.hasPort());
+        return thriftClient.open(thriftEndpoint);
+      }
+ catch (      IllegalArgumentException ignored) {
+      }
+catch (      TTransportException e) {
+        lastException=e;
+      }
+    }
+  }
+  throw new DiscoveryException("Unable to connect to any scribe servers",lastException);
+}
