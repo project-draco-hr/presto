@@ -1,0 +1,15 @@
+{
+  boolean hasNonNull=!SINGLE_LONG.isNull(valueSlice,valueOffset);
+  long min=SINGLE_LONG.getLong(valueSlice,valueOffset,0);
+  BlockCursor cursor=block.cursor();
+  while (cursor.advanceNextPosition()) {
+    if (!cursor.isNull(0)) {
+      hasNonNull=true;
+      min=Math.min(min,cursor.getLong(0));
+    }
+  }
+  if (hasNonNull) {
+    SINGLE_LONG.setNotNull(valueSlice,valueOffset,0);
+    SINGLE_LONG.setLong(valueSlice,valueOffset,0,min);
+  }
+}
