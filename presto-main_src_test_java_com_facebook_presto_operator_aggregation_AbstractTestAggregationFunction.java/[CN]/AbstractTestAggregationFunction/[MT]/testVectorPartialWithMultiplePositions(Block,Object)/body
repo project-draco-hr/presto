@@ -1,6 +1,9 @@
 {
   UncompressedBlock partialsBlock=performPartialAggregation(block);
-  AggregationFunctionStep function=finalAggregation(getFunction());
-  function.add(new Page(partialsBlock));
+  Aggregator function=createAggregator(aggregation(getFunction(),0),Step.FINAL);
+  BlockCursor blockCursor=partialsBlock.cursor();
+  while (blockCursor.advanceNextPosition()) {
+    function.addValue(new BlockCursor[]{blockCursor});
+  }
   assertEquals(getActualValue(function),expectedValue);
 }

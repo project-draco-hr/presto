@@ -2,9 +2,11 @@
   BlockBuilder blockBuilder=new BlockBuilder(getFunction().getIntermediateTupleInfo());
   BlockCursor cursor=block.cursor();
   while (cursor.advanceNextPosition()) {
-    AggregationFunctionStep function=partialAggregation(getFunction());
-    function.add(cursor);
-    Tuple tuple=function.evaluate();
+    Aggregator function=createAggregator(aggregation(getFunction(),0),Step.PARTIAL);
+    function.addValue(new BlockCursor[]{cursor});
+    BlockCursor result=function.getResult().cursor();
+    assertTrue(result.advanceNextPosition());
+    Tuple tuple=result.getTuple();
     blockBuilder.append(tuple);
   }
   return blockBuilder.build();

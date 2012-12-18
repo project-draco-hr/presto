@@ -1,5 +1,8 @@
 {
-  AggregationFunctionStep function=singleNodeAggregation(getFunction());
-  function.add(new Page(block));
+  Aggregator function=createAggregator(aggregation(getFunction(),0),Step.SINGLE);
+  BlockCursor blockCursor=block.cursor();
+  while (blockCursor.advanceNextPosition()) {
+    function.addValue(new BlockCursor[]{blockCursor});
+  }
   assertEquals(getActualValue(function),expectedValue);
 }
