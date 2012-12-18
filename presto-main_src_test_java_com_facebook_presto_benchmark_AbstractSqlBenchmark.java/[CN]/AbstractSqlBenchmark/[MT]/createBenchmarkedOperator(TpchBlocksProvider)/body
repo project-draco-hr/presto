@@ -1,2 +1,11 @@
 {
+  ImmutableMap.Builder<TableHandle,TableScanPlanFragmentSource> builder=ImmutableMap.builder();
+  for (  PlanNode source : fragment.getSources()) {
+    TableScanNode tableScan=(TableScanNode)source;
+    TpchTableHandle handle=(TpchTableHandle)tableScan.getTable();
+    builder.put(handle,new TableScanPlanFragmentSource(new TpchSplit(handle)));
+  }
+  DataSize maxOperatorMemoryUsage=new DataSize(100,MEGABYTE);
+  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(metadata,new HackPlanFragmentSourceProvider(new TpchDataStreamProvider(provider),null,jsonCodec(TaskInfo.class)),analysis.getTypes(),null,builder.build(),ImmutableMap.<String,ExchangePlanFragmentSource>of(),new OperatorStats(),new SourceHashProviderFactory(maxOperatorMemoryUsage),maxOperatorMemoryUsage);
+  return executionPlanner.plan(fragment.getRoot());
 }

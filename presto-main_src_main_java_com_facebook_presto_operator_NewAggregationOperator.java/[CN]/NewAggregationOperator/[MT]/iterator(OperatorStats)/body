@@ -1,0 +1,33 @@
+{
+  ImmutableList.Builder<Aggregator> builder=ImmutableList.builder();
+  for (  AggregationFunctionDefinition functionDefinition : functionDefinitions) {
+    builder.add(createAggregator(functionDefinition,step));
+  }
+  List<Aggregator> aggregates=builder.build();
+  BlockCursor[] cursors=new BlockCursor[source.getChannelCount()];
+  PageIterator iterator=source.iterator(operatorStats);
+  while (iterator.hasNext()) {
+    Page page=iterator.next();
+    Block[] blocks=page.getBlocks();
+    for (int i=0; i < blocks.length; i++) {
+      cursors[i]=blocks[i].cursor();
+    }
+    int rows=page.getPositionCount();
+    for (int position=0; position < rows; position++) {
+      for (      BlockCursor cursor : cursors) {
+        checkState(cursor.advanceNextPosition());
+      }
+      for (      Aggregator aggregate : aggregates) {
+        aggregate.addValue(cursors);
+      }
+    }
+    for (    BlockCursor cursor : cursors) {
+      checkState(!cursor.advanceNextPosition());
+    }
+  }
+  Block[] blocks=new Block[aggregates.size()];
+  for (int i=0; i < blocks.length; i++) {
+    blocks[i]=aggregates.get(i).getResult();
+  }
+  return PageIterators.singletonIterator(new Page(blocks));
+}
