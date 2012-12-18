@@ -3,22 +3,18 @@
     endOfData();
     return null;
   }
-  BlockBuilder[] outputs=new BlockBuilder[getChannelCount() - 1];
-  for (int i=0; i < outputs.length; i++) {
-    outputs[i]=new BlockBuilder(getTupleInfos().get(i + 1));
-  }
-  UncompressedBlock groupByBlock=groupByBlocksIterator.next();
-  for (int i=0; i < groupByBlock.getPositionCount(); i++) {
-    for (int channel=0; channel < outputs.length; channel++) {
-      aggregates.get(channel).evaluate(currentPosition,outputs[channel]);
+  Block[] blocks=new Block[getChannelCount()];
+  blocks[0]=groupByBlocksIterator.next();
+  int pagePositionCount=blocks[0].getPositionCount();
+  for (int channel=1; channel < getChannelCount(); channel++) {
+    Aggregator aggregator=aggregates.get(channel - 1);
+    BlockBuilder blockBuilder=new BlockBuilder(aggregator.getTupleInfo());
+    for (int position=0; position < pagePositionCount; position++) {
+      aggregator.evaluate(currentPosition + position,blockBuilder);
     }
-    currentPosition++;
-  }
-  Block[] blocks=new Block[outputs.length + 1];
-  blocks[0]=groupByBlock;
-  for (int i=0; i < outputs.length; i++) {
-    blocks[i + 1]=outputs[i].build();
+    blocks[channel]=blockBuilder.build();
   }
   Page page=new Page(blocks);
+  currentPosition+=pagePositionCount;
   return page;
 }
