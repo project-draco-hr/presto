@@ -1,0 +1,15 @@
+{
+  DateTime oldestAllowedTask=DateTime.now().minus((long)maxTaskAge.toMillis());
+  for (  TaskExecution taskExecution : tasks.values()) {
+    try {
+      TaskInfo taskInfo=taskExecution.getTaskInfo();
+      DateTime endTime=taskInfo.getStats().getEndTime();
+      if (endTime != null && endTime.isBefore(oldestAllowedTask)) {
+        removeTask(taskExecution.getTaskId());
+      }
+    }
+ catch (    Exception e) {
+      log.warn(e,"Error while inspecting age of task %s",taskExecution.getTaskId());
+    }
+  }
+}

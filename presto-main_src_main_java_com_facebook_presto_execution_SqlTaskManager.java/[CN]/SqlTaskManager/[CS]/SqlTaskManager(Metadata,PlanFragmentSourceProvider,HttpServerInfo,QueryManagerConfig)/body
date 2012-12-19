@@ -8,6 +8,19 @@
   this.httpServerInfo=httpServerInfo;
   this.pageBufferMax=20;
   this.maxOperatorMemoryUsage=config.getMaxOperatorMemoryUsage();
+  this.maxTaskAge=new Duration(config.getMaxQueryAge().toMillis() + SECONDS.toMillis(30),MILLISECONDS);
   taskExecutor=Executors.newCachedThreadPool(threadsNamed("task-processor-%d"));
   shardExecutor=new FairBatchExecutor(config.getMaxShardProcessorThreads(),threadsNamed("shard-processor-%d"));
+  ScheduledExecutorService taskManagementExecutor=Executors.newScheduledThreadPool(100,threadsNamed("task-management-%d"));
+  taskManagementExecutor.scheduleAtFixedRate(new Runnable(){
+    @Override public void run(){
+      try {
+        removeOldTasks();
+      }
+ catch (      Throwable e) {
+        log.warn(e,"Error removing old tasks");
+      }
+    }
+  }
+,200,200,TimeUnit.MILLISECONDS);
 }

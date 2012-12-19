@@ -1,0 +1,15 @@
+{
+  DateTime oldestAllowedQuery=DateTime.now().minus((long)maxQueryAge.toMillis());
+  for (  QueryExecution queryExecution : queries.values()) {
+    try {
+      QueryInfo queryInfo=queryExecution.getQueryInfo();
+      DateTime endTime=queryInfo.getQueryStats().getEndTime();
+      if (endTime != null && endTime.isBefore(oldestAllowedQuery)) {
+        removeQuery(queryExecution.getQueryId());
+      }
+    }
+ catch (    Exception e) {
+      log.warn(e,"Error while inspecting age of query %s",queryExecution.getQueryId());
+    }
+  }
+}
