@@ -29,34 +29,9 @@
   binder.bind(ImportMetadata.class).in(Scopes.SINGLETON);
   binder.bind(SplitManager.class).in(Scopes.SINGLETON);
   jsonCodecBinder(binder).bindJsonCodec(QueryFragmentRequest.class);
-  JsonBinder.jsonBinder(binder).addSerializerBinding(Expression.class).toInstance(new JsonSerializer<Expression>(){
-    @Override public void serialize(    Expression expression,    JsonGenerator jsonGenerator,    SerializerProvider serializerProvider) throws IOException {
-      jsonGenerator.writeString(ExpressionFormatter.toString(expression));
-    }
-  }
-);
-  JsonBinder.jsonBinder(binder).addDeserializerBinding(Expression.class).toInstance(new JsonDeserializer<Expression>(){
-    @Override public Expression deserialize(    JsonParser jsonParser,    DeserializationContext deserializationContext) throws IOException {
-      try {
-        return SqlParser.createExpression(jsonParser.readValueAs(String.class));
-      }
- catch (      RecognitionException e) {
-        throw Throwables.propagate(e);
-      }
-    }
-  }
-);
-  JsonBinder.jsonBinder(binder).addDeserializerBinding(FunctionCall.class).toInstance(new JsonDeserializer<FunctionCall>(){
-    @Override public FunctionCall deserialize(    JsonParser jsonParser,    DeserializationContext deserializationContext) throws IOException {
-      try {
-        return (FunctionCall)SqlParser.createExpression(jsonParser.readValueAs(String.class));
-      }
- catch (      RecognitionException e) {
-        throw Throwables.propagate(e);
-      }
-    }
-  }
-);
+  jsonBinder(binder).addSerializerBinding(Expression.class).to(ExpressionSerializer.class);
+  jsonBinder(binder).addDeserializerBinding(Expression.class).to(ExpressionDeserializer.class);
+  jsonBinder(binder).addDeserializerBinding(FunctionCall.class).to(FunctionCallDeserializer.class);
   discoveryBinder(binder).bindSelector("presto");
   discoveryBinder(binder).bindSelector("hive-metastore");
   binder.bind(NodeManager.class).in(Scopes.SINGLETON);
