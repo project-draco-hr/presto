@@ -1,0 +1,18 @@
+{
+  DateTime oldestAllowedHeartBeat=DateTime.now().minus((long)clientTimeout.toMillis());
+  for (  QueryExecution queryExecution : queries.values()) {
+    try {
+      QueryInfo queryInfo=queryExecution.getQueryInfo();
+      if (queryInfo.getState().isDone()) {
+        continue;
+      }
+      DateTime lastHeartBeat=queryInfo.getQueryStats().getLastHeartBeat();
+      if (lastHeartBeat != null && lastHeartBeat.isBefore(oldestAllowedHeartBeat)) {
+        cancelQuery(queryExecution.getQueryId());
+      }
+    }
+ catch (    Exception e) {
+      log.warn(e,"Error while inspecting age of query %s",queryExecution.getQueryId());
+    }
+  }
+}

@@ -9,6 +9,7 @@
   this.pageBufferMax=20;
   this.maxOperatorMemoryUsage=config.getMaxOperatorMemoryUsage();
   this.maxTaskAge=new Duration(config.getMaxQueryAge().toMillis() + SECONDS.toMillis(30),MILLISECONDS);
+  this.clientTimeout=config.getClientTimeout();
   taskExecutor=Executors.newCachedThreadPool(threadsNamed("task-processor-%d"));
   shardExecutor=new FairBatchExecutor(config.getMaxShardProcessorThreads(),threadsNamed("shard-processor-%d"));
   ScheduledExecutorService taskManagementExecutor=Executors.newScheduledThreadPool(100,threadsNamed("task-management-%d"));
@@ -19,6 +20,12 @@
       }
  catch (      Throwable e) {
         log.warn(e,"Error removing old tasks");
+      }
+      try {
+        cancelAbandonedTasks();
+      }
+ catch (      Throwable e) {
+        log.warn(e,"Error canceling abandoned tasks");
       }
     }
   }

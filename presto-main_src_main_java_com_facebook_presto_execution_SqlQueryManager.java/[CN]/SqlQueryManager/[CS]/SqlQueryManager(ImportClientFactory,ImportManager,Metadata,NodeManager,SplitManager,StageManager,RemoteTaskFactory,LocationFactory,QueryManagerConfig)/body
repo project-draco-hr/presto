@@ -19,6 +19,7 @@
   this.locationFactory=locationFactory;
   this.importsEnabled=config.isImportsEnabled();
   this.maxQueryAge=config.getMaxQueryAge();
+  this.clientTimeout=config.getClientTimeout();
   ScheduledExecutorService queryManagementExecutor=Executors.newScheduledThreadPool(100,threadsNamed("query-management-%d"));
   queryManagementExecutor.scheduleAtFixedRate(new Runnable(){
     @Override public void run(){
@@ -36,7 +37,13 @@
   queryManagementExecutor.scheduleAtFixedRate(new Runnable(){
     @Override public void run(){
       try {
-        removeOldQueries();
+        removeExpiredQueries();
+      }
+ catch (      Throwable e) {
+        log.warn(e,"Error removing old queries");
+      }
+      try {
+        cancelAbandonedQueries();
       }
  catch (      Throwable e) {
         log.warn(e,"Error removing old queries");
