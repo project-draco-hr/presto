@@ -6,11 +6,17 @@
   ExecutionStats globalExecutionStats=new ExecutionStats();
   sumStats(outputStage,globalExecutionStats,false);
   int nodes=uniqueNodes(outputStage).size();
-  long completedDataSizePerNode=inputExecutionStats.getCompletedDataSize() / nodes;
+  long completedDataSizePerNode=0;
+  if (nodes > 0) {
+    completedDataSizePerNode=inputExecutionStats.getCompletedDataSize() / nodes;
+  }
   if (REAL_TERMINAL) {
     reprintLine("");
     String querySummary=String.format("Query %s: %s, %,d nodes, %.1fs elapsed",queryInfo.getQueryId(),queryInfo.getState(),nodes,wallTime.convertTo(SECONDS));
     reprintLine(querySummary);
+    if (queryInfo.getState() == QueryState.PLANNING) {
+      return;
+    }
     String splitsSummary=String.format("Splits: %,4d total, %,4d pending, %,4d running, %,4d done",globalExecutionStats.getSplits(),max(0,globalExecutionStats.getSplits() - globalExecutionStats.getStartedSplits()),max(0,globalExecutionStats.getStartedSplits() - globalExecutionStats.getCompletedSplits()),globalExecutionStats.getCompletedSplits());
     reprintLine(splitsSummary);
     Duration userTime=new Duration(globalExecutionStats.getSplitCpuTime(),MILLISECONDS);
