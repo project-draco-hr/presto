@@ -1,22 +1,14 @@
 {
-  StatusPrinter statusPrinter=new StatusPrinter(queryClient,out);
-  statusPrinter.printInitialStatusUpdates();
-  QueryInfo queryInfo=queryClient.getQueryInfo(false);
-  if (queryInfo.getState().isDone()) {
-    if (queryInfo.getState() == QueryState.CANCELED) {
-      out.printf("Query %s was canceled\n",queryInfo.getQueryId());
-    }
- else     if (queryInfo.getState() == QueryState.FAILED) {
-      renderFailure(queryInfo,out);
-    }
- else {
-      out.printf("Query %s finished with no output\n",queryInfo.getQueryId());
+  SignalHandler oldHandler=Signal.handle(SIGINT,new SignalHandler(){
+    @Override public void handle(    Signal signal){
+      close();
     }
   }
- else {
-    Operator operator=queryClient.getResultsOperator();
-    List<String> fieldNames=queryInfo.getFieldNames();
-    OutputStats stats=pageOutput(Pager.LESS,operator,fieldNames);
-    statusPrinter.printFinalInfo(stats);
+);
+  try {
+    runQuery(out);
+  }
+  finally {
+    Signal.handle(SIGINT,oldHandler);
   }
 }
