@@ -1,0 +1,20 @@
+{
+  if (debug) {
+    out.printf("Query %s failed:\n",queryInfo.getQueryId());
+    renderStacks(queryInfo,out);
+    return;
+  }
+  Set<String> failureMessages=ImmutableSet.copyOf(getFailureMessages(queryInfo));
+  if (failureMessages.isEmpty()) {
+    out.printf("Query %s failed for an unknown reason\n",queryInfo.getQueryId());
+  }
+ else   if (failureMessages.size() == 1) {
+    out.printf("Query %s failed: %s\n",queryInfo.getQueryId(),Iterables.getOnlyElement(failureMessages));
+  }
+ else {
+    out.printf("Query %s failed:\n",queryInfo.getQueryId());
+    for (    String failureMessage : failureMessages) {
+      out.println("    " + failureMessage);
+    }
+  }
+}

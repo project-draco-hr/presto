@@ -1,0 +1,21 @@
+{
+  try (LineReader reader=new LineReader(getHistory())){
+    while (true) {
+      String line=reader.readLine("presto> ");
+      if (line == null) {
+        return;
+      }
+      line=line.trim();
+      if (line.isEmpty()) {
+        continue;
+      }
+      if (!process(queryRunner,line)) {
+        return;
+      }
+      reader.getHistory().add(line);
+    }
+  }
+ catch (  IOException e) {
+    System.err.println("Readline error: " + e.getMessage());
+  }
+}

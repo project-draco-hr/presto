@@ -1,5 +1,5 @@
 {
-  Duration elapsedTime=Duration.nanosSince(start);
+  Duration wallTime=Duration.nanosSince(start);
   StageInfo outputStage=queryInfo.getOutputStage();
   ExecutionStats inputExecutionStats=new ExecutionStats();
   sumStats(outputStage,inputExecutionStats,true);
@@ -8,7 +8,7 @@
   int nodes=uniqueNodes(outputStage).size();
   long completedDataSizePerNode=inputExecutionStats.getCompletedDataSize() / nodes;
   if (REAL_TERMINAL) {
-    Duration wallTime=elapsedTime;
+    reprintLine("");
     String querySummary=String.format("Query %s: %s, %,d nodes, %.1fs elapsed",queryInfo.getQueryId(),queryInfo.getState(),nodes,wallTime.convertTo(SECONDS));
     reprintLine(querySummary);
     String splitsSummary=String.format("Splits: %,4d total, %,4d pending, %,4d running, %,4d done",globalExecutionStats.getSplits(),max(0,globalExecutionStats.getSplits() - globalExecutionStats.getStartedSplits()),max(0,globalExecutionStats.getStartedSplits() - globalExecutionStats.getCompletedSplits()),globalExecutionStats.getCompletedSplits());
@@ -26,7 +26,7 @@
     printStageTree(outputStage,"");
   }
  else {
-    String querySummary=String.format("Query %s [%s] i[%,d %s %s] o[%,d %s %s] splits[%,d/%,d/%,d]",queryInfo.getQueryId(),queryInfo.getState().toString().charAt(0),globalExecutionStats.getInputPositionCount(),formatDataSize(globalExecutionStats.getInputDataSize()),formatDataRate(globalExecutionStats.getCompletedDataSize(),elapsedTime,false),globalExecutionStats.getOutputPositionCount(),formatDataSize(globalExecutionStats.getOutputDataSize()),formatDataRate(globalExecutionStats.getOutputDataSize(),elapsedTime,false),max(0,globalExecutionStats.getSplits() - globalExecutionStats.getStartedSplits()),max(0,globalExecutionStats.getStartedSplits() - globalExecutionStats.getCompletedSplits()),globalExecutionStats.getCompletedSplits());
+    String querySummary=String.format("Query %s [%s] i[%,d %s %s] o[%,d %s %s] splits[%,d/%,d/%,d]",queryInfo.getQueryId(),queryInfo.getState().toString().charAt(0),globalExecutionStats.getInputPositionCount(),formatDataSize(globalExecutionStats.getInputDataSize()),formatDataRate(globalExecutionStats.getCompletedDataSize(),wallTime,false),globalExecutionStats.getOutputPositionCount(),formatDataSize(globalExecutionStats.getOutputDataSize()),formatDataRate(globalExecutionStats.getOutputDataSize(),wallTime,false),max(0,globalExecutionStats.getSplits() - globalExecutionStats.getStartedSplits()),max(0,globalExecutionStats.getStartedSplits() - globalExecutionStats.getCompletedSplits()),globalExecutionStats.getCompletedSplits());
     reprintLine(querySummary);
   }
 }

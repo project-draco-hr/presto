@@ -1,37 +1,18 @@
 {
   AnsiConsole.systemInstall();
-  Main.initializeLogging(false);
-  ExecutorService executor=Executors.newCachedThreadPool();
-  HttpQueryClient queryClient=null;
-  try {
-    ApacheHttpClient httpClient=new ApacheHttpClient(new HttpClientConfig().setConnectTimeout(new Duration(1,TimeUnit.DAYS)).setReadTimeout(new Duration(10,TimeUnit.DAYS)));
-    queryClient=new HttpQueryClient(query,server,httpClient,executor,codecFactory.jsonCodec(QueryInfo.class),codecFactory.jsonCodec(TaskInfo.class));
-    out().print("\n");
-    StatusPrinter statusPrinter=new StatusPrinter(queryClient,out());
-    statusPrinter.printInitialStatusUpdates();
-    QueryInfo queryInfo=queryClient.getQueryInfo(false);
-    if (queryInfo.getState().isDone()) {
-      if (queryInfo.getState() == QueryState.CANCELED) {
-        AnsiConsole.out().printf("Query %s was canceled\n",queryInfo.getQueryId());
-      }
- else       if (queryInfo.getState() == QueryState.FAILED) {
-        renderFailure(queryInfo,AnsiConsole.out());
-      }
- else {
-        AnsiConsole.out().printf("Query %s finished with no output\n",queryInfo.getQueryId());
-      }
+  Main.initializeLogging(debug);
+  try (QueryRunner queryRunner=QueryRunner.create(server,debug)){
+    try (Query query=queryRunner.startQuery(queryText)){
+      query.run(System.err);
     }
- else {
-      Operator operator=queryClient.getResultsOperator();
-      List<String> fieldNames=queryInfo.getFieldNames();
-      OutputStats stats=pageOutput(operator,fieldNames);
-      statusPrinter.printFinalInfo(stats);
+ catch (    QueryAbortedException e) {
+      System.err.println("Query aborted by user");
+    }
+catch (    Exception e) {
+      System.err.println("Error running command: " + e.getMessage());
+      if (debug) {
+        e.printStackTrace();
+      }
     }
   }
-  finally {
-    if (!debug && queryClient != null) {
-      queryClient.destroy();
-    }
-    executor.shutdownNow();
-  }
-}
+ }
