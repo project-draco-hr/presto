@@ -26,8 +26,9 @@
     partitionBoundedExecutor.execute(PartitionMarker.from(tableId,partition),new PartitionDropJob(tableId,partition));
   }
   log.info("Dropping %d old partitions: table %d",partitionsToRemove.size(),tableId);
+  List<String> columns=Lists.transform(fields,ImportField.nameGetter());
   for (  String partition : Iterables.concat(partitionsToAdd,repairPartitions)) {
-    PartitionChunkSupplier supplier=new PartitionChunkSupplier(importClientFactory,sourceName,databaseName,tableName,partition);
+    PartitionChunkSupplier supplier=new PartitionChunkSupplier(importClientFactory,sourceName,databaseName,tableName,partition,columns);
     PartitionImportJob importJob=new PartitionImportJob(tableId,sourceName,partition,supplier,fields);
     partitionBoundedExecutor.execute(PartitionMarker.from(tableId,partition),importJob);
   }
