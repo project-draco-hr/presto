@@ -10,12 +10,12 @@
           log.debug("No Scribe category configured for event '%s'. Skipping event.",normalizedEvent.getType());
         }
  else {
-          NectarPayloadBuilder nectarPayloadBuilder=new NectarPayloadBuilder(jsonCodec).setAppEventType(normalizedEvent.getType()).addAppData("event_type",normalizedEvent.getType()).addAppData("event_host",normalizedEvent.getHost()).addAppData("event_uuid",normalizedEvent.getUuid()).addAppData("event_time",normalizedEvent.getTimestamp());
+          PayloadBuilder payloadBuilder=new PayloadBuilder(jsonCodec).setAppEventType(normalizedEvent.getType()).addAppData("event_type",normalizedEvent.getType()).addAppData("event_host",normalizedEvent.getHost()).addAppData("event_uuid",normalizedEvent.getUuid()).addAppData("event_time",normalizedEvent.getTimestamp());
           for (          Map.Entry<String,?> entry : normalizedEvent.getData().entrySet()) {
             String key=CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE,entry.getKey());
-            nectarPayloadBuilder.addAppData(key,entry.getValue());
+            payloadBuilder.addAppData(key,entry.getValue());
           }
-          String payload=nectarPayloadBuilder.build();
+          String payload=payloadBuilder.build();
           asyncScribeLogger.log(new LogEntry(scribeCategory,payload));
         }
       }
