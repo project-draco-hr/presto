@@ -1,21 +1,40 @@
 {
   try (LineReader reader=new LineReader(getHistory())){
+    StringBuilder buffer=new StringBuilder();
     while (true) {
-      String line=reader.readLine("presto> ");
+      String prompt=PROMPT_NAME;
+      if (buffer.length() > 0) {
+        prompt=Strings.repeat(" ",prompt.length() - 1) + "-";
+      }
+      String line=reader.readLine(prompt + "> ");
       if (line == null) {
         return;
       }
-      line=line.trim();
-      if (line.isEmpty()) {
-        continue;
+      if (buffer.length() == 0) {
+        String command=line.trim();
+        if (command.endsWith(";")) {
+          command=command.substring(0,command.length() - 1).trim();
+        }
+switch (command.toLowerCase()) {
+case "exit":
+case "quit":
+          return;
       }
-      if (!process(queryRunner,line)) {
-        return;
-      }
-      reader.getHistory().add(line);
+    }
+    buffer.append(line).append("\n");
+    StatementSplitter splitter=new StatementSplitter(buffer.toString());
+    for (    String sql : splitter.getCompleteStatements()) {
+      process(queryRunner,sql);
+      reader.getHistory().add(squeezeStatement(sql) + ";");
+    }
+    buffer=new StringBuilder();
+    String partial=splitter.getPartialStatement();
+    if (!partial.isEmpty()) {
+      buffer.append(partial).append('\n');
     }
   }
- catch (  IOException e) {
-    System.err.println("Readline error: " + e.getMessage());
-  }
+}
+ catch (IOException e) {
+  System.err.println("Readline error: " + e.getMessage());
+}
 }
