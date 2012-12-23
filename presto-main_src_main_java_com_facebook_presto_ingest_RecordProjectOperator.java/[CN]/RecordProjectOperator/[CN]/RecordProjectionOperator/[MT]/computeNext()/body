@@ -1,22 +1,32 @@
 {
-  BlockBuilder[] outputs=new BlockBuilder[projections.size()];
+  BlockBuilder[] outputs=new BlockBuilder[getChannelCount()];
   for (int i=0; i < outputs.length; i++) {
-    outputs[i]=new BlockBuilder(projections.get(i).getTupleInfo());
+    outputs[i]=new BlockBuilder(getTupleInfos().get(i));
   }
-  while (!isFull(outputs) && iterator.hasNext()) {
-    Record record=iterator.next();
-    for (int i=0; i < projections.size(); i++) {
-      projections.get(i).project(record,outputs[i]);
-    }
-  }
-  if (outputs[0].isEmpty()) {
-    return endOfData();
-  }
-  Block[] blocks=new Block[projections.size()];
-  for (int i=0; i < blocks.length; i++) {
-    blocks[i]=outputs[i].build();
-  }
-  Page page=new Page(blocks);
-  operatorStats.addActualPositionCount(page.getPositionCount());
-  return page;
+  while (!isFull(outputs) && cursor.advanceNextPosition()) {
+    for (int field=0; field < outputs.length; field++) {
+      BlockBuilder output=outputs[field];
+switch (getTupleInfos().get(field).getTypes().get(0)) {
+case FIXED_INT_64:
+        output.append(cursor.getLong(field));
+      break;
+case DOUBLE:
+    output.append(cursor.getDouble(field));
+  break;
+case VARIABLE_BINARY:
+output.append(cursor.getString(field));
+break;
+}
+}
+}
+if (outputs[0].isEmpty()) {
+return endOfData();
+}
+Block[] blocks=new Block[getChannelCount()];
+for (int i=0; i < blocks.length; i++) {
+blocks[i]=outputs[i].build();
+}
+Page page=new Page(blocks);
+operatorStats.addActualPositionCount(page.getPositionCount());
+return page;
 }

@@ -1,0 +1,30 @@
+{
+  String vars=Joiner.on(',').join(nCopies(tableMetadata.getColumns().size(),"?"));
+  String sql=format("INSERT INTO %s VALUES (%s)",tableMetadata.getTableName(),vars);
+  RecordCursor cursor=data.cursor(new OperatorStats());
+  while (true) {
+    PreparedBatch batch=handle.prepareBatch(sql);
+    for (int row=0; row < 1000; row++) {
+      if (!cursor.advanceNextPosition()) {
+        batch.execute();
+        return;
+      }
+      PreparedBatchPart part=batch.add();
+      for (int column=0; column < tableMetadata.getColumns().size(); column++) {
+        ColumnMetadata columnMetadata=tableMetadata.getColumns().get(column);
+switch (columnMetadata.getType()) {
+case FIXED_INT_64:
+          part.bind(column,cursor.getLong(column));
+        break;
+case DOUBLE:
+      part.bind(column,cursor.getDouble(column));
+    break;
+case VARIABLE_BINARY:
+  part.bind(column,new String(cursor.getString(column),UTF_8));
+break;
+}
+}
+}
+batch.execute();
+}
+}

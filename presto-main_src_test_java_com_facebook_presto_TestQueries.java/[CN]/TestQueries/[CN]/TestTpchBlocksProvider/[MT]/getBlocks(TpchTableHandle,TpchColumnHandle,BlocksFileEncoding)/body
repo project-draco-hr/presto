@@ -1,32 +1,6 @@
 {
-  return new BlockIterable(){
-    @Override public TupleInfo getTupleInfo(){
-      return new TupleInfo(columnHandle.getType());
-    }
-    @Override public Optional<DataSize> getDataSize(){
-      return Optional.absent();
-    }
-    @Override public Optional<Integer> getPositionCount(){
-      return Optional.absent();
-    }
-    @Override public Iterator<Block> iterator(){
-      return new AbstractIterator<Block>(){
-        private final RecordIterator iterator=data.get(tableHandle.getTableName()).iterator(new OperatorStats());
-        private final RecordProjection projection=RecordProjections.createProjection(columnHandle.getFieldIndex(),columnHandle.getType());
-        @Override protected Block computeNext(){
-          BlockBuilder builder=new BlockBuilder(new TupleInfo(columnHandle.getType()));
-          while (iterator.hasNext() && !builder.isFull()) {
-            Record record=iterator.next();
-            projection.project(record,builder);
-          }
-          if (builder.isEmpty()) {
-            return endOfData();
-          }
-          return builder.build();
-        }
-      }
-;
-    }
-  }
-;
+  String tableName=tableHandle.getTableName();
+  int fieldIndex=columnHandle.getFieldIndex();
+  Type fieldType=columnHandle.getType();
+  return new TpchBlockIterable(fieldType,tableName,fieldIndex);
 }

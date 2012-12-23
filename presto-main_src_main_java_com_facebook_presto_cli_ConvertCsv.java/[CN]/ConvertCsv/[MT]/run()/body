@@ -34,27 +34,27 @@
   }
   ImmutableSortedMap<Integer,TupleInfo.Type> schema=schemaBuilder.build();
   ImmutableList<OutputSupplier<? extends OutputStream>> outputSuppliers=outputSupplierBuilder.build();
-  ImmutableList.Builder<RecordProjection> recordProjectionBuilder=ImmutableList.builder();
+  ImmutableList.Builder<Type> typesBuilder=ImmutableList.builder();
   ImmutableList.Builder<BlocksFileWriter> writersBuilder=ImmutableList.builder();
   for (int index=0; index <= schema.lastKey(); index++) {
     TupleInfo.Type type=VARIABLE_BINARY;
     if (schema.containsKey(index)) {
       type=schema.get(index);
     }
-    recordProjectionBuilder.add(RecordProjections.createProjection(index,type));
+    typesBuilder.add(type);
     writersBuilder.add(new BlocksFileWriter(BlocksFileEncoding.RAW,outputSuppliers.get(index)));
   }
-  List<RecordProjection> recordProjections=recordProjectionBuilder.build();
+  List<Type> types=typesBuilder.build();
   List<BlocksFileWriter> writers=writersBuilder.build();
-  DelimitedRecordIterable records=new DelimitedRecordIterable(readerSupplier,Splitter.on(toChar(columnSeparator)));
+  DelimitedRecordSet records=new DelimitedRecordSet(readerSupplier,Splitter.on(toChar(columnSeparator)));
   DataSize dataSize;
-  if (csvFile != null) {
+  if (countingInputStream == null) {
     dataSize=new DataSize(csvFile.length(),Unit.BYTE);
   }
  else {
     dataSize=new DataSize(countingInputStream.getCount(),Unit.BYTE);
   }
-  Operator source=new RecordProjectOperator(records,dataSize,recordProjections);
+  Operator source=new RecordProjectOperator(records,dataSize,types);
   long rowCount=ImportingOperator.importData(source,writers);
   log.info("Imported %d rows",rowCount);
 }

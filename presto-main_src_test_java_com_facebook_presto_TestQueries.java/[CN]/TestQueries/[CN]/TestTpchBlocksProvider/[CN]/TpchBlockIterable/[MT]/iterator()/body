@@ -1,0 +1,26 @@
+{
+  return new AbstractIterator<Block>(){
+    private final RecordCursor cursor=data.get(tableName).cursor(new OperatorStats());
+    @Override protected Block computeNext(){
+      BlockBuilder builder=new BlockBuilder(new TupleInfo(fieldType));
+      while (!builder.isFull() && cursor.advanceNextPosition()) {
+switch (fieldType) {
+case FIXED_INT_64:
+          builder.append(cursor.getLong(fieldIndex));
+        break;
+case DOUBLE:
+      builder.append(cursor.getDouble(fieldIndex));
+    break;
+case VARIABLE_BINARY:
+  builder.append(cursor.getString(fieldIndex));
+break;
+}
+}
+if (builder.isEmpty()) {
+return endOfData();
+}
+return builder.build();
+}
+}
+;
+}
