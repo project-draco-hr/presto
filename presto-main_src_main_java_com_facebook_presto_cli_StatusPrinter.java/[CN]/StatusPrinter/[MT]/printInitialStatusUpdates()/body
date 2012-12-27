@@ -7,15 +7,8 @@
         if ((queryInfo == null) || queryInfo.getState().isDone()) {
           return;
         }
-        if (queryInfo.getOutputStage() != null) {
-          List<TaskInfo> outStage=queryInfo.getOutputStage().getTasks();
-          for (          TaskInfo outputTask : outStage) {
-            for (            PageBufferInfo outputBuffer : outputTask.getOutputBuffers()) {
-              if (outputBuffer.getBufferedPages() > 0) {
-                return;
-              }
-            }
-          }
+        if (queryInfo.resultsPending()) {
+          return;
         }
         if (Duration.nanosSince(lastPrint).convertTo(SECONDS) >= 0.5) {
           repositionCursor();
