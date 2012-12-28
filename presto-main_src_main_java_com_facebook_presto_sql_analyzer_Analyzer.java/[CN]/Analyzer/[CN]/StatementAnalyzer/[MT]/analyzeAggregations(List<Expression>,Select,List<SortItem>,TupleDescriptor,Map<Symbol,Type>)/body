@@ -3,10 +3,10 @@
     throw new SemanticException(select,"Wildcard selector not supported when GROUP BY is present");
   }
   List<Expression> scalarTerms=new ArrayList<>();
-  ImmutableSet.Builder<AnalyzedAggregation> aggregateTermsBuilder=ImmutableSet.builder();
+  ImmutableSet.Builder<AnalyzedFunction> aggregateTermsBuilder=ImmutableSet.builder();
   for (  Expression term : concat(transform(select.getSelectItems(),unaliasFunction()),transform(orderBy,sortKeyGetter()))) {
     AggregateAnalyzer analyzer=new AggregateAnalyzer(metadata,descriptor,symbols);
-    List<AnalyzedAggregation> aggregations=analyzer.analyze(term);
+    List<AnalyzedFunction> aggregations=analyzer.analyze(term);
     if (aggregations.isEmpty()) {
       scalarTerms.add(term);
     }
@@ -14,7 +14,7 @@
       aggregateTermsBuilder.addAll(aggregations);
     }
   }
-  Set<AnalyzedAggregation> aggregateTerms=aggregateTermsBuilder.build();
+  Set<AnalyzedFunction> aggregateTerms=aggregateTermsBuilder.build();
   if (!groupBy.isEmpty()) {
     Iterable<Expression> notInGroupBy=Iterables.filter(scalarTerms,not(in(groupBy)));
     if (!Iterables.isEmpty(notInGroupBy)) {
