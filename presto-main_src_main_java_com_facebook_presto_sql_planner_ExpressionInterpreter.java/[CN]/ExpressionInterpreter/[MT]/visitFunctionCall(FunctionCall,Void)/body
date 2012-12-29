@@ -1,0 +1,37 @@
+{
+  List<Type> argumentTypes=new ArrayList<>();
+  List<Object> argumentValues=new ArrayList<>();
+  for (  Expression expression : node.getArguments()) {
+    Object value=process(expression,context);
+    if (value == null) {
+      return null;
+    }
+    Type type;
+    if (value instanceof Double) {
+      type=Type.DOUBLE;
+    }
+ else     if (value instanceof Long) {
+      type=Type.LONG;
+    }
+ else     if (value instanceof Slice) {
+      type=Type.STRING;
+    }
+ else     if (value instanceof Boolean) {
+      type=Type.BOOLEAN;
+    }
+ else {
+      throw new RuntimeException("Unhandled value type: " + value.getClass().getName());
+    }
+    argumentValues.add(value);
+    argumentTypes.add(type);
+  }
+  FunctionRegistry registry=new FunctionRegistry();
+  FunctionInfo function=registry.get(node.getName(),Lists.transform(argumentTypes,Type.toRaw()));
+  MethodHandle handle=function.getScalarFunction();
+  try {
+    return handle.invokeWithArguments(argumentValues);
+  }
+ catch (  Throwable throwable) {
+    throw new RuntimeException("Exception from function invocation",throwable);
+  }
+}
