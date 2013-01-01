@@ -1,0 +1,18 @@
+{
+  Statement statement=SqlParser.createStatement(sql);
+  Analyzer analyzer=new Analyzer(new Session(),metadata);
+  AnalysisResult analysis=analyzer.analyze(statement);
+  PlanNode plan=new LogicalPlanner().plan((Query)statement,analysis);
+  new PlanPrinter().print(plan,analysis.getTypes());
+  SubPlan subplan=new DistributedLogicalPlanner(metadata).createSubplans(plan,analysis.getSymbolAllocator(),true);
+  assertTrue(subplan.getChildren().isEmpty(),"Expected subplan to have no children");
+  ImmutableMap.Builder<TableHandle,TableScanPlanFragmentSource> builder=ImmutableMap.builder();
+  for (  PlanNode source : subplan.getFragment().getSources()) {
+    TableScanNode tableScan=(TableScanNode)source;
+    InternalTableHandle handle=(InternalTableHandle)tableScan.getTable();
+    builder.put(handle,new TableScanPlanFragmentSource(new InternalSplit(handle)));
+  }
+  DataSize maxOperatorMemoryUsage=new DataSize(50,MEGABYTE);
+  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(metadata,new HackPlanFragmentSourceProvider(dataProvider,null,TASK_INFO_CODEC),analysis.getTypes(),null,builder.build(),ImmutableMap.<String,ExchangePlanFragmentSource>of(),new OperatorStats(),new SourceHashProviderFactory(maxOperatorMemoryUsage),maxOperatorMemoryUsage);
+  return executionPlanner.plan(plan);
+}

@@ -1,0 +1,21 @@
+{
+  Operator operator=plan("SELECT " + projection + " FROM dual");
+  List<Tuple> results=getTuples(operator);
+  assertEquals(results.size(),1);
+  Tuple tuple=results.get(0);
+  assertEquals(tuple.getTupleInfo().getFieldCount(),1);
+  TupleInfo.Type type=tuple.getTupleInfo().getTypes().get(0);
+switch (type) {
+case FIXED_INT_64:
+    assertEquals(tuple.getLong(0),expected);
+  break;
+case DOUBLE:
+assertEquals(tuple.getDouble(0),expected);
+break;
+case VARIABLE_BINARY:
+assertEquals(tuple.getSlice(0),expected);
+break;
+default :
+throw new AssertionError("unimplemented type: " + type);
+}
+}
