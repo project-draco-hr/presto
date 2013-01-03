@@ -6,20 +6,21 @@
     failedBatch=null;
   }
   BatchBuilder batchBuilder=new BatchBuilder();
-  LogEntry logEntry=queue.poll(POLL_WAIT_SECS,TimeUnit.SECONDS);
+  LogEntry logEntry=queue.poll((long)POLL_WAIT.toMillis(),TimeUnit.MILLISECONDS);
   if (logEntry == null) {
     return true;
   }
   do {
     batchBuilder.add(logEntry);
-    if (batchBuilder.getNumBytes() >= maxBatchSize.toBytes()) {
+    if (batchBuilder.getSize().toBytes() >= maxBatchSize.toBytes()) {
       if (!flushToScribe(batchBuilder.build())) {
         return false;
       }
       batchBuilder=new BatchBuilder();
     }
+    logEntry=queue.poll();
   }
- while ((logEntry=queue.poll()) != null);
+ while (logEntry != null);
   if (!batchBuilder.isEmpty()) {
     if (!flushToScribe(batchBuilder.build())) {
       return false;
