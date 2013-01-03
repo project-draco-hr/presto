@@ -1,12 +1,13 @@
 {
   Preconditions.checkNotNull(source,"source is null");
   Preconditions.checkNotNull(dataSize,"dataSize is null");
-  Preconditions.checkNotNull(types,"projections is null");
+  Preconditions.checkNotNull(columns,"columns is null");
   this.source=source;
   this.dataSize=dataSize;
+  this.columnIds=ImmutableList.copyOf(Iterables.transform(columns,idGetter()));
   ImmutableList.Builder<TupleInfo> tupleInfos=ImmutableList.builder();
-  for (  Type type : types) {
-    tupleInfos.add(new TupleInfo(type));
+  for (  ImportColumnHandle column : columns) {
+    tupleInfos.add(new TupleInfo(column.getColumnType()));
   }
   this.tupleInfos=tupleInfos.build();
 }

@@ -13,7 +13,7 @@
     InputSupplier<InputStream> inputSupplier=tableInputSupplierFactory.getInputSupplier(tableName);
     DelimitedRecordSet records=new DelimitedRecordSet(newReaderSupplier(inputSupplier,UTF_8),Splitter.on("|"));
     DataSize dataSize=new DataSize(cachedFile.length(),Unit.BYTE);
-    RecordProjectOperator source=new RecordProjectOperator(records,dataSize,columnHandle.getType());
+    RecordProjectOperator source=new RecordProjectOperator(records,dataSize,new ImportColumnHandle("tpch","column" + columnHandle.getFieldIndex(),columnHandle.getFieldIndex(),columnHandle.getType()));
     ImportingOperator.importData(source,new BlocksFileWriter(encoding,newOutputStreamSupplier(cachedFile)));
     return cachedFile;
   }
