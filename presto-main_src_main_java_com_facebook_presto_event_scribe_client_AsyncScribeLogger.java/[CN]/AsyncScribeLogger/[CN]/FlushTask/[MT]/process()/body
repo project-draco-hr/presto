@@ -6,10 +6,7 @@
     failedBatch=null;
   }
   BatchBuilder batchBuilder=new BatchBuilder();
-  LogEntry logEntry=queue.poll((long)POLL_WAIT.toMillis(),TimeUnit.MILLISECONDS);
-  if (logEntry == null) {
-    return true;
-  }
+  LogEntry logEntry=queue.take();
   do {
     batchBuilder.add(logEntry);
     if (batchBuilder.getSize().toBytes() >= maxBatchSize.toBytes()) {

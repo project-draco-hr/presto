@@ -1,6 +1,6 @@
 {
   try {
-    while (!shutdown.get()) {
+    while (!Thread.currentThread().isInterrupted()) {
       try {
         if (!process()) {
           TimeUnit.MILLISECONDS.sleep((long)ERROR_BACKOFF.toMillis());
@@ -8,8 +8,6 @@
       }
  catch (      InterruptedException e) {
         Thread.currentThread().interrupt();
-        log.warn("Flush task interrupted");
-        return;
       }
 catch (      Exception e) {
         log.warn(e,"Unexpected flush task exception");
