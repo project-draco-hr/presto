@@ -7,6 +7,14 @@
         prompt=Strings.repeat(" ",prompt.length() - 1) + "-";
       }
       String line=reader.readLine(prompt + "> ");
+      if (reader.interrupted()) {
+        String partial=squeezeStatement(buffer.toString());
+        if (!partial.isEmpty()) {
+          reader.getHistory().add(partial);
+        }
+        buffer=new StringBuilder();
+        continue;
+      }
       if (line == null) {
         return;
       }
