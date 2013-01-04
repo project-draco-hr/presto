@@ -1,0 +1,27 @@
+{
+  try {
+    boolean foundOne=false;
+    for (    Method method : clazz.getMethods()) {
+      ScalarFunction scalarFunction=method.getAnnotation(ScalarFunction.class);
+      if (scalarFunction == null) {
+        continue;
+      }
+      checkArgument(isValidMethod(method),"@ScalarFunction method %s is not valid",method);
+      MethodHandle methodHandle=lookup().unreflect(method);
+      String name=scalarFunction.value();
+      if (name.isEmpty()) {
+        name=method.getName();
+      }
+      scalar(name,methodHandle);
+      for (      String alias : scalarFunction.alias()) {
+        scalar(alias,methodHandle);
+      }
+      foundOne=true;
+    }
+    checkArgument(foundOne,"Expected class %s to contain at least one method annotated with @%s",clazz.getName(),ScalarFunction.class.getSimpleName());
+  }
+ catch (  Exception e) {
+    throw Throwables.propagate(e);
+  }
+  return this;
+}
