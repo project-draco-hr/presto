@@ -6,33 +6,31 @@
   ExecutionStats globalExecutionStats=new ExecutionStats();
   sumStats(outputStage,globalExecutionStats,false);
   int nodes=uniqueNodes(outputStage).size();
-  long completedDataSizePerNode=0;
-  if (nodes > 0) {
-    completedDataSizePerNode=inputExecutionStats.getCompletedDataSize() / nodes;
-  }
   if (REAL_TERMINAL) {
     reprintLine("");
-    String querySummary=String.format("Query %s: %s, %,d nodes, %.1fs elapsed",queryInfo.getQueryId(),queryInfo.getState(),nodes,wallTime.convertTo(SECONDS));
+    String querySummary=String.format("Query %s, %s, %,d %s, %,d splits",queryInfo.getQueryId(),queryInfo.getState(),nodes,pluralize("node",nodes),globalExecutionStats.getSplits());
     reprintLine(querySummary);
     if (queryInfo.getState() == QueryState.PLANNING) {
       return;
     }
-    String splitsSummary=String.format("Splits: %,4d total, %,4d pending, %,4d running, %,4d done",globalExecutionStats.getSplits(),max(0,globalExecutionStats.getSplits() - globalExecutionStats.getStartedSplits()),max(0,globalExecutionStats.getStartedSplits() - globalExecutionStats.getCompletedSplits()),globalExecutionStats.getCompletedSplits());
-    reprintLine(splitsSummary);
-    Duration userTime=new Duration(globalExecutionStats.getSplitCpuTime(),MILLISECONDS);
-    Duration userTimePerNode=new Duration(userTime.toMillis() / nodes,MILLISECONDS);
-    String cpuUserSummary=String.format("CPU user: %5.1fs %8s total, %5.1fs %8s per node",userTime.convertTo(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),userTime,true),userTimePerNode.convertTo(SECONDS),formatDataRate(completedDataSizePerNode,userTime,true));
-    reprintLine(cpuUserSummary);
-    Duration wallTimePerNode=new Duration(wallTime.toMillis() / nodes,MILLISECONDS);
-    String cpuWallSummary=String.format("CPU wall: %5.1fs %8s total, %5.1fs %8s per node",wallTime.convertTo(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),wallTime,true),wallTimePerNode.convertTo(SECONDS),formatDataRate(completedDataSizePerNode,wallTime,true));
-    reprintLine(cpuWallSummary);
+    if (queryClient.isDebug()) {
+      String splitsSummary=String.format("Splits:   %,d pending, %,d running, %,d done",max(0,globalExecutionStats.getSplits() - globalExecutionStats.getStartedSplits()),max(0,globalExecutionStats.getStartedSplits() - globalExecutionStats.getCompletedSplits()),globalExecutionStats.getCompletedSplits());
+      reprintLine(splitsSummary);
+      Duration cpuTime=new Duration(globalExecutionStats.getSplitCpuTime(),MILLISECONDS);
+      String cpuTimeSummary=String.format("CPU Time: %.1fs total, %5s rows/s, %8s, %d%% active",cpuTime.convertTo(SECONDS),formatCountRate(inputExecutionStats.getCompletedPositionCount(),cpuTime,false),formatDataRate(inputExecutionStats.getCompletedDataSize(),cpuTime,true),(int)(globalExecutionStats.getSplitCpuTime() * 100.0 / globalExecutionStats.getSplitWallTime()));
+      reprintLine(cpuTimeSummary);
+      reprintLine(String.format("Parallelism: %.1f",cpuTime.toMillis() / wallTime.toMillis()));
+    }
+    String progressBar=formatProgressBar(42,globalExecutionStats.getCompletedSplits(),max(0,globalExecutionStats.getStartedSplits() - globalExecutionStats.getCompletedSplits()),globalExecutionStats.getSplits());
+    String progressLine=String.format("%s [%5s rows, %6s] [%5s rows/s, %8s] [%s] %d%%",formatTime(wallTime),formatCount(inputExecutionStats.getCompletedPositionCount()),formatDataSize(inputExecutionStats.getCompletedDataSize(),true),formatCountRate(inputExecutionStats.getInputPositionCount(),wallTime,false),formatDataRate(inputExecutionStats.getCompletedDataSize(),wallTime,true),progressBar,Math.min(99,(int)(globalExecutionStats.getCompletedSplits() * 100.0 / globalExecutionStats.getSplits())));
+    reprintLine(progressLine);
     reprintLine("");
     String stagesHeader=String.format("%10s%1s  %5s  %6s  %5s  %7s  %5s  %5s  %5s","STAGE","S","ROWS","ROWS/s","BYTES","BYTES/s","PEND","RUN","DONE");
     reprintLine(stagesHeader);
     printStageTree(outputStage,"");
   }
  else {
-    String querySummary=String.format("Query %s [%s] i[%s %s %s] o[%s %s %s] splits[%,d/%,d/%,d]",queryInfo.getQueryId(),queryInfo.getState().toString().charAt(0),formatCount(globalExecutionStats.getInputPositionCount()),formatDataSize(globalExecutionStats.getInputDataSize()),formatDataRate(globalExecutionStats.getCompletedDataSize(),wallTime,false),formatCount(globalExecutionStats.getOutputPositionCount()),formatDataSize(globalExecutionStats.getOutputDataSize()),formatDataRate(globalExecutionStats.getOutputDataSize(),wallTime,false),max(0,globalExecutionStats.getSplits() - globalExecutionStats.getStartedSplits()),max(0,globalExecutionStats.getStartedSplits() - globalExecutionStats.getCompletedSplits()),globalExecutionStats.getCompletedSplits());
+    String querySummary=String.format("Query %s [%s] i[%s %s %s] o[%s %s %s] splits[%,d/%,d/%,d]",queryInfo.getQueryId(),queryInfo.getState().toString().charAt(0),formatCount(globalExecutionStats.getInputPositionCount()),formatDataSize(globalExecutionStats.getInputDataSize(),false),formatDataRate(globalExecutionStats.getCompletedDataSize(),wallTime,false),formatCount(globalExecutionStats.getOutputPositionCount()),formatDataSize(globalExecutionStats.getOutputDataSize(),false),formatDataRate(globalExecutionStats.getOutputDataSize(),wallTime,false),max(0,globalExecutionStats.getSplits() - globalExecutionStats.getStartedSplits()),max(0,globalExecutionStats.getStartedSplits() - globalExecutionStats.getCompletedSplits()),globalExecutionStats.getCompletedSplits());
     reprintLine(querySummary);
   }
 }

@@ -9,15 +9,17 @@
   sumStats(outputStage,globalExecutionStats,false);
   int nodes=uniqueNodes(outputStage).size();
   out.println();
-  String querySummary=String.format("Query %s: %s, %,d nodes, %,d splits",queryInfo.getQueryId(),queryInfo.getState(),nodes,queryStats.getSplits());
+  String querySummary=String.format("Query %s, %s, %,d %s",queryInfo.getQueryId(),queryInfo.getState(),nodes,pluralize("node",nodes));
   out.println(querySummary);
-  Duration userTime=new Duration(globalExecutionStats.getSplitCpuTime(),MILLISECONDS);
-  Duration userTimePerNode=new Duration(userTime.toMillis() / nodes,MILLISECONDS);
-  long completedDataSizePerNode=inputExecutionStats.getCompletedDataSize() / nodes;
-  String cpuUserSummary=String.format("CPU user: %s %s total, %s %s per node",userTime.toString(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),userTime,true),userTimePerNode.toString(SECONDS),formatDataRate(completedDataSizePerNode,userTimePerNode,true));
-  out.println(cpuUserSummary);
-  Duration wallTimePerNode=new Duration(wallTime.toMillis() / nodes,MILLISECONDS);
-  String cpuWallSummary=String.format("CPU wall: %s %s total, %s %s per node",wallTime.toString(SECONDS),formatDataRate(inputExecutionStats.getCompletedDataSize(),wallTime,true),wallTimePerNode.toString(SECONDS),formatDataRate(completedDataSizePerNode,wallTime,true));
-  out.println(cpuWallSummary);
+  String splitsSummary=String.format("Splits: %,d total, %,d done (%.2f%%)",globalExecutionStats.getSplits(),globalExecutionStats.getCompletedSplits(),Math.min(100,globalExecutionStats.getCompletedSplits() * 100.0 / globalExecutionStats.getSplits()));
+  out.println(splitsSummary);
+  if (queryClient.isDebug()) {
+    Duration cpuTime=new Duration(globalExecutionStats.getSplitCpuTime(),MILLISECONDS);
+    String cpuTimeSummary=String.format("CPU Time: %.1fs total, %5s rows/s, %8s, %d%% active",cpuTime.convertTo(SECONDS),formatCountRate(inputExecutionStats.getCompletedPositionCount(),cpuTime,false),formatDataRate(inputExecutionStats.getCompletedDataSize(),cpuTime,true),(int)(globalExecutionStats.getSplitCpuTime() * 100.0 / globalExecutionStats.getSplitWallTime()));
+    out.println(cpuTimeSummary);
+    out.println(String.format("Parallelism: %.1f",cpuTime.toMillis() / wallTime.toMillis()));
+  }
+  String statsLine=String.format("%s [%s rows, %s] [%s rows/s, %s]",formatTime(wallTime),formatCount(inputExecutionStats.getCompletedPositionCount()),formatDataSize(inputExecutionStats.getCompletedDataSize(),true),formatCountRate(inputExecutionStats.getInputPositionCount(),wallTime,false),formatDataRate(inputExecutionStats.getCompletedDataSize(),wallTime,true));
+  out.println(statsLine);
   out.println();
 }
