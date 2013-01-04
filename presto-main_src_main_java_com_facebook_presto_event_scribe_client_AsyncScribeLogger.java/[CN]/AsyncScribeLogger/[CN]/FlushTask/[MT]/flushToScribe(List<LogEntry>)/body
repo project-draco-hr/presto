@@ -3,16 +3,26 @@
     ResultCode resultCode=scribeClient.log(logEntries);
 switch (resultCode) {
 case OK:
-      return true;
+      if (tryLaterState.compareAndSet(true,false)) {
+        log.info("Scribe recovered from TRY_LATER");
+      }
+    if (connectionErrorState.compareAndSet(true,false)) {
+      log.info("Scribe recovered from connection errors");
+    }
+  return true;
 case TRY_LATER:
-    log.warn("Scribe log returned TRY_LATER");
-  break;
+if (tryLaterState.compareAndSet(false,true)) {
+  log.warn("Scribe log returned TRY_LATER");
+}
+break;
 default :
 throw new AssertionError("Unknown ResultCode: " + resultCode);
 }
 }
  catch (Exception e) {
+if (connectionErrorState.compareAndSet(false,true)) {
 log.warn("Failed to log to Scribe: %s",e.getMessage());
+}
 }
 failedBatch=logEntries;
 return false;
