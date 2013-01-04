@@ -1,7 +1,8 @@
 {
+  ClientSession session=clientOptions.toClientSession();
   AnsiConsole.systemInstall();
-  Main.initializeLogging(debug);
-  try (QueryRunner queryRunner=QueryRunner.create(server,debug)){
+  Main.initializeLogging(session.isDebug());
+  try (QueryRunner queryRunner=QueryRunner.create(session)){
     try (Query query=queryRunner.startQuery(queryText)){
       query.renderOutput(System.err);
     }
@@ -10,7 +11,7 @@
     }
 catch (    Exception e) {
       System.err.println("Error running command: " + e.getMessage());
-      if (debug) {
+      if (session.isDebug()) {
         e.printStackTrace();
       }
     }
