@@ -1,0 +1,16 @@
+{
+  for (  WhenClause whenClause : node.getWhenClauses()) {
+    Type whenOperand=process(whenClause.getOperand(),context);
+    if (!isBooleanOrNull(whenOperand)) {
+      throw new SemanticException(node,"WHEN clause must be a boolean type: %s",whenOperand);
+    }
+  }
+  List<Type> types=new ArrayList<>();
+  for (  WhenClause whenClause : node.getWhenClauses()) {
+    types.add(process(whenClause.getResult(),context));
+  }
+  if (node.getDefaultValue() != null) {
+    types.add(process(node.getDefaultValue(),context));
+  }
+  return getSingleType(node,"clauses",types);
+}

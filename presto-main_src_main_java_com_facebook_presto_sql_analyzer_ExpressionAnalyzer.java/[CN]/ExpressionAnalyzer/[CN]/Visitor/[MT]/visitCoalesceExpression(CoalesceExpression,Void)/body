@@ -3,12 +3,5 @@
   for (  Expression expression : node.getOperands()) {
     operandTypes.add(process(expression,context));
   }
-  Type firstOperand=Iterables.get(operandTypes,0);
-  if (!Iterables.all(operandTypes,equalTo(firstOperand))) {
-    if (Iterables.all(operandTypes,Predicates.or(equalTo(Type.DOUBLE),equalTo(Type.LONG)))) {
-      return Type.DOUBLE;
-    }
-    throw new SemanticException(node,"All operands of coalesce must be the same type: %s",operandTypes);
-  }
-  return firstOperand;
+  return getSingleType(node,"operands",operandTypes);
 }

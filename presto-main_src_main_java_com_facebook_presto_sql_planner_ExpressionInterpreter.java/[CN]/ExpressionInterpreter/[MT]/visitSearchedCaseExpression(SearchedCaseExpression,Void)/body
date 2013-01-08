@@ -1,0 +1,21 @@
+{
+  Expression resultClause=node.getDefaultValue();
+  for (  WhenClause whenClause : node.getWhenClauses()) {
+    Object value=process(whenClause.getOperand(),context);
+    if (value instanceof Expression) {
+      return node;
+    }
+    if (Boolean.TRUE.equals(value)) {
+      resultClause=whenClause.getResult();
+      break;
+    }
+  }
+  if (resultClause == null) {
+    return null;
+  }
+  Object result=process(resultClause,context);
+  if (result instanceof Expression) {
+    return node;
+  }
+  return result;
+}
