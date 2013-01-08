@@ -1,0 +1,35 @@
+{
+  StringBuilder regex=new StringBuilder(patternString.length() * 2);
+  boolean escaped=false;
+  for (  char currentChar : patternString.toCharArray()) {
+    if (currentChar == escapeChar) {
+      escaped=true;
+    }
+ else {
+switch (currentChar) {
+case '%':
+        if (escaped) {
+          regex.append("%");
+        }
+ else {
+          regex.append(".*");
+        }
+      escaped=false;
+    break;
+case '_':
+  if (escaped) {
+    regex.append("_");
+  }
+ else {
+    regex.append('.');
+  }
+escaped=false;
+break;
+default :
+escaped=false;
+regex.append(Pattern.quote(String.valueOf(currentChar)));
+}
+}
+}
+return Pattern.compile(regex.toString());
+}
