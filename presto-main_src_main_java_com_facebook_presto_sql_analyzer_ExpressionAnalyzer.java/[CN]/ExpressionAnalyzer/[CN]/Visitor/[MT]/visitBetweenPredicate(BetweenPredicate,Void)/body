@@ -1,3 +1,12 @@
 {
-  throw new UnsupportedOperationException("not yet implemented: BETWEEN");
+  Type value=process(node.getValue(),context);
+  Type min=process(node.getMin(),context);
+  Type max=process(node.getMax(),context);
+  if (isStringTypeOrNull(value) && isStringTypeOrNull(min) && isStringTypeOrNull(max)) {
+    return Type.BOOLEAN;
+  }
+  if (isNumericOrNull(value) && isNumericOrNull(min) && isNumericOrNull(max)) {
+    return Type.BOOLEAN;
+  }
+  throw new SemanticException(node.getValue(),"Between value, min and max must be the same type (value: %s, min: %s, max: %s)",value,min,max);
 }
