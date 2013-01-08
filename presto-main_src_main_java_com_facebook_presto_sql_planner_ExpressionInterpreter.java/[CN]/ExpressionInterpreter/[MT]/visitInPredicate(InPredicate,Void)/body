@@ -1,0 +1,42 @@
+{
+  Expression valueListExpression=node.getValueList();
+  if (!(valueListExpression instanceof InListExpression)) {
+    return node;
+  }
+  InListExpression valueList=(InListExpression)valueListExpression;
+  boolean hasUnresolvedValue=false;
+  Object value=process(node.getValue(),context);
+  if (value == null) {
+    return null;
+  }
+  if (value instanceof Expression) {
+    hasUnresolvedValue=true;
+  }
+  boolean hasNullValue=false;
+  boolean found=false;
+  List<Object> values=new ArrayList<>(valueList.getValues().size());
+  for (  Expression expression : valueList.getValues()) {
+    Object inValue=process(expression,context);
+    if (value instanceof Expression || inValue instanceof Expression) {
+      hasUnresolvedValue=true;
+      values.add(inValue);
+      continue;
+    }
+    if (inValue == null) {
+      hasNullValue=true;
+    }
+ else     if (!found && value.equals(inValue)) {
+      found=true;
+    }
+  }
+  if (found) {
+    return true;
+  }
+  if (hasUnresolvedValue) {
+    return new InPredicate(toExpression(value),new InListExpression(toExpressions(values)));
+  }
+  if (hasNullValue) {
+    return null;
+  }
+  return false;
+}
