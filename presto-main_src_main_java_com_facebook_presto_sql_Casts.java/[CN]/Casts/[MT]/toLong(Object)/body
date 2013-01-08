@@ -1,0 +1,16 @@
+{
+  if (value instanceof Long) {
+    return value;
+  }
+ else   if (value instanceof Boolean) {
+    return (Boolean)value ? 1L : 0L;
+  }
+ else   if (value instanceof Slice) {
+    String stringValue=((Slice)value).toString(UTF_8);
+    return Long.parseLong(stringValue);
+  }
+ else   if (value instanceof Double) {
+    return (long)MathFunctions.round(((Double)value).doubleValue());
+  }
+  throw new IllegalArgumentException(String.format("Cannot cast %s to BIGINT",value.getClass().getSimpleName()));
+}
