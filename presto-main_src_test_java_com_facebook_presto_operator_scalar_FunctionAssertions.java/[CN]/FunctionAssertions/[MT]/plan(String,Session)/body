@@ -1,0 +1,23 @@
+{
+  Statement statement;
+  try {
+    statement=SqlParser.createStatement(sql);
+  }
+ catch (  RecognitionException e) {
+    throw Throwables.propagate(e);
+  }
+  Analyzer analyzer=new Analyzer(session,METADATA);
+  AnalysisResult analysis=analyzer.analyze(statement);
+  PlanNode plan=new LogicalPlanner().plan((Query)statement,analysis);
+  SubPlan subplan=new DistributedLogicalPlanner(METADATA).createSubplans(plan,analysis.getSymbolAllocator(),true);
+  assertTrue(subplan.getChildren().isEmpty(),"Expected subplan to have no children");
+  ImmutableMap.Builder<TableHandle,TableScanPlanFragmentSource> builder=ImmutableMap.builder();
+  for (  PlanNode source : subplan.getFragment().getSources()) {
+    TableScanNode tableScan=(TableScanNode)source;
+    InternalTableHandle handle=(InternalTableHandle)tableScan.getTable();
+    builder.put(handle,new TableScanPlanFragmentSource(new InternalSplit(handle)));
+  }
+  DataSize maxOperatorMemoryUsage=new DataSize(50,MEGABYTE);
+  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(session,METADATA,new HackPlanFragmentSourceProvider(DATA_PROVIDER,null,TASK_INFO_CODEC),analysis.getTypes(),null,builder.build(),ImmutableMap.<String,ExchangePlanFragmentSource>of(),new OperatorStats(),new SourceHashProviderFactory(maxOperatorMemoryUsage),maxOperatorMemoryUsage);
+  return executionPlanner.plan(plan);
+}

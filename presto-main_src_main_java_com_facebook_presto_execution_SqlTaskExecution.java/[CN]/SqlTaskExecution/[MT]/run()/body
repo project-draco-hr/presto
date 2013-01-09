@@ -4,13 +4,13 @@
     final SourceHashProviderFactory sourceHashProviderFactory=new SourceHashProviderFactory(maxOperatorMemoryUsage);
     if (splits.size() <= 1) {
       PlanFragmentSource split=splits.isEmpty() ? null : splits.get(0);
-      SplitWorker worker=new SplitWorker(taskOutput,fragment,split,exchangeSources,sourceHashProviderFactory,sourceProvider,metadata,maxOperatorMemoryUsage);
+      SplitWorker worker=new SplitWorker(session,taskOutput,fragment,split,exchangeSources,sourceHashProviderFactory,sourceProvider,metadata,maxOperatorMemoryUsage);
       worker.call();
     }
  else {
       List<Callable<Void>> workers=ImmutableList.copyOf(Lists.transform(this.splits,new Function<PlanFragmentSource,Callable<Void>>(){
         @Override public Callable<Void> apply(        PlanFragmentSource split){
-          return new SplitWorker(taskOutput,fragment,split,exchangeSources,sourceHashProviderFactory,sourceProvider,metadata,maxOperatorMemoryUsage);
+          return new SplitWorker(session,taskOutput,fragment,split,exchangeSources,sourceHashProviderFactory,sourceProvider,metadata,maxOperatorMemoryUsage);
         }
       }
 ));

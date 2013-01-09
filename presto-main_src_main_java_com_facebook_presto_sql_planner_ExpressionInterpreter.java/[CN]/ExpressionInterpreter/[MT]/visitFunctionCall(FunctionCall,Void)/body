@@ -30,6 +30,9 @@
   }
   FunctionInfo function=metadata.getFunction(node.getName(),Lists.transform(argumentTypes,Type.toRaw()));
   MethodHandle handle=function.getScalarFunction();
+  if (handle.type().parameterCount() > 0 && handle.type().parameterType(0) == Session.class) {
+    handle=handle.bindTo(session);
+  }
   try {
     return handle.invokeWithArguments(argumentValues);
   }

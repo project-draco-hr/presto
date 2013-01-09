@@ -1,0 +1,6 @@
+{
+  BiMap<Symbol,String> symbolToColumn=MapTransformer.of(mappings).transformValues(MoreFunctions.<ColumnHandle,ImportColumnHandle>cast(ImportColumnHandle.class)).transformValues(columnNameGetter()).biMap();
+  List<PartitionInfo> partitions=getCandidatePartitions(sourceName,databaseName,tableName,predicate,symbolToColumn);
+  partitions=prunePartitions(session,partitions,predicate,symbolToColumn.inverse());
+  return Lists.transform(partitions,partitionNameGetter());
+}

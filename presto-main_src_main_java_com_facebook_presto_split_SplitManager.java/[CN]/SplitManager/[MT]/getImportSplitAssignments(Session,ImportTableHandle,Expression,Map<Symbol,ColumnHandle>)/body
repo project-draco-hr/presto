@@ -1,0 +1,15 @@
+{
+  final String sourceName=handle.getSourceName();
+  final String databaseName=handle.getDatabaseName();
+  final String tableName=handle.getTableName();
+  final List<String> partitions=getPartitions(session,sourceName,databaseName,tableName,predicate,mappings);
+  final List<String> columns=IterableTransformer.on(mappings.values()).transform(MoreFunctions.<ColumnHandle,ImportColumnHandle>cast(ImportColumnHandle.class)).transform(columnNameGetter()).list();
+  Iterable<List<PartitionChunk>> chunks=runWithRetryUnchecked(new Callable<Iterable<List<PartitionChunk>>>(){
+    @Override public Iterable<List<PartitionChunk>> call() throws Exception {
+      ImportClient importClient=importClientFactory.getClient(sourceName);
+      return importClient.getPartitionChunks(databaseName,tableName,partitions,columns);
+    }
+  }
+);
+  return Iterables.transform(Iterables.concat(chunks),createImportSplitFunction(sourceName));
+}
