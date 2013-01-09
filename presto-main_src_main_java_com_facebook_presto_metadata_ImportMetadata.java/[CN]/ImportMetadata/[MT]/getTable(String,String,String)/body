@@ -1,12 +1,7 @@
 {
   checkTableName(catalogName,schemaName,tableName);
-  final ImportClient client=importClientFactory.getClient(catalogName);
-  List<SchemaField> tableSchema=runWithRetryUnchecked(new Callable<List<SchemaField>>(){
-    @Override public List<SchemaField> call() throws Exception {
-      return client.getTableSchema(schemaName,tableName);
-    }
-  }
-);
+  ImportClient client=importClientFactory.getClient(catalogName);
+  List<SchemaField> tableSchema=getTableSchema(client,schemaName,tableName);
   ImportTableHandle importTableHandle=new ImportTableHandle(catalogName,schemaName,tableName);
   List<ColumnMetadata> columns=convertToMetadata(catalogName,tableSchema);
   return new TableMetadata(catalogName,schemaName,tableName,columns,importTableHandle);

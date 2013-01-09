@@ -1,0 +1,17 @@
+{
+  String catalogName=context.getSession().getCatalog();
+  String schemaName=context.getSession().getSchema();
+  QualifiedName schema=showTables.getSchema();
+  if (schema != null) {
+    List<String> parts=schema.getParts();
+    if (parts.size() > 2) {
+      throw new SemanticException(showTables,"too many parts in schema name: %s",schema);
+    }
+    if (parts.size() == 2) {
+      catalogName=parts.get(0);
+    }
+    schemaName=schema.getSuffix();
+  }
+  Query query=new Query(selectList(aliasedName("table_name","Table")),table(QualifiedName.of(catalogName,INFORMATION_SCHEMA,TABLE_TABLES)),equal(nameReference("table_schema"),new StringLiteral(schemaName)),ImmutableList.<Expression>of(),null,ImmutableList.of(ascending("table_name")),null);
+  return visitQuery(query,context);
+}

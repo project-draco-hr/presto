@@ -1,0 +1,12 @@
+{
+  QualifiedName table=showColumns.getTable();
+  List<String> parts=Lists.reverse(table.getParts());
+  if (parts.size() > 3) {
+    throw new SemanticException(showColumns,"too many parts in table name: %s",table);
+  }
+  String catalogName=(parts.size() > 2) ? parts.get(2) : context.getSession().getCatalog();
+  String schemaName=(parts.size() > 1) ? parts.get(1) : context.getSession().getSchema();
+  String tableName=parts.get(0);
+  Query query=new Query(selectList(aliasedName("column_name","Column"),aliasedName("data_type","Type"),aliasedName("is_nullable","Null")),table(QualifiedName.of(catalogName,INFORMATION_SCHEMA,TABLE_COLUMNS)),logicalAnd(equal(nameReference("table_schema"),new StringLiteral(schemaName)),equal(nameReference("table_name"),new StringLiteral(tableName))),ImmutableList.<Expression>of(),null,ImmutableList.of(ascending("ordinal_position")),null);
+  return visitQuery(query,context);
+}
