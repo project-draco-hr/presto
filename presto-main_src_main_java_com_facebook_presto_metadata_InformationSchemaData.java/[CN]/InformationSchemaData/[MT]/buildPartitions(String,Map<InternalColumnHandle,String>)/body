@@ -1,0 +1,11 @@
+{
+  String schemaName=requiredFilterColumn(filters,TABLE_INTERNAL_PARTITIONS,"table_schema");
+  String tableName=requiredFilterColumn(filters,TABLE_INTERNAL_PARTITIONS,"table_name");
+  Joiner.MapJoiner joiner=Joiner.on("/").withKeyValueSeparator("=").useForNull("NULL");
+  TupleInfo tupleInfo=informationSchemaTupleInfo(TABLE_INTERNAL_PARTITIONS);
+  InternalTable.Builder table=InternalTable.builder(tupleInfo);
+  for (  Map<String,String> partition : metadata.listTablePartitionValues(catalogName,schemaName,tableName)) {
+    table.add(tupleInfo.builder().append(catalogName).append(schemaName).append(tableName).append(joiner.join(partition)).build());
+  }
+  return table.build();
+}
