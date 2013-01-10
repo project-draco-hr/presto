@@ -1,5 +1,5 @@
 {
-  List<PartitionChunk> chunks=runWithRetryUnchecked(new Callable<List<PartitionChunk>>(){
+  List<PartitionChunk> chunks=retry().stopOn(ObjectNotFoundException.class).runUnchecked(new Callable<List<PartitionChunk>>(){
     @Override public List<PartitionChunk> call() throws Exception {
       ImportClient importClient=importClientFactory.getClient(sourceName);
       return importClient.getPartitionChunks(databaseName,tableName,partitionName,columns);

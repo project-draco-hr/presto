@@ -1,8 +1,6 @@
 {
-  checkNotNull(callable,"callable is null");
   checkNotNull(callableName,"callableName is null");
-  checkArgument(maxRetryAttempts > 0,"maxRetryAttempts must be greater than zero");
-  checkNotNull(duration,"duration is null");
+  checkNotNull(callable,"callable is null");
   int attempt=0;
   while (true) {
     attempt++;
@@ -10,13 +8,18 @@
       return callable.call();
     }
  catch (    Exception e) {
+      for (      Class<? extends Exception> clazz : exceptionWhitelist) {
+        if (clazz.isInstance(e)) {
+          throw e;
+        }
+      }
       if (attempt >= maxRetryAttempts) {
         throw e;
       }
  else {
         log.debug("Failed on executing %s with attempt %d, will retry. Exception: %s",callableName,attempt,e.getMessage());
       }
-      TimeUnit.MILLISECONDS.sleep((long)duration.toMillis());
+      TimeUnit.MILLISECONDS.sleep((long)sleepTime.toMillis());
     }
   }
 }

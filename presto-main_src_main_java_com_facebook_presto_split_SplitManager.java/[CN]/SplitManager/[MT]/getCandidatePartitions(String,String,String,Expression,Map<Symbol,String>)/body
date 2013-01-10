@@ -24,7 +24,7 @@
       bindings.put(columnName,value);
     }
   }
-  return runWithRetryUnchecked(new Callable<List<PartitionInfo>>(){
+  return retry().stopOn(ObjectNotFoundException.class).runUnchecked(new Callable<List<PartitionInfo>>(){
     @Override public List<PartitionInfo> call() throws Exception {
       ImportClient importClient=importClientFactory.getClient(sourceName);
       return importClient.getPartitions(databaseName,tableName,bindings);

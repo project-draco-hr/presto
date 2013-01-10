@@ -2,8 +2,13 @@
   queryStats.recordExecutionStart();
   String catalogName="default";
   String schemaName="default";
-  ImportClient importClient=importClientFactory.getClient(sourceName);
-  List<SchemaField> schema=importClient.getTableSchema(databaseName,tableName);
+  List<SchemaField> schema=retry().stopOn(ObjectNotFoundException.class).runUnchecked(new Callable<List<SchemaField>>(){
+    @Override public List<SchemaField> call() throws Exception {
+      ImportClient importClient=importClientFactory.getClient(sourceName);
+      return importClient.getTableSchema(databaseName,tableName);
+    }
+  }
+);
   List<ColumnMetadata> columns=ImportSchemaUtil.createColumnMetadata(schema);
   TableMetadata table=new TableMetadata(catalogName,schemaName,tableName,columns);
   metadata.createTable(table);
