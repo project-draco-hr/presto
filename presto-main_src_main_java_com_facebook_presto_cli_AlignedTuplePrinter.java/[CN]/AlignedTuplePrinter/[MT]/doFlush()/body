@@ -1,13 +1,13 @@
 {
   int columns=fieldNames.size();
-  int maxWidth[]=new int[columns];
+  int[] maxWidth=new int[columns];
   for (int i=0; i < columns; i++) {
     maxWidth[i]=max(1,fieldNames.get(i).length());
   }
   for (  List<Object> row : rowBuffer) {
     for (int i=0; i < row.size(); i++) {
       String s=formatValue(row.get(i));
-      maxWidth[i]=max(maxWidth[i],s.length());
+      maxWidth[i]=max(maxWidth[i],maxLineLength(s));
     }
   }
   if (!headerOutput) {
@@ -29,15 +29,32 @@
     writer.append('\n');
   }
   for (  List<Object> row : rowBuffer) {
+    List<List<String>> columnLines=new ArrayList<>(columns);
+    int maxLines=1;
     for (int i=0; i < columns; i++) {
-      if (i > 0) {
-        writer.append('|');
-      }
       String s=formatValue(row.get(i));
-      boolean numeric=row.get(i) instanceof Number;
-      writer.append(align(s,maxWidth[i],1,numeric));
+      ImmutableList<String> lines=ImmutableList.copyOf(LINE_SPLITTER.split(s));
+      columnLines.add(lines);
+      maxLines=max(maxLines,lines.size());
     }
-    writer.append('\n');
+    for (int line=0; line < maxLines; line++) {
+      for (int column=0; column < columns; column++) {
+        if (column > 0) {
+          writer.append('|');
+        }
+        String s="";
+        if (columnLines.get(column).size() > line) {
+          s=columnLines.get(column).get(line);
+        }
+        boolean numeric=row.get(column) instanceof Number;
+        String out=align(s,maxWidth[column],1,numeric);
+        if ((line + 1) < columnLines.get(column).size()) {
+          out=out.substring(0,out.length() - 1) + "+";
+        }
+        writer.append(out);
+      }
+      writer.append('\n');
+    }
   }
   writer.flush();
   rowBuffer.clear();
