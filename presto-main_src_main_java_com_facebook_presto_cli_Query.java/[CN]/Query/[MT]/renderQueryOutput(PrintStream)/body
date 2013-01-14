@@ -4,22 +4,20 @@
   QueryInfo queryInfo=queryClient.getQueryInfo(false);
   if (queryInfo == null) {
     out.println("Query is gone (server restarted?)");
+    return;
   }
- else   if (queryInfo.getState().isDone()) {
-    if (queryInfo.getState() == QueryState.CANCELED) {
+  if (queryInfo.getState().isDone()) {
+switch (queryInfo.getState()) {
+case CANCELED:
       out.printf("Query %s was canceled\n",queryInfo.getQueryId());
-    }
- else     if (queryInfo.getState() == QueryState.FAILED) {
-      renderFailure(queryInfo,out);
-    }
- else {
-      out.printf("Query %s finished with no output\n",queryInfo.getQueryId());
-    }
-  }
- else {
-    Operator operator=queryClient.getResultsOperator();
-    List<String> fieldNames=queryInfo.getFieldNames();
-    OutputStats stats=pageOutput(Pager.LESS,operator,fieldNames);
-    statusPrinter.printFinalInfo(stats);
-  }
+    return;
+case FAILED:
+  renderFailure(queryInfo,out);
+return;
+}
+}
+Operator operator=queryClient.getResultsOperator();
+List<String> fieldNames=queryInfo.getFieldNames();
+OutputStats stats=pageOutput(Pager.LESS,operator,fieldNames);
+statusPrinter.printFinalInfo(stats);
 }
