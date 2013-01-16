@@ -14,11 +14,11 @@
     if (queryClient.isDebug()) {
       String splitsSummary=String.format("Splits:   %,d pending, %,d running, %,d done",max(0,globalExecutionStats.getSplits() - globalExecutionStats.getStartedSplits()),max(0,globalExecutionStats.getStartedSplits() - globalExecutionStats.getCompletedSplits()),globalExecutionStats.getCompletedSplits());
       reprintLine(splitsSummary);
-      Duration cpuTime=new Duration(globalExecutionStats.getSplitCpuTime(),MILLISECONDS);
-      String cpuTimeSummary=String.format("CPU Time: %.1fs total, %5s rows/s, %8s, %d%% active",cpuTime.convertTo(SECONDS),formatCountRate(inputExecutionStats.getCompletedPositionCount(),cpuTime,false),formatDataRate(inputExecutionStats.getCompletedDataSize(),cpuTime,true),(int)(globalExecutionStats.getSplitCpuTime() * 100.0 / globalExecutionStats.getSplitWallTime()));
+      Duration cpuTime=globalExecutionStats.getSplitCpuTime();
+      String cpuTimeSummary=String.format("CPU Time: %.1fs total, %5s rows/s, %8s, %d%% active",cpuTime.convertTo(SECONDS),formatCountRate(inputExecutionStats.getCompletedPositionCount(),cpuTime,false),formatDataRate(inputExecutionStats.getCompletedDataSize(),cpuTime,true),(int)(globalExecutionStats.getSplitCpuTime().toMillis() * 100.0 / (globalExecutionStats.getSplitWallTime().toMillis() + 1)));
       reprintLine(cpuTimeSummary);
       double parallelism=cpuTime.toMillis() / wallTime.toMillis();
-      String perNodeSummary=String.format("Per Node: %.1f parallelism, %5s rows/s, %8s",parallelism / nodes,formatCountRate(inputExecutionStats.getCompletedPositionCount() / nodes,wallTime,false),formatDataRate(inputExecutionStats.getCompletedDataSize() / nodes,wallTime,true));
+      String perNodeSummary=String.format("Per Node: %.1f parallelism, %5s rows/s, %8s",parallelism / nodes,formatCountRate(inputExecutionStats.getCompletedPositionCount() / nodes,wallTime,false),formatDataRate(new DataSize(inputExecutionStats.getCompletedDataSize().toBytes() / nodes,BYTE),wallTime,true));
       reprintLine(perNodeSummary);
       reprintLine(String.format("Parallelism: %.1f",parallelism));
     }
