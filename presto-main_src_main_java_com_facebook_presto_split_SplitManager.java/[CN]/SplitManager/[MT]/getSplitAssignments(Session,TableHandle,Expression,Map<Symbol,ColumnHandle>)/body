@@ -1,11 +1,17 @@
 {
+  Iterable<SplitAssignments> assignments;
 switch (handle.getDataSourceType()) {
 case NATIVE:
-    return getNativeSplitAssignments((NativeTableHandle)handle);
+    assignments=getNativeSplitAssignments((NativeTableHandle)handle);
+  break;
 case INTERNAL:
-  return getInternalSplitAssignments((InternalTableHandle)handle,predicate,mappings);
+assignments=getInternalSplitAssignments((InternalTableHandle)handle,predicate,mappings);
+break;
 case IMPORT:
-return getImportSplitAssignments(session,(ImportTableHandle)handle,predicate,mappings);
-}
+assignments=getImportSplitAssignments(session,(ImportTableHandle)handle,predicate,mappings);
+break;
+default :
 throw new IllegalArgumentException("unsupported handle type: " + handle);
+}
+return throwIfExceedsSize(assignments,maxSplitCount);
 }
