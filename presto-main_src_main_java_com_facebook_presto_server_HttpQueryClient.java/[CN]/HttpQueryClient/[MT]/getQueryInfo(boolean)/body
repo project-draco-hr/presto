@@ -1,4 +1,8 @@
 {
+  QueryInfo queryInfo=finalQueryInfo.get();
+  if (queryInfo != null) {
+    return queryInfo;
+  }
   URI statusUri=uriBuilderFrom(queryLocation).build();
   Request.Builder requestBuilder=prepareGet().setUri(statusUri);
   if (forceRefresh) {
@@ -9,6 +13,9 @@
     return null;
   }
   Preconditions.checkState(response.getStatusCode() == Status.OK.getStatusCode(),"Expected response code to be 201, but was %s: %s",response.getStatusCode(),response.getStatusMessage());
-  QueryInfo queryInfo=response.getValue();
+  queryInfo=response.getValue();
+  if (queryInfo.getState().isDone()) {
+    finalQueryInfo.set(queryInfo);
+  }
   return queryInfo;
 }
