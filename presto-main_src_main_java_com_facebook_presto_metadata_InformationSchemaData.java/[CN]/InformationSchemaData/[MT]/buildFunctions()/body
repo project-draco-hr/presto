@@ -1,0 +1,9 @@
+{
+  TupleInfo tupleInfo=informationSchemaTupleInfo(TABLE_INTERNAL_FUNCTIONS);
+  InternalTable.Builder table=InternalTable.builder(tupleInfo);
+  for (  FunctionInfo function : metadata.listFunctions()) {
+    Iterable<String> arguments=transform(function.getArgumentTypes(),TupleInfo.Type.nameGetter());
+    table.add(tupleInfo.builder().append(function.getName().toString()).append(Joiner.on(", ").join(arguments)).append(function.getReturnType().getName()).build());
+  }
+  return table.build();
+}
