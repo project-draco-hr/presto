@@ -17,7 +17,10 @@
       Duration cpuTime=new Duration(globalExecutionStats.getSplitCpuTime(),MILLISECONDS);
       String cpuTimeSummary=String.format("CPU Time: %.1fs total, %5s rows/s, %8s, %d%% active",cpuTime.convertTo(SECONDS),formatCountRate(inputExecutionStats.getCompletedPositionCount(),cpuTime,false),formatDataRate(inputExecutionStats.getCompletedDataSize(),cpuTime,true),(int)(globalExecutionStats.getSplitCpuTime() * 100.0 / globalExecutionStats.getSplitWallTime()));
       reprintLine(cpuTimeSummary);
-      reprintLine(String.format("Parallelism: %.1f",cpuTime.toMillis() / wallTime.toMillis()));
+      double parallelism=cpuTime.toMillis() / wallTime.toMillis();
+      String perNodeSummary=String.format("Per Node: %.1f parallelism, %5s rows/s, %8s",parallelism / nodes,formatCountRate(inputExecutionStats.getCompletedPositionCount() / nodes,wallTime,false),formatDataRate(inputExecutionStats.getCompletedDataSize() / nodes,wallTime,true));
+      reprintLine(perNodeSummary);
+      reprintLine(String.format("Parallelism: %.1f",parallelism));
     }
     String progressBar=formatProgressBar(42,globalExecutionStats.getCompletedSplits(),max(0,globalExecutionStats.getStartedSplits() - globalExecutionStats.getCompletedSplits()),globalExecutionStats.getSplits());
     String progressLine=String.format("%s [%5s rows, %6s] [%5s rows/s, %8s] [%s] %d%%",formatTime(wallTime),formatCount(inputExecutionStats.getCompletedPositionCount()),formatDataSize(inputExecutionStats.getCompletedDataSize(),true),formatCountRate(inputExecutionStats.getInputPositionCount(),wallTime,false),formatDataRate(inputExecutionStats.getCompletedDataSize(),wallTime,true),progressBar,Math.min(99,(int)(globalExecutionStats.getCompletedSplits() * 100.0 / globalExecutionStats.getSplits())));
