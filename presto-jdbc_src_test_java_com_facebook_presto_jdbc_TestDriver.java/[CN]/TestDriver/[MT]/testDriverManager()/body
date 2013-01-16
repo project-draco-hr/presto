@@ -1,0 +1,24 @@
+{
+  String url=format("jdbc:presto://%s/",address);
+  try (Connection connection=DriverManager.getConnection(url)){
+    try (ResultSet tableTypes=connection.getMetaData().getTableTypes()){
+      assertRowCount(tableTypes,1);
+    }
+     try (Statement statement=connection.createStatement()){
+      try (ResultSet rs=statement.executeQuery("select 123 x, 'foo' y from dual")){
+        ResultSetMetaData metadata=rs.getMetaData();
+        assertEquals(metadata.getColumnCount(),2);
+        assertEquals(metadata.getColumnLabel(1),"x");
+        assertEquals(metadata.getColumnType(1),Types.BIGINT);
+        assertEquals(metadata.getColumnLabel(2),"y");
+        assertEquals(metadata.getColumnType(2),Types.LONGNVARCHAR);
+        assertTrue(rs.next());
+        assertEquals(rs.getLong(1),123);
+        assertEquals(rs.getLong("x"),123);
+        assertEquals(rs.getString(2),"foo");
+        assertEquals(rs.getString("y"),"foo");
+        assertFalse(rs.next());
+      }
+     }
+   }
+ }

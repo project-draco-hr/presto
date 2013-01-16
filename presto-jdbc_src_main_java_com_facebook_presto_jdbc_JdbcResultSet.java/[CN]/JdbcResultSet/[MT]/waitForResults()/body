@@ -1,0 +1,17 @@
+{
+  QueryInfo queryInfo=waitForQuery();
+  if (queryInfo == null) {
+    throw new SQLException("Query is gone (server restarted?)");
+  }
+  if (queryInfo.getState().isDone()) {
+switch (queryInfo.getState()) {
+case CANCELED:
+      throw new SQLException(format("Query was canceled (#%s)",queryInfo.getQueryId()));
+case FAILED:
+    throw new SQLException(failureMessage(queryInfo));
+default :
+  throw new SQLException("Query finished with no output (#%s)",queryInfo.getQueryId());
+}
+}
+return queryInfo;
+}
