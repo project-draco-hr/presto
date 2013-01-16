@@ -1,0 +1,14 @@
+{
+  final Multimap<Node,Split> result=HashMultimap.create();
+  Comparator<Node> byAssignedSplitsCount=new Comparator<Node>(){
+    @Override public int compare(    Node o1,    Node o2){
+      return Ints.compare(result.get(o1).size(),result.get(o2).size());
+    }
+  }
+;
+  for (  SplitAssignments assignment : splitAssignments) {
+    Node chosen=Ordering.from(byAssignedSplitsCount).min(assignment.getNodes());
+    result.put(chosen,assignment.getSplit());
+  }
+  return result;
+}
