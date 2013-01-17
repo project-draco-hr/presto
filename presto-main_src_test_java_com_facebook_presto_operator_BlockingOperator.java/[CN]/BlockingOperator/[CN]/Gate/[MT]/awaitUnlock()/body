@@ -1,0 +1,14 @@
+{
+  lock.lock();
+  try {
+    waiters++;
+    waitForWaiters.signalAll();
+    while (!open) {
+      waitForOpen.await();
+    }
+  }
+  finally {
+    waiters--;
+    lock.unlock();
+  }
+}

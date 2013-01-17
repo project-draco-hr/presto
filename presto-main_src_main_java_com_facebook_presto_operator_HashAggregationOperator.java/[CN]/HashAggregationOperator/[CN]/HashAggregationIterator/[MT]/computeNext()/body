@@ -1,4 +1,11 @@
 {
+  if (groupByBlocksIterator == null) {
+    TupleInfo groupByTupleInfo=iterator.getTupleInfos().get(groupChannel);
+    SliceHashStrategy hashStrategy=new SliceHashStrategy(groupByTupleInfo);
+    Long2IntOpenCustomHashMap addressToGroupId=new Long2IntOpenCustomHashMap(expectedGroups,hashStrategy);
+    addressToGroupId.defaultReturnValue(-1);
+    groupByBlocksIterator=aggregate(iterator,groupChannel,maxSize,groupByTupleInfo,hashStrategy,addressToGroupId);
+  }
   if (!groupByBlocksIterator.hasNext()) {
     endOfData();
     return null;

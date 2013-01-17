@@ -1,0 +1,17 @@
+{
+  if (done) {
+    return endOfData();
+  }
+  while (source.hasNext()) {
+    Page page=source.next();
+    for (    Aggregator aggregate : aggregates) {
+      aggregate.addValue(page);
+    }
+  }
+  Block[] blocks=new Block[aggregates.size()];
+  for (int i=0; i < blocks.length; i++) {
+    blocks[i]=aggregates.get(i).getResult();
+  }
+  done=true;
+  return new Page(blocks);
+}

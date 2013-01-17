@@ -1,0 +1,17 @@
+{
+  blockingOperator.getGate().unlock();
+  final PageIterator iterator=testOperator.iterator(new OperatorStats());
+  blockingOperator.getGate().lock();
+  Future<?> future=executor.submit(new Callable<Boolean>(){
+    @Override public Boolean call(){
+      Assert.assertFalse(iterator.hasNext());
+      Assert.assertFalse(iterator.hasNext());
+      return true;
+    }
+  }
+);
+  blockingOperator.getGate().awaitWaiters(1);
+  iterator.close();
+  blockingOperator.getGate().unlock();
+  Assert.assertTrue((Boolean)future.get(1,TimeUnit.SECONDS));
+}

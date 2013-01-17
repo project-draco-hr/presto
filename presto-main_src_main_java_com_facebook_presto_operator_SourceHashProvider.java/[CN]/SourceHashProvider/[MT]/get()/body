@@ -1,6 +1,16 @@
 {
   if (sourceHash == null) {
-    sourceHash=new SourceHash(source,hashChannel,expectedPositions,maxSize,operatorStats);
+    if (buildException != null) {
+      throw Throwables.propagate(buildException);
+    }
+    try {
+      PageIterator iterator=new StoppablePageIterator(source.iterator(operatorStats));
+      sourceHash=new SourceHash(iterator,hashChannel,expectedPositions,maxSize);
+    }
+ catch (    Throwable e) {
+      buildException=e;
+      throw Throwables.propagate(buildException);
+    }
   }
   return new SourceHash(sourceHash);
 }
