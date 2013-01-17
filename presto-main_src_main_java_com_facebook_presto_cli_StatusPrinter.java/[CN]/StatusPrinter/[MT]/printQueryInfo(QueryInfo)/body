@@ -1,7 +1,6 @@
 {
   Duration wallTime=Duration.nanosSince(start);
   StageInfo outputStage=queryInfo.getOutputStage();
-  ExecutionStats inputExecutionStats=leafExecutionStats(outputStage);
   ExecutionStats globalExecutionStats=globalExecutionStats(outputStage);
   int nodes=uniqueNodes(outputStage).size();
   if (REAL_TERMINAL) {
@@ -15,15 +14,15 @@
       String splitsSummary=String.format("Splits:   %,d pending, %,d running, %,d done",max(0,globalExecutionStats.getSplits() - globalExecutionStats.getStartedSplits()),max(0,globalExecutionStats.getStartedSplits() - globalExecutionStats.getCompletedSplits()),globalExecutionStats.getCompletedSplits());
       reprintLine(splitsSummary);
       Duration cpuTime=globalExecutionStats.getSplitCpuTime();
-      String cpuTimeSummary=String.format("CPU Time: %.1fs total, %5s rows/s, %8s, %d%% active",cpuTime.convertTo(SECONDS),formatCountRate(inputExecutionStats.getCompletedPositionCount(),cpuTime,false),formatDataRate(inputExecutionStats.getCompletedDataSize(),cpuTime,true),(int)(globalExecutionStats.getSplitCpuTime().toMillis() * 100.0 / (globalExecutionStats.getSplitWallTime().toMillis() + 1)));
+      String cpuTimeSummary=String.format("CPU Time: %.1fs total, %5s rows/s, %8s, %d%% active",cpuTime.convertTo(SECONDS),formatCountRate(globalExecutionStats.getCompletedPositionCount(),cpuTime,false),formatDataRate(globalExecutionStats.getCompletedDataSize(),cpuTime,true),(int)(globalExecutionStats.getSplitCpuTime().toMillis() * 100.0 / (globalExecutionStats.getSplitWallTime().toMillis() + 1)));
       reprintLine(cpuTimeSummary);
       double parallelism=cpuTime.toMillis() / wallTime.toMillis();
-      String perNodeSummary=String.format("Per Node: %.1f parallelism, %5s rows/s, %8s",parallelism / nodes,formatCountRate(inputExecutionStats.getCompletedPositionCount() / nodes,wallTime,false),formatDataRate(new DataSize(inputExecutionStats.getCompletedDataSize().toBytes() / nodes,BYTE),wallTime,true));
+      String perNodeSummary=String.format("Per Node: %.1f parallelism, %5s rows/s, %8s",parallelism / nodes,formatCountRate(globalExecutionStats.getCompletedPositionCount() / nodes,wallTime,false),formatDataRate(new DataSize(globalExecutionStats.getCompletedDataSize().toBytes() / nodes,BYTE),wallTime,true));
       reprintLine(perNodeSummary);
       reprintLine(String.format("Parallelism: %.1f",parallelism));
     }
     String progressBar=formatProgressBar(42,globalExecutionStats.getCompletedSplits(),max(0,globalExecutionStats.getStartedSplits() - globalExecutionStats.getCompletedSplits()),globalExecutionStats.getSplits());
-    String progressLine=String.format("%s [%5s rows, %6s] [%5s rows/s, %8s] [%s] %d%%",formatTime(wallTime),formatCount(inputExecutionStats.getCompletedPositionCount()),formatDataSize(inputExecutionStats.getCompletedDataSize(),true),formatCountRate(inputExecutionStats.getInputPositionCount(),wallTime,false),formatDataRate(inputExecutionStats.getCompletedDataSize(),wallTime,true),progressBar,Math.min(99,(int)(globalExecutionStats.getCompletedSplits() * 100.0 / globalExecutionStats.getSplits())));
+    String progressLine=String.format("%s [%5s rows, %6s] [%5s rows/s, %8s] [%s] %d%%",formatTime(wallTime),formatCount(globalExecutionStats.getCompletedPositionCount()),formatDataSize(globalExecutionStats.getCompletedDataSize(),true),formatCountRate(globalExecutionStats.getInputPositionCount(),wallTime,false),formatDataRate(globalExecutionStats.getCompletedDataSize(),wallTime,true),progressBar,Math.min(99,(int)(globalExecutionStats.getCompletedSplits() * 100.0 / globalExecutionStats.getSplits())));
     reprintLine(progressLine);
     reprintLine("");
     String stagesHeader=String.format("%10s%1s  %5s  %6s  %5s  %7s  %5s  %5s  %5s","STAGE","S","ROWS","ROWS/s","BYTES","BYTES/s","PEND","RUN","DONE");
