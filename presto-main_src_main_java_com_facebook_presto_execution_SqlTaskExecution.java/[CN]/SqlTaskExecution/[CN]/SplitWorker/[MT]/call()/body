@@ -2,17 +2,14 @@
   if (!started.compareAndSet(false,true)) {
     return null;
   }
-  taskOutput.getStats().splitStarted();
-  long wallStartTime=System.nanoTime();
-  long cpuStartTime=THREAD_MX_BEAN.getCurrentThreadCpuTime();
-  long userStartTime=THREAD_MX_BEAN.getCurrentThreadUserTime();
+  operatorStats.start();
   try (PageIterator pages=operator.iterator(operatorStats)){
     while (pages.hasNext()) {
       Page page=pages.next();
       taskOutput.getStats().addOutputDataSize(page.getDataSize());
       taskOutput.getStats().addOutputPositions(page.getPositionCount());
       if (!taskOutput.addPage(page)) {
-        pages.close();
+        break;
       }
     }
     return null;
@@ -22,13 +19,6 @@
     throw e;
   }
  finally {
-    taskOutput.getStats().addSplitWallTime(Duration.nanosSince(wallStartTime));
-    taskOutput.getStats().addSplitCpuTime(new Duration(Math.max(0,THREAD_MX_BEAN.getCurrentThreadCpuTime() - cpuStartTime),TimeUnit.NANOSECONDS));
-    taskOutput.getStats().addSplitUserTime(new Duration(Math.max(0,THREAD_MX_BEAN.getCurrentThreadUserTime() - userStartTime),TimeUnit.NANOSECONDS));
-    taskOutput.getStats().splitCompleted();
-    taskOutput.getStats().addInputDataSize(new DataSize(operatorStats.getActualDataSize(),Unit.BYTE));
-    taskOutput.getStats().addInputPositions(operatorStats.getActualPositionCount());
-    taskOutput.getStats().addCompletedDataSize(new DataSize(operatorStats.getActualDataSize(),Unit.BYTE));
-    taskOutput.getStats().addCompletedPositions(operatorStats.getActualPositionCount());
+    operatorStats.finish();
   }
 }

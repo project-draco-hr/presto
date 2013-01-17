@@ -1,4 +1,7 @@
 {
+  if (operatorStats.isDone()) {
+    return endOfData();
+  }
   if (cursors[0].getRemainingPositions() <= 0 && !iterators[0].hasNext()) {
     for (    Iterator<? extends Block> iterator : iterators) {
       checkState(!iterator.hasNext());
@@ -20,7 +23,7 @@
     blocks[i]=cursors[i].getRegionAndAdvance(length);
   }
   Page page=new Page(blocks);
-  operatorStats.addActualDataSize(page.getDataSize().toBytes());
-  operatorStats.addActualPositionCount(page.getPositionCount());
+  operatorStats.addCompletedDataSize(page.getDataSize().toBytes());
+  operatorStats.addCompletedPositions(page.getPositionCount());
   return page;
 }
