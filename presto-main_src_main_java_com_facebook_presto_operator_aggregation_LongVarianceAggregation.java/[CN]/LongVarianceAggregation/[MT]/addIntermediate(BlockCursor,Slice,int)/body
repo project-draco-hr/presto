@@ -1,0 +1,30 @@
+{
+  if (cursor.isNull(0)) {
+    return;
+  }
+  final Slice otherVariance=cursor.getSlice(0);
+  final long otherCount=VARIANCE_CONTEXT_INFO.getLong(otherVariance,0);
+  final double otherMean=VARIANCE_CONTEXT_INFO.getDouble(otherVariance,1);
+  final double otherM2=VARIANCE_CONTEXT_INFO.getDouble(otherVariance,2);
+  final long totalCount;
+  final double totalMean;
+  final double totalM2;
+  if (VARIANCE_CONTEXT_INFO.isNull(valueSlice,valueOffset,0)) {
+    totalCount=otherCount;
+    totalMean=otherMean;
+    totalM2=otherM2;
+  }
+ else {
+    final long count=VARIANCE_CONTEXT_INFO.getLong(valueSlice,valueOffset,0);
+    final double mean=VARIANCE_CONTEXT_INFO.getDouble(valueSlice,valueOffset,1);
+    final double m2=VARIANCE_CONTEXT_INFO.getDouble(valueSlice,valueOffset,2);
+    final double delta=otherMean - mean;
+    totalCount=count + otherCount;
+    totalMean=((count * mean) + (otherCount * otherMean)) / totalCount;
+    totalM2=m2 + otherM2 + ((delta * delta) * (count * otherCount)) / totalCount;
+  }
+  VARIANCE_CONTEXT_INFO.setNotNull(valueSlice,valueOffset,0);
+  VARIANCE_CONTEXT_INFO.setLong(valueSlice,valueOffset,0,totalCount);
+  VARIANCE_CONTEXT_INFO.setDouble(valueSlice,valueOffset,1,totalMean);
+  VARIANCE_CONTEXT_INFO.setDouble(valueSlice,valueOffset,2,totalM2);
+}
