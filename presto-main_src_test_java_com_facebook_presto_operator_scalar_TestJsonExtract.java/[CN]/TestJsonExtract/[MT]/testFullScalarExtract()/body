@@ -1,0 +1,17 @@
+{
+  assertEquals(doScalarExtract("{}","$"),null);
+  assertEquals(doScalarExtract("{\"fuu\": {\"bar\": 1}}","$.fuu"),null);
+  assertEquals(doScalarExtract("{\"fuu\": 1}","$.fuu"),"1");
+  assertEquals(doScalarExtract("{\"fuu\": null}","$.fuu"),null);
+  assertEquals(doScalarExtract("{\"fuu\": 1}","$.bar"),null);
+  assertEquals(doScalarExtract("{\"fuu\": [\"\\u0001\"]}","$.fuu[0]"),"\001");
+  assertEquals(doScalarExtract("{\"fuu\": 1, \"bar\": \"abc\"}","$.bar"),"abc");
+  assertEquals(doScalarExtract("{\"fuu\": [0.1, 1, 2]}","$.fuu[0]"),"0.1");
+  assertEquals(doScalarExtract("{\"fuu\": [0, [100, 101], 2]}","$.fuu[1]"),null);
+  assertEquals(doScalarExtract("{\"fuu\": [0, [100, 101], 2]}","$.fuu[1][1]"),"101");
+  assertEquals(doScalarExtract("{\"fuu\": [0, {\"bar\": {\"key\" : [\"value\"]}}, 2]}","$.fuu[1].bar.key[0]"),"value");
+  assertEquals(doScalarExtract("[0, 1, 2]","$[0]"),"0");
+  assertEquals(doScalarExtract("\"abc\"","$"),"abc");
+  assertEquals(doScalarExtract("123","$"),"123");
+  assertEquals(doScalarExtract("null","$"),null);
+}

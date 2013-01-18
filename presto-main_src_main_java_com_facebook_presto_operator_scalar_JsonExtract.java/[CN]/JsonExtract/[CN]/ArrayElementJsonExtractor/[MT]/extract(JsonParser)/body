@@ -1,0 +1,21 @@
+{
+  if (jsonParser.getCurrentToken() != START_ARRAY) {
+    throw new JsonParseException("Expected a Json array",jsonParser.getCurrentLocation());
+  }
+  int currentIndex=0;
+  while (true) {
+    JsonToken token=jsonParser.nextToken();
+    if (token == null) {
+      throw new JsonParseException("Unexpected end of array",jsonParser.getCurrentLocation());
+    }
+    if (token == END_ARRAY) {
+      return null;
+    }
+    if (currentIndex == index) {
+      break;
+    }
+    currentIndex++;
+    jsonParser.skipChildren();
+  }
+  return delegate.extract(jsonParser);
+}

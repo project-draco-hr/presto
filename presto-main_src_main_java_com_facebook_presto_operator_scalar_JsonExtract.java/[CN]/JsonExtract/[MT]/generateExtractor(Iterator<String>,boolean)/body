@@ -1,0 +1,13 @@
+{
+  if (!filters.hasNext()) {
+    return scalarValue ? new ScalarValueJsonExtractor() : new JsonValueJsonExtractor();
+  }
+  String filter=filters.next();
+  if (filter.startsWith("[")) {
+    int index=Integer.parseInt(filter.substring(1).trim());
+    return new ArrayElementJsonExtractor(index,generateExtractor(filters,scalarValue));
+  }
+ else {
+    return new ObjectFieldJsonExtractor(filter,generateExtractor(filters,scalarValue));
+  }
+}

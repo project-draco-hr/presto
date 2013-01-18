@@ -1,0 +1,14 @@
+{
+  if (!jsonParser.hasCurrentToken()) {
+    throw new JsonParseException("Unexpected end of value",jsonParser.getCurrentLocation());
+  }
+  DynamicSliceOutput dynamicSliceOutput=new DynamicSliceOutput(ESTIMATED_JSON_OUTPUT_SIZE);
+  JsonGenerator jsonGenerator=JSON_FACTORY.createJsonGenerator(dynamicSliceOutput);
+  try {
+    jsonGenerator.copyCurrentStructure(jsonParser);
+  }
+  finally {
+    jsonGenerator.close();
+  }
+  return dynamicSliceOutput.slice();
+}
