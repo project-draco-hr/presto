@@ -1,6 +1,14 @@
 {
   QueryInfo queryInfo=getQueryInfo(false);
-  if (queryInfo != null) {
+  if (queryInfo == null) {
+    return;
+  }
+  if (queryInfo.getOutputStage() == null) {
+    Request.Builder requestBuilder=prepareDelete().setUri(queryInfo.getSelf());
+    Request request=requestBuilder.build();
+    httpClient.execute(request,createStatusResponseHandler());
+  }
+ else {
     cancelLeafStage(queryInfo.getOutputStage());
   }
 }
