@@ -1,0 +1,20 @@
+{
+  PlanFragment currentFragment=root.getFragment();
+  Visitor visitor=new Visitor();
+  List<Partition> partitions=currentFragment.getRoot().accept(visitor,inheritedPredicate);
+  if (!currentFragment.isPartitioned()) {
+    ArrayList<Node> nodes=new ArrayList<>(nodeManager.getActiveNodes());
+    Preconditions.checkState(!nodes.isEmpty(),"Cluster does not have any active nodes");
+    Collections.shuffle(nodes,random);
+    Node node=nodes.get(0);
+    partitions=ImmutableList.of(new Partition(node,ImmutableList.<PlanFragmentSource>of()));
+  }
+  ImmutableList.Builder<StageExecutionPlan> dependencies=ImmutableList.builder();
+  for (  SubPlan childPlan : root.getChildren()) {
+    Expression predicate=visitor.getInheritedPredicatesBySourceFragmentId().get(childPlan.getFragment().getId());
+    Preconditions.checkNotNull(predicate,"Expected to find a predicate for fragment %s",childPlan.getFragment().getId());
+    StageExecutionPlan dependency=plan(childPlan,predicate);
+    dependencies.add(dependency);
+  }
+  return new StageExecutionPlan(currentFragment,partitions,dependencies.build());
+}

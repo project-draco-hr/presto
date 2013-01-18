@@ -1,20 +1,3 @@
 {
-  PlanFragment currentFragment=root.getFragment();
-  List<Partition> partitions;
-  if (currentFragment.isPartitioned()) {
-    partitions=currentFragment.getRoot().accept(new Visitor(),BooleanLiteral.TRUE_LITERAL);
-  }
- else {
-    ArrayList<Node> nodes=new ArrayList<>(nodeManager.getActiveNodes());
-    Preconditions.checkState(!nodes.isEmpty(),"Cluster does not have any active nodes");
-    Collections.shuffle(nodes,random);
-    Node node=nodes.get(0);
-    partitions=ImmutableList.of(new Partition(node,ImmutableList.<PlanFragmentSource>of()));
-  }
-  ImmutableList.Builder<StageExecutionPlan> dependencies=ImmutableList.builder();
-  for (  SubPlan childPlan : root.getChildren()) {
-    StageExecutionPlan dependency=plan(childPlan);
-    dependencies.add(dependency);
-  }
-  return new StageExecutionPlan(currentFragment,partitions,dependencies.build());
+  return plan(root,BooleanLiteral.TRUE_LITERAL);
 }
