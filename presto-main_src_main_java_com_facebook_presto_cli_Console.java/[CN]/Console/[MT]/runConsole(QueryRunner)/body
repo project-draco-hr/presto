@@ -27,22 +27,26 @@ switch (command.toLowerCase()) {
 case "exit":
 case "quit":
           return;
-      }
-    }
-    buffer.append(line).append("\n");
-    StatementSplitter splitter=new StatementSplitter(buffer.toString());
-    for (    String sql : splitter.getCompleteStatements()) {
-      process(queryRunner,sql);
-      reader.getHistory().add(squeezeStatement(sql) + ";");
-    }
-    buffer=new StringBuilder();
-    String partial=splitter.getPartialStatement();
-    if (!partial.isEmpty()) {
-      buffer.append(partial).append('\n');
-    }
-  }
+case "help":
+        System.out.println();
+      System.out.println(getHelpText());
+    continue;
+}
+}
+buffer.append(line).append("\n");
+StatementSplitter splitter=new StatementSplitter(buffer.toString());
+for (String sql : splitter.getCompleteStatements()) {
+process(queryRunner,sql);
+reader.getHistory().add(squeezeStatement(sql) + ";");
+}
+buffer=new StringBuilder();
+String partial=splitter.getPartialStatement();
+if (!partial.isEmpty()) {
+buffer.append(partial).append('\n');
+}
+}
 }
  catch (IOException e) {
-  System.err.println("Readline error: " + e.getMessage());
+System.err.println("Readline error: " + e.getMessage());
 }
 }
