@@ -1,0 +1,22 @@
+{
+  ExpressionInterpreter interpreter=ExpressionInterpreter.expressionOptimizer(new SymbolResolver(){
+    @Override public Object getValue(    Symbol symbol){
+switch (symbol.getName().toLowerCase()) {
+case "boundlong":
+        return 1234L;
+case "boundstring":
+      return Slices.wrappedBuffer("hello".getBytes(UTF_8));
+case "bounddouble":
+    return 12.34;
+case "boundtimestamp":
+  return new DateTime(2001,8,22,3,4,5,321,DateTimeZone.UTC).getMillis();
+}
+return new QualifiedNameReference(symbol.toQualifiedName());
+}
+}
+,new TestingMetadata(),new Session(null,DEFAULT_CATALOG,DEFAULT_SCHEMA));
+Expression parsedExpression=createExpression(expression);
+Expression roundtrip=createExpression(ExpressionFormatter.toString(parsedExpression));
+assertEquals(parsedExpression,roundtrip);
+return interpreter.process(parsedExpression,null);
+}
