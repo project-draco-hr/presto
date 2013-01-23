@@ -6,7 +6,14 @@
   for (int i=0; i < node.getExpressions().size(); i++) {
     Symbol symbol=node.getOutputSymbols().get(i);
     Expression expression=node.getExpressions().get(i);
-    ProjectionFunction function=new InterpretedProjectionFunction(types.get(symbol),expression,symbolToChannelMappings,metadata,session);
+    ProjectionFunction function;
+    if (expression instanceof QualifiedNameReference) {
+      Symbol reference=Symbol.fromQualifiedName(((QualifiedNameReference)expression).getName());
+      function=ProjectionFunctions.singleColumn(types.get(reference).getRawType(),symbolToChannelMappings.get(symbol),0);
+    }
+ else {
+      function=new InterpretedProjectionFunction(types.get(symbol),expression,symbolToChannelMappings,metadata,session);
+    }
     projections.add(function);
   }
   return new FilterAndProjectOperator(sourceOperator,FilterFunctions.TRUE_FUNCTION,projections);
