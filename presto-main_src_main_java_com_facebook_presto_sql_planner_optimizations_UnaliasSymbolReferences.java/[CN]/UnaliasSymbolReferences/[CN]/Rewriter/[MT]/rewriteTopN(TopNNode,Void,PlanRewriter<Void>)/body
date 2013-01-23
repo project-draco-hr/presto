@@ -1,5 +1,5 @@
 {
-  PlanNode source=node.getSource().accept(this,context);
+  PlanNode source=planRewriter.rewrite(node.getSource(),context);
   ImmutableList.Builder<Symbol> symbols=ImmutableList.builder();
   ImmutableMap.Builder<Symbol,SortItem.Ordering> orderings=ImmutableMap.builder();
   for (  Symbol symbol : node.getOrderBy()) {
@@ -7,5 +7,5 @@
     symbols.add(canonical);
     orderings.put(canonical,node.getOrderings().get(symbol));
   }
-  return new SortNode(source,symbols.build(),orderings.build());
+  return new TopNNode(source,node.getCount(),symbols.build(),orderings.build());
 }
