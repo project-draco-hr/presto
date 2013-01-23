@@ -1,15 +1,10 @@
 {
   super(benchmarkName,warmupIterations,measuredIterations);
-  try {
-    Statement statement=SqlParser.createStatement(query);
-    metadata=TpchSchema.createMetadata();
-    session=new Session(null,TpchSchema.CATALOG_NAME,TpchSchema.SCHEMA_NAME);
-    analysis=new Analyzer(session,metadata).analyze(statement);
-    PlanNode plan=new LogicalPlanner(session,metadata).plan(analysis);
-    fragment=new DistributedLogicalPlanner(metadata).createSubplans(plan,analysis.getSymbolAllocator(),true).getFragment();
-    new PlanPrinter().print(fragment.getRoot(),analysis.getTypes());
-  }
- catch (  RecognitionException e) {
-    throw Throwables.propagate(e);
-  }
+  Statement statement=SqlParser.createStatement(query);
+  metadata=TpchSchema.createMetadata();
+  session=new Session(null,TpchSchema.CATALOG_NAME,TpchSchema.SCHEMA_NAME);
+  analysis=new Analyzer(session,metadata).analyze(statement);
+  PlanNode plan=new LogicalPlanner(session,metadata).plan(analysis);
+  fragment=new DistributedLogicalPlanner(metadata).createSubplans(plan,analysis.getSymbolAllocator(),true).getFragment();
+  new PlanPrinter().print(fragment.getRoot(),analysis.getTypes());
 }

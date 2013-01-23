@@ -1,15 +1,6 @@
 {
-  try {
-    StatementLexer lexer=new StatementLexer(new CaseInsensitiveStream(new ANTLRStringStream(expression)));
-    StatementParser parser=new StatementParser(new CommonTokenStream(lexer));
-    StatementBuilder builder=new StatementBuilder(new BufferedTreeNodeStream(parser.expr().getTree()));
-    Expression raw=builder.expr().value;
-    Optional<QualifiedName> prefix=Optional.of(QualifiedName.of("T"));
-    TupleDescriptor descriptor=new TupleDescriptor(ImmutableList.of(new Field(prefix,Optional.of("symbol"),Optional.<ColumnHandle>absent(),new Symbol("symbol"),type)));
-    Expression rewritten=TreeRewriter.rewriteWith(new NameToSymbolRewriter(descriptor),raw);
-    return rewritten;
-  }
- catch (  RecognitionException e) {
-    throw Throwables.propagate(e);
-  }
+  Expression raw=createExpression(expression);
+  Optional<QualifiedName> prefix=Optional.of(QualifiedName.of("T"));
+  TupleDescriptor descriptor=new TupleDescriptor(ImmutableList.of(new Field(prefix,Optional.of("symbol"),Optional.<ColumnHandle>absent(),new Symbol("symbol"),type)));
+  return TreeRewriter.rewriteWith(new NameToSymbolRewriter(descriptor),raw);
 }
