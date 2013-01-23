@@ -1,0 +1,14 @@
+{
+  if (!context.isDefaultRewrite()) {
+    PlanNode result=nodeRewriter.rewriteJoin(node,context.get(),PlanRewriter.this);
+    if (result != null) {
+      return result;
+    }
+  }
+  PlanNode left=rewrite(node.getLeft(),context.get());
+  PlanNode right=rewrite(node.getRight(),context.get());
+  if (left != node.getLeft() || right != node.getRight()) {
+    return new JoinNode(left,right,node.getCriteria());
+  }
+  return node;
+}

@@ -1,0 +1,13 @@
+{
+  if (!context.isDefaultRewrite()) {
+    PlanNode result=nodeRewriter.rewriteFilter(node,context.get(),PlanRewriter.this);
+    if (result != null) {
+      return result;
+    }
+  }
+  PlanNode source=rewrite(node.getSource(),context.get());
+  if (source != node.getSource()) {
+    return new FilterNode(source,node.getPredicate(),node.getOutputSymbols());
+  }
+  return node;
+}
