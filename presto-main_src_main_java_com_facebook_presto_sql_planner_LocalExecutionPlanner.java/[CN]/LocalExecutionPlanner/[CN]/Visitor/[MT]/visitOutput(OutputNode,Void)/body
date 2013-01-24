@@ -1,14 +1,14 @@
 {
   PlanNode source=node.getSource();
   Operator sourceOperator=plan(node.getSource());
-  Map<Symbol,Integer> symbolToChannelMappings=mapSymbolsToChannels(source.getOutputSymbols());
+  Map<Symbol,Input> symbolToInputMappings=mapSymbolsToInputs(source.getOutputSymbols());
   List<Symbol> resultSymbols=Lists.transform(node.getColumnNames(),forMap(node.getAssignments()));
   if (resultSymbols.equals(source.getOutputSymbols())) {
     return sourceOperator;
   }
   List<ProjectionFunction> projections=new ArrayList<>();
   for (  Symbol symbol : resultSymbols) {
-    ProjectionFunction function=ProjectionFunctions.singleColumn(types.get(symbol).getRawType(),symbolToChannelMappings.get(symbol),0);
+    ProjectionFunction function=ProjectionFunctions.singleColumn(types.get(symbol).getRawType(),symbolToInputMappings.get(symbol));
     projections.add(function);
   }
   return new FilterAndProjectOperator(sourceOperator,FilterFunctions.TRUE_FUNCTION,projections);

@@ -2,17 +2,17 @@
   ComparisonExpression comparison=(ComparisonExpression)node.getCriteria();
   Symbol first=Symbol.fromQualifiedName(((QualifiedNameReference)comparison.getLeft()).getName());
   Symbol second=Symbol.fromQualifiedName(((QualifiedNameReference)comparison.getRight()).getName());
-  Map<Symbol,Integer> probeMappings=mapSymbolsToChannels(node.getLeft().getOutputSymbols());
-  Map<Symbol,Integer> buildMappings=mapSymbolsToChannels(node.getRight().getOutputSymbols());
+  Map<Symbol,Input> probeMappings=mapSymbolsToInputs(node.getLeft().getOutputSymbols());
+  Map<Symbol,Input> buildMappings=mapSymbolsToInputs(node.getRight().getOutputSymbols());
   int probeChannel;
   int buildChannel;
   if (node.getLeft().getOutputSymbols().contains(first)) {
-    probeChannel=probeMappings.get(first);
-    buildChannel=buildMappings.get(second);
+    probeChannel=probeMappings.get(first).getChannel();
+    buildChannel=buildMappings.get(second).getChannel();
   }
  else {
-    probeChannel=probeMappings.get(second);
-    buildChannel=buildMappings.get(first);
+    probeChannel=probeMappings.get(second).getChannel();
+    buildChannel=buildMappings.get(first).getChannel();
   }
   SourceHashProvider hashProvider=joinHashFactory.getSourceHashProvider(node,LocalExecutionPlanner.this,buildChannel,operatorStats);
   Operator leftOperator=plan(node.getLeft());

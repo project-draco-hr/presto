@@ -2,16 +2,16 @@
   Preconditions.checkArgument(node.getOrderBy().size() == 1,"Order by multiple fields not yet supported");
   Symbol orderBySymbol=Iterables.getOnlyElement(node.getOrderBy());
   PlanNode source=node.getSource();
-  Map<Symbol,Integer> symbolToChannelMappings=mapSymbolsToChannels(source.getOutputSymbols());
+  Map<Symbol,Input> symbolToInputMappings=mapSymbolsToInputs(source.getOutputSymbols());
   List<ProjectionFunction> projections=new ArrayList<>();
   for (int i=0; i < node.getOutputSymbols().size(); i++) {
     Symbol symbol=node.getOutputSymbols().get(i);
-    ProjectionFunction function=ProjectionFunctions.singleColumn(types.get(symbol).getRawType(),symbolToChannelMappings.get(symbol),0);
+    ProjectionFunction function=ProjectionFunctions.singleColumn(types.get(symbol).getRawType(),symbolToInputMappings.get(symbol));
     projections.add(function);
   }
   Ordering<TupleReadable> ordering=Ordering.from(FieldOrderedTupleComparator.INSTANCE);
   if (node.getOrderings().get(orderBySymbol) == SortItem.Ordering.ASCENDING) {
     ordering=ordering.reverse();
   }
-  return new TopNOperator(plan(source),(int)node.getCount(),symbolToChannelMappings.get(orderBySymbol),projections,ordering);
+  return new TopNOperator(plan(source),(int)node.getCount(),symbolToInputMappings.get(orderBySymbol).getChannel(),projections,ordering);
 }
