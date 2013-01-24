@@ -2,20 +2,29 @@
   ComparisonExpression comparison=(ComparisonExpression)node.getCriteria();
   Symbol first=Symbol.fromQualifiedName(((QualifiedNameReference)comparison.getLeft()).getName());
   Symbol second=Symbol.fromQualifiedName(((QualifiedNameReference)comparison.getRight()).getName());
-  Map<Symbol,Input> probeMappings=mapSymbolsToInputs(node.getLeft().getOutputSymbols());
-  Map<Symbol,Input> buildMappings=mapSymbolsToInputs(node.getRight().getOutputSymbols());
-  int probeChannel;
-  int buildChannel;
+  Symbol left;
+  Symbol right;
   if (node.getLeft().getOutputSymbols().contains(first)) {
-    probeChannel=probeMappings.get(first).getChannel();
-    buildChannel=buildMappings.get(second).getChannel();
+    left=first;
+    right=second;
   }
  else {
-    probeChannel=probeMappings.get(second).getChannel();
-    buildChannel=buildMappings.get(first).getChannel();
+    left=second;
+    right=first;
   }
-  SourceHashProvider hashProvider=joinHashFactory.getSourceHashProvider(node,LocalExecutionPlanner.this,buildChannel,operatorStats);
-  Operator leftOperator=plan(node.getLeft());
-  HashJoinOperator operator=new HashJoinOperator(hashProvider,leftOperator,probeChannel);
-  return operator;
+  PhysicalOperation leftSource=node.getLeft().accept(this,context);
+  int probeChannel=leftSource.getLayout().get(left).getChannel();
+  PhysicalOperation rightSource=node.getRight().accept(this,context);
+  int buildChannel=rightSource.getLayout().get(right).getChannel();
+  Preconditions.checkState(leftSource.getOperator().getTupleInfos().get(probeChannel).getFieldCount() == 1 && rightSource.getOperator().getTupleInfos().get(buildChannel).getFieldCount() == 1,"JOIN with the results of a multi-field GROUP BY, DISTINCT or ORDER BY not yet supported");
+  SourceHashProvider hashProvider=joinHashFactory.getSourceHashProvider(node,rightSource.getOperator(),buildChannel,operatorStats);
+  ImmutableMap.Builder<Symbol,Input> outputMappings=ImmutableMap.builder();
+  outputMappings.putAll(leftSource.getLayout());
+  int offset=leftSource.getOperator().getChannelCount();
+  for (  Map.Entry<Symbol,Input> entry : rightSource.getLayout().entrySet()) {
+    Input input=entry.getValue();
+    outputMappings.put(entry.getKey(),new Input(offset + input.getChannel(),input.getField()));
+  }
+  HashJoinOperator operator=new HashJoinOperator(hashProvider,leftSource.getOperator(),probeChannel);
+  return new PhysicalOperation(operator,outputMappings.build());
 }

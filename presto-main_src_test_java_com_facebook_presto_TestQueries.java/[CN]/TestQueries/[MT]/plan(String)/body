@@ -15,5 +15,6 @@
   }
   DataSize maxOperatorMemoryUsage=new DataSize(50,MEGABYTE);
   LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(session,metadata,new HackPlanFragmentSourceProvider(dataProvider,null,TASK_INFO_CODEC),analysis.getTypes(),null,builder.build(),ImmutableMap.<String,ExchangePlanFragmentSource>of(),new OperatorStats(),new SourceHashProviderFactory(maxOperatorMemoryUsage),maxOperatorMemoryUsage);
-  return new FilterAndProjectOperator(executionPlanner.plan(plan),FilterFunctions.TRUE_FUNCTION,new Concat(executionPlanner.plan(plan).getTupleInfos()));
+  Operator operator=executionPlanner.plan(plan);
+  return new FilterAndProjectOperator(operator,FilterFunctions.TRUE_FUNCTION,new Concat(operator.getTupleInfos()));
 }

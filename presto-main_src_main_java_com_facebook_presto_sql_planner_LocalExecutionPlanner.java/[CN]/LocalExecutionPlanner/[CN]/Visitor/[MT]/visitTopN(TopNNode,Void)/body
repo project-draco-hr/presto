@@ -1,17 +1,14 @@
 {
-  Preconditions.checkArgument(node.getOrderBy().size() == 1,"Order by multiple fields not yet supported");
-  Symbol orderBySymbol=Iterables.getOnlyElement(node.getOrderBy());
-  PlanNode source=node.getSource();
-  Map<Symbol,Input> symbolToInputMappings=mapSymbolsToInputs(source.getOutputSymbols());
-  List<ProjectionFunction> projections=new ArrayList<>();
-  for (int i=0; i < node.getOutputSymbols().size(); i++) {
-    Symbol symbol=node.getOutputSymbols().get(i);
-    ProjectionFunction function=ProjectionFunctions.singleColumn(types.get(symbol).getRawType(),symbolToInputMappings.get(symbol));
-    projections.add(function);
-  }
+  PhysicalOperation source=node.getSource().accept(this,context);
+  List<Symbol> orderBySymbols=node.getOrderBy();
+  Preconditions.checkArgument(orderBySymbols.size() == 1,"ORDER BY multiple fields + LIMIT not yet supported");
+  Symbol orderBySymbol=Iterables.getOnlyElement(orderBySymbols);
+  int keyChannel=source.getLayout().get(orderBySymbol).getChannel();
   Ordering<TupleReadable> ordering=Ordering.from(FieldOrderedTupleComparator.INSTANCE);
   if (node.getOrderings().get(orderBySymbol) == SortItem.Ordering.ASCENDING) {
     ordering=ordering.reverse();
   }
-  return new TopNOperator(plan(source),(int)node.getCount(),symbolToInputMappings.get(orderBySymbol).getChannel(),projections,ordering);
+  IdentityProjectionInfo mappings=computeIdentityMapping(node.getOutputSymbols(),source.getLayout(),types);
+  TopNOperator operator=new TopNOperator(source.getOperator(),(int)node.getCount(),keyChannel,mappings.getProjections(),ordering);
+  return new PhysicalOperation(operator,mappings.getOutputLayout());
 }

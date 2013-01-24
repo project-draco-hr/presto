@@ -1,15 +1,17 @@
 {
-  PlanNode source=node.getSource();
-  Operator sourceOperator=plan(node.getSource());
-  Map<Symbol,Input> symbolToInputMappings=mapSymbolsToInputs(source.getOutputSymbols());
+  PhysicalOperation source=node.getSource().accept(this,context);
   List<Symbol> resultSymbols=Lists.transform(node.getColumnNames(),forMap(node.getAssignments()));
-  if (resultSymbols.equals(source.getOutputSymbols())) {
-    return sourceOperator;
+  Ordering<Input> comparator=Ordering.from(new Comparator<Input>(){
+    @Override public int compare(    Input o1,    Input o2){
+      return ComparisonChain.start().compare(o1.getChannel(),o2.getChannel()).compare(o1.getField(),o2.getField()).result();
+    }
   }
-  List<ProjectionFunction> projections=new ArrayList<>();
-  for (  Symbol symbol : resultSymbols) {
-    ProjectionFunction function=ProjectionFunctions.singleColumn(types.get(symbol).getRawType(),symbolToInputMappings.get(symbol));
-    projections.add(function);
+);
+  List<Symbol> sourceSymbols=IterableTransformer.on(source.getLayout().entrySet()).orderBy(comparator.onResultOf(MoreFunctions.<Symbol,Input>valueGetter())).transform(MoreFunctions.<Symbol,Input>keyGetter()).list();
+  if (resultSymbols.equals(sourceSymbols) && resultSymbols.size() == source.getOperator().getChannelCount()) {
+    return source;
   }
-  return new FilterAndProjectOperator(sourceOperator,FilterFunctions.TRUE_FUNCTION,projections);
+  IdentityProjectionInfo mappings=computeIdentityMapping(resultSymbols,source.getLayout(),types);
+  FilterAndProjectOperator operator=new FilterAndProjectOperator(source.getOperator(),FilterFunctions.TRUE_FUNCTION,mappings.getProjections());
+  return new PhysicalOperation(operator,mappings.getOutputLayout());
 }

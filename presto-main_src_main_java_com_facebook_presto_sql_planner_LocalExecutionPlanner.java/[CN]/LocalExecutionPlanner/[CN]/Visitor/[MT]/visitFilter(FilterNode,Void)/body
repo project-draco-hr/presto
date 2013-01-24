@@ -1,13 +1,7 @@
 {
-  PlanNode source=node.getSource();
-  Operator sourceOperator=plan(source);
-  Map<Symbol,Input> symboToInputMappings=mapSymbolsToInputs(source.getOutputSymbols());
-  FilterFunction filter=new InterpretedFilterFunction(node.getPredicate(),symboToInputMappings,metadata,session);
-  List<ProjectionFunction> projections=new ArrayList<>();
-  for (int i=0; i < node.getOutputSymbols().size(); i++) {
-    Symbol symbol=node.getOutputSymbols().get(i);
-    ProjectionFunction function=ProjectionFunctions.singleColumn(types.get(symbol).getRawType(),symboToInputMappings.get(symbol));
-    projections.add(function);
-  }
-  return new FilterAndProjectOperator(sourceOperator,filter,projections);
+  PhysicalOperation source=node.getSource().accept(this,context);
+  FilterFunction filter=new InterpretedFilterFunction(node.getPredicate(),source.getLayout(),metadata,session);
+  IdentityProjectionInfo mappings=computeIdentityMapping(node.getOutputSymbols(),source.getLayout(),types);
+  FilterAndProjectOperator operator=new FilterAndProjectOperator(source.getOperator(),filter,mappings.getProjections());
+  return new PhysicalOperation(operator,mappings.getOutputLayout());
 }
