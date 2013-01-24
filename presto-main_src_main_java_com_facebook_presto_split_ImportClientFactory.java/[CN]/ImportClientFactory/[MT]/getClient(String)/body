@@ -1,6 +1,6 @@
 {
   checkArgument(sourceName.startsWith("hive_"),"bad source name: %s",sourceName);
-  String metastoreName=sourceName.split("_",2)[1];
+  final String metastoreName=sourceName.split("_",2)[1];
   checkArgument(!metastoreName.isEmpty(),"bad metastore name: %s",metastoreName);
   List<ServiceDescriptor> descriptors=ImmutableList.copyOf(selector.selectAllServices());
   List<HostAndPort> metastores=new ArrayList<>();
@@ -24,7 +24,13 @@
   try {
     metadataCache=metadataCaches.get(metastoreName,new Callable<MetadataCache>(){
       @Override public MetadataCache call() throws Exception {
-        return new HiveMetadataCache(new Duration(60.0,TimeUnit.MINUTES));
+        String jmxName=format("com.facebook.presto:type=metadatacache,group=%s",metastoreName);
+        MetadataCache cache=new HiveMetadataCache(new Duration(60.0,TimeUnit.MINUTES));
+        Map<String,Object> jmxExposed=cache.getJmxExposed();
+        for (        Map.Entry<String,Object> jmx : jmxExposed.entrySet()) {
+          mbeanExporter.export(format("%s,name=%s",jmxName,jmx.getKey()),jmx.getValue());
+        }
+        return cache;
       }
     }
 );
