@@ -3,7 +3,12 @@
   statusPrinter.printInitialStatusUpdates();
   QueryInfo queryInfo=queryClient.getQueryInfo(false);
   if (queryInfo == null) {
-    out.println("Query is gone (server restarted?)");
+    if (queryClient.isCanceled()) {
+      out.println("Query aborted by user");
+    }
+ else {
+      out.println("Query is gone (server restarted?)");
+    }
     return;
   }
   if (queryInfo.getState().isDone()) {
