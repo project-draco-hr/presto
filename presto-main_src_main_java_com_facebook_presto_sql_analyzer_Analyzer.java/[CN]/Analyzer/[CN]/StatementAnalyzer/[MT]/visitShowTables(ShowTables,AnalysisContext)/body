@@ -12,6 +12,12 @@
     }
     schemaName=schema.getSuffix();
   }
-  Query query=new Query(selectList(aliasedName("table_name","Table")),table(QualifiedName.of(catalogName,INFORMATION_SCHEMA,TABLE_TABLES)),equal(nameReference("table_schema"),new StringLiteral(schemaName)),ImmutableList.<Expression>of(),null,ImmutableList.of(ascending("table_name")),null);
+  Expression predicate=equal(nameReference("table_schema"),new StringLiteral(schemaName));
+  String likePattern=showTables.getLikePattern();
+  if (likePattern != null) {
+    Expression likePredicate=new LikePredicate(nameReference("table_name"),new StringLiteral(likePattern),null);
+    predicate=logicalAnd(predicate,likePredicate);
+  }
+  Query query=new Query(selectList(aliasedName("table_name","Table")),table(QualifiedName.of(catalogName,INFORMATION_SCHEMA,TABLE_TABLES)),predicate,ImmutableList.<Expression>of(),null,ImmutableList.of(ascending("table_name")),null);
   return visitQuery(query,context);
 }
