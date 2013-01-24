@@ -1,0 +1,18 @@
+{
+  boolean hasNonNull=!TUPLE_INFO.isNull(valueSlice,valueOffset);
+  long count=TUPLE_INFO.getLong(valueSlice,valueOffset,0);
+  double sum=TUPLE_INFO.getDouble(valueSlice,valueOffset,1);
+  BlockCursor cursor=block.cursor();
+  while (cursor.advanceNextPosition()) {
+    if (!cursor.isNull(field)) {
+      hasNonNull=true;
+      count++;
+      sum+=cursor.getDouble(field);
+    }
+  }
+  if (hasNonNull) {
+    TUPLE_INFO.setNotNull(valueSlice,valueOffset,0);
+    TUPLE_INFO.setLong(valueSlice,valueOffset,0,count);
+    TUPLE_INFO.setDouble(valueSlice,valueOffset,1,sum);
+  }
+}

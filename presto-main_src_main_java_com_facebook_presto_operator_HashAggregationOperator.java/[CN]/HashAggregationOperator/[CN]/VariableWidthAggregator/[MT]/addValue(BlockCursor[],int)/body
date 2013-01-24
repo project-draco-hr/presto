@@ -1,18 +1,21 @@
 {
   BlockCursor cursor;
-  if (channel >= 0) {
-    cursor=cursors[channel];
+  int field;
+  if (input != null) {
+    cursor=cursors[input.getChannel()];
+    field=input.getField();
   }
  else {
     cursor=null;
+    field=-1;
   }
   T oldValue=intermediateValues.get(position);
   T newValue;
   if (step == Step.FINAL) {
-    newValue=function.addIntermediate(cursor,oldValue);
+    newValue=function.addIntermediate(cursor,field,oldValue);
   }
  else {
-    newValue=function.addInput(cursor,oldValue);
+    newValue=function.addInput(cursor,field,oldValue);
   }
   intermediateValues.set(position,newValue);
 }
