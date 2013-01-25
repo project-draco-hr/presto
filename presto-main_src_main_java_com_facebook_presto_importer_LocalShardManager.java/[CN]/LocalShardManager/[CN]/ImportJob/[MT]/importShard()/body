@@ -1,12 +1,9 @@
 {
   ImportClient importClient=importClientFactory.getClient(shardImport.getSourceName());
   PartitionChunk chunk=shardImport.getPartitionChunk().deserialize(importClient);
-  List<Long> columnIds=getColumnIds(shardImport.getFields());
+  List<Long> targetColumnIds=transform(shardImport.getFields(),targetColumnIdGetter());
   ImportPartition importPartition=new ImportPartition(importClient,chunk);
-  ImmutableList.Builder<ImportColumnHandle> columns=ImmutableList.builder();
-  for (  ImportField field : shardImport.getFields()) {
-    columns.add(new ImportColumnHandle(shardImport.getSourceName(),field.getImportFieldName(),Ints.checkedCast(field.getColumnId()),field.getColumnType()));
-  }
-  RecordProjectOperator source=new RecordProjectOperator(importPartition,columns.build());
-  storageManager.importShard(shardId,columnIds,source);
+  List<ImportColumnHandle> sourceColumns=transform(shardImport.getFields(),sourceColumnHandleGetter());
+  RecordProjectOperator source=new RecordProjectOperator(importPartition,sourceColumns);
+  storageManager.importShard(shardId,targetColumnIds,source);
 }
