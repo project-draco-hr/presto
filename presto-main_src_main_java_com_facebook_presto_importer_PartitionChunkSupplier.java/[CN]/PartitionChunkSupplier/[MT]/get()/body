@@ -1,12 +1,12 @@
 {
   List<PartitionChunk> chunks=retry().stopOn(ObjectNotFoundException.class).runUnchecked(new Callable<List<PartitionChunk>>(){
     @Override public List<PartitionChunk> call() throws Exception {
-      ImportClient importClient=importClientFactory.getClient(sourceName);
+      ImportClient importClient=importClientManager.getClient(sourceName);
       return importClient.getPartitionChunks(databaseName,tableName,partitionName,columns);
     }
   }
 );
-  final ImportClient importClient=importClientFactory.getClient(sourceName);
+  final ImportClient importClient=importClientManager.getClient(sourceName);
   return Iterables.transform(chunks,new Function<PartitionChunk,SerializedPartitionChunk>(){
     @Override public SerializedPartitionChunk apply(    PartitionChunk chunk){
       return SerializedPartitionChunk.create(importClient,chunk);

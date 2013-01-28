@@ -1,0 +1,7 @@
+{
+  ServiceSelector selector=new StaticServiceSelector(serviceDescriptor("hive-metastore").addProperty("thrift","meta1.test:9083").addProperty("name","fuu").build(),serviceDescriptor("hive-metastore").addProperty("thrift","meta2.text:9083").addProperty("name","fuu").build(),serviceDescriptor("hive-metastore").addProperty("thrift","meta3.text:9083").addProperty("name","bar").build(),serviceDescriptor("hive-metastore").addProperty("thrift","missing-port").build(),serviceDescriptor("hive-metastore").build());
+  HiveImportClientFactory factory=new HiveImportClientFactory(selector,new HiveClientConfig(),getHivePartitionChunkCodec(),testExporter);
+  assertInstanceOf(factory.createClient("hive_fuu"),CachingHiveClient.class);
+  assertInstanceOf(factory.createClient("hive_bar"),CachingHiveClient.class);
+  assertNull(factory.createClient("unknown"));
+}

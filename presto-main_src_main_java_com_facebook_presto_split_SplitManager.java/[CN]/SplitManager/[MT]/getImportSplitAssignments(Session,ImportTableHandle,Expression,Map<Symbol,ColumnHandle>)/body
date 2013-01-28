@@ -6,7 +6,7 @@
   final List<String> columns=IterableTransformer.on(mappings.values()).transform(MoreFunctions.<ColumnHandle,ImportColumnHandle>cast(ImportColumnHandle.class)).transform(columnNameGetter()).list();
   Iterable<List<PartitionChunk>> chunks=retry().stopOn(ObjectNotFoundException.class).runUnchecked(new Callable<Iterable<List<PartitionChunk>>>(){
     @Override public Iterable<List<PartitionChunk>> call() throws Exception {
-      ImportClient importClient=importClientFactory.getClient(sourceName);
+      ImportClient importClient=importClientManager.getClient(sourceName);
       return importClient.getPartitionChunks(databaseName,tableName,partitions,columns);
     }
   }

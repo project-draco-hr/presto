@@ -7,7 +7,7 @@
   shardManager.createImportTable(tableId,sourceName,databaseName,tableName);
   Set<String> activePartitions=retry().runUnchecked(new Callable<Set<String>>(){
     @Override public Set<String> call() throws Exception {
-      ImportClient importClient=importClientFactory.getClient(sourceName);
+      ImportClient importClient=importClientManager.getClient(sourceName);
       return ImmutableSet.copyOf(importClient.getPartitionNames(databaseName,tableName));
     }
   }
@@ -28,7 +28,7 @@
   log.info("Dropping %d old partitions: table %d",partitionsToRemove.size(),tableId);
   List<String> columns=transform(transform(fields,sourceColumnHandleGetter()),columnNameGetter());
   for (  String partition : Iterables.concat(partitionsToAdd,repairPartitions)) {
-    PartitionChunkSupplier supplier=new PartitionChunkSupplier(importClientFactory,sourceName,databaseName,tableName,partition,columns);
+    PartitionChunkSupplier supplier=new PartitionChunkSupplier(importClientManager,sourceName,databaseName,tableName,partition,columns);
     PartitionImportJob importJob=new PartitionImportJob(tableId,sourceName,partition,supplier,fields);
     partitionBoundedExecutor.execute(PartitionMarker.from(tableId,partition),importJob);
   }
