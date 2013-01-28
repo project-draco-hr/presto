@@ -1,0 +1,33 @@
+{
+  Preconditions.checkNotNull(recordReader,"recordReader is null");
+  Preconditions.checkArgument(totalBytes >= 0,"totalBytes is negative");
+  Preconditions.checkNotNull(partitionKeys,"partitionKeys is null");
+  Preconditions.checkNotNull(columns,"columns is null");
+  Preconditions.checkArgument(!columns.isEmpty(),"columns is empty");
+  this.recordReader=recordReader;
+  this.totalBytes=totalBytes;
+  this.key=recordReader.createKey();
+  this.value=recordReader.createValue();
+  this.partitionKeyCount=partitionKeys.size();
+  int size=partitionKeyCount + Ordering.natural().max(Iterables.transform(columns,indexGetter())) + 1;
+  this.types=new Type[size];
+  this.hiveTypes=new PrimitiveCategory[size];
+  this.longs=new long[size];
+  this.doubles=new double[size];
+  this.strings=new byte[size][];
+  this.nulls=new boolean[size];
+  for (int columnIndex=0; columnIndex < partitionKeyCount; columnIndex++) {
+    HivePartitionKey partitionKey=partitionKeys.get(columnIndex);
+    this.types[columnIndex]=partitionKey.getType();
+    this.hiveTypes[columnIndex]=partitionKey.getHiveType();
+    byte[] bytes=partitionKey.getValue().getBytes(Charsets.UTF_8);
+    parseColumn(columnIndex,bytes,0,bytes.length);
+  }
+  this.hiveColumnIndexes=new int[columns.size()];
+  for (int i=0; i < columns.size(); i++) {
+    HiveColumn column=columns.get(i);
+    hiveColumnIndexes[i]=column.getIndex();
+    this.types[partitionKeyCount + column.getIndex()]=column.getType();
+    this.hiveTypes[partitionKeyCount + column.getIndex()]=column.getHiveType();
+  }
+}

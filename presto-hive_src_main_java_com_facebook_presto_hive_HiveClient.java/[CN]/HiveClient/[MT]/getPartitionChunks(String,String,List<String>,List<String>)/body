@@ -1,0 +1,31 @@
+{
+  Table table=getTable(databaseName,tableName);
+  ImmutableList.Builder<Partition> partitionsBuilder=ImmutableList.builder();
+  try (HiveMetastoreClient metastore=getClient()){
+    for (    List<String> batchedPartitionNames : Lists.partition(partitionNames,PARTITION_BATCH_SIZE)) {
+      partitionsBuilder.addAll(metastore.get_partitions_by_names(databaseName,tableName,batchedPartitionNames));
+    }
+  }
+ catch (  NoSuchObjectException e) {
+    throw new ObjectNotFoundException(e.getMessage());
+  }
+catch (  Exception e) {
+    throw Throwables.propagate(e);
+  }
+  int count=0;
+  ImmutableList.Builder<List<PartitionChunk>> builder=ImmutableList.builder();
+  ExecutorCompletionService<List<PartitionChunk>> executorCompletionService=new ExecutorCompletionService<>(PARTITION_LIST_EXECUTOR);
+  for (  Partition partition : partitionsBuilder.build()) {
+    count++;
+    executorCompletionService.submit(createPartitionCallable(table,partition,getHiveColumns(table,columns)));
+  }
+  try {
+    for (int i=0; i < count; i++) {
+      builder.add(executorCompletionService.take().get());
+    }
+  }
+ catch (  InterruptedException|ExecutionException e) {
+    throw Throwables.propagate(e);
+  }
+  return builder.build();
+}

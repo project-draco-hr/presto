@@ -1,0 +1,29 @@
+{
+  List<String> parts=new ArrayList<>();
+  List<SchemaField> partitionKeys=getPartitionKeys(databaseName,tableName);
+  for (  SchemaField key : partitionKeys) {
+    Object value=filters.get(key.getFieldName());
+    if (value == null) {
+      break;
+    }
+    Preconditions.checkArgument(value instanceof String || value instanceof Double || value instanceof Long,"Only String, Double and Long partition keys are supported");
+    parts.add(value.toString());
+  }
+  List<PartitionInfo> partitions;
+  if (parts.isEmpty()) {
+    partitions=getPartitions(databaseName,tableName);
+  }
+ else {
+    try (HiveMetastoreClient metastore=getClient()){
+      List<String> names=metastore.get_partition_names_ps(databaseName,tableName,parts,(short)-1);
+      partitions=Lists.transform(names,toPartitionInfo(partitionKeys));
+    }
+ catch (    NoSuchObjectException e) {
+      throw new ObjectNotFoundException(e.getMessage());
+    }
+catch (    Exception e) {
+      throw Throwables.propagate(e);
+    }
+  }
+  return ImmutableList.copyOf(Iterables.filter(partitions,partitionMatches(filters)));
+}

@@ -1,0 +1,14 @@
+{
+  try (HiveMetastoreClient metastore=getClient()){
+    Table table=metastore.get_table(databaseName,tableName);
+    List<FieldSchema> partitionKeys=table.getPartitionKeys();
+    Properties schema=MetaStoreUtils.getSchema(table);
+    return getSchemaFields(schema,partitionKeys);
+  }
+ catch (  NoSuchObjectException e) {
+    throw new ObjectNotFoundException(e.getMessage());
+  }
+catch (  Exception e) {
+    throw Throwables.propagate(e);
+  }
+}

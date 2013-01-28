@@ -1,0 +1,29 @@
+{
+  HashSet<String> columnNames=new HashSet<>(columns);
+  for (  FieldSchema fieldSchema : table.getPartitionKeys()) {
+    columnNames.remove(fieldSchema.getName());
+  }
+  try {
+    Properties schema=MetaStoreUtils.getSchema(table);
+    Deserializer deserializer=MetaStoreUtils.getDeserializer(null,schema);
+    StructObjectInspector tableInspector=(StructObjectInspector)deserializer.getObjectInspector();
+    ImmutableList.Builder<HiveColumn> hiveColumns=ImmutableList.builder();
+    int index=0;
+    for (    StructField field : tableInspector.getAllStructFieldRefs()) {
+      if (columnNames.remove(field.getFieldName())) {
+        ObjectInspector fieldInspector=field.getFieldObjectInspector();
+        Preconditions.checkArgument(fieldInspector.getCategory() == Category.PRIMITIVE,"Column %s is not a primitive type",field.getFieldName());
+        PrimitiveObjectInspector inspector=(PrimitiveObjectInspector)fieldInspector;
+        Type type=getSupportedPrimitiveType(inspector.getPrimitiveCategory());
+        PrimitiveCategory hiveType=inspector.getPrimitiveCategory();
+        hiveColumns.add(new HiveColumn(field.getFieldName(),index,type,hiveType));
+      }
+      index++;
+    }
+    Preconditions.checkArgument(columnNames.isEmpty(),"Table %s does not contain the columns %s",table.getTableName(),columnNames);
+    return hiveColumns.build();
+  }
+ catch (  MetaException|SerDeException e) {
+    throw Throwables.propagate(e);
+  }
+}

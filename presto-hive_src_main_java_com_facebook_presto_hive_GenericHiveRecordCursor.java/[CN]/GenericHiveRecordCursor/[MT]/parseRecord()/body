@@ -1,0 +1,26 @@
+{
+  Arrays.fill(nulls,false);
+  Object rowData=deserializer.deserialize(value);
+  for (int i=0; i < hiveColumnIndexes.length; i++) {
+    int hiveColumnIndex=hiveColumnIndexes[i];
+    Object fieldData=rowInspector.getStructFieldData(rowData,structFields[i]);
+    Object fieldValue=fieldInspectors[i].getPrimitiveJavaObject(fieldData);
+    int column=partitionKeyCount + hiveColumnIndex;
+    if (fieldValue == null) {
+      nulls[column]=true;
+    }
+ else {
+switch (types[column]) {
+case LONG:
+        longs[column]=getLongOrBoolean(fieldValue);
+      break;
+case DOUBLE:
+    doubles[column]=((Number)fieldValue).doubleValue();
+  break;
+case STRING:
+strings[column]=((String)fieldValue).getBytes(Charsets.UTF_8);
+break;
+}
+}
+}
+}

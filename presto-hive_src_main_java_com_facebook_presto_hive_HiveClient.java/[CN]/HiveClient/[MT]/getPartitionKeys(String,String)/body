@@ -1,0 +1,19 @@
+{
+  try (HiveMetastoreClient metastore=getClient()){
+    Table table=metastore.get_table(databaseName,tableName);
+    List<FieldSchema> partitionKeys=table.getPartitionKeys();
+    ImmutableList.Builder<SchemaField> schemaFields=ImmutableList.builder();
+    for (int i=0; i < partitionKeys.size(); i++) {
+      FieldSchema field=partitionKeys.get(i);
+      Type type=convertHiveType(field.getType());
+      schemaFields.add(SchemaField.createPrimitive(field.getName(),i,type));
+    }
+    return schemaFields.build();
+  }
+ catch (  NoSuchObjectException e) {
+    throw new ObjectNotFoundException(e.getMessage());
+  }
+catch (  Exception e) {
+    throw Throwables.propagate(e);
+  }
+}

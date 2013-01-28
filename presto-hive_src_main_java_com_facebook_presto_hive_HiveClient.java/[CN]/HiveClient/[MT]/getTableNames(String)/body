@@ -1,0 +1,15 @@
+{
+  try (HiveMetastoreClient metastore=getClient()){
+    List<String> tables=metastore.get_all_tables(databaseName);
+    if (tables.isEmpty()) {
+      metastore.get_database(databaseName);
+    }
+    return tables;
+  }
+ catch (  NoSuchObjectException e) {
+    throw new ObjectNotFoundException(e.getMessage());
+  }
+catch (  Exception e) {
+    throw Throwables.propagate(e);
+  }
+}

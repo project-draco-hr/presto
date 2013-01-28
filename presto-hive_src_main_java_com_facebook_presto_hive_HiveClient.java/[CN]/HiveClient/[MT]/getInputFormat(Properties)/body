@@ -1,0 +1,14 @@
+{
+  String inputFormatName=getInputFormatName(schema);
+  try {
+    JobConf jobConf=new JobConf(HADOOP_CONFIGURATION.get());
+    Class<? extends InputFormat> inputFormatClass=jobConf.getClassByName(inputFormatName).asSubclass(InputFormat.class);
+    if (inputFormatClass == null) {
+      inputFormatClass=TextInputFormat.class;
+    }
+    return ReflectionUtils.newInstance(inputFormatClass,jobConf);
+  }
+ catch (  Exception e) {
+    throw new RuntimeException("Unable to create record reader for input format " + inputFormatName,e);
+  }
+}

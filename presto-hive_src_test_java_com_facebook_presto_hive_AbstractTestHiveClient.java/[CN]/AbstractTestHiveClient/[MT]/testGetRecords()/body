@@ -1,0 +1,62 @@
+{
+  List<SchemaField> schema=client.getTableSchema(DATABASE,TABLE);
+  Iterable<List<PartitionChunk>> partitions=client.getPartitionChunks(DATABASE,TABLE,PARTITIONS,Lists.transform(schema,nameGetter()));
+  for (  List<PartitionChunk> chunks : partitions) {
+    assertEquals(chunks.size(),1);
+    HivePartitionChunk chunk=(HivePartitionChunk)chunks.get(0);
+    byte[] bytes=client.serializePartitionChunk(chunk);
+    chunk=(HivePartitionChunk)client.deserializePartitionChunk(bytes);
+    Map<String,SchemaField> map=schemaFieldMap(schema);
+    List<HivePartitionKey> partitionKeys=chunk.getPartitionKeys();
+    String ds=partitionKeys.get(0).getValue();
+    String fileType=partitionKeys.get(1).getValue();
+    long dummy=Long.parseLong(partitionKeys.get(2).getValue());
+    long baseValue=getBaseValueForFileType(fileType);
+    long rowNumber=0;
+    long completedBytes=0;
+    try (RecordCursor cursor=client.getRecords(chunk)){
+      assertEquals(cursor.getTotalBytes(),chunk.getLength());
+      while (cursor.advanceNextPosition() && (rowNumber < 100)) {
+        try {
+          assertReadFields(cursor,schema);
+        }
+ catch (        Exception e) {
+          throw new RuntimeException("row " + rowNumber,e);
+        }
+        rowNumber++;
+        if (rowNumber % 19 == 0) {
+          assertTrue(cursor.isNull(map.get("t_string").getFieldId()));
+        }
+ else {
+          assertEquals(cursor.getString(map.get("t_string").getFieldId()),(fileType + " test").getBytes(Charsets.UTF_8));
+        }
+        assertEquals(cursor.getLong(map.get("t_tinyint").getFieldId()),(long)((byte)(baseValue + 1 + rowNumber)));
+        assertEquals(cursor.getLong(map.get("t_smallint").getFieldId()),baseValue + 2 + rowNumber);
+        assertEquals(cursor.getLong(map.get("t_int").getFieldId()),baseValue + 3 + rowNumber);
+        if (rowNumber % 13 == 0) {
+          assertTrue(cursor.isNull(map.get("t_bigint").getFieldId()));
+        }
+ else {
+          assertEquals(cursor.getLong(map.get("t_bigint").getFieldId()),baseValue + 4 + rowNumber);
+        }
+        assertEquals(cursor.getDouble(map.get("t_float").getFieldId()),baseValue + 5.1 + rowNumber,0.001);
+        assertEquals(cursor.getDouble(map.get("t_double").getFieldId()),baseValue + 6.2 + rowNumber);
+        if (rowNumber % 3 == 2) {
+          assertTrue(cursor.isNull(map.get("t_boolean").getFieldId()));
+        }
+ else {
+          assertEquals(cursor.getLong(map.get("t_boolean").getFieldId()),rowNumber % 3,String.format("row = %s",rowNumber));
+        }
+        assertEquals(cursor.getString(map.get("ds").getFieldId()),ds.getBytes(Charsets.UTF_8));
+        assertEquals(cursor.getString(map.get("file_format").getFieldId()),fileType.getBytes(Charsets.UTF_8));
+        assertEquals(cursor.getLong(map.get("dummy").getFieldId()),dummy);
+        long newCompletedBytes=cursor.getCompletedBytes();
+        assertTrue(newCompletedBytes >= completedBytes);
+        assertTrue(newCompletedBytes <= chunk.getLength());
+        completedBytes=newCompletedBytes;
+      }
+    }
+     assertTrue(completedBytes <= chunk.getLength());
+    assertEquals(rowNumber,100);
+  }
+}

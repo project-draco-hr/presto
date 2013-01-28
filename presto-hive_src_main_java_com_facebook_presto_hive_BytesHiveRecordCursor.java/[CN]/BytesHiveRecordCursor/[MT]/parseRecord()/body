@@ -1,0 +1,20 @@
+{
+  Arrays.fill(nulls,false);
+  for (  int hiveColumnIndex : hiveColumnIndexes) {
+    if (hiveColumnIndex >= value.size()) {
+      nulls[partitionKeyCount + hiveColumnIndex]=true;
+    }
+ else {
+      BytesRefWritable fieldData=value.unCheckedGet(hiveColumnIndex);
+      byte[] bytes=fieldData.getData();
+      int start=fieldData.getStart();
+      int length=fieldData.getLength();
+      if (length == "\\N".length() && bytes[start] == '\\' && bytes[start + 1] == 'N') {
+        nulls[partitionKeyCount + hiveColumnIndex]=true;
+      }
+ else {
+        parseColumn(partitionKeyCount + hiveColumnIndex,bytes,start,length);
+      }
+    }
+  }
+}

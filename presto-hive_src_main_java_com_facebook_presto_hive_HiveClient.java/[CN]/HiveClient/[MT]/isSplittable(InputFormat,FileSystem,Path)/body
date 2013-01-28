@@ -1,0 +1,21 @@
+{
+  Method method=null;
+  for (Class<?> clazz=inputFormat.getClass(); clazz != null; clazz=clazz.getSuperclass()) {
+    try {
+      method=clazz.getDeclaredMethod("isSplitable",FileSystem.class,Path.class);
+      break;
+    }
+ catch (    NoSuchMethodException e) {
+    }
+  }
+  if (method == null) {
+    return false;
+  }
+  try {
+    method.setAccessible(true);
+    return (boolean)method.invoke(inputFormat,fileSystem,path);
+  }
+ catch (  Exception e) {
+    throw Throwables.propagate(e);
+  }
+}

@@ -1,0 +1,27 @@
+{
+  List<SchemaField> schema=client.getTableSchema(DATABASE,TABLE);
+  Iterable<List<PartitionChunk>> partitions=client.getPartitionChunks(DATABASE,TABLE,PARTITIONS,ImmutableList.of("t_double"));
+  for (  List<PartitionChunk> chunks : partitions) {
+    assertEquals(chunks.size(),1);
+    HivePartitionChunk chunk=(HivePartitionChunk)chunks.get(0);
+    byte[] bytes=client.serializePartitionChunk(chunk);
+    chunk=(HivePartitionChunk)client.deserializePartitionChunk(bytes);
+    Map<String,SchemaField> map=schemaFieldMap(schema);
+    List<HivePartitionKey> partitionKeys=chunk.getPartitionKeys();
+    String ds=partitionKeys.get(0).getValue();
+    String fileType=partitionKeys.get(1).getValue();
+    long dummy=Long.parseLong(partitionKeys.get(2).getValue());
+    long baseValue=getBaseValueForFileType(fileType);
+    long rowNumber=0;
+    try (RecordCursor cursor=client.getRecords(chunk)){
+      while (cursor.advanceNextPosition() && (rowNumber < 100)) {
+        rowNumber++;
+        assertEquals(cursor.getDouble(map.get("t_double").getFieldId()),baseValue + 6.2 + rowNumber);
+        assertEquals(cursor.getString(map.get("ds").getFieldId()),ds.getBytes(Charsets.UTF_8));
+        assertEquals(cursor.getString(map.get("file_format").getFieldId()),fileType.getBytes(Charsets.UTF_8));
+        assertEquals(cursor.getLong(map.get("dummy").getFieldId()),dummy);
+      }
+    }
+     assertEquals(rowNumber,100);
+  }
+}
