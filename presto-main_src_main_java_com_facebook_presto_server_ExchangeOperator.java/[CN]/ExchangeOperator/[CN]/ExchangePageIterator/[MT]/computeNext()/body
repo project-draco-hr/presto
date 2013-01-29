@@ -1,0 +1,25 @@
+{
+  while (true) {
+    boolean allClientsComplete=completedClients.size() == allClients.size();
+    if (!allClientsComplete) {
+      scheduleRequestIfNecessary();
+    }
+    long start=System.nanoTime();
+    try {
+      Page page=pageBuffer.poll(WAIT_TIME_IN_MILLIS,TimeUnit.MILLISECONDS);
+      if (page != null) {
+        return page;
+      }
+ else       if (allClientsComplete) {
+        return endOfData();
+      }
+    }
+ catch (    InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw Throwables.propagate(e);
+    }
+ finally {
+      operatorStats.addExchangeWaitTime(Duration.nanosSince(start));
+    }
+  }
+}

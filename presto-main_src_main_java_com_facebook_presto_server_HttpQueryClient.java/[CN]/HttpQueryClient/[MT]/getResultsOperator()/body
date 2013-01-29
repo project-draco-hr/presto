@@ -15,10 +15,11 @@
 ;
   }
   StageInfo outputStage=queryInfo.getOutputStage();
-  return new QueryDriversOperator(10,outputStage.getTupleInfos(),Iterables.transform(outputStage.getTasks(),new Function<TaskInfo,QueryDriverProvider>(){
-    @Override public QueryDriverProvider apply(    TaskInfo taskInfo){
+  return new ExchangeOperator(httpClient,outputStage.getTupleInfos(),100,10,3,transform(outputStage.getTasks(),new Function<TaskInfo,URI>(){
+    @Override public URI apply(    TaskInfo taskInfo){
       Preconditions.checkState(taskInfo.getOutputBuffers().size() == 1,"Expected a single output buffer for task %s, but found %s",taskInfo.getTaskId(),taskInfo.getOutputBuffers());
-      return new HttpTaskClient(taskInfo.getTaskId(),taskInfo.getSelf(),Iterables.getOnlyElement(taskInfo.getOutputBuffers()).getBufferId(),httpClient,taskInfoCodec);
+      String bufferId=Iterables.getOnlyElement(taskInfo.getOutputBuffers()).getBufferId();
+      return uriBuilderFrom(taskInfo.getSelf()).appendPath("results").appendPath(bufferId).build();
     }
   }
 ));

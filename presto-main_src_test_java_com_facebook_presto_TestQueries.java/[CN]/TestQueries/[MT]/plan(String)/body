@@ -15,7 +15,7 @@
     builder.put(tableScan.getId(),new TableScanPlanFragmentSource(new TpchSplit(handle)));
   }
   DataSize maxOperatorMemoryUsage=new DataSize(50,MEGABYTE);
-  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(session,metadata,new HackPlanFragmentSourceProvider(dataProvider,null,TASK_INFO_CODEC),analysis.getTypes(),null,builder.build(),ImmutableMap.<PlanNodeId,ExchangePlanFragmentSource>of(),new OperatorStats(),new SourceHashProviderFactory(maxOperatorMemoryUsage),maxOperatorMemoryUsage);
+  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(session,metadata,new HackPlanFragmentSourceProvider(dataProvider,null,new QueryManagerConfig()),analysis.getTypes(),null,builder.build(),ImmutableMap.<PlanNodeId,ExchangePlanFragmentSource>of(),new OperatorStats(),new SourceHashProviderFactory(maxOperatorMemoryUsage),maxOperatorMemoryUsage);
   Operator operator=executionPlanner.plan(plan);
   return new FilterAndProjectOperator(operator,FilterFunctions.TRUE_FUNCTION,new Concat(operator.getTupleInfos()));
 }

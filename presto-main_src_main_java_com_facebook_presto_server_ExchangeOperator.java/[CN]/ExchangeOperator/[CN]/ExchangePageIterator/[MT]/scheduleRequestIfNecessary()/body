@@ -1,0 +1,16 @@
+{
+  int bufferedPages=pageBuffer.size();
+  if (bufferedPages >= maxBufferedPages) {
+    return;
+  }
+  int neededPages=maxBufferedPages - bufferedPages;
+  int clientCount=(int)((1.0 * neededPages / expectedPagesPerRequest) * concurrentRequestMultiplier);
+  clientCount=Math.min(clientCount,1);
+  for (int i=0; i < clientCount; i++) {
+    HttpPageBufferClient client=queuedClients.poll();
+    if (client == null) {
+      return;
+    }
+    client.scheduleRequest();
+  }
+}
