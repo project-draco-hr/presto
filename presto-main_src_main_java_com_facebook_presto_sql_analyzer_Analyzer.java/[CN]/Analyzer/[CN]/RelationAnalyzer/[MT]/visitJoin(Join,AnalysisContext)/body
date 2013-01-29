@@ -23,7 +23,12 @@
  else   if (criteria instanceof JoinOn) {
     new ExpressionAnalyzer(metadata).analyze(((JoinOn)criteria).getExpression(),descriptor);
     ImmutableList.Builder<AnalyzedJoinClause> clauses=ImmutableList.builder();
-    for (    Expression conjunct : ExpressionUtils.extractConjuncts(((JoinOn)criteria).getExpression())) {
+    Expression expression=((JoinOn)criteria).getExpression();
+    Object optimizedExpression=ExpressionInterpreter.expressionOptimizer(new NoOpSymbolResolver(),metadata,session).process(expression,null);
+    if (!(optimizedExpression instanceof Expression)) {
+      throw new SemanticException(node,"Joins on constant expressions (i.e., cross joins) not supported");
+    }
+    for (    Expression conjunct : ExpressionUtils.extractConjuncts((Expression)optimizedExpression)) {
       if (!(conjunct instanceof ComparisonExpression)) {
         throw new SemanticException(node,"Non-equi joins not supported");
       }
