@@ -1,21 +1,10 @@
 {
-  ComparisonExpression comparison=(ComparisonExpression)node.getCriteria();
-  Symbol first=Symbol.fromQualifiedName(((QualifiedNameReference)comparison.getLeft()).getName());
-  Symbol second=Symbol.fromQualifiedName(((QualifiedNameReference)comparison.getRight()).getName());
-  Symbol left;
-  Symbol right;
-  if (node.getLeft().getOutputSymbols().contains(first)) {
-    left=first;
-    right=second;
-  }
- else {
-    left=second;
-    right=first;
-  }
+  Preconditions.checkArgument(node.getCriteria().size() == 1,"Joining by multiple conditions not yet supported");
+  JoinNode.EquiJoinClause clause=Iterables.getOnlyElement(node.getCriteria());
   PhysicalOperation leftSource=node.getLeft().accept(this,context);
-  int probeChannel=leftSource.getLayout().get(left).getChannel();
+  int probeChannel=leftSource.getLayout().get(clause.getLeft()).getChannel();
   PhysicalOperation rightSource=node.getRight().accept(this,context);
-  int buildChannel=rightSource.getLayout().get(right).getChannel();
+  int buildChannel=rightSource.getLayout().get(clause.getRight()).getChannel();
   Preconditions.checkState(leftSource.getOperator().getTupleInfos().get(probeChannel).getFieldCount() == 1 && rightSource.getOperator().getTupleInfos().get(buildChannel).getFieldCount() == 1,"JOIN with the results of a multi-field GROUP BY, DISTINCT or ORDER BY not yet supported");
   SourceHashProvider hashProvider=joinHashFactory.getSourceHashProvider(node,rightSource.getOperator(),buildChannel,operatorStats);
   ImmutableMap.Builder<Symbol,Input> outputMappings=ImmutableMap.builder();

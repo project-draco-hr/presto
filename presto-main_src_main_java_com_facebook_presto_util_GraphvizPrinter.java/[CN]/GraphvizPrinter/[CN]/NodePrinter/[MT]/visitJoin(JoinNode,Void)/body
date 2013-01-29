@@ -1,7 +1,9 @@
 {
-  String criteria=ExpressionFormatter.toString(node.getCriteria());
-  criteria=criteria.replace(">","\\>");
-  criteria=criteria.replace("<","\\<");
+  List<String> joinExpressions=new ArrayList<>();
+  for (  JoinNode.EquiJoinClause clause : node.getCriteria()) {
+    joinExpressions.add(ExpressionFormatter.toString(new ComparisonExpression(ComparisonExpression.Type.EQUAL,new QualifiedNameReference(clause.getLeft().toQualifiedName()),new QualifiedNameReference(clause.getRight().toQualifiedName()))));
+  }
+  String criteria=Joiner.on(" AND ").join(joinExpressions);
   printNode(node,"Join",criteria);
   node.getLeft().accept(this,context);
   node.getRight().accept(this,context);

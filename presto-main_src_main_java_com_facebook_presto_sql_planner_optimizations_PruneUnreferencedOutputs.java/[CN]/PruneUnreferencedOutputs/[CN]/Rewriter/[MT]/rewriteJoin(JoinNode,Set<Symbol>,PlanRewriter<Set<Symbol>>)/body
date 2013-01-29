@@ -1,6 +1,7 @@
 {
-  Set<Symbol> expectedInputs=ImmutableSet.<Symbol>builder().addAll(expectedOutputs).addAll(DependencyExtractor.extract(node.getCriteria())).build();
-  PlanNode left=planRewriter.rewrite(node.getLeft(),expectedInputs);
-  PlanNode right=planRewriter.rewrite(node.getRight(),expectedInputs);
+  Set<Symbol> leftInputs=ImmutableSet.<Symbol>builder().addAll(expectedOutputs).addAll(Iterables.transform(node.getCriteria(),leftGetter())).build();
+  Set<Symbol> rightInputs=ImmutableSet.<Symbol>builder().addAll(expectedOutputs).addAll(Iterables.transform(node.getCriteria(),rightGetter())).build();
+  PlanNode left=planRewriter.rewrite(node.getLeft(),leftInputs);
+  PlanNode right=planRewriter.rewrite(node.getRight(),rightInputs);
   return new JoinNode(left,right,node.getCriteria());
 }
