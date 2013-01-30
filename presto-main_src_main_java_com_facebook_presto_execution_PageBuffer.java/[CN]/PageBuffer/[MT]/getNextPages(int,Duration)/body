@@ -1,42 +1,16 @@
 {
-  Preconditions.checkArgument(maxPageCount > 0,"pageBufferMax must be at least 1");
-  long start=System.nanoTime();
-  long maxWaitNanos=(long)maxWait.convertTo(TimeUnit.NANOSECONDS);
-  while (!isDone() && !notEmpty.tryAcquire(1,TimeUnit.SECONDS)) {
-    if (System.nanoTime() - start > maxWaitNanos) {
-      return ImmutableList.of();
+  Preconditions.checkArgument(maxPageCount > 0,"maxPageCount must be at least 1");
+  Preconditions.checkNotNull(maxWait,"maxWait is null");
+  List<Page> pages=new ArrayList<>(maxPageCount);
+  if (!isFinished()) {
+    Page page=buffer.poll((long)maxWait.convertTo(NANOSECONDS),NANOSECONDS);
+    if (page != null) {
+      pages.add(page);
+      buffer.drainTo(pages,maxPageCount - 1);
+      if (state.get() == BufferState.FINISHING && buffer.isEmpty()) {
+        state.set(BufferState.FINISHED);
+      }
     }
   }
-synchronized (pageBuffer) {
-    if (bufferState == BufferState.FAILED) {
-      notEmpty.release();
-      FailedQueryException failedQueryException=new FailedQueryException(causes);
-      failedQueryException.printStackTrace(System.err);
-      throw failedQueryException;
-    }
-    if (bufferState.isDone()) {
-      notEmpty.release();
-      return ImmutableList.of();
-    }
-    ImmutableList.Builder<Page> nextPages=ImmutableList.builder();
-    int count=0;
-    do {
-      if (pageBuffer.isEmpty()) {
-        Preconditions.checkState(sourceCount == 0,"A read permit was acquired but no pages are available");
-        notEmpty.release();
-        break;
-      }
- else {
-        nextPages.add(pageBuffer.removeFirst());
-      }
-      count++;
-    }
- while (count < maxPageCount && notEmpty.tryAcquire());
-    notFull.release(count);
-    List<Page> pages=nextPages.build();
-    if (sourceCount == 0 && pageBuffer.isEmpty()) {
-      bufferState=BufferState.FINISHED;
-    }
-    return pages;
-  }
+  return ImmutableList.copyOf(pages);
 }

@@ -1,0 +1,17 @@
+{
+  Preconditions.checkNotNull(doneState,"doneState is null");
+  Preconditions.checkArgument(doneState.isDone(),"doneState %s is not a done state",doneState);
+  while (true) {
+    TaskState taskState=this.taskState.get();
+    if (taskState.isDone()) {
+      return false;
+    }
+    if (this.taskState.compareAndSet(taskState,doneState)) {
+      stats.recordEnd();
+      for (      PageBuffer outputBuffer : outputBuffers.values()) {
+        outputBuffer.cancel();
+      }
+      return true;
+    }
+  }
+}

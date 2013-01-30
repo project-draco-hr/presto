@@ -1,11 +1,9 @@
 {
   for (  PageBuffer outputBuffer : outputBuffers.values()) {
-    if (!outputBuffer.addPage(page)) {
-      updateState();
-      TaskState state=getState();
-      Preconditions.checkState(state.isDone(),"Expected a done state but state is %s",state);
+    if (getState().isDone()) {
       return false;
     }
+    outputBuffer.addPage(page);
   }
   return true;
 }

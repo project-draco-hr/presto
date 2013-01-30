@@ -1,0 +1,17 @@
+{
+  PageBuffer pageBuffer=new PageBuffer("bufferId",5);
+  assertRunning(pageBuffer);
+  ExecutorService executor=Executors.newCachedThreadPool();
+  for (int i=0; i < 5; i++) {
+    pageBuffer.addPage(createLongPage(i));
+  }
+  AddPagesJob addPagesJob=new AddPagesJob(pageBuffer,createLongPage(2),createLongPage(3));
+  executor.submit(addPagesJob);
+  addPagesJob.waitForStarted();
+  addPagesJob.assertBlockedWithCount(2);
+  assertEquals(pageBuffer.getNextPages(1,MAX_WAIT).size(),1);
+  addPagesJob.assertBlockedWithCount(1);
+  pageBuffer.cancel();
+  assertFinished(pageBuffer);
+  addPagesJob.waitForFinished();
+}

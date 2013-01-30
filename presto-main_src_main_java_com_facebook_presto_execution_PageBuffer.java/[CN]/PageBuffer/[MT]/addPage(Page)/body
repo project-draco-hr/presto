@@ -1,14 +1,11 @@
 {
-  while (!isDone() && !notFull.tryAcquire(1,TimeUnit.SECONDS)) {
-  }
-synchronized (pageBuffer) {
-    if (bufferState.isDone()) {
-      notFull.release();
-      return false;
+  do {
+    if (state.get() != BufferState.OPEN) {
+      return;
     }
-    bufferState=BufferState.RUNNING;
-    pageBuffer.addLast(page);
-    notEmpty.release();
   }
-  return true;
+ while (!buffer.offer(page,1,SECONDS));
+  if (isFinished()) {
+    buffer.clear();
+  }
 }

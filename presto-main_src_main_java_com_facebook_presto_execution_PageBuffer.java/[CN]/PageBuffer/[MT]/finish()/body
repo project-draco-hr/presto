@@ -1,12 +1,7 @@
 {
-synchronized (pageBuffer) {
-    if (isDone()) {
-      return;
-    }
-    bufferState=BufferState.FINISHED;
-    sourceCount=0;
-    pageBuffer.clear();
-    notEmpty.release();
-    notFull.release();
+  state.compareAndSet(BufferState.OPEN,BufferState.FINISHING);
+  if (buffer.isEmpty()) {
+    state.set(BufferState.FINISHED);
+    buffer.clear();
   }
 }

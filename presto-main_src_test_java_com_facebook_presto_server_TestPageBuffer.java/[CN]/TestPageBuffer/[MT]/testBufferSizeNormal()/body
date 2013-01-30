@@ -1,0 +1,25 @@
+{
+  PageBuffer pageBuffer=new PageBuffer("bufferId",5);
+  assertRunning(pageBuffer);
+  GetPagesJob getPagesJob=new GetPagesJob(pageBuffer,2,1);
+  executor.submit(getPagesJob);
+  getPagesJob.waitForStarted();
+  getPagesJob.assertBlockedWithCount(0);
+  pageBuffer.addPage(createLongPage(0));
+  getPagesJob.assertBlockedWithCount(1);
+  pageBuffer.addPage(createLongPage(1));
+  getPagesJob.waitForFinished();
+  assertEquals(getPagesJob.getPages().size(),2);
+  for (int i=0; i < 5; i++) {
+    pageBuffer.addPage(createLongPage(i));
+  }
+  AddPagesJob addPagesJob=new AddPagesJob(pageBuffer,createLongPage(2),createLongPage(3));
+  executor.submit(addPagesJob);
+  addPagesJob.waitForStarted();
+  addPagesJob.assertBlockedWithCount(2);
+  assertEquals(pageBuffer.getNextPages(1,MAX_WAIT).size(),1);
+  addPagesJob.assertBlockedWithCount(1);
+  assertEquals(pageBuffer.getNextPages(1,MAX_WAIT).size(),1);
+  addPagesJob.waitForFinished();
+  assertEquals(addPagesJob.getPages().size(),0);
+}
