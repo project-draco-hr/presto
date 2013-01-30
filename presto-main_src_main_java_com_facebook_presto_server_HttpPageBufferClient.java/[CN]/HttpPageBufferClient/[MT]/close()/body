@@ -1,0 +1,12 @@
+{
+  Future<?> future;
+synchronized (this) {
+    closed=true;
+    future=this.future;
+    this.future=null;
+  }
+  if (future != null) {
+    future.cancel(true);
+  }
+  httpClient.execute(prepareDelete().setUri(location).build(),createStatusResponseHandler());
+}
