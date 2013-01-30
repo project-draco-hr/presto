@@ -1,0 +1,43 @@
+{
+  SuspendingExecutor suspendingExecutor=new SuspendingExecutor(new BoundedExecutor(executor,maxThreads));
+  final PartitionChunkQueue partitionChunkQueue=new PartitionChunkQueue(maxOutstandingChunks,suspendingExecutor);
+  ImmutableList.Builder<ListenableFuture<Void>> futureBuilder=ImmutableList.builder();
+  try {
+    for (    Partition partition : partitions) {
+      final Properties schema=MetaStoreUtils.getSchema(partition,table);
+      final List<HivePartitionKey> partitionKeys=getPartitionKeys(table,partition);
+      final InputFormat inputFormat=getInputFormat(schema);
+      Path partitionPath=new CachingPath(partition.getSd().getLocation());
+      FileSystem fs=partitionPath.getFileSystem(HADOOP_CONFIGURATION.get());
+      futureBuilder.add(new AsyncRecursiveWalker(fs,suspendingExecutor).beginWalk(partitionPath,new FileStatusCallback(){
+        @Override public void process(        FileStatus file){
+          try {
+            boolean splittable=isSplittable(inputFormat,file.getPath().getFileSystem(HADOOP_CONFIGURATION.get()),file.getPath());
+            long splitSize=splittable ? maxChunkBytes : file.getLen();
+            for (long start=0; start < file.getLen(); start+=splitSize) {
+              long length=min(splitSize,file.getLen() - start);
+              partitionChunkQueue.addToQueue(new HivePartitionChunk(file.getPath(),start,length,schema,partitionKeys,columns));
+            }
+          }
+ catch (          IOException e) {
+            partitionChunkQueue.fail(e);
+          }
+        }
+      }
+));
+    }
+    Futures.addCallback(Futures.allAsList(futureBuilder.build()),new FutureCallback<List<Void>>(){
+      @Override public void onSuccess(      List<Void> result){
+        partitionChunkQueue.finished();
+      }
+      @Override public void onFailure(      Throwable t){
+        partitionChunkQueue.fail(t);
+      }
+    }
+);
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+  return partitionChunkQueue;
+}

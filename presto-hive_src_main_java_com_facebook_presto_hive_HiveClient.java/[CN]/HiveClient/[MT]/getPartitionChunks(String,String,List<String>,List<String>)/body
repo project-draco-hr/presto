@@ -12,20 +12,5 @@
 catch (  Exception e) {
     throw Throwables.propagate(e);
   }
-  int count=0;
-  ImmutableList.Builder<List<PartitionChunk>> builder=ImmutableList.builder();
-  ExecutorCompletionService<List<PartitionChunk>> executorCompletionService=new ExecutorCompletionService<>(PARTITION_LIST_EXECUTOR);
-  for (  Partition partition : partitionsBuilder.build()) {
-    count++;
-    executorCompletionService.submit(createPartitionCallable(table,partition,getHiveColumns(table,columns)));
-  }
-  try {
-    for (int i=0; i < count; i++) {
-      builder.add(executorCompletionService.take().get());
-    }
-  }
- catch (  InterruptedException|ExecutionException e) {
-    throw Throwables.propagate(e);
-  }
-  return builder.build();
+  return getPartitionChunks(table,partitionsBuilder.build(),getHiveColumns(table,columns));
 }

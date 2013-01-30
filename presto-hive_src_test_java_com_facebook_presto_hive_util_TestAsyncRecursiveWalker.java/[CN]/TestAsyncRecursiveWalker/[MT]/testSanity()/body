@@ -1,0 +1,9 @@
+{
+  final ImmutableMap<String,List<FileStatus>> paths=ImmutableMap.<String,List<FileStatus>>builder().put("/",ImmutableList.of(fileStatus("/a",true),fileStatus("/file1",false))).put("/a",ImmutableList.of(fileStatus("/a/file2",false),fileStatus("/a/file3",false))).build();
+  AsyncRecursiveWalker walker=new AsyncRecursiveWalker(createMockFileSystem(paths),MoreExecutors.sameThreadExecutor());
+  MockFileStatusCallback callback=new MockFileStatusCallback();
+  ListenableFuture<Void> listenableFuture=walker.beginWalk(new Path("/"),callback);
+  Assert.assertTrue(listenableFuture.isDone());
+  Assert.assertEquals(ImmutableSet.copyOf(callback.getProcessedFiles()),ImmutableSet.of("/file1","/a/file2","/a/file3"));
+  listenableFuture.get();
+}

@@ -1,9 +1,9 @@
 {
   List<SchemaField> schema=client.getTableSchema(DATABASE,TABLE);
-  Iterable<List<PartitionChunk>> partitions=client.getPartitionChunks(DATABASE,TABLE,PARTITIONS,Lists.transform(schema,nameGetter()));
-  for (  List<PartitionChunk> chunks : partitions) {
-    assertEquals(chunks.size(),1);
-    HivePartitionChunk chunk=(HivePartitionChunk)chunks.get(0);
+  List<PartitionChunk> partitions=ImmutableList.copyOf(client.getPartitionChunks(DATABASE,TABLE,PARTITIONS,Lists.transform(schema,nameGetter())));
+  assertEquals(partitions.size(),PARTITIONS.size());
+  for (  PartitionChunk partitionChunk : partitions) {
+    HivePartitionChunk chunk=(HivePartitionChunk)partitionChunk;
     byte[] bytes=client.serializePartitionChunk(chunk);
     chunk=(HivePartitionChunk)client.deserializePartitionChunk(bytes);
     Map<String,SchemaField> map=schemaFieldMap(schema);
