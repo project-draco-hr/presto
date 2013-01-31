@@ -1,0 +1,14 @@
+{
+  if (taskOutput == null) {
+    return;
+  }
+  long now=System.nanoTime();
+  long cpuNow=THREAD_MX_BEAN.getCurrentThreadCpuTime();
+  long userNow=THREAD_MX_BEAN.getCurrentThreadUserTime();
+  taskOutput.getStats().addSplitWallTime(new Duration(Math.max(0,now - wallStartTime),TimeUnit.NANOSECONDS));
+  taskOutput.getStats().addSplitCpuTime(new Duration(Math.max(0,cpuNow - cpuStartTime),TimeUnit.NANOSECONDS));
+  taskOutput.getStats().addSplitUserTime(new Duration(Math.max(0,userNow - userStartTime),TimeUnit.NANOSECONDS));
+  wallStartTime=now;
+  cpuStartTime=cpuNow;
+  userStartTime=userNow;
+}
