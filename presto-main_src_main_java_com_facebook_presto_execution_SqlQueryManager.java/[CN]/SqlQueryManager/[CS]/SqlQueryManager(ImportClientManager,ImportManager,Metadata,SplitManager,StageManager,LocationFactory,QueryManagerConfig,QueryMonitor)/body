@@ -1,0 +1,52 @@
+{
+  checkNotNull(importClientManager,"importClientFactory is null");
+  checkNotNull(importManager,"importManager is null");
+  checkNotNull(metadata,"metadata is null");
+  checkNotNull(splitManager,"splitManager is null");
+  checkNotNull(stageManager,"stageManager is null");
+  checkNotNull(locationFactory,"locationFactory is null");
+  checkNotNull(config,"config is null");
+  checkNotNull(queryMonitor,"queryMonitor is null");
+  this.queryExecutor=Executors.newCachedThreadPool(threadsNamed("query-processor-%d"));
+  this.importClientManager=importClientManager;
+  this.importManager=importManager;
+  this.metadata=metadata;
+  this.splitManager=splitManager;
+  this.stageManager=stageManager;
+  this.locationFactory=locationFactory;
+  this.queryMonitor=queryMonitor;
+  this.importsEnabled=config.isImportsEnabled();
+  this.maxQueryAge=config.getMaxQueryAge();
+  this.clientTimeout=config.getClientTimeout();
+  queryManagementExecutor=Executors.newScheduledThreadPool(100,threadsNamed("query-management-%d"));
+  queryManagementExecutor.scheduleAtFixedRate(new Runnable(){
+    @Override public void run(){
+      for (      QueryExecution queryExecution : queries.values()) {
+        try {
+          queryExecution.updateState();
+        }
+ catch (        Throwable e) {
+          log.warn(e,"Error updating state for query %s",queryExecution.getQueryId());
+        }
+      }
+    }
+  }
+,200,200,TimeUnit.MILLISECONDS);
+  queryManagementExecutor.scheduleAtFixedRate(new Runnable(){
+    @Override public void run(){
+      try {
+        removeExpiredQueries();
+      }
+ catch (      Throwable e) {
+        log.warn(e,"Error removing old queries");
+      }
+      try {
+        failAbandonedQueries();
+      }
+ catch (      Throwable e) {
+        log.warn(e,"Error removing old queries");
+      }
+    }
+  }
+,200,200,TimeUnit.MILLISECONDS);
+}

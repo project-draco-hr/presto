@@ -18,15 +18,15 @@
   if (!rightConjuncts.isEmpty()) {
     rightPredicate=ExpressionUtils.and(rightConjuncts);
   }
-  List<Partition> leftPartitions=node.getLeft().accept(this,leftPredicate);
-  List<Partition> rightPartitions=node.getRight().accept(this,rightPredicate);
-  if (!leftPartitions.isEmpty() && !rightPartitions.isEmpty()) {
+  Optional<Iterable<SplitAssignments>> leftSplits=node.getLeft().accept(this,leftPredicate);
+  Optional<Iterable<SplitAssignments>> rightSplits=node.getRight().accept(this,rightPredicate);
+  if (leftSplits.isPresent() && rightSplits.isPresent()) {
     throw new IllegalArgumentException("Both left and right join nodes are partitioned");
   }
-  if (!leftPartitions.isEmpty()) {
-    return leftPartitions;
+  if (leftSplits.isPresent()) {
+    return leftSplits;
   }
  else {
-    return rightPartitions;
+    return rightSplits;
   }
 }

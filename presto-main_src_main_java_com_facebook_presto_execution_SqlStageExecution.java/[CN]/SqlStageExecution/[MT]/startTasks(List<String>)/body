@@ -1,0 +1,61 @@
+{
+  Preconditions.checkState(!Thread.holdsLock(this),"Can not start while holding a lock on this");
+synchronized (this) {
+    if (!stageState.compareAndSet(StageState.PLANNED,StageState.SCHEDULING)) {
+      return;
+    }
+  }
+  List<Partition> partitions;
+  if (!splits.isPresent()) {
+    ArrayList<Node> nodes=new ArrayList<>(nodeManager.getActiveNodes());
+    Preconditions.checkState(!nodes.isEmpty(),"Cluster does not have any active nodes");
+    Collections.shuffle(nodes,random);
+    Node node=nodes.get(0);
+    partitions=ImmutableList.of(new Partition(node,ImmutableList.<PlanFragmentSource>of()));
+  }
+ else {
+    Multimap<Node,Split> nodeSplits=SplitAssignments.balancedNodeAssignment(queryState,splits.get());
+    ImmutableList.Builder<Partition> partitionBuilder=ImmutableList.builder();
+    for (    Entry<Node,Collection<Split>> entry : nodeSplits.asMap().entrySet()) {
+      List<PlanFragmentSource> sources=ImmutableList.copyOf(transform(entry.getValue(),new Function<Split,PlanFragmentSource>(){
+        @Override public PlanFragmentSource apply(        Split split){
+          return new TableScanPlanFragmentSource(split);
+        }
+      }
+));
+      partitionBuilder.add(new Partition(entry.getKey(),sources));
+    }
+    partitions=partitionBuilder.build();
+  }
+  List<String> nodeIds=IterableTransformer.on(partitions).transform(nodeIdentifierGetter()).list();
+  for (  StageExecution subStage : subStages.values()) {
+    subStage.startTasks(nodeIds);
+  }
+  Set<ExchangeNode> exchanges=IterableTransformer.on(plan.getSources()).select(Predicates.instanceOf(ExchangeNode.class)).cast(ExchangeNode.class).set();
+  int nextTaskId=0;
+  for (  Partition partition : partitions) {
+    String nodeIdentifier=partition.getNode().getNodeIdentifier();
+    ImmutableMap.Builder<PlanNodeId,ExchangePlanFragmentSource> exchangeSources=ImmutableMap.builder();
+    for (    ExchangeNode exchange : exchanges) {
+      StageExecution childStage=subStages.get(exchange.getSourceFragmentId());
+      ExchangePlanFragmentSource source=childStage.getExchangeSourceFor(nodeIdentifier);
+      exchangeSources.put(exchange.getId(),source);
+    }
+    String taskId=stageId + '.' + nextTaskId++;
+    RemoteTask task=remoteTaskFactory.createRemoteTask(session,queryId,stageId,taskId,partition.getNode(),plan,partition.getSplits(),exchangeSources.build(),outputIds);
+    tasks.add(task);
+    try {
+      task.start();
+    }
+ catch (    Throwable e) {
+synchronized (this) {
+        failureCauses.add(e);
+        stageState.set(StageState.FAILED);
+      }
+      log.error(e,"Stage %s failed to start",stageId);
+      cancel();
+      throw Throwables.propagate(e);
+    }
+  }
+  stageState.set(StageState.SCHEDULED);
+}

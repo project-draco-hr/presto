@@ -1,0 +1,6 @@
+{
+  String stageId=queryId + "." + nextStageId.getAndIncrement();
+  Map<PlanFragmentId,StageExecution> subStages=IterableTransformer.on(stageExecutionPlan.getSubStages()).uniqueIndex(fragmentIdGetter()).transformValues(stageCreator(nextStageId)).immutableMap();
+  URI stageLocation=locationFactory.createStageLocation(stageId);
+  return stageManager.createStage(session,queryId,stageId,stageLocation,queryState,stageExecutionPlan.getFragment(),stageExecutionPlan.getSplits(),subStages.values());
+}

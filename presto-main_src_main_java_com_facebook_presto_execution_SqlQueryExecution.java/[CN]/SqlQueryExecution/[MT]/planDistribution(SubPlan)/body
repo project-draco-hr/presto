@@ -1,13 +1,13 @@
 {
   Preconditions.checkState(!Thread.holdsLock(this),"Can not perform distributed planning while holding a lock on this");
   long distributedPlanningStart=System.nanoTime();
-  DistributedExecutionPlanner distributedPlanner=new DistributedExecutionPlanner(nodeManager,splitManager,queryState,session);
+  DistributedExecutionPlanner distributedPlanner=new DistributedExecutionPlanner(splitManager,session);
   StageExecutionPlan outputStageExecutionPlan=distributedPlanner.plan(subplan);
 synchronized (this) {
     QueryState queryState=this.queryState.get();
     Preconditions.checkState(queryState == QueryState.PLANNING,"Expected query to be in state %s but was in state %s",QueryState.PLANNING,queryState);
     fieldNames.set(ImmutableList.copyOf(outputStageExecutionPlan.getFieldNames()));
-    StageExecution outputStage=createStage(new AtomicInteger(),outputStageExecutionPlan,ImmutableList.of(ROOT_OUTPUT_BUFFER_NAME));
+    StageExecution outputStage=createStage(new AtomicInteger(),outputStageExecutionPlan);
     this.outputStage.set(outputStage);
   }
   queryStats.recordDistributedPlanningTime(distributedPlanningStart);
