@@ -1,0 +1,14 @@
+{
+  checkNotNull(query,"query is null");
+  URI uri=uriInfo.getRequestUriBuilder().replacePath("/").replaceQuery("").build();
+  ClientSession session=new ClientSession(uri,user,catalog,schema,false);
+  HttpQueryClient queryClient=new HttpQueryClient(session,query,httpClient,executor,queryInfoCodec,taskInfoCodec);
+  QueryInfo queryInfo=waitForResults(queryClient);
+  Operator operator=queryClient.getResultsOperator();
+  List<String> fieldNames=ImmutableList.copyOf(queryInfo.getFieldNames());
+  List<TupleInfo.Type> fieldTypes=getFieldTypes(operator.getTupleInfos());
+  List<Column> columns=createColumnList(fieldNames,fieldTypes);
+  ResultsIterator resultsIterator=new ResultsIterator(operator);
+  QueryResults results=new QueryResults(columns,resultsIterator);
+  return Response.ok(results,MediaType.APPLICATION_JSON_TYPE).build();
+}
