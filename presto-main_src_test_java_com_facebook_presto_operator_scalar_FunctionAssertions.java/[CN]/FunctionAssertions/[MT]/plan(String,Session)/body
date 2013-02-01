@@ -6,11 +6,11 @@
   PlanNode plan=new LogicalPlanner(session,METADATA,idAllocator).plan(analysis);
   SubPlan subplan=new DistributedLogicalPlanner(METADATA,idAllocator).createSubplans(plan,analysis.getSymbolAllocator(),true);
   assertTrue(subplan.getChildren().isEmpty(),"Expected subplan to have no children");
-  ImmutableMap.Builder<TableHandle,TableScanPlanFragmentSource> builder=ImmutableMap.builder();
+  ImmutableMap.Builder<PlanNodeId,TableScanPlanFragmentSource> builder=ImmutableMap.builder();
   for (  PlanNode source : subplan.getFragment().getSources()) {
     TableScanNode tableScan=(TableScanNode)source;
     InternalTableHandle handle=(InternalTableHandle)tableScan.getTable();
-    builder.put(handle,new TableScanPlanFragmentSource(new InternalSplit(handle)));
+    builder.put(tableScan.getId(),new TableScanPlanFragmentSource(new InternalSplit(handle)));
   }
   DataSize maxOperatorMemoryUsage=new DataSize(50,MEGABYTE);
   LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(session,METADATA,new HackPlanFragmentSourceProvider(DATA_PROVIDER,null,TASK_INFO_CODEC),analysis.getTypes(),null,builder.build(),ImmutableMap.<PlanNodeId,ExchangePlanFragmentSource>of(),new OperatorStats(),new SourceHashProviderFactory(maxOperatorMemoryUsage),maxOperatorMemoryUsage);
