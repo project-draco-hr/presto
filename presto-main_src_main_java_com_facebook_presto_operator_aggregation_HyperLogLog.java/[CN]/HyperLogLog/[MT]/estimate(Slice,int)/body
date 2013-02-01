@@ -1,0 +1,16 @@
+{
+  double currentSum=0;
+  int zeroBuckets=0;
+  for (int bucket=0; bucket < numberOfBuckets; bucket++) {
+    int value=slice.getByte(offset + bucket);
+    if (value == 0) {
+      zeroBuckets++;
+    }
+    currentSum+=1.0 / (1L << value);
+  }
+  double result=numberOfBuckets * numberOfBuckets * alpha / currentSum;
+  if (zeroBuckets > 0.03 * numberOfBuckets) {
+    result=numberOfBuckets * Math.log(numberOfBuckets * 1.0 / zeroBuckets);
+  }
+  return Math.round(result);
+}
