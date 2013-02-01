@@ -3,9 +3,10 @@
   Session session=new Session(null,TpchSchema.CATALOG_NAME,TpchSchema.SCHEMA_NAME);
   Analyzer analyzer=new Analyzer(session,metadata);
   AnalysisResult analysis=analyzer.analyze(statement);
-  PlanNode plan=new LogicalPlanner(session,metadata).plan(analysis);
+  PlanNodeIdAllocator idAllocator=new PlanNodeIdAllocator();
+  PlanNode plan=new LogicalPlanner(session,metadata,idAllocator).plan(analysis);
   new PlanPrinter().print(plan,analysis.getTypes());
-  SubPlan subplan=new DistributedLogicalPlanner(metadata).createSubplans(plan,analysis.getSymbolAllocator(),true);
+  SubPlan subplan=new DistributedLogicalPlanner(metadata,idAllocator).createSubplans(plan,analysis.getSymbolAllocator(),true);
   assertTrue(subplan.getChildren().isEmpty(),"Expected subplan to have no children");
   ImmutableMap.Builder<TableHandle,TableScanPlanFragmentSource> builder=ImmutableMap.builder();
   for (  PlanNode source : subplan.getFragment().getSources()) {
@@ -14,7 +15,7 @@
     builder.put(handle,new TableScanPlanFragmentSource(new TpchSplit(handle)));
   }
   DataSize maxOperatorMemoryUsage=new DataSize(50,MEGABYTE);
-  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(session,metadata,new HackPlanFragmentSourceProvider(dataProvider,null,TASK_INFO_CODEC),analysis.getTypes(),null,builder.build(),ImmutableMap.<String,ExchangePlanFragmentSource>of(),new OperatorStats(),new SourceHashProviderFactory(maxOperatorMemoryUsage),maxOperatorMemoryUsage);
+  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(session,metadata,new HackPlanFragmentSourceProvider(dataProvider,null,TASK_INFO_CODEC),analysis.getTypes(),null,builder.build(),ImmutableMap.<PlanNodeId,ExchangePlanFragmentSource>of(),new OperatorStats(),new SourceHashProviderFactory(maxOperatorMemoryUsage),maxOperatorMemoryUsage);
   Operator operator=executionPlanner.plan(plan);
   return new FilterAndProjectOperator(operator,FilterFunctions.TRUE_FUNCTION,new Concat(operator.getTupleInfos()));
 }

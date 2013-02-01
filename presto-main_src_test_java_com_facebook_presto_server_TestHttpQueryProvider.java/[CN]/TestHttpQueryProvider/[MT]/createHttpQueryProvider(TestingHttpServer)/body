@@ -1,7 +1,7 @@
 {
-  PlanFragment planFragment=new PlanFragment(32,false,ImmutableMap.<Symbol,Type>of(),new ExchangeNode(22,ImmutableList.<Symbol>of()));
+  PlanFragment planFragment=new PlanFragment(32,false,ImmutableMap.<Symbol,Type>of(),new ExchangeNode(new PlanNodeId("1"),22,ImmutableList.<Symbol>of()));
   Session session=new Session(null,DEFAULT_CATALOG,DEFAULT_SCHEMA);
-  QueryFragmentRequest fragmentRequest=new QueryFragmentRequest(session,"queryId","stageId",planFragment,ImmutableList.<PlanFragmentSource>of(),ImmutableMap.<String,ExchangePlanFragmentSource>of(),ImmutableList.of("out"));
+  QueryFragmentRequest fragmentRequest=new QueryFragmentRequest(session,"queryId","stageId",planFragment,ImmutableList.<PlanFragmentSource>of(),ImmutableMap.<PlanNodeId,ExchangePlanFragmentSource>of(),ImmutableList.of("out"));
   Request request=preparePut().setUri(httpServer.getBaseUrl().resolve("/v1/task/foo-" + httpServer.getPort())).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON).setBodyGenerator(jsonBodyGenerator(jsonCodec(QueryFragmentRequest.class),fragmentRequest)).build();
   JsonResponse<TaskInfo> response=httpClient.execute(request,createFullJsonResponseHandler(jsonCodec(TaskInfo.class)));
   Preconditions.checkState(response.getStatusCode() == 201,"Expected response code from %s to be 201, but was %s: %s",request.getUri(),response.getStatusCode(),response.getStatusMessage());

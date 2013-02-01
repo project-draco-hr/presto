@@ -1,7 +1,7 @@
 {
   SubPlanBuilder current=node.getSource().accept(this,context);
   if (!current.isPartitioned()) {
-    current.setRoot(new AggregationNode(current.getRoot(),node.getGroupBy(),node.getAggregations(),node.getFunctions(),SINGLE));
+    current.setRoot(new AggregationNode(node.getId(),current.getRoot(),node.getGroupBy(),node.getAggregations(),node.getFunctions(),SINGLE));
     return current;
   }
   Map<Symbol,FunctionCall> finalCalls=new HashMap<>();
@@ -15,9 +15,9 @@
     intermediateFunctions.put(intermediateSymbol,functionHandle);
     finalCalls.put(entry.getKey(),new FunctionCall(function.getName(),ImmutableList.<Expression>of(new QualifiedNameReference(intermediateSymbol.toQualifiedName()))));
   }
-  AggregationNode aggregation=new AggregationNode(current.getRoot(),node.getGroupBy(),intermediateCalls,intermediateFunctions,PARTIAL);
-  current.setRoot(new SinkNode(current.getId(),aggregation));
-  ExchangeNode source=new ExchangeNode(current.getId(),current.getRoot().getOutputSymbols());
-  AggregationNode merged=new AggregationNode(source,node.getGroupBy(),finalCalls,node.getFunctions(),FINAL);
+  AggregationNode aggregation=new AggregationNode(idAllocator.getNextId(),current.getRoot(),node.getGroupBy(),intermediateCalls,intermediateFunctions,PARTIAL);
+  current.setRoot(new SinkNode(idAllocator.getNextId(),aggregation));
+  ExchangeNode source=new ExchangeNode(idAllocator.getNextId(),current.getId(),current.getRoot().getOutputSymbols());
+  AggregationNode merged=new AggregationNode(idAllocator.getNextId(),source,node.getGroupBy(),finalCalls,node.getFunctions(),FINAL);
   return newSubPlan(merged).setPartitioned(false).addChild(current.build());
 }
