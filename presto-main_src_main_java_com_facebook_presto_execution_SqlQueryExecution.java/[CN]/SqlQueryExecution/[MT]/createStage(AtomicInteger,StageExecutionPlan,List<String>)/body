@@ -1,7 +1,7 @@
 {
   String stageId=queryId + "." + nextStageId.getAndIncrement();
   Set<ExchangeNode> exchanges=IterableTransformer.on(stageExecutionPlan.getFragment().getSources()).select(Predicates.instanceOf(ExchangeNode.class)).cast(ExchangeNode.class).set();
-  Map<String,StageExecution> subStages=IterableTransformer.on(stageExecutionPlan.getSubStages()).uniqueIndex(fragmentIdGetter()).transformValues(stageCreator(nextStageId,stageExecutionPlan.getPartitions())).immutableMap();
+  Map<PlanFragmentId,StageExecution> subStages=IterableTransformer.on(stageExecutionPlan.getSubStages()).uniqueIndex(fragmentIdGetter()).transformValues(stageCreator(nextStageId,stageExecutionPlan.getPartitions())).immutableMap();
   URI stageLocation=locationFactory.createStageLocation(stageId);
   int taskId=0;
   ImmutableList.Builder<RemoteTask> tasks=ImmutableList.builder();
@@ -9,7 +9,7 @@
     String nodeIdentifier=partition.getNode().getNodeIdentifier();
     ImmutableMap.Builder<PlanNodeId,ExchangePlanFragmentSource> exchangeSources=ImmutableMap.builder();
     for (    ExchangeNode exchange : exchanges) {
-      StageExecution childStage=subStages.get(String.valueOf(exchange.getSourceFragmentId()));
+      StageExecution childStage=subStages.get(exchange.getSourceFragmentId());
       ExchangePlanFragmentSource source=childStage.getExchangeSourceFor(nodeIdentifier);
       exchangeSources.put(exchange.getId(),source);
     }
