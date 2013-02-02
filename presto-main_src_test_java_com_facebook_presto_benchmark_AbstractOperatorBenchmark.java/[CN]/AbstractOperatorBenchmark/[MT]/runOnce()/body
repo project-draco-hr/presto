@@ -1,17 +1,16 @@
 {
-  long start=System.nanoTime();
+  CpuTimer cpuTimer=new CpuTimer();
   StatsTpchBlocksProvider statsTpchBlocksProvider=new StatsTpchBlocksProvider(TPCH_DATA_PROVIDER);
   MetricRecordingTpchBlocksProvider metricRecordingTpchBlocksProvider=new MetricRecordingTpchBlocksProvider(statsTpchBlocksProvider);
-  long outputRows=execute(metricRecordingTpchBlocksProvider);
-  Duration totalDuration=Duration.nanosSince(start);
-  Duration dataGenerationDuration=metricRecordingTpchBlocksProvider.getDataFetchElapsedTime();
-  checkState(totalDuration.compareTo(dataGenerationDuration) >= 0,"total time should be at least as large as data generation time");
-  double totalElapsedMillis=totalDuration.convertTo(TimeUnit.MILLISECONDS);
-  double dataGenerationElapsedMillis=dataGenerationDuration.toMillis();
-  double executionMillis=totalElapsedMillis - dataGenerationElapsedMillis;
-  double executionSeconds=executionMillis / TimeUnit.SECONDS.toMillis(1);
-  DataSize totalDataSize=metricRecordingTpchBlocksProvider.getCumulativeDataSize();
+  long[] outputData=execute(metricRecordingTpchBlocksProvider);
+  long outputRows=outputData[0];
+  long outputBytes=outputData[1];
+  CpuDuration totalTime=cpuTimer.elapsedTime();
+  CpuDuration dataGenerationCpuDuration=metricRecordingTpchBlocksProvider.getDataFetchCpuDuration();
+  checkState(totalTime.getWall().compareTo(dataGenerationCpuDuration.getWall()) >= 0,"total time should be at least as large as data generation time");
   checkState(!statsTpchBlocksProvider.getStats().isEmpty(),"no columns were fetched");
+  CpuDuration executionTime=totalTime.subtract(dataGenerationCpuDuration);
+  DataSize inputSize=metricRecordingTpchBlocksProvider.getCumulativeDataSize();
   long inputRows=statsTpchBlocksProvider.getStats().get(0).getRowCount();
-  return ImmutableMap.<String,Long>builder().put("elapsed_millis",(long)executionMillis).put("input_rows",inputRows).put("input_rows_per_second",(long)(inputRows / executionSeconds)).put("output_rows",outputRows).put("output_rows_per_second",(long)(outputRows / executionSeconds)).put("input_megabytes",(long)totalDataSize.getValue(DataSize.Unit.MEGABYTE)).put("input_megabytes_per_second",(long)(totalDataSize.getValue(DataSize.Unit.MEGABYTE) / executionSeconds)).build();
+  return ImmutableMap.<String,Long>builder().put("elapsed_millis",(long)executionTime.getWall().toMillis()).put("input_rows_per_second",(long)(inputRows / executionTime.getWall().convertTo(SECONDS))).put("output_rows_per_second",(long)(outputRows / executionTime.getWall().convertTo(SECONDS))).put("input_megabytes",(long)inputSize.getValue(MEGABYTE)).put("input_megabytes_per_second",(long)(inputSize.getValue(MEGABYTE) / executionTime.getWall().convertTo(SECONDS))).put("wall_nanos",(long)executionTime.getWall().convertTo(NANOSECONDS)).put("cpu_nanos",(long)executionTime.getCpu().convertTo(NANOSECONDS)).put("user_nanos",(long)executionTime.getUser().convertTo(NANOSECONDS)).put("input_rows",inputRows).put("input_bytes",inputSize.toBytes()).put("output_rows",outputRows).put("output_bytes",outputBytes).build();
 }
