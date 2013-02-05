@@ -1,0 +1,12 @@
+{
+  ConfigurationFactory configurationFactory=new ConfigurationFactory(properties);
+  for (  Module module : modules) {
+    if (module instanceof ConfigurationAwareModule) {
+      ((ConfigurationAwareModule)module).setConfigurationFactory(configurationFactory);
+    }
+  }
+  ImmutableList.Builder<Module> moduleList=ImmutableList.builder();
+  moduleList.add(new ConfigurationModule(configurationFactory));
+  moduleList.add(modules);
+  return Guice.createInjector(Stage.DEVELOPMENT,moduleList.build());
+}

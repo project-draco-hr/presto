@@ -1,0 +1,17 @@
+{
+  ClientSession session=new ClientSession(coordinator.getBaseUrl(),"testuser","default","default",true);
+  try (HttpQueryClient client=new HttpQueryClient(session,sql,httpClient,queryInfoCodec)){
+    while (true) {
+      QueryInfo queryInfo=client.getQueryInfo(false);
+      QueryState state=queryInfo.getState();
+      if (state == QueryState.FAILED) {
+        throw Iterables.getFirst(queryInfo.getFailures(),null).toException();
+      }
+ else       if (state == QueryState.RUNNING || state.isDone()) {
+        break;
+      }
+      Uninterruptibles.sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
+    }
+    return materialize(client.getResultsOperator());
+  }
+ }
