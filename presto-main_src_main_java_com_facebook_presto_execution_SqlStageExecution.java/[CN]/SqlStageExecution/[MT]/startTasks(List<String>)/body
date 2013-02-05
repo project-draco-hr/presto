@@ -42,10 +42,15 @@ synchronized (this) {
       exchangeSources.put(exchange.getId(),source);
     }
     String taskId=stageId + '.' + nextTaskId++;
-    RemoteTask task=remoteTaskFactory.createRemoteTask(session,queryId,stageId,taskId,partition.getNode(),plan,partition.getSplits(),exchangeSources.build(),outputIds);
+    RemoteTask task=remoteTaskFactory.createRemoteTask(session,queryId,stageId,taskId,partition.getNode(),plan,exchangeSources.build(),outputIds);
     tasks.add(task);
     try {
       task.start();
+      for (      PlanFragmentSource source : partition.getSplits()) {
+        TableScanPlanFragmentSource tableScanSource=(TableScanPlanFragmentSource)source;
+        task.addSource(plan.getPartitionedSource(),tableScanSource.getSplit());
+      }
+      task.noMoreSources();
     }
  catch (    Throwable e) {
 synchronized (this) {
