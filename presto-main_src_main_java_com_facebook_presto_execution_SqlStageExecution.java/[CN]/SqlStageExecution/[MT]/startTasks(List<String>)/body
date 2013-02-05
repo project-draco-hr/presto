@@ -35,14 +35,14 @@ synchronized (this) {
   int nextTaskId=0;
   for (  Partition partition : partitions) {
     String nodeIdentifier=partition.getNode().getNodeIdentifier();
-    ImmutableMap.Builder<PlanNodeId,ExchangePlanFragmentSource> exchangeSources=ImmutableMap.builder();
+    ImmutableMap.Builder<PlanNodeId,PlanFragmentSource> fixedSources=ImmutableMap.builder();
     for (    ExchangeNode exchange : exchanges) {
       StageExecution childStage=subStages.get(exchange.getSourceFragmentId());
       ExchangePlanFragmentSource source=childStage.getExchangeSourceFor(nodeIdentifier);
-      exchangeSources.put(exchange.getId(),source);
+      fixedSources.put(exchange.getId(),source);
     }
     String taskId=stageId + '.' + nextTaskId++;
-    RemoteTask task=remoteTaskFactory.createRemoteTask(session,queryId,stageId,taskId,partition.getNode(),plan,exchangeSources.build(),outputIds);
+    RemoteTask task=remoteTaskFactory.createRemoteTask(session,queryId,stageId,taskId,partition.getNode(),plan,fixedSources.build(),outputIds);
     tasks.add(task);
     try {
       task.start();
