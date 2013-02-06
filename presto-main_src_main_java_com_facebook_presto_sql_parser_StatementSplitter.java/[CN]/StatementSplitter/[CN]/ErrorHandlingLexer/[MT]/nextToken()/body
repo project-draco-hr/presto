@@ -1,0 +1,32 @@
+{
+  while (true) {
+    state.token=null;
+    state.channel=Token.DEFAULT_CHANNEL;
+    state.tokenStartCharIndex=input.index();
+    state.tokenStartCharPositionInLine=input.getCharPositionInLine();
+    state.tokenStartLine=input.getLine();
+    state.text=null;
+    if (input.LA(1) == CharStream.EOF) {
+      Token eof=new CommonToken(input,Token.EOF,Token.DEFAULT_CHANNEL,input.index(),input.index());
+      eof.setLine(getLine());
+      eof.setCharPositionInLine(getCharPositionInLine());
+      return eof;
+    }
+    try {
+      mTokens();
+      if (state.token == null) {
+        emit();
+      }
+ else       if (state.token == Token.SKIP_TOKEN) {
+        continue;
+      }
+      return state.token;
+    }
+ catch (    RecognitionException re) {
+      input.consume();
+      state.type=LEXER_ERROR;
+      emit();
+      return state.token;
+    }
+  }
+}
