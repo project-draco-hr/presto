@@ -1,8 +1,9 @@
 {
   Preconditions.checkNotNull(outputId,"outputId is null");
-  ImmutableMap.Builder<String,URI> sources=ImmutableMap.builder();
+  ImmutableList.Builder<URI> sources=ImmutableList.builder();
   for (  RemoteTask task : tasks) {
-    sources.put(task.getTaskId(),task.getTaskInfo().getSelf());
+    URI location=uriBuilderFrom(task.getTaskInfo().getSelf()).appendPath("results").appendPath(outputId).build();
+    sources.add(location);
   }
-  return new ExchangePlanFragmentSource(sources.build(),outputId,tupleInfos);
+  return new ExchangePlanFragmentSource(sources.build(),tupleInfos);
 }
