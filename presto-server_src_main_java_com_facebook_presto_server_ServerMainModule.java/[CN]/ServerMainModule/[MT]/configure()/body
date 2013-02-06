@@ -61,7 +61,7 @@
   if (coordinatorProperty == null || Boolean.parseBoolean(coordinatorProperty)) {
     discoveryBinder(binder).bindHttpAnnouncement("presto-coordinator");
   }
-  bindDataSource("presto-metastore",ForMetadata.class,ForShardManager.class);
+  bindDataSource("presto-metastore",ForMetadata.class,ForShardManager.class,ForPeriodicImport.class);
   jsonCodecBinder(binder).bindJsonCodec(QueryInfo.class);
   jsonCodecBinder(binder).bindJsonCodec(TaskInfo.class);
   binder.bind(ExecuteResource.class).in(Scopes.SINGLETON);
@@ -69,4 +69,11 @@
   binder.install(new TableHandleModule());
   binder.bind(PluginManager.class).in(Scopes.SINGLETON);
   bindConfig(binder).to(PluginManagerConfig.class);
+  bindConfig(binder).to(PeriodicImportConfig.class);
+  binder.bind(PeriodicImportJobResource.class).in(Scopes.SINGLETON);
+  binder.bind(PeriodicImportManager.class).in(Scopes.SINGLETON);
+  binder.bind(PeriodicImportController.class).in(Scopes.SINGLETON);
+  binder.bind(JobStateFactory.class).in(Scopes.SINGLETON);
+  binder.bind(PeriodicImportRunnable.PeriodicImportRunnableFactory.class).in(Scopes.SINGLETON);
+  ExportBinder.newExporter(binder).export(PeriodicImportController.class).as("com.facebook.presto:name=periodic-import");
 }

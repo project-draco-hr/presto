@@ -22,15 +22,20 @@
   log.info("Repairing %d failed partitions from before: table %d",repairPartitions.size(),tableId);
   Set<String> partitionsToAdd=Sets.difference(activePartitions,allPartitions);
   Set<String> partitionsToRemove=Sets.difference(allPartitions,activePartitions);
+  ImmutableSet.Builder<ListenableFuture<?>> builder=ImmutableSet.builder();
   for (  String partition : Iterables.concat(partitionsToRemove,repairPartitions)) {
-    partitionBoundedExecutor.execute(PartitionMarker.from(tableId,partition),new PartitionDropJob(tableId,partition));
+    ListenableFutureTask<Void> dropFuture=ListenableFutureTask.create(new PartitionDropJob(tableId,partition),null);
+    builder.add(dropFuture);
+    partitionBoundedExecutor.execute(PartitionMarker.from(tableId,partition),dropFuture);
   }
   log.info("Dropping %d old partitions: table %d",partitionsToRemove.size(),tableId);
-  List<String> columns=transform(transform(fields,sourceColumnHandleGetter()),columnNameGetter());
+  List<String> columns=transform(fields,compose(columnNameGetter(),sourceColumnHandleGetter()));
   for (  String partition : Iterables.concat(partitionsToAdd,repairPartitions)) {
     PartitionChunkSupplier supplier=new PartitionChunkSupplier(importClientManager,sourceName,databaseName,tableName,partition,columns);
-    PartitionImportJob importJob=new PartitionImportJob(tableId,sourceName,partition,supplier,fields);
+    ListenableFutureTask<Void> importJob=ListenableFutureTask.create(new PartitionImportJob(tableId,sourceName,partition,supplier,fields),null);
+    builder.add(importJob);
     partitionBoundedExecutor.execute(PartitionMarker.from(tableId,partition),importJob);
   }
   log.info("Loading %d new partitions: table %d",partitionsToAdd.size(),tableId);
+  return Futures.allAsList(builder.build());
 }

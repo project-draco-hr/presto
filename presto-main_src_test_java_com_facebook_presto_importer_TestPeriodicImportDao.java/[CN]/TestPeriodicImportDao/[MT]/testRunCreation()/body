@@ -1,0 +1,23 @@
+{
+  createTables(dao);
+  createDummyJobs(dao);
+  String nodeId=UUID.randomUUID().toString();
+  long runId=dao.beginRun(1,nodeId);
+  assertEquals(runId,1);
+  assertEquals(dao.getJobsStarted().size(),1);
+  assertEquals(dao.getJobsFinished(true).size(),0);
+  assertEquals(dao.getJobsFinished(false).size(),0);
+  dao.finishRun(1,true);
+  assertEquals(dao.getJobsStarted().size(),0);
+  assertEquals(dao.getJobsFinished(true).size(),1);
+  assertEquals(dao.getJobsFinished(false).size(),0);
+  runId=dao.beginRun(2,nodeId);
+  assertEquals(runId,2);
+  assertEquals(dao.getJobsStarted().size(),1);
+  assertEquals(dao.getJobsFinished(true).size(),1);
+  assertEquals(dao.getJobsFinished(false).size(),0);
+  dao.finishRun(2,false);
+  assertEquals(dao.getJobsStarted().size(),0);
+  assertEquals(dao.getJobsFinished(true).size(),1);
+  assertEquals(dao.getJobsFinished(false).size(),1);
+}
