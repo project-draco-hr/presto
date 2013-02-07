@@ -1,0 +1,28 @@
+{
+  withKeepalive(new Callable<Void>(){
+    @Override public Void call() throws Exception {
+      try (OutputStreamWriter osw=new OutputStreamWriter(out)){
+        OutputHandler handler;
+switch (outputFormat) {
+case CSV:
+case CSV_HEADER:
+          handler=new CSVPrinter(osw,',');
+        break;
+case TSV:
+case TSV_HEADER:
+      handler=new CSVPrinter(osw,'\t');
+    break;
+default :
+  throw new RuntimeException(outputFormat + " not supported.");
+}
+if (outputFormat == CSV_HEADER || outputFormat == TSV_HEADER) {
+handler.processRow(fieldNames);
+}
+processOutput(operator,handler);
+osw.flush();
+}
+ return null;
+}
+}
+);
+}

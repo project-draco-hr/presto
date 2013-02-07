@@ -1,0 +1,18 @@
+{
+  ScheduledExecutorService executor=newSingleThreadScheduledExecutor();
+  executor.scheduleAtFixedRate(new Runnable(){
+    @Override public void run(){
+      queryClient.getQueryInfo(false);
+    }
+  }
+,0,(long)PING_INTERVAL.toMillis(),MILLISECONDS);
+  try {
+    return callable.call();
+  }
+ catch (  Exception e) {
+    throw propagate(e);
+  }
+ finally {
+    executor.shutdown();
+  }
+}

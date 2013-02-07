@@ -1,0 +1,58 @@
+{
+  StatusPrinter statusPrinter=null;
+  @SuppressWarnings("resource") PrintStream errorChannel=(outputFormat == PAGED) ? out : System.err;
+  if (outputFormat == PAGED) {
+    statusPrinter=new StatusPrinter(queryClient,out);
+    statusPrinter.printInitialStatusUpdates();
+  }
+ else {
+    while (true) {
+      try {
+        QueryInfo queryInfo=queryClient.getQueryInfo(false);
+        if ((queryInfo == null) || queryInfo.getState().isDone()) {
+          break;
+        }
+        if (queryInfo.resultsPending()) {
+          break;
+        }
+        Uninterruptibles.sleepUninterruptibly(100,MILLISECONDS);
+      }
+ catch (      Exception e) {
+        throw propagate(e);
+      }
+    }
+  }
+  QueryInfo queryInfo=queryClient.getQueryInfo(false);
+  if (queryInfo == null) {
+    if (queryClient.isCanceled()) {
+      errorChannel.println("Query aborted by user");
+    }
+ else {
+      errorChannel.println("Query is gone (server restarted?)");
+    }
+    return;
+  }
+  if (queryInfo.getState().isDone()) {
+switch (queryInfo.getState()) {
+case CANCELED:
+      errorChannel.printf("Query %s was canceled\n",queryInfo.getQueryId());
+    return;
+case FAILED:
+  renderFailure(queryInfo,errorChannel);
+return;
+}
+}
+Operator operator=queryClient.getResultsOperator();
+List<String> fieldNames=queryInfo.getFieldNames();
+switch (outputFormat) {
+case PAGED:
+pageOutput(Pager.LESS,operator,fieldNames);
+break;
+default :
+sendOutput(out,outputFormat,operator,fieldNames);
+break;
+}
+if (outputFormat == PAGED) {
+statusPrinter.printFinalInfo();
+}
+}

@@ -1,18 +1,14 @@
 {
   ignoreUserInterrupt.set(true);
-  ScheduledExecutorService executor=newSingleThreadScheduledExecutor();
-  executor.scheduleAtFixedRate(new Runnable(){
-    @Override public void run(){
-      queryClient.getQueryInfo(false);
+  withKeepalive(new Callable<Void>(){
+    @Override public Void call() throws Exception {
+      try (Pager pager=Pager.create(pagerCommand)){
+        @SuppressWarnings("IOResourceOpenedButNotSafelyClosed") OutputStreamWriter writer=new OutputStreamWriter(pager,Charsets.UTF_8);
+        OutputHandler outputHandler=new AlignedTuplePrinter(fieldNames,writer);
+        processOutput(operator,outputHandler);
+      }
+       return null;
     }
   }
-,0,(long)PING_INTERVAL.toMillis(),MILLISECONDS);
-  try (Pager pager=Pager.create(pagerCommand)){
-    @SuppressWarnings("IOResourceOpenedButNotSafelyClosed") OutputStreamWriter writer=new OutputStreamWriter(pager,Charsets.UTF_8);
-    OutputHandler outputHandler=new AlignedTuplePrinter(fieldNames,writer);
-    processOutput(operator,outputHandler);
-  }
-  finally {
-    executor.shutdown();
-  }
+);
 }
