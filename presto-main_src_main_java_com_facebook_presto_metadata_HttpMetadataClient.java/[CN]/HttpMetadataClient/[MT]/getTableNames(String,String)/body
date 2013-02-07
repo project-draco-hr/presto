@@ -1,0 +1,11 @@
+{
+  Request.Builder requestBuilder=prepareGet().setUri(HttpUriBuilder.uriBuilderFrom(queryUri).appendPath(catalogName).appendPath(schemaName).build());
+  Request request=requestBuilder.build();
+  try {
+    JsonResponse<Map<String,List<String>>> response=httpClient.execute(request,createFullJsonResponseHandler(metadataResponseCodec));
+    return response.getStatusCode() == 200 ? firstNonNull(response.getValue().get("tableNames"),Collections.<String>emptyList()) : Collections.<String>emptyList();
+  }
+ catch (  Exception e) {
+    return Collections.emptyList();
+  }
+}

@@ -1,0 +1,30 @@
+{
+  if (cursor <= 0) {
+    return cursor;
+  }
+  int blankPos=findLastBlank(buffer.substring(0,cursor));
+  String prefix=buffer.substring(blankPos + 1,cursor);
+  List<String> completion=ImmutableList.copyOf(Splitter.on('.').limit(3).split(prefix));
+  int len=0;
+  SortedSet<String> sortedCandidates=new TreeSet<>();
+switch (completion.size()) {
+case 0:
+    break;
+case 1:
+  loadTableNames(sortedCandidates,clientSession.getCatalog(),clientSession.getSchema(),completion.get(0));
+loadSchemaNames(sortedCandidates,clientSession.getCatalog(),completion.get(0));
+break;
+case 2:
+len+=completion.get(0).length() + 1;
+loadSchemaNames(sortedCandidates,completion.get(0),completion.get(1));
+loadTableNames(sortedCandidates,clientSession.getCatalog(),completion.get(0),completion.get(1));
+break;
+default :
+len+=completion.get(0).length() + 1;
+len+=completion.get(1).length() + 1;
+loadTableNames(sortedCandidates,completion.get(0),completion.get(1),completion.get(2));
+break;
+}
+candidates.addAll(sortedCandidates);
+return blankPos + len + 1;
+}
