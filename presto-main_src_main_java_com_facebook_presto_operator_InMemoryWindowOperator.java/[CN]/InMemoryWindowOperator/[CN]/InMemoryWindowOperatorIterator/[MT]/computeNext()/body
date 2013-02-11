@@ -1,0 +1,37 @@
+{
+  if (pageIndex == null) {
+    pageIndex=new PagesIndex(source,expectedPositions,maxSize);
+    int[] orderFields=Ints.concat(partitionFields,sortFields);
+    boolean[] partitionOrder=new boolean[partitionFields.length];
+    Arrays.fill(partitionOrder,true);
+    boolean[] ordering=Booleans.concat(partitionOrder,sortOrder);
+    pageIndex.sort(orderByChannel,orderFields,ordering);
+    ChannelIndex index=pageIndex.getIndex(orderByChannel);
+    partitionComparator=new MultiSliceFieldOrderedTupleComparator(partitionFields,partitionOrder,index);
+  }
+  if (currentPosition >= pageIndex.getPositionCount()) {
+    return endOfData();
+  }
+  PageBuilder pageBuilder=new PageBuilder(getTupleInfos());
+  while ((!pageBuilder.isFull()) && (currentPosition < pageIndex.getPositionCount())) {
+    if ((currentPosition == 0) || (partitionComparator.compare(currentPosition - 1,currentPosition) != 0)) {
+      for (      WindowFunction function : windowFunctions) {
+        function.reset();
+      }
+    }
+    int channel=0;
+    while (channel < outputChannels.length) {
+      pageIndex.appendTupleTo(outputChannels[channel],currentPosition,pageBuilder.getBlockBuilder(channel));
+      channel++;
+    }
+    for (    WindowFunction function : windowFunctions) {
+      function.processRow(pageBuilder.getBlockBuilder(channel));
+      channel++;
+    }
+    currentPosition++;
+  }
+  if (pageBuilder.isEmpty()) {
+    return endOfData();
+  }
+  return pageBuilder.build();
+}
