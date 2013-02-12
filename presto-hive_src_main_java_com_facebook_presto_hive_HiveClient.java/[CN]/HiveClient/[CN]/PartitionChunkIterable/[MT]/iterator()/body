@@ -6,8 +6,18 @@
     for (    Partition partition : partitions) {
       final Properties schema=MetaStoreUtils.getSchema(partition,table);
       final List<HivePartitionKey> partitionKeys=getPartitionKeys(table,partition);
-      final InputFormat inputFormat=getInputFormat(schema);
+      final InputFormat inputFormat=getInputFormat(schema,false);
       Path partitionPath=new CachingPath(partition.getSd().getLocation());
+      if (inputFormat instanceof SymlinkTextInputFormat) {
+        JobConf jobConf=new JobConf(HADOOP_CONFIGURATION.get());
+        FileInputFormat.setInputPaths(jobConf,partitionPath);
+        InputSplit[] splits=inputFormat.getSplits(jobConf,0);
+        for (        InputSplit rawSplit : splits) {
+          FileSplit split=((SymlinkTextInputSplit)rawSplit).getTargetSplit();
+          partitionChunkQueue.addToQueue(new HivePartitionChunk(split.getPath(),split.getStart(),split.getLength(),schema,partitionKeys,columns));
+        }
+        continue;
+      }
       FileSystem fs=partitionPath.getFileSystem(HADOOP_CONFIGURATION.get());
       futureBuilder.add(new AsyncRecursiveWalker(fs,suspendingExecutor).beginWalk(partitionPath,new FileStatusCallback(){
         @Override public void process(        FileStatus file){
