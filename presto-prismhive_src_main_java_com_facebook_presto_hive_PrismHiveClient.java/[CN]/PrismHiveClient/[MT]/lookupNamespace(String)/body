@@ -1,0 +1,14 @@
+{
+  try {
+    return namespaceCache.get(namespace,new Callable<HiveNamespace>(){
+      @Override public HiveNamespace call() throws Exception {
+        return readNamespaceData(namespace);
+      }
+    }
+);
+  }
+ catch (  ExecutionException|UncheckedExecutionException e) {
+    Throwables.propagateIfInstanceOf(e.getCause(),ObjectNotFoundException.class);
+    throw Throwables.propagate(e.getCause());
+  }
+}

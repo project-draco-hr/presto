@@ -1,0 +1,15 @@
+{
+  try (SmcClient smcClient=smcClientProvider.get()){
+    Tier tier=smcClient.getTierByName(tierName);
+    ImmutableList.Builder<HostAndPort> builder=ImmutableList.builder();
+    for (    Service service : tier.getServices()) {
+      if (service.getState().contains(ServiceState.ENABLED)) {
+        builder.add(HostAndPort.fromParts(service.getHostname(),service.getPort()));
+      }
+    }
+    return builder.build();
+  }
+ catch (  ServiceException e) {
+    throw Throwables.propagate(e);
+  }
+}

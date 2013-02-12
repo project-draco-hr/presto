@@ -1,0 +1,27 @@
+{
+  HiveClientFactory hiveClientFactory=new HiveClientFactory(new HiveClientConfig(),new HiveChunkEncoder(new JsonCodecFactory().jsonCodec(HivePartitionChunk.class)));
+  final MockHiveMetastoreClient mockClient1=new MockHiveMetastoreClient();
+  HiveCluster hiveCluster1=new HiveCluster(){
+    @Override public HiveMetastoreClient createMetastoreClient(){
+      return mockClient1;
+    }
+  }
+;
+  final MockHiveMetastoreClient mockClient2=new MockHiveMetastoreClient();
+  HiveCluster hiveCluster2=new HiveCluster(){
+    @Override public HiveMetastoreClient createMetastoreClient(){
+      return mockClient2;
+    }
+  }
+;
+  Assert.assertEquals(mockClient1.getAccessCount(),0);
+  hiveClientFactory.get(hiveCluster1).getDatabaseNames();
+  Assert.assertEquals(mockClient1.getAccessCount(),1);
+  hiveClientFactory.get(hiveCluster1).getDatabaseNames();
+  Assert.assertEquals(mockClient1.getAccessCount(),1);
+  Assert.assertEquals(mockClient2.getAccessCount(),0);
+  hiveClientFactory.get(hiveCluster2).getDatabaseNames();
+  Assert.assertEquals(mockClient2.getAccessCount(),1);
+  hiveClientFactory.get(hiveCluster2).getDatabaseNames();
+  Assert.assertEquals(mockClient2.getAccessCount(),1);
+}

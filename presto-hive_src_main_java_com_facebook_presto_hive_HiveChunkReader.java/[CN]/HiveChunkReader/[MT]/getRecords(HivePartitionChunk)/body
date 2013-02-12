@@ -1,0 +1,24 @@
+{
+  try {
+    Properties schema=(Properties)chunk.getSchema().clone();
+    String typeSpecification=(String)schema.remove(Constants.LIST_COLUMN_TYPES);
+    Preconditions.checkNotNull(typeSpecification,"Partition column type specification is null");
+    String nullSequence=(String)schema.get(Constants.SERIALIZATION_NULL_FORMAT);
+    checkState(nullSequence == null || nullSequence.equals("\\N"),"Only '\\N' supported as null specifier, was '%s'",nullSequence);
+    List<HiveColumn> columns=chunk.getColumns();
+    if (columns.isEmpty()) {
+      columns=ImmutableList.of(getFirstPrimitiveColumn(schema));
+    }
+    ColumnProjectionUtils.setReadColumnIDs(HADOOP_CONFIGURATION.get(),new ArrayList<>(transform(columns,indexGetter())));
+    RecordReader<?,?> recordReader=createRecordReader(chunk);
+    if (recordReader.createValue() instanceof BytesRefArrayWritable) {
+      return new BytesHiveRecordCursor<>((RecordReader<?,BytesRefArrayWritable>)recordReader,chunk.getLength(),chunk.getPartitionKeys(),columns);
+    }
+ else {
+      return new GenericHiveRecordCursor<>((RecordReader<?,? extends Writable>)recordReader,chunk.getLength(),chunk.getSchema(),chunk.getPartitionKeys(),columns);
+    }
+  }
+ catch (  Exception e) {
+    throw Throwables.propagate(e);
+  }
+}

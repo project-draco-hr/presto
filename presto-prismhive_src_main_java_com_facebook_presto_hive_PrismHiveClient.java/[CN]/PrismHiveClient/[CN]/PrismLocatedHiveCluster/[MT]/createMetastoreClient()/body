@@ -1,0 +1,12 @@
+{
+  TTransportException lastException=null;
+  for (  HostAndPort service : shuffle(services)) {
+    try {
+      return metastoreClientFactory.create(service.getHostText(),service.getPort());
+    }
+ catch (    TTransportException e) {
+      lastException=e;
+    }
+  }
+  throw new RuntimeException("Unable to connect to any metastore servers for tier: " + metastoreTierName,lastException);
+}

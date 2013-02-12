@@ -1,0 +1,16 @@
+{
+  List<HostAndPort> services=smcLookup.getServices(prismSmcTier);
+  if (services.isEmpty()) {
+    throw new RuntimeException(format("No prism servers available for tier '%s'",prismSmcTier));
+  }
+  TTransportException lastException=null;
+  for (  HostAndPort service : shuffle(services)) {
+    try {
+      return thriftClient.open(service);
+    }
+ catch (    TTransportException e) {
+      lastException=e;
+    }
+  }
+  throw new RuntimeException("Unable to connect to any prism servers",lastException);
+}
