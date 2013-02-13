@@ -3,13 +3,17 @@
   if (services.isEmpty()) {
     throw new RuntimeException(format("No prism servers available for tier '%s'",prismSmcTier));
   }
-  TTransportException lastException=null;
+  Throwable lastException=null;
   for (  HostAndPort service : shuffle(services)) {
     try {
-      return thriftClient.open(service);
+      return thriftClient.open(new UnframedClientConnector(service)).get();
     }
- catch (    TTransportException e) {
-      lastException=e;
+ catch (    InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException("Interrupted",e);
+    }
+catch (    ExecutionException e) {
+      lastException=e.getCause();
     }
   }
   throw new RuntimeException("Unable to connect to any prism servers",lastException);

@@ -3,19 +3,23 @@
   if (runningServices.isEmpty()) {
     throw new DiscoveryException(format("No scribe servers available for pool '%s'",selector.getPool()));
   }
-  TTransportException lastException=null;
+  Throwable lastException=null;
   for (  ServiceDescriptor service : shuffle(runningServices)) {
     String thrift=service.getProperties().get("thrift");
     if (thrift != null) {
       try {
         HostAndPort thriftEndpoint=HostAndPort.fromString(thrift);
         checkArgument(thriftEndpoint.hasPort());
-        return thriftClient.open(thriftEndpoint);
+        return thriftClient.open(new FramedClientConnector(thriftEndpoint)).get();
       }
  catch (      IllegalArgumentException ignored) {
       }
-catch (      TTransportException e) {
-        lastException=e;
+catch (      InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException("Interrupted",e);
+      }
+catch (      ExecutionException e) {
+        lastException=e.getCause();
       }
     }
   }
