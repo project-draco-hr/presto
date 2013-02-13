@@ -1,0 +1,24 @@
+{
+  List<ServiceDescriptor> descriptors=Lists.newArrayList(Iterables.filter(selector.selectAllServices(),runningPredicate()));
+  if (descriptors.isEmpty()) {
+    throw new DiscoveryException("No metastore servers available for pool: " + selector.getPool());
+  }
+  Collections.shuffle(descriptors);
+  TTransportException lastException=null;
+  for (  ServiceDescriptor descriptor : descriptors) {
+    String thrift=descriptor.getProperties().get("thrift");
+    if (thrift != null) {
+      try {
+        HostAndPort metastore=HostAndPort.fromString(thrift);
+        checkArgument(metastore.hasPort());
+        return HiveMetastoreClient.create(metastore.getHostText(),metastore.getPort());
+      }
+ catch (      IllegalArgumentException ignored) {
+      }
+catch (      TTransportException e) {
+        lastException=e;
+      }
+    }
+  }
+  throw new DiscoveryException("Unable to connect to any metastore servers in pool: " + selector.getPool(),lastException);
+}

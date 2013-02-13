@@ -5,4 +5,11 @@
   maxOutstandingChunks=hiveClientConfig.getMaxOutstandingChunks();
   maxChunkIteratorThreads=hiveClientConfig.getMaxChunkIteratorThreads();
   this.hiveChunkEncoder=hiveChunkEncoder;
+  final Duration metastoreCacheTtl=hiveClientConfig.getMetastoreCacheTtl();
+  metastores=CacheBuilder.newBuilder().build(new CacheLoader<HiveCluster,CachingHiveMetastore>(){
+    @Override public CachingHiveMetastore load(    HiveCluster hiveCluster) throws Exception {
+      return new CachingHiveMetastore(hiveCluster,metastoreCacheTtl);
+    }
+  }
+);
 }

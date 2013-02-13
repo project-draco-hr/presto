@@ -1,16 +1,8 @@
 {
-  try (HiveMetastoreClient metastore=getClient()){
-    List<String> partitionNames=metastore.get_partition_names(databaseName,tableName,(short)0);
-    if (partitionNames.isEmpty()) {
-      metastore.get_table(databaseName,tableName);
-      return ImmutableList.of(UNPARTITIONED_NAME);
-    }
-    return partitionNames;
+  try {
+    return metastore.getPartitionNames(databaseName,tableName);
   }
  catch (  NoSuchObjectException e) {
     throw new ObjectNotFoundException(e.getMessage());
-  }
-catch (  Exception e) {
-    throw Throwables.propagate(e);
   }
 }

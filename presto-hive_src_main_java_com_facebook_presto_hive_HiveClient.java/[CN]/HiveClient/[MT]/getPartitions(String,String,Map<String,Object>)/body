@@ -14,15 +14,12 @@
     partitions=getPartitions(databaseName,tableName);
   }
  else {
-    try (HiveMetastoreClient metastore=getClient()){
-      List<String> names=metastore.get_partition_names_ps(databaseName,tableName,parts,(short)-1);
+    try {
+      List<String> names=metastore.getPartitionNamesByParts(databaseName,tableName,parts);
       partitions=Lists.transform(names,toPartitionInfo(partitionKeys));
     }
  catch (    NoSuchObjectException e) {
       throw new ObjectNotFoundException(e.getMessage());
-    }
-catch (    Exception e) {
-      throw Throwables.propagate(e);
     }
   }
   return ImmutableList.copyOf(Iterables.filter(partitions,partitionMatches(filters)));

@@ -1,18 +1,10 @@
 {
-  if (partitionNames.equals(ImmutableList.of(UNPARTITIONED_NAME))) {
+  if (partitionNames.equals(ImmutableList.of(UnpartitionedPartition.UNPARTITIONED_NAME))) {
     return ImmutableList.<Partition>of(UnpartitionedPartition.INSTANCE);
   }
-  try (HiveMetastoreClient metastore=getClient()){
-    ImmutableList.Builder<Partition> partitions=ImmutableList.builder();
-    for (    List<String> batchedPartitionNames : Lists.partition(partitionNames,PARTITION_BATCH_SIZE)) {
-      partitions.addAll(metastore.get_partitions_by_names(databaseName,tableName,batchedPartitionNames));
-    }
-    return partitions.build();
+  ImmutableList.Builder<Partition> partitionsBuilder=ImmutableList.builder();
+  for (  List<String> batchedPartitionNames : Lists.partition(partitionNames,PARTITION_BATCH_SIZE)) {
+    partitionsBuilder.addAll(metastore.getPartitionsByNames(databaseName,tableName,batchedPartitionNames));
   }
- catch (  NoSuchObjectException e) {
-    throw new ObjectNotFoundException(e.getMessage());
-  }
-catch (  Exception e) {
-    throw Throwables.propagate(e);
-  }
+  return partitionsBuilder.build();
 }

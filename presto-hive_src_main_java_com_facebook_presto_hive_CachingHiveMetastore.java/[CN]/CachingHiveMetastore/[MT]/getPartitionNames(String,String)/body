@@ -1,0 +1,15 @@
+{
+  return getWithCallable(partitionNamesCache,QualifiedTableName.table(databaseName,tableName),new Callable<List<String>>(){
+    @Override public List<String> call() throws Exception {
+      try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
+        List<String> partitionNames=client.get_partition_names(databaseName,tableName,(short)0);
+        if (partitionNames.isEmpty()) {
+          getTable(databaseName,tableName);
+          return ImmutableList.of(UnpartitionedPartition.UNPARTITIONED_NAME);
+        }
+        return partitionNames;
+      }
+     }
+  }
+,NoSuchObjectException.class);
+}
