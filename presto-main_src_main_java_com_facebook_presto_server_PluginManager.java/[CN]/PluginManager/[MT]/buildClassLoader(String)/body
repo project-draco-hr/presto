@@ -1,0 +1,17 @@
+{
+  File pomFile=new File(plugin);
+  List<Artifact> artifacts=resolver.resolvePom(pomFile);
+  log.debug("Classpath for %s:",pomFile);
+  List<URL> urls=new ArrayList<>();
+  urls.add(new File(pomFile.getParentFile(),"target/classes/").toURL());
+  for (  Artifact artifact : artifacts) {
+    if (artifact.getFile() != null) {
+      log.debug("    %s",artifact.getFile());
+      urls.add(artifact.getFile().toURL());
+    }
+ else {
+      log.debug("  Could not resolve artifact %s",artifact);
+    }
+  }
+  return new URLClassLoader(urls.toArray(new URL[urls.size()]));
+}
