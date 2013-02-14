@@ -4,10 +4,10 @@
   ImmutableList.Builder<ListenableFuture<Void>> futureBuilder=ImmutableList.builder();
   try {
     for (    Partition partition : partitions) {
-      final Properties schema=MetaStoreUtils.getSchema(partition,table);
+      final Properties schema=getPartitionSchema(table,partition);
       final List<HivePartitionKey> partitionKeys=getPartitionKeys(table,partition);
       final InputFormat inputFormat=getInputFormat(schema,false);
-      Path partitionPath=new CachingPath(partition.getSd().getLocation());
+      Path partitionPath=new CachingPath(getPartitionLocation(table,partition));
       if (inputFormat instanceof SymlinkTextInputFormat) {
         JobConf jobConf=new JobConf(HADOOP_CONFIGURATION.get());
         FileInputFormat.setInputPaths(jobConf,partitionPath);

@@ -1,16 +1,8 @@
 {
   Table table=getTable(databaseName,tableName);
-  ImmutableList.Builder<Partition> partitionsBuilder=ImmutableList.builder();
-  try (HiveMetastoreClient metastore=getClient()){
-    for (    List<String> batchedPartitionNames : Lists.partition(partitionNames,PARTITION_BATCH_SIZE)) {
-      partitionsBuilder.addAll(metastore.get_partitions_by_names(databaseName,tableName,batchedPartitionNames));
-    }
+  List<Partition> partitions=getPartitions(databaseName,tableName,partitionNames);
+  if (partitionNames.size() != partitions.size()) {
+    throw new ObjectNotFoundException(format("expected %s partitions but found %s",partitionNames.size(),partitions.size()));
   }
- catch (  NoSuchObjectException e) {
-    throw new ObjectNotFoundException(e.getMessage());
-  }
-catch (  Exception e) {
-    throw Throwables.propagate(e);
-  }
-  return getPartitionChunks(table,partitionsBuilder.build(),getHiveColumns(table,columns));
+  return getPartitionChunks(table,partitions,getHiveColumns(table,columns));
 }

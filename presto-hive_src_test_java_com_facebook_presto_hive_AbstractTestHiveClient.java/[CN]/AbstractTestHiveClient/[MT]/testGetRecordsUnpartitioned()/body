@@ -1,0 +1,29 @@
+{
+  List<SchemaField> schema=client.getTableSchema(DATABASE,TABLE_UNPARTITIONED);
+  List<String> partitionNames=client.getPartitionNames(DATABASE,TABLE_UNPARTITIONED);
+  List<String> columns=Lists.transform(schema,nameGetter());
+  List<PartitionChunk> partitions=ImmutableList.copyOf(client.getPartitionChunks(DATABASE,TABLE_UNPARTITIONED,partitionNames,columns));
+  assertEquals(partitions.size(),1);
+  for (  PartitionChunk partitionChunk : partitions) {
+    HivePartitionChunk chunk=(HivePartitionChunk)partitionChunk;
+    byte[] bytes=client.serializePartitionChunk(chunk);
+    chunk=(HivePartitionChunk)client.deserializePartitionChunk(bytes);
+    Map<String,SchemaField> map=schemaFieldMap(schema);
+    assertEquals(chunk.getPartitionKeys(),ImmutableList.of());
+    long rowNumber=0;
+    try (RecordCursor cursor=client.getRecords(chunk)){
+      assertEquals(cursor.getTotalBytes(),chunk.getLength());
+      while (cursor.advanceNextPosition()) {
+        rowNumber++;
+        if (rowNumber % 19 == 0) {
+          assertTrue(cursor.isNull(map.get("t_string").getFieldId()));
+        }
+ else {
+          assertEquals(cursor.getString(map.get("t_string").getFieldId()),"unpartitioned".getBytes(Charsets.UTF_8));
+        }
+        assertEquals(cursor.getLong(map.get("t_tinyint").getFieldId()),1 + rowNumber);
+      }
+    }
+     assertEquals(rowNumber,100);
+  }
+}
