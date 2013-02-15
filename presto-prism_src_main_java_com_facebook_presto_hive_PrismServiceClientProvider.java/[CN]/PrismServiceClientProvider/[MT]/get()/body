@@ -6,7 +6,7 @@
   Throwable lastException=null;
   for (  HostAndPort service : shuffle(services)) {
     try {
-      return thriftClient.open(new UnframedClientConnector(service)).get();
+      return prismThriftClient.open(new UnframedClientConnector(service)).get();
     }
  catch (    InterruptedException e) {
       Thread.currentThread().interrupt();
@@ -16,5 +16,5 @@ catch (    ExecutionException e) {
       lastException=e.getCause();
     }
   }
-  throw new RuntimeException("Unable to connect to any prism servers",lastException);
+  throw new RuntimeException("Unable to connect to any prism servers in tier: " + prismSmcTier,lastException);
 }
