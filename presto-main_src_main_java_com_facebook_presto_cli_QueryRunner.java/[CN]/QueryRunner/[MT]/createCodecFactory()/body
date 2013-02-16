@@ -1,8 +1,10 @@
 {
-  ObjectMapperProvider objectMapperProvider=new ObjectMapperProvider();
-  ImmutableMap.Builder<Class<?>,JsonDeserializer<?>> deserializers=ImmutableMap.builder();
-  deserializers.put(Expression.class,new ExpressionDeserializer());
-  deserializers.put(FunctionCall.class,new FunctionCallDeserializer());
-  objectMapperProvider.setJsonDeserializers(deserializers.build());
-  return new JsonCodecFactory(objectMapperProvider);
+  Injector inj=Guice.createInjector(Stage.PRODUCTION,new JsonModule(),new TableHandleModule(),new Module(){
+    @Override public void configure(    Binder binder){
+      JsonBinder.jsonBinder(binder).addDeserializerBinding(Expression.class).to(ExpressionDeserializer.class);
+      JsonBinder.jsonBinder(binder).addDeserializerBinding(FunctionCall.class).to(FunctionCallDeserializer.class);
+    }
+  }
+);
+  return inj.getInstance(JsonCodecFactory.class);
 }
