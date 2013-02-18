@@ -1,9 +1,7 @@
 {
   log.info("-- Loading plugin %s --",plugin);
   URLClassLoader pluginClassLoader=buildClassLoader(plugin);
-  ClassLoader oldClassLoader=Thread.currentThread().getContextClassLoader();
-  try {
-    Thread.currentThread().setContextClassLoader(pluginClassLoader);
+  try (ThreadContextClassLoader threadContextClassLoader=new ThreadContextClassLoader(pluginClassLoader)){
     ServiceLoader<ImportClientFactoryFactory> serviceLoader=ServiceLoader.load(ImportClientFactoryFactory.class,pluginClassLoader);
     List<ImportClientFactoryFactory> importClientFactoryFactories=ImmutableList.copyOf(serviceLoader);
     for (    ImportClientFactoryFactory importClientFactoryFactory : importClientFactoryFactories) {
@@ -12,8 +10,5 @@
       importClientManager.addImportClientFactory(importClientFactory);
     }
   }
-  finally {
-    Thread.currentThread().setContextClassLoader(oldClassLoader);
-  }
-  log.info("-- Finished loading plugin %s --",plugin);
+   log.info("-- Finished loading plugin %s --",plugin);
 }

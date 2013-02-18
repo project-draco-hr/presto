@@ -1,0 +1,19 @@
+{
+synchronized (getClassLoadingLock(name)) {
+    Class clazz=findLoadedClass(name);
+    if (clazz == null && !isNonOverridableClass(name)) {
+      try {
+        clazz=findClass(name);
+      }
+ catch (      ClassNotFoundException ignored) {
+      }
+    }
+    if (clazz != null) {
+      if (resolve) {
+        resolveClass(clazz);
+      }
+      return clazz;
+    }
+    return super.loadClass(name,resolve);
+  }
+}
