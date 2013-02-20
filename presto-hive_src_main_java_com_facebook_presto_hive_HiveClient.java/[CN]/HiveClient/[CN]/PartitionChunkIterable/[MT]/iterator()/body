@@ -1,8 +1,8 @@
 {
   SuspendingExecutor suspendingExecutor=new SuspendingExecutor(new BoundedExecutor(executor,maxThreads));
   final PartitionChunkQueue partitionChunkQueue=new PartitionChunkQueue(maxOutstandingChunks,suspendingExecutor);
-  ImmutableList.Builder<ListenableFuture<Void>> futureBuilder=ImmutableList.builder();
-  try {
+  try (ThreadContextClassLoader threadContextClassLoader=new ThreadContextClassLoader(classLoader)){
+    ImmutableList.Builder<ListenableFuture<Void>> futureBuilder=ImmutableList.builder();
     for (    Partition partition : partitions) {
       final Properties schema=getPartitionSchema(table,partition);
       final List<HivePartitionKey> partitionKeys=getPartitionKeys(table,partition);
