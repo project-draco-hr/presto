@@ -12,11 +12,8 @@
     for (    StructField field : tableInspector.getAllStructFieldRefs()) {
       if (columnNames.remove(field.getFieldName())) {
         ObjectInspector fieldInspector=field.getFieldObjectInspector();
-        Preconditions.checkArgument(fieldInspector.getCategory() == Category.PRIMITIVE,"Column %s is not a primitive type",field.getFieldName());
-        PrimitiveObjectInspector inspector=(PrimitiveObjectInspector)fieldInspector;
-        Type type=getSupportedPrimitiveType(inspector.getPrimitiveCategory());
-        PrimitiveCategory hiveType=inspector.getPrimitiveCategory();
-        hiveColumns.add(new HiveColumn(field.getFieldName(),index,type,hiveType));
+        HiveType hiveType=HiveType.getSupportedHiveType(fieldInspector);
+        hiveColumns.add(new HiveColumn(field.getFieldName(),index,hiveType));
       }
       index++;
     }

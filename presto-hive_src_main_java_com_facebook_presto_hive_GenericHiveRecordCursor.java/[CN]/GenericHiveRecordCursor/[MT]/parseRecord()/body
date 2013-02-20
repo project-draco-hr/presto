@@ -4,12 +4,16 @@
   for (int i=0; i < hiveColumnIndexes.length; i++) {
     int hiveColumnIndex=hiveColumnIndexes[i];
     Object fieldData=rowInspector.getStructFieldData(rowData,structFields[i]);
-    Object fieldValue=fieldInspectors[i].getPrimitiveJavaObject(fieldData);
     int column=partitionKeyCount + hiveColumnIndex;
-    if (fieldValue == null) {
+    if (fieldData == null) {
       nulls[column]=true;
     }
+ else     if (hiveTypes[column] == HiveType.MAP || hiveTypes[column] == HiveType.LIST || hiveTypes[column] == HiveType.STRUCT) {
+      strings[column]=SerDeUtils.getJSONString(fieldData,fieldInspectors[i]).getBytes(Charsets.UTF_8);
+    }
  else {
+      Object fieldValue=((PrimitiveObjectInspector)fieldInspectors[i]).getPrimitiveJavaObject(fieldData);
+      checkState(fieldValue != null,"fieldValue should not be null");
 switch (types[column]) {
 case LONG:
         longs[column]=getLongOrBoolean(fieldValue);

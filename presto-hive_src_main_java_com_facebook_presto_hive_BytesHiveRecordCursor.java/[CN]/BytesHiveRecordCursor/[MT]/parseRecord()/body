@@ -1,6 +1,7 @@
 {
   Arrays.fill(nulls,false);
-  for (  int hiveColumnIndex : hiveColumnIndexes) {
+  for (int i=0; i < hiveColumnIndexes.length; i++) {
+    int hiveColumnIndex=hiveColumnIndexes[i];
     if (hiveColumnIndex >= value.size()) {
       nulls[partitionKeyCount + hiveColumnIndex]=true;
     }
@@ -9,11 +10,19 @@
       byte[] bytes=fieldData.getData();
       int start=fieldData.getStart();
       int length=fieldData.getLength();
+      int column=partitionKeyCount + hiveColumnIndex;
       if (length == "\\N".length() && bytes[start] == '\\' && bytes[start + 1] == 'N') {
-        nulls[partitionKeyCount + hiveColumnIndex]=true;
+        nulls[column]=true;
+      }
+ else       if (hiveTypes[column] == HiveType.MAP || hiveTypes[column] == HiveType.LIST || hiveTypes[column] == HiveType.STRUCT) {
+        LazyObject<? extends ObjectInspector> lazyObject=LazyFactory.createLazyObject(fieldInspectors[i]);
+        ByteArrayRef byteArrayRef=new ByteArrayRef();
+        byteArrayRef.setData(bytes);
+        lazyObject.init(byteArrayRef,start,length);
+        strings[column]=SerDeUtils.getJSONString(lazyObject.getObject(),fieldInspectors[i]).getBytes(Charsets.UTF_8);
       }
  else {
-        parseColumn(partitionKeyCount + hiveColumnIndex,bytes,start,length);
+        parsePrimitiveColumn(column,bytes,start,length);
       }
     }
   }

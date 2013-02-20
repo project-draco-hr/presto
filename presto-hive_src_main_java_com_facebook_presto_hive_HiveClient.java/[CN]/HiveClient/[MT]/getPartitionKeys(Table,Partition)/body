@@ -8,11 +8,11 @@
   checkArgument(keys.size() == values.size(),"Expected %s partition key values, but got %s",keys.size(),values.size());
   for (int i=0; i < keys.size(); i++) {
     String name=keys.get(i).getName();
-    PrimitiveCategory hiveType=convertNativeHiveType(keys.get(i).getType());
-    Type type=getSupportedPrimitiveType(hiveType);
+    PrimitiveCategory primitiveCategory=convertNativeHiveType(keys.get(i).getType());
+    HiveType hiveType=HiveType.getSupportedHiveType(primitiveCategory);
     String value=values.get(i);
     checkNotNull(value,"partition key value cannot be null for field: %s",name);
-    partitionKeys.add(new HivePartitionKey(name,type,hiveType,value));
+    partitionKeys.add(new HivePartitionKey(name,hiveType,value));
   }
   return partitionKeys.build();
 }

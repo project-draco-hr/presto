@@ -13,11 +13,9 @@
   int columnIndex=partitionKeys.size();
   for (  StructField field : fields) {
     ObjectInspector fieldInspector=field.getFieldObjectInspector();
-    if (fieldInspector.getCategory() == Category.PRIMITIVE) {
-      Type type=getPrimitiveType(((PrimitiveObjectInspector)fieldInspector).getPrimitiveCategory());
-      if (type != null) {
-        schemaFields.add(SchemaField.createPrimitive(field.getFieldName(),columnIndex,type));
-      }
+    HiveType hiveType=HiveType.getHiveType(fieldInspector);
+    if (hiveType != null) {
+      schemaFields.add(SchemaField.createPrimitive(field.getFieldName(),columnIndex,hiveType.getNativeType()));
     }
     columnIndex++;
   }
