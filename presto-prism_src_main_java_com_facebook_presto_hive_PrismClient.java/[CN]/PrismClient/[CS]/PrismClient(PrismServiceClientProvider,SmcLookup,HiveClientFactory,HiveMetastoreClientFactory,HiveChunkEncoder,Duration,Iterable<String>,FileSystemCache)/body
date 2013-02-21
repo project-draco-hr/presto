@@ -4,6 +4,8 @@
   this.hiveClientFactory=checkNotNull(hiveClientFactory,"hiveClientFactory is null");
   this.metastoreClientFactory=checkNotNull(metastoreClientFactory,"metastoreClientFactory is null");
   this.hiveChunkEncoder=checkNotNull(hiveChunkEncoder,"hiveChunkEncoder is null");
+  this.allowedRegions=ImmutableSet.copyOf(checkNotNull(allowedRegions,"allowedRegions is null"));
+  this.fileSystemCache=fileSystemCache;
   checkNotNull(cacheDuration,"cacheDuration is null");
   namespaceCache=CacheBuilder.newBuilder().expireAfterWrite((long)cacheDuration.toMillis(),TimeUnit.MILLISECONDS).build(new CacheLoader<String,HiveNamespace>(){
     @Override public HiveNamespace load(    String namespace) throws Exception {
@@ -12,5 +14,4 @@
   }
 );
   namespaceListCache=CacheBuilder.newBuilder().expireAfterWrite((long)cacheDuration.toMillis(),TimeUnit.MILLISECONDS).build();
-  this.fileSystemCache=fileSystemCache;
 }

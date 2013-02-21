@@ -1,0 +1,13 @@
+{
+  Bootstrap app=new Bootstrap(new TestingNodeModule(),new TestingDiscoveryModule(),new JsonModule(),new HiveClientModule(),new ThriftClientModule(),new SmcClientModule(),new PrismClientModule());
+  Injector injector=app.strictConfig().setRequiredConfigurationProperty("prism.allowed-regions","fuu, bar").doNotInitializeLogging().initialize();
+  LifeCycleManager localLifeCycleManager=injector.getInstance(LifeCycleManager.class);
+  try {
+    PrismImportClientFactory factory=injector.getInstance(PrismImportClientFactory.class);
+    ImportClient prism=factory.createClient("prism");
+    prism.getTableNames(AbstractTestHiveClient.DATABASE);
+  }
+  finally {
+    localLifeCycleManager.stop();
+  }
+}

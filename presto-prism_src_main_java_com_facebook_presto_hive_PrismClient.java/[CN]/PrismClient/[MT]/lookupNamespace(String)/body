@@ -1,6 +1,8 @@
 {
   try {
-    return namespaceCache.get(namespace);
+    HiveNamespace hiveNamespace=namespaceCache.get(namespace);
+    checkArgument(allowedRegions.contains(hiveNamespace.getRegion()),"Can not access region '%s' from this cluster",hiveNamespace.getRegion());
+    return hiveNamespace;
   }
  catch (  ExecutionException|UncheckedExecutionException e) {
     Throwables.propagateIfInstanceOf(e.getCause(),ObjectNotFoundException.class);
