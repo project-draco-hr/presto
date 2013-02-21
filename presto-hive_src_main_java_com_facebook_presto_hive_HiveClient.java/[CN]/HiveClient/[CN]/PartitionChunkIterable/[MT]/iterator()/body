@@ -6,10 +6,10 @@
     for (    Partition partition : partitions) {
       final Properties schema=getPartitionSchema(table,partition);
       final List<HivePartitionKey> partitionKeys=getPartitionKeys(table,partition);
-      final InputFormat inputFormat=getInputFormat(schema,false);
-      Path partitionPath=new CachingPath(getPartitionLocation(table,partition));
+      final InputFormat inputFormat=getInputFormat(fileSystemCache.getConfiguration(),schema,false);
+      Path partitionPath=new CachingPath(getPartitionLocation(table,partition),fileSystemCache);
       if (inputFormat instanceof SymlinkTextInputFormat) {
-        JobConf jobConf=new JobConf(HADOOP_CONFIGURATION.get());
+        JobConf jobConf=new JobConf(fileSystemCache.getConfiguration());
         FileInputFormat.setInputPaths(jobConf,partitionPath);
         InputSplit[] splits=inputFormat.getSplits(jobConf,0);
         for (        InputSplit rawSplit : splits) {
@@ -18,11 +18,11 @@
         }
         continue;
       }
-      FileSystem fs=partitionPath.getFileSystem(HADOOP_CONFIGURATION.get());
+      FileSystem fs=partitionPath.getFileSystem(fileSystemCache.getConfiguration());
       futureBuilder.add(new AsyncRecursiveWalker(fs,suspendingExecutor).beginWalk(partitionPath,new FileStatusCallback(){
         @Override public void process(        FileStatus file){
           try {
-            boolean splittable=isSplittable(inputFormat,file.getPath().getFileSystem(HADOOP_CONFIGURATION.get()),file.getPath());
+            boolean splittable=isSplittable(inputFormat,file.getPath().getFileSystem(fileSystemCache.getConfiguration()),file.getPath());
             long splitSize=splittable ? maxChunkBytes : file.getLen();
             for (long start=0; start < file.getLen(); start+=splitSize) {
               long length=min(splitSize,file.getLen() - start);
