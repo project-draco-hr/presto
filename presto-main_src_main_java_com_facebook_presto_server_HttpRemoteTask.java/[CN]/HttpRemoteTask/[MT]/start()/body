@@ -1,4 +1,6 @@
 {
+  List<PlanFragmentSource> splits=this.splits.getAndSet(null);
+  checkState(splits != null,"task has already been started");
   TaskInfo taskInfo=this.taskInfo.get();
   QueryFragmentRequest queryFragmentRequest=new QueryFragmentRequest(session,taskInfo.getQueryId(),taskInfo.getStageId(),planFragment,splits,exchangeSources,ImmutableList.copyOf(transform(taskInfo.getOutputBuffers(),PageBufferInfo.bufferIdGetter())));
   Request request=preparePut().setUri(taskInfo.getSelf()).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON).setBodyGenerator(jsonBodyGenerator(queryFragmentRequestCodec,queryFragmentRequest)).build();
