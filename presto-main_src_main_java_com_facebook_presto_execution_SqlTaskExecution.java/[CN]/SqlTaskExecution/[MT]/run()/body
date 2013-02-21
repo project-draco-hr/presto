@@ -16,7 +16,12 @@
 ));
       List<FutureTask<Void>> results=shardExecutor.processBatch(workers);
       for (      FutureTask<Void> worker : Lists.reverse(results)) {
-        worker.run();
+        if (taskOutput.getState().isDone()) {
+          worker.cancel(true);
+        }
+ else {
+          worker.run();
+        }
       }
       checkQueryResults(results);
     }
