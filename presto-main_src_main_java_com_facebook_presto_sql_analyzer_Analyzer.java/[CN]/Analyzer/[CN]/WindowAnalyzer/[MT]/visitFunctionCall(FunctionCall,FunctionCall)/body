@@ -1,0 +1,27 @@
+{
+  if (!node.getWindow().isPresent()) {
+    return super.visitFunctionCall(node,enclosingWindow);
+  }
+  if (enclosingWindow != null) {
+    throw new SemanticException(node,"Cannot nest window functions inside window functions: %s",ExpressionFormatter.toString(enclosingWindow));
+  }
+  if (node.isDistinct()) {
+    throw new SemanticException(node,"DISTINCT in window function parameters not yet supported");
+  }
+  List<AnalyzedExpression> argumentsAnalysis=analyzeExpressions(node.getArguments());
+  List<Type> argumentTypes=Lists.transform(argumentsAnalysis,typeGetter());
+  Window window=node.getWindow().get();
+  List<AnalyzedExpression> partitionByAnalysis=analyzeExpressions(window.getPartitionBy());
+  List<AnalyzedOrdering> orderByAnalysis=analyzeOrderBy(metadata,window.getOrderBy(),descriptor);
+  AnalyzedWindow analyzedWindow=new AnalyzedWindow(partitionByAnalysis,orderByAnalysis);
+  FunctionInfo info=metadata.getFunction(node.getName(),Lists.transform(argumentTypes,Type.toRaw()));
+  if (!info.isWindow()) {
+    throw new SemanticException(node,"Not a window function: %s",info);
+  }
+  if (window.getFrame().isPresent()) {
+    throw new SemanticException(node,"Window frames not yet supported");
+  }
+  FunctionCall rewritten=TreeRewriter.rewriteWith(new NameToSymbolRewriter(descriptor),node);
+  functions.add(new AnalyzedFunction(info,argumentsAnalysis,rewritten,node.isDistinct(),analyzedWindow));
+  return super.visitFunctionCall(node,node);
+}

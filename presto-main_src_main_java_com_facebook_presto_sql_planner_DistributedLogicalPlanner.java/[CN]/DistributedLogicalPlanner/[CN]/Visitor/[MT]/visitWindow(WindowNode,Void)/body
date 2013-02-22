@@ -1,0 +1,9 @@
+{
+  SubPlanBuilder current=node.getSource().accept(this,context);
+  if (current.isPartitioned()) {
+    current.setRoot(new SinkNode(idAllocator.getNextId(),current.getRoot()));
+    current=newSubPlan(new ExchangeNode(idAllocator.getNextId(),current.getId(),current.getRoot().getOutputSymbols())).setPartitioned(false).addChild(current.build());
+  }
+  current.setRoot(new WindowNode(node.getId(),current.getRoot(),node.getPartitionBy(),node.getOrderBy(),node.getOrderings(),node.getWindowFunctions(),node.getFunctionHandles()));
+  return current;
+}

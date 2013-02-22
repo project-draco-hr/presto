@@ -17,14 +17,21 @@
   }
   List<AnalyzedExpression> groupBy=analyzeGroupBy(query.getGroupBy(),sourceDescriptor);
   Set<AnalyzedFunction> aggregations=analyzeAggregations(query.getGroupBy(),query.getSelect(),query.getOrderBy(),sourceDescriptor);
-  List<AnalyzedOrdering> orderBy=analyzeOrderBy(query.getOrderBy(),sourceDescriptor);
+  Set<AnalyzedFunction> windowFunctions=analyzeWindowFunctions(query.getSelect(),query.getOrderBy(),sourceDescriptor);
+  List<AnalyzedOrdering> orderBy=analyzeOrderBy(metadata,query.getOrderBy(),sourceDescriptor);
   AnalyzedOutput output=analyzeOutput(query.getSelect(),context.getSymbolAllocator(),sourceDescriptor);
+  if ((!aggregations.isEmpty()) && (!windowFunctions.isEmpty())) {
+    throw new SemanticException(query,"Mixing aggregate and window functions is not yet supported");
+  }
   if (query.getSelect().isDistinct()) {
+    if (!windowFunctions.isEmpty()) {
+      throw new SemanticException(query.getSelect(),"Mixing DISTINCT and window functions is not yet supported");
+    }
     analyzeDistinct(output,orderBy);
   }
   Long limit=null;
   if (query.getLimit() != null) {
     limit=Long.parseLong(query.getLimit());
   }
-  return AnalysisResult.newInstance(context,query.getSelect().isDistinct(),output,predicate,groupBy,aggregations,limit,orderBy,query);
+  return AnalysisResult.newInstance(context,query.getSelect().isDistinct(),output,predicate,groupBy,aggregations,windowFunctions,limit,orderBy,query);
 }
