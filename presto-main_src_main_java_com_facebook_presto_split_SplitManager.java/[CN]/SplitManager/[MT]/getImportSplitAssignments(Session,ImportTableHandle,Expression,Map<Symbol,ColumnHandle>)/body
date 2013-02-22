@@ -4,7 +4,7 @@
   final String tableName=handle.getTableName();
   final List<String> partitions=getPartitions(session,sourceName,databaseName,tableName,predicate,mappings);
   final List<String> columns=IterableTransformer.on(mappings.values()).transform(MoreFunctions.<ColumnHandle,ImportColumnHandle>cast(ImportColumnHandle.class)).transform(columnNameGetter()).list();
-  Iterable<PartitionChunk> chunks=retry().stopOn(ObjectNotFoundException.class).runUnchecked(new Callable<Iterable<PartitionChunk>>(){
+  Iterable<PartitionChunk> chunks=retry().stopOn(ObjectNotFoundException.class).stopOnIllegalExceptions().runUnchecked(new Callable<Iterable<PartitionChunk>>(){
     @Override public Iterable<PartitionChunk> call() throws Exception {
       ImportClient importClient=importClientManager.getClient(sourceName);
       return importClient.getPartitionChunks(databaseName,tableName,partitions,columns);

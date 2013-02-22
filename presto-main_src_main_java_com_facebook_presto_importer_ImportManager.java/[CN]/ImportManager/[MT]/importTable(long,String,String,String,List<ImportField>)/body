@@ -5,7 +5,7 @@
   checkNotNull(fields,"fields is null");
   checkArgument(!fields.isEmpty(),"fields is empty");
   shardManager.createImportTable(tableId,sourceName,databaseName,tableName);
-  Set<String> activePartitions=retry().runUnchecked(new Callable<Set<String>>(){
+  Set<String> activePartitions=retry().stopOnIllegalExceptions().runUnchecked(new Callable<Set<String>>(){
     @Override public Set<String> call() throws Exception {
       ImportClient importClient=importClientManager.getClient(sourceName);
       return ImmutableSet.copyOf(importClient.getPartitionNames(databaseName,tableName));
