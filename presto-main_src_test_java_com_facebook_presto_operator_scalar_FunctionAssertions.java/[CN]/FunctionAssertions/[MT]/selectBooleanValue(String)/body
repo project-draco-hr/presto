@@ -1,6 +1,6 @@
 {
   checkNotNull(projection,"projection is null");
-  Operator operator=plan("SELECT 1 FROM dual where " + projection,new Session(null,DEFAULT_CATALOG,DEFAULT_SCHEMA));
-  List<Tuple> results=getTuples(operator);
-  return !results.isEmpty();
+  LocalQueryRunner runner=createDualLocalQueryRunner();
+  MaterializedResult result=runner.execute("SELECT 1 FROM dual where " + projection);
+  return !result.getMaterializedTuples().isEmpty();
 }

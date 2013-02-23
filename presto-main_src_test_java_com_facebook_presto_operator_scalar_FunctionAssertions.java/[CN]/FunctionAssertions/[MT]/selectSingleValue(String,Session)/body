@@ -1,22 +1,3 @@
 {
-  checkNotNull(projection,"projection is null");
-  Operator operator=plan("SELECT " + projection + " FROM dual",session);
-  List<Tuple> results=getTuples(operator);
-  assertEquals(results.size(),1);
-  Tuple tuple=results.get(0);
-  assertEquals(tuple.getTupleInfo().getFieldCount(),1);
-  if (tuple.isNull(0)) {
-    return null;
-  }
-  Type type=tuple.getTupleInfo().getTypes().get(0);
-switch (type) {
-case FIXED_INT_64:
-    return tuple.getLong(0);
-case DOUBLE:
-  return tuple.getDouble(0);
-case VARIABLE_BINARY:
-return tuple.getSlice(0);
-default :
-throw new AssertionError("unimplemented type: " + type);
-}
+  return selectSingleValue(projection,createDualLocalQueryRunner(session));
 }
