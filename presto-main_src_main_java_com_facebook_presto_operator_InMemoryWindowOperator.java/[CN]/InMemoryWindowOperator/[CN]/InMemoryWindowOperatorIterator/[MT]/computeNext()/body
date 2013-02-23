@@ -8,15 +8,25 @@
     pageIndex.sort(orderByChannel,orderFields,ordering);
     ChannelIndex index=pageIndex.getIndex(orderByChannel);
     partitionComparator=new MultiSliceFieldOrderedTupleComparator(partitionFields,partitionOrder,index);
+    index=pageIndex.getIndex(orderByChannel);
+    orderComparator=new MultiSliceFieldOrderedTupleComparator(sortFields,sortOrder,index);
   }
   if (currentPosition >= pageIndex.getPositionCount()) {
     return endOfData();
   }
   PageBuilder pageBuilder=new PageBuilder(getTupleInfos());
   while ((!pageBuilder.isFull()) && (currentPosition < pageIndex.getPositionCount())) {
-    if ((currentPosition == 0) || (partitionComparator.compare(currentPosition - 1,currentPosition) != 0)) {
+    boolean newPartition=(currentPosition == 0) || (currentPosition == partitionEnd);
+    if (newPartition) {
+      partitionEnd++;
+      while (partitionEnd < pageIndex.getPositionCount()) {
+        if (partitionComparator.compare(partitionEnd - 1,partitionEnd) != 0) {
+          break;
+        }
+        partitionEnd++;
+      }
       for (      WindowFunction function : windowFunctions) {
-        function.reset();
+        function.reset(partitionEnd - currentPosition);
       }
     }
     int channel=0;
@@ -24,8 +34,19 @@
       pageIndex.appendTupleTo(outputChannels[channel],currentPosition,pageBuilder.getBlockBuilder(channel));
       channel++;
     }
+    boolean newPeerGroup=newPartition || (currentPosition == peerGroupEnd);
+    if (newPeerGroup) {
+      peerGroupEnd++;
+      while (peerGroupEnd < partitionEnd) {
+        if (orderComparator.compare(peerGroupEnd - 1,peerGroupEnd) != 0) {
+          break;
+        }
+        peerGroupEnd++;
+      }
+      peerGroupCount=peerGroupEnd - currentPosition;
+    }
     for (    WindowFunction function : windowFunctions) {
-      function.processRow(pageBuilder.getBlockBuilder(channel));
+      function.processRow(pageBuilder.getBlockBuilder(channel),newPeerGroup,peerGroupCount);
       channel++;
     }
     currentPosition++;
