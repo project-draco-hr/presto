@@ -3,9 +3,12 @@
   for (  TaskExecution taskExecution : tasks.values()) {
     try {
       TaskInfo taskInfo=taskExecution.getTaskInfo();
+      if (taskInfo.getState().isDone()) {
+        cancelTask(taskExecution.getTaskId());
+      }
       DateTime endTime=taskInfo.getStats().getEndTime();
       if (endTime != null && endTime.isBefore(oldestAllowedTask)) {
-        removeTask(taskExecution.getTaskId());
+        taskInfos.remove(taskExecution.getTaskId());
       }
     }
  catch (    Exception e) {

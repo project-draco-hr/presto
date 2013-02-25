@@ -1,10 +1,14 @@
 {
   Preconditions.checkNotNull(taskId,"taskId is null");
   TaskExecution taskExecution=tasks.get(taskId);
-  if (taskExecution == null) {
-    throw new NoSuchElementException("Unknown query task " + taskId);
+  if (taskExecution != null) {
+    TaskInfo taskInfo=taskExecution.getTaskInfo();
+    taskInfo.getStats().recordHeartBeat();
+    return taskInfo;
   }
-  TaskInfo taskInfo=taskExecution.getTaskInfo();
-  taskInfo.getStats().recordHeartBeat();
-  return taskInfo;
+  TaskInfo taskInfo=taskInfos.get(taskId);
+  if (taskInfo != null) {
+    return taskInfo;
+  }
+  throw new NoSuchElementException("Unknown query task " + taskId);
 }
