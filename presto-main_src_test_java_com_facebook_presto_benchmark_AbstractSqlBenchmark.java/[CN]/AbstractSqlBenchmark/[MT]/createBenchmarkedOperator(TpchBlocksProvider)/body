@@ -1,11 +1,17 @@
 {
-  ImmutableMap.Builder<PlanNodeId,PlanFragmentSource> builder=ImmutableMap.builder();
+  DataSize maxOperatorMemoryUsage=new DataSize(100,MEGABYTE);
+  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(session,metadata,analysis.getTypes(),new OperatorStats(),new SourceHashProviderFactory(maxOperatorMemoryUsage),maxOperatorMemoryUsage,new TpchDataStreamProvider(provider),null);
+  LocalExecutionPlan localExecutionPlan=executionPlanner.plan(fragment.getRoot());
+  Map<PlanNodeId,SourceOperator> sourceOperators=localExecutionPlan.getSourceOperators();
   for (  PlanNode source : fragment.getSources()) {
     TableScanNode tableScan=(TableScanNode)source;
     TpchTableHandle handle=(TpchTableHandle)tableScan.getTable();
-    builder.put(tableScan.getId(),new TableScanPlanFragmentSource(new TpchSplit(handle)));
+    SourceOperator sourceOperator=sourceOperators.get(tableScan.getId());
+    Preconditions.checkArgument(sourceOperator != null,"Unknown plan source %s; known sources are %s",tableScan.getId(),sourceOperators.keySet());
+    sourceOperator.addSplit(new TpchSplit(handle));
   }
-  DataSize maxOperatorMemoryUsage=new DataSize(100,MEGABYTE);
-  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(session,metadata,new HackPlanFragmentSourceProvider(new TpchDataStreamProvider(provider),null,new QueryManagerConfig()),analysis.getTypes(),builder.build(),new OperatorStats(),new SourceHashProviderFactory(maxOperatorMemoryUsage),maxOperatorMemoryUsage);
-  return executionPlanner.plan(fragment.getRoot());
+  for (  SourceOperator sourceOperator : sourceOperators.values()) {
+    sourceOperator.noMoreSplits();
+  }
+  return localExecutionPlan.getRootOperator();
 }

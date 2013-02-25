@@ -7,14 +7,18 @@
   new PlanPrinter().print(plan,analysis.getTypes());
   SubPlan subplan=new DistributedLogicalPlanner(metadata,idAllocator).createSubplans(plan,analysis.getSymbolAllocator(),true);
   assertTrue(subplan.getChildren().isEmpty(),"Expected subplan to have no children");
-  ImmutableMap.Builder<PlanNodeId,PlanFragmentSource> builder=ImmutableMap.builder();
+  DataSize maxOperatorMemoryUsage=new DataSize(50,MEGABYTE);
+  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(session,metadata,analysis.getTypes(),new OperatorStats(),new SourceHashProviderFactory(maxOperatorMemoryUsage),maxOperatorMemoryUsage,dataStreamProvider,null);
+  LocalExecutionPlan localExecutionPlan=executionPlanner.plan(subplan.getFragment().getRoot());
+  Map<PlanNodeId,SourceOperator> sourceOperators=localExecutionPlan.getSourceOperators();
   for (  PlanNode source : subplan.getFragment().getSources()) {
     TableScanNode tableScan=(TableScanNode)source;
-    Split split=createSplit(tableScan.getTable());
-    builder.put(tableScan.getId(),new TableScanPlanFragmentSource(split));
+    SourceOperator sourceOperator=sourceOperators.get(tableScan.getId());
+    Preconditions.checkArgument(sourceOperator != null,"Unknown plan source %s; known sources are %s",tableScan.getId(),sourceOperators.keySet());
+    sourceOperator.addSplit(createSplit(tableScan.getTable()));
   }
-  DataSize maxOperatorMemoryUsage=new DataSize(50,MEGABYTE);
-  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(session,metadata,new HackPlanFragmentSourceProvider(dataStreamProvider,null,new QueryManagerConfig()),analysis.getTypes(),builder.build(),new OperatorStats(),new SourceHashProviderFactory(maxOperatorMemoryUsage),maxOperatorMemoryUsage);
-  Operator operator=executionPlanner.plan(plan);
-  return materialize(operator);
+  for (  SourceOperator sourceOperator : sourceOperators.values()) {
+    sourceOperator.noMoreSplits();
+  }
+  return materialize(localExecutionPlan.getRootOperator());
 }

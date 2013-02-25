@@ -7,11 +7,20 @@
       if (state == QueryState.FAILED) {
         throw Iterables.getFirst(queryInfo.getFailures(),null).toException();
       }
+ else       if (state == QueryState.CANCELED) {
+        throw new RuntimeException("Query was cancelled");
+      }
  else       if (state == QueryState.RUNNING || state.isDone()) {
         break;
       }
       Uninterruptibles.sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
     }
-    return materialize(client.getResultsOperator());
+    QueryInfo foo=client.getQueryInfo(true);
+    MaterializedResult materializedResult=materialize(client.getResultsOperator());
+    QueryInfo queryInfo=client.getQueryInfo(true);
+    if (queryInfo.getState() != QueryState.FINISHED) {
+      throw new RuntimeException("Expected query to be FINISHED, but is " + queryInfo.getState());
+    }
+    return materializedResult;
   }
  }

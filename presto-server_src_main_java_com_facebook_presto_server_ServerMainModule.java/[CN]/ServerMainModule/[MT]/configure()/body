@@ -6,13 +6,13 @@
   binder.bind(StageManager.class).to(SqlStageManager.class).in(Scopes.SINGLETON);
   binder.bind(TaskResource.class).in(Scopes.SINGLETON);
   binder.bind(TaskManager.class).to(SqlTaskManager.class).in(Scopes.SINGLETON);
+  binder.bind(ExchangeOperatorFactory.class).in(Scopes.SINGLETON);
   jsonCodecBinder(binder).bindJsonCodec(TaskInfo.class);
   binder.bind(PagesMapper.class).in(Scopes.SINGLETON);
   binder.bind(LocationFactory.class).to(HttpLocationFactory.class).in(Scopes.SINGLETON);
   binder.bind(RemoteTaskFactory.class).to(HttpRemoteTaskFactory.class).in(Scopes.SINGLETON);
   HttpClientBinder.httpClientBinder(binder).bindAsyncHttpClient("exchange",ForExchange.class).withTracing();
   HttpClientBinder.httpClientBinder(binder).bindHttpClient("scheduler",ForScheduler.class).withTracing();
-  binder.bind(PlanFragmentSourceProvider.class).to(HackPlanFragmentSourceProvider.class).in(Scopes.SINGLETON);
   bindConfig(binder).to(StorageManagerConfig.class);
   binder.bind(StorageManager.class).to(DatabaseStorageManager.class).in(Scopes.SINGLETON);
   binder.bind(DataStreamProvider.class).to(DataStreamManager.class).in(Scopes.SINGLETON);
@@ -31,7 +31,6 @@
   binder.bind(ImportMetadata.class).in(Scopes.SINGLETON);
   binder.bind(SplitManager.class).in(Scopes.SINGLETON);
   jsonCodecBinder(binder).bindJsonCodec(QueryFragmentRequest.class);
-  jsonCodecBinder(binder).bindJsonCodec(PlanFragmentSource.class);
   jsonCodecBinder(binder).bindJsonCodec(Split.class);
   jsonBinder(binder).addSerializerBinding(Expression.class).to(ExpressionSerializer.class);
   jsonBinder(binder).addDeserializerBinding(Expression.class).to(ExpressionDeserializer.class);

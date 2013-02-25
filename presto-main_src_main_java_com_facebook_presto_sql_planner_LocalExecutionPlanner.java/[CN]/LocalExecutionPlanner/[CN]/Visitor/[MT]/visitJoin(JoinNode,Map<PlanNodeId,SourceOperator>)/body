@@ -1,0 +1,21 @@
+{
+  List<JoinNode.EquiJoinClause> clauses=node.getCriteria();
+  PhysicalOperation leftSource=node.getLeft().accept(this,sourceOperators);
+  List<Symbol> leftSymbols=Lists.transform(clauses,leftGetter());
+  leftSource=packIfNecessary(leftSymbols,leftSource);
+  PhysicalOperation rightSource=node.getRight().accept(this,sourceOperators);
+  List<Symbol> rightSymbols=Lists.transform(clauses,rightGetter());
+  rightSource=packIfNecessary(rightSymbols,rightSource);
+  int probeChannel=Iterables.getOnlyElement(getChannelsForSymbols(leftSymbols,leftSource.getLayout()));
+  int buildChannel=Iterables.getOnlyElement(getChannelsForSymbols(rightSymbols,rightSource.getLayout()));
+  SourceHashProvider hashProvider=joinHashFactory.getSourceHashProvider(node,rightSource.getOperator(),buildChannel,operatorStats);
+  ImmutableMap.Builder<Symbol,Input> outputMappings=ImmutableMap.builder();
+  outputMappings.putAll(leftSource.getLayout());
+  int offset=leftSource.getOperator().getChannelCount();
+  for (  Map.Entry<Symbol,Input> entry : rightSource.getLayout().entrySet()) {
+    Input input=entry.getValue();
+    outputMappings.put(entry.getKey(),new Input(offset + input.getChannel(),input.getField()));
+  }
+  HashJoinOperator operator=new HashJoinOperator(hashProvider,leftSource.getOperator(),probeChannel);
+  return new PhysicalOperation(operator,outputMappings.build());
+}

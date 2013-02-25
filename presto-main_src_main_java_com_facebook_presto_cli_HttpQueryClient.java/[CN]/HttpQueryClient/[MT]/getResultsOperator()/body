@@ -15,12 +15,13 @@
 ;
   }
   StageInfo outputStage=queryInfo.getOutputStage();
-  return new ExchangeOperator(httpClient,outputStage.getTupleInfos(),100,10,3,transform(outputStage.getTasks(),new Function<TaskInfo,URI>(){
-    @Override public URI apply(    TaskInfo taskInfo){
-      Preconditions.checkState(taskInfo.getOutputBuffers().size() == 1,"Expected a single output buffer for task %s, but found %s",taskInfo.getTaskId(),taskInfo.getOutputBuffers());
-      String bufferId=Iterables.getOnlyElement(taskInfo.getOutputBuffers()).getBufferId();
-      return uriBuilderFrom(taskInfo.getSelf()).appendPath("results").appendPath(bufferId).build();
-    }
+  ExchangeOperator exchangeOperator=new ExchangeOperator(httpClient,outputStage.getTupleInfos(),100,10,3);
+  for (  TaskInfo taskInfo : outputStage.getTasks()) {
+    Preconditions.checkState(taskInfo.getOutputBuffers().size() == 1,"Expected a single output buffer for task %s, but found %s",taskInfo.getTaskId(),taskInfo.getOutputBuffers());
+    String bufferId=Iterables.getOnlyElement(taskInfo.getOutputBuffers()).getBufferId();
+    URI uri=uriBuilderFrom(taskInfo.getSelf()).appendPath("results").appendPath(bufferId).build();
+    exchangeOperator.addSplit(new RemoteSplit(uri,outputStage.getTupleInfos()));
   }
-));
+  exchangeOperator.noMoreSplits();
+  return exchangeOperator;
 }

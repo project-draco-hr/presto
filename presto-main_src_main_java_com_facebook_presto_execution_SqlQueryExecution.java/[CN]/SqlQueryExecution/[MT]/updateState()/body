@@ -22,9 +22,11 @@ synchronized (this) {
       queryMonitor.completionEvent(getQueryInfo());
     }
  else     if (queryState.get() == QueryState.STARTING) {
+      if (outputStageState == StageState.RUNNING) {
+        this.queryState.set(QueryState.RUNNING);
+      }
       if (any(transform(getAllStages(outputStage.getStageInfo()),stageStateGetter()),isStageRunningOrDone())) {
         queryStats.recordExecutionStart();
-        this.queryState.set(QueryState.RUNNING);
       }
     }
   }

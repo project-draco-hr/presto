@@ -1,0 +1,22 @@
+{
+  if (fragment.isPartitioned() && fragment.getPartitionedSource().equals(sourceId)) {
+    SplitWorker worker=new SplitWorker(session,taskOutput,fragment,getSourceHashProviderFactory(),metadata,maxOperatorMemoryUsage,dataStreamProvider,exchangeOperatorFactory);
+    worker.addSplit(sourceId,split);
+    for (    Entry<PlanNodeId,Set<Split>> entry : fixedSources.entrySet()) {
+      PlanNodeId fixedSourceId=entry.getKey();
+      for (      Split fixedSplit : entry.getValue()) {
+        worker.addSplit(fixedSourceId,fixedSplit);
+      }
+      worker.noMoreSplits(fixedSourceId);
+    }
+    getTaskInfo().getStats().addSplits(1);
+    splitWorkers.add(worker);
+    List<FutureTask<Void>> results=shardExecutor.processBatch(ImmutableList.of(worker));
+    splitWorkersResults.addAll(results);
+  }
+ else {
+    for (    SplitWorker worker : splitWorkers) {
+      worker.addSplit(sourceId,split);
+    }
+  }
+}

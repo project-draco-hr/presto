@@ -29,31 +29,33 @@ synchronized (this) {
   int nextTaskId=0;
   for (  Partition partition : partitions) {
     String nodeIdentifier=partition.getNode().getNodeIdentifier();
-    ImmutableMap.Builder<PlanNodeId,PlanFragmentSource> fixedSources=ImmutableMap.builder();
+    ImmutableMap.Builder<PlanNodeId,Set<Split>> fixedSources=ImmutableMap.builder();
     for (    ExchangeNode exchange : exchanges) {
       StageExecution childStage=subStages.get(exchange.getSourceFragmentId());
-      ExchangePlanFragmentSource source=childStage.getExchangeSourceFor(nodeIdentifier);
-      fixedSources.put(exchange.getId(),source);
+      Set<Split> exchangeSplits=childStage.getSplitsForExchange(nodeIdentifier);
+      fixedSources.put(exchange.getId(),exchangeSplits);
     }
     String taskId=stageId + '.' + nextTaskId++;
     RemoteTask task=remoteTaskFactory.createRemoteTask(session,queryId,stageId,taskId,partition.getNode(),plan,fixedSources.build(),outputIds);
     tasks.add(task);
     try {
       task.start();
-      for (      Split split : partition.getSplits()) {
-        task.addSource(plan.getPartitionedSource(),split);
+      if (plan.getPartitionedSource() != null) {
+        for (        Split split : partition.getSplits()) {
+          task.addSource(plan.getPartitionedSource(),split);
+        }
+        task.noMoreSources(plan.getPartitionedSource());
       }
-      task.noMoreSources();
     }
  catch (    Throwable e) {
 synchronized (this) {
         failureCauses.add(e);
-        stageState.set(StageState.FAILED);
+        transitionToState(StageState.FAILED);
       }
       log.error(e,"Stage %s failed to start",stageId);
       cancel();
       throw Throwables.propagate(e);
     }
   }
-  stageState.set(StageState.SCHEDULED);
+  transitionToState(StageState.SCHEDULED);
 }

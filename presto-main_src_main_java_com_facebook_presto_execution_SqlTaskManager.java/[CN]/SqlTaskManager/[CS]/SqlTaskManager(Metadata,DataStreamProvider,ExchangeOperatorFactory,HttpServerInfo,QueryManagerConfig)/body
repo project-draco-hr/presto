@@ -1,0 +1,34 @@
+{
+  Preconditions.checkNotNull(metadata,"metadata is null");
+  Preconditions.checkNotNull(dataStreamProvider,"dataStreamProvider is null");
+  Preconditions.checkNotNull(exchangeOperatorFactory,"exchangeOperatorFactory is null");
+  Preconditions.checkNotNull(httpServerInfo,"httpServerInfo is null");
+  Preconditions.checkNotNull(config,"config is null");
+  this.metadata=metadata;
+  this.dataStreamProvider=dataStreamProvider;
+  this.exchangeOperatorFactory=exchangeOperatorFactory;
+  this.httpServerInfo=httpServerInfo;
+  this.pageBufferMax=20;
+  this.maxOperatorMemoryUsage=config.getMaxOperatorMemoryUsage();
+  this.maxTaskAge=new Duration(config.getMaxQueryAge().toMillis() + SECONDS.toMillis(30),MILLISECONDS);
+  this.clientTimeout=config.getClientTimeout();
+  shardExecutor=new FairBatchExecutor(config.getMaxShardProcessorThreads(),threadsNamed("shard-processor-%d"));
+  taskManagementExecutor=Executors.newScheduledThreadPool(5,threadsNamed("task-management-%d"));
+  taskManagementExecutor.scheduleAtFixedRate(new Runnable(){
+    @Override public void run(){
+      try {
+        removeOldTasks();
+      }
+ catch (      Throwable e) {
+        log.warn(e,"Error removing old tasks");
+      }
+      try {
+        failAbandonedTasks();
+      }
+ catch (      Throwable e) {
+        log.warn(e,"Error canceling abandoned tasks");
+      }
+    }
+  }
+,200,200,TimeUnit.MILLISECONDS);
+}

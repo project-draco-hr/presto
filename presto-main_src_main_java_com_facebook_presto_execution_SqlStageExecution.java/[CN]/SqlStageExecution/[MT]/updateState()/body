@@ -18,22 +18,23 @@ synchronized (this) {
     }
     List<StageState> subStageStates=ImmutableList.copyOf(transform(transform(subStages.values(),stageInfoGetter()),stageStateGetter()));
     if (any(subStageStates,equalTo(StageState.FAILED))) {
-      stageState.set(StageState.FAILED);
+      StageState doneState=StageState.FAILED;
+      transitionToState(doneState);
     }
  else {
       List<TaskState> taskStates=ImmutableList.copyOf(transform(transform(tasks,taskInfoGetter()),taskStateGetter()));
       if (any(taskStates,equalTo(TaskState.FAILED))) {
-        stageState.set(StageState.FAILED);
+        transitionToState(StageState.FAILED);
       }
  else       if (currentState != StageState.PLANNED && currentState != StageState.SCHEDULING) {
         if (all(taskStates,TaskState.inDoneState())) {
-          stageState.set(StageState.FINISHED);
+          transitionToState(StageState.FINISHED);
         }
  else         if (any(taskStates,equalTo(TaskState.RUNNING))) {
-          stageState.set(StageState.RUNNING);
+          transitionToState(StageState.RUNNING);
         }
  else         if (any(taskStates,equalTo(TaskState.QUEUED))) {
-          stageState.set(StageState.SCHEDULED);
+          transitionToState(StageState.SCHEDULED);
         }
       }
     }
