@@ -1,22 +1,12 @@
 {
   if (fragment.isPartitioned() && fragment.getPartitionedSource().equals(sourceId)) {
-    SplitWorker worker=new SplitWorker(session,taskOutput,fragment,getSourceHashProviderFactory(),metadata,maxOperatorMemoryUsage,dataStreamProvider,exchangeOperatorFactory);
-    worker.addSplit(sourceId,split);
-    for (    Entry<PlanNodeId,Set<Split>> entry : fixedSources.entrySet()) {
-      PlanNodeId fixedSourceId=entry.getKey();
-      for (      Split fixedSplit : entry.getValue()) {
-        worker.addSplit(fixedSourceId,fixedSplit);
-      }
-      worker.noMoreSplits(fixedSourceId);
-    }
-    getTaskInfo().getStats().addSplits(1);
-    splitWorkers.add(worker);
-    List<FutureTask<Void>> results=shardExecutor.processBatch(ImmutableList.of(worker));
-    splitWorkersResults.addAll(results);
+    scheduleSplitWorker(sourceId,split);
   }
  else {
-    for (    SplitWorker worker : splitWorkers) {
-      worker.addSplit(sourceId,split);
+    for (    WeakReference<SplitWorker> workerReference : splitWorkers) {
+      SplitWorker worker=workerReference.get();
+      Preconditions.checkState(worker != null,"SplitWorker has been GCed");
+      getTaskInfo().getStats().addSplits(1);
     }
   }
 }

@@ -1,30 +1,4 @@
 {
-  if (noMoreSources.containsAll(sourceIds) && !taskOutput.getState().isDone()) {
-    boolean allDone=true;
-    RuntimeException queryFailedException=null;
-    for (    Future<Void> result : splitWorkersResults) {
-      try {
-        if (result.isDone()) {
-          Uninterruptibles.getUninterruptibly(result);
-        }
- else {
-          allDone=false;
-        }
-      }
- catch (      Throwable e) {
-        if (queryFailedException == null) {
-          queryFailedException=new RuntimeException("Query failed");
-        }
-        Throwable cause=e.getCause();
-        queryFailedException.addSuppressed(cause);
-      }
-    }
-    if (queryFailedException != null) {
-      taskOutput.queryFailed(queryFailedException);
-    }
- else     if (allDone) {
-      taskOutput.finish();
-    }
-  }
+  checkTaskCompletion();
   return taskOutput.getTaskInfo();
 }

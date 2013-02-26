@@ -1,0 +1,27 @@
+{
+  SplitWorker worker=new SplitWorker(session,taskOutput,fragment,getSourceHashProviderFactory(),metadata,maxOperatorMemoryUsage,dataStreamProvider,exchangeOperatorFactory);
+  if (partitionedSourceId != null) {
+    worker.addSplit(partitionedSourceId,partitionedSplit);
+  }
+  for (  Entry<PlanNodeId,Set<Split>> entry : fixedSources.entrySet()) {
+    PlanNodeId fixedSourceId=entry.getKey();
+    for (    Split fixedSplit : entry.getValue()) {
+      worker.addSplit(fixedSourceId,fixedSplit);
+    }
+    worker.noMoreSplits(fixedSourceId);
+  }
+  splitWorkers.add(new WeakReference<>(worker));
+  pendingWorkerCount.incrementAndGet();
+  ListenableFuture<Void> future=shardExecutor.submit(worker);
+  Futures.addCallback(future,new FutureCallback<Void>(){
+    @Override public void onSuccess(    Void result){
+      pendingWorkerCount.decrementAndGet();
+      checkTaskCompletion();
+    }
+    @Override public void onFailure(    Throwable t){
+      taskOutput.queryFailed(t);
+      pendingWorkerCount.decrementAndGet();
+    }
+  }
+);
+}

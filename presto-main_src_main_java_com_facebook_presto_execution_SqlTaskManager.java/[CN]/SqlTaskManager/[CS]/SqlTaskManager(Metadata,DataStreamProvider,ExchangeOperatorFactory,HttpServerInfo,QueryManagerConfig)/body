@@ -12,7 +12,7 @@
   this.maxOperatorMemoryUsage=config.getMaxOperatorMemoryUsage();
   this.maxTaskAge=new Duration(config.getMaxQueryAge().toMillis() + SECONDS.toMillis(30),MILLISECONDS);
   this.clientTimeout=config.getClientTimeout();
-  shardExecutor=new FairBatchExecutor(config.getMaxShardProcessorThreads(),threadsNamed("shard-processor-%d"));
+  shardExecutor=MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(config.getMaxShardProcessorThreads(),threadsNamed("shard-processor-%d")));
   taskManagementExecutor=Executors.newScheduledThreadPool(5,threadsNamed("task-management-%d"));
   taskManagementExecutor.scheduleAtFixedRate(new Runnable(){
     @Override public void run(){
