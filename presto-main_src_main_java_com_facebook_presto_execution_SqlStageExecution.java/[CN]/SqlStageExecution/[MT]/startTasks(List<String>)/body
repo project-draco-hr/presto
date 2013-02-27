@@ -36,7 +36,7 @@ synchronized (this) {
       fixedSources.put(exchange.getId(),exchangeSplits);
     }
     String taskId=stageId + '.' + nextTaskId++;
-    RemoteTask task=remoteTaskFactory.createRemoteTask(session,queryId,stageId,taskId,partition.getNode(),plan,fixedSources.build(),outputIds);
+    RemoteTask task=remoteTaskFactory.createRemoteTask(session,queryId,stageId,taskId,partition.getNode(),plan,fixedSources.build(),ImmutableList.<String>of());
     tasks.add(task);
     try {
       task.start();
@@ -46,6 +46,10 @@ synchronized (this) {
         }
         task.noMoreSources(plan.getPartitionedSource());
       }
+      for (      String outputId : outputIds) {
+        task.addResultQueue(outputId);
+      }
+      task.noMoreResultQueues();
     }
  catch (    Throwable e) {
 synchronized (this) {

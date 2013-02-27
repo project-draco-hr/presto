@@ -6,7 +6,7 @@
   JsonResponse<TaskInfo> response=httpClient.execute(request,createFullJsonResponseHandler(jsonCodec(TaskInfo.class)));
   Preconditions.checkState(response.getStatusCode() == 201,"Expected response code from %s to be 201, but was %s: %s",request.getUri(),response.getStatusCode(),response.getStatusMessage());
   TaskInfo taskInfo=response.getValue();
-  Assert.assertEquals(taskInfo.getOutputBuffers().size(),1);
-  String bufferId=taskInfo.getOutputBuffers().get(0).getBufferId();
-  return uriBuilderFrom(taskInfo.getSelf()).appendPath("results").appendPath(bufferId).build();
+  URI outputLocation=httpServer.getBaseUrl().resolve("/v1/task/" + taskInfo.getTaskId() + "/results/out");
+  assertEquals(httpClient.execute(preparePut().setUri(httpServer.getBaseUrl().resolve("/v1/task/" + taskInfo.getTaskId() + "/results/complete")).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON).setBodyGenerator(jsonBodyGenerator(jsonCodec(boolean.class),true)).build(),createStatusResponseHandler()).getStatusCode(),204);
+  return outputLocation;
 }

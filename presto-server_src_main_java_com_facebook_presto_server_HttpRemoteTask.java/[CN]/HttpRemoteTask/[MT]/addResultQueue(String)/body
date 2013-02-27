@@ -1,0 +1,9 @@
+{
+  TaskInfo taskInfo=this.taskInfo.get();
+  URI sourceUri=uriBuilderFrom(taskInfo.getSelf()).appendPath("results").appendPath(outputName).build();
+  Request request=preparePut().setUri(sourceUri).build();
+  StatusResponse response=httpClient.execute(request,createStatusResponseHandler());
+  if (response.getStatusCode() != 204) {
+    throw new RuntimeException(String.format("Error adding result queue '%s' to task %s",outputName,taskInfo.getTaskId()));
+  }
+}

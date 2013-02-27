@@ -4,11 +4,12 @@
   QueryInfo queryInfo=client.execute(prepareGet().setUri(location).build(),createJsonResponseHandler(jsonCodec(QueryInfo.class)));
   TaskInfo taskInfo=queryInfo.getOutputStage().getTasks().get(0);
   URI outputLocation=uriFor("/v1/task/" + taskInfo.getTaskId() + "/results/out");
+  assertEquals(client.execute(preparePut().setUri(uriFor("/v1/task/" + taskInfo.getTaskId() + "/results/complete")).setHeader(HttpHeaders.CONTENT_TYPE,MEDIA_TYPE_JSON.toString()).setBodyGenerator(jsonBodyGenerator(jsonCodec(boolean.class),true)).build(),createStatusResponseHandler()).getStatusCode(),204);
   assertEquals(loadData(outputLocation),220);
   assertQueryStatus(location,QueryState.RUNNING);
   assertEquals(loadData(outputLocation),44 + 48);
   assertQueryStatus(location,QueryState.FINISHED);
   StatusResponse response=client.execute(prepareDelete().setUri(location).build(),createStatusResponseHandler());
   assertQueryStatus(location,QueryState.FINISHED);
-  assertEquals(response.getStatusCode(),Status.NO_CONTENT.getStatusCode());
+  assertEquals(response.getStatusCode(),HttpStatus.NO_CONTENT.code());
 }
