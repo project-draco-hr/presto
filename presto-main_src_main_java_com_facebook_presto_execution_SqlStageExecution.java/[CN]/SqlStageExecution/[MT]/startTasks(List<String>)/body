@@ -25,7 +25,7 @@ synchronized (this) {
   for (  StageExecution subStage : subStages.values()) {
     subStage.startTasks(nodeIds);
   }
-  Set<ExchangeNode> exchanges=IterableTransformer.on(plan.getSources()).select(Predicates.instanceOf(ExchangeNode.class)).cast(ExchangeNode.class).set();
+  Set<ExchangeNode> exchanges=IterableTransformer.on(fragment.getSources()).select(Predicates.instanceOf(ExchangeNode.class)).cast(ExchangeNode.class).set();
   int nextTaskId=0;
   for (  Partition partition : partitions) {
     String nodeIdentifier=partition.getNode().getNodeIdentifier();
@@ -36,15 +36,15 @@ synchronized (this) {
       fixedSources.put(exchange.getId(),exchangeSplits);
     }
     String taskId=stageId + '.' + nextTaskId++;
-    RemoteTask task=remoteTaskFactory.createRemoteTask(session,queryId,stageId,taskId,partition.getNode(),plan,fixedSources.build(),ImmutableList.<String>of());
+    RemoteTask task=remoteTaskFactory.createRemoteTask(session,queryId,stageId,taskId,partition.getNode(),fragment,fixedSources.build(),ImmutableList.<String>of());
     tasks.add(task);
     try {
       task.start();
-      if (plan.getPartitionedSource() != null) {
+      if (fragment.getPartitionedSource() != null) {
         for (        Split split : partition.getSplits()) {
-          task.addSource(plan.getPartitionedSource(),split);
+          task.addSource(fragment.getPartitionedSource(),split);
         }
-        task.noMoreSources(plan.getPartitionedSource());
+        task.noMoreSources(fragment.getPartitionedSource());
       }
       for (      String outputId : outputIds) {
         task.addResultQueue(outputId);

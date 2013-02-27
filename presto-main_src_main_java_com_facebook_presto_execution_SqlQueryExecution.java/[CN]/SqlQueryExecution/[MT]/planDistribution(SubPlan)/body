@@ -7,7 +7,7 @@ synchronized (this) {
     QueryState queryState=this.queryState.get();
     Preconditions.checkState(queryState == QueryState.PLANNING,"Expected query to be in state %s but was in state %s",QueryState.PLANNING,queryState);
     fieldNames.set(ImmutableList.copyOf(outputStageExecutionPlan.getFieldNames()));
-    StageExecution outputStage=createStage(new AtomicInteger(),outputStageExecutionPlan);
+    StageExecution outputStage=stageManager.createStage(session,queryId,this.queryState,outputStageExecutionPlan);
     this.outputStage.set(outputStage);
   }
   queryStats.recordDistributedPlanningTime(distributedPlanningStart);
