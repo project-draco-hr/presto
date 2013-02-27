@@ -1,0 +1,24 @@
+{
+  if (closed.get()) {
+    for (Iterator<NamedQueue> iterator=openQueuesBySequenceId.iterator(); iterator.hasNext(); ) {
+      NamedQueue namedQueue=iterator.next();
+      if (namedQueue.isEmpty()) {
+        namedQueue.setFinished();
+        iterator.remove();
+      }
+    }
+  }
+  if (state == QueueState.NO_MORE_QUEUES && !openQueuesBySequenceId.isEmpty()) {
+    long oldMasterSequenceId=masterSequenceId;
+    masterSequenceId=openQueuesBySequenceId.iterator().next().getSequenceId();
+    int elementsToRemove=Ints.checkedCast(masterSequenceId - oldMasterSequenceId);
+    Preconditions.checkState(elementsToRemove >= 0,"Master sequence id moved backwards: oldMasterSequenceId=%s, newMasterSequenceId=%s",oldMasterSequenceId,masterSequenceId);
+    for (int i=0; i < elementsToRemove; i++) {
+      masterQueue.removeFirst();
+    }
+    notFull.release(elementsToRemove);
+  }
+  if (state == QueueState.NO_MORE_QUEUES && closed.get() && openQueuesBySequenceId.isEmpty()) {
+    state=QueueState.FINISHED;
+  }
+}

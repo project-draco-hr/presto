@@ -1,0 +1,13 @@
+{
+  Preconditions.checkState(Thread.holdsLock(SharedBuffer.this),"Thread must hold a lock on the %s",SharedBuffer.class.getSimpleName());
+  if (finished) {
+    return ImmutableList.of();
+  }
+  int listOffset=Ints.checkedCast(sequenceId - masterSequenceId);
+  if (listOffset >= masterQueue.size()) {
+    return ImmutableList.of();
+  }
+  List<T> elements=masterQueue.subList(listOffset,Math.min(listOffset + maxElementCount,masterQueue.size()));
+  sequenceId+=elements.size();
+  return ImmutableList.copyOf(elements);
+}

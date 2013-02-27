@@ -11,10 +11,10 @@
   this.stageId=stageId;
   this.taskId=taskId;
   this.location=location;
-  stats.addSplits(splits);
-  ImmutableMap.Builder<String,PageBuffer> builder=ImmutableMap.builder();
+  sharedBuffer=new SharedBuffer<>(pageBufferMax);
   for (  String outputId : outputIds) {
-    builder.put(outputId,new PageBuffer(outputId,pageBufferMax));
+    sharedBuffer.addQueue(outputId);
   }
-  outputBuffers=builder.build();
+  sharedBuffer.noMoreQueues();
+  stats.addSplits(splits);
 }

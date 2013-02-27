@@ -1,0 +1,30 @@
+{
+  Preconditions.checkNotNull(outputId,"outputId is null");
+  Preconditions.checkNotNull(maxWait,"maxWait is null");
+  NamedQueue namedQueue=namedQueues.get(outputId);
+  Preconditions.checkArgument(namedQueue != null,"Unknown output %s: available outputs %s",outputId,namedQueues.keySet());
+  if (state == QueueState.FINISHED) {
+    return ImmutableList.of();
+  }
+  if (namedQueue.isEmpty()) {
+    long remainingNanos=(long)maxWait.convertTo(NANOSECONDS);
+    long end=System.nanoTime() + remainingNanos;
+    while (remainingNanos > 0 && namedQueue.isEmpty()) {
+      NANOSECONDS.timedWait(this,remainingNanos);
+      remainingNanos=end - System.nanoTime();
+    }
+  }
+  if (state == QueueState.FINISHED) {
+    return ImmutableList.of();
+  }
+  openQueuesBySequenceId.remove(namedQueue);
+  List<T> elements=namedQueue.getElements(maxCount);
+  if (!closed.get() || !namedQueue.isEmpty()) {
+    openQueuesBySequenceId.add(namedQueue);
+  }
+ else {
+    namedQueue.setFinished();
+  }
+  updateState();
+  return elements;
+}
