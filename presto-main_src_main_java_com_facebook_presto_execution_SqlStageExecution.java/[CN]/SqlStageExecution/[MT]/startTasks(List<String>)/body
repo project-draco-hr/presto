@@ -22,7 +22,7 @@ synchronized (this) {
     partitions=partitionBuilder.build();
   }
   List<String> nodeIds=IterableTransformer.on(partitions).transform(nodeIdentifierGetter()).list();
-  for (  StageExecution subStage : subStages.values()) {
+  for (  SqlStageExecution subStage : subStages.values()) {
     subStage.startTasks(nodeIds);
   }
   Set<ExchangeNode> exchanges=IterableTransformer.on(fragment.getSources()).select(Predicates.instanceOf(ExchangeNode.class)).cast(ExchangeNode.class).set();
@@ -31,7 +31,7 @@ synchronized (this) {
     String nodeIdentifier=partition.getNode().getNodeIdentifier();
     ImmutableMap.Builder<PlanNodeId,Set<Split>> fixedSources=ImmutableMap.builder();
     for (    ExchangeNode exchange : exchanges) {
-      StageExecution childStage=subStages.get(exchange.getSourceFragmentId());
+      SqlStageExecution childStage=subStages.get(exchange.getSourceFragmentId());
       Set<Split> exchangeSplits=childStage.getSplitsForExchange(nodeIdentifier);
       fixedSources.put(exchange.getId(),exchangeSplits);
     }
