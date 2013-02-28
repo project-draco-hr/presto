@@ -1,8 +1,8 @@
 {
-  return node.getName() + "(" + Joiner.on(", ").join(Iterables.transform(node.getArguments(),new Function<Expression,Object>(){
-    @Override public Object apply(    Expression input){
-      return process(input,null);
-    }
+  StringBuilder builder=new StringBuilder();
+  builder.append(node.getName()).append('(').append(joinExpressions(node.getArguments())).append(')');
+  if (node.getWindow().isPresent()) {
+    builder.append(" OVER ").append(visitWindow(node.getWindow().get(),null));
   }
-))+ ")";
+  return builder.toString();
 }

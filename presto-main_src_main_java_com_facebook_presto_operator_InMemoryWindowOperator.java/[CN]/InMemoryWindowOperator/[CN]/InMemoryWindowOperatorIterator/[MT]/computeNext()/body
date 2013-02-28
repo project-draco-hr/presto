@@ -19,10 +19,7 @@
     boolean newPartition=(currentPosition == 0) || (currentPosition == partitionEnd);
     if (newPartition) {
       partitionEnd++;
-      while (partitionEnd < pageIndex.getPositionCount()) {
-        if (partitionComparator.compare(partitionEnd - 1,partitionEnd) != 0) {
-          break;
-        }
+      while ((partitionEnd < pageIndex.getPositionCount()) && (partitionComparator.compare(partitionEnd - 1,partitionEnd) == 0)) {
         partitionEnd++;
       }
       for (      WindowFunction function : windowFunctions) {
@@ -37,10 +34,7 @@
     boolean newPeerGroup=newPartition || (currentPosition == peerGroupEnd);
     if (newPeerGroup) {
       peerGroupEnd++;
-      while (peerGroupEnd < partitionEnd) {
-        if (orderComparator.compare(peerGroupEnd - 1,peerGroupEnd) != 0) {
-          break;
-        }
+      while ((peerGroupEnd < partitionEnd) && (orderComparator.compare(peerGroupEnd - 1,peerGroupEnd) == 0)) {
         peerGroupEnd++;
       }
       peerGroupCount=peerGroupEnd - currentPosition;
