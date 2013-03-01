@@ -10,7 +10,15 @@ synchronized (this) {
 synchronized (this) {
       Preconditions.checkState(queryState.compareAndSet(QueryState.PLANNING,QueryState.STARTING),"Expected query to be in state %s",QueryState.PLANNING);
     }
-    startStage(outputStage.get(),ImmutableList.of(ROOT_OUTPUT_BUFFER_NAME));
+    SqlStageExecution stage=outputStage.get();
+    if (!queryState.get().isDone()) {
+      stage.addOutputBuffer(ROOT_OUTPUT_BUFFER_NAME);
+      stage.noMoreOutputBuffers();
+      stage.start();
+    }
+ else {
+      stage.cancel();
+    }
   }
  catch (  Exception e) {
 synchronized (this) {

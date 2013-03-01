@@ -1,0 +1,19 @@
+{
+  SetMultimap<PlanNodeId,URI> newExchangeLocations=HashMultimap.create(exchangeLocations);
+synchronized (this) {
+    newExchangeLocations.entries().removeAll(this.exchangeLocations.entries());
+    this.exchangeLocations.putAll(exchangeLocations);
+  }
+  for (  Entry<PlanNodeId,URI> entry : newExchangeLocations.entries()) {
+    addSource(entry.getKey(),createRemoteSplitFor(entry.getValue()));
+  }
+  if (noMore) {
+    Set<PlanNodeId> allExchangeSourceIds;
+synchronized (this) {
+      allExchangeSourceIds=exchangeLocations.keySet();
+    }
+    for (    PlanNodeId planNodeId : allExchangeSourceIds) {
+      noMoreSources(planNodeId);
+    }
+  }
+}

@@ -4,7 +4,7 @@
   Preconditions.checkNotNull(stageId,"stageId is null");
   Preconditions.checkNotNull(taskId,"taskId is null");
   Preconditions.checkNotNull(fragment,"fragment is null");
-  Preconditions.checkNotNull(fixedSources,"fixedSources is null");
+  Preconditions.checkNotNull(initialSources,"initialSources is null");
   Preconditions.checkNotNull(initialOutputIds,"initialOutputIds is null");
   Preconditions.checkArgument(pageBufferMax > 0,"pageBufferMax must be at least 1");
   Preconditions.checkNotNull(metadata,"metadata is null");
@@ -13,7 +13,6 @@
   this.session=session;
   this.taskId=taskId;
   this.fragment=fragment;
-  this.fixedSources=fixedSources;
   this.dataStreamProvider=dataStreamProvider;
   this.exchangeOperatorFactory=exchangeOperatorFactory;
   this.shardExecutor=shardExecutor;
@@ -27,8 +26,21 @@
     }
   }
 ));
+  Set<Split> initialSplits=ImmutableSet.of();
+  for (  Entry<PlanNodeId,Set<Split>> entry : initialSources.entrySet()) {
+    if (!entry.getKey().equals(fragment.getPartitionedSource())) {
+      unpartitionedSources.putAll(entry.getKey(),entry.getValue());
+    }
+ else {
+      initialSplits=entry.getValue();
+    }
+  }
   if (!fragment.isPartitioned()) {
     scheduleSplitWorker(null,null);
   }
-  this.noMoreSources.addAll(fixedSources.keySet());
+ else {
+    for (    Split initialSplit : initialSplits) {
+      scheduleSplitWorker(fragment.getPartitionedSource(),initialSplit);
+    }
+  }
 }

@@ -3,12 +3,8 @@
   if (partitionedSourceId != null) {
     worker.addSplit(partitionedSourceId,partitionedSplit);
   }
-  for (  Entry<PlanNodeId,Set<Split>> entry : fixedSources.entrySet()) {
-    PlanNodeId fixedSourceId=entry.getKey();
-    for (    Split fixedSplit : entry.getValue()) {
-      worker.addSplit(fixedSourceId,fixedSplit);
-    }
-    worker.noMoreSplits(fixedSourceId);
+  for (  Entry<PlanNodeId,Split> entry : unpartitionedSources.entries()) {
+    worker.addSplit(entry.getKey(),entry.getValue());
   }
   splitWorkers.add(new WeakReference<>(worker));
   pendingWorkerCount.incrementAndGet();

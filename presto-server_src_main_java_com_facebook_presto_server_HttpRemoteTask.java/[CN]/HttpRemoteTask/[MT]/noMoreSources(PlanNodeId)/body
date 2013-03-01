@@ -1,9 +1,11 @@
 {
-  TaskInfo taskInfo=this.taskInfo.get();
-  URI statusUri=uriBuilderFrom(taskInfo.getSelf()).appendPath("source").appendPath(sourceId.toString()).appendPath("complete").build();
+  Preconditions.checkNotNull(sourceId,"sourceId is null");
+  URI taskLocation=taskInfo.get().getSelf();
+  Preconditions.checkNotNull(taskLocation,"taskLocation is null");
+  URI statusUri=uriBuilderFrom(taskLocation).appendPath("source").appendPath(sourceId.toString()).appendPath("complete").build();
   Request request=preparePut().setUri(statusUri).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON).setBodyGenerator(createStaticBodyGenerator("true",UTF_8)).build();
   StatusResponse response=httpClient.execute(request,createStatusResponseHandler());
   if (response.getStatusCode() / 100 != 2) {
-    throw new RuntimeException(String.format("Error closing source '%s' on task %s",sourceId.toString(),taskInfo.getTaskId()));
+    throw new RuntimeException(String.format("Error closing source '%s' on task %s",sourceId.toString(),this.taskInfo.get().getTaskId()));
   }
 }

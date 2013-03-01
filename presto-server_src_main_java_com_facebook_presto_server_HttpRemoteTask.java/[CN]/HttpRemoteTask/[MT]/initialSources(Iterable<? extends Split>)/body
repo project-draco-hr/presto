@@ -1,0 +1,14 @@
+{
+  ImmutableMap.Builder<PlanNodeId,Set<Split>> sources=ImmutableMap.builder();
+  if (planFragment.getPartitionedSource() != null) {
+    sources.put(planFragment.getPartitionedSource(),ImmutableSet.copyOf(initialSplits));
+  }
+  for (  Entry<PlanNodeId,Collection<URI>> entry : exchangeLocations.asMap().entrySet()) {
+    ImmutableSet.Builder<Split> splits=ImmutableSet.builder();
+    for (    URI location : entry.getValue()) {
+      splits.add(createRemoteSplitFor(location));
+    }
+    sources.put(entry.getKey(),splits.build());
+  }
+  return sources.build();
+}

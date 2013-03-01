@@ -1,0 +1,59 @@
+{
+  Preconditions.checkState(!Thread.holdsLock(this),"Can not start while holding a lock on this");
+synchronized (this) {
+    if (!stageState.compareAndSet(StageState.PLANNED,StageState.SCHEDULING)) {
+      return;
+    }
+  }
+  List<Partition> partitions;
+  if (!splits.isPresent()) {
+    ArrayList<Node> nodes=new ArrayList<>(nodeManager.getActiveNodes());
+    Preconditions.checkState(!nodes.isEmpty(),"Cluster does not have any active nodes");
+    Collections.shuffle(nodes,random);
+    Node node=nodes.get(0);
+    partitions=ImmutableList.of(new Partition(node,ImmutableList.<Split>of()));
+  }
+ else {
+    Multimap<Node,Split> nodeSplits=SplitAssignments.balancedNodeAssignment(queryState,splits.get());
+    ImmutableList.Builder<Partition> partitionBuilder=ImmutableList.builder();
+    for (    Entry<Node,Collection<Split>> entry : nodeSplits.asMap().entrySet()) {
+      partitionBuilder.add(new Partition(entry.getKey(),entry.getValue()));
+    }
+    partitions=partitionBuilder.build();
+  }
+  int nextTaskId=0;
+  for (  Partition partition : partitions) {
+    if (getState().isDone()) {
+      return;
+    }
+    String nodeIdentifier=partition.getNode().getNodeIdentifier();
+    String taskId=stageId + '.' + nextTaskId++;
+    RemoteTask task=remoteTaskFactory.createRemoteTask(session,queryId,stageId,taskId,partition.getNode(),fragment,getExchangeLocations(),getOutputBuffers());
+    try {
+      task.start(partition.getSplits());
+      tasks.add(task);
+      if (getState().isDone()) {
+        return;
+      }
+      for (      SqlStageExecution subStage : subStages.values()) {
+        subStage.addOutputBuffer(nodeIdentifier);
+      }
+      task.noMoreSplits();
+    }
+ catch (    Throwable e) {
+synchronized (this) {
+        failureCauses.add(e);
+        transitionToState(StageState.FAILED);
+      }
+      log.error(e,"Stage %s failed to start",stageId);
+      cancel();
+      throw Throwables.propagate(e);
+    }
+  }
+  transitionToState(StageState.SCHEDULED);
+  notifyParentSubStageFinishedScheduling();
+  for (  SqlStageExecution subStage : subStages.values()) {
+    subStage.noMoreOutputBuffers();
+  }
+  addNewExchangesAndBuffers();
+}

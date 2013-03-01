@@ -1,0 +1,12 @@
+{
+  ImmutableMultimap.Builder<PlanNodeId,URI> exchangeLocations=ImmutableMultimap.builder();
+  for (  PlanNode planNode : fragment.getSources()) {
+    if (planNode instanceof ExchangeNode) {
+      ExchangeNode exchangeNode=(ExchangeNode)planNode;
+      SqlStageExecution subStage=subStages.get(exchangeNode.getSourceFragmentId());
+      Preconditions.checkState(subStage != null,"Unknown sub stage %s, known stages %s",exchangeNode.getSourceFragmentId(),subStages.keySet());
+      exchangeLocations.putAll(exchangeNode.getId(),subStage.getTaskLocations());
+    }
+  }
+  return exchangeLocations.build();
+}
