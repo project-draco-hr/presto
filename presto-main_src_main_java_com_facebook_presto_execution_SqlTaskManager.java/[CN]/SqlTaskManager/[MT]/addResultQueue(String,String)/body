@@ -3,12 +3,14 @@
   Preconditions.checkNotNull(outputName,"outputName is null");
   TaskExecution taskExecution=tasks.get(taskId);
   if (taskExecution == null) {
-    if (taskInfos.containsKey(taskId)) {
-      return;
+    TaskInfo taskInfo=taskInfos.get(taskId);
+    if (taskInfo != null) {
+      return taskInfo;
     }
  else {
       throw new NoSuchElementException("Unknown query task " + taskId);
     }
   }
   taskExecution.addResultQueue(outputName);
+  return taskExecution.getTaskInfo();
 }

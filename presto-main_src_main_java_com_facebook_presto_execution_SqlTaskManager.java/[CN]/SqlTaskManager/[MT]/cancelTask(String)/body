@@ -1,10 +1,12 @@
 {
   Preconditions.checkNotNull(taskId,"taskId is null");
   TaskExecution taskExecution=tasks.remove(taskId);
-  if (taskExecution != null) {
-    taskExecution.cancel();
-    tasks.remove(taskId);
-    TaskInfo taskInfo=taskExecution.getTaskInfo();
-    taskInfos.putIfAbsent(taskId,taskInfo);
+  if (taskExecution == null) {
+    return taskInfos.get(taskId);
   }
+  taskExecution.cancel();
+  tasks.remove(taskId);
+  TaskInfo taskInfo=taskExecution.getTaskInfo();
+  taskInfos.putIfAbsent(taskId,taskInfo);
+  return taskExecution.getTaskInfo();
 }
