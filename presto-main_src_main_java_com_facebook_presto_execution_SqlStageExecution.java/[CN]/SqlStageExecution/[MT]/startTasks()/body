@@ -1,59 +1,57 @@
 {
-  Preconditions.checkState(!Thread.holdsLock(this),"Can not start while holding a lock on this");
+  try {
+    Preconditions.checkState(!Thread.holdsLock(this),"Can not start while holding a lock on this");
 synchronized (this) {
-    if (!stageState.compareAndSet(StageState.PLANNED,StageState.SCHEDULING)) {
-      return;
-    }
-  }
-  List<Partition> partitions;
-  if (!splits.isPresent()) {
-    ArrayList<Node> nodes=new ArrayList<>(nodeManager.getActiveNodes());
-    Preconditions.checkState(!nodes.isEmpty(),"Cluster does not have any active nodes");
-    Collections.shuffle(nodes,random);
-    Node node=nodes.get(0);
-    partitions=ImmutableList.of(new Partition(node,ImmutableList.<Split>of()));
-  }
- else {
-    Multimap<Node,Split> nodeSplits=SplitAssignments.balancedNodeAssignment(queryState,splits.get());
-    ImmutableList.Builder<Partition> partitionBuilder=ImmutableList.builder();
-    for (    Entry<Node,Collection<Split>> entry : nodeSplits.asMap().entrySet()) {
-      partitionBuilder.add(new Partition(entry.getKey(),entry.getValue()));
-    }
-    partitions=partitionBuilder.build();
-  }
-  int nextTaskId=0;
-  for (  Partition partition : partitions) {
-    if (getState().isDone()) {
-      return;
-    }
-    String nodeIdentifier=partition.getNode().getNodeIdentifier();
-    String taskId=stageId + '.' + nextTaskId++;
-    RemoteTask task=remoteTaskFactory.createRemoteTask(session,queryId,stageId,taskId,partition.getNode(),fragment,getExchangeLocations(),getOutputBuffers());
-    try {
-      task.start(partition.getSplits());
-      tasks.add(task);
-      if (getState().isDone()) {
+      if (!stageState.compareAndSet(StageState.PLANNED,StageState.SCHEDULING)) {
         return;
       }
-      for (      SafeStageExecution subStage : subStages.values()) {
-        subStage.addOutputBuffer(nodeIdentifier);
-      }
-      task.noMoreSplits();
     }
- catch (    Throwable e) {
-synchronized (this) {
-        failureCauses.add(e);
-        transitionToState(StageState.FAILED);
+    AtomicInteger nextTaskId=new AtomicInteger(0);
+    if (!splits.isPresent()) {
+      ArrayList<Node> nodes=new ArrayList<>(nodeManager.getActiveNodes());
+      Preconditions.checkState(!nodes.isEmpty(),"Cluster does not have any active nodes");
+      Collections.shuffle(nodes,random);
+      Node randomNode=nodes.get(0);
+      scheduleTask(nextTaskId,randomNode,null);
+    }
+ else {
+      final Object2IntOpenHashMap<Node> nodeSplits=new Object2IntOpenHashMap<>();
+      Comparator<Node> byAssignedSplitsCount=new Comparator<Node>(){
+        @Override public int compare(        Node o1,        Node o2){
+          return Ints.compare(nodeSplits.getInt(o1),nodeSplits.getInt(o2));
+        }
       }
-      log.error(e,"Stage %s failed to start",stageId);
-      cancel();
-      throw Throwables.propagate(e);
+;
+      for (      SplitAssignments assignment : splits.get()) {
+        if (getState().isDone()) {
+          break;
+        }
+        Node chosen=Ordering.from(byAssignedSplitsCount).min(assignment.getNodes());
+        nodeSplits.add(chosen,1);
+        RemoteTask task=tasks.get(chosen);
+        if (task == null) {
+          scheduleTask(nextTaskId,chosen,assignment.getSplit());
+        }
+ else {
+          task.addSplit(assignment.getSplit());
+        }
+      }
+      for (      RemoteTask task : tasks.values()) {
+        task.noMoreSplits();
+      }
+    }
+    transitionToState(StageState.SCHEDULED);
+    notifyParentSubStageFinishedScheduling();
+    for (    SafeStageExecution subStage : subStages.values()) {
+      subStage.noMoreOutputBuffers();
+    }
+    addNewExchangesAndBuffers();
+  }
+ catch (  Throwable e) {
+    if (!getState().isDone()) {
+      transitionToState(StageState.FAILED);
+      log.error(e,"Error while starting stage %s",stageId);
+      throw e;
     }
   }
-  transitionToState(StageState.SCHEDULED);
-  notifyParentSubStageFinishedScheduling();
-  for (  SafeStageExecution subStage : subStages.values()) {
-    subStage.noMoreOutputBuffers();
-  }
-  addNewExchangesAndBuffers();
 }

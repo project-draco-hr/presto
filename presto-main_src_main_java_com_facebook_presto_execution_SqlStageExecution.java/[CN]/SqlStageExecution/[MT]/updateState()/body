@@ -1,6 +1,6 @@
 {
   Preconditions.checkState(!Thread.holdsLock(this),"Can not update state while holding a lock on this");
-  for (  RemoteTask task : tasks) {
+  for (  RemoteTask task : tasks.values()) {
     try {
       task.updateState();
     }
@@ -22,7 +22,7 @@ synchronized (this) {
       transitionToState(doneState);
     }
  else {
-      List<TaskState> taskStates=ImmutableList.copyOf(transform(transform(tasks,taskInfoGetter()),taskStateGetter()));
+      List<TaskState> taskStates=ImmutableList.copyOf(transform(transform(tasks.values(),taskInfoGetter()),taskStateGetter()));
       if (any(taskStates,equalTo(TaskState.FAILED))) {
         transitionToState(StageState.FAILED);
       }

@@ -1,0 +1,25 @@
+{
+  String nodeIdentifier=node.getNodeIdentifier();
+  String taskId=stageId + '.' + nextTaskId.getAndIncrement();
+  RemoteTask task=remoteTaskFactory.createRemoteTask(session,queryId,stageId,taskId,node,fragment,getExchangeLocations(),getOutputBuffers());
+  try {
+    task.start(initialSplit);
+    tasks.put(node,task);
+    if (getState().isDone()) {
+      return task;
+    }
+    for (    SafeStageExecution subStage : subStages.values()) {
+      subStage.addOutputBuffer(nodeIdentifier);
+    }
+    return task;
+  }
+ catch (  Throwable e) {
+synchronized (this) {
+      failureCauses.add(e);
+      transitionToState(StageState.FAILED);
+    }
+    log.error(e,"Stage %s failed to start",stageId);
+    cancel();
+    throw Throwables.propagate(e);
+  }
+}

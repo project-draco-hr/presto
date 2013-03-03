@@ -6,7 +6,6 @@
   Preconditions.checkNotNull(nodeManager,"nodeManager is null");
   Preconditions.checkNotNull(remoteTaskFactory,"remoteTaskFactory is null");
   Preconditions.checkNotNull(session,"session is null");
-  Preconditions.checkNotNull(queryState,"queryState is null");
   this.parent=parent;
   this.queryId=queryId;
   this.stageId=queryId + "." + nextStageId.getAndIncrement();
@@ -16,12 +15,11 @@
   this.nodeManager=nodeManager;
   this.remoteTaskFactory=remoteTaskFactory;
   this.session=session;
-  this.queryState=queryState;
   tupleInfos=fragment.getTupleInfos();
   ImmutableMap.Builder<PlanFragmentId,SafeStageExecution> subStages=ImmutableMap.builder();
   for (  StageExecutionPlan subStagePlan : plan.getSubStages()) {
     PlanFragmentId subStageFragmentId=subStagePlan.getFragment().getId();
-    SqlStageExecution subStage=new SqlStageExecution(this,queryId,nextStageId,locationFactory,subStagePlan,nodeManager,remoteTaskFactory,session,queryState);
+    SqlStageExecution subStage=new SqlStageExecution(this,queryId,nextStageId,locationFactory,subStagePlan,nodeManager,remoteTaskFactory,session);
     subStages.put(subStageFragmentId,subStage);
   }
   this.subStages=subStages.build();

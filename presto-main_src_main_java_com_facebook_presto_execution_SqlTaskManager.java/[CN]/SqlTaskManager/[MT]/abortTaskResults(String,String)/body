@@ -3,7 +3,12 @@
   Preconditions.checkNotNull(outputId,"outputId is null");
   TaskExecution taskExecution=tasks.get(taskId);
   if (taskExecution == null) {
-    throw new NoSuchElementException();
+    if (taskInfos.containsKey(taskId)) {
+      return;
+    }
+ else {
+      throw new NoSuchElementException("Unknown query task " + taskId);
+    }
   }
   log.debug("Aborting task %s output %s",taskId,outputId);
   taskExecution.abortResults(outputId);

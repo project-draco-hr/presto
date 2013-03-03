@@ -1,16 +1,20 @@
 {
   Preconditions.checkState(!Thread.holdsLock(this),"Can not add exchanges or buffers to tasks while holding a lock on this");
   while (!getState().isDone()) {
-    boolean done=exchangesAndBuffersComplete();
+    boolean exchangesComplete=exchangesAreComplete();
+    boolean outputComplete;
+synchronized (this) {
+      outputComplete=noMoreOutputIds;
+    }
     Multimap<PlanNodeId,URI> exchangeLocations=getExchangeLocations();
     Set<String> outputBuffers=getOutputBuffers();
-    for (    RemoteTask task : tasks) {
-      task.addExchangeLocations(exchangeLocations,done);
-      task.addOutputBuffers(outputBuffers,done);
+    for (    RemoteTask task : tasks.values()) {
+      task.addExchangeLocations(exchangeLocations,exchangesComplete);
+      task.addOutputBuffers(outputBuffers,outputComplete);
     }
-    if (done) {
+    if (exchangesComplete && outputComplete) {
       return;
     }
-    waitForMoreData(exchangeLocations,outputBuffers);
+    waitForMoreExchangesAndBuffers(exchangeLocations,exchangesComplete,outputBuffers,outputComplete);
   }
 }
