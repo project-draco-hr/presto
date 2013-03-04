@@ -2,9 +2,19 @@
   if (partitionNames.equals(ImmutableList.of(UnpartitionedPartition.UNPARTITIONED_NAME))) {
     return ImmutableList.<Partition>of(UnpartitionedPartition.INSTANCE);
   }
-  ImmutableList.Builder<Partition> partitionsBuilder=ImmutableList.builder();
-  for (  List<String> batchedPartitionNames : Lists.partition(partitionNames,partitionBatchSize)) {
-    partitionsBuilder.addAll(metastore.getPartitionsByNames(databaseName,tableName,batchedPartitionNames));
+  Iterable<List<String>> partitionNameBatches=partition(partitionNames,partitionBatchSize);
+  Iterable<List<Partition>> partitionBatches=transform(partitionNameBatches,new Function<List<String>,List<Partition>>(){
+    @Override public List<Partition> apply(    List<String> partitionNameBatch){
+      try {
+        List<Partition> partitions=metastore.getPartitionsByNames(databaseName,tableName,partitionNameBatch);
+        checkState(partitionNameBatch.size() == partitions.size(),"expected %s partitions but found %s",partitionNameBatch.size(),partitions.size());
+        return partitions;
+      }
+ catch (      NoSuchObjectException e) {
+        throw Throwables.propagate(e);
+      }
+    }
   }
-  return partitionsBuilder.build();
+);
+  return concat(partitionBatches);
 }

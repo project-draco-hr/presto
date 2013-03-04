@@ -1,15 +1,12 @@
 {
   Table table;
-  List<Partition> partitions;
+  Iterable<Partition> partitions;
   try {
     table=metastore.getTable(databaseName,tableName);
     partitions=getPartitions(databaseName,tableName,partitionNames);
   }
  catch (  NoSuchObjectException e) {
     throw new ObjectNotFoundException(e.getMessage());
-  }
-  if (partitionNames.size() != partitions.size()) {
-    throw new ObjectNotFoundException(format("expected %s partitions but found %s",partitionNames.size(),partitions.size()));
   }
   return getPartitionChunks(table,partitions,getHiveColumns(table,columns));
 }
