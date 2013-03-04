@@ -16,10 +16,10 @@ synchronized (this) {
     }
  else {
       for (      SplitAssignments assignment : splits.get()) {
+        Node chosen=chooseNode(assignment);
         if (getState().isDone()) {
           break;
         }
-        Node chosen=Ordering.from(byPendingSplitsCount).min(assignment.getNodes());
         RemoteTask task=tasks.get(chosen);
         if (task == null) {
           scheduleTask(nextTaskId,chosen,assignment.getSplit());
@@ -37,7 +37,7 @@ synchronized (this) {
     for (    SafeStageExecution subStage : subStages.values()) {
       subStage.noMoreOutputBuffers();
     }
-    addNewExchangesAndBuffers();
+    addNewExchangesAndBuffers(true);
   }
  catch (  Throwable e) {
     if (!getState().isDone()) {
