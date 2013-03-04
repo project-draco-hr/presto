@@ -15,19 +15,11 @@ synchronized (this) {
       scheduleTask(nextTaskId,randomNode,null);
     }
  else {
-      final Object2IntOpenHashMap<Node> nodeSplits=new Object2IntOpenHashMap<>();
-      Comparator<Node> byAssignedSplitsCount=new Comparator<Node>(){
-        @Override public int compare(        Node o1,        Node o2){
-          return Ints.compare(nodeSplits.getInt(o1),nodeSplits.getInt(o2));
-        }
-      }
-;
       for (      SplitAssignments assignment : splits.get()) {
         if (getState().isDone()) {
           break;
         }
-        Node chosen=Ordering.from(byAssignedSplitsCount).min(assignment.getNodes());
-        nodeSplits.add(chosen,1);
+        Node chosen=Ordering.from(byPendingSplitsCount).min(assignment.getNodes());
         RemoteTask task=tasks.get(chosen);
         if (task == null) {
           scheduleTask(nextTaskId,chosen,assignment.getSplit());

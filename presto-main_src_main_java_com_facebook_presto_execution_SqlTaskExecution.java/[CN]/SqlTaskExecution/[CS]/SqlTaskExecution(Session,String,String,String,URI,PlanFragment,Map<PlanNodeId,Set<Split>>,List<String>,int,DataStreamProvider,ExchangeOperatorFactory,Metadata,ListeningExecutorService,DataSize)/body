@@ -18,7 +18,7 @@
   this.shardExecutor=shardExecutor;
   this.metadata=metadata;
   this.maxOperatorMemoryUsage=maxOperatorMemoryUsage;
-  this.taskOutput=new TaskOutput(queryId,stageId,taskId,location,initialOutputIds,pageBufferMax,0);
+  this.taskOutput=new TaskOutput(queryId,stageId,taskId,location,initialOutputIds,pageBufferMax);
   taskOutput.getStats().recordExecutionStart();
   sourceIds=ImmutableSet.copyOf(transform(fragment.getSources(),new Function<PlanNode,PlanNodeId>(){
     @Override public PlanNodeId apply(    PlanNode input){
@@ -40,7 +40,7 @@
   }
  else {
     for (    Split initialSplit : initialSplits) {
-      scheduleSplitWorker(fragment.getPartitionedSource(),initialSplit);
+      addSplit(fragment.getPartitionedSource(),initialSplit);
     }
   }
 }
