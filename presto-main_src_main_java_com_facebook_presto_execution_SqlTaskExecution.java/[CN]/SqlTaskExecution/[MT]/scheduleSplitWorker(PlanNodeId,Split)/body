@@ -8,15 +8,19 @@
   }
   splitWorkers.add(new WeakReference<>(worker));
   pendingWorkerCount.incrementAndGet();
-  ListenableFuture<Void> future=shardExecutor.submit(worker);
-  Futures.addCallback(future,new FutureCallback<Void>(){
-    @Override public void onSuccess(    Void result){
+  final FutureTask<?> workerFutureTask=new FutureTask<>(worker);
+  unfinishedWorkerTasks.addFirst(workerFutureTask);
+  ListenableFuture<?> future=shardExecutor.submit(workerFutureTask);
+  Futures.addCallback(future,new FutureCallback<Object>(){
+    @Override public void onSuccess(    Object result){
       pendingWorkerCount.decrementAndGet();
       checkTaskCompletion();
+      unfinishedWorkerTasks.removeFirstOccurrence(workerFutureTask);
     }
     @Override public void onFailure(    Throwable t){
       taskOutput.queryFailed(t);
       pendingWorkerCount.decrementAndGet();
+      unfinishedWorkerTasks.removeFirstOccurrence(workerFutureTask);
     }
   }
 );
