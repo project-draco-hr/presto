@@ -1,5 +1,6 @@
 {
-  DateTime oldestAllowedHeartBeat=DateTime.now().minus((long)clientTimeout.toMillis());
+  DateTime now=DateTime.now();
+  DateTime oldestAllowedHeartBeat=now.minus((long)clientTimeout.toMillis());
   for (  QueryExecution queryExecution : queries.values()) {
     try {
       QueryInfo queryInfo=queryExecution.getQueryInfo();
@@ -8,7 +9,8 @@
       }
       DateTime lastHeartBeat=queryInfo.getQueryStats().getLastHeartBeat();
       if (lastHeartBeat != null && lastHeartBeat.isBefore(oldestAllowedHeartBeat)) {
-        cancelQuery(queryExecution.getQueryId());
+        log.info("Failing abandoned query %s",queryInfo.getQueryId());
+        queryExecution.fail(new AbandonedException("Query " + queryInfo.getQueryId(),lastHeartBeat,now));
       }
     }
  catch (    Exception e) {
