@@ -1,19 +1,29 @@
 {
 synchronized (getClassLoadingLock(name)) {
-    Class clazz=findLoadedClass(name);
-    if (clazz == null && !isNonOverridableClass(name)) {
+    Class<?> cachedClass=findLoadedClass(name);
+    if (cachedClass != null) {
+      return resolveClass(cachedClass,resolve);
+    }
+    if (!isParentFirstClass(name)) {
       try {
-        clazz=findClass(name);
+        Class<?> clazz=findClass(name);
+        return resolveClass(clazz,resolve);
       }
  catch (      ClassNotFoundException ignored) {
       }
     }
-    if (clazz != null) {
-      if (resolve) {
-        resolveClass(clazz);
+    if (!isHiddenClass(name)) {
+      try {
+        Class<?> clazz=getParent().loadClass(name);
+        return resolveClass(clazz,resolve);
       }
-      return clazz;
+ catch (      ClassNotFoundException ignored) {
+      }
     }
-    return super.loadClass(name,resolve);
+    if (isParentFirstClass(name)) {
+      Class<?> clazz=findClass(name);
+      return resolveClass(clazz,resolve);
+    }
+    throw new ClassNotFoundException(name);
   }
 }
