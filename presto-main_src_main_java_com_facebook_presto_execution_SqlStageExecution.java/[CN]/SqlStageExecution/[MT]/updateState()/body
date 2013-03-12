@@ -8,7 +8,7 @@
       log.debug(e,"Error updating task info");
     }
   }
-  for (  SafeStageExecution subStage : subStages.values()) {
+  for (  StageExecutionNode subStage : subStages.values()) {
     subStage.updateState();
   }
 synchronized (this) {
@@ -18,8 +18,7 @@ synchronized (this) {
     }
     List<StageState> subStageStates=ImmutableList.copyOf(transform(transform(subStages.values(),stageInfoGetter()),stageStateGetter()));
     if (any(subStageStates,equalTo(StageState.FAILED))) {
-      StageState doneState=StageState.FAILED;
-      transitionToState(doneState);
+      transitionToState(StageState.FAILED);
     }
  else {
       List<TaskState> taskStates=ImmutableList.copyOf(transform(transform(tasks.values(),taskInfoGetter()),taskStateGetter()));

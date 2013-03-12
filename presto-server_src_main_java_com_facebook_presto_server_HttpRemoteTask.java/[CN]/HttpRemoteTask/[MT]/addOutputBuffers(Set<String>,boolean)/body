@@ -1,7 +1,9 @@
 {
-  HashSet<String> newOutputBuffers=new HashSet<>(outputBuffers);
+  Set<String> newOutputBuffers;
 synchronized (this) {
-    newOutputBuffers.removeAll(this.outputIds);
+    Preconditions.checkState(!noMoreOutputIds || outputBuffers.containsAll(outputBuffers),"Buffers can not be added after noMoreOutputIds has been set");
+    noMoreOutputIds=noMore;
+    newOutputBuffers=ImmutableSet.copyOf(Sets.difference(outputBuffers,outputIds));
     this.outputIds.addAll(outputBuffers);
   }
   for (  String newOutputBuffer : newOutputBuffers) {

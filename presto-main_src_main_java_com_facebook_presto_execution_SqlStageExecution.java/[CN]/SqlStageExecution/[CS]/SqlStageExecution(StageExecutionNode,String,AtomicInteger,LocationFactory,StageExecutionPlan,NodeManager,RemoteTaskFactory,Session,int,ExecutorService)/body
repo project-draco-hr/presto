@@ -7,6 +7,7 @@
   Preconditions.checkNotNull(remoteTaskFactory,"remoteTaskFactory is null");
   Preconditions.checkNotNull(session,"session is null");
   Preconditions.checkArgument(maxPendingSplitsPerNode > 0,"maxPendingSplitsPerNode must be greater than 0");
+  Preconditions.checkNotNull(executor,"executor is null");
   this.parent=parent;
   this.queryId=queryId;
   this.stageId=queryId + "." + nextStageId.getAndIncrement();
@@ -17,11 +18,12 @@
   this.remoteTaskFactory=remoteTaskFactory;
   this.session=session;
   this.maxPendingSplitsPerNode=maxPendingSplitsPerNode;
+  this.executor=executor;
   tupleInfos=fragment.getTupleInfos();
-  ImmutableMap.Builder<PlanFragmentId,SafeStageExecution> subStages=ImmutableMap.builder();
+  ImmutableMap.Builder<PlanFragmentId,StageExecutionNode> subStages=ImmutableMap.builder();
   for (  StageExecutionPlan subStagePlan : plan.getSubStages()) {
     PlanFragmentId subStageFragmentId=subStagePlan.getFragment().getId();
-    SafeStageExecution subStage=new SqlStageExecution(this,queryId,nextStageId,locationFactory,subStagePlan,nodeManager,remoteTaskFactory,session,maxPendingSplitsPerNode);
+    StageExecutionNode subStage=new SqlStageExecution(this,queryId,nextStageId,locationFactory,subStagePlan,nodeManager,remoteTaskFactory,session,maxPendingSplitsPerNode,executor);
     subStages.put(subStageFragmentId,subStage);
   }
   this.subStages=subStages.build();

@@ -1,8 +1,11 @@
 {
-  SetMultimap<PlanNodeId,URI> newExchangeLocations=HashMultimap.create(exchangeLocations);
+  SetMultimap<PlanNodeId,URI> newExchangeLocations;
 synchronized (this) {
-    newExchangeLocations.entries().removeAll(this.exchangeLocations.entries());
-    this.exchangeLocations.putAll(exchangeLocations);
+    Preconditions.checkState(!noMoreExchangeLocations || exchangeLocations.entries().containsAll(additionalLocations.entries()),"Locations can not be added after noMoreExchangeLocations has been set");
+    noMoreExchangeLocations=noMore;
+    newExchangeLocations=HashMultimap.create(additionalLocations);
+    newExchangeLocations.entries().removeAll(exchangeLocations.entries());
+    this.exchangeLocations.putAll(additionalLocations);
   }
   for (  Entry<PlanNodeId,URI> entry : newExchangeLocations.entries()) {
     addSource(entry.getKey(),createRemoteSplitFor(entry.getValue()));

@@ -1,9 +1,12 @@
 {
-  while (taskOutput.getState().isDone()) {
+  while (!taskOutput.getState().isDone()) {
     FutureTask<?> futureTask=scheduledWorkers.pollFirst(1,TimeUnit.SECONDS);
     if (futureTask != null && taskOutput.getState().isDone()) {
       futureTask.run();
     }
+  }
+  for (FutureTask<?> futureTask=scheduledWorkers.poll(); futureTask != null; futureTask=scheduledWorkers.poll()) {
+    futureTask.cancel(true);
   }
   return null;
 }

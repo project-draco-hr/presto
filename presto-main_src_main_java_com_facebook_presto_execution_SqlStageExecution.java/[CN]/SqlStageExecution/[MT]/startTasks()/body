@@ -10,7 +10,7 @@ synchronized (this) {
     if (!splits.isPresent()) {
       ArrayList<Node> nodes=new ArrayList<>(nodeManager.getActiveNodes());
       Preconditions.checkState(!nodes.isEmpty(),"Cluster does not have any active nodes");
-      Collections.shuffle(nodes,random);
+      Collections.shuffle(nodes,ThreadLocalRandom.current());
       Node randomNode=nodes.get(0);
       scheduleTask(nextTaskId,randomNode,null);
     }
@@ -34,7 +34,7 @@ synchronized (this) {
     }
     transitionToState(StageState.SCHEDULED);
     notifyParentSubStageFinishedScheduling();
-    for (    SafeStageExecution subStage : subStages.values()) {
+    for (    StageExecutionNode subStage : subStages.values()) {
       subStage.noMoreOutputBuffers();
     }
     addNewExchangesAndBuffers(true);
@@ -45,5 +45,7 @@ synchronized (this) {
       log.error(e,"Error while starting stage %s",stageId);
       throw e;
     }
+    Throwables.propagateIfInstanceOf(e,Error.class);
+    log.debug(e,"Error while starting stage in done query %s",stageId);
   }
 }
