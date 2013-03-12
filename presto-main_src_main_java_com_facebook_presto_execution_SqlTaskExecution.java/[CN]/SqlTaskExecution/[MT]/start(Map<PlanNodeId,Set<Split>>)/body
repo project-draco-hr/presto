@@ -1,0 +1,12 @@
+{
+  if (!fragment.isPartitioned()) {
+    scheduleSplitWorker(null,null);
+  }
+  for (  Entry<PlanNodeId,Set<Split>> entry : initialSources.entrySet()) {
+    PlanNodeId planNodeId=entry.getKey();
+    for (    Split split : entry.getValue()) {
+      addSplit(planNodeId,split);
+    }
+  }
+  shardExecutor.submit(new TaskWorker(taskOutput,unfinishedWorkerTasks));
+}
