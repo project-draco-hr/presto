@@ -1,5 +1,5 @@
 {
-  Injector injector=Guice.createInjector(new TestingNodeModule(),new InMemoryEventModule(),new TestingHttpServerModule(),new JsonModule(),new JaxrsModule(),new Module(){
+  Bootstrap app=new Bootstrap(new TestingNodeModule(),new InMemoryEventModule(),new TestingHttpServerModule(),new JsonModule(),new JaxrsModule(),new Module(){
     @Override public void configure(    Binder binder){
       binder.bind(QueryResource.class).in(Scopes.SINGLETON);
       binder.bind(TaskResource.class).in(Scopes.SINGLETON);
@@ -10,8 +10,8 @@
       binder.bind(LocationFactory.class).to(HttpLocationFactory.class).in(Scopes.SINGLETON);
     }
   }
-,new ConfigurationModule(new ConfigurationFactory(ImmutableMap.<String,String>of())));
-  TestingHttpServer server=injector.getInstance(TestingHttpServer.class);
-  server.start();
-  return server;
+);
+  Injector injector=app.strictConfig().doNotInitializeLogging().initialize();
+  lifeCycleManagers.add(injector.getInstance(LifeCycleManager.class));
+  return injector.getInstance(TestingHttpServer.class);
 }

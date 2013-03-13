@@ -1,8 +1,9 @@
 {
   baseDataDir=Files.createTempDir();
   Map<String,String> serverProperties=ImmutableMap.<String,String>builder().put("storage-manager.data-directory",baseDataDir.getPath()).put("presto-metastore.db.type","h2").put("presto-metastore.db.filename",new File(baseDataDir,"db/MetaStore").getPath()).build();
-  Injector serverInjector=createTestInjector(serverProperties,new TestingNodeModule(),new TestingDiscoveryModule(),new TestingHttpServerModule(),new JsonModule(),new JaxrsModule(),new MBeanModule(),new JmxModule(),new JmxHttpModule(),new LogJmxModule(),new InMemoryEventModule(),new TraceTokenModule(),new ServerMainModule());
-  server=serverInjector.getInstance(TestingHttpServer.class);
-  server.start();
+  Bootstrap app=new Bootstrap(new TestingNodeModule(),new TestingDiscoveryModule(),new TestingHttpServerModule(),new JsonModule(),new JaxrsModule(),new MBeanModule(),new JmxModule(),new JmxHttpModule(),new LogJmxModule(),new InMemoryEventModule(),new TraceTokenModule(),new ServerMainModule());
+  Injector injector=app.strictConfig().doNotInitializeLogging().setRequiredConfigurationProperties(serverProperties).initialize();
+  lifeCycleManager=injector.getInstance(LifeCycleManager.class);
+  server=injector.getInstance(TestingHttpServer.class);
   client=new ApacheHttpClient();
 }

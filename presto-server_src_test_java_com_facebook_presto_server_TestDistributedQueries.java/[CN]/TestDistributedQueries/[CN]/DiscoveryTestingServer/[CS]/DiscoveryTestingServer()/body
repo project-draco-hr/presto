@@ -1,23 +1,13 @@
 {
   tempDir=Files.createTempDir();
   Map<String,String> serverProperties=ImmutableMap.<String,String>builder().put("node.environment","testing").put("static.db.location",tempDir.getAbsolutePath()).build();
-  Injector serverInjector=Guice.createInjector(Stage.DEVELOPMENT,new MBeanModule(),new NodeModule(),new TestingHttpServerModule(),new JsonModule(),new JaxrsModule(),new DiscoveryServerModule(),new DiscoveryModule(),new ConfigurationModule(new ConfigurationFactory(serverProperties)),new Module(){
+  Bootstrap app=new Bootstrap(new MBeanModule(),new NodeModule(),new TestingHttpServerModule(),new JsonModule(),new JaxrsModule(),new DiscoveryServerModule(),new DiscoveryModule(),new Module(){
     @Override public void configure(    Binder binder){
       binder.bind(MBeanServer.class).toInstance(new TestingMBeanServer());
     }
   }
 );
-  server=serverInjector.getInstance(TestingHttpServer.class);
-  try {
-    server.start();
-  }
- catch (  Exception e) {
-    try {
-      server.stop();
-    }
- catch (    Exception ignored) {
-    }
-    FileUtils.deleteRecursively(tempDir);
-    throw e;
-  }
+  Injector injector=app.strictConfig().doNotInitializeLogging().setRequiredConfigurationProperties(serverProperties).initialize();
+  lifeCycleManager=injector.getInstance(LifeCycleManager.class);
+  server=injector.getInstance(TestingHttpServer.class);
 }

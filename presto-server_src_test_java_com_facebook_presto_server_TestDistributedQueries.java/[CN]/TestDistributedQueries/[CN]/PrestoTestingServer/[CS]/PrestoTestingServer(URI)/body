@@ -1,30 +1,21 @@
 {
   checkNotNull(discoveryUri,"discoveryUri is null");
   baseDataDir=Files.createTempDir();
-  Map<String,String> serverProperties=ImmutableMap.<String,String>builder().put("node.environment","testing").put("storage-manager.data-directory",baseDataDir.getPath()).put("query.client.timeout","10m").put("presto-metastore.db.type","h2").put("exchange.http-client.read-timeout ","1h").put("presto-metastore.db.filename",new File(baseDataDir,"db/MetaStore").getPath()).put("discovery.uri",discoveryUri.toASCIIString()).build();
-  Injector injector=createTestInjector(serverProperties,new NodeModule(),new DiscoveryModule(),new TestingHttpServerModule(),new JsonModule(),new JaxrsModule(),new Module(){
+  Map<String,String> serverProperties=ImmutableMap.<String,String>builder().put("node.environment","testing").put("storage-manager.data-directory",baseDataDir.getPath()).put("query.client.timeout","10m").put("presto-metastore.db.type","h2").put("exchange.http-client.read-timeout","1h").put("presto-metastore.db.filename",new File(baseDataDir,"db/MetaStore").getPath()).put("discovery.uri",discoveryUri.toASCIIString()).build();
+  Bootstrap app=new Bootstrap(new NodeModule(),new DiscoveryModule(),new TestingHttpServerModule(),new JsonModule(),new JaxrsModule(),new Module(){
     @Override public void configure(    Binder binder){
       binder.bind(MBeanServer.class).toInstance(new TestingMBeanServer());
     }
   }
 ,new InMemoryEventModule(),new TraceTokenModule(),new ServerMainModule());
+  Injector injector=app.strictConfig().doNotInitializeLogging().setRequiredConfigurationProperties(serverProperties).initialize();
+  injector.getInstance(Announcer.class).start();
+  lifeCycleManager=injector.getInstance(LifeCycleManager.class);
   nodeInfo=injector.getInstance(NodeInfo.class);
   metadata=injector.getInstance(Metadata.class);
   shardManager=injector.getInstance(ShardManager.class);
   storageManager=injector.getInstance(StorageManager.class);
   server=injector.getInstance(TestingHttpServer.class);
-  try {
-    server.start();
-  }
- catch (  Exception e) {
-    try {
-      server.stop();
-    }
- catch (    Exception ignored) {
-    }
-    throw e;
-  }
-  injector.getInstance(Announcer.class).start();
   ImmutableList.Builder<ServiceSelector> serviceSelectors=ImmutableList.builder();
   for (  Binding<ServiceSelector> binding : injector.findBindingsByType(TypeLiteral.get(ServiceSelector.class))) {
     serviceSelectors.add(binding.getProvider().get());

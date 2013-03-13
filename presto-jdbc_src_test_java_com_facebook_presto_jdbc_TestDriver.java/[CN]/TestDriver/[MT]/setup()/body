@@ -1,10 +1,11 @@
 {
   baseDataDir=Files.createTempDir();
   Map<String,String> serverProperties=ImmutableMap.<String,String>builder().put("storage-manager.data-directory",baseDataDir.getPath()).put("presto-metastore.db.type","h2").put("presto-metastore.db.filename",new File(baseDataDir,"db/MetaStore").getPath()).build();
-  Injector injector=createTestInjector(serverProperties,new TestingNodeModule(),new TestingDiscoveryModule(),new TestingHttpServerModule(),new JsonModule(),new JaxrsModule(),new MBeanModule(),new JmxModule(),new JmxHttpModule(),new LogJmxModule(),new InMemoryEventModule(),new TraceTokenModule(),new ServerMainModule());
+  Bootstrap app=new Bootstrap(new TestingNodeModule(),new TestingDiscoveryModule(),new TestingHttpServerModule(),new JsonModule(),new JaxrsModule(),new MBeanModule(),new JmxModule(),new JmxHttpModule(),new LogJmxModule(),new InMemoryEventModule(),new TraceTokenModule(),new ServerMainModule());
+  Injector injector=app.strictConfig().doNotInitializeLogging().setRequiredConfigurationProperties(serverProperties).initialize();
   injector.getInstance(Announcer.class).start();
-  server=injector.getInstance(TestingHttpServer.class);
-  server.start();
+  lifeCycleManager=injector.getInstance(LifeCycleManager.class);
+  TestingHttpServer server=injector.getInstance(TestingHttpServer.class);
   URI uri=server.getBaseUrl();
   address=HostAndPort.fromParts(uri.getHost(),uri.getPort());
 }
