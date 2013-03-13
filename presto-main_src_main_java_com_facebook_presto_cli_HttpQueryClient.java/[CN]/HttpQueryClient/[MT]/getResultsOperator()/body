@@ -17,8 +17,9 @@
   StageInfo outputStage=queryInfo.getOutputStage();
   ExchangeOperator exchangeOperator=new ExchangeOperator(httpClient,outputStage.getTupleInfos(),100,10,3);
   for (  TaskInfo taskInfo : outputStage.getTasks()) {
-    Preconditions.checkState(taskInfo.getOutputBuffers().size() == 1,"Expected a single output buffer for task %s, but found %s",taskInfo.getTaskId(),taskInfo.getOutputBuffers());
-    String bufferId=Iterables.getOnlyElement(taskInfo.getOutputBuffers()).getBufferId();
+    List<BufferInfo> buffers=taskInfo.getOutputBuffers().getBuffers();
+    Preconditions.checkState(buffers.size() == 1,"Expected a single output buffer for task %s, but found %s",taskInfo.getTaskId(),buffers);
+    String bufferId=Iterables.getOnlyElement(buffers).getBufferId();
     URI uri=uriBuilderFrom(taskInfo.getSelf()).appendPath("results").appendPath(bufferId).build();
     exchangeOperator.addSplit(new RemoteSplit(uri,outputStage.getTupleInfos()));
   }
