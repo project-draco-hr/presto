@@ -5,6 +5,9 @@
     ServiceLoader<ImportClientFactoryFactory> serviceLoader=ServiceLoader.load(ImportClientFactoryFactory.class,pluginClassLoader);
     List<ImportClientFactoryFactory> importClientFactoryFactories=ImmutableList.copyOf(serviceLoader);
     for (    ImportClientFactoryFactory importClientFactoryFactory : importClientFactoryFactories) {
+      if (importClientFactoryFactory.getClass().isAnnotationPresent(PrestoInternalPlugin.class)) {
+        injector.injectMembers(importClientFactoryFactory);
+      }
       Map<String,String> requiredConfig=loadPluginConfig(importClientFactoryFactory.getConfigName());
       ImportClientFactory importClientFactory=importClientFactoryFactory.createImportClientFactory(requiredConfig,optionalConfig);
       importClientFactory=new ClassLoaderSafeImportClientFactory(importClientFactory,pluginClassLoader);
