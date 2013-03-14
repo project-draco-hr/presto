@@ -11,12 +11,11 @@ synchronized (this) {
     addSource(entry.getKey(),createRemoteSplitFor(entry.getValue()));
   }
   if (noMore) {
-    Set<PlanNodeId> allExchangeSourceIds;
-synchronized (this) {
-      allExchangeSourceIds=exchangeLocations.keySet();
-    }
-    for (    PlanNodeId planNodeId : allExchangeSourceIds) {
-      noMoreSources(planNodeId);
+    for (    PlanNode planNode : planFragment.getSources()) {
+      PlanNodeId planNodeId=planNode.getId();
+      if (!planNodeId.equals(planFragment.getPartitionedSource())) {
+        noMoreSources(planNodeId);
+      }
     }
   }
 }
