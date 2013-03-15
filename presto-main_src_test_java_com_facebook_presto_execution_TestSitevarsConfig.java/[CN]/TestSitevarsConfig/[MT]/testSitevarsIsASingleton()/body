@@ -1,0 +1,12 @@
+{
+  Injector inj=Guice.createInjector(Stage.PRODUCTION,new ConfigurationModule(new ConfigurationFactory(ImmutableMap.<String,String>of())),new Module(){
+    @Override public void configure(    final Binder binder){
+      bindConfig(binder).to(SitevarsConfig.class);
+      binder.bind(Sitevars.class).in(Scopes.SINGLETON);
+    }
+  }
+);
+  Sitevars s1=inj.getInstance(Sitevars.class);
+  Sitevars s2=inj.getInstance(Sitevars.class);
+  assertSame(s1,s2);
+}
