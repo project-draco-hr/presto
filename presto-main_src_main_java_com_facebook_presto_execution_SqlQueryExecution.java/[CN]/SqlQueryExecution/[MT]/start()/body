@@ -1,17 +1,12 @@
 {
-  Preconditions.checkState(!Thread.holdsLock(this),"Can not start while holding a lock on this");
-synchronized (this) {
-    Preconditions.checkState(queryState.compareAndSet(QueryState.QUEUED,QueryState.PLANNING),"Stage has already been started");
-  }
   try {
-    queryStats.recordAnalysisStart();
+    queryExecutionState.transitionToPlanningState();
+    getQueryStats(queryInfo).recordAnalysisStart();
     SubPlan subplan=analyzeQuery();
     planDistribution(subplan);
-synchronized (this) {
-      Preconditions.checkState(queryState.compareAndSet(QueryState.PLANNING,QueryState.STARTING),"Expected query to be in state %s",QueryState.PLANNING);
-    }
+    queryExecutionState.transitionToStartingState();
     SqlStageExecution stage=outputStage.get();
-    if (!queryState.get().isDone()) {
+    if (!queryExecutionState.isDone()) {
       stage.addOutputBuffer(ROOT_OUTPUT_BUFFER_NAME);
       stage.noMoreOutputBuffers();
       stage.start();
@@ -21,12 +16,6 @@ synchronized (this) {
     }
   }
  catch (  Exception e) {
-synchronized (this) {
-      failureCauses.add(e);
-      queryStats.recordEnd();
-      queryState.set(QueryState.FAILED);
-      queryMonitor.completionEvent(getQueryInfo());
-    }
-    cancel();
+    fail(e);
   }
 }

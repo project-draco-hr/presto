@@ -1,8 +1,14 @@
 {
-  SqlStageExecution outputStage=this.outputStage.get();
-  StageInfo stageInfo=null;
-  if (outputStage != null) {
-    stageInfo=outputStage.getStageInfo();
+  while (true) {
+    SqlStageExecution outputStage=this.outputStage.get();
+    StageInfo stageInfo=null;
+    if (outputStage != null) {
+      stageInfo=outputStage.getStageInfo();
+    }
+    QueryInfo currentQueryInfo=queryInfo.get();
+    QueryInfo newQueryInfo=currentQueryInfo.queryState(queryExecutionState.getQueryState()).stageInfo(stageInfo);
+    if (queryInfo.compareAndSet(currentQueryInfo,newQueryInfo)) {
+      return newQueryInfo;
+    }
   }
-  return new QueryInfo(queryId,session,queryState.get(),locationFactory.createQueryLocation(queryId),fieldNames.get(),sql,queryStats,stageInfo,toFailures(failureCauses));
 }

@@ -78,4 +78,11 @@
   bindConfig(binder).to(SitevarsConfig.class);
   binder.bind(Sitevars.class).in(Scopes.SINGLETON);
   ExportBinder.newExporter(binder).export(Sitevars.class).as("com.facebook.presto:name=sitevars");
+  MapBinder<Class<? extends Statement>,SimpleQueryExecutionFactory<?>> executionBinder=MapBinder.newMapBinder(binder,new TypeLiteral<Class<? extends Statement>>(){
+  }
+,new TypeLiteral<SimpleQueryExecutionFactory<?>>(){
+  }
+);
+  executionBinder.addBinding(CreateOrReplaceMaterializedView.class).to(CreateTableExecutionFactory.class).in(Scopes.SINGLETON);
+  binder.bind(SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
 }

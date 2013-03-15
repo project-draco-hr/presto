@@ -3,16 +3,16 @@
   Preconditions.checkArgument(query.length() > 0,"query must not be empty string");
   String queryId=String.valueOf(nextQueryId.getAndIncrement());
   QueryExecution queryExecution;
-  if (query.startsWith("import-table:")) {
-    Preconditions.checkState(importsEnabled,"Imports are currently disabled");
-    ImmutableList<String> strings=ImmutableList.copyOf(Splitter.on(":").split(query));
-    queryExecution=new ImportTableExecution(queryId,session,locationFactory.createQueryLocation(queryId),importClientManager,importManager,metadata,strings.get(1),strings.get(2),strings.get(3),query);
+  Statement statement=SqlParser.createStatement(query);
+  QueryInfo queryInfo=QueryInfo.createQueryInfo(queryId,session,locationFactory.createQueryLocation(queryId),query);
+  SimpleQueryExecutionFactory<?> queryExecutionFactory=simpleExecutions.get(statement.getClass());
+  if (queryExecutionFactory != null) {
+    queryExecution=queryExecutionFactory.createQueryExecution(statement,queryInfo);
   }
  else {
-    queryExecution=new SqlQueryExecution(queryId,query,session,metadata,splitManager,nodeManager,remoteTaskFactory,locationFactory,queryMonitor,maxPendingSplitsPerNode,queryExecutor);
-    queryMonitor.createdEvent(queryExecution.getQueryInfo());
+    queryExecution=sqlQueryExecutionFactory.createSqlQueryExecution(statement,queryInfo,maxPendingSplitsPerNode,queryExecutor);
   }
-  queries.put(queryExecution.getQueryId(),queryExecution);
+  queries.put(queryId,queryExecution);
   queryExecutor.submit(new QueryStarter(queryExecution));
   return queryExecution.getQueryInfo();
 }

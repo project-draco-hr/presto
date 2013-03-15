@@ -1,8 +1,7 @@
 {
-  Preconditions.checkState(!Thread.holdsLock(this),"Can not update while holding a lock on this");
   if (!forceRefresh) {
 synchronized (this) {
-      if (queryState.get().isDone()) {
+      if (queryExecutionState.isDone()) {
         return;
       }
     }
@@ -12,34 +11,31 @@ synchronized (this) {
     return;
   }
   outputStage.updateState();
-synchronized (this) {
-    if (queryState.get().isDone()) {
-      return;
-    }
+  if (!queryExecutionState.isDone()) {
     StageInfo outputStageInfo=outputStage.getStageInfo();
     StageState outputStageState=outputStageInfo.getState();
     if (outputStageState.isDone()) {
       if (outputStageState == StageState.FAILED) {
-        log.debug("Transition query %s to FAILED: output stage FAILED",queryId);
-        this.queryState.set(QueryState.FAILED);
+        log.debug("Transition query %s to FAILED: output stage FAILED",getQueryId(queryInfo));
+        queryExecutionState.toState(QueryState.FAILED);
       }
  else       if (outputStageState == StageState.CANCELED) {
-        log.debug("Transition query %s to CANCELED: output stage CANCELED",queryId);
-        this.queryState.set(QueryState.CANCELED);
+        log.debug("Transition query %s to CANCELED: output stage CANCELED",getQueryId(queryInfo));
+        queryExecutionState.toState(QueryState.CANCELED);
       }
  else {
-        log.debug("Transition query %s to FINISHED: output stage FINISHED",queryId);
-        this.queryState.set(QueryState.FINISHED);
+        log.debug("Transition query %s to FINISHED: output stage FINISHED",getQueryId(queryInfo));
+        queryExecutionState.toState(QueryState.FINISHED);
       }
-      queryStats.recordEnd();
+      getQueryStats(queryInfo).recordEnd();
       queryMonitor.completionEvent(getQueryInfo());
     }
- else     if (queryState.get() == QueryState.STARTING) {
+ else     if (queryExecutionState.getQueryState() == QueryState.STARTING) {
       if (outputStageState == StageState.RUNNING) {
-        this.queryState.set(QueryState.RUNNING);
+        queryExecutionState.transitionToRunningState();
       }
       if (any(transform(getAllStages(outputStage.getStageInfo()),stageStateGetter()),isStageRunningOrDone())) {
-        queryStats.recordExecutionStart();
+        getQueryStats(queryInfo).recordExecutionStart();
       }
     }
   }

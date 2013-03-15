@@ -1,23 +1,9 @@
 {
-  checkNotNull(importClientManager,"importClientFactory is null");
-  checkNotNull(importManager,"importManager is null");
-  checkNotNull(metadata,"metadata is null");
-  checkNotNull(splitManager,"splitManager is null");
-  checkNotNull(nodeManager,"nodeManager is null");
-  checkNotNull(remoteTaskFactory,"remoteTaskFactory is null");
-  checkNotNull(locationFactory,"locationFactory is null");
   checkNotNull(config,"config is null");
-  checkNotNull(queryMonitor,"queryMonitor is null");
+  this.locationFactory=checkNotNull(locationFactory,"locationFactory is null");
+  this.sqlQueryExecutionFactory=checkNotNull(sqlQueryExecutionFactory,"sqlQueryExecutionFactory is null");
+  this.simpleExecutions=checkNotNull(simpleExecutions,"simpleExecutions is null");
   this.queryExecutor=Executors.newCachedThreadPool(threadsNamed("query-scheduler-%d"));
-  this.importClientManager=importClientManager;
-  this.importManager=importManager;
-  this.metadata=metadata;
-  this.splitManager=splitManager;
-  this.nodeManager=nodeManager;
-  this.remoteTaskFactory=remoteTaskFactory;
-  this.locationFactory=locationFactory;
-  this.queryMonitor=queryMonitor;
-  this.importsEnabled=config.isImportsEnabled();
   this.maxQueryAge=config.getMaxQueryAge();
   this.clientTimeout=config.getClientTimeout();
   this.maxPendingSplitsPerNode=config.getMaxPendingSplitsPerNode();
@@ -29,7 +15,7 @@
           queryExecution.updateState(false);
         }
  catch (        Throwable e) {
-          log.warn(e,"Error updating state for query %s",queryExecution.getQueryId());
+          log.warn(e,"Error updating state for query %s",queryExecution.getQueryInfo().getQueryId());
         }
       }
     }
