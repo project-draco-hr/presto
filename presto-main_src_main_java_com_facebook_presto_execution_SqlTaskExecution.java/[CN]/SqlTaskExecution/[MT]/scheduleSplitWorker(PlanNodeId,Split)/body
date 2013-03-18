@@ -9,10 +9,10 @@
   splitWorkers.add(new WeakReference<>(worker));
   pendingWorkerCount.incrementAndGet();
   getTaskInfo().getStats().addSplits(1);
-  final FutureTask<?> workerFutureTask=new FutureTask<>(worker);
+  final ListenableFutureTask<?> workerFutureTask=ListenableFutureTask.create(worker);
   unfinishedWorkerTasks.addFirst(workerFutureTask);
-  ListenableFuture<?> future=shardExecutor.submit(workerFutureTask);
-  Futures.addCallback(future,new FutureCallback<Object>(){
+  shardExecutor.submit(workerFutureTask);
+  Futures.addCallback(workerFutureTask,new FutureCallback<Object>(){
     @Override public void onSuccess(    Object result){
       pendingWorkerCount.decrementAndGet();
       checkTaskCompletion();
