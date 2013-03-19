@@ -1,8 +1,10 @@
 {
   try {
     checkState(sitevars.isImportsEnabled(),"materialized view creation is disabled");
-    queryExecutionState.transitionToStartingState();
-    getQueryStats(queryInfo).recordExecutionStart();
+    if (!stateMachine.starting()) {
+      return;
+    }
+    stateMachine.getStats().recordExecutionStart();
     importTable();
   }
  catch (  Exception e) {

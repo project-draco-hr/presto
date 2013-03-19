@@ -1,12 +1,15 @@
 {
   try {
-    queryExecutionState.transitionToPlanningState();
-    getQueryStats(queryInfo).recordAnalysisStart();
+    if (!stateMachine.beginPlanning()) {
+      return;
+    }
     SubPlan subplan=analyzeQuery();
     planDistribution(subplan);
-    queryExecutionState.transitionToStartingState();
+    if (!stateMachine.starting()) {
+      return;
+    }
     SqlStageExecution stage=outputStage.get();
-    if (!queryExecutionState.isDone()) {
+    if (!stateMachine.isDone()) {
       stage.addOutputBuffer(ROOT_OUTPUT_BUFFER_NAME);
       stage.noMoreOutputBuffers();
       stage.start();

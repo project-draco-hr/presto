@@ -1,14 +1,8 @@
 {
-  while (true) {
-    SqlStageExecution outputStage=this.outputStage.get();
-    StageInfo stageInfo=null;
-    if (outputStage != null) {
-      stageInfo=outputStage.getStageInfo();
-    }
-    QueryInfo currentQueryInfo=queryInfo.get();
-    QueryInfo newQueryInfo=currentQueryInfo.queryState(queryExecutionState.getQueryState()).stageInfo(stageInfo);
-    if (queryInfo.compareAndSet(currentQueryInfo,newQueryInfo)) {
-      return newQueryInfo;
-    }
+  SqlStageExecution outputStage=this.outputStage.get();
+  StageInfo stageInfo=null;
+  if (outputStage != null) {
+    stageInfo=outputStage.getStageInfo();
   }
+  return stateMachine.getQueryInfo(stageInfo);
 }

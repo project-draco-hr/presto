@@ -4,14 +4,10 @@
   String queryId=String.valueOf(nextQueryId.getAndIncrement());
   QueryExecution queryExecution;
   Statement statement=SqlParser.createStatement(query);
-  QueryInfo queryInfo=QueryInfo.createQueryInfo(queryId,session,locationFactory.createQueryLocation(queryId),query);
-  SimpleQueryExecutionFactory<?> queryExecutionFactory=simpleExecutions.get(statement.getClass());
-  if (queryExecutionFactory != null) {
-    queryExecution=queryExecutionFactory.createQueryExecution(statement,queryInfo);
-  }
- else {
-    queryExecution=sqlQueryExecutionFactory.createSqlQueryExecution(statement,queryInfo,maxPendingSplitsPerNode,queryExecutor);
-  }
+  QueryExecutionFactory<?> queryExecutionFactory=executionFactories.get(statement.getClass());
+  Preconditions.checkState(queryExecutionFactory != null,"Unsupported statement type %s",statement.getClass().getName());
+  queryExecution=queryExecutionFactory.createQueryExecution(queryId,query,session,statement);
+  queryMonitor.createdEvent(queryExecution.getQueryInfo());
   queries.put(queryId,queryExecution);
   queryExecutor.submit(new QueryStarter(queryExecution));
   return queryExecution.getQueryInfo();

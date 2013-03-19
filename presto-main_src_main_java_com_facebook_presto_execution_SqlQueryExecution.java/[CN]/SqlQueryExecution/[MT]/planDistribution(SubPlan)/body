@@ -1,10 +1,12 @@
 {
   long distributedPlanningStart=System.nanoTime();
-  DistributedExecutionPlanner distributedPlanner=new DistributedExecutionPlanner(splitManager,getSession(queryInfo));
+  DistributedExecutionPlanner distributedPlanner=new DistributedExecutionPlanner(splitManager,stateMachine.getSession());
   StageExecutionPlan outputStageExecutionPlan=distributedPlanner.plan(subplan);
-  queryExecutionState.checkQueryState(QueryState.PLANNING);
-  updateFieldNames(queryInfo,ImmutableList.copyOf(outputStageExecutionPlan.getFieldNames()));
-  SqlStageExecution outputStage=new SqlStageExecution(getQueryId(queryInfo),locationFactory,outputStageExecutionPlan,nodeManager,remoteTaskFactory,getSession(queryInfo),maxPendingSplitsPerNode,queryExecutor);
-  SqlQueryExecution.this.outputStage.set(outputStage);
-  getQueryStats(queryInfo).recordDistributedPlanningTime(distributedPlanningStart);
+  if (stateMachine.isDone()) {
+    return;
+  }
+  stateMachine.setOutputFieldNames(outputStageExecutionPlan.getFieldNames());
+  SqlStageExecution outputStage=new SqlStageExecution(stateMachine.getQueryId(),locationFactory,outputStageExecutionPlan,nodeManager,remoteTaskFactory,stateMachine.getSession(),maxPendingSplitsPerNode,queryExecutor);
+  this.outputStage.set(outputStage);
+  stateMachine.getStats().recordDistributedPlanningTime(distributedPlanningStart);
 }

@@ -1,0 +1,15 @@
+{
+synchronized (this) {
+    if (queryState.isDone()) {
+      return false;
+    }
+    queryState=QueryState.FAILED;
+    if (cause != null) {
+      failureCauses.add(cause);
+    }
+  }
+  log.debug("Failed query %s",queryId);
+  queryStats.recordEnd();
+  queryMonitor.completionEvent(getQueryInfo());
+  return true;
+}

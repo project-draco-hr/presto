@@ -1,9 +1,7 @@
 {
   if (!forceRefresh) {
-synchronized (this) {
-      if (queryExecutionState.isDone()) {
-        return;
-      }
+    if (stateMachine.isDone()) {
+      return;
     }
   }
   SqlStageExecution outputStage=this.outputStage.get();
@@ -11,31 +9,26 @@ synchronized (this) {
     return;
   }
   outputStage.updateState();
-  if (!queryExecutionState.isDone()) {
+  if (!stateMachine.isDone()) {
     StageInfo outputStageInfo=outputStage.getStageInfo();
     StageState outputStageState=outputStageInfo.getState();
     if (outputStageState.isDone()) {
       if (outputStageState == StageState.FAILED) {
-        log.debug("Transition query %s to FAILED: output stage FAILED",getQueryId(queryInfo));
-        queryExecutionState.toState(QueryState.FAILED);
+        stateMachine.fail();
       }
  else       if (outputStageState == StageState.CANCELED) {
-        log.debug("Transition query %s to CANCELED: output stage CANCELED",getQueryId(queryInfo));
-        queryExecutionState.toState(QueryState.CANCELED);
+        stateMachine.cancel();
       }
  else {
-        log.debug("Transition query %s to FINISHED: output stage FINISHED",getQueryId(queryInfo));
-        queryExecutionState.toState(QueryState.FINISHED);
+        stateMachine.finished();
       }
-      getQueryStats(queryInfo).recordEnd();
-      queryMonitor.completionEvent(getQueryInfo());
     }
- else     if (queryExecutionState.getQueryState() == QueryState.STARTING) {
+ else     if (stateMachine.getQueryState() == QueryState.STARTING) {
       if (outputStageState == StageState.RUNNING) {
-        queryExecutionState.transitionToRunningState();
+        stateMachine.running();
       }
       if (any(transform(getAllStages(outputStage.getStageInfo()),stageStateGetter()),isStageRunningOrDone())) {
-        getQueryStats(queryInfo).recordExecutionStart();
+        stateMachine.getStats().recordExecutionStart();
       }
     }
   }

@@ -1,11 +1,11 @@
 {
   long analysisStart=System.nanoTime();
-  Analyzer analyzer=new Analyzer(getSession(queryInfo),metadata);
+  Analyzer analyzer=new Analyzer(stateMachine.getSession(),metadata);
   AnalysisResult analysis=analyzer.analyze(statement);
   PlanNodeIdAllocator idAllocator=new PlanNodeIdAllocator();
-  LogicalPlanner logicalPlanner=new LogicalPlanner(getSession(queryInfo),metadata,idAllocator);
+  LogicalPlanner logicalPlanner=new LogicalPlanner(stateMachine.getSession(),metadata,idAllocator);
   PlanNode plan=logicalPlanner.plan(analysis);
   SubPlan subplan=new DistributedLogicalPlanner(metadata,idAllocator).createSubplans(plan,analysis.getSymbolAllocator(),false);
-  getQueryStats(queryInfo).recordAnalysisTime(analysisStart);
+  stateMachine.getStats().recordAnalysisTime(analysisStart);
   return subplan;
 }

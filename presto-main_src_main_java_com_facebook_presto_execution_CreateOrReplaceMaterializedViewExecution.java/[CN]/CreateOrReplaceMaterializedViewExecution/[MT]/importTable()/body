@@ -1,5 +1,5 @@
 {
-  QualifiedTableName dstTableName=MetadataUtil.createQualifiedTableName(getSession(queryInfo),statement.getName());
+  QualifiedTableName dstTableName=MetadataUtil.createQualifiedTableName(stateMachine.getSession(),statement.getName());
   checkState(DataSourceType.NATIVE == metadataManager.lookupDataSource(dstTableName.getCatalogName(),dstTableName.getSchemaName(),dstTableName.getTableName()),"%s is not a native table, can only create native tables",dstTableName);
   checkState(statement.getTableDefinition() instanceof Query,"Can only create a table from a query");
   Query subQuery=(Query)statement.getTableDefinition();
@@ -8,7 +8,7 @@
   checkState(srcTableRelation instanceof Table,"create table queries must use as table as source");
   Select select=subQuery.getSelect();
   checkState(Iterables.getOnlyElement(select.getSelectItems()) instanceof AllColumns,"create table query can have only a single column and it must be '*'");
-  final QualifiedTableName srcTableName=MetadataUtil.createQualifiedTableName(getSession(queryInfo),((Table)srcTableRelation).getName());
+  final QualifiedTableName srcTableName=MetadataUtil.createQualifiedTableName(stateMachine.getSession(),((Table)srcTableRelation).getName());
   checkState(DataSourceType.IMPORT == metadataManager.lookupDataSource(srcTableName.getCatalogName(),srcTableName.getSchemaName(),srcTableName.getTableName()),"Can not import from %s, not an importable table",srcTableName);
   List<SchemaField> schema=retry().stopOn(ObjectNotFoundException.class).stopOnIllegalExceptions().runUnchecked(new Callable<List<SchemaField>>(){
     @Override public List<SchemaField> call() throws Exception {
