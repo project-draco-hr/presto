@@ -16,7 +16,12 @@
       }
     }
     @Override public void onFailure(    Throwable t){
-      log.debug(t,"Failed to cancel task %s",taskInfo.getTaskId());
+      if (isSocketError(t)) {
+        log.warn("Failed to cancel task %s: %s",taskInfo.getTaskId(),t.getMessage());
+      }
+ else {
+        log.warn(t,"Failed to cancel task %s",taskInfo.getTaskId());
+      }
       updateTaskInfo(canceledTask);
     }
   }
