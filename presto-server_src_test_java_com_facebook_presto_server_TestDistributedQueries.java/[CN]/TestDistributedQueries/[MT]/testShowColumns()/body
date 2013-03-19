@@ -1,0 +1,11 @@
+{
+  MaterializedResult result=computeActual("SHOW COLUMNS FROM orders");
+  ImmutableSet<String> columnNames=ImmutableSet.copyOf(Iterables.transform(result.getMaterializedTuples(),new Function<MaterializedTuple,String>(){
+    public String apply(    MaterializedTuple input){
+      assertEquals(input.getFieldCount(),3);
+      return (String)input.getField(0);
+    }
+  }
+));
+  assertEquals(columnNames,ImmutableSet.of("orderkey","custkey","orderstatus","totalprice","orderdate","orderpriority","clerk","shippriority","comment"));
+}

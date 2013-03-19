@@ -1,0 +1,12 @@
+{
+  MaterializedResult result=computeActual("SHOW FUNCTIONS");
+  ImmutableSet<String> functionNames=ImmutableSet.copyOf(Iterables.transform(result.getMaterializedTuples(),new Function<MaterializedTuple,String>(){
+    public String apply(    MaterializedTuple input){
+      assertEquals(input.getFieldCount(),3);
+      return (String)input.getField(0);
+    }
+  }
+));
+  assertTrue(functionNames.contains("avg"),"Expected function names " + functionNames + " to contain 'avg'");
+  assertTrue(functionNames.contains("abs"),"Expected function names " + functionNames + " to contain 'abs'");
+}
