@@ -1,0 +1,21 @@
+{
+  Preconditions.checkState(!Thread.holdsLock(this),"Can not update state while holding a lock on this");
+  List<ListenableFuture<?>> futures=new ArrayList<>();
+  for (  StageExecutionNode subStage : subStages.values()) {
+    futures.add(subStage.updateState(forceRefresh));
+  }
+  for (  RemoteTask task : tasks.values()) {
+    futures.add(task.updateState(forceRefresh));
+  }
+  return chainedCallback(Futures.allAsList(futures),new FutureCallback<List<?>>(){
+    @Override public void onSuccess(    List<?> result){
+      doUpdateState();
+    }
+    @Override public void onFailure(    Throwable t){
+      if (!(t instanceof CancellationException)) {
+        log.error(t,"Error updating stage");
+      }
+    }
+  }
+);
+}

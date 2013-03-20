@@ -1,0 +1,35 @@
+{
+  Request request;
+  CurrentRequest currentRequest;
+synchronized (this) {
+    if (taskInfo.getState().isDone()) {
+      return Futures.immediateFuture(null);
+    }
+    if (!forceRefresh) {
+      if (this.currentRequest != null) {
+        this.currentRequest.cancelIfOlderThan(new Duration(2,TimeUnit.SECONDS));
+        if (!this.currentRequest.isDone()) {
+          this.currentRequest.updateAgain();
+          return Futures.immediateFuture(null);
+        }
+        this.currentRequest=null;
+      }
+      if (!requestRateLimiter.tryAcquire()) {
+        return Futures.immediateFuture(null);
+      }
+    }
+    List<TaskSource> sources=getSources();
+    currentRequest=new CurrentRequest(sources);
+    if (canceled) {
+      request=prepareDelete().setUri(taskInfo.getSelf()).build();
+    }
+ else {
+      TaskUpdateRequest updateRequest=new TaskUpdateRequest(session,taskInfo.getQueryId(),taskInfo.getStageId(),planFragment,sources,new OutputBuffers(outputIds,noMoreOutputIds));
+      request=preparePost().setUri(uriBuilderFrom(taskInfo.getSelf()).build()).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.JSON_UTF_8.toString()).setBodyGenerator(jsonBodyGenerator(taskUpdateRequestCodec,updateRequest)).build();
+    }
+    this.currentRequest=currentRequest;
+  }
+  ListenableFuture<JsonResponse<TaskInfo>> future=httpClient.executeAsync(request,createFullJsonResponseHandler(taskInfoCodec));
+  currentRequest.setRequestFuture(future);
+  return currentRequest;
+}

@@ -1,0 +1,27 @@
+{
+  try {
+    if (response.getStatusCode() != HttpStatus.GONE.code()) {
+      checkState(response.getStatusCode() == HttpStatus.OK.code(),"Expected response code to be %s, but was %s: %s",HttpStatus.OK.code(),response.getStatusCode(),response.getStatusMessage());
+      if (response.hasValue()) {
+        try {
+          updateTaskInfo(response.getValue());
+        }
+ catch (        Exception ignored) {
+          updateState(false);
+          return;
+        }
+      }
+      acknowledgeSources(sources);
+      updateIfNecessary();
+    }
+ else {
+      updateTaskInfo(new TaskInfo(taskInfo.getQueryId(),taskInfo.getStageId(),taskInfo.getTaskId(),TaskInfo.MAX_VERSION,TaskState.CANCELED,taskInfo.getSelf(),taskInfo.getOutputBuffers(),taskInfo.getNoMoreSplits(),taskInfo.getStats(),ImmutableList.<FailureInfo>of()));
+    }
+  }
+ catch (  Throwable t) {
+    setException(t);
+  }
+ finally {
+    set(null);
+  }
+}

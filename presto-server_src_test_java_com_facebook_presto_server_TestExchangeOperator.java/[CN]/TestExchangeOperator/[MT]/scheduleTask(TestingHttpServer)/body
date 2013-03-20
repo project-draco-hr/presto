@@ -1,15 +1,11 @@
 {
   PlanFragment planFragment=new PlanFragment(new PlanFragmentId("32"),null,ImmutableMap.<Symbol,Type>of(),new ExchangeNode(new PlanNodeId("1"),new PlanFragmentId("22"),ImmutableList.<Symbol>of()));
   Session session=new Session(null,DEFAULT_CATALOG,DEFAULT_SCHEMA);
-  QueryFragmentRequest fragmentRequest=new QueryFragmentRequest(session,"queryId","stageId",planFragment,ImmutableMap.<PlanNodeId,Set<Split>>of(),ImmutableList.of("out"));
-  Request request=preparePut().setUri(httpServer.getBaseUrl().resolve("/v1/task/foo-" + httpServer.getPort())).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON).setBodyGenerator(jsonBodyGenerator(jsonCodec(QueryFragmentRequest.class),fragmentRequest)).build();
+  TaskUpdateRequest updateRequest=new TaskUpdateRequest(session,"queryId","stageId",planFragment,ImmutableList.<TaskSource>of(),new OutputBuffers(ImmutableSet.of("out"),true));
+  Request request=preparePost().setUri(httpServer.getBaseUrl().resolve("/v1/task/foo-" + httpServer.getPort())).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON).setBodyGenerator(jsonBodyGenerator(jsonCodec(TaskUpdateRequest.class),updateRequest)).build();
   JsonResponse<TaskInfo> response=httpClient.execute(request,createFullJsonResponseHandler(jsonCodec(TaskInfo.class)));
-  Preconditions.checkState(response.getStatusCode() == 201,"Expected response code from %s to be 201, but was %s: %s",request.getUri(),response.getStatusCode(),response.getStatusMessage());
+  Preconditions.checkState(response.getStatusCode() == HttpStatus.OK.code(),"Expected response code from %s to be %s, but was %s: %s",request.getUri(),HttpStatus.OK,response.getStatusCode(),response.getStatusMessage());
   TaskInfo taskInfo=response.getValue();
   URI outputLocation=httpServer.getBaseUrl().resolve("/v1/task/" + taskInfo.getTaskId() + "/results/out");
-  request=preparePut().setUri(httpServer.getBaseUrl().resolve("/v1/task/" + taskInfo.getTaskId() + "/results/complete")).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON).setBodyGenerator(jsonBodyGenerator(jsonCodec(boolean.class),true)).build();
-  response=httpClient.execute(request,createFullJsonResponseHandler(jsonCodec(TaskInfo.class)));
-  assertEquals(response.getStatusCode(),200);
-  assertEquals(response.getValue().getTaskId(),taskInfo.getTaskId());
   return outputLocation;
 }

@@ -1,15 +1,8 @@
 {
-  Set<String> newOutputBuffers;
 synchronized (this) {
     Preconditions.checkState(!noMoreOutputIds || outputBuffers.containsAll(outputBuffers),"Buffers can not be added after noMoreOutputIds has been set");
     noMoreOutputIds=noMore;
-    newOutputBuffers=ImmutableSet.copyOf(Sets.difference(outputBuffers,outputIds));
     this.outputIds.addAll(outputBuffers);
   }
-  for (  String newOutputBuffer : newOutputBuffers) {
-    addResultQueue(newOutputBuffer);
-  }
-  if (noMore) {
-    noMoreResultQueues();
-  }
+  updateState(false);
 }

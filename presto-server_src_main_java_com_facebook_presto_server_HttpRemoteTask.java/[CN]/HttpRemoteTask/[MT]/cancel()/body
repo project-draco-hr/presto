@@ -1,24 +1,10 @@
 {
-  final TaskInfo taskInfo=this.taskInfo.get();
-  final TaskInfo canceledTask=new TaskInfo(taskInfo.getQueryId(),taskInfo.getStageId(),taskInfo.getTaskId(),TaskInfo.MAX_VERSION,TaskState.CANCELED,taskInfo.getSelf(),taskInfo.getOutputBuffers(),taskInfo.getNoMoreSplits(),taskInfo.getStats(),ImmutableList.<FailureInfo>of());
-  if (taskInfo.getSelf() == null) {
-    updateTaskInfo(canceledTask);
-    return;
-  }
-  Request request=prepareDelete().setUri(taskInfo.getSelf()).build();
-  Futures.addCallback(httpClient.executeAsync(request,createFullJsonResponseHandler(taskInfoCodec)),new FutureCallback<JsonResponse<TaskInfo>>(){
-    @Override public void onSuccess(    JsonResponse<TaskInfo> response){
-      if (response.hasValue() && response.getValue().getState().isDone()) {
-        updateTaskInfo(response);
-      }
- else {
-        updateTaskInfo(canceledTask);
-      }
-    }
-    @Override public void onFailure(    Throwable t){
-      logRequestFailure("Failed to cancel",taskInfo,t);
-      updateTaskInfo(canceledTask);
+synchronized (this) {
+    pendingSplits.clear();
+    if (!canceled && currentRequest != null) {
+      currentRequest.cancel(true);
+      canceled=true;
     }
   }
-);
+  updateState(false);
 }

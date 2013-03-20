@@ -10,7 +10,11 @@
       }
       QueryState state=queryInfo.getState();
       if (state == QueryState.FAILED) {
-        throw Iterables.getFirst(queryInfo.getFailures(),null).toException();
+        FailureInfo failureInfo=Iterables.getFirst(queryInfo.getFailures(),null);
+        if (failureInfo != null) {
+          throw failureInfo.toException();
+        }
+        throw new RuntimeException("Query " + queryInfo.getQueryId() + " failed for an unknown reason");
       }
  else       if (state == QueryState.CANCELED) {
         throw new RuntimeException("Query was cancelled");
@@ -20,7 +24,6 @@
       }
       Uninterruptibles.sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
     }
-    client.getQueryInfo(true);
     MaterializedResult materializedResult=materialize(client.getResultsOperator());
     QueryInfo queryInfo=client.getQueryInfo(true);
     if (queryInfo.getState() != QueryState.FINISHED) {

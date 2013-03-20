@@ -1,0 +1,19 @@
+{
+  ImmutableList.Builder<TaskSource> sources=ImmutableList.builder();
+  if (planFragment.isPartitioned()) {
+    Set<ScheduledSplit> splits=pendingSplits.get(planFragment.getPartitionedSource());
+    if (!splits.isEmpty() || noMoreSplits) {
+      sources.add(new TaskSource(planFragment.getPartitionedSource(),splits,noMoreSplits));
+    }
+  }
+  for (  PlanNode planNode : planFragment.getSources()) {
+    PlanNodeId planNodeId=planNode.getId();
+    if (!planNodeId.equals(planFragment.getPartitionedSource())) {
+      Set<ScheduledSplit> splits=pendingSplits.get(planNodeId);
+      if (!splits.isEmpty() || noMoreExchangeLocations) {
+        sources.add(new TaskSource(planNodeId,splits,noMoreExchangeLocations));
+      }
+    }
+  }
+  return sources.build();
+}

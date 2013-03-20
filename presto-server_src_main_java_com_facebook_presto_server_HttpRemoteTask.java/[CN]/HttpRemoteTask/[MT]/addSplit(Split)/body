@@ -1,6 +1,11 @@
 {
 synchronized (this) {
+    Preconditions.checkNotNull(split,"split is null");
     Preconditions.checkState(!noMoreSplits,"noMoreSplits has already been set");
+    Preconditions.checkState(planFragment.isPartitioned(),"Plan is not partitioned");
+    if (!canceled) {
+      pendingSplits.put(planFragment.getPartitionedSource(),new ScheduledSplit(nextSplitId.getAndIncrement(),split));
+    }
   }
-  addSource(planFragment.getPartitionedSource(),split);
+  updateState(false);
 }

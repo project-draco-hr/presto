@@ -1,14 +1,12 @@
 {
-  while (true) {
-    TaskInfo currentValue=taskInfo.get();
-    if (currentValue.getState().isDone()) {
-      return;
-    }
-    if (newValue.getVersion() < currentValue.getVersion()) {
-      return;
-    }
-    if (taskInfo.compareAndSet(currentValue,newValue)) {
-      return;
-    }
+  if (taskInfo.getState().isDone()) {
+    return;
+  }
+  if (newValue.getVersion() < taskInfo.getVersion()) {
+    return;
+  }
+  taskInfo=newValue;
+  if (newValue.getState().isDone()) {
+    pendingSplits.clear();
   }
 }

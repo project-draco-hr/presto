@@ -3,7 +3,9 @@
     scheduleSplitWorker(sourceId,split);
   }
  else {
-    unpartitionedSources.put(sourceId,split);
+    if (!unpartitionedSources.put(sourceId,split)) {
+      return;
+    }
     for (    WeakReference<SplitWorker> workerReference : splitWorkers) {
       SplitWorker worker=workerReference.get();
       Preconditions.checkState(worker != null,"SplitWorker has been GCed");

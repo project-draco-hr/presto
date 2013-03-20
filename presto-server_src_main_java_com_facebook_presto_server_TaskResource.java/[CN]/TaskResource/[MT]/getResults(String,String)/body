@@ -4,7 +4,7 @@
   try {
     List<Page> pages=taskManager.getTaskResults(taskId,outputId,DEFAULT_MAX_PAGE_COUNT,DEFAULT_MAX_WAIT_TIME);
     if (pages.isEmpty()) {
-      if (taskManager.getTaskInfo(taskId).getState().isDone()) {
+      if (isDone(taskId)) {
         return Response.status(Status.GONE).build();
       }
  else {
@@ -20,6 +20,11 @@
     return Response.status(Status.NO_CONTENT).build();
   }
 catch (  NoSuchElementException e) {
-    return Response.status(Status.GONE).build();
+    if (isDone(taskId)) {
+      return Response.status(Status.GONE).build();
+    }
+ else {
+      return Response.status(Status.NO_CONTENT).build();
+    }
   }
 }

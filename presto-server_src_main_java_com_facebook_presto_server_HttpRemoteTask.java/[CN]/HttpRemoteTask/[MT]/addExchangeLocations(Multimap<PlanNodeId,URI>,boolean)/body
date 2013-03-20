@@ -1,21 +1,16 @@
 {
-  SetMultimap<PlanNodeId,URI> newExchangeLocations;
 synchronized (this) {
     Preconditions.checkState(!noMoreExchangeLocations || exchangeLocations.entries().containsAll(additionalLocations.entries()),"Locations can not be added after noMoreExchangeLocations has been set");
-    noMoreExchangeLocations=noMore;
-    newExchangeLocations=HashMultimap.create(additionalLocations);
+    SetMultimap<PlanNodeId,URI> newExchangeLocations=HashMultimap.create(additionalLocations);
     newExchangeLocations.entries().removeAll(exchangeLocations.entries());
-    this.exchangeLocations.putAll(additionalLocations);
-  }
-  for (  Entry<PlanNodeId,URI> entry : newExchangeLocations.entries()) {
-    addSource(entry.getKey(),createRemoteSplitFor(entry.getValue()));
-  }
-  if (noMore) {
-    for (    PlanNode planNode : planFragment.getSources()) {
-      PlanNodeId planNodeId=planNode.getId();
-      if (!planNodeId.equals(planFragment.getPartitionedSource())) {
-        noMoreSources(planNodeId);
+    if (!canceled) {
+      for (      Entry<PlanNodeId,URI> entry : newExchangeLocations.entries()) {
+        ScheduledSplit scheduledSplit=new ScheduledSplit(nextSplitId.getAndIncrement(),createRemoteSplitFor(entry.getValue()));
+        pendingSplits.put(entry.getKey(),scheduledSplit);
       }
     }
+    noMoreExchangeLocations=noMore;
+    this.exchangeLocations.putAll(additionalLocations);
   }
+  updateState(false);
 }

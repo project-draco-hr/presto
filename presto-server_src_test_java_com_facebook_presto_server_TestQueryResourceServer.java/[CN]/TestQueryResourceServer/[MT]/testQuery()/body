@@ -1,13 +1,9 @@
 {
-  URI location=client.execute(preparePost().setUri(uriFor("/v1/query")).build(),new CreatedResponseHandler());
+  URI location=client.execute(preparePost().setUri(uriFor("/v1/query")).setBodyGenerator(createStaticBodyGenerator("query",UTF_8)).build(),new CreatedResponseHandler());
   assertQueryStatus(location,QueryState.RUNNING);
   QueryInfo queryInfo=client.execute(prepareGet().setUri(location).build(),createJsonResponseHandler(jsonCodec(QueryInfo.class)));
   TaskInfo taskInfo=queryInfo.getOutputStage().getTasks().get(0);
   URI outputLocation=uriFor("/v1/task/" + taskInfo.getTaskId() + "/results/out");
-  Request request=preparePut().setUri(uriFor("/v1/task/" + taskInfo.getTaskId() + "/results/complete")).setHeader(HttpHeaders.CONTENT_TYPE,MEDIA_TYPE_JSON.toString()).setBodyGenerator(jsonBodyGenerator(jsonCodec(boolean.class),true)).build();
-  JsonResponse<TaskInfo> response=client.execute(request,createFullJsonResponseHandler(jsonCodec(TaskInfo.class)));
-  assertEquals(response.getStatusCode(),200);
-  assertEquals(response.getValue().getTaskId(),taskInfo.getTaskId());
   assertEquals(loadData(outputLocation),220);
   assertQueryStatus(location,QueryState.RUNNING);
   assertEquals(loadData(outputLocation),44 + 48);
