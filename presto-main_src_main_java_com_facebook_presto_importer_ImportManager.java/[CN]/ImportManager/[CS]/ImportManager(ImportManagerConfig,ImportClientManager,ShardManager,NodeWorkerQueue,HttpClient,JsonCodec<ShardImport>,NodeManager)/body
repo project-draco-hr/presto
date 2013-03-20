@@ -1,0 +1,14 @@
+{
+  checkNotNull(importManagerConfig,"importManagerConfig is null");
+  this.importClientManager=checkNotNull(importClientManager,"importClientFactory is null");
+  this.shardManager=checkNotNull(shardManager,"shardManager is null");
+  this.nodeWorkerQueue=checkNotNull(nodeWorkerQueue,"nodeWorkerQueue is null");
+  this.httpClient=checkNotNull(httpClient,"httpClient is null");
+  this.shardImportCodec=checkNotNull(shardImportCodec,"shardImportCodec");
+  this.nodeManager=checkNotNull(nodeManager,"nodeManager is null");
+  this.partitionExecutor=newFixedThreadPool(importManagerConfig.getMaxPartitionThreads(),threadsNamed("import-partition-%s"));
+  this.partitionBoundedExecutor=new ShardBoundedExecutor<>(partitionExecutor);
+  this.chunkExecutor=newScheduledThreadPool(importManagerConfig.getMaxChunkThreads(),threadsNamed("import-chunk-%s"));
+  this.chunkBoundedExecutor=new ShardBoundedExecutor<>(chunkExecutor);
+  this.shardExecutor=newScheduledThreadPool(importManagerConfig.getMaxShardThreads(),threadsNamed("import-shard-%s"));
+}
