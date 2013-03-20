@@ -1,6 +1,6 @@
 {
   final TaskInfo taskInfo=this.taskInfo.get();
-  final TaskInfo canceledTask=new TaskInfo(taskInfo.getQueryId(),taskInfo.getStageId(),taskInfo.getTaskId(),Long.MAX_VALUE,TaskState.CANCELED,taskInfo.getSelf(),taskInfo.getOutputBuffers(),taskInfo.getNoMoreSplits(),taskInfo.getStats(),ImmutableList.<FailureInfo>of());
+  final TaskInfo canceledTask=new TaskInfo(taskInfo.getQueryId(),taskInfo.getStageId(),taskInfo.getTaskId(),TaskInfo.MAX_VERSION,TaskState.CANCELED,taskInfo.getSelf(),taskInfo.getOutputBuffers(),taskInfo.getNoMoreSplits(),taskInfo.getStats(),ImmutableList.<FailureInfo>of());
   if (taskInfo.getSelf() == null) {
     updateTaskInfo(canceledTask);
     return;
@@ -16,12 +16,7 @@
       }
     }
     @Override public void onFailure(    Throwable t){
-      if (isSocketError(t)) {
-        log.warn("Failed to cancel task %s: %s",taskInfo.getTaskId(),t.getMessage());
-      }
- else {
-        log.warn(t,"Failed to cancel task %s",taskInfo.getTaskId());
-      }
+      logRequestFailure("Failed to cancel",taskInfo,t);
       updateTaskInfo(canceledTask);
     }
   }
