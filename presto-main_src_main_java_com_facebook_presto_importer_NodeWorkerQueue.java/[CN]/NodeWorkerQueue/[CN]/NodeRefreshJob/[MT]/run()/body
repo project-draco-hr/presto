@@ -1,9 +1,12 @@
 {
   Set<Node> activeNodes=nodeManager.getActiveDatasourceNodes("native");
-  Set<Node> newNodes=Sets.difference(activeNodes,nodes);
-  for (int i=0; i < tasksPerNode; i++) {
-    for (    Node node : newNodes) {
-      putUninterruptibly(nodeWorkers,node);
+  Set<Node> newNodes=ImmutableSet.copyOf(Sets.difference(activeNodes,nodes));
+  if (!newNodes.isEmpty()) {
+    for (int i=0; i < tasksPerNode; i++) {
+      for (      Node node : newNodes) {
+        putUninterruptibly(nodeWorkers,node);
+        nodes.add(node);
+      }
     }
   }
 }
