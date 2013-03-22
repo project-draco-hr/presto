@@ -1,8 +1,13 @@
 {
   ClientSession session=new ClientSession(coordinator.getBaseUrl(),"testuser","default","default",true);
   try (HttpQueryClient client=new HttpQueryClient(session,sql,httpClient,queryInfoCodec)){
+    boolean loggedUri=false;
     while (true) {
       QueryInfo queryInfo=client.getQueryInfo(false);
+      if (!loggedUri && queryInfo.getSelf() != null) {
+        log.info("Query " + queryInfo.getQueryId() + ": "+ queryInfo.getSelf()+ "?pretty");
+        loggedUri=true;
+      }
       QueryState state=queryInfo.getState();
       if (state == QueryState.FAILED) {
         throw Iterables.getFirst(queryInfo.getFailures(),null).toException();

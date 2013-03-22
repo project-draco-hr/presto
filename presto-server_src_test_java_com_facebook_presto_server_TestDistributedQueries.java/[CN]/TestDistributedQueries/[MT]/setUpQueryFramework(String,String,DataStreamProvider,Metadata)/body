@@ -1,4 +1,5 @@
 {
+  Logging.initialize();
   this.catalog=catalog;
   this.schema=schema;
   this.dataStreamProvider=dataStreamProvider;
@@ -16,5 +17,8 @@
   for (  PrestoTestingServer server : servers) {
     server.refreshServiceSelectors();
   }
+  log.info("Loading data...");
+  long startTime=System.nanoTime();
   loadedTableNames=distributeData();
+  log.info("Loading complete in %.2fs",Duration.nanosSince(startTime).convertTo(TimeUnit.SECONDS));
 }
