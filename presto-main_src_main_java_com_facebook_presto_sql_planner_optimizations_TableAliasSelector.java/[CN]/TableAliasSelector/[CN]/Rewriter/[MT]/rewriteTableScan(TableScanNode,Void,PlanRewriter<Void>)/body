@@ -1,0 +1,28 @@
+{
+  TableHandle tableHandle=node.getTable();
+  if (!(tableHandle.getDataSourceType() == DataSourceType.IMPORT)) {
+    return node;
+  }
+  QualifiedTableName tableName=metadata.getTableName(tableHandle);
+  QualifiedTableName aliasTable=Utils.getAlias(aliasDao,tableName);
+  if (aliasTable == null) {
+    return node;
+  }
+  TableMetadata aliasTableMetadata=metadata.getTable(aliasTable.getCatalogName(),aliasTable.getSchemaName(),aliasTable.getTableName());
+  checkState(aliasTableMetadata.getTableHandle().isPresent(),"no table handle for alias table %s found",aliasTable);
+  checkState(aliasTableMetadata.getTableHandle().get().getDataSourceType() == DataSourceType.NATIVE,"alias table must be a native table");
+  if (!allNodesPresent(((NativeTableHandle)aliasTableMetadata.getTableHandle().get()).getTableId())) {
+    return node;
+  }
+  List<ColumnMetadata> aliasColumns=aliasTableMetadata.getColumns();
+  Map<String,ColumnMetadata> lookupColumns=Maps.uniqueIndex(aliasColumns,getColumnMetadataName());
+  Map<Symbol,ColumnHandle> assignments=node.getAssignments();
+  ImmutableMap.Builder<Symbol,ColumnHandle> newAssignmentsBuilder=ImmutableMap.builder();
+  for (  Map.Entry<Symbol,ColumnHandle> assignmentEntry : assignments.entrySet()) {
+    TableColumn originalColumn=metadata.getTableColumn(tableHandle,assignmentEntry.getValue());
+    ColumnMetadata aliasedColumnMetadata=lookupColumns.get(originalColumn.getColumnName());
+    checkState(aliasedColumnMetadata != null,"no matching column for original column %s found!",originalColumn);
+    newAssignmentsBuilder.put(assignmentEntry.getKey(),aliasedColumnMetadata.getColumnHandle().get());
+  }
+  return new TableScanNode(node.getId(),aliasTableMetadata.getTableHandle().get(),newAssignmentsBuilder.build());
+}

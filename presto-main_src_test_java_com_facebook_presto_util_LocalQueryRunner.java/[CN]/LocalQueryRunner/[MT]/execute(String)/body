@@ -3,7 +3,8 @@
   Analyzer analyzer=new Analyzer(session,metadata);
   AnalysisResult analysis=analyzer.analyze(statement);
   PlanNodeIdAllocator idAllocator=new PlanNodeIdAllocator();
-  PlanNode plan=new LogicalPlanner(session,metadata,idAllocator).plan(analysis);
+  PlanOptimizersFactory planOptimizersFactory=new PlanOptimizersFactory(metadata);
+  PlanNode plan=new LogicalPlanner(session,planOptimizersFactory,idAllocator).plan(analysis);
   new PlanPrinter().print(plan,analysis.getTypes());
   SubPlan subplan=new DistributedLogicalPlanner(metadata,idAllocator).createSubplans(plan,analysis.getSymbolAllocator(),true);
   assertTrue(subplan.getChildren().isEmpty(),"Expected subplan to have no children");

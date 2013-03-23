@@ -1,0 +1,9 @@
+{
+  checkNotNull(session,"session is null");
+  ImmutableList.Builder<PlanOptimizer> builder=ImmutableList.builder();
+  builder.add(new SimplifyExpressions(metadata,session),new PruneUnreferencedOutputs(),new UnaliasSymbolReferences(),new PruneRedundantProjections(),new CoalesceLimits());
+  if (aliasDao != null && nodeManager != null && shardManager != null) {
+    builder.add(new TableAliasSelector(metadata,aliasDao,nodeManager,shardManager));
+  }
+  return builder.build();
+}
