@@ -1,0 +1,21 @@
+{
+  if (total == 0) {
+    return repeat(" ",width);
+  }
+  int pending=max(0,total - complete - running);
+  int completeLength=min(width,ceil(complete * width,total));
+  int pendingLength=min(width,ceil(pending * width,total));
+  int minRunningLength=(running > 0) ? 1 : 0;
+  int runningLength=max(min(width,ceil(running * width,total)),minRunningLength);
+  if (((completeLength + runningLength + pendingLength) != width) && (pending > 0)) {
+    pendingLength=max(0,width - completeLength - runningLength);
+  }
+  if ((completeLength + runningLength + pendingLength) != width) {
+    runningLength=max(minRunningLength,width - completeLength - pendingLength);
+  }
+  if (((completeLength + runningLength + pendingLength) > width) && (complete > 0)) {
+    completeLength=max(0,width - runningLength - pendingLength);
+  }
+  checkState((completeLength + runningLength + pendingLength) == width,"Expected completeLength (%s) + runningLength (%s) + pendingLength (%s) == width (%s), was %s for complete = %s, running = %s, total = %s",completeLength,runningLength,pendingLength,width,completeLength + runningLength + pendingLength,complete,running,total);
+  return repeat("=",completeLength) + repeat(">",runningLength) + repeat(" ",pendingLength);
+}
