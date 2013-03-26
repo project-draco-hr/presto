@@ -1,0 +1,14 @@
+{
+  if (stageInfo == null) {
+    return ImmutableSet.of();
+  }
+  ImmutableSet.Builder<String> nodes=ImmutableSet.builder();
+  for (  TaskInfo task : stageInfo.getTasks()) {
+    URI uri=task.getSelf();
+    nodes.add(uri.getHost() + ":" + uri.getPort());
+  }
+  for (  StageInfo subStage : stageInfo.getSubStages()) {
+    nodes.addAll(globalUniqueNodes(subStage));
+  }
+  return nodes.build();
+}

@@ -5,11 +5,13 @@
   if (!queryInfo.getState().isDone()) {
     nextResultsUri=createNextResultsUri(uriInfo);
   }
-  URI self=null;
+  QueryResults queryResults=new QueryResults(uriInfo.getRequestUriBuilder().replaceQuery("").replacePath(queryInfo.getSelf().getPath()).build(),nextResultsUri,data,toStatementStats(uriInfo,queryInfo));
   if (lastResult != null) {
-    self=lastResult.getNext();
+    lastResultPath=lastResult.getNext().getPath();
   }
-  QueryResults queryResults=new QueryResults(self,nextResultsUri,data,queryInfo);
+ else {
+    lastResultPath=null;
+  }
   lastResult=queryResults;
   return queryResults;
 }
