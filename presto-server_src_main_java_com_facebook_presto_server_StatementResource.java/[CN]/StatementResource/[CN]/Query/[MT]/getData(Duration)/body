@@ -1,0 +1,19 @@
+{
+  QueryInfo queryInfo=queryManager.getQueryInfo(queryId,false);
+  if (queryInfo.getState().isDone()) {
+    return null;
+  }
+  StageInfo outputStage=queryInfo.getOutputStage();
+  if (outputStage == null) {
+    return null;
+  }
+  if (columns == null) {
+    columns=createColumnsList(queryInfo);
+  }
+  updateExchangeClient(outputStage);
+  Page page=exchangeClient.getNextPage(maxWaitTime);
+  if (page == null) {
+    return null;
+  }
+  return new QueryData(columns,new RowIterable(page));
+}

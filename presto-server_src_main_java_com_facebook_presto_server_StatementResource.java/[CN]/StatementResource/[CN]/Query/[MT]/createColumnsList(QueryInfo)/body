@@ -1,0 +1,27 @@
+{
+  List<String> names=queryInfo.getFieldNames();
+  ArrayList<Type> types=new ArrayList<>();
+  for (  TupleInfo tupleInfo : queryInfo.getOutputStage().getTupleInfos()) {
+    types.addAll(tupleInfo.getTypes());
+  }
+  checkArgument(names.size() == types.size(),"names and types size mismatch");
+  ImmutableList.Builder<Column> list=ImmutableList.builder();
+  for (int i=0; i < names.size(); i++) {
+    String name=names.get(i);
+    Type type=types.get(i);
+switch (type) {
+case FIXED_INT_64:
+      list.add(new Column(name,"bigint"));
+    break;
+case DOUBLE:
+  list.add(new Column(name,"double"));
+break;
+case VARIABLE_BINARY:
+list.add(new Column(name,"varchar"));
+break;
+default :
+throw new IllegalArgumentException("unhandled type: " + type);
+}
+}
+return list.build();
+}

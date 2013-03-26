@@ -1,0 +1,12 @@
+{
+  for (  TaskInfo taskInfo : outputStage.getTasks()) {
+    List<BufferInfo> buffers=taskInfo.getOutputBuffers().getBuffers();
+    Preconditions.checkState(buffers.size() == 1,"Expected a single output buffer for task %s, but found %s",taskInfo.getTaskId(),buffers);
+    String bufferId=Iterables.getOnlyElement(buffers).getBufferId();
+    URI uri=uriBuilderFrom(taskInfo.getSelf()).appendPath("results").appendPath(bufferId).build();
+    locations.add(uri);
+  }
+  if (outputStage.getState() != StageState.PLANNED && outputStage.getState() != StageState.SCHEDULED) {
+    noMoreLocations.set(true);
+  }
+}
