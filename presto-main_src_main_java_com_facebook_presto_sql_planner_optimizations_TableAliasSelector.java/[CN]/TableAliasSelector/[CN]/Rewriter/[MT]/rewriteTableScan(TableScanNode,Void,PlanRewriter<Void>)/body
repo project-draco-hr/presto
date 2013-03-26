@@ -4,11 +4,12 @@
     return node;
   }
   QualifiedTableName tableName=metadata.getTableName(tableHandle);
-  QualifiedTableName aliasTable=Utils.getAlias(aliasDao,tableName);
-  if (aliasTable == null) {
+  TableAlias tableAlias=aliasDao.getAlias(tableName);
+  if (tableAlias == null) {
     return node;
   }
-  TableMetadata aliasTableMetadata=metadata.getTable(aliasTable.getCatalogName(),aliasTable.getSchemaName(),aliasTable.getTableName());
+  QualifiedTableName aliasTable=new QualifiedTableName(tableAlias.getDstCatalogName(),tableAlias.getDstSchemaName(),tableAlias.getDstTableName());
+  TableMetadata aliasTableMetadata=metadata.getTable(tableAlias.getDstCatalogName(),tableAlias.getDstSchemaName(),tableAlias.getDstTableName());
   checkState(aliasTableMetadata.getTableHandle().isPresent(),"no table handle for alias table %s found",aliasTable);
   checkState(aliasTableMetadata.getTableHandle().get().getDataSourceType() == DataSourceType.NATIVE,"alias table must be a native table");
   if (!allNodesPresent(((NativeTableHandle)aliasTableMetadata.getTableHandle().get()).getTableId())) {
