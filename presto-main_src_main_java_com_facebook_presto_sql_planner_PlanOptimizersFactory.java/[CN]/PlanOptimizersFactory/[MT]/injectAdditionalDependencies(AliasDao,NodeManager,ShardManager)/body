@@ -1,5 +1,9 @@
 {
-  this.aliasDao=aliasDao;
-  this.nodeManager=nodeManager;
-  this.shardManager=shardManager;
+  checkNotNull(aliasDao,"aliasDao is null");
+  checkNotNull(nodeManager,"nodeManager is null");
+  checkNotNull(shardManager,"shardManager is null");
+  ImmutableList.Builder<PlanOptimizer> builder=ImmutableList.builder();
+  builder.addAll(optimizers);
+  builder.add(new TableAliasSelector(metadata,aliasDao,nodeManager,shardManager));
+  this.optimizers=builder.build();
 }
