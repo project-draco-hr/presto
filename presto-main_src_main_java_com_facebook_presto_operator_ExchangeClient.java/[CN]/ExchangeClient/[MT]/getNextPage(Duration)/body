@@ -1,0 +1,11 @@
+{
+  boolean allClientsComplete=noMoreLocations.get() && completedClients.size() == locations.size();
+  if (!allClientsComplete) {
+    scheduleRequestIfNecessary();
+  }
+  Page page=pageBuffer.poll((long)maxWaitTime.toMillis(),TimeUnit.MILLISECONDS);
+  if (allClientsComplete && page == null) {
+    closed.set(true);
+  }
+  return page;
+}

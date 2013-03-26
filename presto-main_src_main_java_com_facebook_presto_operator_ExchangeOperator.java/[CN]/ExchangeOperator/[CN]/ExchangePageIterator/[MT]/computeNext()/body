@@ -1,19 +1,15 @@
 {
   while (true) {
-    boolean allClientsComplete=noMoreLocations.get() && completedClients.size() == locations.size();
-    if (!allClientsComplete) {
-      scheduleRequestIfNecessary();
-    }
-    operatorStats.setExchangeStatus(getExchangeStatus());
+    operatorStats.setExchangeStatus(exchangeClient.getStatus());
     long start=System.nanoTime();
     try {
-      Page page=pageBuffer.poll(WAIT_TIME_IN_MILLIS,TimeUnit.MILLISECONDS);
+      Page page=exchangeClient.getNextPage(WAIT_TIME);
       if (page != null) {
         operatorStats.addCompletedDataSize(page.getDataSize().toBytes());
         operatorStats.addCompletedPositions(page.getPositionCount());
         return page;
       }
- else       if (allClientsComplete) {
+ else       if (exchangeClient.isClosed()) {
         return endOfData();
       }
     }
