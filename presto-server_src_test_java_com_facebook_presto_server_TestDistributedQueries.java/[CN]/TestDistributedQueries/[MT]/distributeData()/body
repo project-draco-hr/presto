@@ -1,10 +1,10 @@
 {
   ImmutableList.Builder<String> tableNames=ImmutableList.builder();
-  List<QualifiedTableName> qualifiedTableNames=metadata.listTables(catalog);
+  List<QualifiedTableName> qualifiedTableNames=metadata.listTables(catalog,Optional.<String>absent());
   for (  QualifiedTableName qualifiedTableName : qualifiedTableNames) {
     tableNames.add(qualifiedTableName.getTableName());
-    TableMetadata sourceTable=metadata.getTable(qualifiedTableName.getCatalogName(),qualifiedTableName.getSchemaName(),qualifiedTableName.getTableName());
-    TableMetadata targetTable=coordinator.createTable("default","default",sourceTable.getTableName(),sourceTable.getColumns());
+    TableMetadata sourceTable=metadata.getTable(qualifiedTableName);
+    TableMetadata targetTable=coordinator.createTable(new QualifiedTableName("default","default",sourceTable.getTable().getTableName()),sourceTable.getColumns());
     ImmutableList.Builder<ProjectionFunction> builder=ImmutableList.builder();
     for (int i=0; i < sourceTable.getColumns().size(); i++) {
       ColumnMetadata column=sourceTable.getColumns().get(i);

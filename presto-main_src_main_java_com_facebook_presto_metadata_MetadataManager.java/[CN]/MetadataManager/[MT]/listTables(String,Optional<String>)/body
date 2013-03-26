@@ -1,0 +1,14 @@
+{
+  checkSchemaName(catalogName,schemaName);
+  if (schemaName.isPresent()) {
+    DataSourceType dataSourceType=lookupDataSource(catalogName,schemaName.get(),null);
+    return lookup(dataSourceType).listTables(catalogName,schemaName);
+  }
+ else {
+    DataSourceType dataSourceType=lookupDataSource(catalogName,null,null);
+    List<QualifiedTableName> catalogTables=lookup(dataSourceType).listTables(catalogName,Optional.<String>absent());
+    List<QualifiedTableName> informationSchemaTables=listInformationSchemaTables(catalogName);
+    List<QualifiedTableName> systemTables=listSystemTables(catalogName);
+    return ImmutableList.copyOf(concat(catalogTables,informationSchemaTables,systemTables));
+  }
+}
