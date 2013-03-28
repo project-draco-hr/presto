@@ -1,11 +1,14 @@
 {
-  if (finished) {
+  if (finished.get()) {
     return;
   }
-  finished=true;
+  finished.set(true);
+  timeToLastByte.set(Duration.nanosSince(startTime.get()));
   if (taskOutput == null) {
     return;
   }
-  updateTimings();
+  taskOutput.removeActiveSplit(this);
+  taskOutput.getStats().addTimeToLastByte(Duration.nanosSince(startTime.get()));
   taskOutput.getStats().splitCompleted();
+  updateTaskOutputTimings();
 }

@@ -1,0 +1,15 @@
+{
+  updateFinishedState();
+  List<SplitExecutionStats> splitStats=null;
+  if (full) {
+    ImmutableList.Builder<SplitExecutionStats> builder=ImmutableList.builder();
+    for (    OperatorStats activeSplit : activeSplits) {
+      builder.add(activeSplit.snapshot());
+    }
+    splitStats=builder.build();
+  }
+  SharedBufferInfo sharedBufferInfo=sharedBuffer.getInfo();
+synchronized (this) {
+    return new TaskInfo(queryId,stageId,taskId,nextTaskInfoVersion.getAndIncrement(),getState(),location,sharedBufferInfo,getNoMoreSplits(),stats.snapshot(full),splitStats,toFailures(failureCauses));
+  }
+}

@@ -1,12 +1,15 @@
 {
-  if (taskOutput == null) {
+  if (timeToFirstByte.compareAndSet(null,Duration.nanosSince(startTime.get()))) {
+    if (taskOutput != null) {
+      taskOutput.getStats().addTimeToFirstByte(timeToFirstByte.get());
+    }
+  }
+  completedDataSize.update(bytes);
+  if (taskOutput == null || bytes == 0) {
     return;
   }
-  taskOutput.getStats().addCompletedDataSize(new DataSize(bytes,Unit.BYTE));
-  completedDataSize+=bytes;
-  if (completedDataSize > declaredSize) {
-    taskOutput.getStats().addInputDataSize(new DataSize(completedDataSize - declaredSize,Unit.BYTE));
-    declaredSize=completedDataSize;
-  }
-  updateTimings();
+  DataSize dataSize=new DataSize(bytes,Unit.BYTE);
+  taskOutput.getStats().addCompletedDataSize(dataSize);
+  taskOutput.getStats().addInputDataSize(dataSize);
+  updateTaskOutputTimings();
 }
