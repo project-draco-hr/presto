@@ -1,0 +1,14 @@
+{
+  checkNotNull(prefix,"prefix is null");
+  if (prefix.hasSchemaName()) {
+    DataSourceType dataSourceType=lookupDataSource(prefix);
+    return lookup(dataSourceType).listTables(prefix);
+  }
+ else {
+    DataSourceType dataSourceType=lookupDataSource(prefix);
+    List<QualifiedTableName> catalogTables=lookup(dataSourceType).listTables(prefix);
+    List<QualifiedTableName> informationSchemaTables=listInformationSchemaTables(prefix.getCatalogName());
+    List<QualifiedTableName> systemTables=listSystemTables(prefix.getCatalogName());
+    return ImmutableList.copyOf(concat(catalogTables,informationSchemaTables,systemTables));
+  }
+}

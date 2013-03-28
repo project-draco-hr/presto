@@ -1,0 +1,15 @@
+{
+  checkNotNull(prefix,"prefix is null");
+  ImportClient client=importClientManager.getClient(prefix.getCatalogName());
+  Iterable<String> databaseNames=prefix.hasSchemaName() ? prefix.getSchemaName().asSet() : getDatabaseNames(client);
+  ImmutableList.Builder<Map<String,String>> list=ImmutableList.builder();
+  for (  String databaseName : databaseNames) {
+    Iterable<String> tableNames=prefix.hasTableName() ? prefix.getTableName().asSet() : getTableNames(client,databaseName);
+    for (    String tblName : tableNames) {
+      for (      PartitionInfo partition : getPartitions(client,databaseName,tblName)) {
+        list.add(partition.getKeyFields());
+      }
+    }
+  }
+  return list.build();
+}

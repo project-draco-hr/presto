@@ -1,0 +1,13 @@
+{
+  checkNotNull(prefix,"prefix is null");
+  ImportClient client=importClientManager.getClient(prefix.getCatalogName());
+  ImmutableList.Builder<QualifiedTableName> list=ImmutableList.builder();
+  Iterable<String> schemaNames=prefix.hasSchemaName() ? prefix.getSchemaName().asSet() : getDatabaseNames(client);
+  for (  String schema : schemaNames) {
+    List<String> tables=getTableNames(client,schema);
+    for (    String table : tables) {
+      list.add(new QualifiedTableName(prefix.getCatalogName(),schema,table));
+    }
+  }
+  return list.build();
+}

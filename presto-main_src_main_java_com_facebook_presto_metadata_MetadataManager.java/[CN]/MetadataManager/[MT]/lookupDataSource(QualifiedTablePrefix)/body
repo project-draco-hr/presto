@@ -1,0 +1,16 @@
+{
+  if (DualTable.NAME.equals(prefix.getTableName().orNull())) {
+    return DataSourceType.INTERNAL;
+  }
+  String schemaName=prefix.getSchemaName().orNull();
+  if (INFORMATION_SCHEMA.equals(schemaName) || SYSTEM_SCHEMA.equals(schemaName)) {
+    return DataSourceType.INTERNAL;
+  }
+  if (prefix.getCatalogName().equals("default")) {
+    return DataSourceType.NATIVE;
+  }
+  if (importMetadata.hasCatalog(prefix.getCatalogName())) {
+    return DataSourceType.IMPORT;
+  }
+  throw new IllegalArgumentException("catalog does not exist: " + prefix.getCatalogName());
+}
