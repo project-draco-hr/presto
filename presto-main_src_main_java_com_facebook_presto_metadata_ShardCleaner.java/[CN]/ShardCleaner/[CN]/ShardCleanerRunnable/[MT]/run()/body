@@ -1,0 +1,43 @@
+{
+  try {
+    if (!sitevars.isShardCleaningEnabled()) {
+      return;
+    }
+    Map<String,Node> activeNodes=Maps.uniqueIndex(nodeManager.getActiveNodes(),getIdentifierFunction());
+    Iterable<String> shardNodes=shardManager.getAllNodesInUse();
+    ImmutableList.Builder<ListenableFuture<Void>> builder=ImmutableList.builder();
+    for (    String nodeIdentifier : shardNodes) {
+      if (!activeNodes.keySet().contains(nodeIdentifier)) {
+        log.debug("Skipping Node %s, which is in the database but not active!",nodeIdentifier);
+        continue;
+      }
+      Iterable<Long> orphanedShards=shardManager.getOrphanedShardIds(Optional.of(nodeIdentifier));
+      Node node=activeNodes.get(nodeIdentifier);
+      for (      Long shardId : orphanedShards) {
+        if (!sitevars.isShardCleaningEnabled()) {
+          break;
+        }
+        ListenableFutureTask<Void> task=ListenableFutureTask.create(new ShardDropJob(shardId,node),null);
+        nodeBoundedExecutor.execute(nodeIdentifier,task);
+        builder.add(task);
+      }
+    }
+    Future<List<Void>> allFutures=Futures.allAsList(builder.build());
+    try {
+      allFutures.get();
+    }
+ catch (    ExecutionException e) {
+      throw e.getCause();
+    }
+    Iterable<Long> allOrphanedShards=shardManager.getOrphanedShardIds(Optional.<String>absent());
+    for (    Long shardId : allOrphanedShards) {
+      shardManager.dropShard(shardId);
+    }
+  }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+  }
+catch (  Throwable e) {
+    log.error(e,"Caught problem when dropping orphaned shards!");
+  }
+}
