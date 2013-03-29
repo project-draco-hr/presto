@@ -1,0 +1,10 @@
+{
+  checkState(!isClosed(),"client is closed");
+  URI uri=current().getPartialCancelUri();
+  if (uri == null) {
+    return false;
+  }
+  Request request=prepareDelete().setUri(uri).build();
+  StatusResponse status=httpClient.execute(request,createStatusResponseHandler());
+  return familyForStatusCode(status.getStatusCode()) == Family.SUCCESSFUL;
+}

@@ -1,12 +1,20 @@
 {
 synchronized (this) {
-    if (queryState.isDone()) {
+    if (queryState.isDone() && (queryState != QueryState.FAILED)) {
       return false;
     }
-    queryState=QueryState.FAILED;
     if (cause != null) {
-      failureCauses.add(cause);
+      if (failureCause == null) {
+        failureCause=cause;
+      }
+ else {
+        failureCause.addSuppressed(cause);
+      }
     }
+    if (queryState == QueryState.FAILED) {
+      return true;
+    }
+    queryState=QueryState.FAILED;
   }
   log.debug("Failed query %s",queryId);
   queryStats.recordEnd();

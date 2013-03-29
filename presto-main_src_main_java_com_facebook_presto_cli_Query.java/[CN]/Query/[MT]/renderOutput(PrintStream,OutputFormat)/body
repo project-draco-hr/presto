@@ -1,17 +1,17 @@
 {
   SignalHandler oldHandler=Signal.handle(SIGINT,new SignalHandler(){
     @Override public void handle(    Signal signal){
-      if (ignoreUserInterrupt.get() || queryClient.isCanceled()) {
+      if (ignoreUserInterrupt.get() || client.isClosed()) {
         return;
       }
       try {
-        if (!queryClient.cancelLeafStage()) {
-          queryClient.close();
+        if (!client.cancelLeafStage()) {
+          client.close();
         }
       }
  catch (      RuntimeException e) {
         log.debug(e,"error canceling leaf stage");
-        queryClient.close();
+        client.close();
       }
     }
   }

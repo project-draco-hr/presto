@@ -3,19 +3,18 @@
   try {
     while (true) {
       try {
-        QueryInfo queryInfo=queryClient.getQueryInfo(false);
-        if ((queryInfo == null) || queryInfo.getState().isDone()) {
+        if (!client.hasNext()) {
           return;
         }
-        if (queryInfo.resultsPending()) {
+        if (client.current().getData() != null) {
           return;
         }
         if (Duration.nanosSince(lastPrint).convertTo(SECONDS) >= 0.5) {
           console.repositionCursor();
-          printQueryInfo(queryInfo);
+          printQueryInfo(client.current());
           lastPrint=System.nanoTime();
         }
-        Uninterruptibles.sleepUninterruptibly(100,MILLISECONDS);
+        client.next();
       }
  catch (      Exception e) {
         log.debug(e,"error printing status");

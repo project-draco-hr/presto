@@ -1,0 +1,16 @@
+{
+  if (stageInfo == null) {
+    return null;
+  }
+  ExecutionStats executionStats=stageOnlyExecutionStats(stageInfo);
+  ImmutableList.Builder<StageStats> subStages=ImmutableList.builder();
+  for (  StageInfo subStage : stageInfo.getSubStages()) {
+    subStages.add(toStageStats(subStage));
+  }
+  Set<String> uniqueNodes=new HashSet<>();
+  for (  TaskInfo task : stageInfo.getTasks()) {
+    URI uri=task.getSelf();
+    uniqueNodes.add(uri.getHost() + ":" + uri.getPort());
+  }
+  return StageStats.builder().setStageNumber(Integer.parseInt(stageInfo.getStageId().substring(stageInfo.getQueryId().length() + 1))).setState(stageInfo.getState().toString()).setDone(stageInfo.getState().isDone()).setNodes(uniqueNodes.size()).setTotalSplits(executionStats.getSplits()).setQueuedSplits(executionStats.getQueuedSplits()).setRunningSplits(executionStats.getRunningSplits()).setCompletedSplits(executionStats.getCompletedSplits()).setUserTimeMillis((long)executionStats.getSplitUserTime().toMillis()).setCpuTimeMillis((long)executionStats.getSplitCpuTime().toMillis()).setWallTimeMillis((long)executionStats.getSplitWallTime().toMillis()).setProcessedRows(executionStats.getCompletedPositionCount()).setProcessedBytes(executionStats.getCompletedDataSize().toBytes()).setSubStages(subStages.build()).build();
+}
