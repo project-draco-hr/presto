@@ -1,13 +1,12 @@
 {
-  checkNotNull(query,"query is null");
+  assertRequest(!isNullOrEmpty(query),"SQL query is empty");
+  assertRequest(!isNullOrEmpty(user),"User (%s) is empty",PRESTO_USER);
+  assertRequest(!isNullOrEmpty(catalog),"Catalog (%s) is empty",PRESTO_CATALOG);
+  assertRequest(!isNullOrEmpty(schema),"Schema (%s) is empty",PRESTO_SCHEMA);
   ClientSession session=new ClientSession(serverUri(),user,catalog,schema,false);
-  HttpQueryClient queryClient=new HttpQueryClient(session,query,httpClient,queryInfoCodec);
-  QueryInfo queryInfo=waitForResults(queryClient);
-  Operator operator=queryClient.getResultsOperator();
-  List<String> fieldNames=ImmutableList.copyOf(queryInfo.getFieldNames());
-  List<TupleInfo.Type> fieldTypes=getFieldTypes(operator.getTupleInfos());
-  List<Column> columns=createColumnList(fieldNames,fieldTypes);
-  ResultsIterator resultsIterator=new ResultsIterator(operator);
-  QueryResults results=new QueryResults(columns,resultsIterator);
+  StatementClient client=new StatementClient(httpClient,queryResultsCodec,session,query);
+  List<Column> columns=getColumns(client);
+  Iterator<List<Object>> iterator=flatten(new ResultsPageIterator(client));
+  SimpleQueryResults results=new SimpleQueryResults(columns,iterator);
   return Response.ok(results,MediaType.APPLICATION_JSON_TYPE).build();
 }
