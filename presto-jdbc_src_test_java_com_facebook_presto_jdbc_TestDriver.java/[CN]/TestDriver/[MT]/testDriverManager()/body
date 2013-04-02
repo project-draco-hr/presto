@@ -1,11 +1,10 @@
 {
-  String url=format("jdbc:presto://%s/",address);
-  try (Connection connection=DriverManager.getConnection(url)){
+  try (Connection connection=createConnection()){
     try (ResultSet tableTypes=connection.getMetaData().getTableTypes()){
       assertRowCount(tableTypes,1);
     }
      try (Statement statement=connection.createStatement()){
-      try (ResultSet rs=statement.executeQuery("select 123 x, 'foo' y from dual")){
+      try (ResultSet rs=statement.executeQuery("SELECT 123 x, 'foo' y FROM dual")){
         ResultSetMetaData metadata=rs.getMetaData();
         assertEquals(metadata.getColumnCount(),2);
         assertEquals(metadata.getColumnLabel(1),"x");

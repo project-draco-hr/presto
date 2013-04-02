@@ -1,0 +1,9 @@
+{
+  QueryError error=results.getError();
+  if (error == null) {
+    return new SQLException(format("Query failed for an unknown reason (#%s)",results.getQueryId()));
+  }
+  String message=format("Query failed (#%s): %s",results.getQueryId(),error.getMessage());
+  Throwable cause=(error.getFailureInfo() == null) ? null : error.getFailureInfo().toException();
+  return new SQLException(message,error.getSqlState(),error.getErrorCode(),cause);
+}

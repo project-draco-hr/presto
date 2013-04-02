@@ -1,9 +1,15 @@
 {
   checkOpen();
-  if (!results.hasNext()) {
-    row.set(null);
-    return false;
+  try {
+    if (!results.hasNext()) {
+      row.set(null);
+      return false;
+    }
+    row.set(results.next());
+    return true;
   }
-  row.set(results.next());
-  return true;
+ catch (  RuntimeException e) {
+    propagateIfInstanceOf(e,SQLException.class);
+    throw new SQLException("Error fetching results",e);
+  }
 }
