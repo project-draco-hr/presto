@@ -1,0 +1,10 @@
+{
+  ImmutableSet.Builder<ServiceDescriptor> builder=ImmutableSet.builder();
+  for (  MonitoringTask task : tasks.values()) {
+    Stats stats=task.getStats();
+    if (stats.getRecentFailureRatio() > failureRatioThreshold || stats.getAge().compareTo(warmupInterval) < 0) {
+      builder.add(task.getService());
+    }
+  }
+  return builder.build();
+}

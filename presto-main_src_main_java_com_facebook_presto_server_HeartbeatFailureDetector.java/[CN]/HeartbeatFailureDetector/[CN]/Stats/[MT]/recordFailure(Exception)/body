@@ -1,0 +1,16 @@
+{
+  recentFailures.add(1);
+  lastResponseTime.set(new DateTime());
+  Throwable cause=exception;
+  while (cause.getClass() == RuntimeException.class && cause.getCause() != null) {
+    cause=cause.getCause();
+  }
+synchronized (this) {
+    DecayCounter counter=failureCountByType.get(cause.getClass());
+    if (counter == null) {
+      counter=new DecayCounter(ExponentialDecay.oneMinute());
+      failureCountByType.put(cause.getClass(),counter);
+    }
+    counter.add(1);
+  }
+}
