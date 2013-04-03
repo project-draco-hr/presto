@@ -1,33 +1,35 @@
 {
   ClientSession session=new ClientSession(coordinator.getBaseUrl(),"testuser","default","default",true);
-  try (HttpQueryClient client=new HttpQueryClient(session,sql,httpClient,queryInfoCodec)){
-    boolean loggedUri=false;
+  try (StatementClient client=new StatementClient(httpClient,queryResultsCodec,session,sql)){
+    AtomicBoolean loggedUri=new AtomicBoolean(false);
+    ImmutableList.Builder<Tuple> rows=ImmutableList.builder();
+    TupleInfo tupleInfo=null;
     while (true) {
-      QueryInfo queryInfo=client.getQueryInfo(false);
-      if (!loggedUri && queryInfo.getSelf() != null) {
-        log.info("Query %s: %s?pretty",queryInfo.getQueryId(),queryInfo.getSelf());
-        loggedUri=true;
+      QueryResults results=client.current();
+      if (!loggedUri.getAndSet(true)) {
+        log.info("Query %s: %s?pretty",results.getQueryId(),results.getQueryInfoUri());
       }
-      QueryState state=queryInfo.getState();
-      if (state == QueryState.FAILED) {
-        if (queryInfo.getFailureInfo() == null) {
-          throw new RuntimeException("Query failed for an unknown reason");
+      if ((tupleInfo == null) && (results.getColumns() != null)) {
+        tupleInfo=getTupleInfo(results.getColumns());
+      }
+      if (results.getData() != null) {
+        rows.addAll(transform(results.getData(),dataToTuple(tupleInfo)));
+      }
+      if (!client.hasNext()) {
+        String state=results.getStats().getState();
+        if ("FINISHED".equals(state)) {
+          return new MaterializedResult(rows.build(),tupleInfo);
         }
-        throw queryInfo.getFailureInfo().toException();
+        QueryError error=results.getError();
+        if (error != null) {
+          if (error.getFailureInfo() != null) {
+            throw error.getFailureInfo().toException();
+          }
+          throw new RuntimeException("Query failed: " + error.getMessage());
+        }
+        throw new RuntimeException("Query failed for an unknown reason");
       }
- else       if (state == QueryState.CANCELED) {
-        throw new RuntimeException("Query was cancelled");
-      }
- else       if (state == QueryState.RUNNING || state.isDone()) {
-        break;
-      }
-      Uninterruptibles.sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
+      client.next();
     }
-    MaterializedResult materializedResult=materialize(client.getResultsOperator());
-    QueryInfo queryInfo=client.getQueryInfo(true);
-    if (queryInfo.getState() != QueryState.FINISHED) {
-      throw new RuntimeException("Expected query to be FINISHED, but is " + queryInfo.getState());
-    }
-    return materializedResult;
   }
  }
