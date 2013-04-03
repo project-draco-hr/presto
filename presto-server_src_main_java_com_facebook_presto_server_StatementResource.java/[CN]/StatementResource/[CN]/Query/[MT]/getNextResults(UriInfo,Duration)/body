@@ -1,8 +1,11 @@
 {
   Iterable<List<Object>> data=getData(maxWaitTime);
   QueryInfo queryInfo=queryManager.getQueryInfo(queryId,false);
+  if (queryInfo.getState().isDone() && (queryInfo.getState() != QueryState.FINISHED)) {
+    exchangeClient.close();
+  }
   URI nextResultsUri=null;
-  if (!queryInfo.getState().isDone()) {
+  if ((!queryInfo.getState().isDone()) || (!exchangeClient.isClosed())) {
     nextResultsUri=createNextResultsUri(uriInfo);
   }
   QueryResults queryResults=new QueryResults(queryId,uriInfo.getRequestUriBuilder().replaceQuery("").replacePath(queryInfo.getSelf().getPath()).build(),findCancelableLeafStage(queryInfo),nextResultsUri,columns,data,toStatementStats(queryInfo),toQueryError(queryInfo));
