@@ -2,8 +2,8 @@
   return new Function<PartitionChunk,SplitAssignments>(){
     @Override public SplitAssignments apply(    PartitionChunk chunk){
       ImportClient importClient=importClientManager.getClient(sourceName);
-      Split split=new ImportSplit(sourceName,SerializedPartitionChunk.create(importClient,chunk));
-      List<Node> nodes=limit(shuffle(nodeManager.getActiveDatasourceNodes(sourceName)),3);
+      Split split=new ImportSplit(sourceName,SerializedPartitionChunk.create(importClient,chunk),chunk.getInfo());
+      List<Node> nodes=chooseNodes(sourceName,chunk.getHosts(),3);
       Preconditions.checkState(!nodes.isEmpty(),"No active %s data nodes",sourceName);
       return new SplitAssignments(split,nodes);
     }
