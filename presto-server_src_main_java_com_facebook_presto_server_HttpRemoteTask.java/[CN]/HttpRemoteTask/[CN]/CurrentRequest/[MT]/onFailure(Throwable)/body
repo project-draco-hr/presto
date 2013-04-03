@@ -1,12 +1,14 @@
 {
-  setException(t);
-  if (!(t instanceof CancellationException)) {
-    TaskInfo taskInfo=getTaskInfo();
-    if (isSocketError(t)) {
-      log.warn("%s task %s: %s: %s","Error updating",taskInfo.getTaskId(),t.getMessage(),taskInfo.getSelf());
-    }
+synchronized (HttpRemoteTask.this) {
+    setException(t);
+    if (!(t instanceof CancellationException)) {
+      TaskInfo taskInfo=getTaskInfo();
+      if (isSocketError(t)) {
+        log.warn("%s task %s: %s: %s","Error updating",taskInfo.getTaskId(),t.getMessage(),taskInfo.getSelf());
+      }
  else {
-      log.warn(t,"%s task %s: %s","Error updating",taskInfo.getTaskId(),taskInfo.getSelf());
+        log.warn(t,"%s task %s: %s","Error updating",taskInfo.getTaskId(),taskInfo.getSelf());
+      }
     }
   }
   updateState(false);

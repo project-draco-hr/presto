@@ -1,10 +1,14 @@
 {
+  CurrentRequest requestToCancel=null;
 synchronized (this) {
     pendingSplits.clear();
-    if (!canceled && currentRequest != null) {
-      currentRequest.cancel(true);
+    if (!canceled) {
+      requestToCancel=currentRequest;
       canceled=true;
     }
+  }
+  if (requestToCancel != null) {
+    requestToCancel.cancel(true);
   }
   updateState(false);
 }

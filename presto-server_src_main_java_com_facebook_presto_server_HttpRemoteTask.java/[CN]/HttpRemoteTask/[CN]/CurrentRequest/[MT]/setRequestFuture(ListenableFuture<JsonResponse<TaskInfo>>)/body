@@ -1,7 +1,9 @@
 {
-  Preconditions.checkNotNull(requestFuture,"requestFuture is null");
-  Preconditions.checkState(this.requestFuture == null,"requestFuture already set");
-  this.requestFuture=requestFuture;
+synchronized (HttpRemoteTask.this) {
+    Preconditions.checkNotNull(requestFuture,"requestFuture is null");
+    Preconditions.checkState(this.requestFuture == null,"requestFuture already set");
+    this.requestFuture=requestFuture;
+  }
   if (isDone()) {
     requestFuture.cancel(true);
   }
