@@ -19,8 +19,7 @@
     String cpuTimeSummary=String.format("CPU Time: %.1fs total, %5s rows/s, %8s, %d%% active",cpuTime.convertTo(SECONDS),formatCountRate(stats.getProcessedRows(),cpuTime,false),formatDataRate(bytes(stats.getProcessedBytes()),cpuTime,true),(int)percentage(stats.getCpuTimeMillis(),stats.getWallTimeMillis()));
     out.println(cpuTimeSummary);
     double parallelism=cpuTime.toMillis() / wallTime.toMillis();
-    DataSize bytesPerNode=bytes(stats.getProcessedBytes() / nodes);
-    String perNodeSummary=String.format("Per Node: %.1f parallelism, %5s rows/s, %8s",parallelism / nodes,formatCountRate((int)(stats.getProcessedRows() / nodes),wallTime,false),formatDataRate(bytesPerNode,wallTime,true));
+    String perNodeSummary=String.format("Per Node: %.1f parallelism, %5s rows/s, %8s",parallelism / nodes,formatCountRate((double)stats.getProcessedRows() / nodes,wallTime,false),formatDataRate(bytes(stats.getProcessedBytes() / nodes),wallTime,true));
     reprintLine(perNodeSummary);
     out.println(String.format("Parallelism: %.1f",parallelism));
   }
