@@ -1,20 +1,14 @@
 {
-  if (first) {
-    first=false;
+  while (client.isValid()) {
     Iterable<List<Object>> data=client.current().getData();
+    client.advance();
     if (data != null) {
       return data;
     }
   }
-  while (client.hasNext()) {
-    client.next();
-    Iterable<List<Object>> data=client.current().getData();
-    if (data != null) {
-      return data;
-    }
-  }
-  if (!"FINISHED".equals(client.current().getStats().getState())) {
-    throw propagate(resultsException(client.current()));
+  QueryResults results=client.finalResults();
+  if (!"FINISHED".equals(results.getStats().getState())) {
+    throw propagate(resultsException(results));
   }
   return endOfData();
 }

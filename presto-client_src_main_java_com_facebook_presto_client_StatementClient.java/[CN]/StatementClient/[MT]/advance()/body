@@ -1,8 +1,10 @@
 {
-  checkState(!isClosed(),"client is closed");
-  checkState(hasNext(),"no next");
+  if (isClosed() || (current().getNext() == null)) {
+    valid.set(false);
+    return false;
+  }
   Request request=prepareGet().setUri(current().getNext()).build();
   QueryResults results=httpClient.execute(request,responseHandler);
   currentResults.set(results);
-  return results;
+  return true;
 }

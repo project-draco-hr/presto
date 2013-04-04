@@ -1,11 +1,8 @@
 {
   long lastPrint=System.nanoTime();
   try {
-    while (true) {
+    while (client.isValid()) {
       try {
-        if (!client.hasNext()) {
-          return;
-        }
         if (client.current().getData() != null) {
           return;
         }
@@ -14,9 +11,9 @@
           printQueryInfo(client.current());
           lastPrint=System.nanoTime();
         }
-        client.next();
+        client.advance();
       }
- catch (      Exception e) {
+ catch (      RuntimeException e) {
         log.debug(e,"error printing status");
       }
     }
