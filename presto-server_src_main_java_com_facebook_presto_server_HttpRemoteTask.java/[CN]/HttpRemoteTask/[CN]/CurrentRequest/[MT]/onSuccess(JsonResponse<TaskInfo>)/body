@@ -4,17 +4,19 @@
     if (response.getStatusCode() == HttpStatus.OK.code() && response.hasValue()) {
       updateTaskInfo(response.getValue());
       lastSuccessfulRequest.set(System.nanoTime());
-      consecutiveErrorCount.set(0);
+      errorCount.set(0);
+      errorsSinceLastSuccess.clear();
       acknowledgeSources(sources);
       updateIfNecessary();
     }
  else     if (response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.code()) {
-      log.debug(String.format("Server at %s returned %s: %s",taskInfo.getSelf(),response.getStatusCode(),response.getStatusMessage()));
-      requestFailed();
+      String message=String.format("Server at %s returned %s: %s",taskInfo.getSelf(),response.getStatusCode(),response.getStatusMessage());
+      log.debug(message);
+      requestFailed(startTime,new RuntimeException(message));
       updateState(false);
     }
  else     if (response.getStatusCode() == HttpStatus.SERVICE_UNAVAILABLE.code()) {
-      requestFailed();
+      requestFailed(startTime,new RuntimeException("Server at %s returned SERVICE_UNAVAILABLE"));
     }
  else {
       Exception cause=response.getException();
@@ -25,8 +27,10 @@
     }
   }
  catch (  Throwable t) {
-    setException(t);
-    requestFailed();
+    if (!(t instanceof CancellationException)) {
+      setException(t);
+      requestFailed(startTime,t);
+    }
   }
  finally {
     set(null);

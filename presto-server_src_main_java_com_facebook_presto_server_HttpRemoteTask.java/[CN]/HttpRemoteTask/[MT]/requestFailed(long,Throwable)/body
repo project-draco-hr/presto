@@ -1,0 +1,18 @@
+{
+  if (errorsSinceLastSuccess.size() < 10) {
+    errorsSinceLastSuccess.add(reason);
+  }
+  long errorCount=this.errorCount.incrementAndGet();
+  Duration timeSinceLastSuccess=Duration.nanosSince(lastSuccessfulRequest.get());
+  if (errorCount > maxConsecutiveErrorCount && timeSinceLastSuccess.compareTo(minErrorDuration) > 0) {
+    Duration duration=Duration.nanosSince(startTime);
+    DateTime start=new DateTime(NANOSECONDS.toMillis(System.currentTimeMillis() - (long)duration.toMillis()));
+    DateTime end=new DateTime();
+    RuntimeException exception=new RuntimeException(String.format("Too many requests to %s failed: %s failures: %s time since last: start %s: end %s: duration %s",taskInfo.getSelf(),errorCount,timeSinceLastSuccess,start,end,duration));
+    for (    Throwable error : errorsSinceLastSuccess) {
+      exception.addSuppressed(error);
+    }
+    failTask(exception);
+    cancel();
+  }
+}
