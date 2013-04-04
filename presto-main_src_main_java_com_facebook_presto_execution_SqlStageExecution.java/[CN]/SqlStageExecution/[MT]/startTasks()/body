@@ -15,7 +15,10 @@ synchronized (this) {
       scheduleTask(nextTaskId,randomNode,null);
     }
  else {
+      long getSplitStart=System.nanoTime();
       for (      SplitAssignments assignment : splits.get()) {
+        stageStats.addGetSplitDuration(Duration.nanosSince(getSplitStart));
+        long scheduleSplitStart=System.nanoTime();
         Node chosen=chooseNode(assignment);
         if (getState().isDone()) {
           break;
@@ -23,10 +26,13 @@ synchronized (this) {
         RemoteTask task=tasks.get(chosen);
         if (task == null) {
           scheduleTask(nextTaskId,chosen,assignment.getSplit());
+          stageStats.addScheduleTaskDuration(Duration.nanosSince(scheduleSplitStart));
         }
  else {
           task.addSplit(assignment.getSplit());
+          stageStats.addAddSplitDuration(Duration.nanosSince(scheduleSplitStart));
         }
+        getSplitStart=System.nanoTime();
       }
       for (      RemoteTask task : tasks.values()) {
         task.noMoreSplits();
