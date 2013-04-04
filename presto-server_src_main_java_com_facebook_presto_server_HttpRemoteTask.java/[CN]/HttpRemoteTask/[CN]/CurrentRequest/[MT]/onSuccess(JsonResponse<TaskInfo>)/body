@@ -1,35 +1,32 @@
 {
   try {
     TaskInfo taskInfo=getTaskInfo();
-    if (response.getStatusCode() != HttpStatus.GONE.code()) {
-      checkState(response.getStatusCode() == HttpStatus.OK.code(),"Expected response code from %s to be %s, but was %s: %s",taskInfo.getSelf(),HttpStatus.OK.code(),response.getStatusCode(),response.getStatusMessage());
-      if (response.hasValue()) {
-        try {
-          updateTaskInfo(response.getValue());
-        }
- catch (        Exception ignored) {
-          updateState(false);
-          return;
-        }
-        hasResponseError.set(false);
-      }
- else       if (response.getException() != null) {
-        if (hasResponseError.compareAndSet(false,true)) {
-          log.error(response.getException(),"Error decoding json response from %s",taskInfo.getSelf());
-        }
- else {
-          log.debug("Error decoding json response from %s",taskInfo.getSelf());
-        }
-      }
+    if (response.getStatusCode() == HttpStatus.OK.code() && response.hasValue()) {
+      updateTaskInfo(response.getValue());
+      lastSuccessfulRequest.set(System.nanoTime());
+      consecutiveErrorCount.set(0);
       acknowledgeSources(sources);
       updateIfNecessary();
     }
+ else     if (response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.code()) {
+      log.debug(String.format("Server at %s returned %s: %s",taskInfo.getSelf(),response.getStatusCode(),response.getStatusMessage()));
+      requestFailed();
+      updateState(false);
+    }
+ else     if (response.getStatusCode() == HttpStatus.SERVICE_UNAVAILABLE.code()) {
+      requestFailed();
+    }
  else {
-      updateTaskInfo(new TaskInfo(taskInfo.getQueryId(),taskInfo.getStageId(),taskInfo.getTaskId(),TaskInfo.MAX_VERSION,TaskState.CANCELED,taskInfo.getSelf(),taskInfo.getOutputBuffers(),taskInfo.getNoMoreSplits(),taskInfo.getStats(),ImmutableList.<SplitExecutionStats>of(),ImmutableList.<FailureInfo>of()));
+      Exception cause=response.getException();
+      if (cause == null) {
+        cause=new RuntimeException(String.format("Expected response code from %s to be %s, but was %s: %s",taskInfo.getSelf(),HttpStatus.OK.code(),response.getStatusCode(),response.getStatusMessage()));
+      }
+      failTask(cause);
     }
   }
  catch (  Throwable t) {
     setException(t);
+    requestFailed();
   }
  finally {
     set(null);
