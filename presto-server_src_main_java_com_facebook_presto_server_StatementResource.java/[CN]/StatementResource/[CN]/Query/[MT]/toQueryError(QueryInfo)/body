@@ -1,7 +1,12 @@
 {
-  if (queryInfo.getFailureInfo() == null) {
-    return null;
-  }
   FailureInfo failure=queryInfo.getFailureInfo();
+  if (failure == null) {
+    QueryState state=queryInfo.getState();
+    if ((!state.isDone()) || (state == QueryState.FINISHED)) {
+      return null;
+    }
+    log.warn("Query %s in state %s has no failure info",queryInfo.getQueryId(),state);
+    failure=toFailure(new RuntimeException(format("Query is %s (reason unknown)",state)));
+  }
   return new QueryError(failure.getMessage(),null,0,failure.getErrorLocation(),failure);
 }

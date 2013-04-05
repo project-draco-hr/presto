@@ -4,7 +4,18 @@
     return false;
   }
   Request request=prepareGet().setUri(current().getNext()).build();
-  QueryResults results=httpClient.execute(request,responseHandler);
-  currentResults.set(results);
-  return true;
+  JsonResponse<QueryResults> response;
+  try {
+    response=httpClient.execute(request,responseHandler);
+  }
+ catch (  RuntimeException e) {
+    gone.set(true);
+    throw new RuntimeException("Error fetching next",e);
+  }
+  if (response.hasValue()) {
+    currentResults.set(response.getValue());
+    return true;
+  }
+  gone.set(true);
+  throw new RuntimeException(format("Error fetching next: %s %s: %s",response.getStatusCode(),response.getStatusMessage(),response.getException()));
 }

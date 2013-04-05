@@ -5,35 +5,32 @@
     statusPrinter=new StatusPrinter(client,out);
     statusPrinter.printInitialStatusUpdates();
   }
-  if (client.isClosed()) {
-    errorChannel.println("Query aborted by user");
-    return;
-  }
-  if (client.isGone()) {
-    errorChannel.println("Query is gone (server restarted?)");
-    return;
-  }
-  QueryResults results=client.current();
-  if (results.getStats().isDone()) {
-switch (results.getStats().getState()) {
-case "CANCELED":
-      errorChannel.printf("Query %s was canceled\n",results.getQueryId());
-    return;
-case "FAILED":
-  renderFailure(results,errorChannel);
-return;
-}
-}
-List<String> fieldNames=Lists.transform(results.getColumns(),Column.nameGetter());
+  if ((!client.isFailed()) && (!client.isGone())) {
+    QueryResults results=client.isValid() ? client.current() : client.finalResults();
+    if (results.getColumns() == null) {
+      errorChannel.printf("Query %s has no columns\n",results.getQueryId());
+      return;
+    }
+    List<String> fieldNames=Lists.transform(results.getColumns(),Column.nameGetter());
 switch (outputFormat) {
 case PAGED:
-pageOutput(Pager.LESS,fieldNames);
-break;
+      pageOutput(Pager.LESS,fieldNames);
+    break;
 default :
-sendOutput(out,outputFormat,fieldNames);
+  sendOutput(out,outputFormat,fieldNames);
 break;
+}
 }
 if (statusPrinter != null) {
 statusPrinter.printFinalInfo();
+}
+if (client.isClosed()) {
+errorChannel.println("Query aborted by user");
+}
+ else if (client.isGone()) {
+errorChannel.println("Query is gone (server restarted?)");
+}
+ else if (client.isFailed()) {
+renderFailure(client.finalResults(),errorChannel);
 }
 }
