@@ -4,18 +4,27 @@
     return false;
   }
   Request request=prepareGet().setUri(current().getNext()).build();
-  JsonResponse<QueryResults> response;
-  try {
-    response=httpClient.execute(request,responseHandler);
-  }
- catch (  RuntimeException e) {
-    gone.set(true);
-    throw new RuntimeException("Error fetching next",e);
-  }
-  if (response.hasValue()) {
-    currentResults.set(response.getValue());
-    return true;
+  Exception cause=null;
+  long start=System.nanoTime();
+  while ((System.nanoTime() - start) < MINUTES.toNanos(2)) {
+    requestRateLimiter.acquire();
+    JsonResponse<QueryResults> response;
+    try {
+      response=httpClient.execute(request,responseHandler);
+    }
+ catch (    RuntimeException e) {
+      cause=e;
+      continue;
+    }
+    if (response.getStatusCode() == HttpStatus.OK.code() && response.hasValue()) {
+      currentResults.set(response.getValue());
+      return true;
+    }
+ else     if (response.getStatusCode() != HttpStatus.SERVICE_UNAVAILABLE.code()) {
+      gone.set(true);
+      throw new RuntimeException(format("Error fetching next at %s returned %s: %s",request.getUri(),response.getStatusCode(),response.getStatusMessage()));
+    }
   }
   gone.set(true);
-  throw new RuntimeException(format("Error fetching next: %s %s: %s",response.getStatusCode(),response.getStatusMessage(),response.getException()));
+  throw new RuntimeException("Error fetching next",cause);
 }
