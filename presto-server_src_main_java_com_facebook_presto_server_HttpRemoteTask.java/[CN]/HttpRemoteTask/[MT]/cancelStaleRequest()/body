@@ -1,0 +1,15 @@
+{
+  Preconditions.checkState(!Thread.holdsLock(this),"Update state can not be called while holding a lock on this");
+  CurrentRequest requestToCancel;
+synchronized (this) {
+    if (currentRequest == null) {
+      return;
+    }
+    if (Duration.nanosSince(currentRequest.startTime).compareTo(new Duration(2,TimeUnit.SECONDS)) < 0) {
+      return;
+    }
+    requestToCancel=currentRequest;
+    currentRequest=null;
+  }
+  requestToCancel.cancel(true);
+}
