@@ -1,18 +1,4 @@
 {
-  ImmutableSet.Builder<Node> nodes=ImmutableSet.builder();
-  for (  ServiceDescriptor descriptor : getLiveServices()) {
-    String datasources=descriptor.getProperties().get("datasources");
-    if (datasources == null) {
-      continue;
-    }
-    datasources=datasources.toLowerCase();
-    if (Iterables.contains(DATASOURCES_SPLITTER.split(datasources),datasourceName.toLowerCase())) {
-      try {
-        nodes.add(nodeFromServiceDescriptor(descriptor));
-      }
- catch (      IllegalArgumentException e) {
-      }
-    }
-  }
-  return nodes.build();
+  refreshNodes(false);
+  return nodesByDataSource.get(datasourceName);
 }

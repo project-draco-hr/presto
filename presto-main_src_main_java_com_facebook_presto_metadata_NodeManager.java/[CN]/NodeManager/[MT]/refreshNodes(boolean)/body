@@ -1,0 +1,28 @@
+{
+  if (force || Duration.nanosSince(lastUpdateTimestamp).compareTo(MAX_AGE) > 0) {
+    lastUpdateTimestamp=System.nanoTime();
+    Set<ServiceDescriptor> services=IterableTransformer.on(serviceSelector.selectAllServices()).select(not(in(failureDetector.getFailed()))).set();
+    currentNode=null;
+    ImmutableSet.Builder<Node> allBuilder=ImmutableSet.builder();
+    ImmutableSetMultimap.Builder<String,Node> byDataSourceBuilder=ImmutableSetMultimap.builder();
+    for (    ServiceDescriptor service : services) {
+      URI uri=getHttpUri(service);
+      if (uri != null) {
+        Node node=new Node(service.getNodeId(),uri);
+        if (node.getNodeIdentifier().equals(nodeInfo.getNodeId())) {
+          currentNode=node;
+        }
+        allBuilder.add(node);
+        String dataSources=service.getProperties().get("datasources");
+        if (dataSources != null) {
+          dataSources=dataSources.toLowerCase();
+          for (          String dataSource : DATASOURCES_SPLITTER.split(dataSources)) {
+            byDataSourceBuilder.put(dataSource,node);
+          }
+        }
+      }
+    }
+    allNodes=allBuilder.build();
+    nodesByDataSource=byDataSourceBuilder.build();
+  }
+}

@@ -1,0 +1,35 @@
+{
+  List<InetAddress> shuffledHints=new ArrayList<>(hints);
+  Collections.shuffle(shuffledHints);
+  Set<Node> chosen=new LinkedHashSet<>(limit);
+  for (  InetAddress hint : shuffledHints) {
+    for (    Node node : nodeMap.getNodesByHost().get(hint)) {
+      if (chosen.add(node)) {
+        scheduleLocal.incrementAndGet();
+        if (chosen.size() == limit) {
+          return ImmutableList.copyOf(chosen);
+        }
+      }
+    }
+  }
+  for (  InetAddress hint : shuffledHints) {
+    for (    Node node : nodeMap.getNodesByRack().get(Rack.of(hint))) {
+      if (chosen.add(node)) {
+        scheduleRack.incrementAndGet();
+        if (chosen.size() == limit) {
+          return ImmutableList.copyOf(chosen);
+        }
+      }
+    }
+  }
+  if (chosen.size() < limit) {
+    for (    Node node : lazyShuffle(nodeMap.getNodesByHost().values())) {
+      chosen.add(node);
+      scheduleRandom.incrementAndGet();
+      if (chosen.size() == limit) {
+        return ImmutableList.copyOf(chosen);
+      }
+    }
+  }
+  return ImmutableList.copyOf(chosen);
+}
