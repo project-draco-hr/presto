@@ -4,7 +4,7 @@
   Request request;
   CurrentRequest currentRequest;
 synchronized (this) {
-    if (taskInfo.getState().isDone()) {
+    if (taskInfo.get().getState().isDone()) {
       return Futures.immediateFuture(null);
     }
     if (!forceRefresh) {
@@ -22,11 +22,11 @@ synchronized (this) {
     List<TaskSource> sources=getSources();
     currentRequest=new CurrentRequest(sources);
     if (canceled) {
-      request=prepareDelete().setUri(taskInfo.getSelf()).build();
+      request=prepareDelete().setUri(taskInfo.get().getSelf()).build();
     }
  else {
-      TaskUpdateRequest updateRequest=new TaskUpdateRequest(session,taskInfo.getQueryId(),taskInfo.getStageId(),planFragment,sources,new OutputBuffers(outputIds,noMoreOutputIds));
-      request=preparePost().setUri(uriBuilderFrom(taskInfo.getSelf()).build()).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.JSON_UTF_8.toString()).setBodyGenerator(jsonBodyGenerator(taskUpdateRequestCodec,updateRequest)).build();
+      TaskUpdateRequest updateRequest=new TaskUpdateRequest(session,taskInfo.get().getQueryId(),taskInfo.get().getStageId(),planFragment,sources,new OutputBuffers(outputIds,noMoreOutputIds));
+      request=preparePost().setUri(uriBuilderFrom(taskInfo.get().getSelf()).build()).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.JSON_UTF_8.toString()).setBodyGenerator(jsonBodyGenerator(taskUpdateRequestCodec,updateRequest)).build();
     }
     this.currentRequest=currentRequest;
   }
