@@ -2,29 +2,26 @@
   checkNotNull(taskId,"taskId is null");
   checkNotNull(outputId,"outputId is null");
   try {
-    List<Page> pages=taskManager.getTaskResults(taskId,outputId,DEFAULT_MAX_PAGE_COUNT,DEFAULT_MAX_WAIT_TIME);
-    if (pages.isEmpty()) {
-      if (isDone(taskId)) {
-        return Response.status(Status.GONE).build();
+    BufferResult<Page> result=taskManager.getTaskResults(taskId,outputId,DEFAULT_MAX_PAGE_COUNT,DEFAULT_MAX_WAIT_TIME);
+    if (!result.isEmpty()) {
+      GenericEntity<?> entity=new GenericEntity<>(result.getElements(),new TypeToken<List<Page>>(){
       }
- else {
-        return Response.status(Status.NO_CONTENT).build();
-      }
-    }
-    GenericEntity<?> entity=new GenericEntity<>(pages,new TypeToken<List<Page>>(){
-    }
 .getType());
-    return Response.ok(entity).build();
-  }
- catch (  NoSuchBufferException e) {
-    return Response.status(Status.NO_CONTENT).build();
-  }
-catch (  NoSuchElementException e) {
-    if (isDone(taskId)) {
+      return Response.ok(entity).build();
+    }
+ else     if (result.isBufferClosed()) {
       return Response.status(Status.GONE).build();
     }
- else {
-      return Response.status(Status.NO_CONTENT).build();
+  }
+ catch (  NoSuchElementException|NoSuchBufferException ignored) {
+    if (limiter.tryAcquire()) {
+      log.debug(ignored,"Error getting results");
     }
+  }
+  if (isDone(taskId)) {
+    return Response.status(Status.GONE).build();
+  }
+ else {
+    return Response.status(Status.NO_CONTENT).build();
   }
 }

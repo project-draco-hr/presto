@@ -6,7 +6,7 @@
     throw new NoSuchBufferException(outputId,namedQueues.keySet());
   }
   if (state == QueueState.FINISHED) {
-    return ImmutableList.of();
+    return emptyResults(true);
   }
   if (namedQueue.isEmpty()) {
     long remainingNanos=(long)maxWait.convertTo(NANOSECONDS);
@@ -16,17 +16,14 @@
       remainingNanos=end - System.nanoTime();
     }
   }
-  if (state == QueueState.FINISHED) {
-    return ImmutableList.of();
-  }
   openQueuesBySequenceId.remove(namedQueue);
-  List<T> elements=namedQueue.getElements(maxCount);
-  if (!closed.get() || !namedQueue.isEmpty()) {
+  BufferResult<T> results=namedQueue.getElements(maxCount);
+  if (!closed.get() || !results.isBufferClosed()) {
     openQueuesBySequenceId.add(namedQueue);
   }
  else {
     namedQueue.setFinished();
   }
   updateState();
-  return elements;
+  return results;
 }

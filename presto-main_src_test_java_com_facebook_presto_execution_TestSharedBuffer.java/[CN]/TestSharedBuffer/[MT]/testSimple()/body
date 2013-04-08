@@ -5,20 +5,20 @@
   }
   sharedBuffer.addQueue("first");
   assertQueueState(sharedBuffer,"first",3,0);
-  assertEquals(sharedBuffer.get("first",10,NO_WAIT),ImmutableList.of(0,1,2));
+  assertEquals(sharedBuffer.get("first",10,NO_WAIT),bufferResult(0,1,2));
   assertQueueState(sharedBuffer,"first",0,3);
-  assertEquals(sharedBuffer.get("first",10,NO_WAIT),ImmutableList.of());
+  assertEquals(sharedBuffer.get("first",10,NO_WAIT),emptyResults(false));
   for (int i=3; i < 10; i++) {
     assertTrue(sharedBuffer.offer(i));
   }
   assertQueueState(sharedBuffer,"first",7,3);
   assertFalse(sharedBuffer.offer(99));
-  assertEquals(sharedBuffer.get("first",1,NO_WAIT),ImmutableList.of(3));
+  assertEquals(sharedBuffer.get("first",1,NO_WAIT),bufferResult(3));
   assertQueueState(sharedBuffer,"first",6,4);
   assertFalse(sharedBuffer.offer(99));
   sharedBuffer.addQueue("second");
   assertQueueState(sharedBuffer,"second",10,0);
-  assertEquals(sharedBuffer.get("second",10,NO_WAIT),ImmutableList.of(0,1,2,3,4,5,6,7,8,9));
+  assertEquals(sharedBuffer.get("second",10,NO_WAIT),bufferResult(0,1,2,3,4,5,6,7,8,9));
   assertQueueState(sharedBuffer,"second",0,10);
   sharedBuffer.noMoreQueues();
   for (int i=10; i < 14; i++) {
@@ -27,7 +27,7 @@
   assertFalse(sharedBuffer.offer(99));
   assertQueueState(sharedBuffer,"first",10,4);
   assertQueueState(sharedBuffer,"second",4,10);
-  assertEquals(sharedBuffer.get("first",1,NO_WAIT),ImmutableList.of(4));
+  assertEquals(sharedBuffer.get("first",1,NO_WAIT),bufferResult(4));
   assertQueueState(sharedBuffer,"first",9,5);
   assertQueueState(sharedBuffer,"second",4,10);
   assertTrue(sharedBuffer.offer(14));
@@ -39,18 +39,18 @@
   assertQueueState(sharedBuffer,"first",10,5);
   assertQueueState(sharedBuffer,"second",5,10);
   assertFalse(sharedBuffer.isFinished());
-  assertEquals(sharedBuffer.get("first",1,NO_WAIT),ImmutableList.of(5));
+  assertEquals(sharedBuffer.get("first",1,NO_WAIT),bufferResult(5));
   assertQueueState(sharedBuffer,"first",9,6);
   assertQueueState(sharedBuffer,"second",5,10);
   assertFalse(sharedBuffer.isFinished());
-  assertEquals(sharedBuffer.get("first",10,NO_WAIT),ImmutableList.of(6,7,8,9,10,11,12,13,14));
+  assertEquals(sharedBuffer.get("first",10,NO_WAIT),bufferResult(6,7,8,9,10,11,12,13,14));
   assertQueueClosed(sharedBuffer,"first",15);
   assertQueueState(sharedBuffer,"second",5,10);
   assertFalse(sharedBuffer.isFinished());
-  assertEquals(sharedBuffer.get("second",10,NO_WAIT),ImmutableList.of(10,11,12,13,14));
+  assertEquals(sharedBuffer.get("second",10,NO_WAIT),bufferResult(10,11,12,13,14));
   assertQueueClosed(sharedBuffer,"first",15);
   assertQueueClosed(sharedBuffer,"second",15);
   assertFinished(sharedBuffer);
-  assertEquals(sharedBuffer.get("first",10,NO_WAIT),ImmutableList.of());
-  assertEquals(sharedBuffer.get("second",10,NO_WAIT),ImmutableList.of());
+  assertEquals(sharedBuffer.get("first",10,NO_WAIT),emptyResults(true));
+  assertEquals(sharedBuffer.get("second",10,NO_WAIT),emptyResults(true));
 }
