@@ -1,14 +1,30 @@
 {
-  CurrentRequest requestToCancel=null;
+  CurrentRequest requestToCancel;
+  TaskInfo taskInfo;
 synchronized (this) {
     pendingSplits.clear();
-    if (!canceled) {
-      requestToCancel=currentRequest;
-      canceled=true;
-    }
+    requestToCancel=currentRequest;
+    taskInfo=getTaskInfo();
+    updateTaskInfo(new TaskInfo(taskInfo.getTaskId(),TaskInfo.MAX_VERSION,TaskState.CANCELED,taskInfo.getSelf(),taskInfo.getOutputBuffers(),taskInfo.getNoMoreSplits(),taskInfo.getStats(),ImmutableList.<SplitExecutionStats>of(),ImmutableList.<FailureInfo>of()));
   }
   if (requestToCancel != null) {
     requestToCancel.cancel(true);
   }
-  updateState(false);
+  if (taskInfo.getSelf() != null) {
+    final long start=System.nanoTime();
+    final Request request=prepareDelete().setUri(taskInfo.getSelf()).build();
+    Futures.addCallback(httpClient.executeAsync(request,createStatusResponseHandler()),new FutureCallback<StatusResponse>(){
+      @Override public void onSuccess(      StatusResponse result){
+      }
+      @Override public void onFailure(      Throwable t){
+        if (Duration.nanosSince(start).compareTo(new Duration(2,TimeUnit.MINUTES)) < 0) {
+          Futures.addCallback(httpClient.executeAsync(request,createStatusResponseHandler()),this);
+        }
+ else {
+          log.error(t,"Unable to cancel task at %s",request.getUri());
+        }
+      }
+    }
+);
+  }
 }
