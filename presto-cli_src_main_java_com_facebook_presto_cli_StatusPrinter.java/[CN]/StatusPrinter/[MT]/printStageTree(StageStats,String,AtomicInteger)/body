@@ -1,6 +1,6 @@
 {
   Duration elapsedTime=Duration.nanosSince(start);
-  String id=String.valueOf(stage.getStageNumber());
+  String id=String.valueOf(stageNumberCounter.getAndIncrement());
   String name=indent + id;
   name+=Strings.repeat(".",max(0,10 - name.length()));
   String bytesPerSecond;
@@ -16,6 +16,6 @@
   String stageSummary=String.format("%10s%1s  %5s  %6s  %5s  %7s  %6s  %5s  %5s",name,stageStateCharacter(stage.getState()),formatCount(stage.getProcessedRows()),rowsPerSecond,formatDataSize(bytes(stage.getProcessedBytes()),false),bytesPerSecond,stage.getQueuedSplits(),stage.getRunningSplits(),stage.getCompletedSplits());
   reprintLine(stageSummary);
   for (  StageStats subStage : stage.getSubStages()) {
-    printStageTree(subStage,indent + "  ");
+    printStageTree(subStage,indent + "  ",stageNumberCounter);
   }
 }
