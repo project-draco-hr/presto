@@ -1,0 +1,14 @@
+{
+  if (counter > 999) {
+    while (now() / 1000 <= lastTimeInSeconds) {
+      Uninterruptibles.sleepUninterruptibly(1,TimeUnit.SECONDS);
+    }
+  }
+  long now=now();
+  if (now / 1000 != lastTimeInSeconds) {
+    lastTimeInSeconds=now / 1000;
+    lastTimestamp=TIMESTAMP_FORMAT.print(now);
+    counter=0;
+  }
+  return new QueryId(String.format("%s_%03d_%s",lastTimestamp,counter++,coordinatorId));
+}
