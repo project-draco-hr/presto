@@ -1,8 +1,16 @@
 {
   Preconditions.checkNotNull(taskId,"taskId is null");
-  TaskExecution taskExecution=tasks.remove(taskId);
+  TaskExecution taskExecution=tasks.get(taskId);
   if (taskExecution == null) {
-    return taskInfos.get(taskId);
+    TaskInfo taskInfo=taskInfos.get(taskId);
+    if (taskInfo == null) {
+      taskInfo=new TaskInfo(taskId,Long.MAX_VALUE,TaskState.CANCELED,URI.create("unknown"),new SharedBufferInfo(QueueState.FINISHED,0,ImmutableList.<BufferInfo>of()),ImmutableSet.<PlanNodeId>of(),new ExecutionStatsSnapshot(),ImmutableList.<SplitExecutionStats>of(),ImmutableList.<FailureInfo>of());
+      TaskInfo existingTaskInfo=taskInfos.putIfAbsent(taskId,taskInfo);
+      if (existingTaskInfo != null) {
+        taskInfo=existingTaskInfo;
+      }
+    }
+    return taskInfo;
   }
   taskExecution.cancel();
   tasks.remove(taskId);
