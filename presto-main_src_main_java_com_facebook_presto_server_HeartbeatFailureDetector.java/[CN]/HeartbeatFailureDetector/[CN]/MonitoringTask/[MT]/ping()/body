@@ -1,0 +1,19 @@
+{
+  try {
+    stats.recordStart();
+    httpClient.executeAsync(prepareHead().setUri(uri).build(),new ResponseHandler<Object,Exception>(){
+      @Override public Exception handleException(      Request request,      Exception exception){
+        stats.recordFailure(exception);
+        return null;
+      }
+      @Override public Object handle(      Request request,      Response response) throws Exception {
+        stats.recordSuccess();
+        return null;
+      }
+    }
+);
+  }
+ catch (  Exception e) {
+    log.warn(e,"Error scheduling request for %s",uri);
+  }
+}

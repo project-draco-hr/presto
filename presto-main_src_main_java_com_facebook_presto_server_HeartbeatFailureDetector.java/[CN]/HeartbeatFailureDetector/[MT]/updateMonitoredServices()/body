@@ -1,28 +1,23 @@
 {
-  Set<ServiceDescriptor> active=ImmutableSet.copyOf(selector.selectAllServices());
-  Set<UUID> activeIds=IterableTransformer.on(active).transform(idGetter()).set();
+  Set<ServiceDescriptor> online=ImmutableSet.copyOf(selector.selectAllServices());
+  Set<UUID> onlineIds=IterableTransformer.on(online).transform(idGetter()).set();
 synchronized (tasks) {
-    Set<UUID> current=tasks.keySet();
-    for (    UUID serviceId : Sets.difference(current,activeIds)) {
-      tasks.remove(serviceId).getFuture().cancel(true);
+    List<UUID> expiredIds=IterableTransformer.on(tasks.values()).select(isExpiredPredicate()).transform(serviceIdGetter()).list();
+    tasks.keySet().removeAll(expiredIds);
+    Iterable<MonitoringTask> toDisable=IterableTransformer.on(tasks.values()).select(compose(not(in(onlineIds)),serviceIdGetter())).all();
+    for (    MonitoringTask task : toDisable) {
+      task.disable();
     }
-    Set<ServiceDescriptor> newServices=IterableTransformer.on(active).select(compose(not(in(current)),idGetter())).set();
+    Set<ServiceDescriptor> newServices=IterableTransformer.on(online).select(compose(not(in(tasks.keySet())),idGetter())).set();
     for (    final ServiceDescriptor service : newServices) {
       final URI uri=getHttpUri(service);
       if (uri != null) {
-        ScheduledFuture<?> future=executor.scheduleAtFixedRate(new Runnable(){
-          @Override public void run(){
-            try {
-              ping(service,uri);
-            }
- catch (            Throwable e) {
-              log.warn(e,"Error updating services");
-            }
-          }
-        }
-,(long)hearbeatInterval.toMillis(),(long)hearbeatInterval.toMillis(),TimeUnit.MILLISECONDS);
-        tasks.put(service.getId(),new MonitoringTask(future,service,new Stats(uri)));
+        tasks.put(service.getId(),new MonitoringTask(executor,service,uri));
       }
+    }
+    Iterable<MonitoringTask> toEnable=IterableTransformer.on(tasks.values()).select(compose(in(onlineIds),serviceIdGetter())).all();
+    for (    MonitoringTask task : toEnable) {
+      task.enable();
     }
   }
 }
