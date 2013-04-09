@@ -1,0 +1,19 @@
+{
+  URI location=uriBuilderFrom(httpServerInfo.getHttpUri()).appendPath("v1/task").appendPath(taskId.toString()).build();
+  TaskExecution taskExecution;
+synchronized (this) {
+    taskExecution=tasks.get(taskId);
+    if (taskExecution == null) {
+      TaskInfo taskInfo=taskInfos.get(taskId);
+      if (taskInfo != null) {
+        return taskInfo;
+      }
+      taskExecution=SqlTaskExecution.createSqlTaskExecution(session,taskId,location,fragment,pageBufferMax,dataStreamProvider,exchangeOperatorFactory,metadata,taskMasterExecutor,shardExecutor,maxOperatorMemoryUsage);
+      tasks.put(taskId,taskExecution);
+    }
+  }
+  taskExecution.recordHeartBeat();
+  taskExecution.addSources(sources);
+  taskExecution.addResultQueue(outputIds);
+  return taskExecution.getTaskInfo(false);
+}

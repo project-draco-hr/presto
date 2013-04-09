@@ -1,8 +1,8 @@
 {
   Preconditions.checkNotNull(query,"query is null");
-  String queryId=String.valueOf(nextQueryId.getAndIncrement());
-  TaskInfo outputTask=mockTaskManager.updateTask(session,"queryId","stageId","queryId",null,ImmutableList.<TaskSource>of(),new OutputBuffers(ImmutableSet.<String>of("out"),true));
-  SimpleQuery simpleQuery=new SimpleQuery(queryId,locationFactory.createQueryLocation(queryId),outputTask.getTaskId(),mockTaskManager,locationFactory);
-  queries.put(queryId,simpleQuery);
+  TaskId outputTaskId=new TaskId(String.valueOf(nextQueryId.getAndIncrement()),"0","0");
+  mockTaskManager.updateTask(session,outputTaskId,null,ImmutableList.<TaskSource>of(),new OutputBuffers(ImmutableSet.<String>of("out"),true));
+  SimpleQuery simpleQuery=new SimpleQuery(outputTaskId,locationFactory.createQueryLocation(outputTaskId.getQueryId()),mockTaskManager,locationFactory);
+  queries.put(outputTaskId.getQueryId(),simpleQuery);
   return simpleQuery.getQueryInfo();
 }
