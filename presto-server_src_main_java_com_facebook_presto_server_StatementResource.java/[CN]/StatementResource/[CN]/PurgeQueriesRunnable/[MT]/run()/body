@@ -1,16 +1,11 @@
 {
   try {
-    for (Iterator<QueryId> iterator=queryIds.iterator(); iterator.hasNext(); ) {
-      QueryId queryId=iterator.next();
-      try {
-        queryManager.getQueryInfo(queryId,false);
-      }
- catch (      NoSuchElementException e) {
-        iterator.remove();
-      }
-catch (      Exception e) {
-        log.warn(e,"Error while inspecting age of query %s",queryId);
-      }
+    Set<QueryId> queryIdsSnapshot=ImmutableSet.copyOf(queryIds);
+    Set<QueryId> liveQueries=ImmutableSet.copyOf(transform(queryManager.getAllQueryInfo(),queryIdGetter()));
+    Set<QueryId> deadQueries=Sets.difference(liveQueries,queryIdsSnapshot);
+    for (    QueryId deadQuery : deadQueries) {
+      queryIdsSnapshot.remove(deadQuery);
+      log.debug("Removed expired query %s",deadQuery);
     }
   }
  catch (  Throwable e) {
