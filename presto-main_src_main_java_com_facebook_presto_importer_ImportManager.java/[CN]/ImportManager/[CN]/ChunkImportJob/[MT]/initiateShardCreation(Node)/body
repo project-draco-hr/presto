@@ -1,6 +1,6 @@
 {
   URI shardUri=uriAppendPaths(worker.getHttpUri(),"/v1/shard/" + shardId);
-  Request request=preparePut().setUri(shardUri).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.APPLICATION_JSON).setBodyGenerator(jsonBodyGenerator(shardImportCodec,shardImport)).build();
+  Request request=preparePut().setUri(shardUri).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.JSON_UTF_8.toString()).setBodyGenerator(jsonBodyGenerator(shardImportCodec,shardImport)).build();
   StatusResponse response;
   try {
     response=httpClient.execute(request,createStatusResponseHandler());
@@ -9,7 +9,7 @@
     log.warn("request failed: %s. Cause: %s",shardId,e.getMessage());
     return false;
   }
-  if (response.getStatusCode() != Status.ACCEPTED.getStatusCode()) {
+  if (response.getStatusCode() != HttpStatus.ACCEPTED.code()) {
     log.warn("unexpected response status: %s: %s",shardId,response.getStatusCode());
     return false;
   }
