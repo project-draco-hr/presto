@@ -1,15 +1,15 @@
 {
-  final String sourceName=handle.getSourceName();
-  final String databaseName=handle.getDatabaseName();
-  final String tableName=handle.getTableName();
-  final List<String> partitions=getPartitions(session,sourceName,databaseName,tableName,predicate,partitionPredicate,mappings);
+  final String catalogName=handle.getTableName().getCatalogName();
+  final String schemaName=handle.getTableName().getSchemaName();
+  final String tableName=handle.getTableName().getTableName();
+  final List<String> partitions=getPartitions(session,handle.getTableName(),predicate,mappings);
   final List<String> columns=IterableTransformer.on(mappings.values()).transform(MoreFunctions.<ColumnHandle,ImportColumnHandle>cast(ImportColumnHandle.class)).transform(columnNameGetter()).list();
   Iterable<PartitionChunk> chunks=retry().stopOn(ObjectNotFoundException.class).stopOnIllegalExceptions().runUnchecked(new Callable<Iterable<PartitionChunk>>(){
     @Override public Iterable<PartitionChunk> call() throws Exception {
-      ImportClient importClient=importClientManager.getClient(sourceName);
-      return importClient.getPartitionChunks(databaseName,tableName,partitions,columns);
+      ImportClient importClient=importClientManager.getClient(catalogName);
+      return importClient.getPartitionChunks(schemaName,tableName,partitions,columns);
     }
   }
 );
-  return Iterables.transform(chunks,createImportSplitFunction(planNodeId,sourceName));
+  return Iterables.transform(chunks,createImportSplitFunction(planNodeId,catalogName));
 }
