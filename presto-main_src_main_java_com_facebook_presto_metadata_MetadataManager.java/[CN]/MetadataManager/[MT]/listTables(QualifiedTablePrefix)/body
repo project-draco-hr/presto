@@ -1,12 +1,14 @@
 {
   checkNotNull(prefix,"prefix is null");
-  if (prefix.hasSchemaName()) {
-    return lookupDataSource(prefix).listTables(prefix);
-  }
- else {
+  if (!prefix.hasSchemaName()) {
     List<QualifiedTableName> catalogTables=lookupDataSource(prefix).listTables(prefix);
     List<QualifiedTableName> informationSchemaTables=listInformationSchemaTables(prefix.getCatalogName());
     List<QualifiedTableName> systemTables=listSystemTables(prefix.getCatalogName());
     return ImmutableList.copyOf(concat(catalogTables,informationSchemaTables,systemTables));
   }
+  InternalSchemaMetadata internalSchemaMetadata=internalSchemas.get(prefix.getSchemaName().get());
+  if (internalSchemaMetadata != null) {
+    return internalSchemaMetadata.listTables(prefix.getCatalogName());
+  }
+  return lookupDataSource(prefix).listTables(prefix);
 }
