@@ -19,10 +19,10 @@
   return new Function<PartitionChunk,SplitAssignments>(){
     @Override public SplitAssignments apply(    PartitionChunk chunk){
       ImportClient importClient=importClientManager.getClient(sourceName);
-      Split split=new ImportSplit(sourceName,SerializedPartitionChunk.create(importClient,chunk),chunk.getInfo());
+      Split split=new ImportSplit(sourceName,chunk.getPartitionName(),chunk.isLastChunk(),SerializedPartitionChunk.create(importClient,chunk),chunk.getInfo());
       List<Node> nodes=chooseNodes(nodeMap.get(),chunk.getHosts(),10);
       Preconditions.checkState(!nodes.isEmpty(),"No active %s data nodes",sourceName);
-      return new SplitAssignments(split,nodes);
+      return new SplitAssignments(ImmutableMap.of(planNodeId,split),nodes);
     }
   }
 ;

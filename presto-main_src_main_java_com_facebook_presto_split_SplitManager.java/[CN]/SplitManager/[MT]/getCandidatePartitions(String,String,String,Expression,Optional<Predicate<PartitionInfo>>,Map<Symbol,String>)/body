@@ -36,10 +36,15 @@
       bindings.put(columnName,value);
     }
   }
-  return retry().stopOn(ObjectNotFoundException.class).stopOnIllegalExceptions().runUnchecked(new Callable<List<PartitionInfo>>(){
-    @Override public List<PartitionInfo> call() throws Exception {
+  return retry().stopOn(ObjectNotFoundException.class).stopOnIllegalExceptions().runUnchecked(new Callable<Iterable<PartitionInfo>>(){
+    @Override public Iterable<PartitionInfo> call() throws Exception {
       ImportClient importClient=importClientManager.getClient(sourceName);
-      return importClient.getPartitions(databaseName,tableName,bindings);
+      if (partitionPredicate.isPresent()) {
+        return Iterables.filter(importClient.getPartitions(databaseName,tableName,bindings),partitionPredicate.get());
+      }
+ else {
+        return importClient.getPartitions(databaseName,tableName,bindings);
+      }
     }
   }
 );
