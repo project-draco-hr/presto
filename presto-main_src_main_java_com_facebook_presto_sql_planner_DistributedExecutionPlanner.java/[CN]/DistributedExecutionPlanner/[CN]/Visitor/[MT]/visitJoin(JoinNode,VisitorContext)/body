@@ -1,0 +1,32 @@
+{
+  List<Expression> leftConjuncts=new ArrayList<>();
+  List<Expression> rightConjuncts=new ArrayList<>();
+  for (  Expression conjunct : ExpressionUtils.extractConjuncts(context.getInheritedPredicate())) {
+    Set<Symbol> symbols=DependencyExtractor.extract(conjunct);
+    if (node.getLeft().getOutputSymbols().containsAll(symbols)) {
+      leftConjuncts.add(conjunct);
+    }
+ else     if (node.getRight().getOutputSymbols().containsAll(symbols)) {
+      rightConjuncts.add(conjunct);
+    }
+  }
+  Expression leftPredicate=BooleanLiteral.TRUE_LITERAL;
+  if (!leftConjuncts.isEmpty()) {
+    leftPredicate=ExpressionUtils.and(leftConjuncts);
+  }
+  Expression rightPredicate=BooleanLiteral.TRUE_LITERAL;
+  if (!rightConjuncts.isEmpty()) {
+    rightPredicate=ExpressionUtils.and(rightConjuncts);
+  }
+  Optional<Iterable<SplitAssignments>> leftSplits=node.getLeft().accept(this,new VisitorContext(leftPredicate,context.getPartitionPredicate()));
+  Optional<Iterable<SplitAssignments>> rightSplits=node.getRight().accept(this,new VisitorContext(rightPredicate,context.getPartitionPredicate()));
+  if (leftSplits.isPresent() && rightSplits.isPresent()) {
+    throw new IllegalArgumentException("Both left and right join nodes are partitioned");
+  }
+  if (leftSplits.isPresent()) {
+    return leftSplits;
+  }
+ else {
+    return rightSplits;
+  }
+}
