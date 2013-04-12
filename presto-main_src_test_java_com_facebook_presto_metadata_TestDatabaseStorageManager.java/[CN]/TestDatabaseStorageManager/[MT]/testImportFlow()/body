@@ -1,10 +1,10 @@
 {
   long shardId=123;
-  List<Long> columnIds=ImmutableList.of(7L,11L);
+  List<ColumnHandle> columnHandles=ImmutableList.<ColumnHandle>of(new NativeColumnHandle(7L),new NativeColumnHandle(11L));
   InMemoryRecordSet records=new InMemoryRecordSet(ImmutableList.of(VARIABLE_BINARY,FIXED_INT_64),ImmutableList.copyOf(new List<?>[]{ImmutableList.of("abc",1L),ImmutableList.of("def",2L),ImmutableList.of("g",0L)}));
   RecordProjectOperator source=new RecordProjectOperator(records,records.getColumns());
   assertFalse(storageManager.shardExists(shardId));
-  storageManager.importShard(shardId,columnIds,source);
+  storageManager.importShard(shardId,columnHandles,source);
   assertTrue(storageManager.shardExists(shardId));
-  assertOperatorEquals(new AlignmentOperator(storageManager.getBlocks(shardId,columnIds.get(0)),storageManager.getBlocks(shardId,columnIds.get(1))),new RecordProjectOperator(records,records.getColumns()));
+  assertOperatorEquals(new AlignmentOperator(storageManager.getBlocks(shardId,columnHandles.get(0)),storageManager.getBlocks(shardId,columnHandles.get(1))),new RecordProjectOperator(records,records.getColumns()));
 }

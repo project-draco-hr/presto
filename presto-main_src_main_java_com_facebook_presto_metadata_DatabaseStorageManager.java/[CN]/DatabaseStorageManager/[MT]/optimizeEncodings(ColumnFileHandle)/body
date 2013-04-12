@@ -1,0 +1,57 @@
+{
+  long shardId=columnFileHandle.getShardId();
+  File shardPath=getShardPath(baseStorageDir,shardId);
+  ImmutableList.Builder<BlockIterable> sourcesBuilder=ImmutableList.builder();
+  ColumnFileHandle.Builder builder=ColumnFileHandle.builder(shardId);
+  for (  Map.Entry<ColumnHandle,File> entry : columnFileHandle.getFiles().entrySet()) {
+    File file=entry.getValue();
+    ColumnHandle columnHandle=entry.getKey();
+    if (file.exists()) {
+      Slice slice=mappedFileCache.getUnchecked(file.getAbsoluteFile());
+      checkState(file.length() == slice.length(),"File %s, length %s was mapped to Slice length %s",file.getAbsolutePath(),file.length(),slice.length());
+      BlocksFileReader blocks=BlocksFileReader.readBlocks(slice);
+      BlocksFileStats stats=blocks.getStats();
+      boolean rleEncode=stats.getAvgRunLength() > RUN_LENGTH_AVERAGE_CUTOFF;
+      boolean dicEncode=stats.getUniqueCount() < DICTIONARY_CARDINALITY_CUTOFF;
+      BlocksFileEncoding encoding=DEFAULT_ENCODING;
+      if (ENABLE_OPTIMIZATION) {
+        if (dicEncode && rleEncode) {
+          encoding=BlocksFileEncoding.DIC_RLE;
+        }
+ else         if (dicEncode) {
+          encoding=BlocksFileEncoding.DIC_RAW;
+        }
+ else         if (rleEncode) {
+          encoding=BlocksFileEncoding.RLE;
+        }
+      }
+      File outputFile=getColumnFile(shardPath,columnHandle,encoding);
+      Files.createParentDirs(outputFile);
+      if (encoding == DEFAULT_ENCODING) {
+        Files.move(file,outputFile);
+        builder.addColumn(columnHandle,outputFile);
+      }
+ else {
+        sourcesBuilder.add(blocks);
+        builder.addColumn(columnHandle,outputFile,encoding);
+      }
+    }
+ else {
+      File outputFile=getColumnFile(shardPath,columnHandle,DEFAULT_ENCODING);
+      builder.addColumn(columnHandle,outputFile);
+    }
+  }
+  List<BlockIterable> sources=sourcesBuilder.build();
+  ColumnFileHandle targetFileHandle=builder.build();
+  if (!sources.isEmpty()) {
+    AlignmentOperator source=new AlignmentOperator(sources);
+    importData(source,targetFileHandle);
+  }
+  try {
+    targetFileHandle.commit();
+  }
+ catch (  Exception e) {
+    throw Throwables.propagate(e);
+  }
+  return targetFileHandle;
+}
