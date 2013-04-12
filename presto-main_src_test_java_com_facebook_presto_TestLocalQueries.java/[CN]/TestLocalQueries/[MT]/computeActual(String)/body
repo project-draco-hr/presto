@@ -1,5 +1,10 @@
 {
   Session session=new Session(null,catalog,schema);
-  LocalQueryRunner runner=new LocalQueryRunner(dataStreamProvider,metadata,session);
-  return runner.execute(sql);
+  try {
+    LocalQueryRunner runner=new LocalQueryRunner(dataStreamProvider,metadata,new MockStorageManager(),session);
+    return runner.execute(sql);
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
 }

@@ -1,17 +1,22 @@
 {
-  DataSize maxOperatorMemoryUsage=new DataSize(100,MEGABYTE);
-  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(session,metadata,analysis.getTypes(),new OperatorStats(),new SourceHashProviderFactory(maxOperatorMemoryUsage),maxOperatorMemoryUsage,new TpchDataStreamProvider(provider),null);
-  LocalExecutionPlan localExecutionPlan=executionPlanner.plan(fragment.getRoot());
-  Map<PlanNodeId,SourceOperator> sourceOperators=localExecutionPlan.getSourceOperators();
-  for (  PlanNode source : fragment.getSources()) {
-    TableScanNode tableScan=(TableScanNode)source;
-    TpchTableHandle handle=(TpchTableHandle)tableScan.getTable();
-    SourceOperator sourceOperator=sourceOperators.get(tableScan.getId());
-    Preconditions.checkArgument(sourceOperator != null,"Unknown plan source %s; known sources are %s",tableScan.getId(),sourceOperators.keySet());
-    sourceOperator.addSplit(new TpchSplit(handle));
+  try {
+    DataSize maxOperatorMemoryUsage=new DataSize(100,MEGABYTE);
+    LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(session,new NodeInfo(new NodeConfig().setEnvironment("test").setNodeId("test-node")),metadata,analysis.getTypes(),new OperatorStats(),new SourceHashProviderFactory(maxOperatorMemoryUsage),maxOperatorMemoryUsage,new TpchDataStreamProvider(provider),new MockStorageManager(),null);
+    LocalExecutionPlan localExecutionPlan=executionPlanner.plan(fragment.getRoot());
+    Map<PlanNodeId,SourceOperator> sourceOperators=localExecutionPlan.getSourceOperators();
+    for (    PlanNode source : fragment.getSources()) {
+      TableScanNode tableScan=(TableScanNode)source;
+      TpchTableHandle handle=(TpchTableHandle)tableScan.getTable();
+      SourceOperator sourceOperator=sourceOperators.get(tableScan.getId());
+      Preconditions.checkArgument(sourceOperator != null,"Unknown plan source %s; known sources are %s",tableScan.getId(),sourceOperators.keySet());
+      sourceOperator.addSplit(new TpchSplit(handle));
+    }
+    for (    SourceOperator sourceOperator : sourceOperators.values()) {
+      sourceOperator.noMoreSplits();
+    }
+    return localExecutionPlan.getRootOperator();
   }
-  for (  SourceOperator sourceOperator : sourceOperators.values()) {
-    sourceOperator.noMoreSplits();
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
   }
-  return localExecutionPlan.getRootOperator();
 }
