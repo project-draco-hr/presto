@@ -1,0 +1,17 @@
+{
+  Set<Long> partitionSplits=openPartitions.get(partition);
+  ImmutableSet.Builder<Long> builder=ImmutableSet.builder();
+  if (partitionSplits != null) {
+    builder.addAll(partitionSplits);
+  }
+  builder.add(shardId);
+  Set<Long> shardIds=builder.build();
+  if (lastSplit) {
+    checkState(null == finishedPartitions.put(partition,shardIds),"Partition %s finished multiple times",partition);
+    openPartitions.remove(partition);
+    log.info("Partition %s is now fully scheduled, seen %d splits, Partitions stats: FLIGHT: %d, READY: %d, COMMIT: %d)",partition,shardIds.size(),openPartitions.size(),finishedPartitions.size(),partitionsDone.size());
+  }
+ else {
+    openPartitions.put(partition,shardIds);
+  }
+}

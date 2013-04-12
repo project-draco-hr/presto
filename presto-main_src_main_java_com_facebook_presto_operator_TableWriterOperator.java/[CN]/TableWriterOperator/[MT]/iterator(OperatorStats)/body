@@ -1,0 +1,18 @@
+{
+  checkState(!used.getAndSet(true),"TableWriteOperator can be used only once");
+  checkState(input.get() != null,"No shard id was set!");
+  ImmutableList.Builder<ColumnHandle> columnHandlesBuilder=ImmutableList.builder();
+  for (  Symbol inputSymbol : inputSymbols) {
+    ColumnHandle columnHandle=columnHandles.get(inputSymbol);
+    checkState(columnHandle != null,"No column handle for %s found!",inputSymbol);
+    columnHandlesBuilder.add(columnHandle);
+  }
+  checkState(sourceOperator.getChannelCount() == columnHandles.size(),"channel count does not match columnHandles list");
+  try {
+    ColumnFileHandle columnFileHandle=storageManager.createStagingFileHandles(input.get().getShardId(),columnHandlesBuilder.build());
+    return new TableWriteIterator(sourceOperator.iterator(operatorStats),columnFileHandle);
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+}

@@ -1,0 +1,27 @@
+{
+  if (sourceIterator.hasNext()) {
+    SplitAssignments sourceAssignment=sourceIterator.next();
+    Map<PlanNodeId,? extends Split> sourceSplits=sourceAssignment.getSplits();
+    checkState(sourceSplits.size() == 1,"Can only augment single table splits");
+    Map.Entry<PlanNodeId,? extends Split> split=Iterables.getOnlyElement(sourceSplits.entrySet());
+    WritingSplit writingSplit=new WritingSplit(shardManager.allocateShard(node.getTableHandle()));
+    String partition="unpartitioned";
+    boolean lastSplit=false;
+    if (split.getValue() instanceof PartitionedSplit) {
+      PartitionedSplit partitionedSplit=(PartitionedSplit)split.getValue();
+      partition=partitionedSplit.getPartition();
+      lastSplit=partitionedSplit.isLastSplit();
+    }
+    addPartitionShard(partition,lastSplit,writingSplit.getShardId());
+    ImmutableMap.Builder<PlanNodeId,Split> builder=ImmutableMap.builder();
+    builder.putAll(sourceSplits);
+    builder.put(node.getId(),writingSplit);
+    Map<PlanNodeId,? extends Split> newSplits=builder.build();
+    log.info("Scheduling Shard for %s, now %d shards in flight",partition,shardsInFlight.incrementAndGet());
+    return new SplitAssignments(newSplits,sourceAssignment.getNodes());
+  }
+ else {
+    checkState(openPartitions.size() == 0,"Partitions %s were never finished!",openPartitions.keySet());
+    return endOfData();
+  }
+}

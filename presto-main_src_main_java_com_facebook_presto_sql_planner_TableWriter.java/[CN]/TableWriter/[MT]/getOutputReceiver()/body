@@ -1,0 +1,15 @@
+{
+  return new OutputReceiver(){
+    @Override public void receive(    Object result){
+      @SuppressWarnings("unchecked") TableWriterResult tableWriterResult=TableWriterResult.forMap((Map<String,Object>)result);
+      String oldValue=shardsDone.put(tableWriterResult.getShardId(),tableWriterResult.getNodeIdentifier());
+      checkState(oldValue == null || oldValue.equals(tableWriterResult.getNodeIdentifier()),"Seen a different node committing a shard (%s vs %s)",oldValue,tableWriterResult.getNodeIdentifier());
+      for (      Map.Entry<String,Set<Long>> entry : finishedPartitions.entrySet()) {
+        if (!partitionsDone.contains(entry.getKey())) {
+          considerCommittingPartition(entry.getKey(),entry.getValue());
+        }
+      }
+    }
+  }
+;
+}
