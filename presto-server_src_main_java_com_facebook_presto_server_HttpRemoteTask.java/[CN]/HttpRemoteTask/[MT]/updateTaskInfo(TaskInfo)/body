@@ -6,6 +6,13 @@
     return;
   }
   taskInfo.set(newValue);
+  for (  Map.Entry<PlanNodeId,Set<?>> entry : newValue.getOutputs().entrySet()) {
+    OutputReceiver outputReceiver=outputReceivers.get(entry.getKey());
+    checkState(outputReceiver != null,"Got Result for node %s which is not an output receiver!",entry.getKey());
+    for (    Object result : entry.getValue()) {
+      outputReceiver.receive(result);
+    }
+  }
   if (newValue.getState().isDone()) {
     pendingSplits.clear();
   }

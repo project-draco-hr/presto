@@ -1,0 +1,14 @@
+{
+  Map<Symbol,Input> mappings=new HashMap<>();
+  List<ColumnHandle> columns=new ArrayList<>();
+  int channel=0;
+  for (  Symbol symbol : node.getOutputSymbols()) {
+    columns.add(node.getAssignments().get(symbol));
+    mappings.put(symbol,new Input(channel,0));
+    channel++;
+  }
+  List<TupleInfo> tupleInfos=getSourceOperatorTupleInfos(node);
+  TableScanOperator operator=new TableScanOperator(dataStreamProvider,tupleInfos,columns);
+  context.addSourceOperator(node,operator);
+  return new PhysicalOperation(operator,mappings);
+}

@@ -1,0 +1,12 @@
+{
+  List<TupleInfo> tupleInfo=getSourceOperatorTupleInfos(node);
+  SourceOperator operator=exchangeOperatorFactory.createExchangeOperator(tupleInfo);
+  context.addSourceOperator(node,operator);
+  Map<Symbol,Input> outputMappings=new HashMap<>();
+  int channel=0;
+  for (  Symbol symbol : node.getOutputSymbols()) {
+    outputMappings.put(symbol,new Input(channel,0));
+    channel++;
+  }
+  return new PhysicalOperation(operator,outputMappings);
+}

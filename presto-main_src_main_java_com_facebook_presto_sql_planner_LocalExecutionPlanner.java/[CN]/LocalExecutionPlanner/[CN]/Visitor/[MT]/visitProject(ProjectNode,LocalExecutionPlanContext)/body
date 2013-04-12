@@ -1,0 +1,21 @@
+{
+  PhysicalOperation source=node.getSource().accept(this,context);
+  Map<Symbol,Input> outputMappings=new HashMap<>();
+  List<ProjectionFunction> projections=new ArrayList<>();
+  for (int i=0; i < node.getExpressions().size(); i++) {
+    Symbol symbol=node.getOutputSymbols().get(i);
+    Expression expression=node.getExpressions().get(i);
+    ProjectionFunction function;
+    if (expression instanceof QualifiedNameReference) {
+      Symbol reference=Symbol.fromQualifiedName(((QualifiedNameReference)expression).getName());
+      function=ProjectionFunctions.singleColumn(types.get(reference).getRawType(),source.getLayout().get(symbol));
+    }
+ else {
+      function=new InterpretedProjectionFunction(types.get(symbol),expression,source.getLayout(),metadata,session);
+    }
+    projections.add(function);
+    outputMappings.put(symbol,new Input(i,0));
+  }
+  FilterAndProjectOperator operator=new FilterAndProjectOperator(source.getOperator(),FilterFunctions.TRUE_FUNCTION,projections);
+  return new PhysicalOperation(operator,outputMappings);
+}

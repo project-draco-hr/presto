@@ -1,0 +1,7 @@
+{
+  PhysicalOperation source=node.getSource().accept(this,context);
+  FilterFunction filter=new InterpretedFilterFunction(node.getPredicate(),source.getLayout(),metadata,session);
+  IdentityProjectionInfo mappings=computeIdentityMapping(node.getOutputSymbols(),source.getLayout(),types);
+  FilterAndProjectOperator operator=new FilterAndProjectOperator(source.getOperator(),filter,mappings.getProjections());
+  return new PhysicalOperation(operator,mappings.getOutputLayout());
+}
