@@ -1,16 +1,16 @@
 {
   Preconditions.checkState(!Thread.holdsLock(this),"Update state can not be called while holding a lock on this");
 synchronized (this) {
-    Preconditions.checkState(!noMoreExchangeLocations || exchangeLocations.entries().containsAll(additionalLocations.entries()),"Locations can not be added after noMoreExchangeLocations has been set");
+    Preconditions.checkState(!noMoreExchangeLocations.get() || exchangeLocations.entries().containsAll(additionalLocations.entries()),"Locations can not be added after noMoreExchangeLocations has been set");
     SetMultimap<PlanNodeId,URI> newExchangeLocations=HashMultimap.create(additionalLocations);
     newExchangeLocations.entries().removeAll(exchangeLocations.entries());
     if (!getTaskInfo().getState().isDone()) {
       for (      Entry<PlanNodeId,URI> entry : newExchangeLocations.entries()) {
-        ScheduledSplit scheduledSplit=new ScheduledSplit(nextSplitId.getAndIncrement(),createRemoteSplitFor(entry.getValue()));
-        pendingSplits.put(entry.getKey(),scheduledSplit);
+        ScheduledSplit scheduledSplit=new ScheduledSplit(nextSplitId.getAndIncrement(),createRemoteSplitFor(entry));
+        pendingSplits.put(ImmutableSet.of(entry.getKey()),scheduledSplit);
       }
     }
-    noMoreExchangeLocations=noMore;
+    noMoreExchangeLocations.set(noMore);
     this.exchangeLocations.putAll(additionalLocations);
   }
   updateState(false);

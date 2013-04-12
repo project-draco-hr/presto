@@ -1,0 +1,16 @@
+{
+  sourceIds=ImmutableSet.copyOf(sourceIds);
+  if (!taskOutput.noMoreSplits(sourceIds)) {
+    return;
+  }
+  if (fragment.getPartitionedSources().equals(sourceIds)) {
+    sourceHashProviderFactory=null;
+  }
+ else {
+    for (    WeakReference<SplitWorker> workerReference : splitWorkers) {
+      SplitWorker worker=workerReference.get();
+      Preconditions.checkState(worker != null,"SplitWorker has been GCed");
+      worker.noMoreSplits(sourceIds);
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  if (fragment.isPartitioned() && fragment.getPartitionedSources().equals(splits.keySet())) {
+    scheduleSplitWorker(splits);
+  }
+ else {
+    checkState(splits.size() == 1,"Unpartitioned splits can have only a single source");
+    Map.Entry<PlanNodeId,? extends Split> entry=Iterables.getOnlyElement(splits.entrySet());
+    if (!unpartitionedSources.put(entry.getKey(),entry.getValue())) {
+      return;
+    }
+    for (    WeakReference<SplitWorker> workerReference : splitWorkers) {
+      SplitWorker worker=workerReference.get();
+      Preconditions.checkState(worker != null,"SplitWorker has been GCed");
+      worker.addSplits(splits);
+    }
+  }
+}

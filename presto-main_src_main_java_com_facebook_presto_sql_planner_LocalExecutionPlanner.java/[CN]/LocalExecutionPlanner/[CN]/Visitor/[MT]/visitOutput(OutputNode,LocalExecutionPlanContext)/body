@@ -1,0 +1,17 @@
+{
+  PhysicalOperation source=node.getSource().accept(this,context);
+  List<Symbol> resultSymbols=Lists.transform(node.getColumnNames(),forMap(node.getAssignments()));
+  Ordering<Input> comparator=Ordering.from(new Comparator<Input>(){
+    @Override public int compare(    Input o1,    Input o2){
+      return ComparisonChain.start().compare(o1.getChannel(),o2.getChannel()).compare(o1.getField(),o2.getField()).result();
+    }
+  }
+);
+  List<Symbol> sourceSymbols=IterableTransformer.on(source.getLayout().entrySet()).orderBy(comparator.onResultOf(MoreFunctions.<Symbol,Input>valueGetter())).transform(MoreFunctions.<Symbol,Input>keyGetter()).list();
+  if (resultSymbols.equals(sourceSymbols) && resultSymbols.size() == source.getOperator().getChannelCount()) {
+    return source;
+  }
+  IdentityProjectionInfo mappings=computeIdentityMapping(resultSymbols,source.getLayout(),types);
+  FilterAndProjectOperator operator=new FilterAndProjectOperator(source.getOperator(),FilterFunctions.TRUE_FUNCTION,mappings.getProjections());
+  return new PhysicalOperation(operator,mappings.getOutputLayout());
+}

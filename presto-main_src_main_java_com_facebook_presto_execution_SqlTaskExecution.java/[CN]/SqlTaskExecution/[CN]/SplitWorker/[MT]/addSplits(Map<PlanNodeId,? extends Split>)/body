@@ -1,0 +1,13 @@
+{
+  checkNotNull(splits,"splits is null");
+  checkState(splits.size() > 0,"no splits given");
+  for (  Map.Entry<PlanNodeId,? extends Split> entry : splits.entrySet()) {
+    SourceOperator sourceOperator=sourceOperators.get(entry.getKey());
+    checkArgument(sourceOperator != null,"Unknown plan source %s; known sources are %s",entry.getKey(),sourceOperators.keySet());
+    Split operatorSplit=entry.getValue();
+    sourceOperator.addSplit(operatorSplit);
+    if (partitionedSources.contains(entry.getKey())) {
+      operatorStats.addSplitInfo(operatorSplit.getInfo());
+    }
+  }
+}

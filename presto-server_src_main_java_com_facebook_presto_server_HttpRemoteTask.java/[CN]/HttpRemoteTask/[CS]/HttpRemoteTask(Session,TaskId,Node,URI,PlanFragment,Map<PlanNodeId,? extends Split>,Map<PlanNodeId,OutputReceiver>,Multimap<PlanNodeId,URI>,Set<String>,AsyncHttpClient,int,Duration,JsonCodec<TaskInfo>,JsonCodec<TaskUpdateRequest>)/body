@@ -1,0 +1,38 @@
+{
+  Preconditions.checkNotNull(session,"session is null");
+  Preconditions.checkNotNull(taskId,"taskId is null");
+  Preconditions.checkNotNull(location,"location is null");
+  Preconditions.checkNotNull(planFragment,"planFragment1 is null");
+  Preconditions.checkNotNull(outputReceivers,"outputReceivers is null");
+  Preconditions.checkNotNull(initialOutputIds,"initialOutputIds is null");
+  Preconditions.checkNotNull(httpClient,"httpClient is null");
+  Preconditions.checkNotNull(taskInfoCodec,"taskInfoCodec is null");
+  Preconditions.checkNotNull(taskUpdateRequestCodec,"taskUpdateRequestCodec is null");
+  this.session=session;
+  this.nodeId=node.getNodeIdentifier();
+  this.planFragment=planFragment;
+  this.outputIds.addAll(initialOutputIds);
+  this.httpClient=httpClient;
+  this.taskInfoCodec=taskInfoCodec;
+  this.taskUpdateRequestCodec=taskUpdateRequestCodec;
+  tupleInfos=planFragment.getTupleInfos();
+  this.maxConsecutiveErrorCount=maxConsecutiveErrorCount;
+  this.minErrorDuration=minErrorDuration;
+  this.outputReceivers=outputReceivers;
+  for (  Entry<PlanNodeId,URI> entry : initialExchangeLocations.entries()) {
+    ScheduledSplit scheduledSplit=new ScheduledSplit(nextSplitId.getAndIncrement(),createRemoteSplitFor(entry));
+    pendingSplits.put(ImmutableSet.of(entry.getKey()),scheduledSplit);
+  }
+  this.exchangeLocations.putAll(initialExchangeLocations);
+  List<BufferInfo> bufferStates=ImmutableList.copyOf(transform(initialOutputIds,new Function<String,BufferInfo>(){
+    @Override public BufferInfo apply(    String outputId){
+      return new BufferInfo(outputId,false,0,0);
+    }
+  }
+));
+  if (initialSplit != null) {
+    checkState(planFragment.isPartitioned(),"Plan is not partitioned");
+    addPlanSplits(initialSplit);
+  }
+  taskInfo.set(new TaskInfo(taskId,TaskInfo.MIN_VERSION,TaskState.PLANNED,location,new SharedBufferInfo(QueueState.OPEN,0,bufferStates),ImmutableSet.<PlanNodeId>of(),new ExecutionStatsSnapshot(),ImmutableList.<SplitExecutionStats>of(),ImmutableList.<FailureInfo>of(),ImmutableMap.<PlanNodeId,Set<?>>of()));
+}

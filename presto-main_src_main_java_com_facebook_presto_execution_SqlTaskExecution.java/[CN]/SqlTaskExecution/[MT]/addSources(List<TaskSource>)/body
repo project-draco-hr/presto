@@ -2,15 +2,14 @@
   Preconditions.checkNotNull(sources,"sources is null");
   long newMaxAcknowledgedSplit=maxAcknowledgedSplit;
   for (  TaskSource source : sources) {
-    PlanNodeId sourceId=source.getPlanNodeId();
     for (    ScheduledSplit scheduledSplit : source.getSplits()) {
       if (scheduledSplit.getSequenceId() > maxAcknowledgedSplit) {
-        addSplit(sourceId,scheduledSplit.getSplit());
+        addSplits(scheduledSplit.getSplits());
         newMaxAcknowledgedSplit=max(scheduledSplit.getSequenceId(),newMaxAcknowledgedSplit);
       }
     }
     if (source.isNoMoreSplits()) {
-      noMoreSplits(sourceId);
+      noMoreSplits(source.getPlanNodeIds());
     }
   }
   maxAcknowledgedSplit=newMaxAcknowledgedSplit;

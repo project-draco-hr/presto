@@ -1,0 +1,12 @@
+{
+  Preconditions.checkState(!Thread.holdsLock(this),"Update state can not be called while holding a lock on this");
+synchronized (this) {
+    Preconditions.checkNotNull(split,"split is null");
+    Preconditions.checkState(!noMoreSplits.get(),"noMoreSplits has already been set");
+    Preconditions.checkState(planFragment.isPartitioned(),"Plan is not partitioned");
+    if (!getTaskInfo().getState().isDone()) {
+      addPlanSplits(split);
+    }
+  }
+  updateState(false);
+}
