@@ -1,0 +1,10 @@
+{
+  checkNotNull(chunks,"chunks is null");
+  checkState(!done.get(),"already done");
+  for (Iterator<HivePartitionChunk> it=chunks.iterator(); it.hasNext(); ) {
+    HivePartitionChunk previousChunk=chunkHolder.getAndSet(it.next());
+    if (previousChunk != null) {
+      partitionChunkQueue.addToQueue(previousChunk);
+    }
+  }
+}
