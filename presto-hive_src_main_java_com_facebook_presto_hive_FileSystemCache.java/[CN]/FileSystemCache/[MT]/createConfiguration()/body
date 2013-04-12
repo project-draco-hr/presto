@@ -9,5 +9,13 @@
   config.setBoolean("dfs.read.shortcircuit.fallbackwhenfail",true);
   config.setInt("dfs.socket.timeout",Ints.saturatedCast((long)dfsTimeout.toMillis()));
   config.setInt("ipc.ping.interval",Ints.saturatedCast((long)dfsTimeout.toMillis()));
+  try {
+    ContextFactory factory=ContextFactory.getFactory();
+    factory.setAttribute("hdfsclient.class","org.apache.hadoop.metrics.jmx.JMXContext");
+    factory.setAttribute("hdfsclient.period","5");
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
   return config;
 }
