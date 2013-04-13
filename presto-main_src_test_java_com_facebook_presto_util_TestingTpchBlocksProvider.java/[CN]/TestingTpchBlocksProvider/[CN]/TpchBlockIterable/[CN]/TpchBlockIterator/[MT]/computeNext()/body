@@ -1,0 +1,25 @@
+{
+  BlockBuilder builder=new BlockBuilder(new TupleInfo(fieldType));
+  while (!builder.isFull() && cursor.advanceNextPosition()) {
+switch (fieldType) {
+case FIXED_INT_64:
+      builder.append(cursor.getLong(fieldIndex));
+    break;
+case DOUBLE:
+  builder.append(cursor.getDouble(fieldIndex));
+break;
+case VARIABLE_BINARY:
+builder.append(cursor.getString(fieldIndex));
+break;
+}
+for (int i=1; i < tableSplit; i++) {
+if (!cursor.advanceNextPosition()) {
+break;
+}
+}
+}
+if (builder.isEmpty()) {
+return endOfData();
+}
+return builder.build();
+}

@@ -1,13 +1,12 @@
 {
   Logging.initialize();
   this.catalog=catalog;
-  this.schema=schema;
-  this.dataStreamProvider=dataStreamProvider;
   this.metadata=metadata;
   try {
+    PrestoTestingServerModule testingModule=new PrestoTestingServerModule(metadata,dataStreamProvider);
     discoveryServer=new DiscoveryTestingServer();
-    coordinator=new PrestoTestingServer(discoveryServer.getBaseUrl());
-    servers=ImmutableList.<PrestoTestingServer>builder().add(coordinator).add(new PrestoTestingServer(discoveryServer.getBaseUrl())).add(new PrestoTestingServer(discoveryServer.getBaseUrl())).build();
+    coordinator=new PrestoTestingServer(discoveryServer.getBaseUrl(),testingModule);
+    servers=ImmutableList.<PrestoTestingServer>builder().add(coordinator).add(new PrestoTestingServer(discoveryServer.getBaseUrl(),testingModule)).add(new PrestoTestingServer(discoveryServer.getBaseUrl(),testingModule)).build();
   }
  catch (  Exception e) {
     tearDownQueryFramework();

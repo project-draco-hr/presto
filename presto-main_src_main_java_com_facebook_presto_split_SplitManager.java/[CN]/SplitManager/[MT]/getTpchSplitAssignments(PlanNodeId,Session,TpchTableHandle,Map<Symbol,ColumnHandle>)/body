@@ -1,0 +1,11 @@
+{
+  Map<String,Node> nodeMap=getNodeMap(nodeManager.getActiveNodes());
+  ImmutableList.Builder<SplitAssignments> splitAssignments=ImmutableList.builder();
+  int tableSplit=nodeMap.size();
+  int tableSkew=0;
+  for (  Map.Entry<String,Node> entry : nodeMap.entrySet()) {
+    TpchSplit tpchSplit=new TpchSplit(handle,tableSkew++,tableSplit);
+    splitAssignments.add(new SplitAssignments(ImmutableMap.of(planNodeId,tpchSplit),ImmutableList.of(entry.getValue())));
+  }
+  return splitAssignments.build();
+}

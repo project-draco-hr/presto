@@ -1,32 +1,12 @@
 {
   ImmutableList.Builder<String> tableNames=ImmutableList.builder();
   List<QualifiedTableName> qualifiedTableNames=metadata.listTables(QualifiedTablePrefix.builder(catalog).build());
+  ImmutableList.Builder<QueryId> builder=ImmutableList.builder();
   for (  QualifiedTableName qualifiedTableName : qualifiedTableNames) {
+    log.info("Running import for %s",qualifiedTableName.getTableName());
+    MaterializedResult importResult=computeActual(format("CREATE OR REPLACE MATERIALIZED VIEW default.default.%s AS SELECT * FROM %s",qualifiedTableName.getTableName(),qualifiedTableName));
+    log.info("Imported %s rows for %s",importResult.getMaterializedTuples().get(0).getField(0),qualifiedTableName.getTableName());
     tableNames.add(qualifiedTableName.getTableName());
-    TableMetadata sourceTable=metadata.getTable(qualifiedTableName);
-    TableMetadata targetTable=coordinator.createTable(new QualifiedTableName("default","default",sourceTable.getTable().getTableName()),sourceTable.getColumns());
-    ImmutableList.Builder<ProjectionFunction> builder=ImmutableList.builder();
-    for (int i=0; i < sourceTable.getColumns().size(); i++) {
-      ColumnMetadata column=sourceTable.getColumns().get(i);
-      builder.add(ProjectionFunctions.singleColumn(column.getType(),i,0));
-    }
-    List<ProjectionFunction> projectionFunctions=builder.build();
-    for (int i=0; i < servers.size(); i++) {
-      long shardId=coordinator.addShard(targetTable);
-      final int serverIndex=i;
-      TpchSplit split=new TpchSplit((TpchTableHandle)sourceTable.getTableHandle().get());
-      Operator rawDataStream=dataStreamProvider.createDataStream(split,Lists.transform(sourceTable.getColumns(),handleGetter()));
-      Operator filteredStream=new FilterAndProjectOperator(rawDataStream,new FilterFunction(){
-        @Override public boolean filter(        TupleReadable... cursors){
-          TupleReadable cursor=cursors[0];
-          return (abs(cursor.getTuple().hashCode()) % servers.size()) == serverIndex;
-        }
-      }
-,projectionFunctions);
-      PrestoTestingServer server=servers.get(i);
-      server.importShard(targetTable,shardId,filteredStream);
-      coordinator.commitShard(shardId,server.getNodeId());
-    }
   }
   return tableNames.build();
 }
