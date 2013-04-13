@@ -4,8 +4,11 @@
   if (partitionSplits != null) {
     builder.addAll(partitionSplits);
   }
-  builder.add(shardId);
+  if (shardId != null) {
+    builder.add(shardId);
+  }
   Set<Long> shardIds=builder.build();
+  checkState(shardIds.size() > 0,"Never saw a split for partition %s",partition);
   if (lastSplit) {
     checkState(null == finishedPartitions.put(partition,shardIds),"Partition %s finished multiple times",partition);
     openPartitions.remove(partition);
