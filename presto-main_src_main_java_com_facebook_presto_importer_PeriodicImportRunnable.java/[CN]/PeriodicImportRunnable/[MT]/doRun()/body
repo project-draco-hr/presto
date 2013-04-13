@@ -1,30 +1,3 @@
 {
-  final PersistentPeriodicImportJob job=jobState.getJob();
-  TableMetadata sourceTable=metadata.getTable(job.getSrcTable());
-  List<ColumnMetadata> sourceColumns=sourceTable.getColumns();
-  TableMetadata table=new TableMetadata(job.getDstTable(),sourceColumns);
-  metadata.createTable(table);
-  table=metadata.getTable(job.getDstTable());
-  long tableId=((NativeTableHandle)table.getTableHandle().get()).getTableId();
-  List<ImportField> fields=CreateOrReplaceMaterializedViewExecution.getImportFields(sourceColumns,table.getColumns());
-  ListenableFuture<?> importFuture=importManager.importTable(tableId,job.getSrcCatalogName(),job.getSrcSchemaName(),job.getSrcTableName(),fields);
-  long maxRuntime=(long)(0.7 * job.getInterval());
-  try {
-    importFuture.get(maxRuntime,TimeUnit.SECONDS);
-  }
- catch (  TimeoutException e) {
-    log.warn(e,"Job %d: Import did not finish within %ds",job.getJobId(),maxRuntime);
-  }
-catch (  InterruptedException e) {
-    Thread.currentThread().interrupt();
-  }
-catch (  CancellationException e) {
-    log.warn("Job %d was cancelled.",job.getJobId());
-  }
-catch (  ExecutionException e) {
-    log.warn(e.getCause(),"Job %d:",job.getJobId());
-  }
- finally {
-    importFuture.cancel(true);
-  }
+  throw new IllegalStateException("I NEED FIXING!");
 }
