@@ -1,4 +1,23 @@
 {
+  if (node.getWith().isPresent()) {
+    With with=node.getWith().get();
+    append(indent,"WITH ");
+    if (with.isRecursive()) {
+      builder.append("RECURSIVE ");
+    }
+    builder.append('\n');
+    Iterator<WithQuery> queries=with.getQueries().iterator();
+    while (queries.hasNext()) {
+      WithQuery query=queries.next();
+      builder.append(query.getName());
+      appendAliasColumns(builder,query.getColumnNames());
+      builder.append(" AS ");
+      process(new Subquery(query.getQuery()),indent);
+      if (queries.hasNext()) {
+        builder.append(", ");
+      }
+    }
+  }
   process(node.getSelect(),indent);
   append(indent,"FROM ");
   if (node.getFrom().size() > 1) {

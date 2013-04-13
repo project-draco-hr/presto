@@ -1,0 +1,16 @@
+{
+  if (!context.isDefaultRewrite()) {
+    Node result=nodeRewriter.rewriteWith(node,context.get(),TreeRewriter.this);
+    if (result != null) {
+      return result;
+    }
+  }
+  ImmutableList.Builder<WithQuery> builder=ImmutableList.builder();
+  for (  WithQuery query : node.getQueries()) {
+    builder.add(rewrite(query,context.get()));
+  }
+  if (!sameElements(node.getQueries(),builder.build())) {
+    return new With(node.isRecursive(),builder.build());
+  }
+  return node;
+}
