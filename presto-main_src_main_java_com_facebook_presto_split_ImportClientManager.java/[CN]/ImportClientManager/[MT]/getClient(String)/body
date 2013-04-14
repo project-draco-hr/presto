@@ -1,9 +1,7 @@
 {
-  for (  ImportClientFactory clientFactory : clientFactories) {
-    ImportClient client=clientFactory.createClient(sourceName);
-    if (client != null) {
-      return client;
-    }
-  }
-  throw new RuntimeException("Unknown source '" + sourceName + "'");
+  ImportClientFactory factory=clientFactories.get(clientName);
+  checkArgument(factory != null,"Unknown source '%s'",clientName);
+  ImportClient client=factory.createClient(clientName);
+  checkArgument(client != null,"Failed to create client %s",clientName);
+  return client;
 }

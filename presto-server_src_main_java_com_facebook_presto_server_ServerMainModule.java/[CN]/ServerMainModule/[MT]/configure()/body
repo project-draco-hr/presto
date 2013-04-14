@@ -31,7 +31,7 @@
   binder.bind(InternalDataStreamProvider.class).in(Scopes.SINGLETON);
   binder.bind(InformationSchemaData.class).in(Scopes.SINGLETON);
   binder.bind(ImportClientManager.class).in(Scopes.SINGLETON);
-  Multibinder.newSetBinder(binder,ImportClientFactory.class);
+  MapBinder.newMapBinder(binder,String.class,ImportClientFactory.class);
   binder.bind(SplitManager.class).in(Scopes.SINGLETON);
   ExportBinder.newExporter(binder).export(SplitManager.class).withGeneratedName();
   jsonCodecBinder(binder).bindJsonCodec(TaskUpdateRequest.class);
@@ -71,6 +71,7 @@
   binder.bind(ExecuteResource.class).in(Scopes.SINGLETON);
   httpClientBinder(binder).bindAsyncHttpClient("execute",ForExecute.class);
   binder.install(new HandleJsonModule());
+  binder.bind(ConnectorManager.class).in(Scopes.SINGLETON);
   binder.bind(PluginManager.class).in(Scopes.SINGLETON);
   bindConfig(binder).to(PluginManagerConfig.class);
   bindConfig(binder).to(PeriodicImportConfig.class);
