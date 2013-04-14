@@ -1,5 +1,8 @@
 {
   checkCatalogName(catalogName);
-  QualifiedTablePrefix prefix=QualifiedTablePrefix.builder(catalogName).build();
-  return lookupDataSource(prefix).listSchemaNames(catalogName);
+  ConnectorMetadata connectorMetadata=connectors.get(catalogName);
+  if (connectorMetadata == null) {
+    return ImmutableList.of();
+  }
+  return connectorMetadata.listSchemaNames();
 }

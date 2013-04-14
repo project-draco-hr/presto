@@ -1,3 +1,5 @@
 {
-  return lookupDataSource(tableMetadata.getTable()).createTable(tableMetadata);
+  ConnectorMetadata connectorMetadata=connectors.get(tableMetadata.getTable().getCatalogName());
+  checkArgument(connectorMetadata != null,"Catalog %s does not exist",tableMetadata.getTable().getCatalogName());
+  return connectorMetadata.createTable(new SchemaTableMetadata(tableMetadata.getTable().asSchemaTableName(),tableMetadata.getColumns(),tableMetadata.getPartitionKeys()));
 }

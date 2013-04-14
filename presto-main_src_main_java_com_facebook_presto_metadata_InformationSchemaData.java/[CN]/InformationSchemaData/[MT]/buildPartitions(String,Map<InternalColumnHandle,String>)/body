@@ -1,13 +1,14 @@
 {
-  String schemaName=requiredFilterColumn(filters,TABLE_INTERNAL_PARTITIONS,"table_schema");
-  String tableName=requiredFilterColumn(filters,TABLE_INTERNAL_PARTITIONS,"table_name");
+  QualifiedTablePrefix qualifiedTablePrefix=extractQualifiedTablePrefix(catalogName,filters);
+  checkArgument(qualifiedTablePrefix.getSchemaName().isPresent(),"filter is required for column: %s.%s",TABLE_INTERNAL_PARTITIONS,"table_schema");
+  checkArgument(qualifiedTablePrefix.getTableName().isPresent(),"filter is required for column: %s.%s",TABLE_INTERNAL_PARTITIONS,"table_name");
   TupleInfo tupleInfo=informationSchemaTupleInfo(TABLE_INTERNAL_PARTITIONS);
   InternalTable.Builder table=InternalTable.builder(tupleInfo);
   int partitionNumber=1;
-  List<Map<String,String>> partitions=metadata.listTablePartitionValues(QualifiedTablePrefix.builder(catalogName).schemaName(schemaName).tableName(tableName).build());
+  List<Map<String,String>> partitions=metadata.listTablePartitionValues(qualifiedTablePrefix);
   for (  Map<String,String> partition : partitions) {
     for (    Map.Entry<String,String> entry : partition.entrySet()) {
-      table.add(tupleInfo.builder().append(catalogName).append(schemaName).append(tableName).append(partitionNumber).append(entry.getKey()).append(entry.getValue()).build());
+      table.add(tupleInfo.builder().append(catalogName).append(qualifiedTablePrefix.getSchemaName().get()).append(qualifiedTablePrefix.getTableName().get()).append(partitionNumber).append(entry.getKey()).append(entry.getValue()).build());
     }
     partitionNumber++;
   }

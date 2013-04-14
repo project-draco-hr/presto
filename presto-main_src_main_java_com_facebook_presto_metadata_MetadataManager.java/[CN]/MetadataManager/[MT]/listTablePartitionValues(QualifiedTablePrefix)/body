@@ -1,4 +1,9 @@
 {
   checkNotNull(prefix,"prefix is null");
-  return lookupDataSource(prefix).listTablePartitionValues(prefix);
+  SchemaTablePrefix schemaTablePrefix=new SchemaTablePrefix(prefix.getSchemaName(),prefix.getTableName());
+  ConnectorMetadata connectorMetadata=connectors.get(prefix.getCatalogName());
+  if (connectorMetadata == null) {
+    return ImmutableList.of();
+  }
+  return connectorMetadata.listTablePartitionValues(schemaTablePrefix);
 }

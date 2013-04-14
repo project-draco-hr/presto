@@ -4,8 +4,12 @@
   for (  InternalSchemaMetadata internalSchemaMetadata : internalSchemas) {
     builder.putAll(internalSchemaMetadata.listTableColumns(prefix));
   }
-  for (  ConnectorMetadata connector : connectors) {
-    builder.putAll(connector.listTableColumns(prefix));
+  ConnectorMetadata connector=connectors.get(prefix.getCatalogName());
+  if (connector != null) {
+    for (    Entry<SchemaTableName,List<ColumnMetadata>> entry : connector.listTableColumns(prefix.asSchemaTablePrefix()).entrySet()) {
+      QualifiedTableName tableName=new QualifiedTableName(prefix.getCatalogName(),entry.getKey().getSchemaName(),entry.getKey().getTableName());
+      builder.put(tableName,entry.getValue());
+    }
   }
   return builder.build();
 }

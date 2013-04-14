@@ -1,7 +1,10 @@
 {
   checkNotNull(prefix,"prefix is null");
   ImmutableList.Builder<QualifiedTableName> tables=ImmutableList.builder();
-  tables.addAll(lookupDataSource(prefix).listTables(prefix));
+  ConnectorMetadata connectorMetadata=connectors.get(prefix.getCatalogName());
+  if (connectorMetadata != null) {
+    tables.addAll(transform(connectorMetadata.listTables(prefix.getSchemaName()),convertFromSchemaTableName(prefix.getCatalogName())));
+  }
   for (  InternalSchemaMetadata internalSchemaMetadata : internalSchemas) {
     tables.addAll(internalSchemaMetadata.listTables(prefix));
   }

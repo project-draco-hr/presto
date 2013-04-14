@@ -1,6 +1,6 @@
 {
   ImmutableList.Builder<String> tableNames=ImmutableList.builder();
-  List<QualifiedTableName> qualifiedTableNames=coordinator.metadata.listTables(QualifiedTablePrefix.builder(catalog).schemaName(schema).build());
+  List<QualifiedTableName> qualifiedTableNames=coordinator.metadata.listTables(new QualifiedTablePrefix(catalog,schema));
   for (  QualifiedTableName qualifiedTableName : qualifiedTableNames) {
     log.info("Running import for %s",qualifiedTableName.getTableName());
     MaterializedResult importResult=computeActual(format("CREATE MATERIALIZED VIEW default.default.%s AS SELECT * FROM %s",qualifiedTableName.getTableName(),qualifiedTableName));

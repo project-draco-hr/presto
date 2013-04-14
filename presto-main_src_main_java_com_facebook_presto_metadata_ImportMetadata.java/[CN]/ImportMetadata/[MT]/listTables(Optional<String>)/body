@@ -1,0 +1,11 @@
+{
+  checkNotNull(schemaName,"schemaName is null");
+  Iterable<String> schemaNames=schemaName.isPresent() ? schemaName.asSet() : listSchemaNames();
+  ImmutableList.Builder<SchemaTableName> tables=ImmutableList.builder();
+  for (  String schema : schemaNames) {
+    for (    String table : getTableNames(client,schema)) {
+      tables.add(new SchemaTableName(schema,table));
+    }
+  }
+  return tables.build();
+}

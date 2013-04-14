@@ -6,5 +6,9 @@
       return tableHandle;
     }
   }
-  return Optional.fromNullable(lookupDataSource(table).getTableHandle(table));
+  ConnectorMetadata connectorMetadata=connectors.get(table.getCatalogName());
+  if (connectorMetadata == null) {
+    return Optional.absent();
+  }
+  return Optional.fromNullable(connectorMetadata.getTableHandle(table.asSchemaTableName()));
 }
