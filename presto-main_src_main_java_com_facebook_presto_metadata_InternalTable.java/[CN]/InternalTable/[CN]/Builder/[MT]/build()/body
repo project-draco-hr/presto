@@ -1,8 +1,9 @@
 {
   flushPage();
-  ImmutableList.Builder<BlockIterable> list=ImmutableList.builder();
-  for (  List<Block> column : columns) {
-    list.add(column.isEmpty() ? emptyBlockIterable() : createBlockIterable(column.get(0).getTupleInfo(),column));
+  ImmutableMap.Builder<String,BlockIterable> data=ImmutableMap.builder();
+  for (int i=0; i < columns.size(); i++) {
+    List<Block> column=columns.get(i);
+    data.put(columnNames.get(i),column.isEmpty() ? emptyBlockIterable() : createBlockIterable(column));
   }
-  return new InternalTable(list.build());
+  return new InternalTable(data.build());
 }

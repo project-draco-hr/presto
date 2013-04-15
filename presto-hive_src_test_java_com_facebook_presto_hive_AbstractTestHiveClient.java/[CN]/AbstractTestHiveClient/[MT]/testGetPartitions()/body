@@ -1,8 +1,9 @@
 {
-  List<PartitionInfo> partitions=client.getPartitions(TABLE,Collections.<String,Object>emptyMap());
+  TableHandle tableHandle=client.getTableHandle(TABLE);
+  List<Partition> partitions=client.getPartitions(tableHandle,ImmutableMap.<ColumnHandle,Object>of());
   ImmutableSet.Builder<String> names=ImmutableSet.builder();
-  for (  PartitionInfo partition : partitions) {
-    names.add(partition.getName());
+  for (  Partition partition : partitions) {
+    names.add(partition.getPartitionId());
   }
   assertEquals(names.build(),new HashSet<>(PARTITIONS));
 }

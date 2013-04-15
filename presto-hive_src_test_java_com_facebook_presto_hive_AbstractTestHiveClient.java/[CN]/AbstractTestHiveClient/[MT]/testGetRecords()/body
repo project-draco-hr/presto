@@ -1,9 +1,10 @@
 {
   TableHandle tableHandle=client.getTableHandle(TABLE);
   SchemaTableMetadata tableMetadata=client.getTableMetadata(tableHandle);
-  List<PartitionChunk> partitions=ImmutableList.copyOf(client.getPartitionChunks(TABLE,PARTITIONS,Lists.transform(tableMetadata.getColumns(),columnNameGetter())));
-  assertEquals(partitions.size(),PARTITIONS.size());
-  for (  PartitionChunk partitionChunk : partitions) {
+  List<Partition> partitions=client.getPartitions(tableHandle,ImmutableMap.<ColumnHandle,Object>of());
+  List<PartitionChunk> partitionChunks=ImmutableList.copyOf(client.getPartitionChunks(partitions,ImmutableList.copyOf(client.getColumnHandles(tableHandle).values())));
+  assertEquals(partitionChunks.size(),PARTITIONS.size());
+  for (  PartitionChunk partitionChunk : partitionChunks) {
     HivePartitionChunk chunk=(HivePartitionChunk)partitionChunk;
     byte[] bytes=client.serializePartitionChunk(chunk);
     chunk=(HivePartitionChunk)client.deserializePartitionChunk(bytes);

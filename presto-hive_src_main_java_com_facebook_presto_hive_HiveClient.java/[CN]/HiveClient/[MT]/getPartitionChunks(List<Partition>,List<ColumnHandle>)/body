@@ -1,0 +1,24 @@
+{
+  checkNotNull(partitions,"partitions is null");
+  checkNotNull(columns,"columns is null");
+  Partition partition=Iterables.getFirst(partitions,null);
+  checkArgument(partition != null,"partitions is empty");
+  checkArgument(partition instanceof HivePartition,"Partition must be an hive partition");
+  SchemaTableName tableName=((HivePartition)partition).getTableName();
+  List<String> partitionNames=Lists.transform(partitions,new Function<Partition,String>(){
+    @Override public String apply(    Partition input){
+      return input.getPartitionId();
+    }
+  }
+);
+  Table table;
+  Iterable<org.apache.hadoop.hive.metastore.api.Partition> hivePartitions;
+  try {
+    table=metastore.getTable(tableName.getSchemaName(),tableName.getTableName());
+    hivePartitions=getPartitions(tableName,partitionNames);
+  }
+ catch (  NoSuchObjectException e) {
+    throw new TableNotFoundException(tableName);
+  }
+  return getPartitionChunks(table,ImmutableList.copyOf(partitionNames),hivePartitions,getHiveColumns(table,columns));
+}

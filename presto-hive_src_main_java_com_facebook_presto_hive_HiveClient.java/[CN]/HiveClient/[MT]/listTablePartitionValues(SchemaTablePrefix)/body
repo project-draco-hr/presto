@@ -1,8 +1,12 @@
 {
   ImmutableList.Builder<Map<String,String>> partitionValues=ImmutableList.builder();
   for (  SchemaTableName table : listTables(prefix)) {
-    for (    PartitionInfo partition : getPartitions(table,Collections.<String,Object>emptyMap())) {
-      partitionValues.add(partition.getKeyFields());
+    for (    Partition partition : getPartitions(getTableHandle(table),Collections.<ColumnHandle,Object>emptyMap())) {
+      ImmutableMap.Builder<String,String> values=ImmutableMap.builder();
+      for (      Entry<ColumnHandle,String> entry : partition.getKeys().entrySet()) {
+        values.put(((HiveColumnHandle)entry.getKey()).getColumnName(),entry.getValue());
+      }
+      partitionValues.add(values.build());
     }
   }
   return partitionValues.build();

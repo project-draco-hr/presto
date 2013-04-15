@@ -1,0 +1,32 @@
+{
+  SchemaTableName tableName=getTableName(table);
+  List<String> partitionColumns=getTableMetadata(tableName).getPartitionKeys();
+  List<String> parts=new ArrayList<>();
+  for (  String partitionColumn : partitionColumns) {
+    Object value=bindings.get(new HiveColumnHandle(partitionColumn));
+    if (value == null) {
+      break;
+    }
+    Preconditions.checkArgument(value instanceof String || value instanceof Double || value instanceof Long,"Only String, Double and Long partition keys are supported");
+    parts.add(value.toString());
+  }
+  List<String> partitionNames;
+  if (parts.isEmpty()) {
+    try {
+      partitionNames=metastore.getPartitionNames(tableName.getSchemaName(),tableName.getTableName());
+    }
+ catch (    NoSuchObjectException e) {
+      throw new TableNotFoundException(tableName);
+    }
+  }
+ else {
+    try {
+      partitionNames=metastore.getPartitionNamesByParts(tableName.getSchemaName(),tableName.getTableName(),parts);
+    }
+ catch (    NoSuchObjectException e) {
+      throw new TableNotFoundException(tableName);
+    }
+  }
+  Iterable<Partition> partitions=transform(partitionNames,toPartition(tableName,partitionColumns));
+  return ImmutableList.copyOf(Iterables.filter(partitions,partitionMatches(bindings)));
+}

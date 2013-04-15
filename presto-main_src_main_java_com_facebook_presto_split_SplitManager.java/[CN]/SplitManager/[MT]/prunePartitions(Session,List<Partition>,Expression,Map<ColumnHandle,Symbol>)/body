@@ -1,0 +1,17 @@
+{
+  ImmutableList.Builder<Partition> builder=ImmutableList.builder();
+  for (  Partition partition : partitions) {
+    Map<ColumnHandle,String> relevantFields=Maps.filterKeys(partition.getKeys(),in(columnToSymbol.keySet()));
+    ImmutableMap.Builder<Symbol,Object> assignments=ImmutableMap.builder();
+    for (    Map.Entry<ColumnHandle,String> entry : relevantFields.entrySet()) {
+      Symbol symbol=columnToSymbol.get(entry.getKey());
+      assignments.put(symbol,entry.getValue());
+    }
+    SymbolResolver resolver=new LookupSymbolResolver(assignments.build());
+    Object optimized=ExpressionInterpreter.expressionOptimizer(resolver,metadata,session).process(predicate,null);
+    if (!Boolean.FALSE.equals(optimized) && optimized != null) {
+      builder.add(partition);
+    }
+  }
+  return builder.build();
+}

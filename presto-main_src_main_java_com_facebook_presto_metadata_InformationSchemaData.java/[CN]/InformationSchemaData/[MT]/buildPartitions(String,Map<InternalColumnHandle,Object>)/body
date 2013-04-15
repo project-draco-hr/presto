@@ -1,0 +1,15 @@
+{
+  QualifiedTablePrefix qualifiedTablePrefix=extractQualifiedTablePrefix(catalogName,filters);
+  checkArgument(qualifiedTablePrefix.getSchemaName().isPresent(),"filter is required for column: %s.%s",TABLE_INTERNAL_PARTITIONS,"table_schema");
+  checkArgument(qualifiedTablePrefix.getTableName().isPresent(),"filter is required for column: %s.%s",TABLE_INTERNAL_PARTITIONS,"table_name");
+  InternalTable.Builder table=InternalTable.builder(informationSchemaTableColumns(TABLE_INTERNAL_PARTITIONS));
+  int partitionNumber=1;
+  List<Map<String,String>> partitions=metadata.listTablePartitionValues(qualifiedTablePrefix);
+  for (  Map<String,String> partition : partitions) {
+    for (    Map.Entry<String,String> entry : partition.entrySet()) {
+      table.add(table.getTupleInfo().builder().append(catalogName).append(qualifiedTablePrefix.getSchemaName().get()).append(qualifiedTablePrefix.getTableName().get()).append(partitionNumber).append(entry.getKey()).append(entry.getValue()).build());
+    }
+    partitionNumber++;
+  }
+  return table.build();
+}
