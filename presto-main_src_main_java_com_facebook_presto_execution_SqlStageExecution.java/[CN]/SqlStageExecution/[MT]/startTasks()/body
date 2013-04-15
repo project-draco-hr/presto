@@ -7,29 +7,25 @@ synchronized (this) {
       }
     }
     AtomicInteger nextTaskId=new AtomicInteger(0);
-    if (!splits.isPresent()) {
-      ArrayList<Node> nodes=new ArrayList<>(nodeManager.getActiveNodes());
-      Preconditions.checkState(!nodes.isEmpty(),"Cluster does not have any active nodes");
-      Collections.shuffle(nodes,ThreadLocalRandom.current());
-      Node randomNode=nodes.get(0);
-      scheduleTask(nextTaskId,randomNode,null);
+    if (!dataSource.isPresent()) {
+      scheduleTask(nextTaskId,nodeSelector.selectRandomNode(),null);
     }
  else {
       long getSplitStart=System.nanoTime();
-      for (      SplitAssignments assignment : splits.get()) {
+      for (      Split split : dataSource.get().getSplits()) {
         stageStats.addGetSplitDuration(Duration.nanosSince(getSplitStart));
         long scheduleSplitStart=System.nanoTime();
-        Node chosen=chooseNode(assignment);
+        Node chosen=chooseNode(nodeSelector,split);
         if (getState().isDone()) {
           break;
         }
         RemoteTask task=tasks.get(chosen);
         if (task == null) {
-          scheduleTask(nextTaskId,chosen,assignment.getSplit());
+          scheduleTask(nextTaskId,chosen,split);
           stageStats.addScheduleTaskDuration(Duration.nanosSince(scheduleSplitStart));
         }
  else {
-          task.addSplit(assignment.getSplit());
+          task.addSplit(split);
           stageStats.addAddSplitDuration(Duration.nanosSince(scheduleSplitStart));
         }
         getSplitStart=System.nanoTime();

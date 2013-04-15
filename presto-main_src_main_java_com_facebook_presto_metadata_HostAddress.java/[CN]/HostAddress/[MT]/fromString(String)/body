@@ -1,0 +1,43 @@
+{
+  if (hostPortString == null) {
+    throw new NullPointerException("hostPortString is null");
+  }
+  String host;
+  String portString=null;
+  boolean hasBracketlessColons=false;
+  if (hostPortString.startsWith("[")) {
+    Matcher matcher=BRACKET_PATTERN.matcher(hostPortString);
+    if (!matcher.matches()) {
+      throw new IllegalArgumentException("Invalid bracketed host/port: " + hostPortString);
+    }
+    host=matcher.group(1);
+    portString=matcher.group(2);
+  }
+ else {
+    int colonPos=hostPortString.indexOf(':');
+    if (colonPos >= 0 && hostPortString.indexOf(':',colonPos + 1) == -1) {
+      host=hostPortString.substring(0,colonPos);
+      portString=hostPortString.substring(colonPos + 1);
+    }
+ else {
+      host=hostPortString;
+      hasBracketlessColons=(colonPos >= 0);
+    }
+  }
+  int port=NO_PORT;
+  if (portString != null && portString.length() != 0) {
+    if (portString.startsWith("+")) {
+      throw new IllegalArgumentException("Unparseable port number: " + hostPortString);
+    }
+    try {
+      port=Integer.parseInt(portString);
+    }
+ catch (    NumberFormatException e) {
+      throw new IllegalArgumentException("Unparseable port number: " + hostPortString);
+    }
+    if (!isValidPort(port)) {
+      throw new IllegalArgumentException("Port number out of range: " + hostPortString);
+    }
+  }
+  return new HostAddress(host,port,hasBracketlessColons);
+}

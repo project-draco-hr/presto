@@ -1,0 +1,11 @@
+{
+  Map<String,Node> nodesById=uniqueIndex(nodeManager.getActiveNodes(),Node.getIdentifierFunction());
+  Multimap<Long,String> shardNodes=shardManager.getCommittedShardNodes(handle.getTableId());
+  ImmutableList.Builder<Split> splits=ImmutableList.builder();
+  for (  Map.Entry<Long,Collection<String>> entry : shardNodes.asMap().entrySet()) {
+    List<HostAddress> addresses=getAddressesForNodes(nodesById,entry.getValue());
+    Split split=new NativeSplit(entry.getKey(),addresses);
+    splits.add(split);
+  }
+  return new DataSource("native",splits.build());
+}

@@ -1,0 +1,13 @@
+{
+  this.fragment=checkNotNull(fragment,"fragment is null");
+  this.dataSource=checkNotNull(dataSource,"dataSource is null");
+  this.subStages=ImmutableList.copyOf(checkNotNull(subStages,"dependencies is null"));
+  this.outputReceivers=ImmutableMap.copyOf(checkNotNull(outputReceivers,"outputReceivers is null"));
+  tupleInfos=ImmutableList.copyOf(IterableTransformer.on(fragment.getRoot().getOutputSymbols()).transform(Functions.forMap(fragment.getSymbols())).transform(com.facebook.presto.sql.analyzer.Type.toRaw()).transform(new Function<Type,TupleInfo>(){
+    @Override public TupleInfo apply(    Type input){
+      return new TupleInfo(input);
+    }
+  }
+).list());
+  fieldNames=(fragment.getRoot() instanceof OutputNode) ? Optional.<List<String>>of(ImmutableList.copyOf(((OutputNode)fragment.getRoot()).getColumnNames())) : Optional.<List<String>>absent();
+}

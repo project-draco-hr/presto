@@ -1,0 +1,23 @@
+{
+  checkNotNull(planNodeId,"planNodeId is null");
+  checkNotNull(session,"session is null");
+  checkNotNull(handle,"handle is null");
+  checkNotNull(predicate,"predicate is null");
+  checkNotNull(partitionPredicate,"partitionPredicate is null");
+  checkNotNull(mappings,"mappings is null");
+  if (handle instanceof NativeTableHandle) {
+    return getNativeSplits((NativeTableHandle)handle);
+  }
+ else   if (handle instanceof InternalTableHandle) {
+    return getInternalSplits((InternalTableHandle)handle,predicate,mappings);
+  }
+ else   if (handle instanceof ImportTableHandle) {
+    return getImportSplits(session,(ImportTableHandle)handle,predicate,mappings);
+  }
+ else   if (handle instanceof TpchTableHandle) {
+    return getTpchSplits((TpchTableHandle)handle);
+  }
+ else {
+    throw new IllegalArgumentException("unsupported handle type: " + handle);
+  }
+}

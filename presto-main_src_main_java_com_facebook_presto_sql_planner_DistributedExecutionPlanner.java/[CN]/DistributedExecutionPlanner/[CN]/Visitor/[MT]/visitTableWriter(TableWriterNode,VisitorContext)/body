@@ -1,7 +1,9 @@
 {
   TableWriter tableWriter=new TableWriter(node,shardManager);
   NodeSplits nodeSplits=node.getSource().accept(this,new VisitorContext(context.getInheritedPredicate(),tableWriter.getPartitionPredicate()));
-  checkState(nodeSplits.splits.isPresent(),"No splits present for import");
+  checkState(nodeSplits.dataSource.isPresent(),"No splits present for import");
+  DataSource dataSource=nodeSplits.dataSource.get();
   outputReceivers.put(node.getId(),tableWriter.getOutputReceiver());
-  return new NodeSplits(node.getId(),Optional.of(tableWriter.getSplitAssignments(nodeSplits.planNodeId,nodeSplits.splits.get())));
+  Iterable<Split> newSplits=tableWriter.wrapSplits(nodeSplits.planNodeId,dataSource.getSplits());
+  return new NodeSplits(node.getId(),new DataSource(dataSource.getDataSourceName(),newSplits));
 }

@@ -1,0 +1,11 @@
+{
+  Set<Node> nodes=nodeManager.getActiveNodes();
+  int totalParts=nodes.size();
+  int partNumber=0;
+  ImmutableList.Builder<Split> splits=ImmutableList.builder();
+  for (  Node node : nodes) {
+    TpchSplit tpchSplit=new TpchSplit(handle,partNumber++,totalParts,ImmutableList.of(node.getHostAndPort()));
+    splits.add(tpchSplit);
+  }
+  return new DataSource("tpch",splits.build());
+}

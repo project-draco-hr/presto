@@ -1,22 +1,18 @@
 {
   if (sourceIterator.hasNext()) {
-    SplitAssignments sourceAssignment=sourceIterator.next();
-    Split split=sourceAssignment.getSplit();
-    NativeSplit writingSplit=new NativeSplit(shardManager.allocateShard(tableWriterNode.getTable()));
+    Split sourceSplit=sourceIterator.next();
+    NativeSplit writingSplit=new NativeSplit(shardManager.allocateShard(tableWriterNode.getTable()),sourceSplit.getAddresses());
     String partition="unpartitioned";
     boolean lastSplit=false;
-    if (split instanceof PartitionedSplit) {
-      PartitionedSplit partitionedSplit=(PartitionedSplit)split;
+    if (sourceSplit instanceof PartitionedSplit) {
+      PartitionedSplit partitionedSplit=(PartitionedSplit)sourceSplit;
       partition=partitionedSplit.getPartition();
       lastSplit=partitionedSplit.isLastSplit();
     }
     addPartitionShard(partition,lastSplit,writingSplit.getShardId());
-    ImmutableMap.Builder<PlanNodeId,Split> builder=ImmutableMap.builder();
-    builder.put(planNodeId,split);
-    builder.put(tableWriterNode.getId(),writingSplit);
-    CollocatedSplit collocatedSplit=new CollocatedSplit(builder.build());
+    CollocatedSplit collocatedSplit=new CollocatedSplit(ImmutableMap.of(planNodeId,sourceSplit,tableWriterNode.getId(),writingSplit),sourceSplit.getAddresses(),sourceSplit.isRemotelyAccessible());
     shardsInFlight.incrementAndGet();
-    return new SplitAssignments(collocatedSplit,sourceAssignment.getNodes());
+    return collocatedSplit;
   }
  else {
     finishOpenPartitions();

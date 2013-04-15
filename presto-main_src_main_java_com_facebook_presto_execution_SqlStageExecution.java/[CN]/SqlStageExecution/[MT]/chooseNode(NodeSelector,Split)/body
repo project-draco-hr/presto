@@ -1,0 +1,22 @@
+{
+  while (true) {
+    if (getState().isDone()) {
+      return null;
+    }
+    Node chosen=nodeSelector.selectNode(split);
+    RemoteTask task=tasks.get(chosen);
+    if (task == null || task.getQueuedSplits() < maxPendingSplitsPerNode) {
+      return chosen;
+    }
+synchronized (this) {
+      try {
+        TimeUnit.SECONDS.timedWait(this,1);
+      }
+ catch (      InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw Throwables.propagate(e);
+      }
+    }
+    addNewExchangesAndBuffers(false);
+  }
+}
