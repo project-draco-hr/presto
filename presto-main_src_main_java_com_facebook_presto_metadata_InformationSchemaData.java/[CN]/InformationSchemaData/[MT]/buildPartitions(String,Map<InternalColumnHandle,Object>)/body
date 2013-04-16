@@ -1,13 +1,16 @@
 {
-  QualifiedTablePrefix qualifiedTablePrefix=extractQualifiedTablePrefix(catalogName,filters);
-  checkArgument(qualifiedTablePrefix.getSchemaName().isPresent(),"filter is required for column: %s.%s",TABLE_INTERNAL_PARTITIONS,"table_schema");
-  checkArgument(qualifiedTablePrefix.getTableName().isPresent(),"filter is required for column: %s.%s",TABLE_INTERNAL_PARTITIONS,"table_name");
+  QualifiedTableName tableName=extractQualifiedTableName(catalogName,filters);
   InternalTable.Builder table=InternalTable.builder(informationSchemaTableColumns(TABLE_INTERNAL_PARTITIONS));
   int partitionNumber=1;
-  List<Map<String,String>> partitions=metadata.listTablePartitionValues(qualifiedTablePrefix);
-  for (  Map<String,String> partition : partitions) {
-    for (    Map.Entry<String,String> entry : partition.entrySet()) {
-      table.add(table.getTupleInfo().builder().append(catalogName).append(qualifiedTablePrefix.getSchemaName().get()).append(qualifiedTablePrefix.getTableName().get()).append(partitionNumber).append(entry.getKey()).append(entry.getValue()).build());
+  Optional<TableHandle> tableHandle=metadata.getTableHandle(tableName);
+  checkArgument(tableHandle.isPresent(),"Table %s does not exist",tableName);
+  Map<ColumnHandle,String> columnHandles=ImmutableBiMap.copyOf(metadata.getColumnHandles(tableHandle.get())).inverse();
+  List<Partition> partitions=splitManager.getPartitions(tableHandle.get(),Optional.<Map<ColumnHandle,Object>>absent());
+  for (  Partition partition : partitions) {
+    for (    Map.Entry<ColumnHandle,String> entry : partition.getKeys().entrySet()) {
+      ColumnHandle columnHandle=entry.getKey();
+      String columnName=columnHandles.get(columnHandle);
+      table.add(table.getTupleInfo().builder().append(catalogName).append(tableName.getSchemaName()).append(tableName.getTableName()).append(partitionNumber).append(columnName).append(entry.getValue()).build());
     }
     partitionNumber++;
   }
