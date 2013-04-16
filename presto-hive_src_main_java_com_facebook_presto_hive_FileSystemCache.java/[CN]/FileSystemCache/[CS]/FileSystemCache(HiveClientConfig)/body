@@ -1,12 +1,3 @@
 {
-  checkNotNull(hiveClientConfig,"hiveClientConfig is null");
-  checkArgument(hiveClientConfig.getDfsTimeout().toMillis() >= 1,"dfsTimeout must be at least 1 ms");
-  this.socksProxy=hiveClientConfig.getMetastoreSocksProxy();
-  this.dfsTimeout=hiveClientConfig.getDfsTimeout();
-  cache=CacheBuilder.newBuilder().expireAfterAccess((long)hiveClientConfig.getFileSystemCacheTtl().toMillis(),TimeUnit.MILLISECONDS).build(new CacheLoader<PathAndKey,FileSystem>(){
-    @Override public FileSystem load(    PathAndKey pathAndKey) throws Exception {
-      return FileSystem.get(pathAndKey.getPath().toUri(),hadoopConfiguration.get());
-    }
-  }
-);
+  cache=CacheBuilder.newBuilder().expireAfterAccess((long)hiveClientConfig.getFileSystemCacheTtl().toMillis(),TimeUnit.MILLISECONDS).build();
 }

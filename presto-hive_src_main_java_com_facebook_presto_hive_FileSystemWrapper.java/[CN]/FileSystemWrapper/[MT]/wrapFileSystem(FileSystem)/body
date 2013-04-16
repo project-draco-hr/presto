@@ -1,0 +1,75 @@
+{
+  return new ForwardingFileSystem(fileSystem){
+    private FileStatus[] wrapFileStatuses(    FileStatus[] fileStatuses){
+      if (fileStatuses == null) {
+        return null;
+      }
+      FileStatus[] newFileStatuses=new FileStatus[fileStatuses.length];
+      for (int i=0; i < fileStatuses.length; i++) {
+        newFileStatuses[i]=wrap(fileStatuses[i]);
+      }
+      return newFileStatuses;
+    }
+    @Override public Path makeQualified(    Path path){
+      return wrap(super.makeQualified(path));
+    }
+    @Override public FileStatus[] listStatus(    Path f) throws IOException {
+      return wrapFileStatuses(super.listStatus(f));
+    }
+    @Override public RemoteIterator<LocatedFileStatus> listLocatedStatus(    Path f) throws FileNotFoundException, IOException {
+      return new ForwardingRemoteIterator<LocatedFileStatus>(super.listLocatedStatus(f)){
+        @Override public LocatedFileStatus next() throws IOException {
+          return wrap(super.next());
+        }
+      }
+;
+    }
+    @Override public RemoteIterator<LocatedFileStatus> listLocatedStatus(    Path f,    PathFilter filter) throws FileNotFoundException, IOException {
+      return new ForwardingRemoteIterator<LocatedFileStatus>(super.listLocatedStatus(f,filter)){
+        @Override public LocatedFileStatus next() throws IOException {
+          return wrap(super.next());
+        }
+      }
+;
+    }
+    @Override public RemoteIterator<Path> listCorruptFileBlocks(    Path path) throws IOException {
+      return new ForwardingRemoteIterator<Path>(super.listCorruptFileBlocks(path)){
+        @Override public Path next() throws IOException {
+          return wrap(super.next());
+        }
+      }
+;
+    }
+    @Override public FileStatus[] listStatus(    Path f,    PathFilter filter) throws IOException {
+      return wrapFileStatuses(super.listStatus(f,filter));
+    }
+    @Override public FileStatus[] listStatus(    Path[] files) throws IOException {
+      return wrapFileStatuses(super.listStatus(files));
+    }
+    @Override public FileStatus[] listStatus(    Path[] files,    PathFilter filter) throws IOException {
+      return wrapFileStatuses(super.listStatus(files,filter));
+    }
+    @Override public FileStatus[] globStatus(    Path pathPattern) throws IOException {
+      return wrapFileStatuses(super.globStatus(pathPattern));
+    }
+    @Override public FileStatus[] globStatus(    Path pathPattern,    PathFilter filter) throws IOException {
+      return wrapFileStatuses(super.globStatus(pathPattern,filter));
+    }
+    @Override public Path getHomeDirectory(){
+      return wrap(super.getHomeDirectory());
+    }
+    @Override public Path getHomeDirectory(    String userName){
+      return wrap(super.getHomeDirectory(userName));
+    }
+    @Override public Path getWorkingDirectory(){
+      return wrap(super.getWorkingDirectory());
+    }
+    @Override public Path startLocalOutput(    Path fsOutputFile,    Path tmpLocalFile) throws IOException {
+      return wrap(super.startLocalOutput(fsOutputFile,tmpLocalFile));
+    }
+    @Override public FileStatus getFileStatus(    Path f) throws IOException {
+      return wrap(super.getFileStatus(f));
+    }
+  }
+;
+}

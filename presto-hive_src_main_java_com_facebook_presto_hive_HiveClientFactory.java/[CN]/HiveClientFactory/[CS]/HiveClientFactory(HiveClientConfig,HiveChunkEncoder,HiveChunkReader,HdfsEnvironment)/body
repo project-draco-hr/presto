@@ -1,0 +1,20 @@
+{
+  checkNotNull(hiveClientConfig,"hiveClientConfig is null");
+  checkNotNull(hiveChunkEncoder,"hiveChunkEncoder is null");
+  checkNotNull(hiveChunkReader,"hiveChunkReader is null");
+  checkNotNull(hdfsEnvironment,"hdfsEnvironment is null");
+  maxChunkSize=hiveClientConfig.getMaxChunkSize();
+  maxOutstandingChunks=hiveClientConfig.getMaxOutstandingChunks();
+  maxChunkIteratorThreads=hiveClientConfig.getMaxChunkIteratorThreads();
+  partitionBatchSize=hiveClientConfig.getPartitionBatchSize();
+  this.hiveChunkEncoder=hiveChunkEncoder;
+  this.hiveChunkReader=hiveChunkReader;
+  this.hdfsEnvironment=hdfsEnvironment;
+  final Duration metastoreCacheTtl=hiveClientConfig.getMetastoreCacheTtl();
+  metastores=CacheBuilder.newBuilder().build(new CacheLoader<HiveCluster,CachingHiveMetastore>(){
+    @Override public CachingHiveMetastore load(    HiveCluster hiveCluster) throws Exception {
+      return new CachingHiveMetastore(hiveCluster,metastoreCacheTtl);
+    }
+  }
+);
+}

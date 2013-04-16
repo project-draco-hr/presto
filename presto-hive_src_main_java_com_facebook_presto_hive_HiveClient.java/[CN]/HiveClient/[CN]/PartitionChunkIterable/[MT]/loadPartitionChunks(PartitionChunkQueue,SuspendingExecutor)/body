@@ -9,12 +9,12 @@
       final String partitionName=nameIterator.next();
       final Properties schema=getPartitionSchema(table,partition);
       final List<HivePartitionKey> partitionKeys=getPartitionKeys(table,partition);
-      final InputFormat<?,?> inputFormat=getInputFormat(fileSystemCache.getConfiguration(),schema,false);
-      Path partitionPath=new CachingPath(getPartitionLocation(table,partition),fileSystemCache);
-      final FileSystem fs=partitionPath.getFileSystem(fileSystemCache.getConfiguration());
+      final InputFormat<?,?> inputFormat=getInputFormat(hdfsEnvironment.getConfiguration(),schema,false);
+      Path partitionPath=hdfsEnvironment.getFileSystemWrapper().wrap(new Path(getPartitionLocation(table,partition)));
+      final FileSystem fs=partitionPath.getFileSystem(hdfsEnvironment.getConfiguration());
       final PartitionChunkPoisoner chunkPoisoner=new PartitionChunkPoisoner(partitionChunkQueue);
       if (inputFormat instanceof SymlinkTextInputFormat) {
-        JobConf jobConf=new JobConf(fileSystemCache.getConfiguration());
+        JobConf jobConf=new JobConf(hdfsEnvironment.getConfiguration());
         FileInputFormat.setInputPaths(jobConf,partitionPath);
         InputSplit[] splits=inputFormat.getSplits(jobConf,0);
         for (        InputSplit rawSplit : splits) {
@@ -27,7 +27,7 @@
       ListenableFuture<Void> partitionFuture=new AsyncRecursiveWalker(fs,suspendingExecutor).beginWalk(partitionPath,new FileStatusCallback(){
         @Override public void process(        FileStatus file){
           try {
-            boolean splittable=isSplittable(inputFormat,file.getPath().getFileSystem(fileSystemCache.getConfiguration()),file.getPath());
+            boolean splittable=isSplittable(inputFormat,file.getPath().getFileSystem(hdfsEnvironment.getConfiguration()),file.getPath());
             chunkPoisoner.writeChunks(createHivePartitionChunks(partitionName,file,0,file.getLen(),schema,partitionKeys,fs,splittable));
           }
  catch (          IOException e) {

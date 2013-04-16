@@ -1,0 +1,18 @@
+{
+  return new Function<Path,Path>(){
+    @Override public Path apply(    final Path path){
+      return new ForwardingPath(path){
+        @Override public FileSystem getFileSystem(        Configuration conf) throws IOException {
+          try {
+            return cache.get(new FileSystemKey(path),createFileSystemFromPath(path,conf));
+          }
+ catch (          ExecutionException|UncheckedExecutionException e) {
+            throw new IOException(e.getCause());
+          }
+        }
+      }
+;
+    }
+  }
+;
+}
