@@ -1,8 +1,10 @@
 {
-  SchemaTableName tableName=getTableName(tableHandle);
-  ImmutableMap.Builder<String,ColumnHandle> builder=ImmutableMap.builder();
-  for (  ColumnMetadata column : getTableMetadata(tableName).getColumns()) {
-    builder.put(column.getName(),new ImportColumnHandle(column.getName(),column.getOrdinalPosition(),column.getType()));
+  Map<String,ColumnHandle> columnHandles=client.getColumnHandles(getClientTableHandle(tableHandle));
+  final ImmutableMap<String,ColumnMetadata> index=indexColumnMetadata(tableHandle);
+  return ImmutableMap.copyOf(Maps.transformEntries(columnHandles,new EntryTransformer<String,ColumnHandle,ColumnHandle>(){
+    @Override public ColumnHandle transformEntry(    String columnName,    ColumnHandle columnHandle){
+      return wrapClientHandle(columnName,columnHandle,index);
+    }
   }
-  return builder.build();
+));
 }

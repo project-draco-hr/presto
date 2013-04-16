@@ -1,9 +1,7 @@
 {
-  SchemaTableName tableName=getTableName(tableHandle);
-  for (  ColumnMetadata column : getTableMetadata(tableName).getColumns()) {
-    if (column.getName().equals(columnName)) {
-      return new ImportColumnHandle(column.getName(),column.getOrdinalPosition(),column.getType());
-    }
+  ColumnHandle columnHandle=client.getColumnHandle(getClientTableHandle(tableHandle),columnName);
+  if (columnHandle == null) {
+    return null;
   }
-  return null;
+  return wrapClientHandle(columnName,columnHandle,indexColumnMetadata(tableHandle));
 }

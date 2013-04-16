@@ -1,12 +1,13 @@
 {
-  List<SchemaField> schema=client.getTableSchema(DATABASE,TABLE);
-  List<PartitionChunk> partitions=ImmutableList.copyOf(client.getPartitionChunks(DATABASE,TABLE,PARTITIONS,ImmutableList.of("t_double")));
+  TableHandle tableHandle=client.getTableHandle(TABLE);
+  SchemaTableMetadata tableMetadata=client.getTableMetadata(tableHandle);
+  List<PartitionChunk> partitions=ImmutableList.copyOf(client.getPartitionChunks(TABLE,PARTITIONS,ImmutableList.of("t_double")));
   assertEquals(partitions.size(),PARTITIONS.size());
   for (  PartitionChunk partitionChunk : partitions) {
     HivePartitionChunk chunk=(HivePartitionChunk)partitionChunk;
     byte[] bytes=client.serializePartitionChunk(chunk);
     chunk=(HivePartitionChunk)client.deserializePartitionChunk(bytes);
-    Map<String,SchemaField> map=schemaFieldMap(schema);
+    Map<String,ColumnMetadata> map=uniqueIndex(tableMetadata.getColumns(),columnNameGetter());
     List<HivePartitionKey> partitionKeys=chunk.getPartitionKeys();
     String ds=partitionKeys.get(0).getValue();
     String fileType=partitionKeys.get(1).getValue();
@@ -16,10 +17,10 @@
     try (RecordCursor cursor=client.getRecords(chunk)){
       while (cursor.advanceNextPosition()) {
         rowNumber++;
-        assertEquals(cursor.getDouble(map.get("t_double").getFieldId()),baseValue + 6.2 + rowNumber);
-        assertEquals(cursor.getString(map.get("ds").getFieldId()),ds.getBytes(Charsets.UTF_8));
-        assertEquals(cursor.getString(map.get("file_format").getFieldId()),fileType.getBytes(Charsets.UTF_8));
-        assertEquals(cursor.getLong(map.get("dummy").getFieldId()),dummy);
+        assertEquals(cursor.getDouble(map.get("t_double").getOrdinalPosition()),baseValue + 6.2 + rowNumber);
+        assertEquals(cursor.getString(map.get("ds").getOrdinalPosition()),ds.getBytes(Charsets.UTF_8));
+        assertEquals(cursor.getString(map.get("file_format").getOrdinalPosition()),fileType.getBytes(Charsets.UTF_8));
+        assertEquals(cursor.getLong(map.get("dummy").getOrdinalPosition()),dummy);
       }
     }
      assertEquals(rowNumber,100);

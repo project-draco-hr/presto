@@ -5,10 +5,10 @@
         @Override public Long call() throws Exception {
           MetadataDao dao=handle.attach(MetadataDao.class);
           long tableId=dao.insertTable(catalogName,tableMetadata.getTable().getSchemaName(),tableMetadata.getTable().getTableName());
-          int position=1;
+          int ordinalPosition=0;
           for (          ColumnMetadata column : tableMetadata.getColumns()) {
-            dao.insertColumn(tableId,column.getName(),position,column.getType().getName());
-            position++;
+            dao.insertColumn(tableId,column.getName(),ordinalPosition,fromColumnType(column.getType()).getName());
+            ordinalPosition++;
           }
           return tableId;
         }

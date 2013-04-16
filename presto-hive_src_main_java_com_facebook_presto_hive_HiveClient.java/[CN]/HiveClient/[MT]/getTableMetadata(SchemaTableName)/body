@@ -1,0 +1,19 @@
+{
+  try {
+    Table table=metastore.getTable(tableName.getSchemaName(),tableName.getTableName());
+    List<FieldSchema> partitionKeys=table.getPartitionKeys();
+    Properties schema=MetaStoreUtils.getSchema(table);
+    List<ColumnMetadata> columns=getColumnMetadata(schema,partitionKeys);
+    ImmutableList.Builder<String> keys=ImmutableList.builder();
+    for (    FieldSchema field : partitionKeys) {
+      keys.add(field.getName());
+    }
+    return new SchemaTableMetadata(tableName,columns,keys.build());
+  }
+ catch (  NoSuchObjectException e) {
+    throw new TableNotFoundException(tableName);
+  }
+catch (  MetaException|SerDeException e) {
+    throw Throwables.propagate(e);
+  }
+}

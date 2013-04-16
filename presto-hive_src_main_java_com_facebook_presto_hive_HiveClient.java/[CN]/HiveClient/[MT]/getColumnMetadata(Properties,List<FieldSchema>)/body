@@ -1,0 +1,23 @@
+{
+  Deserializer deserializer=MetaStoreUtils.getDeserializer(null,schema);
+  ObjectInspector inspector=deserializer.getObjectInspector();
+  checkArgument(inspector.getCategory() == ObjectInspector.Category.STRUCT,"expected STRUCT: %s",inspector.getCategory());
+  StructObjectInspector structObjectInspector=(StructObjectInspector)inspector;
+  ImmutableList.Builder<ColumnMetadata> columns=ImmutableList.builder();
+  for (int i=0; i < partitionKeys.size(); i++) {
+    FieldSchema field=partitionKeys.get(i);
+    ColumnType type=convertHiveType(field.getType());
+    columns.add(new ColumnMetadata(field.getName(),type,i));
+  }
+  List<? extends StructField> fields=structObjectInspector.getAllStructFieldRefs();
+  int columnIndex=partitionKeys.size();
+  for (  StructField field : fields) {
+    ObjectInspector fieldInspector=field.getFieldObjectInspector();
+    HiveType hiveType=HiveType.getHiveType(fieldInspector);
+    if (hiveType != null) {
+      columns.add(new ColumnMetadata(field.getFieldName(),hiveType.getNativeType(),columnIndex));
+    }
+    columnIndex++;
+  }
+  return columns.build();
+}

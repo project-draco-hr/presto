@@ -1,0 +1,26 @@
+{
+  List<String> partitionKeys=getTableMetadata(tableName).getPartitionKeys();
+  List<String> parts=new ArrayList<>();
+  for (  String key : partitionKeys) {
+    Object value=filters.get(key);
+    if (value == null) {
+      break;
+    }
+    Preconditions.checkArgument(value instanceof String || value instanceof Double || value instanceof Long,"Only String, Double and Long partition keys are supported");
+    parts.add(value.toString());
+  }
+  List<PartitionInfo> partitions;
+  if (parts.isEmpty()) {
+    partitions=getPartitions(tableName,filters);
+  }
+ else {
+    try {
+      List<String> names=metastore.getPartitionNamesByParts(tableName.getSchemaName(),tableName.getTableName(),parts);
+      partitions=Lists.transform(names,toPartitionInfo(partitionKeys));
+    }
+ catch (    NoSuchObjectException e) {
+      throw new TableNotFoundException(tableName);
+    }
+  }
+  return ImmutableList.copyOf(Iterables.filter(partitions,partitionMatches(filters)));
+}

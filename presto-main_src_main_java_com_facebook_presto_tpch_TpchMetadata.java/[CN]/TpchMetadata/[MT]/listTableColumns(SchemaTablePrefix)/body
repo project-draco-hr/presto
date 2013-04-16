@@ -1,9 +1,9 @@
 {
-  if (!TPCH_SCHEMA_NAME.equals(prefix.getSchemaName().or(TPCH_SCHEMA_NAME))) {
+  if (prefix.getSchemaName() != null && !TPCH_SCHEMA_NAME.equals(prefix.getSchemaName())) {
     return ImmutableMap.of();
   }
   ImmutableMap.Builder<SchemaTableName,List<ColumnMetadata>> tableColumns=ImmutableMap.builder();
-  for (  SchemaTableName tableName : listTables(prefix.getSchemaName())) {
+  for (  SchemaTableName tableName : listTables(Optional.fromNullable(prefix.getSchemaName()))) {
     int position=1;
     ImmutableList.Builder<ColumnMetadata> columns=ImmutableList.builder();
     for (    ColumnMetadata column : tables.get(tableName.getTableName()).getColumns()) {

@@ -1,8 +1,9 @@
 {
-  return retry().stopOn(ObjectNotFoundException.class).stopOnIllegalExceptions().runUnchecked(new Callable<List<SchemaField>>(){
-    @Override public List<SchemaField> call() throws Exception {
+  return retry().stopOn(NotFoundException.class).stopOnIllegalExceptions().runUnchecked(new Callable<List<String>>(){
+    @Override public List<String> call() throws Exception {
       ImportClient client=importClientManager.getClient(tableName.getCatalogName());
-      return client.getPartitionKeys(tableName.getSchemaName(),tableName.getTableName());
+      TableHandle tableHandle=client.getTableHandle(tableName.asSchemaTableName());
+      return client.getTableMetadata(tableHandle).getPartitionKeys();
     }
   }
 );

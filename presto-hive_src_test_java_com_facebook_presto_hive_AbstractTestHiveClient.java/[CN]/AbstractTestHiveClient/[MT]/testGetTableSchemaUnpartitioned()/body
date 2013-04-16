@@ -1,6 +1,7 @@
 {
-  List<SchemaField> schema=client.getTableSchema(DATABASE,TABLE_UNPARTITIONED);
-  Map<String,SchemaField> map=schemaFieldMap(schema);
-  assertPrimitiveField(map,"t_string",Type.STRING);
-  assertPrimitiveField(map,"t_tinyint",Type.LONG);
+  TableHandle tableHandle=client.getTableHandle(TABLE_UNPARTITIONED);
+  SchemaTableMetadata tableMetadata=client.getTableMetadata(tableHandle);
+  Map<String,ColumnMetadata> map=uniqueIndex(tableMetadata.getColumns(),columnNameGetter());
+  assertPrimitiveField(map,"t_string",ColumnType.STRING);
+  assertPrimitiveField(map,"t_tinyint",ColumnType.LONG);
 }
