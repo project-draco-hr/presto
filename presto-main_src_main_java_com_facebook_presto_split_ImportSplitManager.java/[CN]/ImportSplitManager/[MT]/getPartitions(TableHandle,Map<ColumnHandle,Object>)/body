@@ -2,15 +2,9 @@
   checkArgument(table instanceof ImportTableHandle,"Table is not an import table %s",table);
   ImportTableHandle importTableHandle=(ImportTableHandle)table;
   final TableHandle clientTableHandle=importTableHandle.getTableHandle();
-  ImmutableMap.Builder<ColumnHandle,Object> builder=ImmutableMap.builder();
-  for (  Entry<ColumnHandle,Object> entry : bindings.entrySet()) {
-    ColumnHandle columnHandle=((ImportColumnHandle)entry.getKey()).getColumnHandle();
-    builder.put(columnHandle,entry.getValue());
-  }
-  final ImmutableMap<ColumnHandle,Object> columnBindings=builder.build();
   return retry().stopOn(NotFoundException.class).stopOnIllegalExceptions().runUnchecked(new Callable<List<Partition>>(){
     @Override public List<Partition> call() throws Exception {
-      return importClient.getPartitions(clientTableHandle,columnBindings);
+      return importClient.getPartitions(clientTableHandle,bindings);
     }
   }
 );
