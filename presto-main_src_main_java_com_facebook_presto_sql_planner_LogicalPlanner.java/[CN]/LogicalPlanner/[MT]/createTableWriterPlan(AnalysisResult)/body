@@ -3,16 +3,11 @@
   QualifiedTableName destination=Iterables.getOnlyElement(analysis.getDestinations());
   AnalysisResult queryAnalysis=analysis.getAnalysis(destination);
   PlanNode queryNode=createQueryPlan(queryAnalysis);
-  ImmutableList.Builder<ColumnMetadata> columns=ImmutableList.builder();
-  for (  Field field : queryAnalysis.getOutputDescriptor().getFields()) {
-    ColumnMetadata columnMetadata=new ColumnMetadata(field.getAttribute().get(),field.getType().getRawType());
-    columns.add(columnMetadata);
-  }
-  TableMetadata dstTableMetadata=createTable(metadata,destination,columns.build());
-  checkState(dstTableMetadata.getTableHandle().isPresent(),"can not import into a table without table handle");
-  checkState(dstTableMetadata.getTableHandle().get().getDataSourceType() == DataSourceType.NATIVE,"can not import into non-native table %s",dstTableMetadata.getTable());
-  QualifiedTableName srcTableName=getTableNameFromQuery(session,queryAnalysis);
-  storageManager.insertSourceTable(((NativeTableHandle)dstTableMetadata.getTableHandle().get()),srcTableName);
+  TableMetadata dstTableMetadata=metadata.getTable(destination);
+  checkState(dstTableMetadata != null,"Destination table %s must exist!",destination);
+  Optional<TableHandle> dstTableHandle=dstTableMetadata.getTableHandle();
+  checkState(dstTableHandle.isPresent(),"can not import into a table without table handle");
+  checkState(dstTableHandle.get().getDataSourceType() == DataSourceType.NATIVE,"can not import into non-native table %s",dstTableMetadata.getTable());
   ImmutableMap.Builder<Symbol,ColumnHandle> columnHandlesBuilder=ImmutableMap.builder();
   ImmutableMap.Builder<Symbol,Type> inputTypesBuilder=ImmutableMap.builder();
   ImmutableList.Builder<Symbol> inputSymbolsBuilder=ImmutableList.builder();
@@ -27,7 +22,7 @@
   for (  Field field : analysis.getOutputDescriptor().getFields()) {
     outputTypesBuilder.put(field.getSymbol(),field.getType());
   }
-  TableWriterNode writerNode=new TableWriterNode(idAllocator.getNextId(),queryNode,dstTableMetadata.getTableHandle().get(),inputSymbolsBuilder.build(),inputTypesBuilder.build(),columnHandlesBuilder.build(),outputTypesBuilder.build());
+  TableWriterNode writerNode=new TableWriterNode(idAllocator.getNextId(),queryNode,dstTableHandle.get(),inputSymbolsBuilder.build(),inputTypesBuilder.build(),columnHandlesBuilder.build(),outputTypesBuilder.build());
   Map<Symbol,AnalyzedExpression> outputExpressions=analysis.getOutputExpressions();
   checkState(outputExpressions.size() == 1,"only a single output symbol is supported");
   Symbol outputSymbol=Iterables.getOnlyElement(outputExpressions.keySet());
