@@ -14,5 +14,11 @@
   checkState(dstTableHandle.get().getDataSourceType() == DataSourceType.NATIVE,"can not import into non-native table %s",dstTableMetadata.getTable());
   QualifiedTableName srcTableName=getTableNameFromQuery(session,queryAnalysis);
   storageManager.insertTableSource(((NativeTableHandle)dstTableHandle.get()),srcTableName);
+  if (statement.getRefresh().isPresent()) {
+    int importInterval=Integer.parseInt(statement.getRefresh().get());
+    checkState(importInterval > 0,"import interval must be > 0");
+    PeriodicImportJob job=PeriodicImportJob.createJob(srcTableName,dstTableMetadata.getTable(),importInterval);
+    periodicImportManager.insertJob(job);
+  }
   return tableWriterResult(context,dstTableName,queryAnalysis);
 }
