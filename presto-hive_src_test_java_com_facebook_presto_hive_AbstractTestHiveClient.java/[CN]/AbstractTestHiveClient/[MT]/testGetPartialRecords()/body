@@ -2,7 +2,8 @@
   TableHandle tableHandle=client.getTableHandle(TABLE);
   SchemaTableMetadata tableMetadata=client.getTableMetadata(tableHandle);
   List<Partition> partitions=client.getPartitions(tableHandle,ImmutableMap.<ColumnHandle,Object>of());
-  List<PartitionChunk> partitionChunks=ImmutableList.copyOf(client.getPartitionChunks(partitions,ImmutableList.of(client.getColumnHandle(tableHandle,"t_double"))));
+  ImmutableList<ColumnHandle> columns=ImmutableList.copyOf(client.getColumnHandles(tableHandle).values());
+  List<PartitionChunk> partitionChunks=ImmutableList.copyOf(client.getPartitionChunks(partitions));
   assertEquals(partitionChunks.size(),PARTITIONS.size());
   for (  PartitionChunk partitionChunk : partitionChunks) {
     HivePartitionChunk chunk=(HivePartitionChunk)partitionChunk;
@@ -15,7 +16,7 @@
     long dummy=Long.parseLong(partitionKeys.get(2).getValue());
     long baseValue=getBaseValueForFileType(fileType);
     long rowNumber=0;
-    try (RecordCursor cursor=client.getRecords(chunk)){
+    try (RecordCursor cursor=client.getRecords(chunk,columns)){
       while (cursor.advanceNextPosition()) {
         rowNumber++;
         assertEquals(cursor.getDouble(map.get("t_double").getOrdinalPosition()),baseValue + 6.2 + rowNumber);
