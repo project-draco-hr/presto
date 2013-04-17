@@ -1,11 +1,7 @@
 {
   QualifiedTableName dstTableName=MetadataUtil.createQualifiedTableName(session,statement.getName());
   TableMetadata dstTableMetadata=metadata.getTable(dstTableName);
-  if (dstTableMetadata != null) {
-    checkState(dstTableMetadata.getTableHandle().isPresent(),"no table handle for %s",dstTableName);
-    DataSourceType dataSourceType=dstTableMetadata.getTableHandle().get().getDataSourceType();
-    checkState(DataSourceType.NATIVE == dataSourceType,"%s is not a native table, can only create native tables",dstTableName);
-  }
+  checkState(dstTableMetadata == null,"Destination table %s already exists!",dstTableName);
   Field resultField=Field.getField("imported_rows",context.getSymbolAllocator().newSymbol("imported_rows",Type.LONG),Type.LONG);
   AnalyzedExpression resultFieldExpression=new AnalyzedExpression(resultField.getType(),QueryUtil.nameReference(resultField.getAttribute().get()));
   AnalyzedOutput output=new AnalyzedOutput(new TupleDescriptor(ImmutableList.<Field>of(resultField)),ImmutableMap.of(resultField.getSymbol(),resultFieldExpression));
