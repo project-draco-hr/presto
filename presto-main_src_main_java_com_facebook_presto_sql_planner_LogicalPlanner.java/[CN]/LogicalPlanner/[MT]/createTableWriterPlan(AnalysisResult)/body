@@ -8,7 +8,9 @@
     ColumnMetadata columnMetadata=new ColumnMetadata(field.getAttribute().get(),field.getType().getRawType());
     columns.add(columnMetadata);
   }
-  TableMetadata tableMetadata=findOrCreateTable(metadata,destination,columns.build());
+  TableMetadata dstTableMetadata=createTable(metadata,destination,columns.build());
+  checkState(dstTableMetadata.getTableHandle().isPresent(),"can not import into a table without table handle");
+  QualifiedTableName srcTableName=getTableNameFromQuery(session,queryAnalysis);
   checkState(tableMetadata.getTableHandle().isPresent(),"can not import into a table without table handle");
   ImmutableMap.Builder<Symbol,ColumnHandle> columnHandlesBuilder=ImmutableMap.builder();
   ImmutableMap.Builder<Symbol,Type> inputTypesBuilder=ImmutableMap.builder();
