@@ -6,8 +6,12 @@
   Request request=prepareGet().setUri(current().getNextUri()).build();
   Exception cause=null;
   long start=System.nanoTime();
-  while ((System.nanoTime() - start) < MINUTES.toNanos(2)) {
-    requestRateLimiter.acquire();
+  long attempts=0;
+  do {
+    if (attempts > 0) {
+      sleepUninterruptibly(attempts * 100,MILLISECONDS);
+    }
+    attempts++;
     JsonResponse<QueryResults> response;
     try {
       response=httpClient.execute(request,responseHandler);
@@ -25,6 +29,7 @@
       throw new RuntimeException(format("Error fetching next at %s returned %s: %s",request.getUri(),response.getStatusCode(),response.getStatusMessage()));
     }
   }
+ while ((System.nanoTime() - start) < MINUTES.toNanos(2));
   gone.set(true);
   throw new RuntimeException("Error fetching next",cause);
 }
