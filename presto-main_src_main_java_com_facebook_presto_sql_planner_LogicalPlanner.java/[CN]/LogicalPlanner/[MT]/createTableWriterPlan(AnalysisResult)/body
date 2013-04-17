@@ -10,15 +10,16 @@
   }
   TableMetadata dstTableMetadata=createTable(metadata,destination,columns.build());
   checkState(dstTableMetadata.getTableHandle().isPresent(),"can not import into a table without table handle");
+  checkState(dstTableMetadata.getTableHandle().get().getDataSourceType() == DataSourceType.NATIVE,"can not import into non-native table %s",dstTableMetadata.getTable());
   QualifiedTableName srcTableName=getTableNameFromQuery(session,queryAnalysis);
-  checkState(tableMetadata.getTableHandle().isPresent(),"can not import into a table without table handle");
+  storageManager.insertSourceTable(((NativeTableHandle)dstTableMetadata.getTableHandle().get()),srcTableName);
   ImmutableMap.Builder<Symbol,ColumnHandle> columnHandlesBuilder=ImmutableMap.builder();
   ImmutableMap.Builder<Symbol,Type> inputTypesBuilder=ImmutableMap.builder();
   ImmutableList.Builder<Symbol> inputSymbolsBuilder=ImmutableList.builder();
   for (  Field field : queryAnalysis.getOutputDescriptor().getFields()) {
     inputTypesBuilder.put(field.getSymbol(),field.getType());
     inputSymbolsBuilder.add(field.getSymbol());
-    ColumnHandle columnHandle=findColumnHandle(field,tableMetadata);
+    ColumnHandle columnHandle=findColumnHandle(field,dstTableMetadata);
     checkState(columnHandle != null,"Could not match symbol %s to any table column!",field.getSymbol());
     columnHandlesBuilder.put(field.getSymbol(),columnHandle);
   }
@@ -26,7 +27,7 @@
   for (  Field field : analysis.getOutputDescriptor().getFields()) {
     outputTypesBuilder.put(field.getSymbol(),field.getType());
   }
-  TableWriterNode writerNode=new TableWriterNode(idAllocator.getNextId(),queryNode,tableMetadata.getTableHandle().get(),inputSymbolsBuilder.build(),inputTypesBuilder.build(),columnHandlesBuilder.build(),outputTypesBuilder.build());
+  TableWriterNode writerNode=new TableWriterNode(idAllocator.getNextId(),queryNode,dstTableMetadata.getTableHandle().get(),inputSymbolsBuilder.build(),inputTypesBuilder.build(),columnHandlesBuilder.build(),outputTypesBuilder.build());
   Map<Symbol,AnalyzedExpression> outputExpressions=analysis.getOutputExpressions();
   checkState(outputExpressions.size() == 1,"only a single output symbol is supported");
   Symbol outputSymbol=Iterables.getOnlyElement(outputExpressions.keySet());
