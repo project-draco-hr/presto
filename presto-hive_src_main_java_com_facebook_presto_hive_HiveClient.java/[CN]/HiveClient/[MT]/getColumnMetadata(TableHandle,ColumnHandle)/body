@@ -1,10 +1,5 @@
 {
-  SchemaTableMetadata tableMetadata=getTableMetadata(tableHandle);
-  String columnName=((HiveColumnHandle)columnHandle).getColumnName();
-  for (  ColumnMetadata column : tableMetadata.getColumns()) {
-    if (column.getName().equals(columnName)) {
-      return column;
-    }
-  }
-  throw new ColumnNotFoundException(getTableName(tableHandle),columnName);
+  checkArgument(tableHandle instanceof HiveTableHandle,"tableHandle is not an instance of HiveTableHandle");
+  checkArgument(columnHandle instanceof HiveColumnHandle,"columnHandle is not an instance of HiveColumnHandle");
+  return ((HiveColumnHandle)columnHandle).getColumnMetadata();
 }

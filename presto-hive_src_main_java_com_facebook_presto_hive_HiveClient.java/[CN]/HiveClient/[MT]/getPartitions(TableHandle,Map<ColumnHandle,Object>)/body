@@ -1,32 +1,38 @@
 {
-  SchemaTableName tableName=getTableName(table);
-  List<String> partitionColumns=getTableMetadata(tableName).getPartitionKeys();
-  List<String> parts=new ArrayList<>();
-  for (  String partitionColumn : partitionColumns) {
-    Object value=bindings.get(new HiveColumnHandle(partitionColumn));
-    if (value == null) {
-      break;
+  SchemaTableName tableName=getTableName(tableHandle);
+  List<FieldSchema> partitionKeys;
+  try {
+    partitionKeys=metastore.getTable(tableName.getSchemaName(),tableName.getTableName()).getPartitionKeys();
+  }
+ catch (  NoSuchObjectException e) {
+    throw new TableNotFoundException(tableName);
+  }
+  LinkedHashMap<String,ColumnHandle> partitionKeysByName=new LinkedHashMap<>();
+  List<String> filterPrefix=new ArrayList<>();
+  for (int i=0; i < partitionKeys.size(); i++) {
+    FieldSchema field=partitionKeys.get(i);
+    HiveColumnHandle columnHandle=new HiveColumnHandle(field.getName(),i,getHiveType(field.getType()),-1,true);
+    partitionKeysByName.put(field.getName(),columnHandle);
+    if (filterPrefix.size() == i) {
+      Object value=bindings.get(columnHandle);
+      if (value != null) {
+        Preconditions.checkArgument(value instanceof String || value instanceof Double || value instanceof Long,"Only String, Double and Long partition keys are supported");
+        filterPrefix.add(value.toString());
+      }
     }
-    Preconditions.checkArgument(value instanceof String || value instanceof Double || value instanceof Long,"Only String, Double and Long partition keys are supported");
-    parts.add(value.toString());
   }
   List<String> partitionNames;
-  if (parts.isEmpty()) {
-    try {
+  try {
+    if (filterPrefix.isEmpty()) {
       partitionNames=metastore.getPartitionNames(tableName.getSchemaName(),tableName.getTableName());
     }
- catch (    NoSuchObjectException e) {
-      throw new TableNotFoundException(tableName);
-    }
-  }
  else {
-    try {
-      partitionNames=metastore.getPartitionNamesByParts(tableName.getSchemaName(),tableName.getTableName(),parts);
-    }
- catch (    NoSuchObjectException e) {
-      throw new TableNotFoundException(tableName);
+      partitionNames=metastore.getPartitionNamesByParts(tableName.getSchemaName(),tableName.getTableName(),filterPrefix);
     }
   }
-  Iterable<Partition> partitions=transform(partitionNames,toPartition(tableName));
+ catch (  NoSuchObjectException e) {
+    throw new TableNotFoundException(tableName);
+  }
+  Iterable<Partition> partitions=transform(partitionNames,toPartition(tableName,partitionKeysByName));
   return ImmutableList.copyOf(Iterables.filter(partitions,partitionMatches(bindings)));
 }

@@ -22,5 +22,9 @@
  catch (  NoSuchObjectException e) {
     throw new TableNotFoundException(tableName);
   }
-  return getPartitionChunks(table,ImmutableList.copyOf(partitionNames),hivePartitions,getHiveColumns(table,columns));
+  ImmutableList.Builder<HiveColumnHandle> hiveColumns=ImmutableList.builder();
+  for (  ColumnHandle column : columns) {
+    hiveColumns.add((HiveColumnHandle)column);
+  }
+  return getPartitionChunks(table,ImmutableList.copyOf(partitionNames),hivePartitions,hiveColumns.build());
 }

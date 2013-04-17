@@ -1,7 +1,8 @@
 {
   TableHandle tableHandle=client.getTableHandle(TABLE_UNPARTITIONED);
+  List<ColumnHandle> columns=ImmutableList.copyOf(client.getColumnHandles(tableHandle).values());
   List<Partition> partitions=client.getPartitions(tableHandle,ImmutableMap.<ColumnHandle,Object>of());
-  Iterable<PartitionChunk> iterator=client.getPartitionChunks(partitions,ImmutableList.<ColumnHandle>of());
+  Iterable<PartitionChunk> iterator=client.getPartitionChunks(partitions,columns);
   List<PartitionChunk> chunks=ImmutableList.copyOf(iterator);
   assertEquals(chunks.size(),1);
 }

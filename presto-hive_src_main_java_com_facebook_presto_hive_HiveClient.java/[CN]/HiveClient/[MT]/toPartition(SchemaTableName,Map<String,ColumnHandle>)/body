@@ -1,0 +1,23 @@
+{
+  return new Function<String,Partition>(){
+    @Override public Partition apply(    String partitionId){
+      try {
+        if (partitionId.equals(UNPARTITIONED_ID)) {
+          return new HivePartition(tableName);
+        }
+        LinkedHashMap<String,String> keys=Warehouse.makeSpecFromName(partitionId);
+        ImmutableMap.Builder<ColumnHandle,String> builder=ImmutableMap.builder();
+        for (        Entry<String,String> entry : keys.entrySet()) {
+          ColumnHandle columnHandle=columnsByName.get(entry.getKey());
+          checkArgument(columnHandle != null,"Invalid partition key %s in partition %s",entry.getKey(),partitionId);
+          builder.put(columnHandle,entry.getValue());
+        }
+        return new HivePartition(tableName,partitionId,builder.build());
+      }
+ catch (      MetaException e) {
+        throw Throwables.propagate(e);
+      }
+    }
+  }
+;
+}
