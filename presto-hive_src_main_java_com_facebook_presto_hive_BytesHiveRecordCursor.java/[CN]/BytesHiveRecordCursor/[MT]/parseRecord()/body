@@ -1,28 +1,29 @@
 {
   Arrays.fill(nulls,false);
-  for (int i=0; i < hiveColumnIndexes.length; i++) {
-    int hiveColumnIndex=hiveColumnIndexes[i];
-    if (hiveColumnIndex >= value.size()) {
-      nulls[partitionKeyCount + hiveColumnIndex]=true;
+  for (int outputColumnIndex=0; outputColumnIndex < types.length; outputColumnIndex++) {
+    if (hiveColumnIndexes[outputColumnIndex] < 0) {
+      continue;
+    }
+    if (hiveColumnIndexes[outputColumnIndex] >= value.size()) {
+      nulls[outputColumnIndex]=true;
     }
  else {
-      BytesRefWritable fieldData=value.unCheckedGet(hiveColumnIndex);
+      BytesRefWritable fieldData=value.unCheckedGet(hiveColumnIndexes[outputColumnIndex]);
       byte[] bytes=fieldData.getData();
       int start=fieldData.getStart();
       int length=fieldData.getLength();
-      int column=partitionKeyCount + hiveColumnIndex;
       if (length == "\\N".length() && bytes[start] == '\\' && bytes[start + 1] == 'N') {
-        nulls[column]=true;
+        nulls[outputColumnIndex]=true;
       }
- else       if (hiveTypes[column] == HiveType.MAP || hiveTypes[column] == HiveType.LIST || hiveTypes[column] == HiveType.STRUCT) {
-        LazyObject<? extends ObjectInspector> lazyObject=LazyFactory.createLazyObject(fieldInspectors[i]);
+ else       if (hiveTypes[outputColumnIndex] == HiveType.MAP || hiveTypes[outputColumnIndex] == HiveType.LIST || hiveTypes[outputColumnIndex] == HiveType.STRUCT) {
+        LazyObject<? extends ObjectInspector> lazyObject=LazyFactory.createLazyObject(fieldInspectors[outputColumnIndex]);
         ByteArrayRef byteArrayRef=new ByteArrayRef();
         byteArrayRef.setData(bytes);
         lazyObject.init(byteArrayRef,start,length);
-        strings[column]=SerDeUtils.getJSONString(lazyObject.getObject(),fieldInspectors[i]).getBytes(Charsets.UTF_8);
+        strings[outputColumnIndex]=SerDeUtils.getJSONString(lazyObject.getObject(),fieldInspectors[outputColumnIndex]).getBytes(Charsets.UTF_8);
       }
  else {
-        parsePrimitiveColumn(column,bytes,start,length);
+        parsePrimitiveColumn(outputColumnIndex,bytes,start,length);
       }
     }
   }

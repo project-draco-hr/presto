@@ -11,8 +11,8 @@
     }
     Files.createParentDirs(cachedFile);
     InputSupplier<InputStream> inputSupplier=tableInputSupplierFactory.getInputSupplier(tableName);
-    DelimitedRecordSet records=new DelimitedRecordSet(newReaderSupplier(inputSupplier,UTF_8),Splitter.on("|"));
-    RecordProjectOperator source=new RecordProjectOperator(records,new ImportColumnHandle("column" + columnHandle.getFieldIndex(),columnHandle.getFieldIndex(),columnHandle.getType(),columnHandle));
+    DelimitedRecordSet records=new DelimitedRecordSet(newReaderSupplier(inputSupplier,UTF_8),Splitter.on("|"),columnHandle.getFieldIndex());
+    RecordProjectOperator source=new RecordProjectOperator(records);
     ImportingOperator.importData(source,new BlocksFileWriter(encoding,newOutputStreamSupplier(cachedFile)));
     return cachedFile;
   }

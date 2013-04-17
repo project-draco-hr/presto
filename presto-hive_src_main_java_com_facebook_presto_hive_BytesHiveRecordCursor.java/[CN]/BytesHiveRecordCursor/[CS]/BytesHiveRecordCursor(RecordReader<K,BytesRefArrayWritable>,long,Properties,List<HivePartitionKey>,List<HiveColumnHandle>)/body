@@ -9,36 +9,37 @@
   this.totalBytes=totalBytes;
   this.key=recordReader.createKey();
   this.value=recordReader.createValue();
-  this.partitionKeyCount=partitionKeys.size();
-  int size=partitionKeyCount + Ordering.natural().max(Iterables.transform(columns,hiveColumnIndexGetter())) + 1;
+  int size=columns.size();
   this.types=new ColumnType[size];
   this.hiveTypes=new HiveType[size];
+  this.fieldInspectors=new ObjectInspector[size];
+  this.hiveColumnIndexes=new int[size];
   this.longs=new long[size];
   this.doubles=new double[size];
   this.strings=new byte[size][];
   this.nulls=new boolean[size];
-  for (int columnIndex=0; columnIndex < partitionKeyCount; columnIndex++) {
-    HivePartitionKey partitionKey=partitionKeys.get(columnIndex);
-    this.types[columnIndex]=partitionKey.getHiveType().getNativeType();
-    this.hiveTypes[columnIndex]=partitionKey.getHiveType();
-    byte[] bytes=partitionKey.getValue().getBytes(Charsets.UTF_8);
-    parsePrimitiveColumn(columnIndex,bytes,0,bytes.length);
-  }
   try {
     Deserializer deserializer=MetaStoreUtils.getDeserializer(null,chunkSchema);
     StructObjectInspector rowInspector=(StructObjectInspector)deserializer.getObjectInspector();
-    this.hiveColumnIndexes=new int[columns.size()];
-    this.fieldInspectors=new ObjectInspector[columns.size()];
     for (int i=0; i < columns.size(); i++) {
       HiveColumnHandle column=columns.get(i);
+      types[i]=column.getType();
+      hiveTypes[i]=column.getHiveType();
+      fieldInspectors[i]=rowInspector.getStructFieldRef(column.getName()).getFieldObjectInspector();
       hiveColumnIndexes[i]=column.getHiveColumnIndex();
-      this.types[partitionKeyCount + column.getHiveColumnIndex()]=column.getHiveType().getNativeType();
-      this.hiveTypes[partitionKeyCount + column.getHiveColumnIndex()]=column.getHiveType();
-      StructField field=rowInspector.getStructFieldRef(column.getName());
-      fieldInspectors[i]=field.getFieldObjectInspector();
     }
   }
  catch (  Exception e) {
     throw Throwables.propagate(e);
+  }
+  Map<String,HivePartitionKey> partitionKeysByName=uniqueIndex(partitionKeys,HivePartitionKey.nameGetter());
+  for (int columnIndex=0; columnIndex < columns.size(); columnIndex++) {
+    HiveColumnHandle column=columns.get(columnIndex);
+    if (column.isPartitionKey()) {
+      HivePartitionKey partitionKey=partitionKeysByName.get(column.getName());
+      Preconditions.checkArgument(partitionKey != null,"Unknown partition key %s",column.getName());
+      byte[] bytes=partitionKey.getValue().getBytes(Charsets.UTF_8);
+      parsePrimitiveColumn(columnIndex,bytes,0,bytes.length);
+    }
   }
 }

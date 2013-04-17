@@ -1,28 +1,29 @@
 {
   Arrays.fill(nulls,false);
   Object rowData=deserializer.deserialize(value);
-  for (int i=0; i < hiveColumnIndexes.length; i++) {
-    int hiveColumnIndex=hiveColumnIndexes[i];
-    Object fieldData=rowInspector.getStructFieldData(rowData,structFields[i]);
-    int column=partitionKeyCount + hiveColumnIndex;
-    if (fieldData == null) {
-      nulls[column]=true;
+  for (int outputColumnIndex=0; outputColumnIndex < types.length; outputColumnIndex++) {
+    if (isPartitionColumn[outputColumnIndex]) {
+      continue;
     }
- else     if (hiveTypes[column] == HiveType.MAP || hiveTypes[column] == HiveType.LIST || hiveTypes[column] == HiveType.STRUCT) {
-      strings[column]=SerDeUtils.getJSONString(fieldData,fieldInspectors[i]).getBytes(Charsets.UTF_8);
+    Object fieldData=rowInspector.getStructFieldData(rowData,structFields[outputColumnIndex]);
+    if (fieldData == null) {
+      nulls[outputColumnIndex]=true;
+    }
+ else     if (hiveTypes[outputColumnIndex] == HiveType.MAP || hiveTypes[outputColumnIndex] == HiveType.LIST || hiveTypes[outputColumnIndex] == HiveType.STRUCT) {
+      strings[outputColumnIndex]=SerDeUtils.getJSONString(fieldData,fieldInspectors[outputColumnIndex]).getBytes(Charsets.UTF_8);
     }
  else {
-      Object fieldValue=((PrimitiveObjectInspector)fieldInspectors[i]).getPrimitiveJavaObject(fieldData);
+      Object fieldValue=((PrimitiveObjectInspector)fieldInspectors[outputColumnIndex]).getPrimitiveJavaObject(fieldData);
       checkState(fieldValue != null,"fieldValue should not be null");
-switch (types[column]) {
+switch (types[outputColumnIndex]) {
 case LONG:
-        longs[column]=getLongOrBoolean(fieldValue);
+        longs[outputColumnIndex]=getLongOrBoolean(fieldValue);
       break;
 case DOUBLE:
-    doubles[column]=((Number)fieldValue).doubleValue();
+    doubles[outputColumnIndex]=((Number)fieldValue).doubleValue();
   break;
 case STRING:
-strings[column]=((String)fieldValue).getBytes(Charsets.UTF_8);
+strings[outputColumnIndex]=((String)fieldValue).getBytes(Charsets.UTF_8);
 break;
 }
 }
