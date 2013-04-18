@@ -4,8 +4,14 @@
       JsonBinder.jsonBinder(binder).addSerializerBinding(Expression.class).to(ExpressionSerializer.class);
       JsonBinder.jsonBinder(binder).addDeserializerBinding(Expression.class).to(ExpressionDeserializer.class);
       JsonBinder.jsonBinder(binder).addDeserializerBinding(FunctionCall.class).to(FunctionCallDeserializer.class);
+      binder.bind(HandleResolver.class).in(Scopes.SINGLETON);
     }
   }
 );
+  HandleResolver handleResolver=injector.getInstance(HandleResolver.class);
+  handleResolver.addHandleResolver("native",new NativeHandleResolver());
+  handleResolver.addHandleResolver("tpch",new TpchHandleResolver());
+  handleResolver.addHandleResolver("internal",new InternalHandleResolver());
+  handleResolver.addHandleResolver("import",new ImportHandleResolver());
   return injector.getInstance(JsonCodecFactory.class);
 }
