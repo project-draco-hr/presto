@@ -4,6 +4,11 @@
   if (queryInfo.getState().isDone() && (queryInfo.getState() != QueryState.FINISHED)) {
     exchangeClient.close();
   }
+  if (queryInfo.getOutputStage() == null && queryInfo.getState().isDone()) {
+    exchangeClient.close();
+    columns=ImmutableList.of(new Column("result","varchar"));
+    data=ImmutableSet.<List<Object>>of(ImmutableList.<Object>of("true"));
+  }
   URI nextResultsUri=null;
   if ((!queryInfo.getState().isDone()) || (!exchangeClient.isClosed())) {
     nextResultsUri=createNextResultsUri(uriInfo);
