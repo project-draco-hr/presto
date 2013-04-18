@@ -1,0 +1,24 @@
+{
+  ImmutableList.Builder<FieldOrExpression> outputExpressionBuilder=ImmutableList.builder();
+  for (  Expression expression : node.getSelect().getSelectItems()) {
+    if (expression instanceof AllColumns) {
+      Optional<QualifiedName> starPrefix=((AllColumns)expression).getPrefix();
+      List<TupleDescriptor> descriptors=scope.getDescriptorsMatching(starPrefix);
+      if (descriptors.isEmpty()) {
+        throw new SemanticException(expression,"Table '%s' not found",starPrefix.get());
+      }
+      for (      TupleDescriptor descriptor : descriptors) {
+        for (        Field field : descriptor.getFields()) {
+          outputExpressionBuilder.add(new FieldOrExpression(field));
+        }
+      }
+    }
+ else {
+      Analyzer.analyzeExpression(metadata,scope,analysis,expression);
+      outputExpressionBuilder.add(new FieldOrExpression(unalias(expression)));
+    }
+  }
+  ImmutableList<FieldOrExpression> result=outputExpressionBuilder.build();
+  analysis.setOutputExpressions(node,result);
+  return result;
+}

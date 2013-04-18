@@ -1,0 +1,12 @@
+{
+  TupleDescriptor descriptor=analysis.getOutputDescriptor(node);
+  TableHandle handle=analysis.getTableHandle(node);
+  ImmutableMap.Builder<Field,Symbol> mappings=ImmutableMap.builder();
+  ImmutableMap.Builder<Symbol,ColumnHandle> columns=ImmutableMap.builder();
+  for (  Field field : descriptor.getFields()) {
+    Symbol symbol=symbolAllocator.newSymbol(field.getName().get(),field.getType());
+    mappings.put(field,symbol);
+    columns.put(symbol,analysis.getColumn(field));
+  }
+  return new RelationPlan(mappings.build(),new TableScanNode(idAllocator.getNextId(),handle,columns.build()));
+}

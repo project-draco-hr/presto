@@ -1,0 +1,66 @@
+{
+  QualifiedTableName destination=analysis.getDestination();
+  TableHandle targetTable;
+  List<ColumnHandle> columnHandles;
+  TupleDescriptor inputDescriptor;
+  RelationPlan plan;
+  if (analysis.isDoRefresh()) {
+    targetTable=metadata.getTable(destination).getTableHandle().get();
+    QualifiedTableName sourceTable=storageManager.getTableSource((NativeTableHandle)targetTable);
+    TableMetadata sourceTableMetadata=metadata.getTable(sourceTable);
+    TableHandle sourceTableHandle=sourceTableMetadata.getTableHandle().get();
+    ImmutableMap.Builder<Field,Symbol> mappings=ImmutableMap.builder();
+    ImmutableMap.Builder<Symbol,ColumnHandle> columns=ImmutableMap.builder();
+    ImmutableList.Builder<Field> fields=ImmutableList.builder();
+    ImmutableList.Builder<ColumnHandle> columnHandleBuilder=ImmutableList.builder();
+    int index=0;
+    for (    ColumnMetadata column : sourceTableMetadata.getColumns()) {
+      Field field=new Field(sourceTable.asQualifiedName(),Optional.of(column.getName()),Type.fromRaw(column.getType()),index++);
+      Symbol symbol=symbolAllocator.newSymbol(field);
+      ColumnHandle columnHandle=column.getColumnHandle().get();
+      columns.put(symbol,columnHandle);
+      fields.add(field);
+      columnHandleBuilder.add(columnHandle);
+    }
+    plan=new RelationPlan(mappings.build(),new TableScanNode(idAllocator.getNextId(),sourceTableHandle,columns.build()));
+    columnHandles=columnHandleBuilder.build();
+    inputDescriptor=new TupleDescriptor(fields.build());
+  }
+ else {
+    RelationPlanner planner=new RelationPlanner(analysis,symbolAllocator,idAllocator);
+    plan=planner.process(analysis.getQuery(),null);
+    inputDescriptor=analysis.getOutputDescriptor(analysis.getQuery());
+    ImmutableList.Builder<ColumnMetadata> columns=ImmutableList.builder();
+    for (    Field field : inputDescriptor.getFields()) {
+      String name=field.getName().or("_col" + field.getIndex());
+      ColumnMetadata columnMetadata=new ColumnMetadata(name,field.getType().getRawType());
+      columns.add(columnMetadata);
+    }
+    metadata.createTable(new TableMetadata(destination,columns.build()));
+    TableMetadata tableMetadata=metadata.getTable(destination);
+    targetTable=tableMetadata.getTableHandle().get();
+    columnHandles=Lists.transform(tableMetadata.getColumns(),columnHandleGetter());
+    List<Relation> relations=analysis.getQuery().getFrom();
+    checkState(relations.size() == 1,"Query has more than one source table");
+    Relation relation=Iterables.getOnlyElement(relations);
+    checkState(relation instanceof Table,"FROM clause is not a simple table name");
+    QualifiedTableName sourceTable=MetadataUtil.createQualifiedTableName(session,((Table)relation).getName());
+    storageManager.insertTableSource(((NativeTableHandle)tableMetadata.getTableHandle().get()),sourceTable);
+    if (analysis.getRefreshInterval().isPresent()) {
+      PeriodicImportJob job=PeriodicImportJob.createJob(sourceTable,destination,analysis.getRefreshInterval().get());
+      periodicImportManager.insertJob(job);
+    }
+  }
+  ImmutableMap.Builder<Symbol,ColumnHandle> mappings=ImmutableMap.builder();
+  Iterator<ColumnHandle> columnIterator=columnHandles.iterator();
+  Iterator<Field> fields=inputDescriptor.getFields().iterator();
+  while (columnIterator.hasNext() && fields.hasNext()) {
+    Symbol symbol=plan.getSymbol(fields.next());
+    ColumnHandle column=columnIterator.next();
+    mappings.put(symbol,column);
+  }
+  Symbol output=symbolAllocator.newSymbol("imported_rows",Type.LONG);
+  TableWriterNode writerNode=new TableWriterNode(idAllocator.getNextId(),plan.getRoot(),targetTable,mappings.build(),output);
+  ImmutableMap<Field,Symbol> outputMappings=ImmutableMap.of(Iterables.getOnlyElement(analysis.getOutputDescriptor().getFields()),output);
+  return new RelationPlan(outputMappings,writerNode);
+}

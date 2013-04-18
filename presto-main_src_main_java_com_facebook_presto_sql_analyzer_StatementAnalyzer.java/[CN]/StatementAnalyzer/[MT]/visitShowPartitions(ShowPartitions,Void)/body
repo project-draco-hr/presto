@@ -1,0 +1,11 @@
+{
+  QualifiedTableName table=MetadataUtil.createQualifiedTableName(session,showPartitions.getTable());
+  ImmutableList.Builder<Expression> selectList=ImmutableList.builder();
+  for (  String partition : metadata.listTablePartitionKeys(table)) {
+    Expression key=equal(nameReference("partition_key"),new StringLiteral(partition));
+    Expression function=functionCall("max",caseWhen(key,nameReference("partition_value")));
+    selectList.add(new AliasedExpression(function,partition));
+  }
+  Query query=new Query(selectAll(selectList.build()),table(QualifiedName.of(table.getCatalogName(),INFORMATION_SCHEMA,TABLE_INTERNAL_PARTITIONS)),Optional.of(logicalAnd(equal(nameReference("table_schema"),new StringLiteral(table.getSchemaName())),equal(nameReference("table_name"),new StringLiteral(table.getTableName())))),ImmutableList.of(nameReference("partition_number")),Optional.<Expression>absent(),ImmutableList.of(ascending("partition_number")),Optional.<String>absent());
+  return process(query,context);
+}

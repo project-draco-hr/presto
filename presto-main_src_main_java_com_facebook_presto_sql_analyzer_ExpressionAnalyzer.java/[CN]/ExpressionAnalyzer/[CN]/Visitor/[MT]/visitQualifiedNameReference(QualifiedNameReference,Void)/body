@@ -1,10 +1,19 @@
 {
-  List<Field> matches=descriptor.resolve(node.getName());
+  List<Field> matches=scope.resolve(node.getName());
   if (matches.isEmpty()) {
     throw new SemanticException(node,"Attribute '%s' cannot be resolved",node.getName());
   }
  else   if (matches.size() > 1) {
-    throw new SemanticException(node,"Attribute '%s' is ambiguous. Possible matches: %s",node.getName(),Iterables.transform(matches,nameGetter()));
+    List<String> names=Lists.transform(matches,new Function<Field,String>(){
+      @Override public String apply(      Field input){
+        return input.getRelationAlias().get() + "." + input.getName().get();
+      }
+    }
+);
+    throw new SemanticException(node,"Attribute '%s' is ambiguous: %s",node.getName(),names);
   }
-  return Iterables.getOnlyElement(matches).getType();
+  Field field=Iterables.getOnlyElement(matches);
+  resolvedNames.put(node.getName(),field);
+  subExpressionTypes.put(node,field.getType());
+  return field.getType();
 }

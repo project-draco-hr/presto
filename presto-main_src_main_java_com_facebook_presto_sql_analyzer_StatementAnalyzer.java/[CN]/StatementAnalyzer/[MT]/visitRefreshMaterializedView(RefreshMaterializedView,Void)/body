@@ -1,0 +1,11 @@
+{
+  QualifiedTableName targetTable=MetadataUtil.createQualifiedTableName(session,node.getName());
+  TableMetadata tableMetadata=metadata.getTable(targetTable);
+  if (tableMetadata == null) {
+    throw new SemanticException(node,"Destination table '%s' does not exist",targetTable);
+  }
+  checkState(tableMetadata.getTableHandle().get().getDataSourceType() == DataSourceType.NATIVE,"Cannot import into non-native table %s",tableMetadata.getTable());
+  analysis.setDestination(targetTable);
+  analysis.setDoRefresh(true);
+  return new TupleDescriptor(ImmutableList.of(new Field(Optional.of("imported_rows"),Type.LONG,0)));
+}

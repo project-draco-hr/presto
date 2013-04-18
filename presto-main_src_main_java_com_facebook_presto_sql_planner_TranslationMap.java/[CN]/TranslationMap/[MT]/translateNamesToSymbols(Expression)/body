@@ -1,0 +1,15 @@
+{
+  final Map<QualifiedName,Field> resolvedNames=analysis.getResolvedNames(expression);
+  Preconditions.checkArgument(resolvedNames != null,"No resolved names for expression %s",ExpressionFormatter.toString(expression));
+  return TreeRewriter.rewriteWith(new NodeRewriter<Void>(){
+    @Override public Node rewriteQualifiedNameReference(    QualifiedNameReference node,    Void context,    TreeRewriter<Void> treeRewriter){
+      QualifiedName name=node.getName();
+      Field field=resolvedNames.get(name);
+      Preconditions.checkState(field != null,"No field mapping for name '%s'",name);
+      Symbol symbol=rewriteBase.getSymbol(field);
+      Preconditions.checkState(symbol != null,"No symbol mapping for name '%s' (%s)",name,field);
+      return new QualifiedNameReference(symbol.toQualifiedName());
+    }
+  }
+,expression);
+}

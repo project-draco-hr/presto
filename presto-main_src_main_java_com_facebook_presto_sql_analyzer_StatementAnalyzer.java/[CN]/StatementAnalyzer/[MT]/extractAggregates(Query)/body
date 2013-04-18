@@ -1,0 +1,15 @@
+{
+  AggregateExtractor extractor=new AggregateExtractor(metadata);
+  for (  Expression expression : node.getSelect().getSelectItems()) {
+    expression.accept(extractor,null);
+  }
+  for (  SortItem item : node.getOrderBy()) {
+    item.getSortKey().accept(extractor,null);
+  }
+  if (node.getHaving().isPresent()) {
+    node.getHaving().get().accept(extractor,null);
+  }
+  List<FunctionCall> aggregates=extractor.getAggregates();
+  analysis.setAggregates(node,aggregates);
+  return aggregates;
+}

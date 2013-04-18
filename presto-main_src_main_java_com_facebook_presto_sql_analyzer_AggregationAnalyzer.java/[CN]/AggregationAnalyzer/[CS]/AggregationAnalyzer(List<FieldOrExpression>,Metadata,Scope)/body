@@ -1,0 +1,18 @@
+{
+  Preconditions.checkNotNull(groupByExpressions,"groupByExpressions is null");
+  Preconditions.checkNotNull(metadata,"metadata is null");
+  Preconditions.checkNotNull(scope,"scope is null");
+  this.scope=scope;
+  this.metadata=metadata;
+  this.expressions=IterableTransformer.on(groupByExpressions).transform(expressionGetter()).select(isPresentPredicate()).transform(AggregationAnalyzer.<Expression>optionalGetter()).list();
+  ImmutableList.Builder<Field> fields=ImmutableList.builder();
+  fields.addAll(IterableTransformer.on(groupByExpressions).transform(fieldGetter()).select(isPresentPredicate()).transform(AggregationAnalyzer.<Field>optionalGetter()).all());
+  for (  Expression expression : Iterables.filter(expressions,instanceOf(QualifiedNameReference.class))) {
+    QualifiedName name=((QualifiedNameReference)expression).getName();
+    Field field=Iterables.getOnlyElement(scope.resolve(name),null);
+    if (field != null) {
+      fields.add(field);
+    }
+  }
+  this.fields=fields.build();
+}

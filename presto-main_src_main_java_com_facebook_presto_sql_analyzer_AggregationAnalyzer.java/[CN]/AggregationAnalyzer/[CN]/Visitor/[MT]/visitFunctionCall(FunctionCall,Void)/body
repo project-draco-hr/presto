@@ -1,0 +1,21 @@
+{
+  if (!node.getWindow().isPresent() && metadata.isAggregationFunction(node.getName())) {
+    AggregateExtractor aggregateExtractor=new AggregateExtractor(metadata);
+    WindowFunctionExtractor windowExtractor=new WindowFunctionExtractor();
+    for (    Expression argument : node.getArguments()) {
+      aggregateExtractor.process(argument,null);
+      windowExtractor.process(argument,null);
+    }
+    if (!aggregateExtractor.getAggregates().isEmpty()) {
+      throw new SemanticException(node,"Cannot nest aggregations inside aggregation '%s': %s",node.getName(),Iterables.transform(aggregateExtractor.getAggregates(),ExpressionFormatter.expressionFormatterFunction()));
+    }
+    if (!windowExtractor.getWindowFunctions().isEmpty()) {
+      throw new SemanticException(node,"Cannot nest window functions inside aggregation '%s': %s",node.getName(),Iterables.transform(windowExtractor.getWindowFunctions(),ExpressionFormatter.expressionFormatterFunction()));
+    }
+    return true;
+  }
+  if (node.getWindow().isPresent() && !node.getWindow().get().accept(this,null)) {
+    return false;
+  }
+  return isInGroupBy(node) || Iterables.all(node.getArguments(),isConstantPredicate());
+}

@@ -1,0 +1,17 @@
+{
+  RelationPlan plan;
+  if (analysis.getDestination() != null) {
+    plan=createTableWriterPlan(analysis);
+  }
+ else {
+    RelationPlanner planner=new RelationPlanner(analysis,symbolAllocator,idAllocator);
+    plan=planner.process(analysis.getQuery(),null);
+  }
+  PlanNode root=createOutputPlan(plan,analysis);
+  PlanSanityChecker.validate(root);
+  for (  PlanOptimizer optimizer : planOptimizers) {
+    root=optimizer.optimize(root,session,symbolAllocator.getTypes());
+  }
+  PlanSanityChecker.validate(root);
+  return new Plan(root,symbolAllocator);
+}

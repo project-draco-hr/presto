@@ -1,8 +1,20 @@
 {
+  Window window=node.getWindow().orNull();
+  if (window != null) {
+    for (    Expression expression : node.getWindow().get().getPartitionBy()) {
+      process(expression,context);
+    }
+    for (    SortItem sortItem : node.getWindow().get().getOrderBy()) {
+      process(sortItem.getSortKey(),context);
+    }
+  }
   ImmutableList.Builder<Type> argumentTypes=ImmutableList.builder();
   for (  Expression expression : node.getArguments()) {
     argumentTypes.add(process(expression,context));
   }
   FunctionInfo function=metadata.getFunction(node.getName(),Lists.transform(argumentTypes.build(),Type.toRaw()));
-  return Type.fromRaw(function.getReturnType());
+  resolvedFunctions.put(node,function);
+  Type type=Type.fromRaw(function.getReturnType());
+  subExpressionTypes.put(node,type);
+  return type;
 }

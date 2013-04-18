@@ -1,0 +1,32 @@
+{
+  List<FunctionCall> windowFunctions=analysis.getWindowFunctions(node);
+  if (windowFunctions.isEmpty()) {
+    return subPlan;
+  }
+  for (  FunctionCall windowFunction : windowFunctions) {
+    ImmutableList<Expression> inputs=ImmutableList.<Expression>builder().addAll(windowFunction.getArguments()).addAll(windowFunction.getWindow().get().getPartitionBy()).addAll(Iterables.transform(windowFunction.getWindow().get().getOrderBy(),sortKeyGetter())).build();
+    subPlan=appendProjections(subPlan,inputs);
+    ImmutableList.Builder<Symbol> partitionBySymbols=ImmutableList.builder();
+    for (    Expression expression : windowFunction.getWindow().get().getPartitionBy()) {
+      partitionBySymbols.add(subPlan.translate(expression));
+    }
+    ImmutableList.Builder<Symbol> orderBySymbols=ImmutableList.builder();
+    Map<Symbol,SortItem.Ordering> orderings=new HashMap<>();
+    for (    SortItem item : windowFunction.getWindow().get().getOrderBy()) {
+      Symbol symbol=subPlan.translate(item.getSortKey());
+      orderBySymbols.add(symbol);
+      orderings.put(symbol,item.getOrdering());
+    }
+    TranslationMap outputTranslations=new TranslationMap(subPlan.getRelationPlan(),analysis);
+    outputTranslations.addMappingsFrom(subPlan.getTranslations());
+    ImmutableMap.Builder<Symbol,FunctionCall> assignments=ImmutableMap.builder();
+    Map<Symbol,FunctionHandle> functionHandles=new HashMap<>();
+    FunctionCall rewritten=(FunctionCall)subPlan.rewrite(windowFunction);
+    Symbol newSymbol=symbolAllocator.newSymbol(rewritten,analysis.getType(windowFunction));
+    assignments.put(newSymbol,rewritten);
+    outputTranslations.put(windowFunction,newSymbol);
+    functionHandles.put(newSymbol,analysis.getFunctionInfo(windowFunction).getHandle());
+    subPlan=new PlanBuilder(outputTranslations,new WindowNode(idAllocator.getNextId(),subPlan.getRoot(),partitionBySymbols.build(),orderBySymbols.build(),orderings,assignments.build(),functionHandles));
+  }
+  return subPlan;
+}

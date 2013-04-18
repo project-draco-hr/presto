@@ -1,0 +1,20 @@
+{
+  QualifiedTableName targetTable=MetadataUtil.createQualifiedTableName(session,node.getName());
+  analysis.setDestination(targetTable);
+  TableMetadata tableMetadata=metadata.getTable(targetTable);
+  if (tableMetadata != null) {
+    throw new SemanticException(node,"Destination table '%s' already exists",targetTable);
+  }
+  if (node.getRefresh().isPresent()) {
+    int refreshInterval=Integer.parseInt(node.getRefresh().get());
+    if (refreshInterval <= 0) {
+      throw new SemanticException(node,"Refresh interval must be > 0 (was %s)",refreshInterval);
+    }
+    analysis.setRefreshInterval(Optional.of(refreshInterval));
+  }
+ else {
+    analysis.setRefreshInterval(Optional.<Integer>absent());
+  }
+  process(node.getTableDefinition(),context);
+  return new TupleDescriptor(ImmutableList.of(new Field(Optional.of("imported_rows"),Type.LONG,0)));
+}

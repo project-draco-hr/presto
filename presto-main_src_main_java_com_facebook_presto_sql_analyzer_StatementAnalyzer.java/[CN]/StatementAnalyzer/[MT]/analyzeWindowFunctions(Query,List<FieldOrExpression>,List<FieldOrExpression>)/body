@@ -1,0 +1,45 @@
+{
+  WindowFunctionExtractor extractor=new WindowFunctionExtractor();
+  for (  FieldOrExpression fieldOrExpression : Iterables.concat(outputExpressions,orderByExpressions)) {
+    if (fieldOrExpression.getExpression().isPresent()) {
+      extractor.process(fieldOrExpression.getExpression().get(),null);
+    }
+  }
+  List<FunctionCall> windowFunctions=extractor.getWindowFunctions();
+  for (  FunctionCall windowFunction : windowFunctions) {
+    Window window=windowFunction.getWindow().get();
+    WindowFunctionExtractor nestedExtractor=new WindowFunctionExtractor();
+    for (    Expression argument : windowFunction.getArguments()) {
+      nestedExtractor.process(argument,null);
+    }
+    for (    Expression expression : window.getPartitionBy()) {
+      nestedExtractor.process(expression,null);
+    }
+    for (    SortItem sortItem : window.getOrderBy()) {
+      nestedExtractor.process(sortItem.getSortKey(),null);
+    }
+    if (window.getFrame().isPresent()) {
+      nestedExtractor.process(window.getFrame().get(),null);
+    }
+    if (!nestedExtractor.getWindowFunctions().isEmpty()) {
+      throw new SemanticException(node,"Cannot nest window functions inside window function '%s': %s",ExpressionFormatter.toString(windowFunction),Iterables.transform(extractor.getWindowFunctions(),ExpressionFormatter.expressionFormatterFunction()));
+    }
+    if (windowFunction.isDistinct()) {
+      throw new SemanticException(node,"DISTINCT in window function parameters not yet supported: %s",ExpressionFormatter.toString(windowFunction));
+    }
+    if (window.getFrame().isPresent()) {
+      throw new SemanticException(node,"Window frames not yet supported");
+    }
+    List<TupleInfo.Type> argumentTypes=Lists.transform(windowFunction.getArguments(),new Function<Expression,TupleInfo.Type>(){
+      @Override public TupleInfo.Type apply(      Expression input){
+        return analysis.getType(input).getRawType();
+      }
+    }
+);
+    FunctionInfo info=metadata.getFunction(windowFunction.getName(),argumentTypes);
+    if (!info.isWindow()) {
+      throw new SemanticException(node,"Not a window function: %s",windowFunction.getName());
+    }
+  }
+  analysis.setWindowFunctions(node,windowFunctions);
+}

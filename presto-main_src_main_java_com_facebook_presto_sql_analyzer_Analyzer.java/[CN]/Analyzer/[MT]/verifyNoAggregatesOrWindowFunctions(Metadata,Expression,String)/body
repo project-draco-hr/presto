@@ -1,0 +1,10 @@
+{
+  AggregateExtractor extractor=new AggregateExtractor(metadata);
+  extractor.process(predicate,null);
+  WindowFunctionExtractor windowExtractor=new WindowFunctionExtractor();
+  windowExtractor.process(predicate,null);
+  List<FunctionCall> found=ImmutableList.copyOf(Iterables.concat(extractor.getAggregates(),windowExtractor.getWindowFunctions()));
+  if (!found.isEmpty()) {
+    throw new SemanticException(predicate,"%s clause cannot contain aggregations or window functions: %s",clause,Iterables.transform(found,ExpressionFormatter.expressionFormatterFunction()));
+  }
+}

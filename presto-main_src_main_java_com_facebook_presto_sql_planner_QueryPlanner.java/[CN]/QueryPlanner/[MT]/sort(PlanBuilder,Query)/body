@@ -1,0 +1,21 @@
+{
+  if (query.getOrderBy().isEmpty()) {
+    return subPlan;
+  }
+  Iterator<SortItem> sortItems=query.getOrderBy().iterator();
+  ImmutableList.Builder<Symbol> orderBySymbols=ImmutableList.builder();
+  ImmutableMap.Builder<Symbol,SortItem.Ordering> orderings=ImmutableMap.builder();
+  for (  FieldOrExpression fieldOrExpression : analysis.getOrderByExpressions(query)) {
+    Symbol symbol=subPlan.translate(fieldOrExpression);
+    orderBySymbols.add(symbol);
+    orderings.put(symbol,sortItems.next().getOrdering());
+  }
+  PlanNode node;
+  if (query.getLimit().isPresent()) {
+    node=new TopNNode(idAllocator.getNextId(),subPlan.getRoot(),Long.valueOf(query.getLimit().get()),orderBySymbols.build(),orderings.build());
+  }
+ else {
+    node=new SortNode(idAllocator.getNextId(),subPlan.getRoot(),orderBySymbols.build(),orderings.build());
+  }
+  return new PlanBuilder(subPlan.getTranslations(),node);
+}

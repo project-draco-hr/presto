@@ -1,15 +1,15 @@
 {
   Statement statement=SqlParser.createStatement(sql);
-  Analyzer analyzer=new Analyzer(session,metadata,new MockStorageManager(),new MockPeriodicImportManager());
-  AnalysisResult analysis=analyzer.analyze(statement);
+  Analyzer analyzer=new Analyzer(session,metadata);
+  Analysis analysis=analyzer.analyze(statement);
   PlanNodeIdAllocator idAllocator=new PlanNodeIdAllocator();
   PlanOptimizersFactory planOptimizersFactory=new PlanOptimizersFactory(metadata);
-  PlanNode plan=new LogicalPlanner(session,metadata,planOptimizersFactory.get(),idAllocator).plan(analysis);
-  new PlanPrinter().print(plan,analysis.getTypes());
-  SubPlan subplan=new DistributedLogicalPlanner(metadata,idAllocator).createSubplans(plan,analysis.getSymbolAllocator(),true);
+  Plan plan=new LogicalPlanner(session,planOptimizersFactory.get(),idAllocator,metadata,new MockPeriodicImportManager(),new MockStorageManager()).plan(analysis);
+  new PlanPrinter().print(plan.getRoot(),plan.getTypes());
+  SubPlan subplan=new DistributedLogicalPlanner(metadata,idAllocator).createSubplans(plan,true);
   assertTrue(subplan.getChildren().isEmpty(),"Expected subplan to have no children");
-  DataSize maxOperatorMemoryUsage=new DataSize(50,MEGABYTE);
-  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(session,new NodeInfo(new NodeConfig().setEnvironment("test").setNodeId("test-node")),metadata,analysis.getTypes(),new OperatorStats(),new SourceHashProviderFactory(maxOperatorMemoryUsage),maxOperatorMemoryUsage,dataStreamProvider,storageManager,null);
+  DataSize maxOperatorMemoryUsage=new DataSize(256,MEGABYTE);
+  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(session,new NodeInfo(new NodeConfig().setEnvironment("test").setNodeId("test-node")),metadata,plan.getTypes(),new OperatorStats(),new SourceHashProviderFactory(maxOperatorMemoryUsage),maxOperatorMemoryUsage,dataStreamProvider,storageManager,null);
   LocalExecutionPlan localExecutionPlan=executionPlanner.plan(subplan.getFragment().getRoot());
   Map<PlanNodeId,SourceOperator> sourceOperators=localExecutionPlan.getSourceOperators();
   for (  PlanNode source : subplan.getFragment().getSources()) {

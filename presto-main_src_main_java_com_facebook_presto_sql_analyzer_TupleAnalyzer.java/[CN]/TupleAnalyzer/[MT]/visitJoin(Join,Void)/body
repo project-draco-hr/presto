@@ -1,0 +1,69 @@
+{
+  if (node.getType() != Join.Type.INNER) {
+    throw new SemanticException(node,"Only inner joins are supported");
+  }
+  JoinCriteria criteria=node.getCriteria();
+  if (criteria instanceof NaturalJoin) {
+    throw new SemanticException(node,"Natural join not supported");
+  }
+  Multimap<QualifiedName,TupleDescriptor> left=process(node.getLeft(),context);
+  Multimap<QualifiedName,TupleDescriptor> right=process(node.getRight(),context);
+  Multimap<QualifiedName,TupleDescriptor> descriptors=ImmutableMultimap.<QualifiedName,TupleDescriptor>builder().putAll(left).putAll(right).build();
+  if (criteria instanceof JoinUsing) {
+    List<String> columns=((JoinUsing)criteria).getColumns();
+    Scope leftScope=new Scope(left);
+    Scope rightScope=new Scope(right);
+    ImmutableList.Builder<EquiJoinClause> builder=ImmutableList.builder();
+    for (    String column : columns) {
+      Expression leftExpression=new QualifiedNameReference(QualifiedName.of(column));
+      Expression rightExpression=new QualifiedNameReference(QualifiedName.of(column));
+      Analyzer.analyzeExpression(metadata,leftScope,analysis,leftExpression);
+      Analyzer.analyzeExpression(metadata,rightScope,analysis,rightExpression);
+      builder.add(new EquiJoinClause(leftExpression,rightExpression));
+    }
+    analysis.setEquijoinCriteria(node,builder.build());
+    return descriptors;
+  }
+ else   if (criteria instanceof JoinOn) {
+    Scope scope=new Scope(descriptors);
+    Scope leftScope=new Scope(left);
+    Scope rightScope=new Scope(right);
+    Expression expression=((JoinOn)criteria).getExpression();
+    Analyzer.analyzeExpression(metadata,scope,analysis,expression);
+    Analyzer.verifyNoAggregatesOrWindowFunctions(metadata,expression,"JOIN");
+    Object optimizedExpression=ExpressionInterpreter.expressionOptimizer(new NoOpSymbolResolver(),metadata,session).process(expression,null);
+    if (!(optimizedExpression instanceof Expression)) {
+      throw new SemanticException(node,"Joins on constant expressions (i.e., cross joins) not supported");
+    }
+    Analyzer.analyzeExpression(metadata,scope,analysis,(Expression)optimizedExpression);
+    ImmutableList.Builder<EquiJoinClause> clauses=ImmutableList.builder();
+    for (    Expression conjunct : ExpressionUtils.extractConjuncts((Expression)optimizedExpression)) {
+      if (!(conjunct instanceof ComparisonExpression)) {
+        throw new SemanticException(node,"Non-equi joins not supported: %s",ExpressionFormatter.toString(conjunct));
+      }
+      ComparisonExpression comparison=(ComparisonExpression)conjunct;
+      if (comparison.getType() != ComparisonExpression.Type.EQUAL) {
+        throw new SemanticException(node,"Non-equi joins not supported: %s",ExpressionFormatter.toString(conjunct));
+      }
+      Set<QualifiedName> firstDependencies=DependencyExtractor.extract(comparison.getLeft());
+      Set<QualifiedName> secondDependencies=DependencyExtractor.extract(comparison.getRight());
+      Expression leftExpression;
+      Expression rightExpression;
+      if (Iterables.all(firstDependencies,leftScope.canResolvePredicate()) && Iterables.all(secondDependencies,rightScope.canResolvePredicate())) {
+        leftExpression=comparison.getLeft();
+        rightExpression=comparison.getRight();
+      }
+ else       if (Iterables.all(firstDependencies,rightScope.canResolvePredicate()) && Iterables.all(secondDependencies,leftScope.canResolvePredicate())) {
+        leftExpression=comparison.getRight();
+        rightExpression=comparison.getLeft();
+      }
+ else {
+        throw new SemanticException(node,"Non-equi joins not supported: %s",ExpressionFormatter.toString(conjunct));
+      }
+      clauses.add(new EquiJoinClause(leftExpression,rightExpression));
+    }
+    analysis.setEquijoinCriteria(node,clauses.build());
+    return descriptors;
+  }
+  throw new UnsupportedOperationException("unsupported join criteria: " + criteria.getClass().getName());
+}

@@ -1,0 +1,14 @@
+{
+  RelationPlan subPlan=process(node.getRelation(),context);
+  TupleDescriptor input=analysis.getOutputDescriptor(node.getRelation());
+  TupleDescriptor output=analysis.getOutputDescriptor(node);
+  ImmutableMap.Builder<Field,Symbol> mappings=ImmutableMap.builder();
+  Iterator<Field> inputs=input.getFields().iterator();
+  Iterator<Field> outputs=output.getFields().iterator();
+  while (inputs.hasNext() && outputs.hasNext()) {
+    Field inputField=inputs.next();
+    Field outputField=outputs.next();
+    mappings.put(outputField,subPlan.getSymbol(inputField));
+  }
+  return new RelationPlan(mappings.build(),subPlan.getRoot());
+}
