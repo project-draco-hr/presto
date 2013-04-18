@@ -1,13 +1,15 @@
 {
   Iterable<List<Object>> data=getData(maxWaitTime);
   QueryInfo queryInfo=queryManager.getQueryInfo(queryId,false);
-  if (queryInfo.getState().isDone() && (queryInfo.getState() != QueryState.FINISHED)) {
-    exchangeClient.close();
-  }
-  if (queryInfo.getOutputStage() == null && queryInfo.getState().isDone()) {
-    exchangeClient.close();
-    columns=ImmutableList.of(new Column("result","varchar"));
-    data=ImmutableSet.<List<Object>>of(ImmutableList.<Object>of("true"));
+  if (queryInfo.getState().isDone()) {
+    if (queryInfo.getState() != QueryState.FINISHED) {
+      exchangeClient.close();
+    }
+ else     if (queryInfo.getOutputStage() == null) {
+      exchangeClient.close();
+      columns=ImmutableList.of(new Column("result","varchar"));
+      data=ImmutableSet.<List<Object>>of(ImmutableList.<Object>of("true"));
+    }
   }
   URI nextResultsUri=null;
   if ((!queryInfo.getState().isDone()) || (!exchangeClient.isClosed())) {
