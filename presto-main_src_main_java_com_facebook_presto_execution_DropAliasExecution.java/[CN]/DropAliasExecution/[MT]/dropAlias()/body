@@ -1,0 +1,12 @@
+{
+  QualifiedTableName remoteTableName=createQualifiedTableName(stateMachine.getSession(),statement.getRemote());
+  TableMetadata remoteTableMetadata=metadataManager.getTable(remoteTableName);
+  Preconditions.checkState(remoteTableMetadata != null,"Table %s does not exist",remoteTableName);
+  Preconditions.checkState(remoteTableMetadata.getTableHandle().isPresent(),"No table handle for %s",remoteTableName);
+  TableHandle remoteTableHandle=remoteTableMetadata.getTableHandle().get();
+  Preconditions.checkState(DataSourceType.IMPORT == remoteTableHandle.getDataSourceType(),"Can only alias an import table");
+  TableAlias tableAlias=aliasDao.getAlias(remoteTableName);
+  checkState(tableAlias != null,"No alias for table %s exists!",remoteTableName);
+  aliasDao.dropAlias(tableAlias);
+  stateMachine.finished();
+}

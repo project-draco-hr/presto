@@ -1,0 +1,17 @@
+{
+  QualifiedTableName aliasTableName=createQualifiedTableName(stateMachine.getSession(),statement.getAlias());
+  TableMetadata aliasTableMetadata=metadataManager.getTable(aliasTableName);
+  Preconditions.checkState(aliasTableMetadata != null,"Table %s does not exist",aliasTableName);
+  Preconditions.checkState(aliasTableMetadata.getTableHandle().isPresent(),"No table handle for %s",aliasTableName);
+  TableHandle aliasTableHandle=aliasTableMetadata.getTableHandle().get();
+  Preconditions.checkState(DataSourceType.NATIVE == aliasTableHandle.getDataSourceType(),"Can only use a native table as alias");
+  QualifiedTableName remoteTableName=createQualifiedTableName(stateMachine.getSession(),statement.getRemote());
+  TableMetadata remoteTableMetadata=metadataManager.getTable(remoteTableName);
+  Preconditions.checkState(remoteTableMetadata != null,"Table %s does not exist",remoteTableName);
+  Preconditions.checkState(remoteTableMetadata.getTableHandle().isPresent(),"No table handle for %s",remoteTableName);
+  TableHandle remoteTableHandle=remoteTableMetadata.getTableHandle().get();
+  Preconditions.checkState(DataSourceType.IMPORT == remoteTableHandle.getDataSourceType(),"Can only alias an import table");
+  TableAlias tableAlias=TableAlias.createTableAlias(remoteTableName,aliasTableName);
+  aliasDao.insertAlias(tableAlias);
+  stateMachine.finished();
+}
