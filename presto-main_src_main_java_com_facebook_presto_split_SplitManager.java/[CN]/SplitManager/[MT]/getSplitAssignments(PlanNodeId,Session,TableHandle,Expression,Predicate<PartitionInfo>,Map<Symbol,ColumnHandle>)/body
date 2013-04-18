@@ -1,0 +1,20 @@
+{
+  checkNotNull(planNodeId,"planNodeId is null");
+  checkNotNull(session,"session is null");
+  checkNotNull(handle,"handle is null");
+  checkNotNull(predicate,"predicate is null");
+  checkNotNull(partitionPredicate,"partitionPredicate is null");
+  checkNotNull(mappings,"mappings is null");
+switch (handle.getDataSourceType()) {
+case NATIVE:
+    return getNativeSplitAssignments(planNodeId,(NativeTableHandle)handle);
+case INTERNAL:
+  return getInternalSplitAssignments(planNodeId,(InternalTableHandle)handle,predicate,mappings);
+case IMPORT:
+return getImportSplitAssignments(planNodeId,session,(ImportTableHandle)handle,predicate,partitionPredicate,mappings);
+case TPCH:
+return getTpchSplitAssignments(planNodeId,session,(TpchTableHandle)handle,mappings);
+default :
+throw new IllegalArgumentException("unsupported handle type: " + handle);
+}
+}

@@ -1,6 +1,6 @@
 {
   TableWriter tableWriter=new TableWriter(node,shardManager);
-  Optional<Iterable<SplitAssignments>> splits=node.getSource().accept(this,new VisitorContext(context.getInheritedPredicate(),Optional.of(tableWriter.getPartitionPredicate())));
+  Optional<Iterable<SplitAssignments>> splits=node.getSource().accept(this,new VisitorContext(context.getInheritedPredicate(),tableWriter.getPartitionPredicate()));
   checkState(splits.isPresent(),"No splits present for import");
   outputReceivers.put(node.getId(),tableWriter.getOutputReceiver());
   return Optional.of(tableWriter.getSplitAssignments(splits.get()));

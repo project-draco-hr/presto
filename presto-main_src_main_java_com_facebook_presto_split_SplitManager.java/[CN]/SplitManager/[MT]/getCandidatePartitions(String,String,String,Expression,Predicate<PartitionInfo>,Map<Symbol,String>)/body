@@ -1,0 +1,46 @@
+{
+  Set<ComparisonExpression> comparisons=IterableTransformer.on(extractConjuncts(predicate)).select(instanceOf(ComparisonExpression.class)).cast(ComparisonExpression.class).select(or(matchesPattern(ComparisonExpression.Type.EQUAL,QualifiedNameReference.class,StringLiteral.class),matchesPattern(ComparisonExpression.Type.EQUAL,StringLiteral.class,QualifiedNameReference.class),matchesPattern(ComparisonExpression.Type.EQUAL,QualifiedNameReference.class,LongLiteral.class),matchesPattern(ComparisonExpression.Type.EQUAL,LongLiteral.class,QualifiedNameReference.class),matchesPattern(ComparisonExpression.Type.EQUAL,QualifiedNameReference.class,DoubleLiteral.class),matchesPattern(ComparisonExpression.Type.EQUAL,DoubleLiteral.class,QualifiedNameReference.class))).set();
+  Map<String,SchemaField> partitionKeys=uniqueIndex(getPartitionKeys(sourceName,databaseName,tableName),fieldNameGetter());
+  final Map<String,Object> bindings=new HashMap<>();
+  for (  ComparisonExpression comparison : comparisons) {
+    QualifiedNameReference reference=extractReference(comparison);
+    Symbol symbol=Symbol.fromQualifiedName(reference.getName());
+    String columnName=symbolToColumnName.get(symbol);
+    SchemaField field=partitionKeys.get(columnName);
+    if (columnName != null && field != null) {
+      Literal literal=extractLiteral(comparison);
+      SchemaField.Type expectedType;
+      Object value;
+      if (literal instanceof DoubleLiteral) {
+        value=((DoubleLiteral)literal).getValue();
+        expectedType=SchemaField.Type.DOUBLE;
+      }
+ else       if (literal instanceof LongLiteral) {
+        value=((LongLiteral)literal).getValue();
+        expectedType=SchemaField.Type.LONG;
+      }
+ else       if (literal instanceof StringLiteral) {
+        value=((StringLiteral)literal).getValue();
+        expectedType=SchemaField.Type.STRING;
+      }
+ else {
+        throw new AssertionError(String.format("Literal type (%s) not currently handled",literal.getClass().getName()));
+      }
+      if (field.getPrimitiveType() != expectedType) {
+        return ImmutableList.of();
+      }
+      Object previous=bindings.get(columnName);
+      if (previous != null && !previous.equals(value)) {
+        return ImmutableList.of();
+      }
+      bindings.put(columnName,value);
+    }
+  }
+  return retry().stopOn(ObjectNotFoundException.class).stopOnIllegalExceptions().runUnchecked(new Callable<Iterable<PartitionInfo>>(){
+    @Override public Iterable<PartitionInfo> call() throws Exception {
+      ImportClient importClient=importClientManager.getClient(sourceName);
+      return Iterables.filter(importClient.getPartitions(databaseName,tableName,bindings),partitionPredicate);
+    }
+  }
+);
+}

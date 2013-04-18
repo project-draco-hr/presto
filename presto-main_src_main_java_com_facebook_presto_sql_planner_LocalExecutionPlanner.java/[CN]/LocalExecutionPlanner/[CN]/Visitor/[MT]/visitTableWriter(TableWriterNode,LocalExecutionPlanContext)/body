@@ -4,7 +4,13 @@
   IdentityProjectionInfo mappings=computeIdentityMapping(node.getInputSymbols(),query.getLayout(),node.getInputTypes());
   Operator sourceOperator=new FilterAndProjectOperator(query.getOperator(),FilterFunctions.TRUE_FUNCTION,mappings.getProjections());
   Symbol outputSymbol=Iterables.getOnlyElement(node.getOutputTypes().keySet());
-  TableWriterOperator operator=new TableWriterOperator(storageManager,nodeInfo.getNodeId(),node.getInputSymbols(),node.getColumnHandles(),sourceOperator);
+  ImmutableList.Builder<ColumnHandle> columnHandlesBuilder=ImmutableList.builder();
+  for (  Symbol inputSymbol : node.getInputSymbols()) {
+    ColumnHandle columnHandle=node.getColumnHandles().get(inputSymbol);
+    checkState(columnHandle != null,"No column handle for %s found!",inputSymbol);
+    columnHandlesBuilder.add(columnHandle);
+  }
+  TableWriterOperator operator=new TableWriterOperator(storageManager,nodeInfo.getNodeId(),columnHandlesBuilder.build(),sourceOperator);
   context.addSourceOperator(node,operator);
   context.addOutputOperator(node,operator);
   return new PhysicalOperation(operator,ImmutableMap.of(outputSymbol,new Input(0,0)));
