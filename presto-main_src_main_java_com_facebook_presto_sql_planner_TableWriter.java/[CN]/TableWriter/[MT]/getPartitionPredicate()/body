@@ -1,8 +1,10 @@
 {
-  final Set<String> existingPartitions=ImmutableSet.copyOf(shardManager.getPartitions(node.getTableHandle()));
+  checkState(!predicateHandedOut.getAndSet(true),"Predicate can only be handed out once");
+  final Set<String> allPartitions=ImmutableSet.copyOf(remainingPartitions);
   return new Predicate<PartitionInfo>(){
     public boolean apply(    PartitionInfo input){
-      return !existingPartitions.contains(input.getName());
+      remainingPartitions.remove(input.getName());
+      return !allPartitions.contains(input.getName());
     }
   }
 ;
