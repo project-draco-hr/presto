@@ -1,0 +1,16 @@
+{
+  checkNotNull(hiveClientConfig,"hiveClientConfig is null");
+  checkNotNull(hdfsEnvironment,"hdfsEnvironment is null");
+  maxSplitSize=hiveClientConfig.getMaxSplitSize();
+  maxOutstandingSplits=hiveClientConfig.getMaxOutstandingSplits();
+  masSplitIteratorThreads=hiveClientConfig.getMaxSplitIteratorThreads();
+  partitionBatchSize=hiveClientConfig.getPartitionBatchSize();
+  this.hdfsEnvironment=hdfsEnvironment;
+  final Duration metastoreCacheTtl=hiveClientConfig.getMetastoreCacheTtl();
+  metastores=CacheBuilder.newBuilder().build(new CacheLoader<HiveCluster,CachingHiveMetastore>(){
+    @Override public CachingHiveMetastore load(    HiveCluster hiveCluster) throws Exception {
+      return new CachingHiveMetastore(hiveCluster,metastoreCacheTtl);
+    }
+  }
+);
+}

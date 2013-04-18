@@ -16,9 +16,9 @@
   HttpClientBinder.httpClientBinder(binder).bindAsyncHttpClient("scheduler",ForScheduler.class).withTracing();
   bindConfig(binder).to(DatabaseLocalStorageManagerConfig.class);
   binder.bind(LocalStorageManager.class).to(DatabaseLocalStorageManager.class).in(Scopes.SINGLETON);
+  binder.bind(DataStreamManager.class).in(Scopes.SINGLETON);
   binder.bind(DataStreamProvider.class).to(DataStreamManager.class).in(Scopes.SINGLETON);
-  binder.bind(NativeDataStreamProvider.class).in(Scopes.SINGLETON);
-  binder.bind(ImportDataStreamProvider.class).in(Scopes.SINGLETON);
+  Multibinder<ConnectorDataStreamProvider> connectorDataStreamProviderBinder=Multibinder.newSetBinder(binder,ConnectorDataStreamProvider.class);
   binder.bind(MetadataResource.class).in(Scopes.SINGLETON);
   binder.bind(MetadataManager.class).in(Scopes.SINGLETON);
   binder.bind(Metadata.class).to(MetadataManager.class).in(Scopes.SINGLETON);
@@ -31,8 +31,9 @@
   connectorSplitManagerMapBinder.addBinding().to(InternalSplitManager.class).in(Scopes.SINGLETON);
   connectorMetadataBinder.addBinding("default").to(NativeMetadata.class).in(Scopes.SINGLETON);
   connectorSplitManagerMapBinder.addBinding().to(NativeSplitManager.class).in(Scopes.SINGLETON);
+  connectorDataStreamProviderBinder.addBinding().to(NativeDataStreamProvider.class).in(Scopes.SINGLETON);
   binder.bind(SystemTables.class).in(Scopes.SINGLETON);
-  binder.bind(InternalDataStreamProvider.class).in(Scopes.SINGLETON);
+  connectorDataStreamProviderBinder.addBinding().to(InternalDataStreamProvider.class).in(Scopes.SINGLETON);
   binder.bind(InformationSchemaData.class).in(Scopes.SINGLETON);
   binder.bind(ImportClientManager.class).in(Scopes.SINGLETON);
   MapBinder.newMapBinder(binder,String.class,ImportClientFactory.class);

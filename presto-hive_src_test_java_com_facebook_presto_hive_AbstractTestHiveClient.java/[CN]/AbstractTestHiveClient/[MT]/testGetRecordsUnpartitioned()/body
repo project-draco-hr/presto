@@ -3,16 +3,14 @@
   List<ColumnHandle> columnHandles=ImmutableList.copyOf(client.getColumnHandles(tableHandle).values());
   Map<String,Integer> columnIndex=indexColumns(columnHandles);
   List<Partition> partitions=client.getPartitions(tableHandle,ImmutableMap.<ColumnHandle,Object>of());
-  List<PartitionChunk> partitionChunks=ImmutableList.copyOf(client.getPartitionChunks(partitions));
-  assertEquals(partitionChunks.size(),1);
-  for (  PartitionChunk partitionChunk : partitionChunks) {
-    HivePartitionChunk chunk=(HivePartitionChunk)partitionChunk;
-    byte[] bytes=client.serializePartitionChunk(chunk);
-    chunk=(HivePartitionChunk)client.deserializePartitionChunk(bytes);
-    assertEquals(chunk.getPartitionKeys(),ImmutableList.of());
+  List<Split> splits=ImmutableList.copyOf(client.getPartitionSplits(partitions));
+  assertEquals(splits.size(),1);
+  for (  Split split : splits) {
+    HiveSplit hiveSplit=(HiveSplit)split;
+    assertEquals(hiveSplit.getPartitionKeys(),ImmutableList.of());
     long rowNumber=0;
-    try (RecordCursor cursor=client.getRecords(chunk,columnHandles).cursor()){
-      assertEquals(cursor.getTotalBytes(),chunk.getLength());
+    try (RecordCursor cursor=client.getRecords(split,columnHandles).cursor()){
+      assertEquals(cursor.getTotalBytes(),hiveSplit.getLength());
       while (cursor.advanceNextPosition()) {
         rowNumber++;
         if (rowNumber % 19 == 0) {

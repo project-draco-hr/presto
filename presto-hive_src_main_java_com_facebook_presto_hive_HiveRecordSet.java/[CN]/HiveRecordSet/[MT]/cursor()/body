@@ -1,18 +1,18 @@
 {
   try {
-    Properties schema=(Properties)chunk.getSchema().clone();
+    Properties schema=(Properties)split.getSchema().clone();
     String typeSpecification=(String)schema.remove(Constants.LIST_COLUMN_TYPES);
     Preconditions.checkNotNull(typeSpecification,"Partition column type specification is null");
     String nullSequence=(String)schema.get(Constants.SERIALIZATION_NULL_FORMAT);
     checkState(nullSequence == null || nullSequence.equals("\\N"),"Only '\\N' supported as null specifier, was '%s'",nullSequence);
     Configuration configuration=hdfsEnvironment.getConfiguration();
     ColumnProjectionUtils.setReadColumnIDs(configuration,readHiveColumnIndexes);
-    RecordReader<?,?> recordReader=createRecordReader(chunk);
+    RecordReader<?,?> recordReader=createRecordReader(configuration,split);
     if (recordReader.createValue() instanceof BytesRefArrayWritable) {
-      return new BytesHiveRecordCursor<>((RecordReader<?,BytesRefArrayWritable>)recordReader,chunk.getLength(),chunk.getSchema(),chunk.getPartitionKeys(),columns);
+      return new BytesHiveRecordCursor<>((RecordReader<?,BytesRefArrayWritable>)recordReader,split.getLength(),split.getSchema(),split.getPartitionKeys(),columns);
     }
  else {
-      return new GenericHiveRecordCursor<>((RecordReader<?,? extends Writable>)recordReader,chunk.getLength(),chunk.getSchema(),chunk.getPartitionKeys(),columns);
+      return new GenericHiveRecordCursor<>((RecordReader<?,? extends Writable>)recordReader,split.getLength(),split.getSchema(),split.getPartitionKeys(),columns);
     }
   }
  catch (  Exception e) {

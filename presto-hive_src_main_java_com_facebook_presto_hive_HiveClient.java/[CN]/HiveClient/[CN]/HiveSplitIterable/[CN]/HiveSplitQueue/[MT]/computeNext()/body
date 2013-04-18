@@ -1,0 +1,19 @@
+{
+  try {
+    Split split=queue.take();
+    if (split == FINISHED_MARKER) {
+      if (throwable.get() != null) {
+        throw Throwables.propagate(throwable.get());
+      }
+      return endOfData();
+    }
+    if (outstandingSplitCount.getAndDecrement() == maxOutstandingSplits) {
+      suspendingExecutor.resume();
+    }
+    return split;
+  }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    throw Throwables.propagate(e);
+  }
+}

@@ -1,0 +1,67 @@
+{
+  final Semaphore semaphore=new Semaphore(partitionBatchSize);
+  try (ThreadContextClassLoader threadContextClassLoader=new ThreadContextClassLoader(classLoader)){
+    ImmutableList.Builder<ListenableFuture<Void>> futureBuilder=ImmutableList.builder();
+    Iterator<String> nameIterator=partitionNames.iterator();
+    for (    org.apache.hadoop.hive.metastore.api.Partition partition : partitions) {
+      checkState(nameIterator.hasNext(),"different number of partitions and partition names!");
+      semaphore.acquire();
+      final String partitionName=nameIterator.next();
+      final Properties schema=getPartitionSchema(table,partition);
+      final List<HivePartitionKey> partitionKeys=getPartitionKeys(table,partition);
+      final InputFormat<?,?> inputFormat=getInputFormat(hdfsEnvironment.getConfiguration(),schema,false);
+      Path partitionPath=hdfsEnvironment.getFileSystemWrapper().wrap(new Path(getPartitionLocation(table,partition)));
+      final FileSystem fs=partitionPath.getFileSystem(hdfsEnvironment.getConfiguration());
+      final LastSplitMarkingQueue markerQueue=new LastSplitMarkingQueue(hiveSplitQueue);
+      if (inputFormat instanceof SymlinkTextInputFormat) {
+        JobConf jobConf=new JobConf(hdfsEnvironment.getConfiguration());
+        FileInputFormat.setInputPaths(jobConf,partitionPath);
+        InputSplit[] splits=inputFormat.getSplits(jobConf,0);
+        for (        InputSplit rawSplit : splits) {
+          FileSplit split=((SymlinkTextInputSplit)rawSplit).getTargetSplit();
+          FileSystem targetFilesystem=split.getPath().getFileSystem(hdfsEnvironment.getConfiguration());
+          markerQueue.addToQueue(createHiveSplits(partitionName,targetFilesystem.getFileStatus(split.getPath()),split.getStart(),split.getLength(),schema,partitionKeys,targetFilesystem,false));
+        }
+        markerQueue.finish();
+        continue;
+      }
+      ListenableFuture<Void> partitionFuture=new AsyncRecursiveWalker(fs,suspendingExecutor).beginWalk(partitionPath,new FileStatusCallback(){
+        @Override public void process(        FileStatus file){
+          try {
+            boolean splittable=isSplittable(inputFormat,file.getPath().getFileSystem(hdfsEnvironment.getConfiguration()),file.getPath());
+            markerQueue.addToQueue(createHiveSplits(partitionName,file,0,file.getLen(),schema,partitionKeys,fs,splittable));
+          }
+ catch (          IOException e) {
+            hiveSplitQueue.fail(e);
+          }
+        }
+      }
+);
+      Futures.addCallback(partitionFuture,new FutureCallback<Void>(){
+        @Override public void onSuccess(        Void result){
+          markerQueue.finish();
+          semaphore.release();
+        }
+        @Override public void onFailure(        Throwable t){
+          markerQueue.finish();
+          semaphore.release();
+        }
+      }
+);
+      futureBuilder.add(partitionFuture);
+    }
+    Futures.addCallback(Futures.allAsList(futureBuilder.build()),new FutureCallback<List<Void>>(){
+      @Override public void onSuccess(      List<Void> result){
+        hiveSplitQueue.finished();
+      }
+      @Override public void onFailure(      Throwable t){
+        hiveSplitQueue.fail(t);
+      }
+    }
+);
+  }
+ catch (  Throwable e) {
+    hiveSplitQueue.fail(e);
+    Throwables.propagateIfInstanceOf(e,Error.class);
+  }
+}

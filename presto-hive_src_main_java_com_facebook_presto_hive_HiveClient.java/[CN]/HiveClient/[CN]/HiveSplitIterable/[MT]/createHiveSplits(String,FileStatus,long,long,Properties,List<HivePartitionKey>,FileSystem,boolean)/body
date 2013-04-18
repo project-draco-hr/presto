@@ -1,0 +1,13 @@
+{
+  BlockLocation[] fileBlockLocations=fs.getFileBlockLocations(file,start,length);
+  ImmutableList.Builder<HiveSplit> builder=ImmutableList.builder();
+  if (splittable) {
+    for (    BlockLocation blockLocation : fileBlockLocations) {
+      builder.add(new HiveSplit(clientId,partitionName,false,file.getPath().toString(),blockLocation.getOffset(),blockLocation.getLength(),schema,partitionKeys,toHostAddress(blockLocation.getHosts())));
+    }
+  }
+ else {
+    builder.add(new HiveSplit(clientId,partitionName,false,file.getPath().toString(),start,length,schema,partitionKeys,toHostAddress(fileBlockLocations[0].getHosts())));
+  }
+  return builder.build();
+}

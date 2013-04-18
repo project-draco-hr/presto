@@ -3,8 +3,10 @@
   Map<String,String> serverProperties=ImmutableMap.<String,String>builder().put("storage-manager.data-directory",baseDataDir.getPath()).put("presto-metastore.db.type","h2").put("presto-metastore.db.filename",new File(baseDataDir,"db/MetaStore").getPath()).build();
   Bootstrap app=new Bootstrap(new TestingNodeModule(),new TestingDiscoveryModule(),new TestingHttpServerModule(),new JsonModule(),new JaxrsModule(),new MBeanModule(),new TestingJmxModule(),new InMemoryEventModule(),new TraceTokenModule(),new FailureDetectorModule(),new ServerMainModule(),new Module(){
     @Override public void configure(    Binder binder){
-      TestingTpchBlocksProvider tpchBlocksProvider=new TestingTpchBlocksProvider();
-      binder.bind(TpchDataStreamProvider.class).toInstance(new TpchDataStreamProvider(tpchBlocksProvider));
+      newMapBinder(binder,String.class,ConnectorMetadata.class).addBinding("tpch").to(TpchMetadata.class);
+      newSetBinder(binder,ConnectorSplitManager.class).addBinding().to(TpchSplitManager.class).in(Scopes.SINGLETON);
+      binder.bind(TpchBlocksProvider.class).to(TestingTpchBlocksProvider.class).in(Scopes.SINGLETON);
+      newSetBinder(binder,ConnectorDataStreamProvider.class).addBinding().to(TpchDataStreamProvider.class).in(Scopes.SINGLETON);
     }
   }
 );
