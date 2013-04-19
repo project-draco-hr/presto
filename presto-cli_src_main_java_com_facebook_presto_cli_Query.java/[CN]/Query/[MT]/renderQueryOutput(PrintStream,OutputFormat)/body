@@ -14,26 +14,24 @@
       errorChannel.printf("Query %s has no columns\n",results.getId());
       return;
     }
-    List<String> fieldNames=Lists.transform(results.getColumns(),Column.nameGetter());
-switch (outputFormat) {
-case PAGED:
-      pageOutput(Pager.LESS,fieldNames);
-    break;
-default :
-  sendOutput(out,outputFormat,fieldNames);
-break;
-}
-}
-if (statusPrinter != null) {
-statusPrinter.printFinalInfo();
-}
-if (client.isClosed()) {
-errorChannel.println("Query aborted by user");
-}
- else if (client.isGone()) {
-errorChannel.println("Query is gone (server restarted?)");
-}
- else if (client.isFailed()) {
-renderFailure(client.finalResults(),errorChannel);
-}
+    try {
+      renderResults(out,outputFormat,results);
+    }
+ catch (    QueryAbortedException e) {
+      System.out.println("(query aborted by user)");
+      client.close();
+    }
+  }
+  if (statusPrinter != null) {
+    statusPrinter.printFinalInfo();
+  }
+  if (client.isClosed()) {
+    errorChannel.println("Query aborted by user");
+  }
+ else   if (client.isGone()) {
+    errorChannel.println("Query is gone (server restarted?)");
+  }
+ else   if (client.isFailed()) {
+    renderFailure(client.finalResults(),errorChannel);
+  }
 }
