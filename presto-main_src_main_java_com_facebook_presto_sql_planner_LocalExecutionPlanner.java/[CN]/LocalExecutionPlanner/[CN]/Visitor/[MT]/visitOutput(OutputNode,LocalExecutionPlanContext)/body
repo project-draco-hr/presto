@@ -1,8 +1,8 @@
 {
   PhysicalOperation source=node.getSource().accept(this,context);
-  List<Symbol> resultSymbols=Lists.transform(node.getColumnNames(),forMap(node.getAssignments()));
   Ordering<Input> comparator=inputOrdering();
   List<Symbol> sourceSymbols=IterableTransformer.on(source.getLayout().entrySet()).orderBy(comparator.onResultOf(MoreFunctions.<Symbol,Input>valueGetter())).transform(MoreFunctions.<Symbol,Input>keyGetter()).list();
+  List<Symbol> resultSymbols=node.getOutputSymbols();
   if (resultSymbols.equals(sourceSymbols) && resultSymbols.size() == source.getOperator().getChannelCount()) {
     return source;
   }

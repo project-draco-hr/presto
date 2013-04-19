@@ -1,15 +1,10 @@
 {
-  int i=0;
-  List<String> names=new ArrayList<>();
-  ImmutableMap.Builder<String,Symbol> assignments=ImmutableMap.builder();
+  ImmutableList.Builder<String> names=ImmutableList.builder();
+  ImmutableList.Builder<Symbol> outputs=ImmutableList.builder();
   for (  Field field : analysis.getOutputDescriptor().getFields()) {
-    String name=field.getName().orNull();
-    while (name == null || names.contains(name)) {
-      i++;
-      name="_col" + i;
-    }
+    String name=field.getName().or("_col" + (field.getIndex() + 1));
     names.add(name);
-    assignments.put(name,plan.getSymbol(field));
+    outputs.add(plan.getSymbol(field));
   }
-  return new OutputNode(idAllocator.getNextId(),plan.getRoot(),names,assignments.build());
+  return new OutputNode(idAllocator.getNextId(),plan.getRoot(),names.build(),outputs.build());
 }
