@@ -3,8 +3,11 @@
     Iterable<List<Object>> data=client.current().getData();
     if (data != null) {
       for (      List<Object> tuple : data) {
-        handler.processRow(Collections.unmodifiableList(tuple));
+        processRow(unmodifiableList(tuple));
       }
+    }
+    if (nanosSince(bufferStart).compareTo(MAX_BUFFER_TIME) >= 0) {
+      flush();
     }
     client.advance();
   }

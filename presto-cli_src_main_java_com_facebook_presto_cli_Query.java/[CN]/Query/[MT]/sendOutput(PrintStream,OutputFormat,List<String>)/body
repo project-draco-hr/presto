@@ -1,9 +1,10 @@
 {
-  try (OutputHandler handler=createOutputHandler(outputFormat,createWriter(out))){
+  OutputPrinter printer=createOutputPrinter(outputFormat,createWriter(out));
+  try (OutputHandler handler=new OutputHandler(printer)){
     if ((outputFormat == CSV_HEADER) || (outputFormat == TSV_HEADER)) {
       handler.processRow(fieldNames);
     }
-    processOutput(client,handler);
+    handler.processRows(client);
   }
  catch (  IOException e) {
     throw Throwables.propagate(e);
