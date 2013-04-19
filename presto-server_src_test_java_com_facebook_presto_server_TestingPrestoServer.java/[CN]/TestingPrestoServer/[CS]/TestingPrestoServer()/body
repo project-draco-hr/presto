@@ -1,12 +1,9 @@
 {
   baseDataDir=Files.createTempDir();
   Map<String,String> serverProperties=ImmutableMap.<String,String>builder().put("storage-manager.data-directory",baseDataDir.getPath()).put("presto-metastore.db.type","h2").put("presto-metastore.db.filename",new File(baseDataDir,"db/MetaStore").getPath()).build();
-  Bootstrap app=new Bootstrap(new TestingNodeModule(),new TestingDiscoveryModule(),new TestingHttpServerModule(),new JsonModule(),new JaxrsModule(),new MBeanModule(),new TestingJmxModule(),new InMemoryEventModule(),new TraceTokenModule(),new FailureDetectorModule(),new ServerMainModule(),new Module(){
+  Bootstrap app=new Bootstrap(new TestingNodeModule(),new TestingDiscoveryModule(),new TestingHttpServerModule(),new JsonModule(),new JaxrsModule(),new MBeanModule(),new TestingJmxModule(),new InMemoryEventModule(),new TraceTokenModule(),new FailureDetectorModule(),new ServerMainModule(),new TpchModule(),new Module(){
     @Override public void configure(    Binder binder){
-      newMapBinder(binder,String.class,ConnectorMetadata.class).addBinding("tpch").to(TpchMetadata.class);
-      newSetBinder(binder,ConnectorSplitManager.class).addBinding().to(TpchSplitManager.class).in(Scopes.SINGLETON);
       binder.bind(TpchBlocksProvider.class).to(TestingTpchBlocksProvider.class).in(Scopes.SINGLETON);
-      newSetBinder(binder,ConnectorDataStreamProvider.class).addBinding().to(TpchDataStreamProvider.class).in(Scopes.SINGLETON);
     }
   }
 );
@@ -14,5 +11,8 @@
   injector.getInstance(Announcer.class).start();
   injector.getInstance(NodeManager.class).refreshNodes(true);
   lifeCycleManager=injector.getInstance(LifeCycleManager.class);
+  ConnectorManager connectorManager=injector.getInstance(ConnectorManager.class);
+  connectorManager.initialize();
+  connectorManager.createConnection("tpch","tpch",ImmutableMap.<String,String>of());
   server=injector.getInstance(TestingHttpServer.class);
 }

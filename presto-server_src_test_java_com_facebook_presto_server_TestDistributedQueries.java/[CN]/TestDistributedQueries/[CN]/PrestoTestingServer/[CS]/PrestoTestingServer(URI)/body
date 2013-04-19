@@ -2,12 +2,9 @@
   checkNotNull(discoveryUri,"discoveryUri is null");
   baseDataDir=Files.createTempDir();
   Map<String,String> serverProperties=ImmutableMap.<String,String>builder().put("node.environment","testing").put("storage-manager.data-directory",baseDataDir.getPath()).put("query.client.timeout","10m").put("presto-metastore.db.type","h2").put("exchange.http-client.read-timeout","1h").put("presto-metastore.db.filename",new File(baseDataDir,"db/MetaStore").getPath()).put("discovery.uri",discoveryUri.toASCIIString()).put("failure-detector.warmup-interval","0ms").put("failure-detector.enabled","false").put("datasources","native,tpch").build();
-  Bootstrap app=new Bootstrap(new NodeModule(),new DiscoveryModule(),new TestingHttpServerModule(),new JsonModule(),new JaxrsModule(),new TestingJmxModule(),new InMemoryEventModule(),new TraceTokenModule(),new FailureDetectorModule(),new ServerMainModule(),new Module(){
+  Bootstrap app=new Bootstrap(new NodeModule(),new DiscoveryModule(),new TestingHttpServerModule(),new JsonModule(),new JaxrsModule(),new TestingJmxModule(),new InMemoryEventModule(),new TraceTokenModule(),new FailureDetectorModule(),new ServerMainModule(),new TpchModule(),new Module(){
     @Override public void configure(    Binder binder){
-      newMapBinder(binder,String.class,ConnectorMetadata.class).addBinding("tpch").to(TpchMetadata.class);
-      newSetBinder(binder,ConnectorSplitManager.class).addBinding().to(TpchSplitManager.class).in(Scopes.SINGLETON);
       binder.bind(TpchBlocksProvider.class).to(TestingTpchBlocksProvider.class).in(Scopes.SINGLETON);
-      newSetBinder(binder,ConnectorDataStreamProvider.class).addBinding().to(TpchDataStreamProvider.class).in(Scopes.SINGLETON);
     }
   }
 );
@@ -17,6 +14,9 @@
   nodeManager=injector.getInstance(NodeManager.class);
   metadata=injector.getInstance(Metadata.class);
   server=injector.getInstance(TestingHttpServer.class);
+  ConnectorManager connectorManager=injector.getInstance(ConnectorManager.class);
+  connectorManager.initialize();
+  connectorManager.createConnection("tpch","tpch",ImmutableMap.<String,String>of());
   ImmutableList.Builder<ServiceSelector> serviceSelectors=ImmutableList.builder();
   for (  Binding<ServiceSelector> binding : injector.findBindingsByType(TypeLiteral.get(ServiceSelector.class))) {
     serviceSelectors.add(binding.getProvider().get());
