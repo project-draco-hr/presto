@@ -6,7 +6,8 @@
   analysis=new Analyzer(session,metadata,new MockStorageManager()).analyze(statement);
   PlanNodeIdAllocator idAllocator=new PlanNodeIdAllocator();
   PlanOptimizersFactory planOptimizersFactory=new PlanOptimizersFactory(metadata);
-  PlanNode plan=new LogicalPlanner(session,metadata,planOptimizersFactory.get(),idAllocator).plan(analysis);
+  LogicalPlanner planner=new LogicalPlanner(session,metadata,planOptimizersFactory.get(),idAllocator);
+  PlanNode plan=planner.plan(analysis);
   fragment=new DistributedLogicalPlanner(metadata,idAllocator).createSubplans(plan,analysis.getSymbolAllocator(),true).getFragment();
   new PlanPrinter().print(fragment.getRoot(),analysis.getTypes());
 }
