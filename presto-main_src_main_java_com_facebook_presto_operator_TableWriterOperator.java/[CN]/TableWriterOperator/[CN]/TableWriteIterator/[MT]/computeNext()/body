@@ -3,9 +3,6 @@
     return endOfData();
   }
   int rowCount=fileHandle.append(sourceIterator.next());
-  Slice s=Slices.allocate(SINGLE_LONG.getFixedSize());
-  SINGLE_LONG.setLong(s,0,rowCount);
-  SINGLE_LONG.setNotNull(s,0);
-  Block b=new UncompressedBlock(1,SINGLE_LONG,s);
-  return new Page(b);
+  Block block=new BlockBuilder(SINGLE_LONG).append(rowCount).build();
+  return new Page(block);
 }

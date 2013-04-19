@@ -1,6 +1,6 @@
 {
   checkState(analysis.getDestinations().size() == 1,"only a single table destination is currently supported");
-  AnalyzedDestination destination=Iterables.getOnlyElement(analysis.getDestinations());
+  QualifiedTableName destination=Iterables.getOnlyElement(analysis.getDestinations());
   AnalysisResult queryAnalysis=analysis.getAnalysis(destination);
   PlanNode queryNode=createQueryPlan(queryAnalysis);
   ImmutableList.Builder<ColumnMetadata> columns=ImmutableList.builder();
@@ -8,7 +8,7 @@
     ColumnMetadata columnMetadata=new ColumnMetadata(field.getAttribute().get(),field.getType().getRawType());
     columns.add(columnMetadata);
   }
-  TableMetadata tableMetadata=findOrCreateTable(metadata,destination.getTableName(),columns.build());
+  TableMetadata tableMetadata=findOrCreateTable(metadata,destination,columns.build());
   checkState(tableMetadata.getTableHandle().isPresent(),"can not import into a table without table handle");
   ImmutableMap.Builder<Symbol,ColumnHandle> columnHandlesBuilder=ImmutableMap.builder();
   ImmutableMap.Builder<Symbol,Type> inputTypesBuilder=ImmutableMap.builder();
