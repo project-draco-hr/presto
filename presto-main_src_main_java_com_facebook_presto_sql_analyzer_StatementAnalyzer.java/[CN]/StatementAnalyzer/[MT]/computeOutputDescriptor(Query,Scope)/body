@@ -1,5 +1,6 @@
 {
   ImmutableList.Builder<Field> outputFields=ImmutableList.builder();
+  int relationId=analysis.getNextRelationId();
   int index=0;
   for (  Expression expression : node.getSelect().getSelectItems()) {
     if (expression instanceof AllColumns) {
@@ -7,7 +8,7 @@
       List<TupleDescriptor> descriptors=queryScope.getDescriptorsMatching(starPrefix);
       for (      TupleDescriptor descriptor : descriptors) {
         for (        Field field : descriptor.getFields()) {
-          outputFields.add(new Field(field.getName(),field.getType(),index++));
+          outputFields.add(new Field(relationId,field.getName(),field.getType(),index++));
         }
       }
     }
@@ -20,7 +21,7 @@
  else       if (expression instanceof QualifiedNameReference) {
         alias=Optional.of(((QualifiedNameReference)expression).getName().getSuffix());
       }
-      outputFields.add(new Field(alias,analysis.getType(expression),index++));
+      outputFields.add(new Field(relationId,alias,analysis.getType(expression),index++));
     }
   }
   TupleDescriptor result=new TupleDescriptor(outputFields.build());
