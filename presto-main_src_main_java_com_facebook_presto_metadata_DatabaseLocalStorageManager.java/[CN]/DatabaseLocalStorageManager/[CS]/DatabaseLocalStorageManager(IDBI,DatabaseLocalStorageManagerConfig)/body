@@ -5,5 +5,7 @@
   this.baseStagingDir=createDirectory(new File(baseDataDir,"staging"));
   this.dbi=checkNotNull(dbi,"dbi is null");
   this.dao=dbi.onDemand(StorageManagerDao.class);
+  this.executor=newFixedThreadPool(config.getTasksPerNode(),threadsNamed("local-storage-manager-%s"));
+  this.shardBoundedExecutor=new KeyBoundedExecutor<>(executor);
   dao.createTableColumns();
 }
