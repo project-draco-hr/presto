@@ -1,0 +1,23 @@
+{
+  checkNotNull(config,"config is null");
+  try (ThreadContextClassLoader threadContextClassLoader=new ThreadContextClassLoader(classLoader)){
+    Bootstrap app=new Bootstrap(new NodeModule(),new DiscoveryModule(),new MBeanModule(),new JsonModule(),new HiveClientModule(connectorId),new Module(){
+      @Override public void configure(      Binder binder){
+        MBeanServer platformMBeanServer=ManagementFactory.getPlatformMBeanServer();
+        binder.bind(MBeanServer.class).toInstance(new RebindSafeMBeanServer(platformMBeanServer));
+      }
+    }
+);
+    Injector injector=app.strictConfig().doNotInitializeLogging().setRequiredConfigurationProperties(config).setOptionalConfigurationProperties(optionalConfig).initialize();
+    HiveClient hiveClient=injector.getInstance(HiveClient.class);
+    ImmutableClassToInstanceMap.Builder<Object> builder=ImmutableClassToInstanceMap.builder();
+    builder.put(ConnectorMetadata.class,new ClassLoaderSafeConnectorMetadata(hiveClient,classLoader));
+    builder.put(ConnectorSplitManager.class,new ClassLoaderSafeConnectorSplitManager(hiveClient,classLoader));
+    builder.put(ConnectorRecordSetProvider.class,new ClassLoaderSafeConnectorRecordSetProvider(hiveClient,classLoader));
+    builder.put(ConnectorHandleResolver.class,new ClassLoaderSafeConnectorHandleResolver(hiveClient,classLoader));
+    return new HiveConnector(builder.build());
+  }
+ catch (  Exception e) {
+    throw Throwables.propagate(e);
+  }
+}

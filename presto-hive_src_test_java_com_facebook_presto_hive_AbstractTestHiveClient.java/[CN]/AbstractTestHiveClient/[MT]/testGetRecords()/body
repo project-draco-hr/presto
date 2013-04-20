@@ -1,10 +1,10 @@
 {
-  TableHandle tableHandle=client.getTableHandle(TABLE);
-  SchemaTableMetadata tableMetadata=client.getTableMetadata(tableHandle);
-  List<ColumnHandle> columnHandles=ImmutableList.copyOf(client.getColumnHandles(tableHandle).values());
+  TableHandle tableHandle=metadata.getTableHandle(TABLE);
+  SchemaTableMetadata tableMetadata=metadata.getTableMetadata(tableHandle);
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(tableHandle).values());
   Map<String,Integer> columnIndex=indexColumns(columnHandles);
-  List<Partition> partitions=client.getPartitions(tableHandle,ImmutableMap.<ColumnHandle,Object>of());
-  List<Split> splits=ImmutableList.copyOf(client.getPartitionSplits(partitions));
+  List<Partition> partitions=splitManager.getPartitions(tableHandle,ImmutableMap.<ColumnHandle,Object>of());
+  List<Split> splits=ImmutableList.copyOf(splitManager.getPartitionSplits(partitions));
   assertEquals(splits.size(),PARTITIONS.size());
   for (  Split split : splits) {
     HiveSplit hiveSplit=(HiveSplit)split;
@@ -15,7 +15,7 @@
     long baseValue=getBaseValueForFileType(fileType);
     long rowNumber=0;
     long completedBytes=0;
-    try (RecordCursor cursor=client.getRecordSet(hiveSplit,columnHandles).cursor()){
+    try (RecordCursor cursor=recordSetProvider.getRecordSet(hiveSplit,columnHandles).cursor()){
       assertEquals(cursor.getTotalBytes(),hiveSplit.getLength());
       while (cursor.advanceNextPosition()) {
         try {

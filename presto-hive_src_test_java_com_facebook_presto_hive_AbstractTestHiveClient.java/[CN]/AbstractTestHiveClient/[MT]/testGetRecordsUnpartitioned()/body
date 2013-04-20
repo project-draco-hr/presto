@@ -1,15 +1,15 @@
 {
-  TableHandle tableHandle=client.getTableHandle(TABLE_UNPARTITIONED);
-  List<ColumnHandle> columnHandles=ImmutableList.copyOf(client.getColumnHandles(tableHandle).values());
+  TableHandle tableHandle=metadata.getTableHandle(TABLE_UNPARTITIONED);
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(tableHandle).values());
   Map<String,Integer> columnIndex=indexColumns(columnHandles);
-  List<Partition> partitions=client.getPartitions(tableHandle,ImmutableMap.<ColumnHandle,Object>of());
-  List<Split> splits=ImmutableList.copyOf(client.getPartitionSplits(partitions));
+  List<Partition> partitions=splitManager.getPartitions(tableHandle,ImmutableMap.<ColumnHandle,Object>of());
+  List<Split> splits=ImmutableList.copyOf(splitManager.getPartitionSplits(partitions));
   assertEquals(splits.size(),1);
   for (  Split split : splits) {
     HiveSplit hiveSplit=(HiveSplit)split;
     assertEquals(hiveSplit.getPartitionKeys(),ImmutableList.of());
     long rowNumber=0;
-    try (RecordCursor cursor=client.getRecordSet(split,columnHandles).cursor()){
+    try (RecordCursor cursor=recordSetProvider.getRecordSet(split,columnHandles).cursor()){
       assertEquals(cursor.getTotalBytes(),hiveSplit.getLength());
       while (cursor.advanceNextPosition()) {
         rowNumber++;

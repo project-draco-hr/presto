@@ -1,7 +1,8 @@
 {
-  ServiceSelector selector=new StaticServiceSelector(serviceDescriptor("hive-metastore").addProperty("thrift","meta1.test:9083").addProperty("name","fuu").build(),serviceDescriptor("hive-metastore").addProperty("thrift","meta2.text:9083").addProperty("name","fuu").build(),serviceDescriptor("hive-metastore").addProperty("thrift","meta3.text:9083").addProperty("name","bar").build(),serviceDescriptor("hive-metastore").addProperty("thrift","missing-port").build(),serviceDescriptor("hive-metastore").build());
-  HiveClientFactory hiveClientFactory=new HiveClientFactory(new HiveClientConfig(),new HdfsEnvironment());
-  DiscoveryLocatedHiveCluster hiveCluster=new DiscoveryLocatedHiveCluster(selector,new HiveMetastoreClientFactory(new HiveClientConfig()));
-  HiveImportClientFactory factory=new HiveImportClientFactory(hiveCluster,hiveClientFactory);
-  assertInstanceOf(factory.createClient("hive"),HiveClient.class);
+  HiveConnectorFactory connectorFactory=new HiveConnectorFactory(ImmutableMap.<String,String>of("node.environment","test"));
+  Connector connector=connectorFactory.create("hive",ImmutableMap.<String,String>of());
+  assertInstanceOf(connector.getService(ConnectorMetadata.class),ClassLoaderSafeConnectorMetadata.class);
+  assertInstanceOf(connector.getService(ConnectorSplitManager.class),ClassLoaderSafeConnectorSplitManager.class);
+  assertInstanceOf(connector.getService(ConnectorRecordSetProvider.class),ClassLoaderSafeConnectorRecordSetProvider.class);
+  assertInstanceOf(connector.getService(ConnectorHandleResolver.class),ClassLoaderSafeConnectorHandleResolver.class);
 }
