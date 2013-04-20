@@ -1,5 +1,6 @@
 {
-  PhysicalOperation query=node.getSource().accept(this,context);
+  LocalExecutionPlanner queryPlanner=new LocalExecutionPlanner(session,nodeInfo,metadata,node.getInputTypes(),operatorStats,joinHashFactory,maxOperatorMemoryUsage,dataStreamProvider,storageManager,exchangeOperatorFactory);
+  PhysicalOperation query=node.getSource().accept(queryPlanner.new Visitor(),context);
   IdentityProjectionInfo mappings=computeIdentityMapping(node.getInputSymbols(),query.getLayout(),node.getInputTypes());
   Operator sourceOperator=new FilterAndProjectOperator(query.getOperator(),FilterFunctions.TRUE_FUNCTION,mappings.getProjections());
   Symbol outputSymbol=Iterables.getOnlyElement(node.getOutputTypes().keySet());
