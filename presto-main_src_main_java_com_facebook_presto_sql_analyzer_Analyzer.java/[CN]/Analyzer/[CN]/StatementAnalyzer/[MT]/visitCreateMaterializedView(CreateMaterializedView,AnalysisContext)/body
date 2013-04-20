@@ -2,7 +2,7 @@
   QualifiedTableName dstTableName=MetadataUtil.createQualifiedTableName(session,statement.getName());
   TableMetadata dstTableMetadata=metadata.getTable(dstTableName);
   checkState(dstTableMetadata == null,"Destination table %s already exists",dstTableName);
-  AnalysisResult queryAnalysis=newAnalyzer().analyze(statement.getTableDefinition(),new AnalysisContext(context.getSession(),context.getSymbolAllocator()));
+  AnalysisResult queryAnalysis=process(statement.getTableDefinition(),new AnalysisContext(context.getSession(),context.getSymbolAllocator()));
   ImmutableList.Builder<ColumnMetadata> columns=ImmutableList.builder();
   for (  Field field : queryAnalysis.getOutputDescriptor().getFields()) {
     ColumnMetadata columnMetadata=new ColumnMetadata(field.getAttribute().get(),field.getType().getRawType());

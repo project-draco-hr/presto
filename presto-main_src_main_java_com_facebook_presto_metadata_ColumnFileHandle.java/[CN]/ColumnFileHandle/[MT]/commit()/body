@@ -1,13 +1,15 @@
 {
-  AtomicReference<Throwable> firstThrowable=new AtomicReference<>();
+  Throwable firstThrowable=null;
   checkState(!committed.getAndSet(true),"already committed!");
   for (  BlocksFileWriter writer : writers.values()) {
     try {
       writer.close();
     }
  catch (    Throwable t) {
-      firstThrowable.compareAndSet(null,t);
+      if (firstThrowable == null) {
+        firstThrowable=t;
+      }
     }
   }
-  Throwables.propagateIfInstanceOf(firstThrowable.get(),IOException.class);
+  Throwables.propagateIfInstanceOf(firstThrowable,IOException.class);
 }
