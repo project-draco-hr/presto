@@ -1,23 +1,24 @@
 {
-  for (  ColumnMetadata column : schema) {
-    if (!cursor.isNull(column.getOrdinalPosition())) {
+  for (int columnIndex=0; columnIndex < schema.size(); columnIndex++) {
+    ColumnMetadata column=schema.get(columnIndex);
+    if (!cursor.isNull(columnIndex)) {
 switch (column.getType()) {
 case LONG:
-        cursor.getLong(column.getOrdinalPosition());
+        cursor.getLong(columnIndex);
       break;
 case DOUBLE:
-    cursor.getDouble(column.getOrdinalPosition());
+    cursor.getDouble(columnIndex);
   break;
 case STRING:
 try {
-  cursor.getString(column.getOrdinalPosition());
+  cursor.getString(columnIndex);
 }
  catch (Exception e) {
   throw new RuntimeException("column " + column,e);
 }
 break;
 default :
-fail("Unknown primitive type " + column.getOrdinalPosition());
+fail("Unknown primitive type " + columnIndex);
 }
 }
 }

@@ -1,15 +1,15 @@
 {
   TableHandle tableHandle=client.getTableHandle(TABLE);
   SchemaTableMetadata tableMetadata=client.getTableMetadata(tableHandle);
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(client.getColumnHandles(tableHandle).values());
+  Map<String,Integer> columnIndex=indexColumns(columnHandles);
   List<Partition> partitions=client.getPartitions(tableHandle,ImmutableMap.<ColumnHandle,Object>of());
-  ImmutableList<ColumnHandle> columns=ImmutableList.copyOf(client.getColumnHandles(tableHandle).values());
   List<PartitionChunk> partitionChunks=ImmutableList.copyOf(client.getPartitionChunks(partitions));
   assertEquals(partitionChunks.size(),PARTITIONS.size());
   for (  PartitionChunk partitionChunk : partitionChunks) {
     HivePartitionChunk chunk=(HivePartitionChunk)partitionChunk;
     byte[] bytes=client.serializePartitionChunk(chunk);
     chunk=(HivePartitionChunk)client.deserializePartitionChunk(bytes);
-    Map<String,ColumnMetadata> map=uniqueIndex(tableMetadata.getColumns(),columnNameGetter());
     List<HivePartitionKey> partitionKeys=chunk.getPartitionKeys();
     String ds=partitionKeys.get(0).getValue();
     String fileType=partitionKeys.get(1).getValue();
@@ -17,7 +17,7 @@
     long baseValue=getBaseValueForFileType(fileType);
     long rowNumber=0;
     long completedBytes=0;
-    try (RecordCursor cursor=client.getRecords(chunk,columns).cursor()){
+    try (RecordCursor cursor=client.getRecords(chunk,columnHandles).cursor()){
       assertEquals(cursor.getTotalBytes(),chunk.getLength());
       while (cursor.advanceNextPosition()) {
         try {
@@ -28,52 +28,52 @@
         }
         rowNumber++;
         if (rowNumber % 19 == 0) {
-          assertTrue(cursor.isNull(map.get("t_string").getOrdinalPosition()));
+          assertTrue(cursor.isNull(columnIndex.get("t_string")));
         }
  else {
-          assertEquals(cursor.getString(map.get("t_string").getOrdinalPosition()),(fileType + " test").getBytes(Charsets.UTF_8));
+          assertEquals(cursor.getString(columnIndex.get("t_string")),(fileType + " test").getBytes(Charsets.UTF_8));
         }
-        assertEquals(cursor.getLong(map.get("t_tinyint").getOrdinalPosition()),(long)((byte)(baseValue + 1 + rowNumber)));
-        assertEquals(cursor.getLong(map.get("t_smallint").getOrdinalPosition()),baseValue + 2 + rowNumber);
-        assertEquals(cursor.getLong(map.get("t_int").getOrdinalPosition()),baseValue + 3 + rowNumber);
+        assertEquals(cursor.getLong(columnIndex.get("t_tinyint")),(long)((byte)(baseValue + 1 + rowNumber)));
+        assertEquals(cursor.getLong(columnIndex.get("t_smallint")),baseValue + 2 + rowNumber);
+        assertEquals(cursor.getLong(columnIndex.get("t_int")),baseValue + 3 + rowNumber);
         if (rowNumber % 13 == 0) {
-          assertTrue(cursor.isNull(map.get("t_bigint").getOrdinalPosition()));
+          assertTrue(cursor.isNull(columnIndex.get("t_bigint")));
         }
  else {
-          assertEquals(cursor.getLong(map.get("t_bigint").getOrdinalPosition()),baseValue + 4 + rowNumber);
+          assertEquals(cursor.getLong(columnIndex.get("t_bigint")),baseValue + 4 + rowNumber);
         }
-        assertEquals(cursor.getDouble(map.get("t_float").getOrdinalPosition()),baseValue + 5.1 + rowNumber,0.001);
-        assertEquals(cursor.getDouble(map.get("t_double").getOrdinalPosition()),baseValue + 6.2 + rowNumber);
+        assertEquals(cursor.getDouble(columnIndex.get("t_float")),baseValue + 5.1 + rowNumber,0.001);
+        assertEquals(cursor.getDouble(columnIndex.get("t_double")),baseValue + 6.2 + rowNumber);
         if (rowNumber % 3 == 2) {
-          assertTrue(cursor.isNull(map.get("t_boolean").getOrdinalPosition()));
+          assertTrue(cursor.isNull(columnIndex.get("t_boolean")));
         }
  else {
-          assertEquals(cursor.getLong(map.get("t_boolean").getOrdinalPosition()),rowNumber % 3,String.format("row = %s",rowNumber));
+          assertEquals(cursor.getLong(columnIndex.get("t_boolean")),rowNumber % 3,String.format("row = %s",rowNumber));
         }
         if (rowNumber % 29 == 0) {
-          assertTrue(cursor.isNull(map.get("t_map").getOrdinalPosition()));
+          assertTrue(cursor.isNull(columnIndex.get("t_map")));
         }
  else {
           String expectedJson="{\"format\":\"" + fileType + "\"}";
-          assertEquals(cursor.getString(map.get("t_map").getOrdinalPosition()),expectedJson.getBytes(Charsets.UTF_8));
+          assertEquals(cursor.getString(columnIndex.get("t_map")),expectedJson.getBytes(Charsets.UTF_8));
         }
         if (rowNumber % 27 == 0) {
-          assertTrue(cursor.isNull(map.get("t_array_string").getOrdinalPosition()));
+          assertTrue(cursor.isNull(columnIndex.get("t_array_string")));
         }
  else {
           String expectedJson="[\"" + fileType + "\",\"test\",\"data\"]";
-          assertEquals(cursor.getString(map.get("t_array_string").getOrdinalPosition()),expectedJson.getBytes(Charsets.UTF_8));
+          assertEquals(cursor.getString(columnIndex.get("t_array_string")),expectedJson.getBytes(Charsets.UTF_8));
         }
         if (rowNumber % 31 == 0) {
-          assertTrue(cursor.isNull(map.get("t_complex").getOrdinalPosition()));
+          assertTrue(cursor.isNull(columnIndex.get("t_complex")));
         }
  else {
           String expectedJson="{1:[{\"s_string\":\"" + fileType + "-a\",\"s_double\":0.1},{\"s_string\":\""+ fileType+ "-b\",\"s_double\":0.2}]}";
-          assertEquals(cursor.getString(map.get("t_complex").getOrdinalPosition()),expectedJson.getBytes(Charsets.UTF_8));
+          assertEquals(cursor.getString(columnIndex.get("t_complex")),expectedJson.getBytes(Charsets.UTF_8));
         }
-        assertEquals(cursor.getString(map.get("ds").getOrdinalPosition()),ds.getBytes(Charsets.UTF_8));
-        assertEquals(cursor.getString(map.get("file_format").getOrdinalPosition()),fileType.getBytes(Charsets.UTF_8));
-        assertEquals(cursor.getLong(map.get("dummy").getOrdinalPosition()),dummy);
+        assertEquals(cursor.getString(columnIndex.get("ds")),ds.getBytes(Charsets.UTF_8));
+        assertEquals(cursor.getString(columnIndex.get("file_format")),fileType.getBytes(Charsets.UTF_8));
+        assertEquals(cursor.getLong(columnIndex.get("dummy")),dummy);
         long newCompletedBytes=cursor.getCompletedBytes();
         assertTrue(newCompletedBytes >= completedBytes);
         assertTrue(newCompletedBytes <= chunk.getLength());

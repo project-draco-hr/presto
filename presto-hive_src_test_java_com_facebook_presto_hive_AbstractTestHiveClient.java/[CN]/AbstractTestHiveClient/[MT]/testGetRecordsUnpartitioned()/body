@@ -1,28 +1,27 @@
 {
   TableHandle tableHandle=client.getTableHandle(TABLE_UNPARTITIONED);
-  SchemaTableMetadata tableMetadata=client.getTableMetadata(tableHandle);
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(client.getColumnHandles(tableHandle).values());
+  Map<String,Integer> columnIndex=indexColumns(columnHandles);
   List<Partition> partitions=client.getPartitions(tableHandle,ImmutableMap.<ColumnHandle,Object>of());
-  ImmutableList<ColumnHandle> columns=ImmutableList.copyOf(client.getColumnHandles(tableHandle).values());
   List<PartitionChunk> partitionChunks=ImmutableList.copyOf(client.getPartitionChunks(partitions));
   assertEquals(partitionChunks.size(),1);
   for (  PartitionChunk partitionChunk : partitionChunks) {
     HivePartitionChunk chunk=(HivePartitionChunk)partitionChunk;
     byte[] bytes=client.serializePartitionChunk(chunk);
     chunk=(HivePartitionChunk)client.deserializePartitionChunk(bytes);
-    Map<String,ColumnMetadata> map=uniqueIndex(tableMetadata.getColumns(),columnNameGetter());
     assertEquals(chunk.getPartitionKeys(),ImmutableList.of());
     long rowNumber=0;
-    try (RecordCursor cursor=client.getRecords(chunk,columns).cursor()){
+    try (RecordCursor cursor=client.getRecords(chunk,columnHandles).cursor()){
       assertEquals(cursor.getTotalBytes(),chunk.getLength());
       while (cursor.advanceNextPosition()) {
         rowNumber++;
         if (rowNumber % 19 == 0) {
-          assertTrue(cursor.isNull(map.get("t_string").getOrdinalPosition()));
+          assertTrue(cursor.isNull(columnIndex.get("t_string")));
         }
  else {
-          assertEquals(cursor.getString(map.get("t_string").getOrdinalPosition()),"unpartitioned".getBytes(Charsets.UTF_8));
+          assertEquals(cursor.getString(columnIndex.get("t_string")),"unpartitioned".getBytes(Charsets.UTF_8));
         }
-        assertEquals(cursor.getLong(map.get("t_tinyint").getOrdinalPosition()),1 + rowNumber);
+        assertEquals(cursor.getLong(columnIndex.get("t_tinyint")),1 + rowNumber);
       }
     }
      assertEquals(rowNumber,100);
