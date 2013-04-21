@@ -13,7 +13,11 @@
   ConnectorSplitManager connectorSplitManager=connector.getService(ConnectorSplitManager.class);
   checkState(connectorSplitManager != null,"Connector %s does not have a split manager",connectorId);
   ConnectorDataStreamProvider connectorDataStreamProvider=connector.getService(ConnectorDataStreamProvider.class);
-  checkState(connectorDataStreamProvider != null,"Connector %s does not have a data stream provider",connectorId);
+  if (connectorDataStreamProvider == null) {
+    ConnectorRecordSetProvider connectorRecordSetProvider=connector.getService(ConnectorRecordSetProvider.class);
+    checkState(connectorRecordSetProvider != null,"Connector %s does not have a data stream provider",connectorId);
+    connectorDataStreamProvider=new RecordSetDataStreamProvider(connectorRecordSetProvider);
+  }
   ConnectorHandleResolver connectorHandleResolver=connector.getService(ConnectorHandleResolver.class);
   checkState(connectorDataStreamProvider != null,"Connector %s does not have a handle resolver",connectorId);
   metadataManager.addConnectorMetadata(catalogName,connectorMetadata);

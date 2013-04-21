@@ -1,0 +1,13 @@
+{
+  ServiceLoader<Plugin> serviceLoader=ServiceLoader.load(Plugin.class,pluginClassLoader);
+  List<Plugin> plugins=ImmutableList.copyOf(serviceLoader);
+  for (  Plugin plugin : plugins) {
+    if (plugin.getClass().isAnnotationPresent(PrestoInternalPlugin.class)) {
+      injector.injectMembers(plugin);
+    }
+    plugin.setOptionalConfig(optionalConfig);
+    for (    ConnectorFactory connectorFactory : plugin.getServices(ConnectorFactory.class)) {
+      connectorManager.addConnectorFactory(connectorFactory);
+    }
+  }
+}
