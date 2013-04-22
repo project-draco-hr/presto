@@ -1,0 +1,14 @@
+{
+  ImmutableMultimap.Builder<Optional<QualifiedName>,TupleDescriptor> fromDescriptorBuilder=ImmutableMultimap.builder();
+  TupleAnalyzer analyzer=new TupleAnalyzer(analysis,session,metadata);
+  for (  Relation relation : node.getFrom()) {
+    fromDescriptorBuilder.putAll(analyzer.process(relation,context));
+  }
+  Multimap<Optional<QualifiedName>,TupleDescriptor> fromDescriptors=fromDescriptorBuilder.build();
+  for (  Optional<QualifiedName> alias : fromDescriptors.keys()) {
+    if (alias.isPresent() && fromDescriptors.keys().count(alias) > 1) {
+      throw new SemanticException(node,"Relation '%s' appears more than once",alias.get());
+    }
+  }
+  return new Scope(fromDescriptors);
+}

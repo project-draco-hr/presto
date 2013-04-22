@@ -1,4 +1,10 @@
 {
+  if (!node.getName().getPrefix().isPresent()) {
+    Query namedQuery=analysis.getNamedQuery(node);
+    if (namedQuery != null) {
+      return process(namedQuery,null);
+    }
+  }
   TupleDescriptor descriptor=analysis.getOutputDescriptor(node);
   TableHandle handle=analysis.getTableHandle(node);
   ImmutableMap.Builder<Field,Symbol> mappings=ImmutableMap.builder();
@@ -8,5 +14,5 @@
     mappings.put(field,symbol);
     columns.put(symbol,analysis.getColumn(field));
   }
-  return new RelationPlan(mappings.build(),new TableScanNode(idAllocator.getNextId(),handle,columns.build()));
+  return new RelationPlan(mappings.build(),new TableScanNode(idAllocator.getNextId(),handle,columns.build()),descriptor);
 }

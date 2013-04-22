@@ -1,6 +1,7 @@
 {
   PlanBuilder subPlan=new QueryPlanner(analysis,symbolAllocator,idAllocator).process(node,null);
-  Iterator<Field> outputFields=analysis.getOutputDescriptor(node).getFields().iterator();
+  TupleDescriptor outputDescriptor=analysis.getOutputDescriptor(node);
+  Iterator<Field> outputFields=outputDescriptor.getFields().iterator();
   Iterator<FieldOrExpression> outputExpressions=analysis.getOutputExpressions(node).iterator();
   ImmutableMap.Builder<Field,Symbol> mappings=ImmutableMap.builder();
   while (outputFields.hasNext() && outputExpressions.hasNext()) {
@@ -9,5 +10,5 @@
     Symbol symbol=subPlan.translate(outputExpression);
     mappings.put(outputField,symbol);
   }
-  return new RelationPlan(mappings.build(),subPlan.getRoot());
+  return new RelationPlan(mappings.build(),subPlan.getRoot(),outputDescriptor);
 }

@@ -1,0 +1,26 @@
+{
+  if (!table.getName().getPrefix().isPresent()) {
+    String name=table.getName().getSuffix();
+    Query query=context.getNamedQuery(name);
+    if (query != null) {
+      analysis.registerNamedQuery(table,query);
+      return ImmutableMultimap.of(Optional.of(QualifiedName.of(name)),analysis.getOutputDescriptor(query));
+    }
+  }
+  QualifiedTableName name=MetadataUtil.createQualifiedTableName(session,table.getName());
+  TableMetadata tableMetadata=metadata.getTable(name);
+  if (tableMetadata == null) {
+    throw new SemanticException(table,"Table %s does not exist",name);
+  }
+  TableHandle tableHandle=tableMetadata.getTableHandle().get();
+  int index=0;
+  ImmutableList.Builder<Field> fields=ImmutableList.builder();
+  for (  ColumnMetadata column : tableMetadata.getColumns()) {
+    Field field=new Field(table.getName(),Optional.of(column.getName()),Type.fromRaw(column.getType()),index++);
+    fields.add(field);
+    analysis.setColumn(field,column.getColumnHandle().get());
+  }
+  analysis.registerTable(table,tableHandle);
+  analysis.setOutputDescriptor(table,new TupleDescriptor(fields.build()));
+  return ImmutableMultimap.<Optional<QualifiedName>,TupleDescriptor>builder().put(Optional.of(table.getName()),new TupleDescriptor(fields.build())).build();
+}

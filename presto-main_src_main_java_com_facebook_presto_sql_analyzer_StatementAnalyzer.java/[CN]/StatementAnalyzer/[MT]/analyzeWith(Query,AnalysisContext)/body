@@ -1,0 +1,21 @@
+{
+  if (!node.getWith().isPresent()) {
+    return;
+  }
+  With with=node.getWith().get();
+  if (with.isRecursive()) {
+    throw new SemanticException(with,"Recursive WITH queries are not supported");
+  }
+  for (  WithQuery withQuery : with.getQueries()) {
+    if (withQuery.getColumnNames() != null && !withQuery.getColumnNames().isEmpty()) {
+      throw new SemanticException(withQuery,"Column alias not supported in WITH queries");
+    }
+    Query query=withQuery.getQuery();
+    process(query,context);
+    String name=withQuery.getName();
+    if (context.isNamedQueryDeclared(name)) {
+      throw new SemanticException(withQuery,"WITH query name '%s' specified more than once",name);
+    }
+    context.addNamedQuery(name,query);
+  }
+}
