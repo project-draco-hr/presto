@@ -1,12 +1,11 @@
 {
-  assertNull(metadata.getTable(DEFAULT_TEST_ORDERS));
-  metadata.createTable(getOrdersTable());
-  TableMetadata table=metadata.getTable(DEFAULT_TEST_ORDERS);
-  assertTableEqual(table,getOrdersTable());
-  TableHandle tableHandle=table.getTableHandle().get();
+  assertNull(metadata.getTableHandle(DEFAULT_TEST_ORDERS));
+  TableHandle tableHandle=metadata.createTable(getOrdersTable());
   assertInstanceOf(tableHandle,NativeTableHandle.class);
   assertEquals(((NativeTableHandle)tableHandle).getTableId(),1);
-  ColumnHandle columnHandle=table.getColumns().get(0).getColumnHandle().get();
+  TableMetadata table=metadata.getTableMetadata(tableHandle);
+  assertTableEqual(table,getOrdersTable());
+  ColumnHandle columnHandle=metadata.getColumnHandle(tableHandle,"orderkey");
   assertInstanceOf(columnHandle,NativeColumnHandle.class);
   assertEquals(((NativeColumnHandle)columnHandle).getColumnId(),1);
 }

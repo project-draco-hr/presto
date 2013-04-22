@@ -1,7 +1,11 @@
 {
   QualifiedTableName table=MetadataUtil.createQualifiedTableName(session,showPartitions.getTable());
+  Optional<TableHandle> tableHandle=metadata.getTableHandle(table);
+  if (!tableHandle.isPresent()) {
+    throw new SemanticException(MISSING_TABLE,showPartitions,"Table '%s' does not exist",table);
+  }
   ImmutableList.Builder<Expression> selectList=ImmutableList.builder();
-  for (  String partition : metadata.listTablePartitionKeys(table)) {
+  for (  String partition : metadata.getTableMetadata(tableHandle.get()).getPartitionKeys()) {
     Expression key=equal(nameReference("partition_key"),new StringLiteral(partition));
     Expression function=functionCall("max",caseWhen(key,nameReference("partition_value")));
     selectList.add(new AliasedExpression(function,partition));

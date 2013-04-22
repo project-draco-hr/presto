@@ -1,7 +1,13 @@
 {
   baseDataDir=Files.createTempDir();
   Map<String,String> serverProperties=ImmutableMap.<String,String>builder().put("storage-manager.data-directory",baseDataDir.getPath()).put("presto-metastore.db.type","h2").put("presto-metastore.db.filename",new File(baseDataDir,"db/MetaStore").getPath()).build();
-  Bootstrap app=new Bootstrap(new TestingNodeModule(),new TestingDiscoveryModule(),new TestingHttpServerModule(),new JsonModule(),new JaxrsModule(),new MBeanModule(),new TestingJmxModule(),new InMemoryEventModule(),new TraceTokenModule(),new FailureDetectorModule(),new ServerMainModule());
+  Bootstrap app=new Bootstrap(new TestingNodeModule(),new TestingDiscoveryModule(),new TestingHttpServerModule(),new JsonModule(),new JaxrsModule(),new MBeanModule(),new TestingJmxModule(),new InMemoryEventModule(),new TraceTokenModule(),new FailureDetectorModule(),new ServerMainModule(),new Module(){
+    @Override public void configure(    Binder binder){
+      TestingTpchBlocksProvider tpchBlocksProvider=new TestingTpchBlocksProvider(ImmutableMap.of("orders",readTpchRecords("orders"),"lineitem",readTpchRecords("lineitem")));
+      binder.bind(TpchDataStreamProvider.class).toInstance(new TpchDataStreamProvider(tpchBlocksProvider));
+    }
+  }
+);
   Injector injector=app.strictConfig().doNotInitializeLogging().setRequiredConfigurationProperties(serverProperties).initialize();
   injector.getInstance(Announcer.class).start();
   injector.getInstance(NodeManager.class).refreshNodes(true);

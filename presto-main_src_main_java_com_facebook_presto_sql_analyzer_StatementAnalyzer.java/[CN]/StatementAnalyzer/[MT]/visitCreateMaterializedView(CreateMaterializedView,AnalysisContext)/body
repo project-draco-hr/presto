@@ -1,8 +1,8 @@
 {
   QualifiedTableName targetTable=MetadataUtil.createQualifiedTableName(session,node.getName());
   analysis.setDestination(targetTable);
-  TableMetadata tableMetadata=metadata.getTable(targetTable);
-  if (tableMetadata != null) {
+  Optional<TableHandle> targetTableHandle=metadata.getTableHandle(targetTable);
+  if (targetTableHandle.isPresent()) {
     throw new SemanticException(TABLE_ALREADY_EXISTS,node,"Destination table '%s' already exists",targetTable);
   }
   if (node.getRefresh().isPresent()) {

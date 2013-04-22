@@ -1,21 +1,20 @@
 {
   QualifiedTableName tableName=createQualifiedTableName(stateMachine.getSession(),statement.getTableName());
   log.debug("Dropping %s",tableName);
-  final TableMetadata tableMetadata=metadataManager.getTable(tableName);
-  Preconditions.checkState(tableMetadata != null,"Table %s does not exist",tableName);
-  TableHandle tableHandle=tableMetadata.getTableHandle().get();
-  Preconditions.checkState(DataSourceType.NATIVE == tableHandle.getDataSourceType(),"Can drop only native tables");
-  storageManager.dropTableSource((NativeTableHandle)tableHandle);
+  final Optional<TableHandle> tableHandle=metadataManager.getTableHandle(tableName);
+  checkState(!tableHandle.isPresent(),"Table %s does not exists",tableName);
+  Preconditions.checkState(tableHandle.get() instanceof NativeTableHandle,"Can drop only native tables");
+  storageManager.dropTableSource((NativeTableHandle)tableHandle.get());
   periodicImportManager.dropJobs(new Predicate<PersistentPeriodicImportJob>(){
     @Override public boolean apply(    PersistentPeriodicImportJob job){
-      return job.getDstTable().equals(tableMetadata.getTable());
+      return job.getDstTable().equals(tableHandle.get());
     }
   }
 );
-  Set<String> partitions=shardManager.getPartitions(tableHandle);
+  Set<String> partitions=shardManager.getPartitions(tableHandle.get());
   for (  String partition : partitions) {
-    shardManager.dropPartition(tableHandle,partition);
+    shardManager.dropPartition(tableHandle.get(),partition);
   }
-  metadataManager.dropTable(tableMetadata);
+  metadataManager.dropTable(tableHandle.get());
   stateMachine.finished();
 }

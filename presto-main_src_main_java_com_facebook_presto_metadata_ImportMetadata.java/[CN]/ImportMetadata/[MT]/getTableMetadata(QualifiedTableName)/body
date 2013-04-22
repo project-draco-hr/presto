@@ -1,0 +1,9 @@
+{
+  ImportClient client=importClientManager.getClient(tableName.getCatalogName());
+  List<ColumnMetadata> columns=getTableSchema(client,tableName.getCatalogName(),tableName.getSchemaName(),tableName.getTableName());
+  ImmutableList.Builder<String> partitionKeys=ImmutableList.builder();
+  for (  SchemaField partition : getPartitionKeys(client,tableName.getSchemaName(),tableName.getTableName())) {
+    partitionKeys.add(partition.getFieldName());
+  }
+  return new TableMetadata(tableName,columns,partitionKeys.build());
+}

@@ -1,0 +1,11 @@
+{
+  Optional<TableMetadata> tableMetadata=getTableMetadata(tableHandle);
+  if (!tableMetadata.isPresent()) {
+    return Optional.absent();
+  }
+  List<ColumnMetadata> columns=tableMetadata.get().getColumns();
+  checkArgument(columnHandle instanceof InternalColumnHandle,"columnHandle is not an instance of InternalColumnHandle");
+  InternalColumnHandle internalColumnHandle=(InternalColumnHandle)columnHandle;
+  checkArgument(internalColumnHandle.getColumnIndex() < columns.size(),"invalid column handle");
+  return Optional.of(columns.get(internalColumnHandle.getColumnIndex()));
+}

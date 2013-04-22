@@ -1,4 +1,8 @@
 {
   checkNotNull(prefix,"prefix is null");
-  return dao.listTableColumns(prefix.getCatalogName(),prefix.getSchemaName().orNull(),prefix.getTableName().orNull());
+  ImmutableListMultimap.Builder<QualifiedTableName,ColumnMetadata> columns=ImmutableListMultimap.builder();
+  for (  TableColumn tableColumn : dao.listTableColumns(prefix.getCatalogName(),prefix.getSchemaName().orNull(),prefix.getTableName().orNull())) {
+    columns.put(tableColumn.getTable(),new ColumnMetadata(tableColumn.getColumnName(),tableColumn.getDataType(),tableColumn.getOrdinalPosition()));
+  }
+  return (Map<QualifiedTableName,List<ColumnMetadata>>)(Object)columns.build().asMap();
 }

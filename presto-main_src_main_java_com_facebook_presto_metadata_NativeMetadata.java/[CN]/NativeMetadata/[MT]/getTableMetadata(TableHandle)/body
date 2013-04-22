@@ -1,0 +1,13 @@
+{
+  checkNotNull(tableHandle,"tableHandle is null");
+  checkArgument(tableHandle instanceof NativeTableHandle,"tableHandle is not an instance of NativeTableHandle");
+  NativeTableHandle nativeTableHandle=(NativeTableHandle)tableHandle;
+  QualifiedTableName tableName=getTableName(tableHandle);
+  checkArgument(tableName != null,"Table %s does not exist",tableName);
+  List<ColumnMetadata> columns=dao.getTableColumnMetaData(nativeTableHandle.getTableId());
+  checkArgument(!columns.isEmpty(),"Table %s does not have any columns",tableName);
+  if (columns.isEmpty()) {
+    return null;
+  }
+  return new TableMetadata(tableName,columns);
+}

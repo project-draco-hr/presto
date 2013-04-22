@@ -1,0 +1,11 @@
+{
+  Optional<TableMetadata> tableMetadata=getTableMetadata(tableHandle);
+  if (!tableMetadata.isPresent()) {
+    return Optional.absent();
+  }
+  ImmutableMap.Builder<String,ColumnHandle> columnHandles=ImmutableMap.builder();
+  for (  ColumnMetadata columnMetadata : tableMetadata.get().getColumns()) {
+    columnHandles.put(columnMetadata.getName(),new InternalColumnHandle(columnMetadata.getOrdinalPosition()));
+  }
+  return Optional.<Map<String,ColumnHandle>>of(columnHandles.build());
+}

@@ -4,10 +4,11 @@
   List<ColumnHandle> columnHandles;
   RelationPlan plan;
   if (analysis.isDoRefresh()) {
-    targetTable=metadata.getTable(destination).getTableHandle().get();
+    targetTable=metadata.getTableHandle(destination).get();
     QualifiedTableName sourceTable=storageManager.getTableSource((NativeTableHandle)targetTable);
-    TableMetadata sourceTableMetadata=metadata.getTable(sourceTable);
-    TableHandle sourceTableHandle=sourceTableMetadata.getTableHandle().get();
+    TableHandle sourceTableHandle=metadata.getTableHandle(sourceTable).get();
+    TableMetadata sourceTableMetadata=metadata.getTableMetadata(sourceTableHandle);
+    Map<String,ColumnHandle> sourceTableColumns=metadata.getColumnHandles(sourceTableHandle);
     ImmutableList.Builder<Symbol> outputSymbols=ImmutableList.builder();
     ImmutableMap.Builder<Symbol,ColumnHandle> columns=ImmutableMap.builder();
     ImmutableList.Builder<Field> fields=ImmutableList.builder();
@@ -15,7 +16,7 @@
     for (    ColumnMetadata column : sourceTableMetadata.getColumns()) {
       Field field=Field.newQualified(sourceTable.asQualifiedName(),Optional.of(column.getName()),Type.fromRaw(column.getType()));
       Symbol symbol=symbolAllocator.newSymbol(field);
-      ColumnHandle columnHandle=column.getColumnHandle().get();
+      ColumnHandle columnHandle=sourceTableColumns.get(column.getName());
       columns.put(symbol,columnHandle);
       fields.add(field);
       columnHandleBuilder.add(columnHandle);
@@ -31,19 +32,23 @@
     for (int i=0; i < plan.getDescriptor().getFields().size(); i++) {
       Field field=plan.getDescriptor().getFields().get(i);
       String name=field.getName().or("_field" + i);
-      ColumnMetadata columnMetadata=new ColumnMetadata(name,field.getType().getRawType());
+      ColumnMetadata columnMetadata=new ColumnMetadata(name,field.getType().getRawType(),i);
       columns.add(columnMetadata);
     }
-    metadata.createTable(new TableMetadata(destination,columns.build()));
-    TableMetadata tableMetadata=metadata.getTable(destination);
-    targetTable=tableMetadata.getTableHandle().get();
-    columnHandles=Lists.transform(tableMetadata.getColumns(),columnHandleGetter());
+    TableMetadata tableMetadata=new TableMetadata(destination,columns.build());
+    targetTable=metadata.createTable(tableMetadata);
+    Map<String,ColumnHandle> columnHandleIndex=metadata.getColumnHandles(targetTable);
+    ImmutableList.Builder<ColumnHandle> columnHandleBuilder=ImmutableList.builder();
+    for (    ColumnMetadata column : tableMetadata.getColumns()) {
+      columnHandleBuilder.add(columnHandleIndex.get(column.getName()));
+    }
+    columnHandles=columnHandleBuilder.build();
     List<Relation> relations=analysis.getQuery().getFrom();
     checkState(relations.size() == 1,"Query has more than one source table");
     Relation relation=Iterables.getOnlyElement(relations);
     checkState(relation instanceof Table,"FROM clause is not a simple table name");
     QualifiedTableName sourceTable=MetadataUtil.createQualifiedTableName(session,((Table)relation).getName());
-    storageManager.insertTableSource(((NativeTableHandle)tableMetadata.getTableHandle().get()),sourceTable);
+    storageManager.insertTableSource(((NativeTableHandle)targetTable),sourceTable);
     if (analysis.getRefreshInterval().isPresent()) {
       PeriodicImportJob job=PeriodicImportJob.createJob(sourceTable,destination,analysis.getRefreshInterval().get());
       periodicImportManager.insertJob(job);

@@ -1,0 +1,11 @@
+{
+  checkNotNull(tableHandle,"tableHandle is null");
+  checkArgument(tableHandle instanceof NativeTableHandle,"tableHandle is not an instance of NativeTableHandle");
+  final long tableId=((NativeTableHandle)tableHandle).getTableId();
+  dbi.inTransaction(new VoidTransactionCallback(){
+    @Override protected void execute(    final Handle handle,    TransactionStatus status) throws Exception {
+      Utils.dropTable(dao,tableId);
+    }
+  }
+);
+}

@@ -1,0 +1,20 @@
+{
+  Logging.initialize();
+  try {
+    discoveryServer=new DiscoveryTestingServer();
+    coordinator=new PrestoTestingServer(discoveryServer.getBaseUrl());
+    servers=ImmutableList.<PrestoTestingServer>builder().add(coordinator).add(new PrestoTestingServer(discoveryServer.getBaseUrl())).add(new PrestoTestingServer(discoveryServer.getBaseUrl())).build();
+  }
+ catch (  Exception e) {
+    tearDownQueryFramework();
+    throw e;
+  }
+  this.httpClient=new StandaloneNettyAsyncHttpClient("test",new HttpClientConfig().setConnectTimeout(new Duration(1,TimeUnit.DAYS)).setReadTimeout(new Duration(10,TimeUnit.DAYS)));
+  for (  PrestoTestingServer server : servers) {
+    server.refreshServiceSelectors();
+  }
+  log.info("Loading data...");
+  long startTime=System.nanoTime();
+  loadedTableNames=distributeData(catalog,schema);
+  log.info("Loading complete in %.2fs",Duration.nanosSince(startTime).convertTo(TimeUnit.SECONDS));
+}

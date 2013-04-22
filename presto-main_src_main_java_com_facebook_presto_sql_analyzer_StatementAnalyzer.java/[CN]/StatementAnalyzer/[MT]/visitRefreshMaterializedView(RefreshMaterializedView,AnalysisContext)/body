@@ -1,10 +1,10 @@
 {
   QualifiedTableName targetTable=MetadataUtil.createQualifiedTableName(session,node.getName());
-  TableMetadata tableMetadata=metadata.getTable(targetTable);
-  if (tableMetadata == null) {
+  Optional<TableHandle> tableHandle=metadata.getTableHandle(targetTable);
+  if (!tableHandle.isPresent()) {
     throw new SemanticException(MISSING_TABLE,node,"Destination table '%s' does not exist",targetTable);
   }
-  checkState(tableMetadata.getTableHandle().get().getDataSourceType() == DataSourceType.NATIVE,"Cannot import into non-native table %s",tableMetadata.getTable());
+  checkState(tableHandle.get() instanceof NativeTableHandle,"Cannot import into non-native table %s",targetTable);
   analysis.setDestination(targetTable);
   analysis.setDoRefresh(true);
   return new TupleDescriptor(Field.newUnqualified("imported_rows",Type.LONG));

@@ -1,0 +1,13 @@
+{
+  checkNotNull(tableHandle,"tableHandle is null");
+  if (!(tableHandle instanceof InternalTableHandle)) {
+    return Optional.absent();
+  }
+  QualifiedTableName tableName=((InternalTableHandle)tableHandle).getTableName();
+  if (!tableName.getSchemaName().equals(schemaName)) {
+    return Optional.absent();
+  }
+  List<ColumnMetadata> metadata=this.metadata.get(tableName.getTableName());
+  checkArgument(metadata != null,"Unknown table %s",tableName);
+  return Optional.of(new TableMetadata(tableName,metadata));
+}

@@ -1,4 +1,11 @@
 {
   checkNotNull(prefix,"prefix is null");
-  return getTableColumns(prefix.getCatalogName(),lookupDataSource(prefix).listTableColumns(prefix));
+  ImmutableMap.Builder<QualifiedTableName,List<ColumnMetadata>> builder=ImmutableMap.builder();
+  for (  InternalSchemaMetadata internalSchemaMetadata : internalSchemas) {
+    builder.putAll(internalSchemaMetadata.listTableColumns(prefix));
+  }
+  for (  ConnectorMetadata connector : connectors) {
+    builder.putAll(connector.listTableColumns(prefix));
+  }
+  return builder.build();
 }

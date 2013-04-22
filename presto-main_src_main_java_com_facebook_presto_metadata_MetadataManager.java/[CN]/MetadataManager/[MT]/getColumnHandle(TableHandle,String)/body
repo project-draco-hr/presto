@@ -1,0 +1,11 @@
+{
+  checkNotNull(tableHandle,"tableHandle is null");
+  checkColumnName(columnName);
+  for (  InternalSchemaMetadata internalSchemaMetadata : internalSchemas) {
+    Optional<Map<String,ColumnHandle>> columnHandles=internalSchemaMetadata.getColumnHandles(tableHandle);
+    if (columnHandles.isPresent()) {
+      return Optional.fromNullable(columnHandles.get().get(columnName));
+    }
+  }
+  return Optional.fromNullable(lookupDataSource(tableHandle).getColumnHandle(tableHandle,columnName));
+}

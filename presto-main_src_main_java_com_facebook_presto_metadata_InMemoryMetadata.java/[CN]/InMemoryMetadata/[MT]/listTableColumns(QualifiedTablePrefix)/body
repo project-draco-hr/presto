@@ -1,0 +1,14 @@
+{
+  checkNotNull(prefix,"prefix is null");
+  ImmutableMap.Builder<QualifiedTableName,List<ColumnMetadata>> tableColumns=ImmutableMap.builder();
+  for (  QualifiedTableName tableName : listTables(prefix)) {
+    int position=1;
+    ImmutableList.Builder<ColumnMetadata> columns=ImmutableList.builder();
+    for (    ColumnMetadata column : tables.get(tableName).getColumns()) {
+      columns.add(new ColumnMetadata(column.getName(),column.getType(),position));
+      position++;
+    }
+    tableColumns.put(tableName,columns.build());
+  }
+  return tableColumns.build();
+}

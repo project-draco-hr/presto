@@ -1,8 +1,11 @@
 {
   TupleInfo tupleInfo=informationSchemaTupleInfo(TABLE_COLUMNS);
   InternalTable.Builder table=InternalTable.builder(tupleInfo);
-  for (  TableColumn column : getColumnsList(catalogName,filters)) {
-    table.add(tupleInfo.builder().append(column.getTable().getCatalogName()).append(column.getTable().getSchemaName()).append(column.getTable().getTableName()).append(column.getColumnName()).append(column.getOrdinalPosition()).appendNull().append("YES").append(column.getDataType().getName()).build());
+  for (  Entry<QualifiedTableName,List<ColumnMetadata>> entry : getColumnsList(catalogName,filters).entrySet()) {
+    QualifiedTableName tableName=entry.getKey();
+    for (    ColumnMetadata column : entry.getValue()) {
+      table.add(tupleInfo.builder().append(tableName.getCatalogName()).append(tableName.getSchemaName()).append(tableName.getTableName()).append(column.getName()).append(column.getOrdinalPosition()).appendNull().append("YES").append(column.getType().getName()).build());
+    }
   }
   return table.build();
 }
