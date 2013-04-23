@@ -10,7 +10,7 @@
         QualifiedName name=((QualifiedNameReference)expression).getName();
         Collection<AliasedExpression> expressions=byAlias.get(name.getSuffix());
         if (expressions.size() > 1) {
-          throw new SemanticException(expression,"'%s' in ORDER BY is ambiguous",name.getSuffix());
+          throw new SemanticException(AMBIGUOUS_ATTRIBUTE,expression,"'%s' in ORDER BY is ambiguous",name.getSuffix());
         }
  else         if (expressions.size() == 1) {
           orderByExpression=new FieldOrExpression(unalias(Iterables.getOnlyElement(expressions)));
@@ -19,7 +19,7 @@
  else       if (expression instanceof LongLiteral) {
         long ordinal=((LongLiteral)expression).getValue();
         if (ordinal < 1 || ordinal > outputExpressions.size()) {
-          throw new SemanticException(expression,"ORDER BY position %s is not in select list",ordinal);
+          throw new SemanticException(INVALID_ORDINAL,expression,"ORDER BY position %s is not in select list",ordinal);
         }
         orderByExpression=outputExpressions.get((int)(ordinal - 1));
       }
@@ -35,7 +35,7 @@
   List<FieldOrExpression> orderByExpressions=orderByExpressionsBuilder.build();
   analysis.setOrderByExpressions(node,orderByExpressions);
   if (node.getSelect().isDistinct() && !outputExpressions.containsAll(orderByExpressions)) {
-    throw new SemanticException(node.getSelect(),"For SELECT DISTINCT, ORDER BY expressions must appear in select list");
+    throw new SemanticException(ORDER_BY_MUST_BE_IN_SELECT,node.getSelect(),"For SELECT DISTINCT, ORDER BY expressions must appear in select list");
   }
   return orderByExpressions;
 }

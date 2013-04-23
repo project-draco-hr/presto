@@ -1,18 +1,18 @@
 {
   for (  Expression expression : node.getPartitionBy()) {
     if (!expression.accept(this,context)) {
-      throw new SemanticException(expression,"PARTITION BY expression '%s' must be an aggregate expression or appear in GROUP BY clause",ExpressionFormatter.toString(expression));
+      throw new SemanticException(MUST_BE_AGGREGATE_OR_GROUP_BY,expression,"PARTITION BY expression '%s' must be an aggregate expression or appear in GROUP BY clause",ExpressionFormatter.toString(expression));
     }
   }
   for (  SortItem sortItem : node.getOrderBy()) {
     Expression expression=sortItem.getSortKey();
     if (!expression.accept(this,context)) {
-      throw new SemanticException(expression,"ORDER BY expression '%s' must be an aggregate expression or appear in GROUP BY clause",ExpressionFormatter.toString(expression));
+      throw new SemanticException(MUST_BE_AGGREGATE_OR_GROUP_BY,expression,"ORDER BY expression '%s' must be an aggregate expression or appear in GROUP BY clause",ExpressionFormatter.toString(expression));
     }
   }
   if (node.getFrame().isPresent() && !node.getFrame().get().accept(this,null)) {
     WindowFrame frame=node.getFrame().get();
-    throw new SemanticException(frame,"Window frame must be an aggregate expression or appear in GROUP BY clause");
+    throw new SemanticException(MUST_BE_AGGREGATE_OR_GROUP_BY,frame,"Window frame must be an aggregate expression or appear in GROUP BY clause");
   }
   return true;
 }
