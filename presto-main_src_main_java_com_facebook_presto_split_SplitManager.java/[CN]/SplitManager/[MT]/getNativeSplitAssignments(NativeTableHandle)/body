@@ -1,0 +1,11 @@
+{
+  Map<String,Node> nodeMap=getNodeMap(nodeManager.getActiveNodes());
+  Multimap<Long,String> shardNodes=shardManager.getCommittedShardNodes(handle.getTableId());
+  ImmutableList.Builder<SplitAssignments> splitAssignments=ImmutableList.builder();
+  for (  Map.Entry<Long,Collection<String>> entry : shardNodes.asMap().entrySet()) {
+    Split split=new NativeSplit(entry.getKey());
+    List<Node> nodes=getNodes(nodeMap,entry.getValue());
+    splitAssignments.add(new SplitAssignments(split,nodes));
+  }
+  return splitAssignments.build();
+}

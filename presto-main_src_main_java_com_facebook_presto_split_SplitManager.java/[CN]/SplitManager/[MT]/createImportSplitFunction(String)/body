@@ -1,0 +1,29 @@
+{
+  final Supplier<NodeMap> nodeMap=Suppliers.memoizeWithExpiration(new Supplier<NodeMap>(){
+    @Override public NodeMap get(){
+      ImmutableSetMultimap.Builder<InetAddress,Node> byHost=ImmutableSetMultimap.builder();
+      ImmutableSetMultimap.Builder<Rack,Node> byRack=ImmutableSetMultimap.builder();
+      for (      Node node : nodeManager.getActiveDatasourceNodes(sourceName)) {
+        try {
+          InetAddress host=InetAddress.getByName(node.getHttpUri().getHost());
+          byHost.put(host,node);
+          byRack.put(Rack.of(host),node);
+        }
+ catch (        UnknownHostException e) {
+        }
+      }
+      return new NodeMap(byHost.build(),byRack.build());
+    }
+  }
+,5,TimeUnit.SECONDS);
+  return new Function<PartitionChunk,SplitAssignments>(){
+    @Override public SplitAssignments apply(    PartitionChunk chunk){
+      ImportClient importClient=importClientManager.getClient(sourceName);
+      Split split=new ImportSplit(sourceName,chunk.getPartitionName(),chunk.isLastChunk(),SerializedPartitionChunk.create(importClient,chunk),chunk.getInfo());
+      List<Node> nodes=chooseNodes(nodeMap.get(),chunk.getHosts(),10);
+      Preconditions.checkState(!nodes.isEmpty(),"No active %s data nodes",sourceName);
+      return new SplitAssignments(split,nodes);
+    }
+  }
+;
+}

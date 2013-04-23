@@ -1,0 +1,16 @@
+{
+  SourceOperator sourceOperator=sourceOperators.get(sourceId);
+  Preconditions.checkArgument(sourceOperator != null,"Unknown plan source %s; known sources are %s",sourceId,sourceOperators.keySet());
+  if (split instanceof CollocatedSplit) {
+    CollocatedSplit collocatedSplit=(CollocatedSplit)split;
+    for (    Entry<PlanNodeId,Split> entry : collocatedSplit.getSplits().entrySet()) {
+      addSplit(entry.getKey(),entry.getValue());
+    }
+  }
+ else {
+    sourceOperator.addSplit(split);
+    if (sourceId.equals(partitionedSource)) {
+      operatorStats.addSplitInfo(split.getInfo());
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  if (fragment.isPartitioned() && fragment.getPartitionedSource().equals(sourceId)) {
+    scheduleSplitWorker(sourceId,split);
+  }
+ else {
+    if (!unpartitionedSources.put(sourceId,split)) {
+      return;
+    }
+    for (    WeakReference<SplitWorker> workerReference : splitWorkers) {
+      SplitWorker worker=workerReference.get();
+      Preconditions.checkState(worker != null,"SplitWorker has been GCed");
+      worker.addSplit(sourceId,split);
+    }
+  }
+}

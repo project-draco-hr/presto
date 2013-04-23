@@ -1,24 +1,22 @@
 {
   if (sourceIterator.hasNext()) {
     SplitAssignments sourceAssignment=sourceIterator.next();
-    Map<PlanNodeId,? extends Split> sourceSplits=sourceAssignment.getSplits();
-    checkState(sourceSplits.size() == 1,"Can only augment single table splits");
-    Map.Entry<PlanNodeId,? extends Split> split=Iterables.getOnlyElement(sourceSplits.entrySet());
+    Split split=sourceAssignment.getSplit();
     NativeSplit writingSplit=new NativeSplit(shardManager.allocateShard(tableWriterNode.getTable()));
     String partition="unpartitioned";
     boolean lastSplit=false;
-    if (split.getValue() instanceof PartitionedSplit) {
-      PartitionedSplit partitionedSplit=(PartitionedSplit)split.getValue();
+    if (split instanceof PartitionedSplit) {
+      PartitionedSplit partitionedSplit=(PartitionedSplit)split;
       partition=partitionedSplit.getPartition();
       lastSplit=partitionedSplit.isLastSplit();
     }
     addPartitionShard(partition,lastSplit,writingSplit.getShardId());
     ImmutableMap.Builder<PlanNodeId,Split> builder=ImmutableMap.builder();
-    builder.putAll(sourceSplits);
+    builder.put(planNodeId,split);
     builder.put(tableWriterNode.getId(),writingSplit);
-    Map<PlanNodeId,? extends Split> newSplits=builder.build();
+    CollocatedSplit collocatedSplit=new CollocatedSplit(builder.build());
     shardsInFlight.incrementAndGet();
-    return new SplitAssignments(newSplits,sourceAssignment.getNodes());
+    return new SplitAssignments(collocatedSplit,sourceAssignment.getNodes());
   }
  else {
     finishOpenPartitions();

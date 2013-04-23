@@ -1,0 +1,15 @@
+{
+  if (!taskOutput.noMoreSplits(sourceId)) {
+    return;
+  }
+  if (sourceId.equals(fragment.getPartitionedSource())) {
+    sourceHashProviderFactory=null;
+  }
+ else {
+    for (    WeakReference<SplitWorker> workerReference : splitWorkers) {
+      SplitWorker worker=workerReference.get();
+      Preconditions.checkState(worker != null,"SplitWorker has been GCed");
+      worker.noMoreSplits(sourceId);
+    }
+  }
+}

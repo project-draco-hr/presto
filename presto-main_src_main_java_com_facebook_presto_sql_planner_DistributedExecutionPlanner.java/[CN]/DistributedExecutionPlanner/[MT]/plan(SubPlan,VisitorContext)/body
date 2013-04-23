@@ -1,7 +1,7 @@
 {
   PlanFragment currentFragment=root.getFragment();
   Visitor visitor=new Visitor();
-  Optional<Iterable<SplitAssignments>> splits=currentFragment.getRoot().accept(visitor,context);
+  NodeSplits nodeSplits=currentFragment.getRoot().accept(visitor,context);
   ImmutableList.Builder<StageExecutionPlan> dependencies=ImmutableList.builder();
   for (  SubPlan childPlan : root.getChildren()) {
     Expression predicate=visitor.getInheritedPredicatesBySourceFragmentId().get(childPlan.getFragment().getId());
@@ -9,5 +9,5 @@
     StageExecutionPlan dependency=plan(childPlan,new VisitorContext(predicate,context.getPartitionPredicate()));
     dependencies.add(dependency);
   }
-  return new StageExecutionPlan(currentFragment,splits,dependencies.build(),visitor.getOutputReceivers());
+  return new StageExecutionPlan(currentFragment,nodeSplits.splits,dependencies.build(),visitor.getOutputReceivers());
 }
