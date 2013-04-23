@@ -1,16 +1,15 @@
 {
-  LocalExecutionPlanner queryPlanner=new LocalExecutionPlanner(session,nodeInfo,metadata,node.getInputTypes(),operatorStats,joinHashFactory,maxOperatorMemoryUsage,dataStreamProvider,storageManager,exchangeOperatorFactory);
-  PhysicalOperation query=node.getSource().accept(queryPlanner.new Visitor(),context);
-  IdentityProjectionInfo mappings=computeIdentityMapping(node.getInputSymbols(),query.getLayout(),node.getInputTypes());
-  Operator sourceOperator=new FilterAndProjectOperator(query.getOperator(),FilterFunctions.TRUE_FUNCTION,mappings.getProjections());
-  Symbol outputSymbol=Iterables.getOnlyElement(node.getOutputTypes().keySet());
-  ImmutableList.Builder<ColumnHandle> columnHandlesBuilder=ImmutableList.builder();
-  for (  Symbol inputSymbol : node.getInputSymbols()) {
-    ColumnHandle columnHandle=node.getColumnHandles().get(inputSymbol);
-    checkState(columnHandle != null,"No column handle for %s found!",inputSymbol);
-    columnHandlesBuilder.add(columnHandle);
+  PhysicalOperation query=node.getSource().accept(this,context);
+  ImmutableList.Builder<ColumnHandle> columns=ImmutableList.builder();
+  ImmutableList.Builder<Symbol> symbols=ImmutableList.builder();
+  for (  Map.Entry<Symbol,ColumnHandle> entry : node.getColumns().entrySet()) {
+    symbols.add(entry.getKey());
+    columns.add(entry.getValue());
   }
-  TableWriterOperator operator=new TableWriterOperator(storageManager,nodeInfo.getNodeId(),columnHandlesBuilder.build(),sourceOperator);
+  IdentityProjectionInfo mappings=computeIdentityMapping(symbols.build(),query.getLayout(),types);
+  Operator sourceOperator=new FilterAndProjectOperator(query.getOperator(),FilterFunctions.TRUE_FUNCTION,mappings.getProjections());
+  Symbol outputSymbol=Iterables.getOnlyElement(node.getOutputSymbols());
+  TableWriterOperator operator=new TableWriterOperator(storageManager,nodeInfo.getNodeId(),columns.build(),sourceOperator);
   context.addSourceOperator(node,operator);
   context.addOutputOperator(node,operator);
   return new PhysicalOperation(operator,ImmutableMap.of(outputSymbol,new Input(0,0)));

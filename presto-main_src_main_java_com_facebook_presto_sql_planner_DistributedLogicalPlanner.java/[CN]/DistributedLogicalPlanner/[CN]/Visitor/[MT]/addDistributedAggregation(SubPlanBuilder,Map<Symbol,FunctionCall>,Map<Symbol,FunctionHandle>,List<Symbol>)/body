@@ -1,0 +1,18 @@
+{
+  Map<Symbol,FunctionCall> finalCalls=new HashMap<>();
+  Map<Symbol,FunctionCall> intermediateCalls=new HashMap<>();
+  Map<Symbol,FunctionHandle> intermediateFunctions=new HashMap<>();
+  for (  Map.Entry<Symbol,FunctionCall> entry : aggregations.entrySet()) {
+    FunctionHandle functionHandle=functions.get(entry.getKey());
+    FunctionInfo function=metadata.getFunction(functionHandle);
+    Symbol intermediateSymbol=allocator.newSymbol(function.getName().getSuffix(),Type.fromRaw(function.getIntermediateType()));
+    intermediateCalls.put(intermediateSymbol,entry.getValue());
+    intermediateFunctions.put(intermediateSymbol,functionHandle);
+    finalCalls.put(entry.getKey(),new FunctionCall(function.getName(),ImmutableList.<Expression>of(new QualifiedNameReference(intermediateSymbol.toQualifiedName()))));
+  }
+  AggregationNode aggregation=new AggregationNode(idAllocator.getNextId(),plan.getRoot(),groupBy,intermediateCalls,intermediateFunctions,PARTIAL);
+  plan.setRoot(new SinkNode(idAllocator.getNextId(),aggregation));
+  ExchangeNode source=new ExchangeNode(idAllocator.getNextId(),plan.getId(),plan.getRoot().getOutputSymbols());
+  AggregationNode merged=new AggregationNode(idAllocator.getNextId(),source,groupBy,finalCalls,functions,FINAL);
+  return newSubPlan(merged).addChild(plan.build());
+}

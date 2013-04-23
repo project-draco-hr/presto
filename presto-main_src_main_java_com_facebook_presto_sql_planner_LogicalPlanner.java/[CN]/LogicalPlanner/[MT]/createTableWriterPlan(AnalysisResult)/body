@@ -22,12 +22,7 @@
   for (  Field field : analysis.getOutputDescriptor().getFields()) {
     outputTypesBuilder.put(field.getSymbol(),field.getType());
   }
-  TableWriterNode writerNode=new TableWriterNode(idAllocator.getNextId(),queryNode,dstTableHandle.get(),inputSymbolsBuilder.build(),inputTypesBuilder.build(),columnHandlesBuilder.build(),outputTypesBuilder.build());
-  Map<Symbol,AnalyzedExpression> outputExpressions=analysis.getOutputExpressions();
-  checkState(outputExpressions.size() == 1,"only a single output symbol is supported");
-  Symbol outputSymbol=Iterables.getOnlyElement(outputExpressions.keySet());
-  FunctionInfo sum=metadata.getFunction(QualifiedName.of("sum"),Lists.transform(ImmutableList.of(Type.LONG),Type.toRaw()));
-  FunctionCall sumCall=new FunctionCall(QualifiedName.of(outputSymbol.getName()),ImmutableList.of(nameReference(outputSymbol.getName())));
-  PlanNode aggregationNode=new AggregationNode(idAllocator.getNextId(),writerNode,ImmutableList.<Symbol>of(),ImmutableMap.of(outputSymbol,sumCall),ImmutableMap.of(outputSymbol,sum.getHandle()));
-  return aggregationNode;
+  Symbol outputSymbol=Iterables.getOnlyElement(analysis.getOutputExpressions().keySet());
+  TableWriterNode writerNode=new TableWriterNode(idAllocator.getNextId(),queryNode,dstTableHandle.get(),columnHandlesBuilder.build(),outputSymbol);
+  return writerNode;
 }
