@@ -1,0 +1,14 @@
+{
+  RelationPlan relationPlan;
+  QualifiedTableName name=MetadataUtil.createQualifiedTableName(session,QualifiedName.of("dual"));
+  TableMetadata tableMetadata=metadata.getTable(name);
+  TableHandle table=tableMetadata.getTableHandle().get();
+  ImmutableMap.Builder<Symbol,ColumnHandle> columns=ImmutableMap.builder();
+  for (  ColumnMetadata column : tableMetadata.getColumns()) {
+    Symbol symbol=symbolAllocator.newSymbol(column.getName(),Type.fromRaw(column.getType()));
+    columns.put(symbol,column.getColumnHandle().get());
+  }
+  TableScanNode tableScan=new TableScanNode(idAllocator.getNextId(),table,columns.build());
+  relationPlan=new RelationPlan(ImmutableMap.<Field,Symbol>of(),tableScan,new TupleDescriptor(ImmutableList.<Field>of()));
+  return relationPlan;
+}

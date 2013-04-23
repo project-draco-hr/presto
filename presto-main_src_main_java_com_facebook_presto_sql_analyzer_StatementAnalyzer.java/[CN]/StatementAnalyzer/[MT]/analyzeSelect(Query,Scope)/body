@@ -5,7 +5,12 @@
       Optional<QualifiedName> starPrefix=((AllColumns)expression).getPrefix();
       List<TupleDescriptor> descriptors=scope.getDescriptorsMatching(starPrefix);
       if (descriptors.isEmpty()) {
-        throw new SemanticException(MISSING_TABLE,expression,"Table '%s' not found",starPrefix.get());
+        if (starPrefix.isPresent()) {
+          throw new SemanticException(MISSING_TABLE,expression,"Table '%s' not found",starPrefix.get());
+        }
+ else {
+          throw new SemanticException(WILDCARD_WITHOUT_FROM,expression,"SELECT * not allowed in queries without FROM clause");
+        }
       }
       for (      TupleDescriptor descriptor : descriptors) {
         for (        Field field : descriptor.getFields()) {
