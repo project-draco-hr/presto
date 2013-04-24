@@ -1,24 +1,14 @@
 {
-  List<Field> matches=scope.resolve(node.getName());
+  List<Integer> matches=tupleDescriptor.resolveFieldIndexes(node.getName());
   if (matches.isEmpty()) {
     throw new SemanticException(MISSING_ATTRIBUTE,node,"Attribute '%s' cannot be resolved",node.getName());
   }
  else   if (matches.size() > 1) {
-    List<String> names=Lists.transform(matches,new Function<Field,String>(){
-      @Override public String apply(      Field input){
-        if (input.getRelationAlias().isPresent()) {
-          return input.getRelationAlias().get() + "." + input.getName().get();
-        }
- else {
-          return input.getName().get();
-        }
-      }
-    }
-);
-    throw new SemanticException(AMBIGUOUS_ATTRIBUTE,node,"Attribute '%s' is ambiguous: %s",node.getName(),names);
+    throw new SemanticException(AMBIGUOUS_ATTRIBUTE,node,"Attribute '%s' is ambiguous",node.getName());
   }
-  Field field=Iterables.getOnlyElement(matches);
-  resolvedNames.put(node.getName(),field);
+  int fieldIndex=Iterables.getOnlyElement(matches);
+  Field field=tupleDescriptor.getFields().get(fieldIndex);
+  resolvedNames.put(node.getName(),fieldIndex);
   subExpressionTypes.put(node,field.getType());
   return field.getType();
 }

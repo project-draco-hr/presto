@@ -1,27 +1,21 @@
 {
-  Multimap<Optional<QualifiedName>,TupleDescriptor> children=process(relation.getRelation(),context);
+  TupleDescriptor child=process(relation.getRelation(),context);
   ImmutableList.Builder<Field> builder=ImmutableList.builder();
   if (relation.getColumnNames() != null) {
-    int totalColumns=0;
-    for (    TupleDescriptor descriptor2 : children.values()) {
-      totalColumns+=descriptor2.getFields().size();
-    }
+    int totalColumns=child.getFields().size();
     if (totalColumns != relation.getColumnNames().size()) {
       throw new SemanticException(MISMATCHED_COLUMN_ALIASES,relation,"Column alias list has %s entries but '%s' has %s columns available",relation.getColumnNames().size(),relation.getAlias(),totalColumns);
     }
   }
-  int index=0;
-  for (  TupleDescriptor descriptor : children.values()) {
-    for (    Field field : descriptor.getFields()) {
-      Optional<String> columnAlias=field.getName();
-      if (relation.getColumnNames() != null) {
-        columnAlias=Optional.of(relation.getColumnNames().get(index));
-      }
-      builder.add(new Field(QualifiedName.of(relation.getAlias()),columnAlias,field.getType(),index));
-      index++;
+  for (int i=0; i < child.getFields().size(); i++) {
+    Field field=child.getFields().get(i);
+    Optional<String> columnAlias=field.getName();
+    if (relation.getColumnNames() != null) {
+      columnAlias=Optional.of(relation.getColumnNames().get(i));
     }
+    builder.add(Field.newQualified(QualifiedName.of(relation.getAlias()),columnAlias,field.getType()));
   }
   TupleDescriptor descriptor=new TupleDescriptor(builder.build());
   analysis.setOutputDescriptor(relation,descriptor);
-  return ImmutableMultimap.<Optional<QualifiedName>,TupleDescriptor>builder().put(Optional.of(QualifiedName.of(relation.getAlias())),descriptor).build();
+  return descriptor;
 }

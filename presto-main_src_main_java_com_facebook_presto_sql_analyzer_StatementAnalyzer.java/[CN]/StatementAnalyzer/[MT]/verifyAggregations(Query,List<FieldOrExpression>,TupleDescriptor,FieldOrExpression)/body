@@ -1,0 +1,18 @@
+{
+  AggregationAnalyzer analyzer=new AggregationAnalyzer(groupByExpressions,metadata,tupleDescriptor);
+  if (fieldOrExpression.isExpression()) {
+    analyzer.analyze(fieldOrExpression.getExpression());
+  }
+ else {
+    int fieldIndex=fieldOrExpression.getFieldIndex();
+    if (!analyzer.analyze(fieldIndex)) {
+      Field field=tupleDescriptor.getFields().get(fieldIndex);
+      if (field.getName().isPresent()) {
+        throw new SemanticException(MUST_BE_AGGREGATE_OR_GROUP_BY,query,"Column '%s.%s' not in GROUP BY clause",field.getRelationAlias().get(),field.getName().get());
+      }
+ else {
+        throw new SemanticException(MUST_BE_AGGREGATE_OR_GROUP_BY,query,"Columns from '%s' not in GROUP BY clause",field.getRelationAlias().get());
+      }
+    }
+  }
+}

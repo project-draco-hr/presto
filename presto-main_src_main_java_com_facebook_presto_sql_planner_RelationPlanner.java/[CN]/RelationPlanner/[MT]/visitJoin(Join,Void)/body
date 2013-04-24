@@ -10,6 +10,6 @@
     Symbol rightSymbol=rightPlanBuilder.translate(clause.getRight());
     clauses.add(new JoinNode.EquiJoinClause(leftSymbol,rightSymbol));
   }
-  Map<Field,Symbol> mappings=ImmutableMap.<Field,Symbol>builder().putAll(leftPlan.getOutputMappings()).putAll(rightPlan.getOutputMappings()).build();
-  return new RelationPlan(mappings,new JoinNode(idAllocator.getNextId(),leftPlanBuilder.getRoot(),rightPlanBuilder.getRoot(),clauses.build()),analysis.getOutputDescriptor(node));
+  List<Symbol> outputSymbols=ImmutableList.<Symbol>builder().addAll(leftPlan.getOutputSymbols()).addAll(rightPlan.getOutputSymbols()).build();
+  return new RelationPlan(new JoinNode(idAllocator.getNextId(),leftPlanBuilder.getRoot(),rightPlanBuilder.getRoot(),clauses.build()),analysis.getOutputDescriptor(node),outputSymbols);
 }

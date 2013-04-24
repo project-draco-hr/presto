@@ -1,0 +1,25 @@
+{
+  ImmutableList.Builder<Field> outputFields=ImmutableList.builder();
+  for (  Expression expression : node.getSelect().getSelectItems()) {
+    if (expression instanceof AllColumns) {
+      Optional<QualifiedName> starPrefix=((AllColumns)expression).getPrefix();
+      for (      Field field : inputTupleDescriptor.resolveFieldsWithPrefix(starPrefix)) {
+        outputFields.add(Field.newUnqualified(field.getName(),field.getType()));
+      }
+    }
+ else {
+      Optional<String> alias=Optional.absent();
+      if (expression instanceof AliasedExpression) {
+        AliasedExpression aliased=(AliasedExpression)expression;
+        alias=Optional.of(aliased.getAlias());
+      }
+ else       if (expression instanceof QualifiedNameReference) {
+        alias=Optional.of(((QualifiedNameReference)expression).getName().getSuffix());
+      }
+      outputFields.add(Field.newUnqualified(alias,analysis.getType(expression)));
+    }
+  }
+  TupleDescriptor result=new TupleDescriptor(outputFields.build());
+  analysis.setOutputDescriptor(node,result);
+  return result;
+}

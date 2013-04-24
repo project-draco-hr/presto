@@ -1,10 +1,11 @@
 {
-  if (fieldOrExpression.getField().isPresent()) {
-    Symbol symbol=fieldMappings.get(fieldOrExpression.getField().get());
-    Preconditions.checkState(symbol != null,"No mapping for field '%s'",fieldOrExpression.getField().get());
+  if (fieldOrExpression.isFieldReference()) {
+    int fieldIndex=fieldOrExpression.getFieldIndex();
+    Symbol symbol=fieldSymbols[fieldIndex];
+    Preconditions.checkState(symbol != null,"No mapping for field '%s'",fieldIndex);
     return new QualifiedNameReference(symbol.toQualifiedName());
   }
  else {
-    return rewrite(fieldOrExpression.getExpression().get());
+    return rewrite(fieldOrExpression.getExpression());
   }
 }

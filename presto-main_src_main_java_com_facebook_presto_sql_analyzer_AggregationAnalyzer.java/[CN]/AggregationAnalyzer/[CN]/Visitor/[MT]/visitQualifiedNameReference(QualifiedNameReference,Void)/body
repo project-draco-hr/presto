@@ -1,4 +1,7 @@
 {
-  Field field=Iterables.getOnlyElement(scope.resolve(node.getName()),null);
-  return field != null && fields.contains(field);
+  QualifiedName name=node.getName();
+  List<Integer> indexes=tupleDescriptor.resolveFieldIndexes(name);
+  Preconditions.checkState(!indexes.isEmpty(),"No fields for name '%s'",name);
+  Preconditions.checkState(indexes.size() <= 1,"Found more than one field for name '%s': %s",name,indexes);
+  return fieldIndexes.contains(Iterables.getOnlyElement(indexes));
 }

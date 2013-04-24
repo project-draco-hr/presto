@@ -1,0 +1,26 @@
+{
+  ImmutableList.Builder<FieldOrExpression> groupByExpressionsBuilder=ImmutableList.builder();
+  if (!node.getGroupBy().isEmpty()) {
+    for (    Expression expression : node.getGroupBy()) {
+      FieldOrExpression groupByExpression;
+      if (expression instanceof LongLiteral) {
+        long ordinal=((LongLiteral)expression).getValue();
+        if (ordinal < 1 || ordinal > outputExpressions.size()) {
+          throw new SemanticException(INVALID_ORDINAL,expression,"GROUP BY position %s is not in select list",ordinal);
+        }
+        groupByExpression=outputExpressions.get((int)(ordinal - 1));
+      }
+ else {
+        Analyzer.analyzeExpression(metadata,tupleDescriptor,analysis,expression);
+        groupByExpression=new FieldOrExpression(expression);
+      }
+      if (groupByExpression.isExpression()) {
+        Analyzer.verifyNoAggregatesOrWindowFunctions(metadata,groupByExpression.getExpression(),"GROUP BY");
+      }
+      groupByExpressionsBuilder.add(groupByExpression);
+    }
+  }
+  List<FieldOrExpression> groupByExpressions=groupByExpressionsBuilder.build();
+  analysis.setGroupByExpressions(node,groupByExpressions);
+  return groupByExpressions;
+}

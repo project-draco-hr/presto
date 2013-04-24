@@ -1,0 +1,14 @@
+{
+  List<FunctionCall> aggregates=extractAggregates(node);
+  if (!aggregates.isEmpty() || !groupByExpressions.isEmpty()) {
+    if (Iterables.any(aggregates,distinctPredicate())) {
+      throw new SemanticException(NOT_SUPPORTED,node,"DISTINCT in aggregation parameters not yet supported");
+    }
+    for (    FieldOrExpression fieldOrExpression : Iterables.concat(outputExpressions,orderByExpressions)) {
+      verifyAggregations(node,groupByExpressions,tupleDescriptor,fieldOrExpression);
+    }
+    if (node.getHaving().isPresent()) {
+      verifyAggregations(node,groupByExpressions,tupleDescriptor,new FieldOrExpression(node.getHaving().get()));
+    }
+  }
+}

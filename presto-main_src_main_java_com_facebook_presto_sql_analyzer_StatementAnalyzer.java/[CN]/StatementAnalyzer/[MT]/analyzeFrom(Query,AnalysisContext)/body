@@ -1,16 +1,11 @@
 {
-  ImmutableMultimap.Builder<Optional<QualifiedName>,TupleDescriptor> fromDescriptorBuilder=ImmutableMultimap.builder();
+  TupleDescriptor fromDescriptor=new TupleDescriptor();
   if (node.getFrom() != null && !node.getFrom().isEmpty()) {
     TupleAnalyzer analyzer=new TupleAnalyzer(analysis,session,metadata);
-    for (    Relation relation : node.getFrom()) {
-      fromDescriptorBuilder.putAll(analyzer.process(relation,context));
+    if (node.getFrom().size() != 1) {
+      throw new SemanticException(NOT_SUPPORTED,node,"Cross joins not yet supported");
     }
+    fromDescriptor=analyzer.process(Iterables.getOnlyElement(node.getFrom()),context);
   }
-  Multimap<Optional<QualifiedName>,TupleDescriptor> fromDescriptors=fromDescriptorBuilder.build();
-  for (  Optional<QualifiedName> alias : fromDescriptors.keys()) {
-    if (alias.isPresent() && fromDescriptors.keys().count(alias) > 1) {
-      throw new SemanticException(DUPLICATE_RELATION,node,"Relation '%s' appears more than once",alias.get());
-    }
-  }
-  return new Scope(fromDescriptors);
+  return fromDescriptor;
 }

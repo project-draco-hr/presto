@@ -1,14 +1,14 @@
 {
   AnalysisContext context=new AnalysisContext(parentContext);
   analyzeWith(node,context);
-  Scope queryScope=analyzeFrom(node,context);
-  analyzeWhere(node,queryScope);
-  List<FieldOrExpression> outputExpressions=analyzeSelect(node,queryScope);
-  List<FieldOrExpression> groupByExpressions=analyzeGroupBy(node,queryScope,outputExpressions);
-  List<FieldOrExpression> orderByExpressions=analyzeOrderBy(node,queryScope,outputExpressions);
-  analyzeHaving(node,queryScope);
-  analyzeAggregations(node,queryScope,groupByExpressions,outputExpressions,orderByExpressions);
+  TupleDescriptor tupleDescriptor=analyzeFrom(node,context);
+  analyzeWhere(node,tupleDescriptor);
+  List<FieldOrExpression> outputExpressions=analyzeSelect(node,tupleDescriptor);
+  List<FieldOrExpression> groupByExpressions=analyzeGroupBy(node,tupleDescriptor,outputExpressions);
+  List<FieldOrExpression> orderByExpressions=analyzeOrderBy(node,tupleDescriptor,outputExpressions);
+  analyzeHaving(node,tupleDescriptor);
+  analyzeAggregations(node,tupleDescriptor,groupByExpressions,outputExpressions,orderByExpressions);
   analyzeWindowFunctions(node,outputExpressions,orderByExpressions);
   analysis.setQuery(node);
-  return computeOutputDescriptor(node,queryScope);
+  return computeOutputDescriptor(node,tupleDescriptor);
 }

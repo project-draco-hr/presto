@@ -1,0 +1,11 @@
+{
+  if (node.getWhere().isPresent()) {
+    Expression predicate=node.getWhere().get();
+    Analyzer.verifyNoAggregatesOrWindowFunctions(metadata,predicate,"WHERE");
+    Type type=Analyzer.analyzeExpression(metadata,tupleDescriptor,analysis,predicate);
+    if (type != Type.BOOLEAN && type != Type.NULL) {
+      throw new SemanticException(TYPE_MISMATCH,predicate,"WHERE clause must evaluate to a boolean: actual type %s",type);
+    }
+    analysis.setWhere(node,predicate);
+  }
+}
