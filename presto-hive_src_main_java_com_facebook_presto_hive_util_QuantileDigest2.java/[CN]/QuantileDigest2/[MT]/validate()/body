@@ -1,0 +1,22 @@
+{
+  final AtomicDouble sumOfWeights=new AtomicDouble();
+  final AtomicInteger actualNodeCount=new AtomicInteger();
+  final AtomicInteger actualNonZeroNodeCount=new AtomicInteger();
+  if (root != null) {
+    validateStructure(root);
+    postOrderTraversal(root,new Callback(){
+      @Override public boolean process(      Node node){
+        sumOfWeights.addAndGet(node.weightedCount);
+        actualNodeCount.incrementAndGet();
+        if (node.weightedCount > ZERO_WEIGHT_THRESHOLD) {
+          actualNonZeroNodeCount.incrementAndGet();
+        }
+        return true;
+      }
+    }
+);
+  }
+  checkState(Math.abs(sumOfWeights.get() - weightedCount) < ZERO_WEIGHT_THRESHOLD,"Computed weight (%s) doesn't match summary (%s)",sumOfWeights.get(),weightedCount);
+  checkState(actualNodeCount.get() == totalNodeCount,"Actual node count (%s) doesn't match summary (%s)",actualNodeCount.get(),totalNodeCount);
+  checkState(actualNonZeroNodeCount.get() == nonZeroNodeCount,"Actual non-zero node count (%s) doesn't match summary (%s)",actualNonZeroNodeCount.get(),nonZeroNodeCount);
+}

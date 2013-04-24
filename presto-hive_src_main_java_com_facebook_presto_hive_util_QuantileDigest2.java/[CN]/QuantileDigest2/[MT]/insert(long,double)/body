@@ -1,0 +1,32 @@
+{
+  long lastBranch=0;
+  Node parent=null;
+  Node current=root;
+  while (true) {
+    if (current == null) {
+      setChild(parent,lastBranch,createLeaf(value,weight));
+      return;
+    }
+ else     if ((value >>> current.level) != (current.value >>> current.level)) {
+      setChild(parent,lastBranch,makeSiblings(current,createLeaf(value,weight)));
+      return;
+    }
+ else     if (current.level == 0 && current.value == value) {
+      double oldWeight=current.weightedCount;
+      current.weightedCount+=weight;
+      if (current.weightedCount >= ZERO_WEIGHT_THRESHOLD && oldWeight < ZERO_WEIGHT_THRESHOLD) {
+        ++nonZeroNodeCount;
+      }
+      return;
+    }
+    long branch=value & current.getBranchMask();
+    parent=current;
+    lastBranch=branch;
+    if (branch == 0) {
+      current=current.left;
+    }
+ else {
+      current=current.right;
+    }
+  }
+}
