@@ -1,17 +1,19 @@
 {
-  Map<Symbol,ColumnHandle> assignments=new HashMap<>();
+  boolean empty=true;
+  ImmutableMap.Builder<Symbol,ColumnHandle> assignments=ImmutableMap.builder();
   for (  Map.Entry<Symbol,ColumnHandle> entry : node.getAssignments().entrySet()) {
     Symbol symbol=entry.getKey();
     if (expectedOutputs.contains(symbol) || expectedOutputs.isEmpty() && Type.isNumeric(types.get(symbol))) {
       assignments.put(symbol,entry.getValue());
+      empty=false;
       if (expectedOutputs.isEmpty()) {
         break;
       }
     }
   }
-  if (assignments.isEmpty()) {
+  if (empty) {
     Map.Entry<Symbol,ColumnHandle> first=Iterables.getFirst(node.getAssignments().entrySet(),null);
     assignments.put(first.getKey(),first.getValue());
   }
-  return new TableScanNode(node.getId(),node.getTable(),assignments);
+  return new TableScanNode(node.getId(),node.getTable(),assignments.build());
 }
