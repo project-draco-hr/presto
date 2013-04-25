@@ -38,11 +38,11 @@
     ImmutableList.Builder<EquiJoinClause> clauses=ImmutableList.builder();
     for (    Expression conjunct : ExpressionUtils.extractConjuncts((Expression)optimizedExpression)) {
       if (!(conjunct instanceof ComparisonExpression)) {
-        throw new SemanticException(NOT_SUPPORTED,node,"Non-equi joins not supported: %s",ExpressionFormatter.toString(conjunct));
+        throw new SemanticException(NOT_SUPPORTED,node,"Non-equi joins not supported: %s",conjunct);
       }
       ComparisonExpression comparison=(ComparisonExpression)conjunct;
       if (comparison.getType() != ComparisonExpression.Type.EQUAL) {
-        throw new SemanticException(NOT_SUPPORTED,node,"Non-equi joins not supported: %s",ExpressionFormatter.toString(conjunct));
+        throw new SemanticException(NOT_SUPPORTED,node,"Non-equi joins not supported: %s",conjunct);
       }
       Set<QualifiedName> firstDependencies=DependencyExtractor.extract(comparison.getLeft());
       Set<QualifiedName> secondDependencies=DependencyExtractor.extract(comparison.getRight());
@@ -57,7 +57,7 @@
         rightExpression=comparison.getLeft();
       }
  else {
-        throw new SemanticException(NOT_SUPPORTED,node,"Non-equi joins not supported: %s",ExpressionFormatter.toString(conjunct));
+        throw new SemanticException(NOT_SUPPORTED,node,"Non-equi joins not supported: %s",conjunct);
       }
       Analyzer.analyzeExpression(metadata,left,analysis,leftExpression);
       Analyzer.analyzeExpression(metadata,right,analysis,rightExpression);
