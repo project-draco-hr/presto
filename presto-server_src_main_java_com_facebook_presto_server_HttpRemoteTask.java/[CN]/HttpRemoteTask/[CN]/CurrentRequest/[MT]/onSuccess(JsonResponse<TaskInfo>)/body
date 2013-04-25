@@ -9,12 +9,6 @@
       acknowledgeSources(sources);
       updateIfNecessary();
     }
- else     if (response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.code()) {
-      String message=String.format("Server at %s returned %s: %s",taskInfo.getSelf(),response.getStatusCode(),response.getStatusMessage());
-      log.debug(message);
-      requestFailed(startTime,new RuntimeException(message));
-      updateState(false);
-    }
  else     if (response.getStatusCode() == HttpStatus.SERVICE_UNAVAILABLE.code()) {
       requestFailed(startTime,new RuntimeException("Server at %s returned SERVICE_UNAVAILABLE"));
     }
@@ -23,6 +17,7 @@
       if (cause == null) {
         cause=new RuntimeException(String.format("Expected response code from %s to be %s, but was %s: %s",taskInfo.getSelf(),HttpStatus.OK.code(),response.getStatusCode(),response.getStatusMessage()));
       }
+      log.debug(cause,"Remote task failed: %s",taskInfo.getSelf());
       failTask(cause);
     }
   }
