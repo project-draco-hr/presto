@@ -1,4 +1,5 @@
 {
+  List<Runnable> listenersToNotify;
 synchronized (this) {
     if (queryState.isDone() && (queryState != QueryState.FAILED)) {
       return false;
@@ -14,10 +15,11 @@ synchronized (this) {
     if (queryState == QueryState.FAILED) {
       return true;
     }
+    listenersToNotify=ImmutableList.copyOf(listeners);
     queryState=QueryState.FAILED;
   }
   log.debug("Failed query %s",queryId);
   queryStats.recordEnd();
-  queryMonitor.completionEvent(getQueryInfo());
+  notifyListeners(listenersToNotify);
   return true;
 }
