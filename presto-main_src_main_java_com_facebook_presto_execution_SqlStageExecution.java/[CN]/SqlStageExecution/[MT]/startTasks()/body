@@ -47,7 +47,10 @@ synchronized (this) {
   }
  catch (  Throwable e) {
     if (!getState().isDone()) {
-      transitionToState(StageState.FAILED);
+synchronized (this) {
+        failureCauses.add(e);
+        transitionToState(StageState.FAILED);
+      }
       log.error(e,"Error while starting stage %s",stageId);
       cancelAll();
       throw e;

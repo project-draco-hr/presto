@@ -2,24 +2,13 @@
   String nodeIdentifier=node.getNodeIdentifier();
   TaskId taskId=new TaskId(stageId,String.valueOf(nextTaskId.getAndIncrement()));
   RemoteTask task=remoteTaskFactory.createRemoteTask(session,taskId,node,fragment,initialSplits,outputReceivers,getExchangeLocations(),getOutputBuffers());
-  try {
-    task.updateState(false);
-    tasks.put(node,task);
-    if (getState().isDone()) {
-      return task;
-    }
-    for (    StageExecutionNode subStage : subStages.values()) {
-      subStage.addOutputBuffer(nodeIdentifier);
-    }
+  task.updateState(false);
+  tasks.put(node,task);
+  if (getState().isDone()) {
     return task;
   }
- catch (  Throwable e) {
-synchronized (this) {
-      failureCauses.add(e);
-      transitionToState(StageState.FAILED);
-    }
-    log.error(e,"Stage %s failed to start",stageId);
-    cancelAll();
-    throw Throwables.propagate(e);
+  for (  StageExecutionNode subStage : subStages.values()) {
+    subStage.addOutputBuffer(nodeIdentifier);
   }
+  return task;
 }
