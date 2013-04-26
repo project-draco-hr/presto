@@ -1,4 +1,10 @@
 {
+  setDatabaseName(databaseName);
+  HiveClientConfig hiveClientConfig=new HiveClientConfig();
+  String proxy=System.getProperty("hive.metastore.thrift.client.socks-proxy");
+  if (proxy != null) {
+    hiveClientConfig.setMetastoreSocksProxy(HostAndPort.fromString(proxy));
+  }
   HiveClient client=new HiveClient(new HiveConnectorId("hive"),new CachingHiveMetastore(new TestingHiveCluster(host,port),Duration.valueOf("1m")),new HdfsEnvironment(),MoreExecutors.sameThreadExecutor(),1,2,500);
   metadata=client;
   splitManager=client;
