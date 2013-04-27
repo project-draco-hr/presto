@@ -1,0 +1,25 @@
+{
+  JoinCriteria criteria=node.getCriteria();
+  String type=node.getType().toString();
+  if (criteria instanceof NaturalJoin) {
+    type="NATURAL " + type;
+  }
+  builder.append('(');
+  process(node.getLeft(),indent);
+  builder.append('\n');
+  append(indent,type).append(" JOIN ");
+  process(node.getRight(),indent);
+  if (criteria instanceof JoinUsing) {
+    JoinUsing using=(JoinUsing)criteria;
+    builder.append(" USING (").append(Joiner.on(", ").join(using.getColumns())).append(")");
+  }
+ else   if (criteria instanceof JoinOn) {
+    JoinOn on=(JoinOn)criteria;
+    builder.append(" ON (").append(formatExpression(on.getExpression())).append(")");
+  }
+ else   if (!(criteria instanceof NaturalJoin)) {
+    throw new UnsupportedOperationException("unknown join criteria: " + criteria);
+  }
+  builder.append(")");
+  return null;
+}

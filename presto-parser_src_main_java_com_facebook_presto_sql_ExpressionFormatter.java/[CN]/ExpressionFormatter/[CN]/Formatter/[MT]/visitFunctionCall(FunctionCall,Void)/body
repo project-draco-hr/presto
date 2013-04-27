@@ -1,6 +1,13 @@
 {
   StringBuilder builder=new StringBuilder();
-  builder.append(node.getName()).append('(').append(joinExpressions(node.getArguments())).append(')');
+  String arguments=joinExpressions(node.getArguments());
+  if (node.getArguments().isEmpty() && "count".equalsIgnoreCase(node.getName().getSuffix())) {
+    arguments="*";
+  }
+  if (node.isDistinct()) {
+    arguments="DISTINCT " + arguments;
+  }
+  builder.append(node.getName()).append('(').append(arguments).append(')');
   if (node.getWindow().isPresent()) {
     builder.append(" OVER ").append(visitWindow(node.getWindow().get(),null));
   }

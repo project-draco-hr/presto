@@ -1,53 +1,57 @@
 {
   if (node.getWith().isPresent()) {
     With with=node.getWith().get();
-    append(indent,"WITH ");
+    append(indent,"WITH");
     if (with.isRecursive()) {
-      builder.append("RECURSIVE ");
+      builder.append(" RECURSIVE");
     }
-    builder.append('\n');
+    builder.append("\n  ");
     Iterator<WithQuery> queries=with.getQueries().iterator();
     while (queries.hasNext()) {
       WithQuery query=queries.next();
-      builder.append(query.getName());
+      append(indent,query.getName());
       appendAliasColumns(builder,query.getColumnNames());
       builder.append(" AS ");
       process(new Subquery(query.getQuery()),indent);
+      builder.append('\n');
       if (queries.hasNext()) {
         builder.append(", ");
       }
     }
   }
   process(node.getSelect(),indent);
-  append(indent,"FROM ");
+  append(indent,"FROM");
   if (node.getFrom().size() > 1) {
     builder.append('\n');
+    append(indent,"  ");
     Iterator<Relation> relations=node.getFrom().iterator();
     while (relations.hasNext()) {
       process(relations.next(),indent);
       if (relations.hasNext()) {
-        builder.append(", ");
+        builder.append('\n');
+        append(indent,", ");
       }
     }
   }
  else {
+    builder.append(' ');
     process(Iterables.getOnlyElement(node.getFrom()),indent);
   }
   builder.append('\n');
   if (node.getWhere().isPresent()) {
-    append(indent,"WHERE " + ExpressionFormatter.formatExpression(node.getWhere().get())).append('\n');
+    append(indent,"WHERE " + formatExpression(node.getWhere().get())).append('\n');
   }
   if (!node.getGroupBy().isEmpty()) {
     append(indent,"GROUP BY " + Joiner.on(", ").join(Iterables.transform(node.getGroupBy(),expressionFormatterFunction()))).append('\n');
   }
   if (node.getHaving().isPresent()) {
-    append(indent,"HAVING " + ExpressionFormatter.formatExpression(node.getHaving().get())).append('\n');
+    append(indent,"HAVING " + formatExpression(node.getHaving().get())).append('\n');
   }
   if (!node.getOrderBy().isEmpty()) {
-    append(indent,"ORDER BY " + Joiner.on(", ").join(Iterables.transform(node.getOrderBy(),orderByFormatterFunction())));
+    append(indent,"ORDER BY " + Joiner.on(", ").join(Iterables.transform(node.getOrderBy(),orderByFormatterFunction()))).append('\n');
   }
   if (node.getLimit().isPresent()) {
-    append(indent,"LIMIT " + node.getLimit().get());
+    append(indent,"LIMIT " + node.getLimit().get()).append('\n');
   }
   return null;
 }

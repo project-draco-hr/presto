@@ -1,4 +1,15 @@
 {
-  append(indent,"SELECT ").append(node.isDistinct() ? "DISTINCT " : "").append(Joiner.on(", ").join(Iterables.transform(node.getSelectItems(),expressionFormatterFunction()))).append('\n');
+  append(indent,"SELECT");
+  if (node.isDistinct()) {
+    builder.append(" DISTINCT");
+  }
+  if (node.getSelectItems().size() > 1) {
+    builder.append("\n  ");
+    append(indent,Joiner.on('\n' + indentString(indent) + ", ").join(Iterables.transform(node.getSelectItems(),expressionFormatterFunction())));
+  }
+ else {
+    builder.append(' ').append(formatExpression(Iterables.getOnlyElement(node.getSelectItems())));
+  }
+  builder.append('\n');
   return null;
 }
