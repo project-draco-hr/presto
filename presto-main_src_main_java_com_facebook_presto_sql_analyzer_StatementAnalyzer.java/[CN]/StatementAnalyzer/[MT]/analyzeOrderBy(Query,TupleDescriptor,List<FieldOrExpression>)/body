@@ -2,13 +2,13 @@
   List<SortItem> items=node.getOrderBy();
   ImmutableList.Builder<FieldOrExpression> orderByExpressionsBuilder=ImmutableList.builder();
   if (!items.isEmpty()) {
-    Multimap<String,AliasedExpression> byAlias=IterableTransformer.on(node.getSelect().getSelectItems()).select(instanceOf(AliasedExpression.class)).cast(AliasedExpression.class).index(aliasGetter());
+    Multimap<QualifiedName,AliasedExpression> byAlias=IterableTransformer.on(node.getSelect().getSelectItems()).select(instanceOf(AliasedExpression.class)).cast(AliasedExpression.class).index(compose(QualifiedName.fromStringFunction(),aliasGetter()));
     for (    SortItem item : items) {
       Expression expression=item.getSortKey();
       FieldOrExpression orderByExpression=null;
       if (expression instanceof QualifiedNameReference && !((QualifiedNameReference)expression).getName().getPrefix().isPresent()) {
         QualifiedName name=((QualifiedNameReference)expression).getName();
-        Collection<AliasedExpression> expressions=byAlias.get(name.getSuffix());
+        Collection<AliasedExpression> expressions=byAlias.get(name);
         if (expressions.size() > 1) {
           throw new SemanticException(AMBIGUOUS_ATTRIBUTE,expression,"'%s' in ORDER BY is ambiguous",name.getSuffix());
         }
