@@ -1,4 +1,12 @@
 {
+  Type valueType=process(node.getValue(),context);
+  Type listType=process(node.getValueList(),context);
+  if (valueType == Type.NULL) {
+    subExpressionTypes.put(node,Type.NULL);
+  }
+ else   if (valueType != listType && !(Type.isNumeric(valueType) && Type.isNumeric(listType))) {
+    throw new SemanticException(TYPE_MISMATCH,node,"Types are not comparable for 'IN': %s vs %s",valueType,listType);
+  }
   subExpressionTypes.put(node,Type.BOOLEAN);
   return Type.BOOLEAN;
 }
