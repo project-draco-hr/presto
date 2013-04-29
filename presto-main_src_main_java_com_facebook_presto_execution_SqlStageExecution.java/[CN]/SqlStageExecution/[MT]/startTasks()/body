@@ -34,7 +34,7 @@ synchronized (this) {
         task.noMoreSplits();
       }
     }
-    transitionToState(StageState.SCHEDULED);
+    stageState.set(StageState.SCHEDULED);
     for (    StageExecutionNode subStage : subStages.values()) {
       subStage.noMoreOutputBuffers();
     }
@@ -44,7 +44,7 @@ synchronized (this) {
     if (!getState().isDone()) {
 synchronized (this) {
         failureCauses.add(e);
-        transitionToState(StageState.FAILED);
+        stageState.set(StageState.FAILED);
       }
       log.error(e,"Error while starting stage %s",stageId);
       cancelAll();

@@ -1,0 +1,16 @@
+{
+  executor.execute(new Runnable(){
+    @Override public void run(){
+      checkState(!Thread.holdsLock(StateMachine.this),"Can not notify while holding a lock on this");
+      for (      StateChangeListener<T> stateChangeListener : stateChangeListeners) {
+        try {
+          stateChangeListener.stateChanged(newState);
+        }
+ catch (        Throwable e) {
+          log.error(e,"Error notifying state change listener for %s",name);
+        }
+      }
+    }
+  }
+);
+}

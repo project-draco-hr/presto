@@ -2,15 +2,13 @@
   Preconditions.checkNotNull(doneState,"doneState is null");
   Preconditions.checkArgument(doneState.isDone(),"doneState %s is not a done state",doneState);
   while (true) {
-    TaskState taskState=this.taskState.get();
-    if (taskState.isDone()) {
+    TaskState currentTaskState=this.taskState.get();
+    if (currentTaskState.isDone()) {
       return false;
     }
-    if (this.taskState.compareAndSet(taskState,doneState)) {
+    if (taskState.compareAndSet(currentTaskState,doneState)) {
       stats.recordEnd();
       sharedBuffer.destroy();
-      log.debug("Task %s is %s",taskId,doneState);
-      stateChanged();
       return true;
     }
   }

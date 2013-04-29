@@ -23,7 +23,7 @@
   for (  StageExecutionPlan subStagePlan : plan.getSubStages()) {
     PlanFragmentId subStageFragmentId=subStagePlan.getFragment().getId();
     StageExecutionNode subStage=new SqlStageExecution(this,queryId,nextStageId,locationFactory,subStagePlan,nodeScheduler,remoteTaskFactory,session,maxPendingSplitsPerNode,executor);
-    subStage.addStateChangeListener(new StageStateChangeListener(){
+    subStage.addStateChangeListener(new StateChangeListener<StageInfo>(){
       @Override public void stateChanged(      StageInfo stageInfo){
         doUpdateState();
       }
@@ -40,4 +40,11 @@
     }
   }
 ));
+  stageState=new StateMachine<>("stage " + stageId,this.executor,StageState.PLANNED);
+  stageState.addStateChangeListener(new StateChangeListener<StageState>(){
+    @Override public void stateChanged(    StageState newValue){
+      log.debug("Stage %s is %s",stageId,newValue);
+    }
+  }
+);
 }

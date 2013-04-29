@@ -1,0 +1,15 @@
+{
+  checkState(!Thread.holdsLock(this),"Can not wait for state change while holding a lock on this");
+  if (state != currentState) {
+    return;
+  }
+  long remainingNanos=(long)maxWait.convertTo(NANOSECONDS);
+  long start=System.nanoTime();
+  long end=start + remainingNanos;
+synchronized (this) {
+    while (remainingNanos > 0 && state == currentState) {
+      NANOSECONDS.timedWait(this,remainingNanos);
+      remainingNanos=end - System.nanoTime();
+    }
+  }
+}

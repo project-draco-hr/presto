@@ -1,14 +1,5 @@
 {
-  TaskInfo oldValue=taskInfo.get();
-  if (oldValue.getState().isDone()) {
-    return;
-  }
-  if (newValue.getVersion() < oldValue.getVersion()) {
-    return;
-  }
-  boolean stateChanged=newValue.getState() != oldValue.getState();
-  taskInfo.set(newValue);
-  for (  Map.Entry<PlanNodeId,Set<?>> entry : newValue.getOutputs().entrySet()) {
+  for (  Entry<PlanNodeId,Set<?>> entry : newValue.getOutputs().entrySet()) {
     OutputReceiver outputReceiver=outputReceivers.get(entry.getKey());
     checkState(outputReceiver != null,"Got Result for node %s which is not an output receiver!",entry.getKey());
     for (    Object result : entry.getValue()) {
@@ -18,7 +9,16 @@
   if (newValue.getState().isDone()) {
     pendingSplits.clear();
   }
-  if (stateChanged) {
-    fireStateChangedEvent(newValue);
+  taskInfo.setIf(newValue,new Predicate<TaskInfo>(){
+    public boolean apply(    TaskInfo oldValue){
+      if (oldValue.getState().isDone()) {
+        return false;
+      }
+      if (newValue.getVersion() < oldValue.getVersion()) {
+        return false;
+      }
+      return true;
+    }
   }
+);
 }

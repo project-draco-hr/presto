@@ -1,0 +1,16 @@
+{
+  checkState(!Thread.holdsLock(this),"Can not set state while holding a lock on this");
+  T oldState;
+  ImmutableList<StateChangeListener<T>> stateChangeListeners;
+synchronized (this) {
+    if (state == newState) {
+      return state;
+    }
+    oldState=state;
+    state=newState;
+    stateChangeListeners=ImmutableList.copyOf(this.stateChangeListeners);
+    this.notifyAll();
+  }
+  fireStateChanged(newState,stateChangeListeners);
+  return oldState;
+}

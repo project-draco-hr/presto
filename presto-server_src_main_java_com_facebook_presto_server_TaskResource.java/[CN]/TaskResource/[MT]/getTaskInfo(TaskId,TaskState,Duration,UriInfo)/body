@@ -1,0 +1,13 @@
+{
+  checkNotNull(taskId,"taskId is null");
+  if (maxWait != null) {
+    taskManager.waitForStateChange(taskId,currentState,maxWait);
+  }
+  try {
+    TaskInfo taskInfo=taskManager.getTaskInfo(taskId,isFullTaskInfoRequested(uriInfo));
+    return Response.ok(taskInfo).build();
+  }
+ catch (  NoSuchElementException e) {
+    return Response.status(Status.GONE).build();
+  }
+}

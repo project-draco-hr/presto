@@ -1,0 +1,12 @@
+{
+  checkState(!Thread.holdsLock(this),"Can not set state while holding a lock on this");
+  while (true) {
+    T currentState=get();
+    if (!predicate.apply(currentState)) {
+      return false;
+    }
+    if (compareAndSet(currentState,newValue)) {
+      return true;
+    }
+  }
+}
