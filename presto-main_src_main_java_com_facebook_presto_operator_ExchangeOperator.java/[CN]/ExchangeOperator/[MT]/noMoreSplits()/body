@@ -1,3 +1,14 @@
 {
-  noMoreLocations.set(true);
+synchronized (this) {
+    if (noMoreLocations) {
+      return;
+    }
+    noMoreLocations=true;
+  }
+  for (  WeakReference<ExchangeClient> activeClientReference : activeClients) {
+    ExchangeClient activeClient=activeClientReference.get();
+    if (activeClient != null) {
+      activeClient.noMoreLocations();
+    }
+  }
 }

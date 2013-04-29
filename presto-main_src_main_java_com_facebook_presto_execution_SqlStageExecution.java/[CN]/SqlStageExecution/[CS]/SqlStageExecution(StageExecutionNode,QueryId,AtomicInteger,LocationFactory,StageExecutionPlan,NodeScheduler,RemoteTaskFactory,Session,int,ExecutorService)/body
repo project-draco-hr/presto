@@ -23,6 +23,12 @@
   for (  StageExecutionPlan subStagePlan : plan.getSubStages()) {
     PlanFragmentId subStageFragmentId=subStagePlan.getFragment().getId();
     StageExecutionNode subStage=new SqlStageExecution(this,queryId,nextStageId,locationFactory,subStagePlan,nodeScheduler,remoteTaskFactory,session,maxPendingSplitsPerNode,executor);
+    subStage.addStateChangeListener(new StageStateChangeListener(){
+      @Override public void stateChanged(      StageInfo stageInfo){
+        doUpdateState();
+      }
+    }
+);
     subStages.put(subStageFragmentId,subStage);
   }
   this.subStages=subStages.build();

@@ -1,0 +1,24 @@
+{
+  if (!stateMachine.isDone()) {
+    StageState outputStageState=stageInfo.getState();
+    if (outputStageState.isDone()) {
+      if (outputStageState == StageState.FAILED) {
+        stateMachine.fail(failureCause(stageInfo));
+      }
+ else       if (outputStageState == StageState.CANCELED) {
+        stateMachine.cancel();
+      }
+ else {
+        stateMachine.finished();
+      }
+    }
+ else     if (stateMachine.getQueryState() == QueryState.STARTING) {
+      if (outputStageState == StageState.RUNNING) {
+        stateMachine.running();
+      }
+      if (any(transform(getAllStages(stageInfo),stageStateGetter()),isStageRunningOrDone())) {
+        stateMachine.getStats().recordExecutionStart();
+      }
+    }
+  }
+}

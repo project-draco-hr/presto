@@ -1,7 +1,18 @@
 {
-  Preconditions.checkNotNull(split,"split is null");
-  Preconditions.checkArgument(split instanceof RemoteSplit,"split is not a remote split");
-  Preconditions.checkState(!noMoreLocations.get(),"No more splits already set");
-  URI location=((RemoteSplit)split).getLocation();
-  locations.add(location);
+  URI location;
+synchronized (this) {
+    Preconditions.checkNotNull(split,"split is null");
+    Preconditions.checkArgument(split instanceof RemoteSplit,"split is not a remote split");
+    Preconditions.checkState(!noMoreLocations,"No more splits already set");
+    location=((RemoteSplit)split).getLocation();
+    if (!locations.add(location)) {
+      return;
+    }
+  }
+  for (  WeakReference<ExchangeClient> activeClientReference : activeClients) {
+    ExchangeClient activeClient=activeClientReference.get();
+    if (activeClient != null) {
+      activeClient.addLocation(location);
+    }
+  }
 }

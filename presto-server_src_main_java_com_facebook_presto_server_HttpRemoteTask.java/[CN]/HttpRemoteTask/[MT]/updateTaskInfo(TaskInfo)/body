@@ -1,10 +1,12 @@
 {
-  if (taskInfo.get().getState().isDone()) {
+  TaskInfo oldValue=taskInfo.get();
+  if (oldValue.getState().isDone()) {
     return;
   }
-  if (newValue.getVersion() < taskInfo.get().getVersion()) {
+  if (newValue.getVersion() < oldValue.getVersion()) {
     return;
   }
+  boolean stateChanged=newValue.getState() != oldValue.getState();
   taskInfo.set(newValue);
   for (  Map.Entry<PlanNodeId,Set<?>> entry : newValue.getOutputs().entrySet()) {
     OutputReceiver outputReceiver=outputReceivers.get(entry.getKey());
@@ -15,5 +17,8 @@
   }
   if (newValue.getState().isDone()) {
     pendingSplits.clear();
+  }
+  if (stateChanged) {
+    fireStateChangedEvent(newValue);
   }
 }

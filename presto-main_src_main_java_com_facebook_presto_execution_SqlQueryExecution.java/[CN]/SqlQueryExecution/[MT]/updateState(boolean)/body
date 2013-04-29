@@ -10,27 +10,5 @@
   }
   waitForFuture(outputStage.updateState(forceRefresh));
   outputStage.updateState(forceRefresh);
-  if (!stateMachine.isDone()) {
-    StageInfo outputStageInfo=outputStage.getStageInfo();
-    StageState outputStageState=outputStageInfo.getState();
-    if (outputStageState.isDone()) {
-      if (outputStageState == StageState.FAILED) {
-        stateMachine.fail(failureCause(outputStageInfo));
-      }
- else       if (outputStageState == StageState.CANCELED) {
-        stateMachine.cancel();
-      }
- else {
-        stateMachine.finished();
-      }
-    }
- else     if (stateMachine.getQueryState() == QueryState.STARTING) {
-      if (outputStageState == StageState.RUNNING) {
-        stateMachine.running();
-      }
-      if (any(transform(getAllStages(outputStage.getStageInfo()),stageStateGetter()),isStageRunningOrDone())) {
-        stateMachine.getStats().recordExecutionStart();
-      }
-    }
-  }
+  doUpdateState(outputStage.getStageInfo());
 }

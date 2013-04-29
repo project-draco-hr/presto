@@ -4,9 +4,9 @@
     Preconditions.checkState(buffers.size() == 1,"Expected a single output buffer for task %s, but found %s",taskInfo.getTaskId(),buffers);
     String bufferId=Iterables.getOnlyElement(buffers).getBufferId();
     URI uri=uriBuilderFrom(taskInfo.getSelf()).appendPath("results").appendPath(bufferId).build();
-    locations.add(uri);
+    exchangeClient.addLocation(uri);
   }
   if ((outputStage.getState() != StageState.PLANNED) && (outputStage.getState() != StageState.SCHEDULING)) {
-    noMoreLocations.set(true);
+    exchangeClient.noMoreLocations();
   }
 }

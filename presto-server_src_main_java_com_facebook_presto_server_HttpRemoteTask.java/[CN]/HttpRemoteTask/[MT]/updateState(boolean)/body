@@ -7,6 +7,10 @@ synchronized (this) {
     if (taskInfo.get().getState().isDone()) {
       return Futures.immediateFuture(null);
     }
+    if (updateLoop == null) {
+      updateLoop=new UpdateLoop();
+      updateLoop.start();
+    }
     if (!forceRefresh) {
       if (this.currentRequest != null) {
         if (!this.currentRequest.isDone()) {
@@ -15,8 +19,8 @@ synchronized (this) {
         }
         this.currentRequest=null;
       }
-      if (!requestRateLimiter.tryAcquire()) {
-        return Futures.immediateFuture(null);
+      if (errorCount.get() > 0) {
+        errorRequestRateLimiter.acquire();
       }
     }
     List<TaskSource> sources=getSources();

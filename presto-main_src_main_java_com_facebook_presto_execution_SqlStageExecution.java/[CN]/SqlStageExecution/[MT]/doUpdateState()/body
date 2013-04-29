@@ -1,6 +1,7 @@
 {
   Preconditions.checkState(!Thread.holdsLock(this),"Can not doUpdateState while holding a lock on this");
 synchronized (this) {
+    this.notifyAll();
     StageState currentState=stageState.get();
     if (currentState.isDone()) {
       return;
@@ -20,9 +21,6 @@ synchronized (this) {
         }
  else         if (any(taskStates,equalTo(TaskState.RUNNING))) {
           transitionToState(StageState.RUNNING);
-        }
- else         if (any(taskStates,equalTo(TaskState.QUEUED))) {
-          transitionToState(StageState.SCHEDULED);
         }
       }
     }

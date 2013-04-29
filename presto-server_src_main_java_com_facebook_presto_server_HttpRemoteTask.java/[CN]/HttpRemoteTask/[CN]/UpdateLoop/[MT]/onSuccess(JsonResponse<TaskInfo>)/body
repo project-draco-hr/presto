@@ -1,0 +1,27 @@
+{
+  try {
+    TaskInfo taskInfo=getTaskInfo();
+    int statusCode=response.getStatusCode();
+    if (statusCode == HttpStatus.OK.code() && response.hasValue()) {
+      updateTaskInfo(response.getValue());
+      lastSuccessfulRequest.set(System.nanoTime());
+      errorCount.set(0);
+      errorsSinceLastSuccess.clear();
+    }
+ else     if (statusCode != HttpStatus.GONE.code() && statusCode != HttpStatus.SERVICE_UNAVAILABLE.code()) {
+      Exception cause=response.getException();
+      if (cause == null) {
+        cause=new RuntimeException(String.format("Expected response code from %s to be %s, but was %s: %s",taskInfo.getSelf(),HttpStatus.OK.code(),statusCode,response.getStatusMessage()));
+      }
+      log.debug(cause,"Remote task failed: %s",taskInfo.getSelf());
+      failTask(cause);
+    }
+  }
+ catch (  Throwable t) {
+    log.error(t,"Error processing task update response: %s",taskInfo.get().getSelf());
+    errorRequestRateLimiter.acquire();
+  }
+ finally {
+    reschedule();
+  }
+}

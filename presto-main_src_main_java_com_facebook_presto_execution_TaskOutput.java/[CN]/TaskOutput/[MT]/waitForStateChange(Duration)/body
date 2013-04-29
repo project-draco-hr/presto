@@ -1,0 +1,20 @@
+{
+  TaskState currentState=taskState.get();
+  if (currentState.isDone()) {
+    return;
+  }
+  long remainingNanos=(long)maxWait.convertTo(NANOSECONDS);
+  long start=System.nanoTime();
+  long end=start + remainingNanos;
+  if (stateChangeLock.tryLock(remainingNanos,NANOSECONDS)) {
+    remainingNanos=end - System.nanoTime();
+    try {
+      while (remainingNanos > 0 && currentState == taskState.get()) {
+        remainingNanos=stateChangeCondition.awaitNanos(remainingNanos);
+      }
+    }
+  finally {
+      stateChangeLock.unlock();
+    }
+  }
+}

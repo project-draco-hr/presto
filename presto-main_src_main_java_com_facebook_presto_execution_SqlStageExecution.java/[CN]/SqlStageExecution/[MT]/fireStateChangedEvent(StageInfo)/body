@@ -1,0 +1,19 @@
+{
+  final ImmutableList<StageStateChangeListener> stateChangeListeners;
+synchronized (this) {
+    stateChangeListeners=ImmutableList.copyOf(this.stateChangeListeners);
+  }
+  executor.execute(new Runnable(){
+    @Override public void run(){
+      for (      StageStateChangeListener stateChangeListener : stateChangeListeners) {
+        try {
+          stateChangeListener.stateChanged(newValue);
+        }
+ catch (        Exception e) {
+          log.error(e,"Error notifying state change listener for stage %s",newValue.getStageId());
+        }
+      }
+    }
+  }
+);
+}

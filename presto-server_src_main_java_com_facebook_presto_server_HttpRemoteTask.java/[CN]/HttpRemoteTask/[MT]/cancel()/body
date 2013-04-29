@@ -18,13 +18,13 @@ synchronized (this) {
       }
       @Override public void onFailure(      Throwable t){
         if (Duration.nanosSince(start).compareTo(new Duration(2,TimeUnit.MINUTES)) < 0) {
-          Futures.addCallback(httpClient.executeAsync(request,createStatusResponseHandler()),this);
+          Futures.addCallback(httpClient.executeAsync(request,createStatusResponseHandler()),this,executor);
         }
  else {
           log.error(t,"Unable to cancel task at %s",request.getUri());
         }
       }
     }
-);
+,executor);
   }
 }
