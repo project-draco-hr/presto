@@ -1,10 +1,10 @@
 {
-  if (throwable.get() != null) {
-    throw Throwables.propagate(throwable.get());
-  }
   try {
     PartitionChunk chunk=queue.take();
     if (chunk == FINISHED_MARKER) {
+      if (throwable.get() != null) {
+        throw Throwables.propagate(throwable.get());
+      }
       return endOfData();
     }
     if (outstandingChunkCount.getAndDecrement() == maxOutstandingChunks) {
