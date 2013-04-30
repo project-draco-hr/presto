@@ -1,0 +1,25 @@
+{
+  return new Iterable<List<T>>(){
+    @Override public Iterator<List<T>> iterator(){
+      return new AbstractIterator<List<T>>(){
+        private int currentSize=1;
+        private final Iterator<T> iterator=values.iterator();
+        @Override protected List<T> computeNext(){
+          if (!iterator.hasNext()) {
+            return endOfData();
+          }
+          int count=0;
+          ImmutableList.Builder<T> builder=ImmutableList.builder();
+          while (iterator.hasNext() && count < currentSize) {
+            builder.add(iterator.next());
+            ++count;
+          }
+          currentSize=Math.min(maxBatchSize,currentSize * 2);
+          return builder.build();
+        }
+      }
+;
+    }
+  }
+;
+}
