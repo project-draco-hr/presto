@@ -1,14 +1,17 @@
 {
-  QueryInfo queryInfo=queryManager.getQueryInfo(queryId,false);
-  StageInfo outputStage=queryInfo.getOutputStage();
-  if (outputStage == null || outputStage.getTasks().isEmpty()) {
+  QueryInfo queryInfo=queryManager.getQueryInfo(queryId);
+  while (maxWait.toMillis() > 1 && !isQueryStarted(queryInfo)) {
+    maxWait=queryManager.waitForStateChange(queryId,queryInfo.getState(),maxWait);
+    queryInfo=queryManager.getQueryInfo(queryId);
+  }
+  if (!isQueryStarted(queryInfo) || queryInfo.getOutputStage() == null) {
     return null;
   }
   if (columns == null) {
     columns=createColumnsList(queryInfo);
   }
-  updateExchangeClient(outputStage);
-  Page page=exchangeClient.getNextPage(maxWaitTime);
+  updateExchangeClient(queryInfo.getOutputStage());
+  Page page=exchangeClient.getNextPage(maxWait);
   if (page == null) {
     return null;
   }

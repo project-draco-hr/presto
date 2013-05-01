@@ -1,0 +1,10 @@
+{
+  Preconditions.checkNotNull(queryId,"queryId is null");
+  Preconditions.checkNotNull(maxWait,"maxWait is null");
+  QueryExecution query=queries.get(queryId);
+  if (query == null) {
+    return maxWait;
+  }
+  query.getQueryInfo().getQueryStats().recordHeartBeat();
+  return query.waitForStateChange(currentState,maxWait);
+}

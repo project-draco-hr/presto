@@ -10,19 +10,6 @@
   queryManagementExecutor=Executors.newScheduledThreadPool(config.getQueryManagerExecutorPoolSize(),threadsNamed("query-management-%d"));
   queryManagementExecutor.scheduleAtFixedRate(new Runnable(){
     @Override public void run(){
-      for (      QueryExecution queryExecution : queries.values()) {
-        try {
-          queryExecution.updateState(false);
-        }
- catch (        Throwable e) {
-          log.warn(e,"Error updating state for query %s",queryExecution.getQueryInfo().getQueryId());
-        }
-      }
-    }
-  }
-,200,200,TimeUnit.MILLISECONDS);
-  queryManagementExecutor.scheduleAtFixedRate(new Runnable(){
-    @Override public void run(){
       try {
         removeExpiredQueries();
       }

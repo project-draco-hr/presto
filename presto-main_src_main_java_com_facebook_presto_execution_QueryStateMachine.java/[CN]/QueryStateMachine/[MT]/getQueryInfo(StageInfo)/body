@@ -1,3 +1,8 @@
 {
-  return new QueryInfo(queryId,session,queryState,self,outputFieldNames,query,queryStats,stageInfo,toFailure(failureCause));
+  QueryState state=queryState.get();
+  FailureInfo failureInfo=null;
+  if (state != FINISHED) {
+    failureInfo=toFailure(failureCause);
+  }
+  return new QueryInfo(queryId,session,state,self,outputFieldNames,query,queryStats,stageInfo,failureInfo);
 }

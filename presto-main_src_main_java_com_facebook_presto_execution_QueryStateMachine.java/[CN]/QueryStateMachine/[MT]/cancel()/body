@@ -1,15 +1,9 @@
 {
-  List<Runnable> listenersToNotify;
-synchronized (this) {
-    if (queryState.isDone()) {
-      return false;
-    }
-    queryState=QueryState.CANCELED;
-    failureCause=new RuntimeException("Query was canceled");
-    listenersToNotify=ImmutableList.copyOf(listeners);
-  }
-  log.debug("Canceled query %s",queryId);
   queryStats.recordEnd();
-  notifyListeners(listenersToNotify);
-  return true;
+synchronized (this) {
+    if (failureCause == null) {
+      failureCause=new RuntimeException("Query was canceled");
+    }
+  }
+  return queryState.setIf(CANCELED,Predicates.not(inDoneState()));
 }

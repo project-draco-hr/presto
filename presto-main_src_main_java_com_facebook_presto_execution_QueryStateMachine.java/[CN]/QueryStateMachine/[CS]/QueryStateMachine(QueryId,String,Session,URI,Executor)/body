@@ -1,0 +1,13 @@
+{
+  this.queryId=checkNotNull(queryId,"queryId is null");
+  this.query=checkNotNull(query,"query is null");
+  this.session=checkNotNull(session,"session is null");
+  this.self=checkNotNull(self,"self is null");
+  this.queryState=new StateMachine<>("query " + query,executor,QueryState.QUEUED);
+  queryState.addStateChangeListener(new StateChangeListener<QueryState>(){
+    @Override public void stateChanged(    QueryState newValue){
+      log.debug("Query %s is %s",QueryStateMachine.this.queryId,newValue);
+    }
+  }
+);
+}

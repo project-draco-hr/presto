@@ -1,9 +1,6 @@
 {
-  List<Runnable> listenersToNotify;
+  queryStats.recordEnd();
 synchronized (this) {
-    if (queryState.isDone() && (queryState != QueryState.FAILED)) {
-      return false;
-    }
     if (cause != null) {
       if (failureCause == null) {
         failureCause=cause;
@@ -12,14 +9,6 @@ synchronized (this) {
         failureCause.addSuppressed(cause);
       }
     }
-    if (queryState == QueryState.FAILED) {
-      return true;
-    }
-    listenersToNotify=ImmutableList.copyOf(listeners);
-    queryState=QueryState.FAILED;
   }
-  log.debug("Failed query %s",queryId);
-  queryStats.recordEnd();
-  notifyListeners(listenersToNotify);
-  return true;
+  return queryState.setIf(FAILED,Predicates.not(inDoneState()));
 }

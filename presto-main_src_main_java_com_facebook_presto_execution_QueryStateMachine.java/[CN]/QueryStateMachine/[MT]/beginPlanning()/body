@@ -1,9 +1,6 @@
 {
-synchronized (this) {
-    if (queryState != QueryState.QUEUED) {
-      return false;
-    }
-    queryState=QueryState.PLANNING;
+  if (!queryState.compareAndSet(QueryState.QUEUED,QueryState.PLANNING)) {
+    return false;
   }
   queryStats.recordAnalysisStart();
   return true;

@@ -1,6 +1,10 @@
 {
   Iterable<List<Object>> data=getData(maxWaitTime);
-  QueryInfo queryInfo=queryManager.getQueryInfo(queryId,exchangeClient.isClosed());
+  QueryInfo queryInfo=queryManager.getQueryInfo(queryId);
+  if (exchangeClient.isClosed() && !queryInfo.getState().isDone()) {
+    queryManager.waitForStateChange(queryId,queryInfo.getState(),maxWaitTime);
+    queryInfo=queryManager.getQueryInfo(queryId);
+  }
   if (queryInfo.getState().isDone()) {
     if (queryInfo.getState() != QueryState.FINISHED) {
       exchangeClient.close();

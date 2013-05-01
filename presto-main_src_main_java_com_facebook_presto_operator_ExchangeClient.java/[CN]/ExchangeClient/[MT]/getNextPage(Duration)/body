@@ -1,6 +1,9 @@
 {
   scheduleRequestIfNecessary();
-  Page page=pageBuffer.poll((long)maxWaitTime.toMillis(),TimeUnit.MILLISECONDS);
+  Page page=pageBuffer.poll();
+  if (page == null && !allClients.isEmpty()) {
+    page=pageBuffer.poll((long)maxWaitTime.toMillis(),TimeUnit.MILLISECONDS);
+  }
   if (page == NO_MORE_PAGES) {
     closed.set(true);
     pageBuffer.offer(NO_MORE_PAGES);
