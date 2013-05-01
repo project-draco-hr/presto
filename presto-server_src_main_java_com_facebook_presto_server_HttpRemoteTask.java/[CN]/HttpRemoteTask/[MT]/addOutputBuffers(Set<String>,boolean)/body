@@ -1,12 +1,13 @@
 {
-  Preconditions.checkState(!Thread.holdsLock(this),"Update state can not be called while holding a lock on this");
-synchronized (this) {
-    if (noMoreOutputIds == noMore && this.outputIds.containsAll(outputBuffers)) {
-      return;
-    }
-    Preconditions.checkState(!noMoreOutputIds,"New buffers can not be added after noMoreOutputIds has been set");
-    noMoreOutputIds=noMore;
-    this.outputIds.addAll(outputBuffers);
+  if (getTaskInfo().getState().isDone()) {
+    return;
   }
-  updateState();
+  if (noMoreOutputIds == noMore && this.outputIds.containsAll(outputBuffers)) {
+    return;
+  }
+  Preconditions.checkState(!noMoreOutputIds,"New buffers can not be added after noMoreOutputIds has been set");
+  outputIds.addAll(outputBuffers);
+  noMoreOutputIds=noMore;
+  needsUpdate.set(true);
+  scheduleUpdate();
 }

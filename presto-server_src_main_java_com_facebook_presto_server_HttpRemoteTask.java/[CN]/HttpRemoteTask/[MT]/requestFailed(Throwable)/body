@@ -1,0 +1,25 @@
+{
+  if (reason instanceof CancellationException) {
+    return;
+  }
+  TaskInfo taskInfo=getTaskInfo();
+  if (isSocketError(reason)) {
+    log.warn("Error updating task %s: %s: %s",taskInfo.getTaskId(),reason.getMessage(),taskInfo.getSelf());
+  }
+ else {
+    log.warn(reason,"Error updating task %s: %s",taskInfo.getTaskId(),taskInfo.getSelf());
+  }
+  if (errorsSinceLastSuccess.size() < 10) {
+    errorsSinceLastSuccess.add(reason);
+  }
+  long errorCount=this.errorCount.incrementAndGet();
+  Duration timeSinceLastSuccess=Duration.nanosSince(lastSuccessfulRequest.get());
+  if (errorCount > maxConsecutiveErrorCount && timeSinceLastSuccess.compareTo(minErrorDuration) > 0) {
+    RuntimeException exception=new RuntimeException(String.format("Too many requests to %s failed: %s failures: Time since last success %s",taskInfo.getSelf(),errorCount,timeSinceLastSuccess));
+    for (    Throwable error : errorsSinceLastSuccess) {
+      exception.addSuppressed(error);
+    }
+    failTask(exception);
+    cancel();
+  }
+}

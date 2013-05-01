@@ -1,0 +1,16 @@
+{
+  updateTaskInfo(newValue);
+  lastSuccessfulRequest.set(System.nanoTime());
+  errorCount.set(0);
+  errorsSinceLastSuccess.clear();
+  for (  TaskSource source : sources) {
+    PlanNodeId planNodeId=source.getPlanNodeId();
+    for (    ScheduledSplit split : source.getSplits()) {
+      pendingSplits.remove(planNodeId,split);
+    }
+  }
+  if (continuousTaskInfoFetcher == null) {
+    continuousTaskInfoFetcher=new ContinuousTaskInfoFetcher();
+    continuousTaskInfoFetcher.start();
+  }
+}
