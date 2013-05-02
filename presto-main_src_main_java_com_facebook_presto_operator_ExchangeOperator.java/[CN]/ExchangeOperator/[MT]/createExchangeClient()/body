@@ -1,8 +1,9 @@
 {
   ExchangeClient exchangeClient;
 synchronized (this) {
+    checkState(activeClient == null,"ExchangeOperator can only be used once");
     exchangeClient=new ExchangeClient(maxBufferedPages,expectedPagesPerRequest,concurrentRequestMultiplier,httpClient,locations,noMoreLocations);
-    activeClients.add(new WeakReference<>(exchangeClient));
+    activeClient=exchangeClient;
   }
   exchangeClient.scheduleRequestIfNecessary();
   return exchangeClient;
