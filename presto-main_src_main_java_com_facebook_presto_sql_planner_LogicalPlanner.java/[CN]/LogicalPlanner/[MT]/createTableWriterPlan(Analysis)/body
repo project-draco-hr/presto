@@ -43,7 +43,9 @@
       columnHandleBuilder.add(columnHandleIndex.get(column.getName()));
     }
     columnHandles=columnHandleBuilder.build();
-    List<Relation> relations=analysis.getQuery().getFrom();
+    QueryBody queryBody=analysis.getQuery().getQueryBody();
+    checkState(queryBody instanceof QuerySpecification,"Query is not a simple select statement");
+    List<Relation> relations=((QuerySpecification)queryBody).getFrom();
     checkState(relations.size() == 1,"Query has more than one source table");
     Relation relation=Iterables.getOnlyElement(relations);
     checkState(relation instanceof Table,"FROM clause is not a simple table name");

@@ -1,0 +1,27 @@
+{
+  if (analysis.getAggregates(node).isEmpty() && analysis.getGroupByExpressions(node).isEmpty()) {
+    return subPlan;
+  }
+  Set<FieldOrExpression> arguments=IterableTransformer.on(analysis.getAggregates(node)).transformAndFlatten(argumentsGetter()).transform(toFieldOrExpression()).set();
+  Iterable<FieldOrExpression> inputs=Iterables.concat(analysis.getGroupByExpressions(node),arguments);
+  if (!Iterables.isEmpty(inputs)) {
+    subPlan=project(subPlan,inputs);
+  }
+  ImmutableMap.Builder<Symbol,FunctionCall> aggregationAssignments=ImmutableMap.builder();
+  ImmutableMap.Builder<Symbol,FunctionHandle> functions=ImmutableMap.builder();
+  TranslationMap translations=new TranslationMap(subPlan.getRelationPlan(),analysis);
+  for (  FunctionCall aggregate : analysis.getAggregates(node)) {
+    FunctionCall rewritten=(FunctionCall)subPlan.rewrite(aggregate);
+    Symbol newSymbol=symbolAllocator.newSymbol(rewritten,analysis.getType(aggregate));
+    aggregationAssignments.put(newSymbol,rewritten);
+    translations.put(aggregate,newSymbol);
+    functions.put(newSymbol,analysis.getFunctionInfo(aggregate).getHandle());
+  }
+  ImmutableList.Builder<Symbol> groupBySymbols=ImmutableList.builder();
+  for (  FieldOrExpression fieldOrExpression : analysis.getGroupByExpressions(node)) {
+    Symbol symbol=subPlan.translate(fieldOrExpression);
+    groupBySymbols.add(symbol);
+    translations.put(fieldOrExpression,symbol);
+  }
+  return new PlanBuilder(translations,new AggregationNode(idAllocator.getNextId(),subPlan.getRoot(),groupBySymbols.build(),aggregationAssignments.build(),functions.build()));
+}

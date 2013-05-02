@@ -1,0 +1,39 @@
+{
+  process(node.getSelect(),indent);
+  if (node.getFrom() != null) {
+    append(indent,"FROM");
+    if (node.getFrom().size() > 1) {
+      builder.append('\n');
+      append(indent,"  ");
+      Iterator<Relation> relations=node.getFrom().iterator();
+      while (relations.hasNext()) {
+        process(relations.next(),indent);
+        if (relations.hasNext()) {
+          builder.append('\n');
+          append(indent,", ");
+        }
+      }
+    }
+ else {
+      builder.append(' ');
+      process(Iterables.getOnlyElement(node.getFrom()),indent);
+    }
+  }
+  builder.append('\n');
+  if (node.getWhere().isPresent()) {
+    append(indent,"WHERE " + formatExpression(node.getWhere().get())).append('\n');
+  }
+  if (!node.getGroupBy().isEmpty()) {
+    append(indent,"GROUP BY " + Joiner.on(", ").join(Iterables.transform(node.getGroupBy(),expressionFormatterFunction()))).append('\n');
+  }
+  if (node.getHaving().isPresent()) {
+    append(indent,"HAVING " + formatExpression(node.getHaving().get())).append('\n');
+  }
+  if (!node.getOrderBy().isEmpty()) {
+    append(indent,"ORDER BY " + Joiner.on(", ").join(Iterables.transform(node.getOrderBy(),orderByFormatterFunction()))).append('\n');
+  }
+  if (node.getLimit().isPresent()) {
+    append(indent,"LIMIT " + node.getLimit().get()).append('\n');
+  }
+  return null;
+}

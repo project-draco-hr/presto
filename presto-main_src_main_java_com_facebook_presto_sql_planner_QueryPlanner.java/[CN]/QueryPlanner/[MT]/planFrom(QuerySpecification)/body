@@ -1,0 +1,12 @@
+{
+  RelationPlan relationPlan;
+  if (node.getFrom() == null || node.getFrom().isEmpty()) {
+    relationPlan=planImplicitTable();
+  }
+ else {
+    relationPlan=new RelationPlanner(analysis,symbolAllocator,idAllocator,metadata,session).process(Iterables.getOnlyElement(node.getFrom()),null);
+  }
+  TranslationMap translations=new TranslationMap(relationPlan,analysis);
+  translations.setFieldMappings(relationPlan.getOutputSymbols());
+  return new PlanBuilder(translations,relationPlan.getRoot());
+}
