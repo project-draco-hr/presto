@@ -1,14 +1,19 @@
 {
   return getWithCallable(tableNamesCache,databaseName,new Callable<List<String>>(){
     @Override public List<String> call() throws Exception {
-      try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
-        List<String> tables=client.get_all_tables(databaseName);
-        if (tables.isEmpty()) {
-          client.get_database(databaseName);
-        }
-        return tables;
+      return retry().stopOn(NoSuchObjectException.class).stopOnIllegalExceptions().run("getAllTables",new Callable<List<String>>(){
+        @Override public List<String> call() throws Exception {
+          try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
+            List<String> tables=client.get_all_tables(databaseName);
+            if (tables.isEmpty()) {
+              client.get_database(databaseName);
+            }
+            return tables;
+          }
+         }
       }
-     }
+);
+    }
   }
 ,NoSuchObjectException.class);
 }

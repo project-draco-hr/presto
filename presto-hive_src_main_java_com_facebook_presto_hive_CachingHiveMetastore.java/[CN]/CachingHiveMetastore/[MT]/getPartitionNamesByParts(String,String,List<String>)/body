@@ -1,10 +1,15 @@
 {
   return getWithCallable(partitionFilterCache,PartitionFilter.partitionFilter(databaseName,tableName,parts),new Callable<List<String>>(){
     @Override public List<String> call() throws Exception {
-      try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
-        return client.get_partition_names_ps(databaseName,tableName,parts,(short)-1);
+      return retry().stopOn(NoSuchObjectException.class).stopOnIllegalExceptions().run("getPartitionNamesByParts",new Callable<List<String>>(){
+        @Override public List<String> call() throws Exception {
+          try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
+            return client.get_partition_names_ps(databaseName,tableName,parts,(short)-1);
+          }
+         }
       }
-     }
+);
+    }
   }
 ,NoSuchObjectException.class);
 }

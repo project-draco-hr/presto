@@ -1,5 +1,5 @@
 {
-  List<String> partitionsToFetch=new ArrayList<>();
+  final List<String> partitionsToFetch=new ArrayList<>();
   Partition[] partitions=new Partition[partitionNames.size()];
   for (int i=0; i < partitionNames.size(); i++) {
     String partitionName=partitionNames.get(i);
@@ -13,10 +13,18 @@
   }
   if (!partitionsToFetch.isEmpty()) {
     List<Partition> fetchedPartitions;
-    try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
-      fetchedPartitions=client.get_partitions_by_names(databaseName,tableName,partitionsToFetch);
+    try {
+      fetchedPartitions=retry().stopOn(NoSuchObjectException.class).stopOnIllegalExceptions().run("getPartitionsByNames",new Callable<List<Partition>>(){
+        @Override public List<Partition> call() throws Exception {
+          try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
+            return client.get_partitions_by_names(databaseName,tableName,partitionsToFetch);
+          }
+         }
+      }
+);
     }
- catch (    TException|MetaException e) {
+ catch (    Exception e) {
+      Throwables.propagateIfInstanceOf(e,NoSuchObjectException.class);
       throw Throwables.propagate(e);
     }
     checkState(fetchedPartitions.size() == partitionsToFetch.size());
