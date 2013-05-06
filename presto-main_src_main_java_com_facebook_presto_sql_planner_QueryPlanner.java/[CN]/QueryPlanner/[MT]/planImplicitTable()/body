@@ -1,6 +1,8 @@
 {
   QualifiedTableName name=MetadataUtil.createQualifiedTableName(session,QualifiedName.of("dual"));
-  TableHandle table=metadata.getTableHandle(name).get();
+  Optional<TableHandle> optionalHandle=metadata.getTableHandle(name);
+  checkState(optionalHandle.isPresent(),"Dual table provider not installed");
+  TableHandle table=optionalHandle.get();
   TableMetadata tableMetadata=metadata.getTableMetadata(table);
   Map<String,ColumnHandle> columnHandles=metadata.getColumnHandles(table);
   ImmutableMap.Builder<Symbol,ColumnHandle> columns=ImmutableMap.builder();
