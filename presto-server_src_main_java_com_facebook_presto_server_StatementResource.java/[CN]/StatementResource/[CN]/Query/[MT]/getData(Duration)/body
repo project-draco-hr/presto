@@ -11,9 +11,19 @@
     columns=createColumnsList(queryInfo);
   }
   updateExchangeClient(queryInfo.getOutputStage());
-  Page page=exchangeClient.getNextPage(maxWait);
-  if (page == null) {
+  ImmutableList.Builder<RowIterable> pages=ImmutableList.builder();
+  int bytes=0;
+  while (bytes < DESIRED_RESULT_BYTES) {
+    Page page=exchangeClient.getNextPage(maxWait);
+    if (page == null) {
+      break;
+    }
+    bytes+=page.getDataSize().toBytes();
+    pages.add(new RowIterable(page));
+    maxWait=new Duration(0,TimeUnit.MILLISECONDS);
+  }
+  if (bytes == 0) {
     return null;
   }
-  return new RowIterable(page);
+  return Iterables.concat(pages.build());
 }
