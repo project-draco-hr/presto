@@ -1,0 +1,7 @@
+{
+  InMemoryRecordSet.Builder table=InMemoryRecordSet.builder(TASK_TABLE);
+  for (  TaskInfo taskInfo : taskManager.getAllTaskInfo(false)) {
+    table.addRow(nodeId,taskInfo.getTaskId().toString(),taskInfo.getTaskId().getStageId().toString(),taskInfo.getTaskId().getQueryId().toString(),taskInfo.getState().toString(),(long)taskInfo.getStats().getSplits(),(long)taskInfo.getStats().getQueuedSplits(),(long)taskInfo.getStats().getStartedSplits(),(long)taskInfo.getStats().getRunningSplits(),(long)taskInfo.getStats().getCompletedSplits(),toMillis(taskInfo.getStats().getSplitWallTime()),toMillis(taskInfo.getStats().getSplitCpuTime()),toMillis(taskInfo.getStats().getSplitUserTime()),toMillis(taskInfo.getStats().getSinkBufferWaitTime()),toMillis(taskInfo.getStats().getExchangeWaitTime()),toBytes(taskInfo.getStats().getInputDataSize()),taskInfo.getStats().getInputPositionCount(),toBytes(taskInfo.getStats().getCompletedDataSize()),taskInfo.getStats().getCompletedPositionCount(),toBytes(taskInfo.getStats().getOutputDataSize()),taskInfo.getStats().getOutputPositionCount(),toTimeStamp(taskInfo.getStats().getCreateTime()),toTimeStamp(taskInfo.getStats().getExecutionStartTime()),toTimeStamp(taskInfo.getStats().getEndTime()));
+  }
+  return table.build().cursor();
+}
