@@ -1,0 +1,11 @@
+{
+  checkNotNull(partitions,"partitions is null");
+  Preconditions.checkArgument(!partitions.isEmpty(),"partitions is empty");
+  Partition partition=Iterables.getOnlyElement(partitions);
+  checkArgument(partition instanceof DualPartition,"Partition must be a dual partition");
+  Optional<Node> currentNode=nodeManager.getCurrentNode();
+  Preconditions.checkState(currentNode.isPresent(),"current node is not in the active set");
+  ImmutableList<HostAddress> localAddress=ImmutableList.of(currentNode.get().getHostAndPort());
+  Split split=new DualSplit(localAddress);
+  return ImmutableList.of(split);
+}

@@ -1,8 +1,8 @@
 {
   checkCatalogName(catalogName);
-  ConnectorMetadata connectorMetadata=connectors.get(catalogName);
-  if (connectorMetadata == null) {
-    return ImmutableList.of();
+  ImmutableSet.Builder<String> schemaNames=ImmutableSet.builder();
+  for (  ConnectorMetadata metadata : allConnectorsFor(catalogName)) {
+    schemaNames.addAll(metadata.listSchemaNames());
   }
-  return connectorMetadata.listSchemaNames();
+  return ImmutableList.copyOf(schemaNames.build());
 }

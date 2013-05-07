@@ -1,14 +1,11 @@
 {
-  checkTable(table);
-  for (  InternalSchemaMetadata internalSchemaMetadata : internalSchemas) {
-    Optional<TableHandle> tableHandle=internalSchemaMetadata.getTableHandle(table);
-    if (tableHandle.isPresent()) {
-      return tableHandle;
+  checkNotNull(table,"table is null");
+  SchemaTableName tableName=table.asSchemaTableName();
+  for (  ConnectorMetadata connectorMetadata : allConnectorsFor(table.getCatalogName())) {
+    TableHandle tableHandle=connectorMetadata.getTableHandle(tableName);
+    if (tableHandle != null) {
+      return Optional.of(tableHandle);
     }
   }
-  ConnectorMetadata connectorMetadata=connectors.get(table.getCatalogName());
-  if (connectorMetadata == null) {
-    return Optional.absent();
-  }
-  return Optional.fromNullable(connectorMetadata.getTableHandle(table.asSchemaTableName()));
+  return Optional.absent();
 }

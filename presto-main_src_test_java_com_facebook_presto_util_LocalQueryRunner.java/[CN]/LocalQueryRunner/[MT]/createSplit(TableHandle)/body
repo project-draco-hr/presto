@@ -2,8 +2,11 @@
   if (handle instanceof TpchTableHandle) {
     return new TpchSplit((TpchTableHandle)handle);
   }
-  if (handle instanceof InternalTableHandle) {
-    return new InternalSplit((InternalTableHandle)handle,ImmutableMap.<InternalColumnHandle,Object>of(),ImmutableList.of(HostAddress.fromParts("127.0.0.1",0)));
+  if (handle instanceof DualTableHandle) {
+    return new DualSplit(ImmutableList.of(HostAddress.fromParts("127.0.0.1",0)));
+  }
+  if (handle instanceof SystemTableHandle) {
+    return new SystemSplit((SystemTableHandle)handle,ImmutableMap.<String,Object>of(),ImmutableList.of(HostAddress.fromParts("127.0.0.1",0)));
   }
   throw new IllegalArgumentException("unsupported table handle: " + handle.getClass().getName());
 }

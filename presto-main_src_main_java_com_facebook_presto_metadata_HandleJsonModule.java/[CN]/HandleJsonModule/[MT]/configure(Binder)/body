@@ -2,4 +2,8 @@
   jsonBinder(binder).addModuleBinding().to(TableHandleJacksonModule.class);
   jsonBinder(binder).addModuleBinding().to(ColumnHandleJacksonModule.class);
   jsonBinder(binder).addModuleBinding().to(SplitJacksonModule.class);
+  binder.bind(HandleResolver.class).in(Scopes.SINGLETON);
+  MapBinder<String,ConnectorHandleResolver> connectorHandleResolverBinder=MapBinder.newMapBinder(binder,String.class,ConnectorHandleResolver.class);
+  connectorHandleResolverBinder.addBinding("remote").to(RemoteSplitHandleResolver.class).in(Scopes.SINGLETON);
+  connectorHandleResolverBinder.addBinding("collocated").to(CollocatedSplitHandleResolver.class).in(Scopes.SINGLETON);
 }

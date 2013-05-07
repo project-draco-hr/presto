@@ -1,12 +1,15 @@
 {
   TableHandle tableHandle=node.getTable();
-  QualifiedTableName tableName=metadata.getTableMetadata(tableHandle).getTable();
-  TableAlias tableAlias=aliasDao.getAlias(tableName);
+  Optional<String> connectorId=metadata.getConnectorId(tableHandle);
+  if (!connectorId.isPresent()) {
+    return null;
+  }
+  SchemaTableName tableName=metadata.getTableMetadata(tableHandle).getTable();
+  TableAlias tableAlias=aliasDao.getAlias(connectorId.get(),tableName.getSchemaName(),tableName.getTableName());
   if (tableAlias == null) {
     return node;
   }
-  QualifiedTableName aliasTable=new QualifiedTableName(tableAlias.getDstCatalogName(),tableAlias.getDstSchemaName(),tableAlias.getDstTableName());
-  Optional<TableHandle> aliasTableHandle=metadata.getTableHandle(aliasTable);
+  Optional<TableHandle> aliasTableHandle=metadata.getTableHandle(tableAlias.getDestinationConnectorId(),new SchemaTableName(tableAlias.getDestinationSchemaName(),tableAlias.getDestinationTableName()));
   if (!aliasTableHandle.isPresent()) {
     return node;
   }

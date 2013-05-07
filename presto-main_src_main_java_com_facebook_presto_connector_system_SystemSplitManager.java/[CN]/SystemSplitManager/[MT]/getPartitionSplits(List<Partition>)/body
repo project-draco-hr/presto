@@ -1,0 +1,17 @@
+{
+  checkNotNull(partitions,"partitions is null");
+  Preconditions.checkArgument(!partitions.isEmpty(),"partitions is empty");
+  Partition partition=Iterables.getOnlyElement(partitions);
+  checkArgument(partition instanceof SystemPartition,"Partition must be a system partition");
+  SystemPartition systemPartition=(SystemPartition)partition;
+  Optional<Node> currentNode=nodeManager.getCurrentNode();
+  Preconditions.checkState(currentNode.isPresent(),"current node is not in the active set");
+  ImmutableList<HostAddress> localAddress=ImmutableList.of(currentNode.get().getHostAndPort());
+  ImmutableMap.Builder<String,Object> filters=ImmutableMap.builder();
+  for (  Entry<ColumnHandle,Object> entry : systemPartition.getFilters().entrySet()) {
+    SystemColumnHandle systemColumnHandle=(SystemColumnHandle)entry.getKey();
+    filters.put(systemColumnHandle.getColumnName(),entry.getValue());
+  }
+  Split split=new SystemSplit(systemPartition.table,filters.build(),localAddress);
+  return ImmutableList.of(split);
+}

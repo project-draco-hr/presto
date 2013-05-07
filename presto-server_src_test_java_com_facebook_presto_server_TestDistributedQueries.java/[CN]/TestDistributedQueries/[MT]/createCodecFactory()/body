@@ -4,15 +4,12 @@
       JsonBinder.jsonBinder(binder).addSerializerBinding(Expression.class).to(ExpressionSerializer.class);
       JsonBinder.jsonBinder(binder).addDeserializerBinding(Expression.class).to(ExpressionDeserializer.class);
       JsonBinder.jsonBinder(binder).addDeserializerBinding(FunctionCall.class).to(FunctionCallDeserializer.class);
-      binder.bind(HandleResolver.class).in(Scopes.SINGLETON);
+      MapBinder<String,ConnectorHandleResolver> connectorHandleResolverBinder=MapBinder.newMapBinder(binder,String.class,ConnectorHandleResolver.class);
+      connectorHandleResolverBinder.addBinding("information_schema").to(InformationSchemaHandleResolver.class).in(Scopes.SINGLETON);
+      connectorHandleResolverBinder.addBinding("native").to(NativeHandleResolver.class).in(Scopes.SINGLETON);
+      connectorHandleResolverBinder.addBinding("tpch").to(TpchHandleResolver.class).in(Scopes.SINGLETON);
     }
   }
 );
-  HandleResolver handleResolver=injector.getInstance(HandleResolver.class);
-  handleResolver.addHandleResolver("native",new NativeHandleResolver());
-  handleResolver.addHandleResolver("tpch",new TpchHandleResolver());
-  handleResolver.addHandleResolver("internal",new InternalHandleResolver());
-  handleResolver.addHandleResolver("remote",new RemoteSplitHandleResolver());
-  handleResolver.addHandleResolver("collocated",new CollocatedSplitHandleResolver());
   return injector.getInstance(JsonCodecFactory.class);
 }

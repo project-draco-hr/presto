@@ -1,12 +1,8 @@
 {
   checkNotNull(prefix,"prefix is null");
   ImmutableSet.Builder<QualifiedTableName> tables=ImmutableSet.builder();
-  ConnectorMetadata connectorMetadata=connectors.get(prefix.getCatalogName());
-  if (connectorMetadata != null) {
-    tables.addAll(transform(connectorMetadata.listTables(prefix.getSchemaName().orNull()),convertFromSchemaTableName(prefix.getCatalogName())));
-  }
-  for (  InternalSchemaMetadata internalSchemaMetadata : internalSchemas) {
-    tables.addAll(internalSchemaMetadata.listTables(prefix));
+  for (  ConnectorMetadata internalSchemaMetadata : allConnectorsFor(prefix.getCatalogName())) {
+    tables.addAll(transform(internalSchemaMetadata.listTables(prefix.getSchemaName().orNull()),convertFromSchemaTableName(prefix.getCatalogName())));
   }
   return ImmutableList.copyOf(tables.build());
 }

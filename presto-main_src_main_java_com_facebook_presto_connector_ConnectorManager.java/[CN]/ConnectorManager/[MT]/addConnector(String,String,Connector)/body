@@ -1,0 +1,22 @@
+{
+  ConnectorMetadata connectorMetadata=connector.getService(ConnectorMetadata.class);
+  checkState(connectorMetadata != null,"Connector %s can not provide metadata",connectorId);
+  ConnectorSplitManager connectorSplitManager=connector.getService(ConnectorSplitManager.class);
+  checkState(connectorSplitManager != null,"Connector %s does not have a split manager",connectorId);
+  ConnectorDataStreamProvider connectorDataStreamProvider=connector.getService(ConnectorDataStreamProvider.class);
+  if (connectorDataStreamProvider == null) {
+    ConnectorRecordSetProvider connectorRecordSetProvider=connector.getService(ConnectorRecordSetProvider.class);
+    checkState(connectorRecordSetProvider != null,"Connector %s does not have a data stream provider",connectorId);
+    connectorDataStreamProvider=new RecordSetDataStreamProvider(connectorRecordSetProvider);
+  }
+  ConnectorHandleResolver connectorHandleResolver=connector.getService(ConnectorHandleResolver.class);
+  if (catalogName != null) {
+    metadataManager.addConnectorMetadata(catalogName,connectorMetadata);
+  }
+ else {
+    metadataManager.addInternalSchemaMetadata(connectorMetadata);
+  }
+  handleResolver.addHandleResolver(connectorId,connectorHandleResolver);
+  splitManager.addConnectorSplitManager(connectorSplitManager);
+  dataStreamManager.addConnectorDataStreamProvider(connectorDataStreamProvider);
+}

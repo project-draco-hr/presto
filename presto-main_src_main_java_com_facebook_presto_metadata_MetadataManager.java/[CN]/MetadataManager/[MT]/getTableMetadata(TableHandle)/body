@@ -1,18 +1,3 @@
 {
-  checkNotNull(tableHandle,"tableHandle is null");
-  for (  InternalSchemaMetadata internalSchemaMetadata : internalSchemas) {
-    Optional<TableMetadata> tableMetadata=internalSchemaMetadata.getTableMetadata(tableHandle);
-    if (tableMetadata.isPresent()) {
-      return tableMetadata.get();
-    }
-  }
-  for (  Entry<String,ConnectorMetadata> entry : connectors.entrySet()) {
-    ConnectorMetadata metadata=entry.getValue();
-    if (metadata.canHandle(tableHandle)) {
-      SchemaTableMetadata tableMetadata=lookupDataSource(tableHandle).getTableMetadata(tableHandle);
-      QualifiedTableName qualifiedTableName=new QualifiedTableName(entry.getKey(),tableMetadata.getTable().getSchemaName(),tableMetadata.getTable().getTableName());
-      return new TableMetadata(qualifiedTableName,tableMetadata.getColumns());
-    }
-  }
-  throw new IllegalArgumentException("Table %s does not exist: " + tableHandle);
+  return lookupConnectorFor(tableHandle).getTableMetadata(tableHandle);
 }
