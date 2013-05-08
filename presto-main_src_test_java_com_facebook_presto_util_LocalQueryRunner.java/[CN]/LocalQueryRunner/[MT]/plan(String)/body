@@ -1,0 +1,32 @@
+{
+  Statement statement=SqlParser.createStatement(sql);
+  if (printPlan) {
+    assertFormattedSql(statement);
+  }
+  Analyzer analyzer=new Analyzer(session,metadata);
+  Analysis analysis=analyzer.analyze(statement);
+  PlanNodeIdAllocator idAllocator=new PlanNodeIdAllocator();
+  PlanOptimizersFactory planOptimizersFactory=new PlanOptimizersFactory(metadata);
+  Plan plan=new LogicalPlanner(session,planOptimizersFactory.get(),idAllocator,metadata,new MockPeriodicImportManager(),new MockStorageManager()).plan(analysis);
+  if (printPlan) {
+    new PlanPrinter().print(plan.getRoot(),plan.getTypes());
+  }
+  SubPlan subplan=new DistributedLogicalPlanner(metadata,idAllocator).createSubplans(plan,true);
+  assertTrue(subplan.getChildren().isEmpty(),"Expected subplan to have no children");
+  DataSize maxOperatorMemoryUsage=new DataSize(256,MEGABYTE);
+  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(session,new NodeInfo(new NodeConfig().setEnvironment("test").setNodeId("test-node")),metadata,plan.getTypes(),new OperatorStats(),new SourceHashProviderFactory(maxOperatorMemoryUsage),maxOperatorMemoryUsage,dataStreamProvider,storageManager,null);
+  LocalExecutionPlan localExecutionPlan=executionPlanner.plan(subplan.getFragment().getRoot());
+  Map<PlanNodeId,SourceOperator> sourceOperators=localExecutionPlan.getSourceOperators();
+  for (  PlanNode source : subplan.getFragment().getSources()) {
+    TableScanNode tableScan=(TableScanNode)source;
+    SourceOperator sourceOperator=sourceOperators.get(tableScan.getId());
+    Preconditions.checkArgument(sourceOperator != null,"Unknown plan source %s; known sources are %s",tableScan.getId(),sourceOperators.keySet());
+    List<Split> splits=ImmutableList.copyOf(splitManager.getSplits(session,tableScan.getTable(),BooleanLiteral.TRUE_LITERAL,Predicates.<Partition>alwaysTrue(),tableScan.getAssignments()).getSplits());
+    checkState(splits.size() == 1,"expected a single split");
+    sourceOperator.addSplit(splits.get(0));
+  }
+  for (  SourceOperator sourceOperator : sourceOperators.values()) {
+    sourceOperator.noMoreSplits();
+  }
+  return localExecutionPlan.getRootOperator();
+}

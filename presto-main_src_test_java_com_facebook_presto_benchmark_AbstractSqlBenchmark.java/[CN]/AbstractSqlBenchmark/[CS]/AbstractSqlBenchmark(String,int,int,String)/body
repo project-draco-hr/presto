@@ -1,13 +1,5 @@
 {
   super(benchmarkName,warmupIterations,measuredIterations);
-  Statement statement=SqlParser.createStatement(query);
-  metadata=TpchMetadata.createTpchMetadata();
-  session=new Session(null,TpchMetadata.TPCH_CATALOG_NAME,TpchMetadata.TPCH_SCHEMA_NAME);
-  analysis=new Analyzer(session,metadata).analyze(statement);
-  PlanNodeIdAllocator idAllocator=new PlanNodeIdAllocator();
-  PlanOptimizersFactory planOptimizersFactory=new PlanOptimizersFactory(metadata);
-  Plan plan=new LogicalPlanner(session,planOptimizersFactory.get(),idAllocator,metadata,new MockPeriodicImportManager(),new MockStorageManager()).plan(analysis);
-  fragment=new DistributedLogicalPlanner(metadata,idAllocator).createSubplans(plan,true).getFragment();
-  symbols=plan.getSymbolAllocator().getTypes();
-  new PlanPrinter().print(fragment.getRoot(),symbols);
+  this.query=query;
+  tpchLocalQueryRunner=createTpchLocalQueryRunner(getTpchBlocksProvider());
 }
