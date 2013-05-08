@@ -1,13 +1,13 @@
 {
   Optional<Expression> start=node.getStart().getValue();
   if (start.isPresent()) {
-    if (!start.get().accept(this,context)) {
+    if (!process(start.get(),context)) {
       throw new SemanticException(MUST_BE_AGGREGATE_OR_GROUP_BY,start.get(),"Window frame start must be an aggregate expression or appear in GROUP BY clause");
     }
   }
   if (node.getEnd().isPresent() && node.getEnd().get().getValue().isPresent()) {
     Expression endValue=node.getEnd().get().getValue().get();
-    if (!endValue.accept(this,context)) {
+    if (!process(endValue,context)) {
       throw new SemanticException(MUST_BE_AGGREGATE_OR_GROUP_BY,endValue,"Window frame end must be an aggregate expression or appear in GROUP BY clause");
     }
   }
