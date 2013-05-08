@@ -17,7 +17,9 @@
     TableScanNode tableScan=(TableScanNode)source;
     SourceOperator sourceOperator=sourceOperators.get(tableScan.getId());
     Preconditions.checkArgument(sourceOperator != null,"Unknown plan source %s; known sources are %s",tableScan.getId(),sourceOperators.keySet());
-    sourceOperator.addSplit(createSplit(tableScan.getTable()));
+    List<Split> splits=ImmutableList.copyOf(splitManager.getSplits(session,tableScan.getTable(),BooleanLiteral.TRUE_LITERAL,Predicates.<Partition>alwaysTrue(),tableScan.getAssignments()).getSplits());
+    checkState(splits.size() == 1,"expected a single split");
+    sourceOperator.addSplit(splits.get(0));
   }
   for (  SourceOperator sourceOperator : sourceOperators.values()) {
     sourceOperator.noMoreSplits();
