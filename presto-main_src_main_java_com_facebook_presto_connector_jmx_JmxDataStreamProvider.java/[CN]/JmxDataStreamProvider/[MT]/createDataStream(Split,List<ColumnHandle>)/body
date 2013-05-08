@@ -1,0 +1,61 @@
+{
+  checkNotNull(split,"split is null");
+  checkArgument(split instanceof JmxSplit,"Split must be of type %s, not %s",JmxSplit.class.getName(),split.getClass().getName());
+  JmxTableHandle tableHandle=((JmxSplit)split).getTableHandle();
+  checkNotNull(columns,"columns is null");
+  checkArgument(!columns.isEmpty(),"must provide at least one column");
+  ImmutableMap.Builder<String,ColumnType> builder=ImmutableMap.builder();
+  for (  ColumnHandle column : columns) {
+    checkArgument(column instanceof JmxColumnHandle,"column must be of type %s, not %s",JmxColumnHandle.class.getName(),column.getClass().getName());
+    JmxColumnHandle jmxColumnHandle=(JmxColumnHandle)column;
+    builder.put(jmxColumnHandle.getColumnName(),jmxColumnHandle.getColumnType());
+  }
+  ImmutableMap<String,ColumnType> columnTypes=builder.build();
+  List<List<Object>> rows;
+  try {
+    Map<String,Object> attributes=getAttributes(columnTypes.keySet(),tableHandle);
+    List<Object> row=new ArrayList<>();
+    for (    Entry<String,ColumnType> entry : columnTypes.entrySet()) {
+      if (entry.getKey().equals("node")) {
+        row.add(nodeId);
+      }
+ else {
+        Object value=attributes.get(entry.getKey());
+        if (value == null) {
+          row.add(null);
+        }
+ else {
+switch (entry.getValue()) {
+case LONG:
+            if (value instanceof Number) {
+              row.add(((Number)value).longValue());
+            }
+ else             if (value instanceof Boolean) {
+              row.add(((Boolean)value) ? 1L : 0L);
+            }
+ else {
+              row.add(null);
+            }
+          break;
+case DOUBLE:
+        if (value instanceof Number) {
+          row.add(((Number)value).doubleValue());
+        }
+ else {
+          row.add(null);
+        }
+      break;
+case STRING:
+    row.add(value.toString());
+  break;
+}
+}
+}
+}
+rows=ImmutableList.of(row);
+}
+ catch (JMException e) {
+rows=ImmutableList.of();
+}
+return new RecordProjectOperator(new InMemoryRecordSet(columnTypes.values(),rows));
+}
