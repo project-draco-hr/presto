@@ -1,10 +1,11 @@
 {
+  List<AbstractBenchmark> benchmarks=createBenchmarks(AbstractOperatorBenchmark.DEFAULT_TPCH_BLOCKS_PROVIDER);
   LOGGER.info("=== Pre-running all benchmarks for JVM warmup ===");
-  for (  AbstractBenchmark benchmark : BENCHMARKS) {
+  for (  AbstractBenchmark benchmark : benchmarks) {
     benchmark.runBenchmark();
   }
   LOGGER.info("=== Actually running benchmarks for metrics ===");
-  for (  AbstractBenchmark benchmark : BENCHMARKS) {
+  for (  AbstractBenchmark benchmark : benchmarks) {
     try (OutputStream jsonOut=new FileOutputStream(createOutputFile(String.format("%s/json/%s.json",outputDirectory,benchmark.getBenchmarkName())));OutputStream jsonAvgOut=new FileOutputStream(createOutputFile(String.format("%s/json-avg/%s.json",outputDirectory,benchmark.getBenchmarkName())));OutputStream csvOut=new FileOutputStream(createOutputFile(String.format("%s/csv/%s.csv",outputDirectory,benchmark.getBenchmarkName())));OutputStream odsOut=new FileOutputStream(createOutputFile(String.format("%s/ods/%s.json",outputDirectory,benchmark.getBenchmarkName())))){
       benchmark.runBenchmark(new ForwardingBenchmarkResultWriter(ImmutableList.of(new JsonBenchmarkResultWriter(jsonOut),new JsonAvgBenchmarkResultWriter(jsonAvgOut),new SimpleLineBenchmarkResultWriter(csvOut),new OdsBenchmarkResultWriter("presto.benchmark." + benchmark.getBenchmarkName(),odsOut))));
     }
