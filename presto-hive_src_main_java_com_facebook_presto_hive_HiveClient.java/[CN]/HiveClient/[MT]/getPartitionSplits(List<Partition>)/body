@@ -6,12 +6,7 @@
   }
   checkArgument(partition instanceof HivePartition,"Partition must be a hive partition");
   SchemaTableName tableName=((HivePartition)partition).getTableName();
-  List<String> partitionNames=Lists.transform(partitions,new Function<Partition,String>(){
-    @Override public String apply(    Partition input){
-      return input.getPartitionId();
-    }
-  }
-);
+  List<String> partitionNames=Lists.transform(partitions,HiveUtil.partitionIdGetter());
   Table table;
   Iterable<org.apache.hadoop.hive.metastore.api.Partition> hivePartitions;
   try {

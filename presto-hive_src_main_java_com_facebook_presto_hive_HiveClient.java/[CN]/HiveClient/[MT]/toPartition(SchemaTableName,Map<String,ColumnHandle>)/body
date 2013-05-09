@@ -6,18 +6,47 @@
           return new HivePartition(tableName);
         }
         LinkedHashMap<String,String> keys=Warehouse.makeSpecFromName(partitionId);
-        ImmutableMap.Builder<ColumnHandle,String> builder=ImmutableMap.builder();
+        ImmutableMap.Builder<ColumnHandle,Object> builder=ImmutableMap.builder();
         for (        Entry<String,String> entry : keys.entrySet()) {
           ColumnHandle columnHandle=columnsByName.get(entry.getKey());
           checkArgument(columnHandle != null,"Invalid partition key %s in partition %s",entry.getKey(),partitionId);
-          builder.put(columnHandle,entry.getValue());
+          checkArgument(columnHandle instanceof HiveColumnHandle,"columnHandle is not an instance of HiveColumnHandle");
+          HiveColumnHandle hiveColumnHandle=(HiveColumnHandle)columnHandle;
+          String value=entry.getValue();
+switch (hiveColumnHandle.getType()) {
+case LONG:
+            if (value.length() == 0) {
+              builder.put(columnHandle,0L);
+            }
+ else             if (hiveColumnHandle.getHiveType() == HiveType.BOOLEAN) {
+              builder.put(columnHandle,parseBoolean(value));
+            }
+ else             if (hiveColumnHandle.getHiveType() == HiveType.TIMESTAMP) {
+              builder.put(columnHandle,MILLISECONDS.toSeconds(HIVE_TIMESTAMP_PARSER.parseMillis(value)));
+            }
+ else {
+              builder.put(columnHandle,parseLong(value));
+            }
+          break;
+case DOUBLE:
+        if (value.length() == 0) {
+          builder.put(columnHandle,0L);
         }
-        return new HivePartition(tableName,partitionId,builder.build());
-      }
- catch (      MetaException e) {
-        throw Throwables.propagate(e);
-      }
-    }
-  }
+ else {
+          builder.put(columnHandle,parseDouble(value));
+        }
+      break;
+case STRING:
+    builder.put(columnHandle,value);
+  break;
+}
+}
+return new HivePartition(tableName,partitionId,builder.build());
+}
+ catch (MetaException e) {
+throw Throwables.propagate(e);
+}
+}
+}
 ;
 }
