@@ -2,7 +2,11 @@
   checkNotNull(prefix,"prefix is null");
   ImmutableMap.Builder<SchemaTableName,List<ColumnMetadata>> columns=ImmutableMap.builder();
   for (  SchemaTableName tableName : listTables(prefix)) {
-    columns.put(tableName,getTableMetadata(tableName).getColumns());
+    try {
+      columns.put(tableName,getTableMetadata(tableName).getColumns());
+    }
+ catch (    RuntimeException e) {
+    }
   }
   return columns.build();
 }

@@ -1,7 +1,7 @@
 {
   return getWithCallable(tableCache,HiveTableName.table(databaseName,tableName),new Callable<Table>(){
     @Override public Table call() throws Exception {
-      return retry().stopOn(NoSuchObjectException.class).stopOnIllegalExceptions().run("getTable",new Callable<Table>(){
+      return retry().stopOn(NoSuchObjectException.class,HiveViewNotSupportedException.class).stopOnIllegalExceptions().run("getTable",new Callable<Table>(){
         @Override public Table call() throws Exception {
           try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
             Table table=client.get_table(databaseName,tableName);
