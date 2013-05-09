@@ -1,8 +1,15 @@
 {
+  checkNotNull(tableHandle,"tableHandle is null");
+  checkNotNull(bindings,"bindings is null");
   SchemaTableName tableName=getTableName(tableHandle);
   List<FieldSchema> partitionKeys;
   try {
-    partitionKeys=metastore.getTable(tableName.getSchemaName(),tableName.getTableName()).getPartitionKeys();
+    Table table=metastore.getTable(tableName.getSchemaName(),tableName.getTableName());
+    String protectMode=table.getParameters().get(ProtectMode.PARAMETER_NAME);
+    if (protectMode != null && getProtectModeFromString(protectMode).offline) {
+      throw new TableOfflineException(tableName);
+    }
+    partitionKeys=table.getPartitionKeys();
   }
  catch (  NoSuchObjectException e) {
     throw new TableNotFoundException(tableName);
