@@ -1,0 +1,25 @@
+{
+  checkNotNull(values,"values is null");
+  checkArgument(values.length == types.size(),"Expected %s values in row, but got %s values",types.size(),values.length);
+  for (int i=0; i < values.length; i++) {
+    Object value=values[i];
+    if (value == null) {
+      continue;
+    }
+switch (types.get(i)) {
+case LONG:
+      checkArgument(value instanceof Long,"Expected value %d to be an instance of Long, but is a %s",i,value.getClass().getSimpleName());
+    break;
+case DOUBLE:
+  checkArgument(value instanceof Double,"Expected value %d to be an instance of Double, but is a %s",i,value.getClass().getSimpleName());
+break;
+case STRING:
+checkArgument(value instanceof String,"Expected value %d to be an instance of String, but is a %s",i,value.getClass().getSimpleName());
+break;
+default :
+throw new IllegalStateException("Unsupported column type " + types.get(i));
+}
+}
+records.add(Collections.unmodifiableList(new ArrayList<>(Arrays.asList(values))));
+return this;
+}

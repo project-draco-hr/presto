@@ -1,0 +1,11 @@
+{
+  InMemoryRecordSet.Builder table=InMemoryRecordSet.builder(NODES_TABLE);
+  for (  Entry<String,SlowDatanodeSwitcher> entry : slowDatanodeSwitchers.entrySet()) {
+    String connectorId=entry.getKey();
+    SlowDatanodeSwitcher slowDatanodeSwitcher=entry.getValue();
+    for (    DatanodeInfo node : slowDatanodeSwitcher.getUnfavoredDatanodeInfo()) {
+      table.addRow(ImmutableList.of(nodeId,connectorId,node.getHostName()));
+    }
+  }
+  return table.build().cursor();
+}
