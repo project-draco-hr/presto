@@ -1,16 +1,16 @@
 {
   DateTime now=DateTime.now();
-  DateTime oldestAllowedHeartBeat=now.minus((long)clientTimeout.toMillis());
+  DateTime oldestAllowedHeartbeat=now.minus((long)clientTimeout.toMillis());
   for (  TaskExecution taskExecution : tasks.values()) {
     try {
       TaskInfo taskInfo=taskExecution.getTaskInfo(false);
       if (taskInfo.getState().isDone()) {
         continue;
       }
-      DateTime lastHeartBeat=taskInfo.getStats().getLastHeartBeat();
-      if (lastHeartBeat != null && lastHeartBeat.isBefore(oldestAllowedHeartBeat)) {
+      DateTime lastHeartbeat=taskInfo.getStats().getLastHeartbeat();
+      if (lastHeartbeat != null && lastHeartbeat.isBefore(oldestAllowedHeartbeat)) {
         log.info("Failing abandoned task %s",taskExecution.getTaskId());
-        taskExecution.fail(new AbandonedException("Task " + taskInfo.getTaskId(),lastHeartBeat,now));
+        taskExecution.fail(new AbandonedException("Task " + taskInfo.getTaskId(),lastHeartbeat,now));
       }
     }
  catch (    Exception e) {
