@@ -3,10 +3,10 @@
   if (!(value instanceof Slice)) {
     return node;
   }
-  String valueString=((Slice)value).toString(UTF_8);
+  Slice valueSlice=((Slice)value);
   Matcher matcher;
   if (node.getPattern() instanceof StringLiteral && (node.getEscape() instanceof StringLiteral || node.getEscape() == null)) {
-    matcher=getConstantPattern(node).matcher(valueString);
+    matcher=getConstantPattern(node).matcher(valueSlice.getBytes());
   }
  else {
     Object pattern=process(node.getPattern(),context);
@@ -25,7 +25,8 @@
  else {
       escapeChar='\\';
     }
-    matcher=likeToPattern(patternString,escapeChar).matcher(valueString);
+    matcher=likeToPattern(patternString,escapeChar).matcher(valueSlice.getBytes());
   }
-  return matcher.matches();
+  int match=matcher.match(0,valueSlice.length(),Option.NONE);
+  return match != -1;
 }

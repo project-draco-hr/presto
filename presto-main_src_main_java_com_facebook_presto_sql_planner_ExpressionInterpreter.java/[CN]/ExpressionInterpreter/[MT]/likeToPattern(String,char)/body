@@ -1,5 +1,6 @@
 {
   StringBuilder regex=new StringBuilder(patternString.length() * 2);
+  regex.append('^');
   boolean escaped=false;
   for (  char currentChar : patternString.toCharArray()) {
     if (currentChar == escapeChar) {
@@ -26,10 +27,28 @@ case '_':
 escaped=false;
 break;
 default :
+switch (currentChar) {
+case '\\':
+case '^':
+case '$':
+case '{':
+case '}':
+case '[':
+case ']':
+case '(':
+case ')':
+case '.':
+case '*':
+case '?':
+case '+':
+case '|':
+regex.append('\\');
+}
+regex.append(currentChar);
 escaped=false;
-regex.append(Pattern.quote(String.valueOf(currentChar)));
 }
 }
 }
-return Pattern.compile(regex.toString());
+regex.append('$');
+return new Regex(regex);
 }
