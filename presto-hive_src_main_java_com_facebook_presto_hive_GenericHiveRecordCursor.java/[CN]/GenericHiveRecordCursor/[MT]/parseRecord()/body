@@ -23,7 +23,13 @@ case DOUBLE:
     doubles[outputColumnIndex]=((Number)fieldValue).doubleValue();
   break;
 case STRING:
-strings[outputColumnIndex]=((String)fieldValue).getBytes(Charsets.UTF_8);
+if (fieldValue instanceof ByteArrayRef) {
+  BytesWritable writableObject=((LazyBinary)fieldData).getWritableObject();
+  strings[outputColumnIndex]=Arrays.copyOf(writableObject.getBytes(),writableObject.getLength());
+}
+ else {
+  strings[outputColumnIndex]=((String)fieldValue).getBytes(Charsets.UTF_8);
+}
 break;
 }
 }
