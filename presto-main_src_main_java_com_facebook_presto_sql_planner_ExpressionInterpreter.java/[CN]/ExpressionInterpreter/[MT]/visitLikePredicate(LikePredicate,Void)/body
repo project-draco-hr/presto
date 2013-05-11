@@ -1,14 +1,23 @@
 {
   Object value=process(node.getValue(),context);
+  if (value == null) {
+    return null;
+  }
   if (value instanceof Slice && node.getPattern() instanceof StringLiteral && (node.getEscape() instanceof StringLiteral || node.getEscape() == null)) {
     Slice valueSlice=(Slice)value;
     Matcher matcher=getConstantPattern(node).matcher(valueSlice.getBytes());
     return matcher.match(0,valueSlice.length(),Option.NONE) != -1;
   }
   Object pattern=process(node.getPattern(),context);
+  if (pattern == null) {
+    return null;
+  }
   Object escape=null;
   if (node.getEscape() != null) {
     escape=process(node.getEscape(),context);
+    if (escape == null) {
+      return null;
+    }
   }
   if (value instanceof Slice && pattern instanceof Slice && (escape == null || escape instanceof Slice)) {
     String patternString=((Slice)pattern).toString(UTF_8);
@@ -27,9 +36,9 @@
       return new ComparisonExpression(ComparisonExpression.Type.EQUAL,toExpression(value),toExpression(pattern));
     }
   }
-  Expression escapeExpression=null;
-  if (escape != null) {
-    escapeExpression=toExpression(escape);
+  Expression optimizedEscape=null;
+  if (node.getEscape() != null) {
+    optimizedEscape=toExpression(escape);
   }
-  return new LikePredicate(toExpression(value),toExpression(pattern),escapeExpression);
+  return new LikePredicate(toExpression(value),toExpression(pattern),optimizedEscape);
 }
