@@ -1,32 +1,35 @@
 {
   Object value=process(node.getValue(),context);
-  if (!(value instanceof Slice)) {
-    return node;
+  if (value instanceof Slice && node.getPattern() instanceof StringLiteral && (node.getEscape() instanceof StringLiteral || node.getEscape() == null)) {
+    Slice valueSlice=(Slice)value;
+    Matcher matcher=getConstantPattern(node).matcher(valueSlice.getBytes());
+    return matcher.match(0,valueSlice.length(),Option.NONE) != -1;
   }
-  Slice valueSlice=((Slice)value);
-  Matcher matcher;
-  if (node.getPattern() instanceof StringLiteral && (node.getEscape() instanceof StringLiteral || node.getEscape() == null)) {
-    matcher=getConstantPattern(node).matcher(valueSlice.getBytes());
+  Object pattern=process(node.getPattern(),context);
+  Object escape=null;
+  if (node.getEscape() != null) {
+    escape=process(node.getEscape(),context);
   }
- else {
-    Object pattern=process(node.getPattern(),context);
-    if (!(pattern instanceof Slice)) {
-      return node;
-    }
+  if (value instanceof Slice && pattern instanceof Slice && (escape == null || escape instanceof Slice)) {
     String patternString=((Slice)pattern).toString(UTF_8);
-    char escapeChar;
-    if (node.getEscape() != null) {
-      Object escape=process(node.getEscape(),context);
-      if (!(escape instanceof Slice)) {
-        return node;
-      }
+    char escapeChar='\\';
+    if (escape != null) {
       escapeChar=getEscapeChar((Slice)escape);
     }
- else {
-      escapeChar='\\';
-    }
-    matcher=likeToPattern(patternString,escapeChar).matcher(valueSlice.getBytes());
+    Regex regex=likeToPattern(patternString,escapeChar);
+    Slice valueSlice=(Slice)value;
+    Matcher matcher=regex.matcher(valueSlice.getBytes());
+    return matcher.match(0,valueSlice.length(),Option.NONE) != -1;
   }
-  int match=matcher.match(0,valueSlice.length(),Option.NONE);
-  return match != -1;
+  if (pattern instanceof Slice && escape == null) {
+    String stringPattern=((Slice)pattern).toString(Charsets.UTF_8);
+    if (!stringPattern.contains("%") && !stringPattern.contains("_")) {
+      return new ComparisonExpression(ComparisonExpression.Type.EQUAL,toExpression(value),toExpression(pattern));
+    }
+  }
+  Expression escapeExpression=null;
+  if (escape != null) {
+    escapeExpression=toExpression(escape);
+  }
+  return new LikePredicate(toExpression(value),toExpression(pattern),escapeExpression);
 }
