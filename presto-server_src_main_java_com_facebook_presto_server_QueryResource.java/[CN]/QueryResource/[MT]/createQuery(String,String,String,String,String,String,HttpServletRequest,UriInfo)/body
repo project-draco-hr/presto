@@ -1,0 +1,10 @@
+{
+  checkNotNull(query,"query is null");
+  checkArgument(!query.isEmpty(),"query is empty");
+  checkNotNull(catalog,"catalog is null");
+  checkNotNull(schema,"schema is null");
+  String remoteUserAddress=requestContext.getRemoteAddr();
+  QueryInfo queryInfo=queryManager.createQuery(new Session(user,source,catalog,schema,remoteUserAddress,userAgent),query);
+  URI pagesUri=uriBuilderFrom(uriInfo.getRequestUri()).appendPath(queryInfo.getQueryId().toString()).build();
+  return Response.created(pagesUri).entity(queryInfo).build();
+}
