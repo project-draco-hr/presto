@@ -1,9 +1,9 @@
 {
-  int fieldCount1=o1.getTupleInfo().getFieldCount();
-  int fieldCount2=o2.getTupleInfo().getFieldCount();
-  Preconditions.checkState(fieldCount1 == fieldCount2,"different field counts");
-  for (int field=0; field < fieldCount1; field++) {
-    TupleInfo.Type type=o1.getTupleInfo().getTypes().get(field);
+  List<TupleInfo.Type> types=o1.getTupleInfo().getTypes();
+  for (int index=0; index < sortFields.size(); index++) {
+    int field=sortFields.get(index);
+    SortItem.Ordering order=sortOrders.get(index);
+    TupleInfo.Type type=types.get(field);
     int comparison;
 switch (type) {
 case FIXED_INT_64:
@@ -19,6 +19,9 @@ default :
 throw new AssertionError("unimplemented type: " + type);
 }
 if (comparison != 0) {
+if (order == SortItem.Ordering.DESCENDING) {
+return -comparison;
+}
 return comparison;
 }
 }
