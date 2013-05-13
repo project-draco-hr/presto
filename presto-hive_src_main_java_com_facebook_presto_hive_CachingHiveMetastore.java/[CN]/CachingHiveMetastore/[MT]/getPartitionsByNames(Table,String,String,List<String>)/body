@@ -28,8 +28,14 @@
       throw Throwables.propagate(e);
     }
     checkState(fetchedPartitions.size() == partitionsToFetch.size());
-    for (int i=0; i < fetchedPartitions.size(); i++) {
-      partitionCache.put(HivePartitionName.partition(databaseName,tableName,partitionsToFetch.get(i)),fetchedPartitions.get(i));
+    for (    Partition partition : fetchedPartitions) {
+      try {
+        String partitionId=Warehouse.makePartName(table.getPartitionKeys(),partition.getValues());
+        partitionCache.put(HivePartitionName.partition(databaseName,tableName,partitionId),partition);
+      }
+ catch (      MetaException e) {
+        throw Throwables.propagate(e);
+      }
     }
     Iterator<Partition> fetchedPartitionsIterator=fetchedPartitions.iterator();
     for (int i=0; i < partitionNames.size(); i++) {

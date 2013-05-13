@@ -1,14 +1,16 @@
 {
   Assert.assertEquals(mockClient.getAccessCount(),0);
-  Assert.assertEquals(metastore.getPartitionsByNames(TEST_DATABASE,TEST_TABLE,ImmutableList.of(TEST_PARTITION1)).size(),1);
+  Table table=metastore.getTable(TEST_DATABASE,TEST_TABLE);
   Assert.assertEquals(mockClient.getAccessCount(),1);
-  Assert.assertEquals(metastore.getPartitionsByNames(TEST_DATABASE,TEST_TABLE,ImmutableList.of(TEST_PARTITION1,TEST_PARTITION2)).size(),2);
+  Assert.assertEquals(metastore.getPartitionsByNames(table,TEST_DATABASE,TEST_TABLE,ImmutableList.of(TEST_PARTITION1)).size(),1);
   Assert.assertEquals(mockClient.getAccessCount(),2);
-  Assert.assertEquals(metastore.getPartitionsByNames(TEST_DATABASE,TEST_TABLE,ImmutableList.of(TEST_PARTITION1)).size(),1);
-  Assert.assertEquals(metastore.getPartitionsByNames(TEST_DATABASE,TEST_TABLE,ImmutableList.of(TEST_PARTITION2)).size(),1);
-  Assert.assertEquals(metastore.getPartitionsByNames(TEST_DATABASE,TEST_TABLE,ImmutableList.of(TEST_PARTITION1,TEST_PARTITION2)).size(),2);
-  Assert.assertEquals(mockClient.getAccessCount(),2);
-  metastore.flushCache();
-  Assert.assertEquals(metastore.getPartitionsByNames(TEST_DATABASE,TEST_TABLE,ImmutableList.of(TEST_PARTITION1,TEST_PARTITION2)).size(),2);
+  Assert.assertEquals(metastore.getPartitionsByNames(table,TEST_DATABASE,TEST_TABLE,ImmutableList.of(TEST_PARTITION1,TEST_PARTITION2)).size(),2);
   Assert.assertEquals(mockClient.getAccessCount(),3);
+  Assert.assertEquals(metastore.getPartitionsByNames(table,TEST_DATABASE,TEST_TABLE,ImmutableList.of(TEST_PARTITION1)).size(),1);
+  Assert.assertEquals(metastore.getPartitionsByNames(table,TEST_DATABASE,TEST_TABLE,ImmutableList.of(TEST_PARTITION2)).size(),1);
+  Assert.assertEquals(metastore.getPartitionsByNames(table,TEST_DATABASE,TEST_TABLE,ImmutableList.of(TEST_PARTITION1,TEST_PARTITION2)).size(),2);
+  Assert.assertEquals(mockClient.getAccessCount(),3);
+  metastore.flushCache();
+  Assert.assertEquals(metastore.getPartitionsByNames(table,TEST_DATABASE,TEST_TABLE,ImmutableList.of(TEST_PARTITION1,TEST_PARTITION2)).size(),2);
+  Assert.assertEquals(mockClient.getAccessCount(),4);
 }

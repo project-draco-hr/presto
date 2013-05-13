@@ -8,7 +8,12 @@
   }
   return Lists.transform(names,new Function<String,Partition>(){
     @Override public Partition apply(    String name){
-      return new Partition(null,TEST_DATABASE,TEST_TABLE,0,0,null,null);
+      try {
+        return new Partition(ImmutableList.copyOf(Warehouse.getPartValuesFromPartName(name)),TEST_DATABASE,TEST_TABLE,0,0,null,null);
+      }
+ catch (      MetaException e) {
+        throw Throwables.propagate(e);
+      }
     }
   }
 );
