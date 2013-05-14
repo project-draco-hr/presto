@@ -1,12 +1,18 @@
 {
   MaterializedResult result=computeActual("SHOW FUNCTIONS");
-  ImmutableSet<String> functionNames=ImmutableSet.copyOf(transform(result.getMaterializedTuples(),new Function<MaterializedTuple,String>(){
+  ImmutableMultimap<String,MaterializedTuple> functions=Multimaps.index(result.getMaterializedTuples(),new Function<MaterializedTuple,String>(){
     @Override public String apply(    MaterializedTuple input){
-      assertEquals(input.getFieldCount(),3);
+      assertEquals(input.getFieldCount(),4);
       return (String)input.getField(0);
     }
   }
-));
-  assertTrue(functionNames.contains("avg"),"Expected function names " + functionNames + " to contain 'avg'");
-  assertTrue(functionNames.contains("abs"),"Expected function names " + functionNames + " to contain 'abs'");
+);
+  assertTrue(functions.containsKey("avg"),"Expected function names " + functions + " to contain 'avg'");
+  assertEquals(functions.get("avg").asList().get(0).getField(3),"aggregate");
+  assertTrue(functions.containsKey("abs"),"Expected function names " + functions + " to contain 'abs'");
+  assertEquals(functions.get("abs").asList().get(0).getField(3),"scalar");
+  assertTrue(functions.containsKey("rand"),"Expected function names " + functions + " to contain 'rand'");
+  assertEquals(functions.get("rand").asList().get(0).getField(3),"scalar (non-deterministic)");
+  assertTrue(functions.containsKey("rank"),"Expected function names " + functions + " to contain 'rank'");
+  assertEquals(functions.get("rank").asList().get(0).getField(3),"window");
 }
