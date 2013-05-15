@@ -4,7 +4,7 @@
   if (splittable) {
     for (    BlockLocation blockLocation : fileBlockLocations) {
       List<HostAddress> addresses=toHostAddress(blockLocation.getHosts());
-      int chunks=(int)(blockLocation.getLength() / maxSplitSize.toBytes());
+      int chunks=Math.max(1,(int)(blockLocation.getLength() / maxSplitSize.toBytes()));
       long targetChunkSize=(long)Math.ceil(blockLocation.getLength() * 1.0 / chunks);
       long chunkOffset=0;
       while (chunkOffset < blockLocation.getLength()) {
@@ -12,7 +12,7 @@
         builder.add(new HiveSplit(clientId,table.getDbName(),table.getTableName(),partitionName,false,file.getPath().toString(),blockLocation.getOffset() + chunkOffset,chunkLength,schema,partitionKeys,addresses));
         chunkOffset+=chunkLength;
       }
-      checkState(chunkOffset == blockLocation.getOffset() + blockLocation.getLength(),"Error splitting blocks");
+      checkState(chunkOffset == blockLocation.getLength(),"Error splitting blocks");
     }
   }
  else {
