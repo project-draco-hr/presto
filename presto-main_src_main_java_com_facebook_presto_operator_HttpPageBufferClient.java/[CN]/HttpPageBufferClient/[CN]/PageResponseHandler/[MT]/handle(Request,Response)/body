@@ -10,8 +10,8 @@
         log.debug("Expected response code to be 200, but was %s: request=%s, response=%s",response.getStatusCode(),request,response);
         return null;
       }
-      String contentType=response.getHeader("Content-Type");
-      if (!MediaType.parse(contentType).is(PRESTO_PAGES_TYPE)) {
+      String contentType=response.getHeader(CONTENT_TYPE);
+      if (contentType == null || !MediaType.parse(contentType).is(PRESTO_PAGES_TYPE)) {
         log.debug("Expected %s response from server but got %s: uri=%s, response=%s",PRESTO_PAGES_TYPE,contentType,location,response);
         return null;
       }
@@ -27,8 +27,9 @@
       }
     }
   }
- catch (  Exception e) {
+ catch (  Throwable e) {
     log.warn(e,"Error fetching pages from  %s: status: %s %s",request.getUri(),response.getStatusCode(),response.getStatusMessage());
+    Throwables.propagateIfInstanceOf(e,Error.class);
   }
  finally {
     requestComplete();

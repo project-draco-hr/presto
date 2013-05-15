@@ -1,0 +1,35 @@
+{
+  CyclicBarrier beforeRequest=new CyclicBarrier(1);
+  CyclicBarrier afterRequest=new CyclicBarrier(1);
+  StaticRequestProcessor processor=new StaticRequestProcessor(beforeRequest,afterRequest);
+  CyclicBarrier requestComplete=new CyclicBarrier(2);
+  TestingClientCallback callback=new TestingClientCallback(requestComplete);
+  URI location=URI.create("http://localhost:8080");
+  HttpPageBufferClient client=new HttpPageBufferClient(new TestingHttpClient(processor,newCachedThreadPool(daemonThreadsNamed("test-%s"))),new DataSize(10,Unit.MEGABYTE),location,callback);
+  assertStatus(client,location,"queued",0,0,0,"queued");
+  processor.setResponse(new TestingResponse(HttpStatus.NOT_FOUND,ImmutableListMultimap.of(CONTENT_TYPE,PRESTO_PAGES),new byte[0]));
+  client.scheduleRequest();
+  requestComplete.await(1,TimeUnit.SECONDS);
+  assertEquals(callback.getPages().size(),0);
+  assertEquals(callback.getCompletedRequests(),1);
+  assertEquals(callback.getFinishedBuffers(),0);
+  assertStatus(client,location,"queued",0,1,1,"queued");
+  callback.resetStats();
+  processor.setResponse(new TestingResponse(HttpStatus.OK,ImmutableListMultimap.of(CONTENT_TYPE,"INVALID_TYPE"),new byte[0]));
+  client.scheduleRequest();
+  requestComplete.await(1,TimeUnit.SECONDS);
+  assertEquals(callback.getPages().size(),0);
+  assertEquals(callback.getCompletedRequests(),1);
+  assertEquals(callback.getFinishedBuffers(),0);
+  assertStatus(client,location,"queued",0,2,2,"queued");
+  callback.resetStats();
+  processor.setResponse(new TestingResponse(HttpStatus.OK,ImmutableListMultimap.of(CONTENT_TYPE,"text/plain"),new byte[0]));
+  client.scheduleRequest();
+  requestComplete.await(1,TimeUnit.SECONDS);
+  assertEquals(callback.getPages().size(),0);
+  assertEquals(callback.getCompletedRequests(),1);
+  assertEquals(callback.getFinishedBuffers(),0);
+  assertStatus(client,location,"queued",0,3,3,"queued");
+  client.close();
+  assertStatus(client,location,"closed",0,3,3,"queued");
+}
