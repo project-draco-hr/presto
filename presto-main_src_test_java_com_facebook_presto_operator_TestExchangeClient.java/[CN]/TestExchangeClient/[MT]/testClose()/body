@@ -1,0 +1,22 @@
+{
+  MockExchangeRequestProcessor processor=new MockExchangeRequestProcessor(new DataSize(1,Unit.BYTE));
+  URI location=URI.create("http://localhost:8080");
+  processor.addPage(location,createPage(1));
+  processor.addPage(location,createPage(2));
+  processor.addPage(location,createPage(3));
+  ExchangeClient exchangeClient=new ExchangeClient(new DataSize(1,Unit.BYTE),new DataSize(1,Unit.BYTE),1,new TestingHttpClient(processor,newCachedThreadPool(daemonThreadsNamed("test-%s"))),ImmutableSet.of(location),true);
+  assertEquals(exchangeClient.isClosed(),false);
+  assertPageEquals(exchangeClient.getNextPage(new Duration(1,TimeUnit.HOURS)),createPage(1));
+  exchangeClient.close();
+  assertEquals(exchangeClient.isClosed(),true);
+  assertNull(exchangeClient.getNextPage(new Duration(0,TimeUnit.SECONDS)));
+  assertEquals(exchangeClient.getBufferedPageCount(),0);
+  assertEquals(exchangeClient.getBufferBytes(),0);
+  ExchangeClientStatus clientStatus=exchangeClient.getStatus().get(0);
+  assertEquals(clientStatus.getUri(),location);
+  assertEquals(clientStatus.getState(),"closed","status");
+  assertEquals(clientStatus.getPagesReceived(),2,"pagesReceived");
+  assertEquals(clientStatus.getRequestsScheduled(),2,"requestsScheduled");
+  assertEquals(clientStatus.getRequestsCompleted(),2,"requestsCompleted");
+  assertEquals(clientStatus.getHttpRequestState(),"queued","httpRequestState");
+}

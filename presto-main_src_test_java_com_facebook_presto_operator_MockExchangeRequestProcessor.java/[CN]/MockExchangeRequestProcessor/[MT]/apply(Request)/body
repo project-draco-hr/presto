@@ -1,0 +1,41 @@
+{
+  if (request.getMethod().equalsIgnoreCase("DELETE")) {
+    return new TestingResponse(HttpStatus.NO_CONTENT,ImmutableListMultimap.<String,String>of(),new byte[0]);
+  }
+  assertTrue(!request.getHeaders().get(PrestoHeaders.PRESTO_MAX_SIZE).isEmpty());
+  DataSize maxSize=DataSize.valueOf(request.getHeaders().get(PrestoHeaders.PRESTO_MAX_SIZE).get(0));
+  assertEquals(maxSize,expectedMaxSize);
+  URI location=request.getUri();
+  BlockingQueue<Page> pages=pagesByLocation.get(location);
+  if (completeByLocation.get(location) == Boolean.TRUE && (pages == null || pages.isEmpty())) {
+    return new TestingResponse(HttpStatus.GONE,ImmutableListMultimap.<String,String>of(),new byte[0]);
+  }
+  if (pages == null) {
+    return new TestingResponse(HttpStatus.NO_CONTENT,ImmutableListMultimap.<String,String>of(),new byte[0]);
+  }
+  Page page=null;
+  try {
+    page=pages.poll(10,TimeUnit.MILLISECONDS);
+  }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+  }
+  if (page == null) {
+    return new TestingResponse(HttpStatus.NO_CONTENT,ImmutableListMultimap.<String,String>of(),new byte[0]);
+  }
+  List<Page> responsePages=new ArrayList<>();
+  responsePages.add(page);
+  long responseSize=page.getDataSize().toBytes();
+  while (responseSize < maxSize.toBytes()) {
+    page=pages.poll();
+    if (page == null) {
+      break;
+    }
+    responsePages.add(page);
+    responseSize+=page.getDataSize().toBytes();
+  }
+  DynamicSliceOutput sliceOutput=new DynamicSliceOutput(64);
+  PagesSerde.writePages(sliceOutput,responsePages);
+  byte[] bytes=sliceOutput.slice().getBytes();
+  return new TestingResponse(HttpStatus.OK,ImmutableListMultimap.of(CONTENT_TYPE,PRESTO_PAGES),bytes);
+}

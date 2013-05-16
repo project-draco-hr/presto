@@ -1,12 +1,13 @@
 {
   Page expectedPage=new Page(100);
-  PageRequestProcessor processor=new PageRequestProcessor();
+  DataSize expectedMaxSize=new DataSize(11,Unit.MEGABYTE);
+  MockExchangeRequestProcessor processor=new MockExchangeRequestProcessor(expectedMaxSize);
   CyclicBarrier requestComplete=new CyclicBarrier(2);
   TestingClientCallback callback=new TestingClientCallback(requestComplete);
   URI location=URI.create("http://localhost:8080");
-  HttpPageBufferClient client=new HttpPageBufferClient(new TestingHttpClient(processor,newCachedThreadPool(daemonThreadsNamed("test-%s"))),new DataSize(10,Unit.MEGABYTE),location,callback);
+  HttpPageBufferClient client=new HttpPageBufferClient(new TestingHttpClient(processor,newCachedThreadPool(daemonThreadsNamed("test-%s"))),expectedMaxSize,location,callback);
   assertStatus(client,location,"queued",0,0,0,"queued");
-  processor.addPage(expectedPage);
+  processor.addPage(location,expectedPage);
   callback.resetStats();
   client.scheduleRequest();
   requestComplete.await(1,TimeUnit.SECONDS);
@@ -22,8 +23,8 @@
   assertEquals(callback.getCompletedRequests(),1);
   assertEquals(callback.getFinishedBuffers(),0);
   assertStatus(client,location,"queued",1,2,2,"queued");
-  processor.addPage(expectedPage);
-  processor.addPage(expectedPage);
+  processor.addPage(location,expectedPage);
+  processor.addPage(location,expectedPage);
   callback.resetStats();
   client.scheduleRequest();
   requestComplete.await(1,TimeUnit.SECONDS);
@@ -35,7 +36,7 @@
   callback.resetStats();
   assertStatus(client,location,"queued",3,3,3,"queued");
   callback.resetStats();
-  processor.setComplete(true);
+  processor.setComplete(location);
   client.scheduleRequest();
   requestComplete.await(1,TimeUnit.SECONDS);
   assertEquals(callback.getPages().size(),0);
