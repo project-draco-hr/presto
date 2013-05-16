@@ -1,7 +1,11 @@
 {
-  ImmutableList.Builder<ExchangeClientStatus> exchangeStatus=ImmutableList.builder();
+  int bufferedPages=pageBuffer.size();
+  if (bufferedPages > 0 && pageBuffer.peekLast() == NO_MORE_PAGES) {
+    bufferedPages--;
+  }
+  ImmutableList.Builder<PageBufferClientStatus> exchangeStatus=ImmutableList.builder();
   for (  HttpPageBufferClient client : allClients.values()) {
     exchangeStatus.add(client.getStatus());
   }
-  return exchangeStatus.build();
+  return new ExchangeClientStatus(bufferBytes,averageBytesPerRequest,bufferedPages,exchangeStatus.build());
 }

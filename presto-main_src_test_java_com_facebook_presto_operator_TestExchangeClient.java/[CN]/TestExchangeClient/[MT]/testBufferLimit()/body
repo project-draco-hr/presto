@@ -11,30 +11,30 @@
   do {
     Uninterruptibles.sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
   }
- while (exchangeClient.getBufferedPageCount() == 0);
-  assertEquals(exchangeClient.getBufferedPageCount(),1);
-  assertTrue(exchangeClient.getBufferBytes() > 0);
-  assertStatus(exchangeClient.getStatus().get(0),location,"queued",1,1,1,"queued");
+ while (exchangeClient.getStatus().getBufferedPages() == 0);
+  assertEquals(exchangeClient.getStatus().getBufferedPages(),1);
+  assertTrue(exchangeClient.getStatus().getBufferedBytes() > 0);
+  assertStatus(exchangeClient.getStatus().getPageBufferClientStatuses().get(0),location,"queued",1,1,1,"queued");
   assertPageEquals(exchangeClient.getNextPage(new Duration(0,TimeUnit.SECONDS)),createPage(1));
   do {
     Uninterruptibles.sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
   }
- while (exchangeClient.getBufferedPageCount() == 0);
-  assertStatus(exchangeClient.getStatus().get(0),location,"queued",2,2,2,"queued");
-  assertEquals(exchangeClient.getBufferedPageCount(),1);
-  assertTrue(exchangeClient.getBufferBytes() > 0);
+ while (exchangeClient.getStatus().getBufferedPages() == 0);
+  assertStatus(exchangeClient.getStatus().getPageBufferClientStatuses().get(0),location,"queued",2,2,2,"queued");
+  assertEquals(exchangeClient.getStatus().getBufferedPages(),1);
+  assertTrue(exchangeClient.getStatus().getBufferedBytes() > 0);
   assertPageEquals(exchangeClient.getNextPage(new Duration(0,TimeUnit.SECONDS)),createPage(2));
   do {
     Uninterruptibles.sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
   }
- while (exchangeClient.getBufferedPageCount() == 0);
-  assertStatus(exchangeClient.getStatus().get(0),location,"queued",3,3,3,"queued");
-  assertEquals(exchangeClient.getBufferedPageCount(),1);
-  assertTrue(exchangeClient.getBufferBytes() > 0);
+ while (exchangeClient.getStatus().getBufferedPages() == 0);
+  assertStatus(exchangeClient.getStatus().getPageBufferClientStatuses().get(0),location,"queued",3,3,3,"queued");
+  assertEquals(exchangeClient.getStatus().getBufferedPages(),1);
+  assertTrue(exchangeClient.getStatus().getBufferedBytes() > 0);
   assertPageEquals(exchangeClient.getNextPage(new Duration(1,TimeUnit.SECONDS)),createPage(3));
   assertNull(exchangeClient.getNextPage(new Duration(1,TimeUnit.SECONDS)));
-  assertEquals(exchangeClient.getBufferedPageCount(),0);
-  assertTrue(exchangeClient.getBufferBytes() == 0);
+  assertEquals(exchangeClient.getStatus().getBufferedPages(),0);
+  assertTrue(exchangeClient.getStatus().getBufferedBytes() == 0);
   assertEquals(exchangeClient.isClosed(),true);
-  assertStatus(exchangeClient.getStatus().get(0),location,"closed",3,4,4,"queued");
+  assertStatus(exchangeClient.getStatus().getPageBufferClientStatuses().get(0),location,"closed",3,4,4,"queued");
 }
