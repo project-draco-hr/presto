@@ -23,12 +23,14 @@ case DOUBLE:
     doubles[outputColumnIndex]=((Number)fieldValue).doubleValue();
   break;
 case STRING:
-if (fieldValue instanceof ByteArrayRef) {
-  BytesWritable writableObject=((LazyBinary)fieldData).getWritableObject();
-  strings[outputColumnIndex]=Arrays.copyOf(writableObject.getBytes(),writableObject.getLength());
+if (fieldValue instanceof String) {
+  strings[outputColumnIndex]=((String)fieldValue).getBytes(Charsets.UTF_8);
+}
+ else if (fieldValue instanceof byte[]) {
+  strings[outputColumnIndex]=(byte[])fieldValue;
 }
  else {
-  strings[outputColumnIndex]=((String)fieldValue).getBytes(Charsets.UTF_8);
+  throw new IllegalStateException("unsupported string field type: " + fieldValue.getClass().getName());
 }
 break;
 }
