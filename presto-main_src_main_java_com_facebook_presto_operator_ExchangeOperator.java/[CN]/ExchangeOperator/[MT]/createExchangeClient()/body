@@ -2,7 +2,13 @@
   ExchangeClient exchangeClient;
 synchronized (this) {
     checkState(activeClient == null,"ExchangeOperator can only be used once");
-    exchangeClient=new ExchangeClient(maxBufferSize,new DataSize(10,MEGABYTE),concurrentRequestMultiplier,httpClient,locations,noMoreLocations);
+    exchangeClient=exchangeClientProvider.get();
+    for (    URI location : locations) {
+      exchangeClient.addLocation(location);
+    }
+    if (noMoreLocations) {
+      exchangeClient.noMoreLocations();
+    }
     activeClient=exchangeClient;
   }
   exchangeClient.scheduleRequestIfNecessary();

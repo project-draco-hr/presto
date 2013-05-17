@@ -8,6 +8,45 @@
     return;
   }
   future=httpClient.executeAsync(prepareGet().setHeader(PRESTO_MAX_SIZE,maxResponseSize.toString()).setUri(location).build(),new PageResponseHandler());
+  Futures.addCallback(future,new FutureCallback<PagesResponse>(){
+    @Override public void onSuccess(    PagesResponse result){
+      if (Thread.holdsLock(HttpPageBufferClient.this)) {
+        log.error("Can not handle callback while holding a lock on this");
+      }
+      requestsCompleted.incrementAndGet();
+      for (      Page page : result.getPages()) {
+        pagesReceived.incrementAndGet();
+        clientCallback.addPage(HttpPageBufferClient.this,page);
+      }
+      if (result.isClientClosed()) {
+synchronized (this) {
+          closed=true;
+          future=null;
+          lastUpdate=DateTime.now();
+        }
+        clientCallback.clientFinished(HttpPageBufferClient.this);
+      }
+ else {
+synchronized (HttpPageBufferClient.this) {
+          future=null;
+          lastUpdate=DateTime.now();
+        }
+        clientCallback.requestComplete(HttpPageBufferClient.this);
+      }
+    }
+    @Override public void onFailure(    Throwable t){
+      if (Thread.holdsLock(HttpPageBufferClient.this)) {
+        log.error("Can not handle callback while holding a lock on this");
+      }
+      requestsCompleted.incrementAndGet();
+synchronized (HttpPageBufferClient.this) {
+        future=null;
+        lastUpdate=DateTime.now();
+      }
+      clientCallback.requestComplete(HttpPageBufferClient.this);
+    }
+  }
+,executor);
   lastUpdate=DateTime.now();
   requestsScheduled.incrementAndGet();
 }

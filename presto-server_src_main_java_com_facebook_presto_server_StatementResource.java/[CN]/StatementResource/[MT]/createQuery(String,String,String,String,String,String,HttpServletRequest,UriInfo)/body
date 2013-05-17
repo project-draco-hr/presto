@@ -5,7 +5,8 @@
   assertRequest(!isNullOrEmpty(schema),"Schema (%s) is empty",PRESTO_SCHEMA);
   String remoteUserAddress=requestContext.getRemoteAddr();
   Session session=new Session(user,source,catalog,schema,remoteUserAddress,userAgent);
-  Query query=new Query(session,statement,queryManager,httpClient);
+  ExchangeClient exchangeClient=exchangeClientProvider.get();
+  Query query=new Query(session,statement,queryManager,exchangeClient);
   queries.put(query.getQueryId(),query);
   return Response.ok(query.getNextResults(uriInfo,new Duration(1,TimeUnit.MILLISECONDS))).build();
 }

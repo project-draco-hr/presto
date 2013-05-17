@@ -1,11 +1,14 @@
 {
-  MockExchangeRequestProcessor processor=new MockExchangeRequestProcessor(new DataSize(10,Unit.MEGABYTE));
+  DataSize maxResponseSize=new DataSize(10,Unit.MEGABYTE);
+  MockExchangeRequestProcessor processor=new MockExchangeRequestProcessor(maxResponseSize);
   URI location=URI.create("http://localhost:8080");
   processor.addPage(location,createPage(1));
   processor.addPage(location,createPage(2));
   processor.addPage(location,createPage(3));
   processor.setComplete(location);
-  ExchangeClient exchangeClient=new ExchangeClient(new DataSize(32,Unit.MEGABYTE),new DataSize(10,Unit.MEGABYTE),1,new TestingHttpClient(processor,newCachedThreadPool(daemonThreadsNamed("test-%s"))),ImmutableSet.of(location),true);
+  ExchangeClient exchangeClient=new ExchangeClient(new DataSize(32,Unit.MEGABYTE),maxResponseSize,1,new TestingHttpClient(processor,executor),executor);
+  exchangeClient.addLocation(location);
+  exchangeClient.noMoreLocations();
   assertEquals(exchangeClient.isClosed(),false);
   assertPageEquals(exchangeClient.getNextPage(new Duration(1,TimeUnit.SECONDS)),createPage(1));
   assertEquals(exchangeClient.isClosed(),false);

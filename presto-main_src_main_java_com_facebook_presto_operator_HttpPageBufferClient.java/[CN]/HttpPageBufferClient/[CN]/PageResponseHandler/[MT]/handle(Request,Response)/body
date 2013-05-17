@@ -1,38 +1,24 @@
 {
-  requestsCompleted.incrementAndGet();
   if (response.getStatusCode() == HttpStatus.GONE.code()) {
-    bufferFinished();
-    return null;
+    return PagesResponse.createClosedResponse();
+  }
+  if (response.getStatusCode() == HttpStatus.NO_CONTENT.code()) {
+    return PagesResponse.createEmptyPagesResponse();
+  }
+  if (response.getStatusCode() != HttpStatus.OK.code()) {
+    log.debug("Expected response code to be 200, but was %s: request=%s, response=%s",response.getStatusCode(),request,response);
+    return PagesResponse.createEmptyPagesResponse();
+  }
+  String contentType=response.getHeader(CONTENT_TYPE);
+  if (contentType == null || !MediaType.parse(contentType).is(PRESTO_PAGES_TYPE)) {
+    log.debug("Expected %s response from server but got %s: uri=%s, response=%s",PRESTO_PAGES_TYPE,contentType,request.getUri(),response);
+    return PagesResponse.createEmptyPagesResponse();
   }
   try {
-    if (response.getStatusCode() != HttpStatus.NO_CONTENT.code()) {
-      if (response.getStatusCode() != HttpStatus.OK.code()) {
-        log.debug("Expected response code to be 200, but was %s: request=%s, response=%s",response.getStatusCode(),request,response);
-        return null;
-      }
-      String contentType=response.getHeader(CONTENT_TYPE);
-      if (contentType == null || !MediaType.parse(contentType).is(PRESTO_PAGES_TYPE)) {
-        log.debug("Expected %s response from server but got %s: uri=%s, response=%s",PRESTO_PAGES_TYPE,contentType,location,response);
-        return null;
-      }
-      InputStreamSliceInput sliceInput=new InputStreamSliceInput(response.getInputStream());
-      Iterator<Page> pageIterator=PagesSerde.readPages(sliceInput);
-      while (pageIterator.hasNext()) {
-        if (isClosed()) {
-          return null;
-        }
-        Page page=pageIterator.next();
-        pagesReceived.incrementAndGet();
-        clientCallback.addPage(HttpPageBufferClient.this,page);
-      }
-    }
+    InputStreamSliceInput sliceInput=new InputStreamSliceInput(response.getInputStream());
+    return PagesResponse.createPagesResponse(ImmutableList.copyOf(PagesSerde.readPages(sliceInput)));
   }
- catch (  Throwable e) {
-    log.warn(e,"Error fetching pages from  %s: status: %s %s",request.getUri(),response.getStatusCode(),response.getStatusMessage());
-    Throwables.propagateIfInstanceOf(e,Error.class);
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
   }
- finally {
-    requestComplete();
-  }
-  return null;
 }

@@ -1,0 +1,41 @@
+{
+  Preconditions.checkNotNull(metadata,"metadata is null");
+  Preconditions.checkNotNull(storageManager,"storageManager is null");
+  Preconditions.checkNotNull(dataStreamProvider,"dataStreamProvider is null");
+  Preconditions.checkNotNull(exchangeClientProvider,"exchangeClientProvider is null");
+  Preconditions.checkNotNull(nodeInfo,"nodeInfo is null");
+  Preconditions.checkNotNull(locationFactory,"locationFactory is null");
+  Preconditions.checkNotNull(queryMonitor,"queryMonitor is null");
+  Preconditions.checkNotNull(config,"config is null");
+  this.metadata=metadata;
+  this.storageManager=storageManager;
+  this.dataStreamProvider=dataStreamProvider;
+  this.exchangeClientProvider=exchangeClientProvider;
+  this.nodeInfo=nodeInfo;
+  this.locationFactory=locationFactory;
+  this.queryMonitor=queryMonitor;
+  this.pageBufferMax=config.getSinkMaxBufferedPages();
+  this.maxOperatorMemoryUsage=config.getMaxOperatorMemoryUsage();
+  this.maxTaskAge=new Duration(config.getMaxQueryAge().toMillis() + SECONDS.toMillis(30),MILLISECONDS);
+  this.clientTimeout=config.getClientTimeout();
+  taskMasterExecutor=Executors.newCachedThreadPool(threadsNamed("task-processor-%d"));
+  shardExecutor=MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(config.getMaxShardProcessorThreads(),threadsNamed("shard-processor-%d")));
+  taskManagementExecutor=Executors.newScheduledThreadPool(5,threadsNamed("task-management-%d"));
+  taskManagementExecutor.scheduleAtFixedRate(new Runnable(){
+    @Override public void run(){
+      try {
+        removeOldTasks();
+      }
+ catch (      Throwable e) {
+        log.warn(e,"Error removing old tasks");
+      }
+      try {
+        failAbandonedTasks();
+      }
+ catch (      Throwable e) {
+        log.warn(e,"Error canceling abandoned tasks");
+      }
+    }
+  }
+,200,200,TimeUnit.MILLISECONDS);
+}

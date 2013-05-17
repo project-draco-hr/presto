@@ -6,14 +6,14 @@
     if (pageBuffer.peekLast() != NO_MORE_PAGES) {
       checkState(pageBuffer.add(NO_MORE_PAGES),"Could not add no more pages marker");
     }
-    if (pageBuffer.peek() == NO_MORE_PAGES) {
+    if (!closed.get() && pageBuffer.peek() == NO_MORE_PAGES) {
       closed.set(true);
     }
     return;
   }
   for (  URI location : locations) {
     if (!allClients.containsKey(location)) {
-      HttpPageBufferClient client=new HttpPageBufferClient(httpClient,maxResponseSize,location,new ExchangeClientCallback());
+      HttpPageBufferClient client=new HttpPageBufferClient(httpClient,maxResponseSize,location,new ExchangeClientCallback(),executor);
       allClients.put(location,client);
       queuedClients.add(client);
     }
