@@ -5,20 +5,13 @@
   if (!outputIterator.hasNext()) {
     return endOfData();
   }
-  BlockBuilder[] outputs=new BlockBuilder[projections.size()];
-  for (int i=0; i < outputs.length; i++) {
-    outputs[i]=new BlockBuilder(projections.get(i).getTupleInfo());
-  }
-  while (!isFull(outputs) && outputIterator.hasNext()) {
+  PageBuilder pageBuilder=new PageBuilder(getTupleInfos());
+  while (!pageBuilder.isFull() && outputIterator.hasNext()) {
     KeyAndTuples next=outputIterator.next();
     for (int i=0; i < projections.size(); i++) {
-      projections.get(i).project(next.getTuples(),outputs[i]);
+      projections.get(i).project(next.getTuples(),pageBuilder.getBlockBuilder(i));
     }
   }
-  Block[] blocks=new Block[projections.size()];
-  for (int i=0; i < blocks.length; i++) {
-    blocks[i]=outputs[i].build();
-  }
-  Page page=new Page(blocks);
+  Page page=pageBuilder.build();
   return page;
 }
