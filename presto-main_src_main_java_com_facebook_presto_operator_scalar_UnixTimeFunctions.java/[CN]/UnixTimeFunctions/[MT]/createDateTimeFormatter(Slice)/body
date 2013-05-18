@@ -1,0 +1,104 @@
+{
+  DateTimeFormatterBuilder builder=new DateTimeFormatterBuilder();
+  String formatString=format.toString(Charsets.UTF_8);
+  boolean escaped=false;
+  for (int i=0; i < format.length(); i++) {
+    char character=formatString.charAt(i);
+    if (escaped) {
+switch (character) {
+case 'a':
+        builder.appendDayOfWeekShortText();
+      break;
+case 'b':
+    builder.appendMonthOfYearShortText();
+  break;
+case 'c':
+builder.appendMonthOfYear(1);
+break;
+case 'd':
+builder.appendDayOfMonth(2);
+break;
+case 'e':
+builder.appendDayOfMonth(1);
+break;
+case 'f':
+builder.appendMillisOfSecond(6);
+break;
+case 'H':
+builder.appendHourOfDay(2);
+break;
+case 'h':
+case 'I':
+builder.appendClockhourOfHalfday(2);
+break;
+case 'i':
+builder.appendMinuteOfHour(2);
+break;
+case 'j':
+builder.appendDayOfYear(3);
+break;
+case 'k':
+builder.appendClockhourOfDay(1);
+break;
+case 'l':
+builder.appendClockhourOfHalfday(1);
+break;
+case 'M':
+builder.appendMonthOfYearText();
+break;
+case 'm':
+builder.appendMonthOfYear(2);
+break;
+case 'p':
+builder.appendHalfdayOfDayText();
+break;
+case 'r':
+builder.appendClockhourOfHalfday(2).appendLiteral(':').appendMinuteOfHour(2).appendLiteral(':').appendSecondOfMinute(2).appendLiteral(' ').appendHalfdayOfDayText();
+break;
+case 'S':
+case 's':
+builder.appendSecondOfMinute(2);
+break;
+case 'T':
+builder.appendHourOfDay(2).appendLiteral(':').appendMinuteOfHour(2).appendLiteral(':').appendSecondOfMinute(2);
+break;
+case 'v':
+builder.appendWeekOfWeekyear(2);
+break;
+case 'W':
+builder.appendDayOfWeekText();
+break;
+case 'w':
+builder.appendDayOfWeek(1);
+break;
+case 'Y':
+builder.appendYear(4,4);
+break;
+case 'y':
+builder.appendYearOfCentury(2,2);
+break;
+case 'U':
+case 'u':
+case 'V':
+case 'X':
+case 'x':
+case 'D':
+throw new UnsupportedOperationException(String.format("%%%s not supported in date format string",character));
+case '%':
+builder.appendLiteral('%');
+break;
+default :
+builder.appendLiteral(character);
+break;
+}
+escaped=false;
+}
+ else if (character == '%') {
+escaped=true;
+}
+ else {
+builder.appendLiteral(character);
+}
+}
+return builder.toFormatter().withZoneUTC();
+}
