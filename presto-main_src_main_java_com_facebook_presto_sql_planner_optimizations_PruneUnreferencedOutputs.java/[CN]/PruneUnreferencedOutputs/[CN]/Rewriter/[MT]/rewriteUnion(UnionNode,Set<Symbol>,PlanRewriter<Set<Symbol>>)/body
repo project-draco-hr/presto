@@ -1,0 +1,20 @@
+{
+  List<Integer> expectedFields=new ArrayList<>();
+  ImmutableList.Builder<Symbol> outputSymbols=ImmutableList.builder();
+  for (int i=0; i < node.getOutputSymbols().size(); i++) {
+    Symbol symbol=node.getOutputSymbols().get(i);
+    if (expectedOutputs.contains(symbol)) {
+      expectedFields.add(i);
+      outputSymbols.add(symbol);
+    }
+  }
+  ImmutableList.Builder<PlanNode> rewrittenSubPlans=ImmutableList.builder();
+  for (  PlanNode subPlan : node.getSources()) {
+    ImmutableSet.Builder<Symbol> expectedInputSymbols=ImmutableSet.builder();
+    for (    Integer expectedField : expectedFields) {
+      expectedInputSymbols.add(subPlan.getOutputSymbols().get(expectedField));
+    }
+    rewrittenSubPlans.add(planRewriter.rewrite(subPlan,expectedInputSymbols.build()));
+  }
+  return new UnionNode(node.getId(),rewrittenSubPlans.build(),outputSymbols.build());
+}

@@ -1,0 +1,21 @@
+{
+  checkArgument(!node.getRelations().isEmpty(),"No relations specified for UNION");
+  List<Symbol> outputSymbols=null;
+  ImmutableList.Builder<PlanNode> builder=ImmutableList.builder();
+  for (  Relation relation : node.getRelations()) {
+    RelationPlan relationPlan=process(relation,context);
+    if (outputSymbols == null) {
+      ImmutableList.Builder<Symbol> symbolsBuilder=ImmutableList.builder();
+      for (      Symbol symbol : relationPlan.getOutputSymbols()) {
+        symbolsBuilder.add(symbolAllocator.newSymbol(symbol.getName(),symbolAllocator.getTypes().get(symbol)));
+      }
+      outputSymbols=symbolsBuilder.build();
+    }
+    builder.add(relationPlan.getRoot());
+  }
+  PlanNode planNode=new UnionNode(idAllocator.getNextId(),builder.build(),outputSymbols);
+  if (node.isDistinct()) {
+    planNode=distinct(planNode);
+  }
+  return new RelationPlan(planNode,analysis.getOutputDescriptor(node),outputSymbols);
+}
