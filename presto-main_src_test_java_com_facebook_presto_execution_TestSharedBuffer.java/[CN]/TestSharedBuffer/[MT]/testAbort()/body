@@ -1,19 +1,19 @@
 {
-  SharedBuffer<Integer> sharedBuffer=new SharedBuffer<>(10);
+  SharedBuffer sharedBuffer=new SharedBuffer(sizeOfPages(10));
   for (int i=0; i < 10; i++) {
-    assertTrue(sharedBuffer.offer(i));
+    assertTrue(sharedBuffer.offer(createPage(i)));
   }
   sharedBuffer.finish();
   sharedBuffer.addQueue("first");
-  assertEquals(sharedBuffer.get("first",1,NO_WAIT),bufferResult(0));
+  assertBufferResultEquals(sharedBuffer.get("first",1,NO_WAIT),bufferResult(createPage(0)));
   sharedBuffer.abort("first");
   assertQueueClosed(sharedBuffer,"first",1);
-  assertEquals(sharedBuffer.get("first",1,NO_WAIT),emptyResults(true));
+  assertBufferResultEquals(sharedBuffer.get("first",1,NO_WAIT),emptyResults(true));
   sharedBuffer.addQueue("second");
   sharedBuffer.noMoreQueues();
-  assertEquals(sharedBuffer.get("second",1,NO_WAIT),bufferResult(0));
+  assertBufferResultEquals(sharedBuffer.get("second",1,NO_WAIT),bufferResult(createPage(0)));
   sharedBuffer.abort("second");
   assertQueueClosed(sharedBuffer,"second",1);
   assertFinished(sharedBuffer);
-  assertEquals(sharedBuffer.get("second",1,NO_WAIT),emptyResults(true));
+  assertBufferResultEquals(sharedBuffer.get("second",1,NO_WAIT),emptyResults(true));
 }

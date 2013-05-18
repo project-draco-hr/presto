@@ -1,13 +1,13 @@
 {
-  SharedBuffer<Integer> sharedBuffer=new SharedBuffer<>(5);
+  SharedBuffer sharedBuffer=new SharedBuffer(sizeOfPages(5));
   sharedBuffer.addQueue("queue");
   assertFalse(sharedBuffer.isFinished());
   ExecutorService executor=Executors.newCachedThreadPool();
-  GetPagesJob<Integer> getPagesJob=new GetPagesJob<>(sharedBuffer,2,1);
+  GetPagesJob getPagesJob=new GetPagesJob(sharedBuffer,2,1);
   executor.submit(getPagesJob);
   getPagesJob.waitForStarted();
   getPagesJob.assertBlockedWithCount(0);
-  assertTrue(sharedBuffer.offer(0));
+  assertTrue(sharedBuffer.offer(createPage(0)));
   getPagesJob.assertBlockedWithCount(1);
   sharedBuffer.destroy();
   assertQueueClosed(sharedBuffer,"queue",1);

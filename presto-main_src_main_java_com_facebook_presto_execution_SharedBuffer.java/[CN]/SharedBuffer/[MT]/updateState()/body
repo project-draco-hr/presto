@@ -11,12 +11,12 @@
   if (state == QueueState.NO_MORE_QUEUES && !openQueuesBySequenceId.isEmpty()) {
     long oldMasterSequenceId=masterSequenceId;
     masterSequenceId=openQueuesBySequenceId.iterator().next().getSequenceId();
-    int elementsToRemove=Ints.checkedCast(masterSequenceId - oldMasterSequenceId);
-    Preconditions.checkState(elementsToRemove >= 0,"Master sequence id moved backwards: oldMasterSequenceId=%s, newMasterSequenceId=%s",oldMasterSequenceId,masterSequenceId);
-    for (int i=0; i < elementsToRemove; i++) {
-      masterQueue.removeFirst();
+    int pagesToRemove=Ints.checkedCast(masterSequenceId - oldMasterSequenceId);
+    Preconditions.checkState(pagesToRemove >= 0,"Master sequence id moved backwards: oldMasterSequenceId=%s, newMasterSequenceId=%s",oldMasterSequenceId,masterSequenceId);
+    for (int i=0; i < pagesToRemove; i++) {
+      Page page=masterQueue.removeFirst();
+      bufferedBytes-=page.getDataSize().toBytes();
     }
-    notFull.release(elementsToRemove);
   }
   if (state == QueueState.NO_MORE_QUEUES && closed.get() && openQueuesBySequenceId.isEmpty()) {
     state=QueueState.FINISHED;

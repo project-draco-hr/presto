@@ -1,37 +1,37 @@
 {
-  SharedBuffer<Integer> sharedBuffer=new SharedBuffer<>(10);
+  SharedBuffer sharedBuffer=new SharedBuffer(sizeOfPages(10));
   for (int i=0; i < 3; i++) {
-    assertTrue(sharedBuffer.offer(i));
+    assertTrue(sharedBuffer.offer(createPage(i)));
   }
   sharedBuffer.addQueue("first");
   assertQueueState(sharedBuffer,"first",3,0);
-  assertEquals(sharedBuffer.get("first",10,NO_WAIT),bufferResult(0,1,2));
+  assertBufferResultEquals(sharedBuffer.get("first",10,NO_WAIT),bufferResult(createPage(0),createPage(1),createPage(2)));
   assertQueueState(sharedBuffer,"first",0,3);
-  assertEquals(sharedBuffer.get("first",10,NO_WAIT),emptyResults(false));
+  assertBufferResultEquals(sharedBuffer.get("first",10,NO_WAIT),emptyResults(false));
   for (int i=3; i < 10; i++) {
-    assertTrue(sharedBuffer.offer(i));
+    assertTrue(sharedBuffer.offer(createPage(i)));
   }
   assertQueueState(sharedBuffer,"first",7,3);
-  assertFalse(sharedBuffer.offer(99));
-  assertEquals(sharedBuffer.get("first",1,NO_WAIT),bufferResult(3));
+  assertFalse(sharedBuffer.offer(createPage(99)));
+  assertBufferResultEquals(sharedBuffer.get("first",1,NO_WAIT),bufferResult(createPage(3)));
   assertQueueState(sharedBuffer,"first",6,4);
-  assertFalse(sharedBuffer.offer(99));
+  assertFalse(sharedBuffer.offer(createPage(99)));
   sharedBuffer.addQueue("second");
   assertQueueState(sharedBuffer,"second",10,0);
-  assertEquals(sharedBuffer.get("second",10,NO_WAIT),bufferResult(0,1,2,3,4,5,6,7,8,9));
+  assertBufferResultEquals(sharedBuffer.get("second",10,NO_WAIT),bufferResult(createPage(0),createPage(1),createPage(2),createPage(3),createPage(4),createPage(5),createPage(6),createPage(7),createPage(8),createPage(9)));
   assertQueueState(sharedBuffer,"second",0,10);
   sharedBuffer.noMoreQueues();
   for (int i=10; i < 14; i++) {
-    assertTrue(sharedBuffer.offer(i));
+    assertTrue(sharedBuffer.offer(createPage(i)));
   }
-  assertFalse(sharedBuffer.offer(99));
+  assertFalse(sharedBuffer.offer(createPage(99)));
   assertQueueState(sharedBuffer,"first",10,4);
   assertQueueState(sharedBuffer,"second",4,10);
-  assertEquals(sharedBuffer.get("first",1,NO_WAIT),bufferResult(4));
+  assertBufferResultEquals(sharedBuffer.get("first",1,NO_WAIT),bufferResult(createPage(4)));
   assertQueueState(sharedBuffer,"first",9,5);
   assertQueueState(sharedBuffer,"second",4,10);
-  assertTrue(sharedBuffer.offer(14));
-  assertFalse(sharedBuffer.offer(99));
+  assertTrue(sharedBuffer.offer(createPage(14)));
+  assertFalse(sharedBuffer.offer(createPage(99)));
   assertQueueState(sharedBuffer,"first",10,5);
   assertQueueState(sharedBuffer,"second",5,10);
   assertFalse(sharedBuffer.isFinished());
@@ -39,18 +39,18 @@
   assertQueueState(sharedBuffer,"first",10,5);
   assertQueueState(sharedBuffer,"second",5,10);
   assertFalse(sharedBuffer.isFinished());
-  assertEquals(sharedBuffer.get("first",1,NO_WAIT),bufferResult(5));
+  assertBufferResultEquals(sharedBuffer.get("first",1,NO_WAIT),bufferResult(createPage(5)));
   assertQueueState(sharedBuffer,"first",9,6);
   assertQueueState(sharedBuffer,"second",5,10);
   assertFalse(sharedBuffer.isFinished());
-  assertEquals(sharedBuffer.get("first",10,NO_WAIT),bufferResult(6,7,8,9,10,11,12,13,14));
+  assertBufferResultEquals(sharedBuffer.get("first",10,NO_WAIT),bufferResult(createPage(6),createPage(7),createPage(8),createPage(9),createPage(10),createPage(11),createPage(12),createPage(13),createPage(14)));
   assertQueueClosed(sharedBuffer,"first",15);
   assertQueueState(sharedBuffer,"second",5,10);
   assertFalse(sharedBuffer.isFinished());
-  assertEquals(sharedBuffer.get("second",10,NO_WAIT),bufferResult(10,11,12,13,14));
+  assertBufferResultEquals(sharedBuffer.get("second",10,NO_WAIT),bufferResult(createPage(10),createPage(11),createPage(12),createPage(13),createPage(14)));
   assertQueueClosed(sharedBuffer,"first",15);
   assertQueueClosed(sharedBuffer,"second",15);
   assertFinished(sharedBuffer);
-  assertEquals(sharedBuffer.get("first",10,NO_WAIT),emptyResults(true));
-  assertEquals(sharedBuffer.get("second",10,NO_WAIT),emptyResults(true));
+  assertBufferResultEquals(sharedBuffer.get("first",10,NO_WAIT),emptyResults(true));
+  assertBufferResultEquals(sharedBuffer.get("second",10,NO_WAIT),emptyResults(true));
 }
