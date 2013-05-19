@@ -1,11 +1,13 @@
 {
-  int bytesPerColumn=0;
   if (!tupleInfos.isEmpty()) {
-    bytesPerColumn=(int)(maxSize.toBytes() / tupleInfos.size());
+    maxBlockSize=(int)(maxSize.toBytes() / tupleInfos.size());
+  }
+ else {
+    maxBlockSize=0;
   }
   blockBuilders=new BlockBuilder[tupleInfos.size()];
   for (int i=0; i < blockBuilders.length; i++) {
-    blockBuilders[i]=new BlockBuilder(tupleInfos.get(i),bytesPerColumn,new DynamicSliceOutput((int)(bytesPerColumn * 1.5)));
+    blockBuilders[i]=new BlockBuilder(tupleInfos.get(i),maxBlockSize,new DynamicSliceOutput((int)(maxBlockSize * 1.5)));
   }
   this.maxSizeInBytes=checkNotNull(maxSize,"maxSize is null").toBytes();
 }
