@@ -1,0 +1,29 @@
+{
+  Preconditions.checkNotNull(outputId,"outputId is null");
+  Preconditions.checkNotNull(maxWait,"maxWait is null");
+  NamedQueue namedQueue=namedQueues.get(outputId);
+  if (namedQueue == null) {
+    throw new NoSuchBufferException(outputId,namedQueues.keySet());
+  }
+  if (state == QueueState.FINISHED) {
+    return emptyResults(namedQueue.getSequenceId(),true);
+  }
+  if (namedQueue.isEmpty()) {
+    long remainingNanos=(long)maxWait.convertTo(NANOSECONDS);
+    long end=System.nanoTime() + remainingNanos;
+    while (remainingNanos > 0 && namedQueue.isEmpty() && !namedQueue.isFinished()) {
+      NANOSECONDS.timedWait(this,remainingNanos);
+      remainingNanos=end - System.nanoTime();
+    }
+  }
+  openQueuesBySequenceId.remove(namedQueue);
+  BufferResult results=namedQueue.getPages(startingSequenceId,maxCount);
+  if (!closed.get() || !results.isBufferClosed()) {
+    openQueuesBySequenceId.add(namedQueue);
+  }
+ else {
+    namedQueue.setFinished();
+  }
+  updateState();
+  return results;
+}

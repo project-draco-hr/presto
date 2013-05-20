@@ -3,8 +3,10 @@
     return new TestingResponse(HttpStatus.NO_CONTENT,ImmutableListMultimap.<String,String>of(),new byte[0]);
   }
   assertTrue(!request.getHeaders().get(PrestoHeaders.PRESTO_MAX_SIZE).isEmpty());
-  DataSize maxSize=DataSize.valueOf(request.getHeaders().get(PrestoHeaders.PRESTO_MAX_SIZE).get(0));
+  DataSize maxSize=DataSize.valueOf(request.getHeader(PrestoHeaders.PRESTO_MAX_SIZE));
   assertEquals(maxSize,expectedMaxSize);
+  assertTrue(!request.getHeaders().get(PRESTO_PAGE_SEQUENCE_ID).isEmpty());
+  long pageSequenceId=Long.parseLong(request.getHeader(PRESTO_PAGE_SEQUENCE_ID));
   URI location=request.getUri();
   BlockingQueue<Page> pages=pagesByLocation.get(location);
   if (completeByLocation.get(location) == Boolean.TRUE && (pages == null || pages.isEmpty())) {
@@ -13,6 +15,8 @@
   if (pages == null) {
     return new TestingResponse(HttpStatus.NO_CONTENT,ImmutableListMultimap.<String,String>of(),new byte[0]);
   }
+  long sequenceId=sequenceIdByLocation.get(location);
+  assertEquals(pageSequenceId,sequenceId,"sequenceId");
   Page page=null;
   try {
     page=pages.poll(10,TimeUnit.MILLISECONDS);
@@ -34,8 +38,9 @@
     responsePages.add(page);
     responseSize+=page.getDataSize().toBytes();
   }
+  sequenceIdByLocation.put(location,sequenceId + responsePages.size());
   DynamicSliceOutput sliceOutput=new DynamicSliceOutput(64);
   PagesSerde.writePages(sliceOutput,responsePages);
   byte[] bytes=sliceOutput.slice().getBytes();
-  return new TestingResponse(HttpStatus.OK,ImmutableListMultimap.of(CONTENT_TYPE,PRESTO_PAGES),bytes);
+  return new TestingResponse(HttpStatus.OK,ImmutableListMultimap.of(CONTENT_TYPE,PRESTO_PAGES,PRESTO_PAGE_SEQUENCE_ID,String.valueOf(sequenceId)),bytes);
 }

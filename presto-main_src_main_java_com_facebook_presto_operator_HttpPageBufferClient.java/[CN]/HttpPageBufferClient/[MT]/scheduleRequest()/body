@@ -7,19 +7,24 @@
     log.debug("scheduleRequest() called, but future is not null");
     return;
   }
-  future=httpClient.executeAsync(prepareGet().setHeader(PRESTO_MAX_SIZE,maxResponseSize.toString()).setUri(location).build(),new PageResponseHandler());
+  future=httpClient.executeAsync(prepareGet().setHeader(PRESTO_MAX_SIZE,maxResponseSize.toString()).setHeader(PRESTO_PAGE_SEQUENCE_ID,String.valueOf(getSequenceId())).setUri(location).build(),new PageResponseHandler());
   Futures.addCallback(future,new FutureCallback<PagesResponse>(){
     @Override public void onSuccess(    PagesResponse result){
       if (Thread.holdsLock(HttpPageBufferClient.this)) {
         log.error("Can not handle callback while holding a lock on this");
       }
       requestsCompleted.incrementAndGet();
-      for (      Page page : result.getPages()) {
+      List<Page> pages;
+synchronized (HttpPageBufferClient.this) {
+        pages=result.getPages(sequenceId);
+        sequenceId+=pages.size();
+      }
+      for (      Page page : pages) {
         pagesReceived.incrementAndGet();
         clientCallback.addPage(HttpPageBufferClient.this,page);
       }
       if (result.isClientClosed()) {
-synchronized (this) {
+synchronized (HttpPageBufferClient.this) {
           closed=true;
           future=null;
           lastUpdate=DateTime.now();

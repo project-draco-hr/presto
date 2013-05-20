@@ -1,22 +1,28 @@
 {
   if (response.getStatusCode() == HttpStatus.GONE.code()) {
-    return PagesResponse.createClosedResponse();
+    String pageSequenceId=request.getHeader(PRESTO_PAGE_SEQUENCE_ID);
+    return PagesResponse.createClosedResponse(Integer.parseInt(pageSequenceId));
   }
+  String sequenceIdHeader=response.getHeader(PRESTO_PAGE_SEQUENCE_ID);
+  if (sequenceIdHeader == null) {
+    throw new IllegalStateException("Expected " + PRESTO_PAGE_SEQUENCE_ID + " header");
+  }
+  long startingSequenceId=Long.parseLong(sequenceIdHeader);
   if (response.getStatusCode() == HttpStatus.NO_CONTENT.code()) {
-    return PagesResponse.createEmptyPagesResponse();
+    return PagesResponse.createEmptyPagesResponse(startingSequenceId);
   }
   if (response.getStatusCode() != HttpStatus.OK.code()) {
     log.debug("Expected response code to be 200, but was %s: request=%s, response=%s",response.getStatusCode(),request,response);
-    return PagesResponse.createEmptyPagesResponse();
+    return PagesResponse.createEmptyPagesResponse(startingSequenceId);
   }
   String contentType=response.getHeader(CONTENT_TYPE);
   if (contentType == null || !MediaType.parse(contentType).is(PRESTO_PAGES_TYPE)) {
     log.debug("Expected %s response from server but got %s: uri=%s, response=%s",PRESTO_PAGES_TYPE,contentType,request.getUri(),response);
-    return PagesResponse.createEmptyPagesResponse();
+    return PagesResponse.createEmptyPagesResponse(startingSequenceId);
   }
   try {
     InputStreamSliceInput sliceInput=new InputStreamSliceInput(response.getInputStream());
-    return PagesResponse.createPagesResponse(ImmutableList.copyOf(PagesSerde.readPages(sliceInput)));
+    return PagesResponse.createPagesResponse(startingSequenceId,ImmutableList.copyOf(PagesSerde.readPages(sliceInput)));
   }
  catch (  IOException e) {
     throw Throwables.propagate(e);

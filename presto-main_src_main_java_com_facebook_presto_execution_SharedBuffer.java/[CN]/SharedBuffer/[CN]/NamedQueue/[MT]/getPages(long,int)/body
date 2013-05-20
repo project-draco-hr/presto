@@ -1,0 +1,13 @@
+{
+  Preconditions.checkState(Thread.holdsLock(SharedBuffer.this),"Thread must hold a lock on the %s",SharedBuffer.class.getSimpleName());
+  acknowledge(startingSequenceId);
+  if (finished) {
+    return emptyResults(sequenceId,true);
+  }
+  int listOffset=Ints.checkedCast(sequenceId - masterSequenceId);
+  if (listOffset >= masterQueue.size()) {
+    return emptyResults(sequenceId,false);
+  }
+  List<Page> pages=masterQueue.subList(listOffset,Math.min(listOffset + maxPageCount,masterQueue.size()));
+  return new BufferResult(startingSequenceId,false,ImmutableList.copyOf(pages));
+}

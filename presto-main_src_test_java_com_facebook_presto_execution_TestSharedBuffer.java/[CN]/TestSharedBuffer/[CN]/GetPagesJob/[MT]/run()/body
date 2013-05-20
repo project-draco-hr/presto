@@ -3,9 +3,11 @@
   try {
     while (elements.size() < pagesToGet) {
       try {
-        BufferResult result=sharedBuffer.get("queue",batchSize,MAX_WAIT);
+        BufferResult result=sharedBuffer.get("queue",sequenceId,batchSize,MAX_WAIT);
         assertTrue(!result.isEmpty());
         this.elements.addAll(result.getElements());
+        sequenceId=result.getStartingSequenceId() + result.getElements().size();
+        sharedBuffer.acknowledge("queue",sequenceId);
       }
  catch (      FailedQueryException e) {
         failedQueryException.set(e);

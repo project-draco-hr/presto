@@ -1,0 +1,19 @@
+{
+  Preconditions.checkNotNull(outputId,"outputId is null");
+  NamedQueue namedQueue=namedQueues.get(outputId);
+  if (namedQueue == null) {
+    throw new NoSuchBufferException(outputId,namedQueues.keySet());
+  }
+  if (state == QueueState.FINISHED) {
+    return;
+  }
+  openQueuesBySequenceId.remove(namedQueue);
+  namedQueue.acknowledge(sequenceId);
+  if (!closed.get()) {
+    openQueuesBySequenceId.add(namedQueue);
+  }
+ else {
+    namedQueue.setFinished();
+  }
+  updateState();
+}
