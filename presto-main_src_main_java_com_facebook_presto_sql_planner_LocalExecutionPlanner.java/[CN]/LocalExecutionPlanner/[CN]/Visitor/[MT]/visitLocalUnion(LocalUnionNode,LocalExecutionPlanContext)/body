@@ -1,0 +1,13 @@
+{
+  ImmutableList.Builder<Operator> operatorBuilder=ImmutableList.builder();
+  for (  PlanNode subPlanNode : node.getSources()) {
+    operatorBuilder.add(subPlanNode.accept(this,context).getOperator());
+  }
+  Map<Symbol,Input> outputMappings=new HashMap<>();
+  int channel=0;
+  for (  Symbol symbol : node.getOutputSymbols()) {
+    outputMappings.put(symbol,new Input(channel,0));
+    channel++;
+  }
+  return new PhysicalOperation(new LocalUnionOperator(operatorBuilder.build()),outputMappings);
+}

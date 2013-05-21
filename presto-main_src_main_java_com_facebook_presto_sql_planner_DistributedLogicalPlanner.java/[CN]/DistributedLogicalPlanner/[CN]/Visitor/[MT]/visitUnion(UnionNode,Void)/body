@@ -1,16 +1,20 @@
 {
   if (createSingleNodePlan) {
-    throw new UnsupportedOperationException();
+    ImmutableList.Builder<PlanNode> sourceBuilder=ImmutableList.builder();
+    for (    PlanNode source : node.getSources()) {
+      sourceBuilder.add(source.accept(this,context).getRoot());
+    }
+    return newSubPlan(new LocalUnionNode(idAllocator.getNextId(),sourceBuilder.build(),node.getOutputSymbols()));
   }
  else {
-    ImmutableList.Builder<SubPlan> subPlanBuilder=ImmutableList.builder();
+    ImmutableList.Builder<SubPlan> sourceBuilder=ImmutableList.builder();
     ImmutableList.Builder<PlanFragmentId> fragmentIdBuilder=ImmutableList.builder();
-    for (    PlanNode planNode : node.getSources()) {
-      SubPlanBuilder current=planNode.accept(this,context);
+    for (    PlanNode source : node.getSources()) {
+      SubPlanBuilder current=source.accept(this,context);
       current.setRoot(new SinkNode(idAllocator.getNextId(),current.getRoot()));
       fragmentIdBuilder.add(current.getId());
-      subPlanBuilder.add(current.build());
+      sourceBuilder.add(current.build());
     }
-    return newSubPlan(new ExchangeNode(idAllocator.getNextId(),fragmentIdBuilder.build(),node.getOutputSymbols())).setPartitionedSource(null).setChildren(subPlanBuilder.build());
+    return newSubPlan(new ExchangeNode(idAllocator.getNextId(),fragmentIdBuilder.build(),node.getOutputSymbols())).setPartitionedSource(null).setChildren(sourceBuilder.build());
   }
 }
