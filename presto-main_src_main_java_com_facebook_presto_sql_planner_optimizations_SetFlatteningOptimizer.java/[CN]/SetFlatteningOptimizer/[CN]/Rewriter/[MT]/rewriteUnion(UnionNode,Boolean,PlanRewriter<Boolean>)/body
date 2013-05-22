@@ -1,0 +1,13 @@
+{
+  ImmutableList.Builder<PlanNode> flattenedSources=ImmutableList.builder();
+  for (  PlanNode source : node.getSources()) {
+    PlanNode rewrittenSource=planRewriter.rewrite(source,upstreamDistinct);
+    if (rewrittenSource instanceof UnionNode) {
+      flattenedSources.addAll(rewrittenSource.getSources());
+    }
+ else {
+      flattenedSources.add(rewrittenSource);
+    }
+  }
+  return new UnionNode(node.getId(),flattenedSources.build(),node.getOutputSymbols());
+}
