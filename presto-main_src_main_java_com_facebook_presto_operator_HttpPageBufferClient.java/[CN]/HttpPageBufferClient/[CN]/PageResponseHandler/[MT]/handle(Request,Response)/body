@@ -1,13 +1,12 @@
 {
-  if (response.getStatusCode() == HttpStatus.GONE.code()) {
-    String pageSequenceId=request.getHeader(PRESTO_PAGE_SEQUENCE_ID);
-    return PagesResponse.createClosedResponse(Integer.parseInt(pageSequenceId));
-  }
   String sequenceIdHeader=response.getHeader(PRESTO_PAGE_SEQUENCE_ID);
   if (sequenceIdHeader == null) {
     throw new IllegalStateException("Expected " + PRESTO_PAGE_SEQUENCE_ID + " header");
   }
   long startingSequenceId=Long.parseLong(sequenceIdHeader);
+  if (response.getStatusCode() == HttpStatus.GONE.code()) {
+    return PagesResponse.createClosedResponse(startingSequenceId);
+  }
   if (response.getStatusCode() == HttpStatus.NO_CONTENT.code()) {
     return PagesResponse.createEmptyPagesResponse(startingSequenceId);
   }

@@ -5,18 +5,17 @@
   assertTrue(!request.getHeaders().get(PrestoHeaders.PRESTO_MAX_SIZE).isEmpty());
   DataSize maxSize=DataSize.valueOf(request.getHeader(PrestoHeaders.PRESTO_MAX_SIZE));
   assertEquals(maxSize,expectedMaxSize);
-  assertTrue(!request.getHeaders().get(PRESTO_PAGE_SEQUENCE_ID).isEmpty());
-  long pageSequenceId=Long.parseLong(request.getHeader(PRESTO_PAGE_SEQUENCE_ID));
-  URI location=request.getUri();
+  RequestLocation requestLocation=new RequestLocation(request.getUri());
+  URI location=requestLocation.getLocation();
   BlockingQueue<Page> pages=pagesByLocation.get(location);
+  long sequenceId=sequenceIdByLocation.get(location);
   if (completeByLocation.get(location) == Boolean.TRUE && (pages == null || pages.isEmpty())) {
-    return new TestingResponse(HttpStatus.GONE,ImmutableListMultimap.<String,String>of(),new byte[0]);
+    return new TestingResponse(HttpStatus.GONE,ImmutableListMultimap.of(PRESTO_PAGE_SEQUENCE_ID,String.valueOf(sequenceId)),new byte[0]);
   }
   if (pages == null) {
-    return new TestingResponse(HttpStatus.NO_CONTENT,ImmutableListMultimap.<String,String>of(),new byte[0]);
+    return new TestingResponse(HttpStatus.NO_CONTENT,ImmutableListMultimap.of(PRESTO_PAGE_SEQUENCE_ID,String.valueOf(sequenceId)),new byte[0]);
   }
-  long sequenceId=sequenceIdByLocation.get(location);
-  assertEquals(pageSequenceId,sequenceId,"sequenceId");
+  assertEquals(requestLocation.getSequenceId(),sequenceId,"sequenceId");
   Page page=null;
   try {
     page=pages.poll(10,TimeUnit.MILLISECONDS);
@@ -25,7 +24,7 @@
     Thread.currentThread().interrupt();
   }
   if (page == null) {
-    return new TestingResponse(HttpStatus.NO_CONTENT,ImmutableListMultimap.<String,String>of(),new byte[0]);
+    return new TestingResponse(HttpStatus.NO_CONTENT,ImmutableListMultimap.of(PRESTO_PAGE_SEQUENCE_ID,String.valueOf(sequenceId)),new byte[0]);
   }
   List<Page> responsePages=new ArrayList<>();
   responsePages.add(page);
