@@ -7,7 +7,7 @@
     log.debug("scheduleRequest() called, but future is not null");
     return;
   }
-  URI uri=HttpUriBuilder.uriBuilderFrom(location).appendPath(String.valueOf(sequenceId)).build();
+  final URI uri=HttpUriBuilder.uriBuilderFrom(location).appendPath(String.valueOf(sequenceId)).build();
   future=httpClient.executeAsync(prepareGet().setHeader(PRESTO_MAX_SIZE,maxResponseSize.toString()).setUri(uri).build(),new PageResponseHandler());
   Futures.addCallback(future,new FutureCallback<PagesResponse>(){
     @Override public void onSuccess(    PagesResponse result){
@@ -41,6 +41,7 @@ synchronized (HttpPageBufferClient.this) {
       }
     }
     @Override public void onFailure(    Throwable t){
+      log.debug("Request to %s failed %s",uri,t);
       if (Thread.holdsLock(HttpPageBufferClient.this)) {
         log.error("Can not handle callback while holding a lock on this");
       }

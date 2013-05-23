@@ -1,5 +1,6 @@
 {
   Preconditions.checkNotNull(outputId,"outputId is null");
+  Preconditions.checkArgument(maxSize.toBytes() > 0,"maxSize must be at least 1 byte");
   Preconditions.checkNotNull(maxWait,"maxWait is null");
   NamedQueue namedQueue=namedQueues.get(outputId);
   if (namedQueue == null) {
@@ -17,7 +18,7 @@
     }
   }
   openQueuesBySequenceId.remove(namedQueue);
-  BufferResult results=namedQueue.getPages(startingSequenceId,maxCount);
+  BufferResult results=namedQueue.getPages(startingSequenceId,maxSize);
   if (!closed.get() || !results.isBufferClosed()) {
     openQueuesBySequenceId.add(namedQueue);
   }
