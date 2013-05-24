@@ -1,0 +1,12 @@
+{
+  TaskInfo taskInfo=sqlTaskManager.updateTask(session,taskId,testFragment,ImmutableList.<TaskSource>of(new TaskSource(tableScanNodeId,ImmutableSet.of(new ScheduledSplit(0,split)),true)),new OutputBuffers(ImmutableSet.of("out"),true));
+  assertEquals(taskInfo.getState(),TaskState.RUNNING);
+  taskInfo=sqlTaskManager.getTaskInfo(taskInfo.getTaskId(),false);
+  assertEquals(taskInfo.getState(),TaskState.RUNNING);
+  sqlTaskManager.abortTaskResults(taskInfo.getTaskId(),"out");
+  sqlTaskManager.waitForStateChange(taskInfo.getTaskId(),taskInfo.getState(),new Duration(1,TimeUnit.SECONDS));
+  taskInfo=sqlTaskManager.getTaskInfo(taskInfo.getTaskId(),false);
+  assertEquals(taskInfo.getState(),TaskState.FINISHED);
+  taskInfo=sqlTaskManager.getTaskInfo(taskInfo.getTaskId(),false);
+  assertEquals(taskInfo.getState(),TaskState.FINISHED);
+}
