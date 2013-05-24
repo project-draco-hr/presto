@@ -1,18 +1,14 @@
 {
-  DateTime oldestAllowedTask=DateTime.now().minus((long)maxTaskAge.toMillis());
-  for (  TaskExecution taskExecution : tasks.values()) {
+  DateTime oldestAllowedTask=DateTime.now().minus((long)infoCacheTime.toMillis());
+  for (  TaskInfo taskInfo : taskInfos.values()) {
     try {
-      TaskInfo taskInfo=taskExecution.getTaskInfo(false);
-      if (taskInfo.getState().isDone()) {
-        cancelTask(taskExecution.getTaskId());
-      }
       DateTime endTime=taskInfo.getStats().getEndTime();
       if (endTime != null && endTime.isBefore(oldestAllowedTask)) {
-        taskInfos.remove(taskExecution.getTaskId());
+        taskInfos.remove(taskInfo.getTaskId());
       }
     }
  catch (    Exception e) {
-      log.warn(e,"Error while inspecting age of task %s",taskExecution.getTaskId());
+      log.warn(e,"Error while inspecting age of complete task %s",taskInfo.getTaskId());
     }
   }
 }
