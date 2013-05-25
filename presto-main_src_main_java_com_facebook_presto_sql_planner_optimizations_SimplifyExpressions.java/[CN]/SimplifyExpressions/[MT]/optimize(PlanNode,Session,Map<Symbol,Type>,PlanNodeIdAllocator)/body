@@ -1,0 +1,13 @@
+{
+  checkNotNull(plan,"plan is null");
+  checkNotNull(session,"session is null");
+  checkNotNull(types,"types is null");
+  checkNotNull(idAllocator,"idAllocator is null");
+  ExpressionInterpreter interpreter=ExpressionInterpreter.expressionOptimizer(new SymbolResolver(){
+    @Override public Object getValue(    Symbol symbol){
+      return new QualifiedNameReference(symbol.toQualifiedName());
+    }
+  }
+,metadata,session);
+  return PlanRewriter.rewriteWith(new Rewriter(interpreter),plan);
+}
