@@ -1,0 +1,13 @@
+{
+  TypedByteCodeNode condition=process(node.getCondition(),context);
+  Preconditions.checkState(condition.type == boolean.class);
+  TypedByteCodeNode trueValue=process(node.getTrueValue(),context);
+  TypedByteCodeNode falseValue;
+  if (node.getFalseValue().isPresent()) {
+    falseValue=process(node.getFalseValue().get(),context);
+  }
+ else {
+    throw new UnsupportedOperationException(String.format("If with no else is not supported yet"));
+  }
+  return typedByteCodeNode(new IfStatement(context,condition.node,trueValue.node,falseValue.node),trueValue.type);
+}
