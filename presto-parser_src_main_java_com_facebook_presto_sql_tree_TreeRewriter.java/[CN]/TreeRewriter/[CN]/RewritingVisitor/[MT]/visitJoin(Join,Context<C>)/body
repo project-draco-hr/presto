@@ -1,0 +1,22 @@
+{
+  if (!context.isDefaultRewrite()) {
+    Node result=nodeRewriter.rewriteJoin(node,context.get(),TreeRewriter.this);
+    if (result != null) {
+      return result;
+    }
+  }
+  Relation left=rewrite(node.getLeft(),context.get());
+  Relation right=rewrite(node.getRight(),context.get());
+  JoinCriteria joinCriteria=node.getCriteria();
+  if (node.getCriteria() instanceof JoinOn) {
+    JoinOn criteria=(JoinOn)node.getCriteria();
+    Expression expression=rewrite(criteria.getExpression(),context.get());
+    if (criteria.getExpression() != expression) {
+      joinCriteria=new JoinOn(expression);
+    }
+  }
+  if (node.getLeft() != left || node.getRight() != right || node.getCriteria() != joinCriteria) {
+    return new Join(node.getType(),left,right,joinCriteria);
+  }
+  return node;
+}
