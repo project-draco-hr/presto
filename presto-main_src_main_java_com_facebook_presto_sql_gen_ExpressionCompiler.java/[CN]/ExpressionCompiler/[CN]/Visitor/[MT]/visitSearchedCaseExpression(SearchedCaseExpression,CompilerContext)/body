@@ -1,0 +1,14 @@
+{
+  Expression defaultValue=node.getDefaultValue();
+  if (defaultValue == null) {
+    throw new UnsupportedOperationException(String.format("Case with no default is not supported yet"));
+  }
+  TypedByteCodeNode elseValue=process(defaultValue,context);
+  for (  WhenClause whenClause : Lists.reverse(new ArrayList<>(node.getWhenClauses()))) {
+    TypedByteCodeNode condition=process(whenClause.getOperand(),context);
+    Preconditions.checkState(condition.type == boolean.class);
+    TypedByteCodeNode trueValue=process(whenClause.getResult(),context);
+    elseValue=typedByteCodeNode(new IfStatement(context,condition.node,trueValue.node,elseValue.node),trueValue.type);
+  }
+  return elseValue;
+}
