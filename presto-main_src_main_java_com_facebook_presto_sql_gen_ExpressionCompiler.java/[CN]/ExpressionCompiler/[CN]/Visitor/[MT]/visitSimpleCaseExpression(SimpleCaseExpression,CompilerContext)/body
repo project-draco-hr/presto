@@ -1,0 +1,26 @@
+{
+  TypedByteCodeNode value=process(node.getOperand(),context);
+  Variable tempVariable=context.createTempVariable(value.type);
+  Block block=new Block(context).append(value.node).storeVariable(tempVariable.getLocalVariableDefinition());
+  Expression defaultValue=node.getDefaultValue();
+  if (defaultValue == null) {
+    throw new UnsupportedOperationException(String.format("Case with no default is not supported yet"));
+  }
+  TypedByteCodeNode elseValue=process(defaultValue,context);
+  elseValue=typedByteCodeNode(new Block(context).append(elseValue.node),elseValue.type);
+  for (  WhenClause whenClause : Lists.reverse(new ArrayList<>(node.getWhenClauses()))) {
+    Block condition=new Block(context);
+    condition.loadVariable(tempVariable.getLocalVariableDefinition());
+    TypedByteCodeNode operand=process(whenClause.getOperand(),context);
+    condition.append(operand.node);
+    if (value.type == double.class && operand.type == long.class) {
+      condition.append(L2D);
+    }
+    condition.invokeStatic(Operations.class,"equal",boolean.class,value.type,value.type);
+    TypedByteCodeNode trueValue=process(whenClause.getResult(),context);
+    Block trueBlock=new Block(context);
+    trueBlock.append(trueValue.node);
+    elseValue=typedByteCodeNode(new IfStatement(context,condition,trueBlock,elseValue.node),trueValue.type);
+  }
+  return typedByteCodeNode(block.append(elseValue.node),elseValue.type);
+}
