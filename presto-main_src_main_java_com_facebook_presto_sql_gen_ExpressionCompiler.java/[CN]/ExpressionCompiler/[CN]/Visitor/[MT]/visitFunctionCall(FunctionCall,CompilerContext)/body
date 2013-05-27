@@ -1,0 +1,24 @@
+{
+  List<TypedByteCodeNode> arguments=new ArrayList<>();
+  List<Class<?>> argumentTypes=new ArrayList<>();
+  for (  Expression argument : node.getArguments()) {
+    TypedByteCodeNode typedByteCodeNode=process(argument,context);
+    if (typedByteCodeNode.type == void.class) {
+      return typedByteCodeNode;
+    }
+    arguments.add(typedByteCodeNode);
+    argumentTypes.add(typedByteCodeNode.type);
+  }
+  FunctionInfo function=metadata.getFunction(node.getName(),Lists.transform(argumentTypes,toTupleType()));
+  checkArgument(function != null,"Unknown function %s%s",node.getName(),argumentTypes);
+  MethodType methodType=function.getScalarFunction().type();
+  LabelNode end=new LabelNode("end");
+  Block block=new Block(context);
+  for (  TypedByteCodeNode argument : arguments) {
+    block.append(argument.node);
+  }
+  block.append(ifWasNullClearAndGoto(context,end,methodType.returnType(),methodType.parameterList()));
+  block.invokeDynamic(function.getName().toString(),methodType);
+  block.visitLabel(end);
+  return typedByteCodeNode(block,function.getScalarFunction().type().returnType());
+}
