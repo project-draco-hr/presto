@@ -1,20 +1,28 @@
 {
   TypedByteCodeNode value=process(node.getExpression(),context);
+  if (value.type == void.class) {
+    return value;
+  }
+  LabelNode end=new LabelNode("end");
   Block block=new Block(context);
   block.append(value.node);
 switch (node.getType()) {
 case "BOOLEAN":
-    block.invokeStatic(Operations.class,"castToBoolean",boolean.class,value.type);
-  return typedByteCodeNode(block,boolean.class);
+    block.append(ifWasNullClearAndGoto(context,end,boolean.class,value.type));
+  block.invokeStatic(Operations.class,"castToBoolean",boolean.class,value.type);
+return typedByteCodeNode(block.visitLabel(end),boolean.class);
 case "BIGINT":
+block.append(ifWasNullClearAndGoto(context,end,long.class,value.type));
 block.invokeStatic(Operations.class,"castToLong",long.class,value.type);
-return typedByteCodeNode(block,long.class);
+return typedByteCodeNode(block.visitLabel(end),long.class);
 case "DOUBLE":
+block.append(ifWasNullClearAndGoto(context,end,double.class,value.type));
 block.invokeStatic(Operations.class,"castToDouble",double.class,value.type);
-return typedByteCodeNode(block,double.class);
+return typedByteCodeNode(block.visitLabel(end),double.class);
 case "VARCHAR":
+block.append(ifWasNullClearAndGoto(context,end,String.class,value.type));
 block.invokeStatic(Operations.class,"castToString",String.class,value.type);
-return typedByteCodeNode(block,String.class);
+return typedByteCodeNode(block.visitLabel(end),String.class);
 }
 throw new UnsupportedOperationException("Unsupported type: " + node.getType());
 }

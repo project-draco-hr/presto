@@ -1,26 +1,32 @@
 {
   TypedByteCodeNode value=process(node.getOperand(),context);
+  if (value.type == void.class) {
+    return value;
+  }
   Variable tempVariable=context.createTempVariable(value.type);
   Block block=new Block(context).append(value.node).storeVariable(tempVariable.getLocalVariableDefinition());
-  Expression defaultValue=node.getDefaultValue();
-  if (defaultValue == null) {
-    throw new UnsupportedOperationException(String.format("Case with no default is not supported yet"));
+  TypedByteCodeNode elseValue;
+  if (node.getDefaultValue() != null) {
+    elseValue=process(node.getDefaultValue(),context);
   }
-  TypedByteCodeNode elseValue=process(defaultValue,context);
-  elseValue=typedByteCodeNode(new Block(context).append(elseValue.node),elseValue.type);
-  for (  WhenClause whenClause : Lists.reverse(new ArrayList<>(node.getWhenClauses()))) {
+ else {
+    elseValue=process(new NullLiteral(),context);
+  }
+  List<TypedWhenClause> whenClauses=ImmutableList.copyOf(transform(node.getWhenClauses(),new Function<WhenClause,TypedWhenClause>(){
+    @Override public TypedWhenClause apply(    WhenClause whenClause){
+      return new TypedWhenClause(context,whenClause);
+    }
+  }
+));
+  Class<?> type=getType(ImmutableList.<TypedByteCodeNode>builder().addAll(transform(whenClauses,whenValueGetter())).add(elseValue).build());
+  elseValue=coerceToType(context,elseValue,type);
+  for (  TypedWhenClause whenClause : Lists.reverse(new ArrayList<>(whenClauses))) {
     Block condition=new Block(context);
     condition.loadVariable(tempVariable.getLocalVariableDefinition());
-    TypedByteCodeNode operand=process(whenClause.getOperand(),context);
-    condition.append(operand.node);
-    if (value.type == double.class && operand.type == long.class) {
-      condition.append(L2D);
-    }
+    condition.append(coerceToType(context,whenClause.condition,getType(value,whenClause.condition)).node);
     condition.invokeStatic(Operations.class,"equal",boolean.class,value.type,value.type);
-    TypedByteCodeNode trueValue=process(whenClause.getResult(),context);
-    Block trueBlock=new Block(context);
-    trueBlock.append(trueValue.node);
-    elseValue=typedByteCodeNode(new IfStatement(context,condition,trueBlock,elseValue.node),trueValue.type);
+    block.loadConstant(false).storeVariable("wasNull");
+    elseValue=typedByteCodeNode(new IfStatement(context,condition,coerceToType(context,whenClause.value,type).node,elseValue.node),type);
   }
-  return typedByteCodeNode(block.append(elseValue.node),elseValue.type);
+  return typedByteCodeNode(block.append(elseValue.node),type);
 }

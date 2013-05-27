@@ -1,8 +1,10 @@
 {
   ClassInfoLoader classInfoLoader=ClassInfoLoader.createClassInfoLoader(classDefinitions,classLoader);
-  DumpByteCodeVisitor dumpByteCode=new DumpByteCodeVisitor(System.out);
-  for (  ClassDefinition classDefinition : classDefinitions) {
-    dumpByteCode.visitClass(classDefinition);
+  if (false) {
+    DumpByteCodeVisitor dumpByteCode=new DumpByteCodeVisitor(System.out);
+    for (    ClassDefinition classDefinition : classDefinitions) {
+      dumpByteCode.visitClass(classDefinition);
+    }
   }
   Map<ParameterizedType,byte[]> byteCodes=new LinkedHashMap<>();
   for (  ClassDefinition classDefinition : classDefinitions) {
@@ -10,6 +12,12 @@
     classDefinition.visit(cw);
     byte[] byteCode=cw.toByteArray();
     byteCodes.put(classDefinition.getType(),byteCode);
+  }
+  if (false) {
+    for (    byte[] byteCode : byteCodes.values()) {
+      ClassReader classReader=new ClassReader(byteCode);
+      classReader.accept(new TraceClassVisitor(new PrintWriter(System.err)),ClassReader.SKIP_FRAMES);
+    }
   }
   return classLoader.defineClasses(byteCodes);
 }

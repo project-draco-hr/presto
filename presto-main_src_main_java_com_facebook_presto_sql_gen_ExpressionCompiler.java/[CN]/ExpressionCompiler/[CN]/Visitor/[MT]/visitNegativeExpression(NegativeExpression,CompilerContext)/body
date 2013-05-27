@@ -1,12 +1,11 @@
 {
   TypedByteCodeNode value=process(node.getValue(),context);
-  if (isNumber(value.type)) {
-    if (value.type == long.class) {
-      return typedByteCodeNode(new Block(context).append(value.node).invokeStatic(Operations.class,"negate",long.class,long.class),long.class);
-    }
- else {
-      return typedByteCodeNode(new Block(context).append(value.node).invokeStatic(Operations.class,"negate",double.class,double.class),double.class);
-    }
+  if (value.type == void.class) {
+    return value;
   }
-  throw new UnsupportedOperationException(String.format("not yet implemented: negate(%s)",value.type));
+  if (!isNumber(value.type)) {
+    throw new UnsupportedOperationException(String.format("not yet implemented: negate(%s)",value.type));
+  }
+  Block block=new Block(context).append(value.node).invokeStatic(Operations.class,"negate",value.type,value.type);
+  return typedByteCodeNode(block,value.type);
 }

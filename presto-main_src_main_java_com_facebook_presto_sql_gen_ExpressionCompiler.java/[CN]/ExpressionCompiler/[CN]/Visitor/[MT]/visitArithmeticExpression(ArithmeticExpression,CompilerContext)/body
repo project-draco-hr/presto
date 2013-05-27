@@ -1,62 +1,40 @@
 {
   TypedByteCodeNode left=process(node.getLeft(),context);
+  if (left.type == void.class) {
+    return left;
+  }
   TypedByteCodeNode right=process(node.getRight(),context);
+  if (right.type == void.class) {
+    return right;
+  }
+  Class<?> type=getType(left,right);
+  if (!isNumber(type)) {
+    throw new UnsupportedOperationException(String.format("not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type));
+  }
   Block block=new Block(context);
-  if (isNumber(left.type) && isNumber(right.type)) {
-    if (left.type == long.class && right.type == long.class) {
-      block.append(left.node);
-      block.append(right.node);
+  LabelNode end=new LabelNode("end");
+  block.append(coerceToType(context,left,type).node);
+  block.append(ifWasNullClearAndGoto(context,end,type,left.type));
+  block.append(coerceToType(context,right,type).node);
+  block.append(ifWasNullClearAndGoto(context,end,type,type,right.type));
 switch (node.getType()) {
 case ADD:
-        block.invokeStatic(Operations.class,"add",long.class,long.class,long.class);
-      break;
-case SUBTRACT:
-    block.invokeStatic(Operations.class,"subtract",long.class,long.class,long.class);
+    block.invokeStatic(Operations.class,"add",type,type,type);
   break;
-case MULTIPLY:
-block.invokeStatic(Operations.class,"multiply",long.class,long.class,long.class);
-break;
-case DIVIDE:
-block.invokeStatic(Operations.class,"divide",long.class,long.class,long.class);
-break;
-case MODULUS:
-block.invokeStatic(Operations.class,"modulus",long.class,long.class,long.class);
-break;
-default :
-throw new UnsupportedOperationException(String.format("not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type));
-}
-return typedByteCodeNode(block,long.class);
-}
- else {
-block.append(left.node);
-if (left.type == long.class) {
-block.append(L2D);
-}
-block.append(right.node);
-if (right.type == long.class) {
-block.append(L2D);
-}
-switch (node.getType()) {
-case ADD:
-block.invokeStatic(Operations.class,"add",double.class,double.class,double.class);
-break;
 case SUBTRACT:
-block.invokeStatic(Operations.class,"subtract",double.class,double.class,double.class);
+block.invokeStatic(Operations.class,"subtract",type,type,type);
 break;
 case MULTIPLY:
-block.invokeStatic(Operations.class,"multiply",double.class,double.class,double.class);
+block.invokeStatic(Operations.class,"multiply",type,type,type);
 break;
 case DIVIDE:
-block.invokeStatic(Operations.class,"divide",double.class,double.class,double.class);
+block.invokeStatic(Operations.class,"divide",type,type,type);
 break;
 case MODULUS:
-block.invokeStatic(Operations.class,"modulus",double.class,double.class,double.class);
+block.invokeStatic(Operations.class,"modulus",type,type,type);
 break;
 default :
 throw new UnsupportedOperationException(String.format("not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type));
 }
-return typedByteCodeNode(block,double.class);
-}
-}
-throw new UnsupportedOperationException(String.format("not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type));
+return typedByteCodeNode(block.visitLabel(end),type);
 }

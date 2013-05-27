@@ -1,13 +1,14 @@
 {
-  TypedByteCodeNode condition=process(node.getCondition(),context);
-  Preconditions.checkState(condition.type == boolean.class);
+  TypedByteCodeNode conditionValue=process(node.getCondition(),context);
+  Preconditions.checkState(conditionValue.type == boolean.class);
+  Block condition=new Block(context).append(conditionValue.node).loadConstant(false).storeVariable("wasNull");
   TypedByteCodeNode trueValue=process(node.getTrueValue(),context);
-  TypedByteCodeNode falseValue;
-  if (node.getFalseValue().isPresent()) {
-    falseValue=process(node.getFalseValue().get(),context);
+  TypedByteCodeNode falseValue=process(node.getFalseValue().or(new NullLiteral()),context);
+  Class<?> type=getType(trueValue,falseValue);
+  if (type == void.class) {
+    return trueValue;
   }
- else {
-    throw new UnsupportedOperationException(String.format("If with no else is not supported yet"));
-  }
-  return typedByteCodeNode(new IfStatement(context,condition.node,trueValue.node,falseValue.node),trueValue.type);
+  trueValue=coerceToType(context,trueValue,type);
+  falseValue=coerceToType(context,falseValue,type);
+  return typedByteCodeNode(new IfStatement(context,condition,trueValue.node,falseValue.node),type);
 }

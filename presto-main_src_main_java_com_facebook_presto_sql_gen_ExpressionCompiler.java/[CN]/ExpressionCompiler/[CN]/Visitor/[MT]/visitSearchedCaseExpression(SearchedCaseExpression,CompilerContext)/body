@@ -1,14 +1,23 @@
 {
-  Expression defaultValue=node.getDefaultValue();
-  if (defaultValue == null) {
-    throw new UnsupportedOperationException(String.format("Case with no default is not supported yet"));
+  TypedByteCodeNode elseValue;
+  if (node.getDefaultValue() != null) {
+    elseValue=process(node.getDefaultValue(),context);
   }
-  TypedByteCodeNode elseValue=process(defaultValue,context);
-  for (  WhenClause whenClause : Lists.reverse(new ArrayList<>(node.getWhenClauses()))) {
-    TypedByteCodeNode condition=process(whenClause.getOperand(),context);
-    Preconditions.checkState(condition.type == boolean.class);
-    TypedByteCodeNode trueValue=process(whenClause.getResult(),context);
-    elseValue=typedByteCodeNode(new IfStatement(context,condition.node,trueValue.node,elseValue.node),trueValue.type);
+ else {
+    elseValue=process(new NullLiteral(),context);
+  }
+  List<TypedWhenClause> whenClauses=ImmutableList.copyOf(transform(node.getWhenClauses(),new Function<WhenClause,TypedWhenClause>(){
+    @Override public TypedWhenClause apply(    WhenClause whenClause){
+      return new TypedWhenClause(context,whenClause);
+    }
+  }
+));
+  Class<?> type=getType(ImmutableList.<TypedByteCodeNode>builder().addAll(transform(whenClauses,whenValueGetter())).add(elseValue).build());
+  elseValue=coerceToType(context,elseValue,type);
+  for (  TypedWhenClause whenClause : Lists.reverse(new ArrayList<>(whenClauses))) {
+    Preconditions.checkState(whenClause.condition.type == boolean.class);
+    Block condition=new Block(context).append(whenClause.condition.node).loadConstant(false).storeVariable("wasNull");
+    elseValue=typedByteCodeNode(new IfStatement(context,condition,coerceToType(context,whenClause.value,type).node,elseValue.node),type);
   }
   return elseValue;
 }

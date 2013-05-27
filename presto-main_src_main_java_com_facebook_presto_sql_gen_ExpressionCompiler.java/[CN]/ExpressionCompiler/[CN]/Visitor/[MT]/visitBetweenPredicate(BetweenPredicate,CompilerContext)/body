@@ -1,28 +1,25 @@
 {
   TypedByteCodeNode value=process(node.getValue(),context);
+  if (value.type == void.class) {
+    return value;
+  }
   TypedByteCodeNode min=process(node.getMin(),context);
+  if (min.type == void.class) {
+    return min;
+  }
   TypedByteCodeNode max=process(node.getMax(),context);
+  if (max.type == void.class) {
+    return max;
+  }
+  Class<?> type=getType(value,min,max);
+  LabelNode end=new LabelNode("end");
   Block block=new Block(context);
-  if (value.type == long.class) {
-    block.append(value.node).append(min.node).append(max.node).invokeStatic(Operations.class,"between",boolean.class,long.class,long.class,long.class);
-  }
- else   if (value.type == double.class) {
-    block.append(value.node);
-    block.append(min.node);
-    if (min.type == long.class) {
-      block.append(L2D);
-    }
-    block.append(max.node);
-    if (max.type == long.class) {
-      block.append(L2D);
-    }
-    block.invokeStatic(Operations.class,"between",boolean.class,double.class,double.class,double.class);
-  }
- else   if (value.type == String.class) {
-    block.append(value.node).append(min.node).append(max.node).invokeStatic(Operations.class,"between",boolean.class,String.class,String.class,String.class);
-  }
- else {
-    throw new UnsupportedOperationException(String.format("Between not supported for type %s",value.type));
-  }
-  return typedByteCodeNode(block,boolean.class);
+  block.append(coerceToType(context,value,type).node);
+  block.append(ifWasNullClearAndGoto(context,end,boolean.class,type));
+  block.append(coerceToType(context,min,type).node);
+  block.append(ifWasNullClearAndGoto(context,end,boolean.class,type,type));
+  block.append(coerceToType(context,max,type).node);
+  block.append(ifWasNullClearAndGoto(context,end,boolean.class,type,type,type));
+  block.invokeStatic(Operations.class,"between",boolean.class,type,type,type);
+  return typedByteCodeNode(block.visitLabel(end),boolean.class);
 }
