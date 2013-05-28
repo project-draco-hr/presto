@@ -14,8 +14,8 @@
   SubPlan subplan=new DistributedLogicalPlanner(metadata,idAllocator).createSubplans(plan,true);
   assertTrue(subplan.getChildren().isEmpty(),"Expected subplan to have no children");
   DataSize maxOperatorMemoryUsage=new DataSize(256,MEGABYTE);
-  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(session,new NodeInfo(new NodeConfig().setEnvironment("test").setNodeId("test-node")),metadata,plan.getTypes(),new OperatorStats(),new SourceHashProviderFactory(maxOperatorMemoryUsage),maxOperatorMemoryUsage,dataStreamProvider,storageManager,null);
-  LocalExecutionPlan localExecutionPlan=executionPlanner.plan(subplan.getFragment().getRoot());
+  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(new NodeInfo(new NodeConfig().setEnvironment("test").setNodeId("test-node")),metadata,maxOperatorMemoryUsage,dataStreamProvider,storageManager,null);
+  LocalExecutionPlan localExecutionPlan=executionPlanner.plan(session,subplan.getFragment().getRoot(),plan.getTypes(),new SourceHashProviderFactory(maxOperatorMemoryUsage),new OperatorStats());
   Map<PlanNodeId,SourceOperator> sourceOperators=localExecutionPlan.getSourceOperators();
   for (  PlanNode source : subplan.getFragment().getSources()) {
     TableScanNode tableScan=(TableScanNode)source;

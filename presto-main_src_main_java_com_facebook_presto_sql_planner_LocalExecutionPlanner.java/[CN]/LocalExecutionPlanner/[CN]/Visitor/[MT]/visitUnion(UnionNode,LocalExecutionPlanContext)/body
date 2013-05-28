@@ -6,7 +6,7 @@
     PhysicalOperation source=subplan.accept(this,context);
     boolean projectionMatchesOutput=IterableTransformer.on(source.getLayout().entrySet()).orderBy(inputOrdering().onResultOf(MoreFunctions.<Symbol,Input>valueGetter())).transform(MoreFunctions.<Symbol,Input>keyGetter()).list().equals(expectedLayout);
     if (!projectionMatchesOutput) {
-      IdentityProjectionInfo mappings=computeIdentityMapping(expectedLayout,source.getLayout(),types);
+      IdentityProjectionInfo mappings=computeIdentityMapping(expectedLayout,source.getLayout(),context.getTypes());
       operatorBuilder.add(new FilterAndProjectOperator(source.getOperator(),FilterFunctions.TRUE_FUNCTION,mappings.getProjections()));
     }
  else {

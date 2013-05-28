@@ -1,0 +1,30 @@
+{
+  this.planner=checkNotNull(planner,"planner is null");
+  this.locationFactory=checkNotNull(locationFactory,"locationFactory is null");
+  this.queryMonitor=checkNotNull(queryMonitor,"queryMonitor is null");
+  checkNotNull(config,"config is null");
+  this.maxBufferSize=config.getSinkMaxBufferSize();
+  this.maxOperatorMemoryUsage=config.getMaxOperatorMemoryUsage();
+  this.infoCacheTime=config.getInfoMaxAge();
+  this.clientTimeout=config.getClientTimeout();
+  taskMasterExecutor=Executors.newCachedThreadPool(threadsNamed("task-processor-%d"));
+  shardExecutor=MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(config.getMaxShardProcessorThreads(),threadsNamed("shard-processor-%d")));
+  taskManagementExecutor=Executors.newScheduledThreadPool(5,threadsNamed("task-management-%d"));
+  taskManagementExecutor.scheduleAtFixedRate(new Runnable(){
+    @Override public void run(){
+      try {
+        removeOldTasks();
+      }
+ catch (      Throwable e) {
+        log.warn(e,"Error removing old tasks");
+      }
+      try {
+        failAbandonedTasks();
+      }
+ catch (      Throwable e) {
+        log.warn(e,"Error canceling abandoned tasks");
+      }
+    }
+  }
+,200,200,TimeUnit.MILLISECONDS);
+}

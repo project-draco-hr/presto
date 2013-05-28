@@ -4,7 +4,7 @@
   if (node.getSource() instanceof FilterNode) {
     FilterNode filterNode=(FilterNode)node.getSource();
     source=filterNode.getSource().accept(this,context);
-    filter=new InterpretedFilterFunction(filterNode.getPredicate(),source.getLayout(),metadata,session);
+    filter=new InterpretedFilterFunction(filterNode.getPredicate(),source.getLayout(),metadata,context.getSession());
   }
  else {
     source=node.getSource().accept(this,context);
@@ -18,10 +18,10 @@
     ProjectionFunction function;
     if (expression instanceof QualifiedNameReference) {
       Symbol reference=Symbol.fromQualifiedName(((QualifiedNameReference)expression).getName());
-      function=ProjectionFunctions.singleColumn(types.get(reference).getRawType(),source.getLayout().get(symbol));
+      function=ProjectionFunctions.singleColumn(context.getTypes().get(reference).getRawType(),source.getLayout().get(symbol));
     }
  else {
-      function=new InterpretedProjectionFunction(types.get(symbol),expression,source.getLayout(),metadata,session);
+      function=new InterpretedProjectionFunction(context.getTypes().get(symbol),expression,source.getLayout(),metadata,context.getSession());
     }
     projections.add(function);
     outputMappings.put(symbol,new Input(i,0));
