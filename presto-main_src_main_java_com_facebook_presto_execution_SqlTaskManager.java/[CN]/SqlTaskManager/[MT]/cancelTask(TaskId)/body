@@ -4,7 +4,9 @@
   if (taskExecution == null) {
     TaskInfo taskInfo=taskInfos.get(taskId);
     if (taskInfo == null) {
-      taskInfo=new TaskInfo(taskId,Long.MAX_VALUE,TaskState.CANCELED,URI.create("unknown"),new SharedBufferInfo(QueueState.FINISHED,0,0,ImmutableList.<BufferInfo>of()),ImmutableSet.<PlanNodeId>of(),new ExecutionStatsSnapshot(),ImmutableList.<SplitExecutionStats>of(),ImmutableList.<FailureInfo>of(),ImmutableMap.<PlanNodeId,Set<?>>of());
+      ExecutionStats executionStats=new ExecutionStats();
+      executionStats.recordEnd();
+      taskInfo=new TaskInfo(taskId,Long.MAX_VALUE,TaskState.CANCELED,URI.create("unknown"),new SharedBufferInfo(QueueState.FINISHED,0,0,ImmutableList.<BufferInfo>of()),ImmutableSet.<PlanNodeId>of(),executionStats.snapshot(false),ImmutableList.<SplitExecutionStats>of(),ImmutableList.<FailureInfo>of(),ImmutableMap.<PlanNodeId,Set<?>>of());
       TaskInfo existingTaskInfo=taskInfos.putIfAbsent(taskId,taskInfo);
       if (existingTaskInfo != null) {
         taskInfo=existingTaskInfo;
