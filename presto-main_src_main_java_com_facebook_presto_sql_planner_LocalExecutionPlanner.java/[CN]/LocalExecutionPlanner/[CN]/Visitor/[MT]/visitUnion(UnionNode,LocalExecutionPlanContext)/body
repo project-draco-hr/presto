@@ -1,0 +1,23 @@
+{
+  ImmutableList.Builder<Operator> operatorBuilder=ImmutableList.builder();
+  for (int i=0; i < node.getSources().size(); i++) {
+    PlanNode subplan=node.getSources().get(i);
+    List<Symbol> expectedLayout=node.sourceOutputLayout(i);
+    PhysicalOperation source=subplan.accept(this,context);
+    boolean projectionMatchesOutput=IterableTransformer.on(source.getLayout().entrySet()).orderBy(inputOrdering().onResultOf(MoreFunctions.<Symbol,Input>valueGetter())).transform(MoreFunctions.<Symbol,Input>keyGetter()).list().equals(expectedLayout);
+    if (!projectionMatchesOutput) {
+      IdentityProjectionInfo mappings=computeIdentityMapping(expectedLayout,source.getLayout(),types);
+      operatorBuilder.add(new FilterAndProjectOperator(source.getOperator(),FilterFunctions.TRUE_FUNCTION,mappings.getProjections()));
+    }
+ else {
+      operatorBuilder.add(source.getOperator());
+    }
+  }
+  Map<Symbol,Input> outputMappings=new HashMap<>();
+  int channel=0;
+  for (  Symbol symbol : node.getOutputSymbols()) {
+    outputMappings.put(symbol,new Input(channel,0));
+    channel++;
+  }
+  return new PhysicalOperation(new LocalUnionOperator(operatorBuilder.build()),outputMappings);
+}

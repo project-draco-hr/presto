@@ -4,14 +4,15 @@
     for (    PlanNode source : node.getSources()) {
       sourceBuilder.add(source.accept(this,context).getRoot());
     }
-    return newSubPlan(new LocalUnionNode(idAllocator.getNextId(),sourceBuilder.build(),node.getOutputSymbols()));
+    return newSubPlan(new UnionNode(node.getId(),sourceBuilder.build(),node.getSymbolMapping()));
   }
  else {
     ImmutableList.Builder<SubPlan> sourceBuilder=ImmutableList.builder();
     ImmutableList.Builder<PlanFragmentId> fragmentIdBuilder=ImmutableList.builder();
-    for (    PlanNode source : node.getSources()) {
-      SubPlanBuilder current=source.accept(this,context);
-      current.setRoot(new SinkNode(idAllocator.getNextId(),current.getRoot()));
+    for (int i=0; i < node.getSources().size(); i++) {
+      PlanNode subplan=node.getSources().get(i);
+      SubPlanBuilder current=subplan.accept(this,context);
+      current.setRoot(new SinkNode(idAllocator.getNextId(),current.getRoot(),node.sourceOutputLayout(i)));
       fragmentIdBuilder.add(current.getId());
       sourceBuilder.add(current.build());
     }

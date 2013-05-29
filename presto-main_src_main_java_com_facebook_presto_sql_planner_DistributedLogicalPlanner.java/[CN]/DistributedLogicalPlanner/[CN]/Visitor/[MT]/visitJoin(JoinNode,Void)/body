@@ -2,7 +2,7 @@
   SubPlanBuilder left=node.getLeft().accept(this,context);
   SubPlanBuilder right=node.getRight().accept(this,context);
   if (left.isPartitioned() || right.isPartitioned()) {
-    right.setRoot(new SinkNode(idAllocator.getNextId(),right.getRoot()));
+    right.setRoot(new SinkNode(idAllocator.getNextId(),right.getRoot(),right.getRoot().getOutputSymbols()));
     ExchangeNode exchange=new ExchangeNode(idAllocator.getNextId(),right.getId(),right.getRoot().getOutputSymbols());
     JoinNode join=new JoinNode(node.getId(),left.getRoot(),exchange,node.getCriteria());
     left.setRoot(join).addChild(right.build());
