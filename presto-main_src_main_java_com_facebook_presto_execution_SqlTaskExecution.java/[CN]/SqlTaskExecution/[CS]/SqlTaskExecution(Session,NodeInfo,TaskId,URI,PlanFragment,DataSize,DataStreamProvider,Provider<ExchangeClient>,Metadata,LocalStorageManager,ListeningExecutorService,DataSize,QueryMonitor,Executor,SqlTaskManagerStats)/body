@@ -10,16 +10,18 @@
   Preconditions.checkNotNull(maxOperatorMemoryUsage,"maxOperatorMemoryUsage is null");
   Preconditions.checkNotNull(queryMonitor,"queryMonitor is null");
   Preconditions.checkNotNull(globalStats,"globalStats is null");
-  this.session=session;
-  this.nodeInfo=nodeInfo;
-  this.taskId=taskId;
-  this.fragment=fragment;
-  this.dataStreamProvider=dataStreamProvider;
-  this.exchangeClientProvider=exchangeClientProvider;
-  this.shardExecutor=shardExecutor;
-  this.metadata=metadata;
-  this.storageManager=storageManager;
-  this.maxOperatorMemoryUsage=maxOperatorMemoryUsage;
-  this.queryMonitor=queryMonitor;
-  this.taskOutput=new TaskOutput(taskId,location,maxBufferSize,notificationExecutor,globalStats);
-}
+  try (SetThreadName setThreadName=new SetThreadName("Task-%s",taskId)){
+    this.session=session;
+    this.nodeInfo=nodeInfo;
+    this.taskId=taskId;
+    this.fragment=fragment;
+    this.dataStreamProvider=dataStreamProvider;
+    this.exchangeClientProvider=exchangeClientProvider;
+    this.shardExecutor=shardExecutor;
+    this.metadata=metadata;
+    this.storageManager=storageManager;
+    this.maxOperatorMemoryUsage=maxOperatorMemoryUsage;
+    this.queryMonitor=queryMonitor;
+    this.taskOutput=new TaskOutput(taskId,location,maxBufferSize,notificationExecutor,globalStats);
+  }
+ }

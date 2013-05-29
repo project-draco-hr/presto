@@ -1,59 +1,61 @@
 {
-  try {
-    Preconditions.checkState(!Thread.holdsLock(this),"Can not start while holding a lock on this");
+  try (SetThreadName setThreadName=new SetThreadName("Stage-%s",stageId)){
+    try {
+      Preconditions.checkState(!Thread.holdsLock(this),"Can not start while holding a lock on this");
 synchronized (this) {
-      if (!stageState.compareAndSet(StageState.PLANNED,StageState.SCHEDULING)) {
-        return;
+        if (!stageState.compareAndSet(StageState.PLANNED,StageState.SCHEDULING)) {
+          return;
+        }
       }
-    }
-    AtomicInteger nextTaskId=new AtomicInteger(0);
-    if (!dataSource.isPresent()) {
-      scheduleTask(nextTaskId,nodeSelector.selectRandomNode(),null);
-    }
+      AtomicInteger nextTaskId=new AtomicInteger(0);
+      if (!dataSource.isPresent()) {
+        scheduleTask(nextTaskId,nodeSelector.selectRandomNode(),null);
+      }
  else {
-      long getSplitStart=System.nanoTime();
-      for (      Split split : dataSource.get().getSplits()) {
-        stageStats.addGetSplitDuration(Duration.nanosSince(getSplitStart));
-        long scheduleSplitStart=System.nanoTime();
-        Node chosen=chooseNode(nodeSelector,split);
-        if (getState().isDone()) {
-          break;
-        }
-        RemoteTask task=tasks.get(chosen);
-        if (task == null) {
-          scheduleTask(nextTaskId,chosen,split);
-          stageStats.addScheduleTaskDuration(Duration.nanosSince(scheduleSplitStart));
-        }
+        long getSplitStart=System.nanoTime();
+        for (        Split split : dataSource.get().getSplits()) {
+          stageStats.addGetSplitDuration(Duration.nanosSince(getSplitStart));
+          long scheduleSplitStart=System.nanoTime();
+          Node chosen=chooseNode(nodeSelector,split);
+          if (getState().isDone()) {
+            break;
+          }
+          RemoteTask task=tasks.get(chosen);
+          if (task == null) {
+            scheduleTask(nextTaskId,chosen,split);
+            stageStats.addScheduleTaskDuration(Duration.nanosSince(scheduleSplitStart));
+          }
  else {
-          task.addSplit(split);
-          stageStats.addAddSplitDuration(Duration.nanosSince(scheduleSplitStart));
+            task.addSplit(split);
+            stageStats.addAddSplitDuration(Duration.nanosSince(scheduleSplitStart));
+          }
+          getSplitStart=System.nanoTime();
         }
-        getSplitStart=System.nanoTime();
+        for (        RemoteTask task : tasks.values()) {
+          task.noMoreSplits();
+        }
       }
-      for (      RemoteTask task : tasks.values()) {
-        task.noMoreSplits();
+      stageState.set(StageState.SCHEDULED);
+      for (      StageExecutionNode subStage : subStages.values()) {
+        subStage.noMoreOutputBuffers();
       }
+      addNewExchangesAndBuffers(true);
     }
-    stageState.set(StageState.SCHEDULED);
-    for (    StageExecutionNode subStage : subStages.values()) {
-      subStage.noMoreOutputBuffers();
-    }
-    addNewExchangesAndBuffers(true);
-  }
- catch (  Throwable e) {
-    if (!getState().isDone()) {
+ catch (    Throwable e) {
+      if (!getState().isDone()) {
 synchronized (this) {
-        failureCauses.add(e);
-        stageState.set(StageState.FAILED);
+          failureCauses.add(e);
+          stageState.set(StageState.FAILED);
+        }
+        log.error(e,"Error while starting stage %s",stageId);
+        cancelAll();
+        throw e;
       }
-      log.error(e,"Error while starting stage %s",stageId);
-      cancelAll();
-      throw e;
+      Throwables.propagateIfInstanceOf(e,Error.class);
+      log.debug(e,"Error while starting stage in done query %s",stageId);
     }
-    Throwables.propagateIfInstanceOf(e,Error.class);
-    log.debug(e,"Error while starting stage in done query %s",stageId);
-  }
  finally {
-    doUpdateState();
+      doUpdateState();
+    }
   }
-}
+ }

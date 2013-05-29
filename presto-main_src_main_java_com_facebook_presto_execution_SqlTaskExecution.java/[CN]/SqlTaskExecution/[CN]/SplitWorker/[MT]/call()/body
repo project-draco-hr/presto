@@ -5,24 +5,26 @@
   if (taskOutput.getState().isDone()) {
     return null;
   }
-  operatorStats.start();
-  try (PageIterator pages=operator.get().iterator(operatorStats)){
-    while (pages.hasNext()) {
-      Page page=pages.next();
-      taskOutput.getStats().addOutputDataSize(page.getDataSize());
-      taskOutput.getStats().addOutputPositions(page.getPositionCount());
-      if (!taskOutput.addPage(page)) {
-        break;
+  try (SetThreadName setThreadName=new SetThreadName("SplitWorker-Task-%s",taskOutput.getTaskId())){
+    operatorStats.start();
+    try (PageIterator pages=operator.get().iterator(operatorStats)){
+      while (pages.hasNext()) {
+        Page page=pages.next();
+        taskOutput.getStats().addOutputDataSize(page.getDataSize());
+        taskOutput.getStats().addOutputPositions(page.getPositionCount());
+        if (!taskOutput.addPage(page)) {
+          break;
+        }
       }
     }
-  }
   finally {
-    operatorStats.finish();
-    queryMonitor.splitCompletionEvent(taskOutput.getTaskInfo(false),operatorStats.snapshot());
-    for (    Map.Entry<PlanNodeId,OutputProducingOperator<?>> entry : outputOperators.entrySet()) {
-      taskOutput.addOutput(entry.getKey(),entry.getValue().getOutput());
+      operatorStats.finish();
+      queryMonitor.splitCompletionEvent(taskOutput.getTaskInfo(false),operatorStats.snapshot());
+      for (      Entry<PlanNodeId,OutputProducingOperator<?>> entry : outputOperators.entrySet()) {
+        taskOutput.addOutput(entry.getKey(),entry.getValue().getOutput());
+      }
     }
+    operator.set(null);
+    return null;
   }
-  operator.set(null);
-  return null;
-}
+ }

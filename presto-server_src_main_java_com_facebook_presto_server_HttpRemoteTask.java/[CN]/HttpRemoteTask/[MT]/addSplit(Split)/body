@@ -1,10 +1,12 @@
 {
-  checkNotNull(split,"split is null");
-  checkState(!noMoreSplits,"noMoreSplits has already been set");
-  checkState(planFragment.isPartitioned(),"Plan is not partitioned");
-  if (!getTaskInfo().getState().isDone()) {
-    pendingSplits.put(planFragment.getPartitionedSource(),new ScheduledSplit(nextSplitId.getAndIncrement(),split));
-    needsUpdate.set(true);
+  try (SetThreadName setThreadName=new SetThreadName("HttpRemoteTask-%s",taskId)){
+    checkNotNull(split,"split is null");
+    checkState(!noMoreSplits,"noMoreSplits has already been set");
+    checkState(planFragment.isPartitioned(),"Plan is not partitioned");
+    if (!getTaskInfo().getState().isDone()) {
+      pendingSplits.put(planFragment.getPartitionedSource(),new ScheduledSplit(nextSplitId.getAndIncrement(),split));
+      needsUpdate.set(true);
+    }
+    scheduleUpdate();
   }
-  scheduleUpdate();
-}
+ }

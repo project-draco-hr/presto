@@ -1,8 +1,10 @@
 {
-  SqlStageExecution outputStage=this.outputStage.get();
-  StageInfo stageInfo=null;
-  if (outputStage != null) {
-    stageInfo=outputStage.getStageInfo();
+  try (SetThreadName setThreadName=new SetThreadName("Query-%s",stateMachine.getQueryId())){
+    SqlStageExecution outputStage=this.outputStage.get();
+    StageInfo stageInfo=null;
+    if (outputStage != null) {
+      stageInfo=outputStage.getStageInfo();
+    }
+    return stateMachine.getQueryInfo(stageInfo);
   }
-  return stateMachine.getQueryInfo(stageInfo);
-}
+ }

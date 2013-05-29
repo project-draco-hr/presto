@@ -1,6 +1,8 @@
 {
   Preconditions.checkNotNull(outputId,"outputId is null");
   Preconditions.checkArgument(!outputBuffers.contains(outputId),"Stage already has an output %s",outputId);
-  outputBuffers.add(outputId);
-  this.notifyAll();
-}
+  try (SetThreadName setThreadName=new SetThreadName("Stage-%s",stageId)){
+    outputBuffers.add(outputId);
+    this.notifyAll();
+  }
+ }

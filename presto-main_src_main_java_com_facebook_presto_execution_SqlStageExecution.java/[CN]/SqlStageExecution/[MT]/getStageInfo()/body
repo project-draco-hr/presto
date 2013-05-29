@@ -1,5 +1,7 @@
 {
-  List<TaskInfo> taskInfos=IterableTransformer.on(tasks.values()).transform(taskInfoGetter()).list();
-  List<StageInfo> subStageInfos=IterableTransformer.on(subStages.values()).transform(stageInfoGetter()).list();
-  return new StageInfo(stageId,stageState.get(),location,fragment,tupleInfos,stageStats.snapshot(),taskInfos,subStageInfos,toFailures(failureCauses));
-}
+  try (SetThreadName setThreadName=new SetThreadName("Stage-%s",stageId)){
+    List<TaskInfo> taskInfos=IterableTransformer.on(tasks.values()).transform(taskInfoGetter()).list();
+    List<StageInfo> subStageInfos=IterableTransformer.on(subStages.values()).transform(stageInfoGetter()).list();
+    return new StageInfo(stageId,stageState.get(),location,fragment,tupleInfos,stageStats.snapshot(),taskInfos,subStageInfos,toFailures(failureCauses));
+  }
+ }

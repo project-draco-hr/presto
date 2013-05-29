@@ -1,7 +1,9 @@
 {
   Preconditions.checkNotNull(stageId,"stageId is null");
-  SqlStageExecution stageExecution=outputStage.get();
-  if (stageExecution != null) {
-    stageExecution.cancelStage(stageId);
+  try (SetThreadName setThreadName=new SetThreadName("Query-%s",stateMachine.getQueryId())){
+    SqlStageExecution stageExecution=outputStage.get();
+    if (stageExecution != null) {
+      stageExecution.cancelStage(stageId);
+    }
   }
-}
+ }

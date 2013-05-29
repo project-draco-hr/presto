@@ -1,11 +1,13 @@
 {
-  for (  StageExecutionNode subStage : subStages.values()) {
-    subStage.scheduleStartTasks();
-  }
-  return executor.submit(new Runnable(){
-    @Override public void run(){
-      startTasks();
+  try (SetThreadName setThreadName=new SetThreadName("Stage-%s",stageId)){
+    for (    StageExecutionNode subStage : subStages.values()) {
+      subStage.scheduleStartTasks();
     }
-  }
+    return executor.submit(new Runnable(){
+      @Override public void run(){
+        startTasks();
+      }
+    }
 );
-}
+  }
+ }

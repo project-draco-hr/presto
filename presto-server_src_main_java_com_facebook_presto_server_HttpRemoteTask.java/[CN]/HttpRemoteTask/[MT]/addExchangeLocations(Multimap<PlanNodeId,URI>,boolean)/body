@@ -1,19 +1,21 @@
 {
-  if (getTaskInfo().getState().isDone()) {
-    return;
+  try (SetThreadName setThreadName=new SetThreadName("HttpRemoteTask-%s",taskId)){
+    if (getTaskInfo().getState().isDone()) {
+      return;
+    }
+    if (noMoreExchangeLocations == noMore && exchangeLocations.entries().containsAll(additionalLocations.entries())) {
+      return;
+    }
+    Preconditions.checkState(!noMoreExchangeLocations,"Locations can not be added after noMoreExchangeLocations has been set");
+    SetMultimap<PlanNodeId,URI> newExchangeLocations=HashMultimap.create(additionalLocations);
+    newExchangeLocations.entries().removeAll(exchangeLocations.entries());
+    for (    Entry<PlanNodeId,URI> entry : newExchangeLocations.entries()) {
+      ScheduledSplit scheduledSplit=new ScheduledSplit(nextSplitId.getAndIncrement(),createRemoteSplitFor(entry.getValue()));
+      pendingSplits.put(entry.getKey(),scheduledSplit);
+    }
+    exchangeLocations.putAll(additionalLocations);
+    noMoreExchangeLocations=noMore;
+    needsUpdate.set(true);
+    scheduleUpdate();
   }
-  if (noMoreExchangeLocations == noMore && exchangeLocations.entries().containsAll(additionalLocations.entries())) {
-    return;
-  }
-  Preconditions.checkState(!noMoreExchangeLocations,"Locations can not be added after noMoreExchangeLocations has been set");
-  SetMultimap<PlanNodeId,URI> newExchangeLocations=HashMultimap.create(additionalLocations);
-  newExchangeLocations.entries().removeAll(exchangeLocations.entries());
-  for (  Entry<PlanNodeId,URI> entry : newExchangeLocations.entries()) {
-    ScheduledSplit scheduledSplit=new ScheduledSplit(nextSplitId.getAndIncrement(),createRemoteSplitFor(entry.getValue()));
-    pendingSplits.put(entry.getKey(),scheduledSplit);
-  }
-  exchangeLocations.putAll(additionalLocations);
-  noMoreExchangeLocations=noMore;
-  needsUpdate.set(true);
-  scheduleUpdate();
-}
+ }
