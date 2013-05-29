@@ -1,0 +1,16 @@
+{
+  if (slice.length() < 1) {
+    throw new IllegalArgumentException("Can not convert " + slice.toString(UTF_8) + " to BIGINT");
+  }
+  int start=0;
+  int sign=slice.getByte(start) == '-' ? -1 : 1;
+  if (sign == -1 || slice.getByte(start) == '+') {
+    start++;
+  }
+  long value=getDecimalValue(slice,start++);
+  while (start < slice.length()) {
+    value=value * 10 + (getDecimalValue(slice,start));
+    start++;
+  }
+  return value * sign;
+}
