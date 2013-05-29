@@ -17,11 +17,11 @@
     translations.put(aggregate,newSymbol);
     functions.put(newSymbol,analysis.getFunctionInfo(aggregate).getHandle());
   }
-  ImmutableList.Builder<Symbol> groupBySymbols=ImmutableList.builder();
+  Set<Symbol> groupBySymbols=new LinkedHashSet<>();
   for (  FieldOrExpression fieldOrExpression : analysis.getGroupByExpressions(node)) {
     Symbol symbol=subPlan.translate(fieldOrExpression);
     groupBySymbols.add(symbol);
     translations.put(fieldOrExpression,symbol);
   }
-  return new PlanBuilder(translations,new AggregationNode(idAllocator.getNextId(),subPlan.getRoot(),groupBySymbols.build(),aggregationAssignments.build(),functions.build()));
+  return new PlanBuilder(translations,new AggregationNode(idAllocator.getNextId(),subPlan.getRoot(),ImmutableList.copyOf(groupBySymbols),aggregationAssignments.build(),functions.build()));
 }
