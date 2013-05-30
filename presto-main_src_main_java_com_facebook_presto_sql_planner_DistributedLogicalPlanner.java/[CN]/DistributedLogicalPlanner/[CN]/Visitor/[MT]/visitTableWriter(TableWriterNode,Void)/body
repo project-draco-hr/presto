@@ -4,8 +4,8 @@
     subPlanBuilder.setRoot(new TableWriterNode(node.getId(),subPlanBuilder.getRoot(),node.getTable(),node.getColumns(),node.getOutput()));
   }
  else {
-    FunctionInfo sum=metadata.getFunction(QualifiedName.of("sum"),Lists.transform(ImmutableList.of(Type.LONG),Type.toRaw()));
-    Symbol intermediateOutput=allocator.newSymbol(node.getOutput().toString(),Type.fromRaw(sum.getReturnType()));
+    FunctionInfo sum=metadata.getFunction(QualifiedName.of("sum"),ImmutableList.of(Type.LONG));
+    Symbol intermediateOutput=allocator.newSymbol(node.getOutput().toString(),sum.getReturnType());
     TableWriterNode writer=new TableWriterNode(node.getId(),subPlanBuilder.getRoot(),node.getTable(),node.getColumns(),intermediateOutput);
     subPlanBuilder.setRoot(writer).setPartitionedSource(node.getId());
     FunctionCall aggregate=new FunctionCall(sum.getName(),ImmutableList.<Expression>of(new QualifiedNameReference(intermediateOutput.toQualifiedName())));
