@@ -2,7 +2,9 @@
   PhysicalOperation source=node.getSource().accept(this,context);
   FilterFunction filter;
   try {
-    filter=compiler.compileFilterFunction(node.getPredicate(),source.getLayout(),source.getOperator().getTupleInfos());
+    Expression filterExpression=node.getPredicate();
+    filterExpression=TreeRewriter.rewriteWith(new SymbolToInputRewriter(source.getLayout()),filterExpression);
+    filter=compiler.compileFilterFunction(filterExpression,getInputTypes(source.getLayout(),source.getOperator().getTupleInfos()));
   }
  catch (  Exception e) {
     throw Throwables.propagate(e);

@@ -1,0 +1,32 @@
+{
+  ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(),a(PUBLIC,FINAL),typeFromPathName("ProjectionFunction_" + CLASS_ID.incrementAndGet()),type(Object.class),type(ProjectionFunction.class));
+  classDefinition.declareConstructor(new CompilerContext(),a(PUBLIC)).getBody().loadThis().invokeConstructor(Object.class).ret();
+  MethodDefinition projectionMethod=classDefinition.declareMethod(new CompilerContext(),a(PUBLIC),"project",type(void.class),arg("channels",TupleReadable[].class),arg("output",BlockBuilder.class));
+  projectionMethod.getBody().loadThis();
+  int channels=Ordering.natural().max(transform(inputTypes.keySet(),Input.channelGetter())) + 1;
+  for (int i=0; i < channels; i++) {
+    projectionMethod.getBody().loadVariable("channels").loadConstant(i).loadObjectArray();
+  }
+  projectionMethod.getBody().loadVariable("output");
+  projectionMethod.getBody().invokeVirtual(classDefinition.getType(),"project",type(void.class),ImmutableList.<ParameterizedType>builder().addAll(nCopies(channels,type(TupleReadable.class))).add(type(BlockBuilder.class)).build());
+  projectionMethod.getBody().ret();
+  Class<?> type=generateProjectMethod(classDefinition,"project",expression,inputTypes);
+  MethodDefinition getTupleInfoMethod=classDefinition.declareMethod(new CompilerContext(),a(PUBLIC),"getTupleInfo",type(TupleInfo.class));
+  if (type == long.class || type == void.class) {
+    getTupleInfoMethod.getBody().getStaticField(type(TupleInfo.class),"SINGLE_LONG",type(TupleInfo.class)).retObject();
+  }
+ else   if (type == double.class) {
+    getTupleInfoMethod.getBody().getStaticField(type(TupleInfo.class),"SINGLE_DOUBLE",type(TupleInfo.class)).retObject();
+  }
+ else   if (type == Slice.class) {
+    getTupleInfoMethod.getBody().getStaticField(type(TupleInfo.class),"SINGLE_VARBINARY",type(TupleInfo.class)).retObject();
+  }
+  Class<? extends ProjectionFunction> projectionClass=defineClasses(ImmutableList.of(classDefinition)).values().iterator().next().asSubclass(ProjectionFunction.class);
+  try {
+    ProjectionFunction function=projectionClass.newInstance();
+    return function;
+  }
+ catch (  Throwable e) {
+    throw Throwables.propagate(e);
+  }
+}
