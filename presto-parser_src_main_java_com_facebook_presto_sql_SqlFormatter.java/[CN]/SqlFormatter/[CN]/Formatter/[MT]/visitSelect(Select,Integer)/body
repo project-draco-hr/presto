@@ -4,11 +4,16 @@
     builder.append(" DISTINCT");
   }
   if (node.getSelectItems().size() > 1) {
-    builder.append("\n  ");
-    append(indent,Joiner.on('\n' + indentString(indent) + ", ").join(Iterables.transform(node.getSelectItems(),expressionFormatterFunction())));
+    boolean first=true;
+    for (    SelectItem item : node.getSelectItems()) {
+      builder.append("\n").append(indentString(indent)).append(first ? "  " : ", ");
+      process(item,indent);
+      first=false;
+    }
   }
  else {
-    builder.append(' ').append(formatExpression(Iterables.getOnlyElement(node.getSelectItems())));
+    builder.append(' ');
+    process(Iterables.getOnlyElement(node.getSelectItems()),indent);
   }
   builder.append('\n');
   return null;

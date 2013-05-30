@@ -1,22 +1,22 @@
 {
   ImmutableList.Builder<Field> outputFields=ImmutableList.builder();
-  for (  Expression expression : node.getSelect().getSelectItems()) {
-    if (expression instanceof AllColumns) {
-      Optional<QualifiedName> starPrefix=((AllColumns)expression).getPrefix();
+  for (  SelectItem item : node.getSelect().getSelectItems()) {
+    if (item instanceof AllColumns) {
+      Optional<QualifiedName> starPrefix=((AllColumns)item).getPrefix();
       for (      Field field : inputTupleDescriptor.resolveFieldsWithPrefix(starPrefix)) {
         outputFields.add(Field.newUnqualified(field.getName(),field.getType()));
       }
     }
+ else     if (item instanceof SingleColumn) {
+      SingleColumn column=(SingleColumn)item;
+      Optional<String> alias=column.getAlias();
+      if (!alias.isPresent() && column.getExpression() instanceof QualifiedNameReference) {
+        alias=Optional.of(((QualifiedNameReference)column.getExpression()).getName().getSuffix());
+      }
+      outputFields.add(Field.newUnqualified(alias,analysis.getType(column.getExpression())));
+    }
  else {
-      Optional<String> alias=Optional.absent();
-      if (expression instanceof AliasedExpression) {
-        AliasedExpression aliased=(AliasedExpression)expression;
-        alias=Optional.of(aliased.getAlias());
-      }
- else       if (expression instanceof QualifiedNameReference) {
-        alias=Optional.of(((QualifiedNameReference)expression).getName().getSuffix());
-      }
-      outputFields.add(Field.newUnqualified(alias,analysis.getType(expression)));
+      throw new IllegalArgumentException("Unsupported SelectItem type: " + item.getClass().getName());
     }
   }
   return new TupleDescriptor(outputFields.build());

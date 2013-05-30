@@ -1,7 +1,9 @@
 {
   AggregateExtractor extractor=new AggregateExtractor(metadata);
-  for (  Expression expression : node.getSelect().getSelectItems()) {
-    expression.accept(extractor,null);
+  for (  SelectItem item : node.getSelect().getSelectItems()) {
+    if (item instanceof SingleColumn) {
+      ((SingleColumn)item).getExpression().accept(extractor,null);
+    }
   }
   for (  SortItem item : node.getOrderBy()) {
     item.getSortKey().accept(extractor,null);
