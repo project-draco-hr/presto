@@ -1,0 +1,23 @@
+{
+  ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(),a(PUBLIC,FINAL),typeFromPathName("FilterAndProjectIterator_" + CLASS_ID.incrementAndGet()),type(AbstractFilterAndProjectIterator.class));
+  classDefinition.declareConstructor(new CompilerContext(),a(PUBLIC),arg("tupleInfos",type(Iterable.class,TupleInfo.class)),arg("pageIterator",PageIterator.class)).getBody().loadThis().loadVariable("tupleInfos").loadVariable("pageIterator").invokeConstructor(AbstractFilterAndProjectIterator.class,Iterable.class,PageIterator.class).ret();
+  generateFilterAndProjectMethod(classDefinition,projections,inputTypes);
+  generateFilterMethod(classDefinition,filter,inputTypes);
+  List<TupleInfo> tupleInfos=new ArrayList<>();
+  int projectionIndex=0;
+  for (  Expression projection : projections) {
+    Class<?> type=generateProjectMethod(classDefinition,"project_" + projectionIndex,projection,inputTypes);
+    if (type == long.class || type == void.class) {
+      tupleInfos.add(TupleInfo.SINGLE_LONG);
+    }
+ else     if (type == double.class) {
+      tupleInfos.add(TupleInfo.SINGLE_DOUBLE);
+    }
+ else     if (type == Slice.class) {
+      tupleInfos.add(TupleInfo.SINGLE_VARBINARY);
+    }
+    projectionIndex++;
+  }
+  Class<? extends PageIterator> filterAndProjectClass=defineClasses(ImmutableList.of(classDefinition)).values().iterator().next().asSubclass(PageIterator.class);
+  return new TypedPageIteratorClass(filterAndProjectClass,tupleInfos);
+}
