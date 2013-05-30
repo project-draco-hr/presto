@@ -9,15 +9,8 @@
     checkState(discountCursor.advanceNextPosition());
     checkState(shipDateCursor.advanceNextPosition());
     checkState(quantityCursor.advanceNextPosition());
-    if (extendedPriceCursor.isNull(0) || discountCursor.isNull(0) || shipDateCursor.isNull(0)|| quantityCursor.isNull(0)) {
-      continue;
-    }
-    double extendedPrice=extendedPriceCursor.getDouble(0);
-    double discount=discountCursor.getDouble(0);
-    Slice shipDate=shipDateCursor.getSlice(0);
-    double quantity=quantityCursor.getDouble(0);
-    if (shipDate.compareTo(MIN_SHIP_DATE) >= 0 && shipDate.compareTo(MAX_SHIP_DATE) < 0 && discount >= 0.05 && discount <= 0.07 && quantity < 24) {
-      pageBuilder.getBlockBuilder(0).append(extendedPrice * discount);
+    if (filter(discountCursor,shipDateCursor,quantityCursor)) {
+      project(pageBuilder,extendedPriceCursor,discountCursor);
     }
   }
   checkState(!extendedPriceCursor.advanceNextPosition());
