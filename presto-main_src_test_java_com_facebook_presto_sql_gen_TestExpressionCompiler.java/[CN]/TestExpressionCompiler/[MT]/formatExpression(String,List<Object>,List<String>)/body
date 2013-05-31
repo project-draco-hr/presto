@@ -1,0 +1,23 @@
+{
+  Preconditions.checkArgument(values.size() == types.size());
+  List<Set<String>> unrolledValues=new ArrayList<>();
+  for (int i=0; i < values.size(); i++) {
+    Object value=values.get(i);
+    String type=types.get(i);
+    if (value != null) {
+      if (type.equals("varchar")) {
+        value="'" + value + "'";
+      }
+      unrolledValues.add(ImmutableSet.of(String.valueOf(value)));
+    }
+ else {
+      unrolledValues.add(ImmutableSet.of("null","cast(null as " + type + ")"));
+    }
+  }
+  ImmutableList.Builder<String> expressions=ImmutableList.builder();
+  Set<List<String>> valueLists=Sets.cartesianProduct(unrolledValues);
+  for (  List<String> valueList : valueLists) {
+    expressions.add(String.format(expressionPattern,valueList.toArray(new String[valueList.size()])));
+  }
+  return expressions.build();
+}

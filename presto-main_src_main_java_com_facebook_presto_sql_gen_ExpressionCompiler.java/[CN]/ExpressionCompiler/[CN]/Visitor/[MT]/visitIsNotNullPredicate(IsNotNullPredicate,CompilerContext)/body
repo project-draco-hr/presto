@@ -1,5 +1,9 @@
 {
   TypedByteCodeNode value=process(node.getValue(),context);
+  if (value.type == void.class) {
+    return typedByteCodeNode(loadBoolean(false),boolean.class);
+  }
   Block block=new Block(context).append(value.node).pop(value.type).loadVariable("wasNull").invokeStatic(Operations.class,"not",boolean.class,boolean.class);
+  block.loadConstant(false).storeVariable("wasNull");
   return typedByteCodeNode(block,boolean.class);
 }

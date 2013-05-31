@@ -1,10 +1,5 @@
 {
   TypedByteCodeNode value=process(node.getOperand(),context);
-  if (value.type == void.class) {
-    return value;
-  }
-  Variable tempVariable=context.createTempVariable(value.type);
-  Block block=new Block(context).append(value.node).storeVariable(tempVariable.getLocalVariableDefinition());
   TypedByteCodeNode elseValue;
   if (node.getDefaultValue() != null) {
     elseValue=process(node.getDefaultValue(),context);
@@ -18,15 +13,20 @@
     }
   }
 ));
-  Class<?> type=getType(ImmutableList.<TypedByteCodeNode>builder().addAll(transform(whenClauses,whenValueGetter())).add(elseValue).build());
-  elseValue=coerceToType(context,elseValue,type);
-  for (  TypedWhenClause whenClause : Lists.reverse(new ArrayList<>(whenClauses))) {
-    Block condition=new Block(context);
-    condition.loadVariable(tempVariable.getLocalVariableDefinition());
-    condition.append(coerceToType(context,whenClause.condition,getType(value,whenClause.condition)).node);
-    condition.invokeStatic(Operations.class,"equal",boolean.class,value.type,value.type);
-    block.loadConstant(false).storeVariable("wasNull");
-    elseValue=typedByteCodeNode(new IfStatement(context,condition,coerceToType(context,whenClause.value,type).node,elseValue.node),type);
+  Class<?> valueType=getType(ImmutableList.<TypedByteCodeNode>builder().addAll(transform(whenClauses,whenConditionGetter())).add(value).build());
+  Class<?> resultType=getType(ImmutableList.<TypedByteCodeNode>builder().addAll(transform(whenClauses,whenValueGetter())).add(elseValue).build());
+  if (value.type == void.class) {
+    return coerceToType(context,elseValue,resultType);
   }
-  return typedByteCodeNode(block.append(elseValue.node),type);
+  LabelNode nullValue=new LabelNode("nullCondition");
+  Variable tempVariable=context.createTempVariable(valueType);
+  Block block=new Block(context).append(coerceToType(context,value,valueType).node).append(ifWasNullClearPopAndGoto(context,nullValue,void.class,valueType)).storeVariable(tempVariable.getLocalVariableDefinition());
+  elseValue=typedByteCodeNode(new Block(context).visitLabel(nullValue).append(coerceToType(context,elseValue,resultType).node),resultType);
+  for (  TypedWhenClause whenClause : Lists.reverse(new ArrayList<>(whenClauses))) {
+    LabelNode nullCondition=new LabelNode("nullCondition");
+    Block condition=new Block(context).append(coerceToType(context,whenClause.condition,valueType).node).append(ifWasNullPopAndGoto(context,nullCondition,boolean.class,valueType)).loadVariable(tempVariable.getLocalVariableDefinition()).invokeStatic(Operations.class,"equal",boolean.class,valueType,valueType).visitLabel(nullCondition).loadConstant(false).storeVariable("wasNull");
+    block.loadConstant(false).storeVariable("wasNull");
+    elseValue=typedByteCodeNode(new IfStatement(context,condition,coerceToType(context,whenClause.value,resultType).node,elseValue.node),resultType);
+  }
+  return typedByteCodeNode(block.append(elseValue.node),resultType);
 }

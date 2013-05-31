@@ -12,7 +12,7 @@
   projectionMethod.getBody().ret();
   Class<?> type=generateProjectMethod(classDefinition,"project",expression,inputTypes);
   MethodDefinition getTupleInfoMethod=classDefinition.declareMethod(new CompilerContext(),a(PUBLIC),"getTupleInfo",type(TupleInfo.class));
-  if (type == long.class || type == void.class) {
+  if (type == long.class || type == void.class || type == boolean.class) {
     getTupleInfoMethod.getBody().getStaticField(type(TupleInfo.class),"SINGLE_LONG",type(TupleInfo.class)).retObject();
   }
  else   if (type == double.class) {
@@ -20,6 +20,9 @@
   }
  else   if (type == Slice.class) {
     getTupleInfoMethod.getBody().getStaticField(type(TupleInfo.class),"SINGLE_VARBINARY",type(TupleInfo.class)).retObject();
+  }
+ else {
+    throw new IllegalStateException("Type " + type.getName() + "can be output");
   }
   Class<? extends ProjectionFunction> projectionClass=defineClasses(ImmutableList.of(classDefinition)).values().iterator().next().asSubclass(ProjectionFunction.class);
   try {

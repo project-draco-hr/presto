@@ -1,0 +1,24 @@
+{
+  Expression parsedExpression=createExpression(expression);
+  parsedExpression=TreeRewriter.rewriteWith(new SymbolToInputRewriter(ImmutableMap.of(new Symbol("bound_long"),new Input(0,0),new Symbol("bound_string"),new Input(1,0),new Symbol("bound_double"),new Input(2,0),new Symbol("bound_timestamp"),new Input(3,0),new Symbol("bound_pattern"),new Input(4,0))),parsedExpression);
+  ProjectionFunction projectionFunction;
+  try {
+    projectionFunction=compiler.compileProjectionFunction(parsedExpression,ImmutableMap.<Input,Type>of(new Input(0,0),Type.LONG,new Input(1,0),Type.STRING,new Input(2,0),Type.DOUBLE,new Input(3,0),Type.LONG,new Input(4,0),Type.STRING));
+  }
+ catch (  Throwable e) {
+    throw new RuntimeException("Error compiling " + expression,e);
+  }
+  BlockBuilder output=new BlockBuilder(projectionFunction.getTupleInfo());
+  projectionFunction.project(new TupleReadable[]{createTuple(1234L),createTuple("hello"),createTuple(12.34),createTuple(MILLISECONDS.toSeconds(new DateTime(2001,8,22,3,4,5,321,DateTimeZone.UTC).getMillis())),createTuple("%el%")},output);
+  UncompressedBlock block=output.build();
+  assertEquals(block.getPositionCount(),1);
+  assertEquals(block.getTupleInfo().getFieldCount(),1);
+  BlockCursor cursor=block.cursor();
+  assertTrue(cursor.advanceNextPosition());
+  if (cursor.isNull(0)) {
+    return null;
+  }
+ else {
+    return cursor.getTuple().toValues().get(0);
+  }
+}

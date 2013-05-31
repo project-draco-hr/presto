@@ -1,9 +1,12 @@
 {
   TypedByteCodeNode conditionValue=process(node.getCondition(),context);
-  Preconditions.checkState(conditionValue.type == boolean.class);
-  Block condition=new Block(context).append(conditionValue.node).loadConstant(false).storeVariable("wasNull");
   TypedByteCodeNode trueValue=process(node.getTrueValue(),context);
   TypedByteCodeNode falseValue=process(node.getFalseValue().or(new NullLiteral()),context);
+  if (conditionValue.type == void.class) {
+    return falseValue;
+  }
+  Preconditions.checkState(conditionValue.type == boolean.class);
+  Block condition=new Block(context).append(conditionValue.node).loadConstant(false).storeVariable("wasNull");
   Class<?> type=getType(trueValue,falseValue);
   if (type == void.class) {
     return trueValue;
