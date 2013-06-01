@@ -1,0 +1,12 @@
+{
+  InputFormat inputFormat=getInputFormat(environment.getConfiguration(),split.getSchema(),true);
+  JobConf jobConf=new JobConf(environment.getConfiguration());
+  Path wrappedPath=environment.getFileSystemWrapper().wrap(new Path(split.getPath()));
+  FileSplit fileSplit=createFileSplit(wrappedPath,split.getStart(),split.getLength());
+  try {
+    return inputFormat.getRecordReader(fileSplit,jobConf,Reporter.NULL);
+  }
+ catch (  IOException e) {
+    throw new RuntimeException("Unable to create record reader for input format " + getInputFormatName(split.getSchema()),e);
+  }
+}

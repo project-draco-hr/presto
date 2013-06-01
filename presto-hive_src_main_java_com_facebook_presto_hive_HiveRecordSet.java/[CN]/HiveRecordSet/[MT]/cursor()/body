@@ -5,9 +5,8 @@
     Preconditions.checkNotNull(typeSpecification,"Partition column type specification is null");
     String nullSequence=(String)schema.get(Constants.SERIALIZATION_NULL_FORMAT);
     checkState(nullSequence == null || nullSequence.equals("\\N"),"Only '\\N' supported as null specifier, was '%s'",nullSequence);
-    Configuration configuration=hdfsEnvironment.getConfiguration();
-    ColumnProjectionUtils.setReadColumnIDs(configuration,readHiveColumnIndexes);
-    RecordReader<?,?> recordReader=createRecordReader(configuration,split);
+    ColumnProjectionUtils.setReadColumnIDs(hdfsEnvironment.getConfiguration(),readHiveColumnIndexes);
+    RecordReader<?,?> recordReader=createRecordReader(hdfsEnvironment,split);
     if (recordReader.createValue() instanceof BytesRefArrayWritable) {
       return new BytesHiveRecordCursor<>((RecordReader<?,BytesRefArrayWritable>)recordReader,split.getLength(),split.getSchema(),split.getPartitionKeys(),columns);
     }
