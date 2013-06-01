@@ -4,8 +4,21 @@
   this.layout=ImmutableMap.copyOf(checkNotNull(layout,"layout is null"));
   Builder<Input,Type> inputTypes=ImmutableMap.builder();
   for (  Input input : layout.values()) {
-    inputTypes.put(input,tupleInfos.get(input.getChannel()).getTypes().get(input.getField()));
-  }
-  this.inputTypes=inputTypes.build();
-  FunctionBootstrap.metadataReference.set(metadata);
+    TupleInfo.Type type=tupleInfos.get(input.getChannel()).getTypes().get(input.getField());
+switch (type) {
+case FIXED_INT_64:
+      inputTypes.put(input,Type.LONG);
+    break;
+case VARIABLE_BINARY:
+  inputTypes.put(input,Type.STRING);
+break;
+case DOUBLE:
+inputTypes.put(input,Type.DOUBLE);
+break;
+default :
+throw new IllegalArgumentException("Unsupported type " + type);
+}
+}
+this.inputTypes=inputTypes.build();
+FunctionBootstrap.metadataReference.set(metadata);
 }
