@@ -1,0 +1,19 @@
+{
+  ImmutableList<Expression> expressions;
+  if (node.getEscape() != null) {
+    expressions=ImmutableList.of(node.getValue(),node.getPattern(),node.getEscape());
+  }
+ else {
+    expressions=ImmutableList.of(node.getValue(),node.getPattern());
+  }
+  List<TypedByteCodeNode> arguments=new ArrayList<>();
+  for (  Expression argument : expressions) {
+    TypedByteCodeNode typedByteCodeNode=process(argument,context);
+    if (typedByteCodeNode.type == void.class) {
+      return typedByteCodeNode;
+    }
+    arguments.add(typedByteCodeNode);
+  }
+  FunctionBinding functionBinding=bootstrapFunctionBinder.bindFunction("like",arguments,new LikeFunctionBinder());
+  return visitFunctionBinding(context,functionBinding);
+}

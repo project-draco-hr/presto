@@ -4,7 +4,7 @@
     return null;
   }
   if (value instanceof Slice && node.getPattern() instanceof StringLiteral && (node.getEscape() instanceof StringLiteral || node.getEscape() == null)) {
-    return regexMatches(getConstantPattern(node),(Slice)value);
+    return LikeUtils.regexMatches(getConstantPattern(node),(Slice)value);
   }
   Object pattern=process(node.getPattern(),context);
   if (pattern == null) {
@@ -21,10 +21,10 @@
     String patternString=((Slice)pattern).toString(UTF_8);
     char escapeChar='\\';
     if (escape != null) {
-      escapeChar=getEscapeChar((Slice)escape);
+      escapeChar=LikeUtils.getEscapeChar((Slice)escape);
     }
-    Regex regex=likeToPattern(patternString,escapeChar);
-    return regexMatches(regex,(Slice)value);
+    Regex regex=LikeUtils.likeToPattern(patternString,escapeChar);
+    return LikeUtils.regexMatches(regex,(Slice)value);
   }
   if (pattern instanceof Slice && escape == null) {
     String stringPattern=((Slice)pattern).toString(Charsets.UTF_8);

@@ -8,17 +8,5 @@
     arguments.add(typedByteCodeNode);
   }
   FunctionBinding functionBinding=bootstrapFunctionBinder.bindFunction(node.getName(),arguments);
-  arguments=functionBinding.getArguments();
-  MethodType methodType=functionBinding.getCallSite().type();
-  LabelNode end=new LabelNode("end");
-  Block block=new Block(context);
-  for (int i=0; i < arguments.size(); i++) {
-    TypedByteCodeNode argument=arguments.get(i);
-    Class<?> argumentType=methodType.parameterList().get(i);
-    block.append(coerceToType(context,argument,argumentType).node);
-  }
-  block.append(ifWasNullPopAndGoto(context,end,methodType.returnType(),Lists.reverse(methodType.parameterList())));
-  block.invokeDynamic(functionBinding.getName().toString(),methodType,functionBinding.getBindingId());
-  block.visitLabel(end);
-  return typedByteCodeNode(block,methodType.returnType());
+  return visitFunctionBinding(context,functionBinding);
 }
