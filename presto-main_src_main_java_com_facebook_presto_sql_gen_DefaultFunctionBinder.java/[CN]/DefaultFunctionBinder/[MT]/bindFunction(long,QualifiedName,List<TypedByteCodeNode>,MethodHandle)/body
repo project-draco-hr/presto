@@ -1,0 +1,18 @@
+{
+  SortedMap<Integer,Object> constantArguments=new TreeMap<>(Ordering.natural().reverse());
+  int argIndex=0;
+  for (  TypedByteCodeNode argument : arguments) {
+    ByteCodeNode node=argument.getNode();
+    if (node instanceof Constant) {
+      constantArguments.put(argIndex,((Constant)node).getValue());
+    }
+    argIndex++;
+  }
+  arguments=new ArrayList<>(arguments);
+  for (  Entry<Integer,Object> entry : constantArguments.entrySet()) {
+    methodHandle=MethodHandles.insertArguments(methodHandle,entry.getKey(),entry.getValue());
+    arguments.remove((int)entry.getKey());
+  }
+  CallSite callSite=new ConstantCallSite(methodHandle);
+  return new FunctionBinding(bindingId,name,callSite,arguments);
+}

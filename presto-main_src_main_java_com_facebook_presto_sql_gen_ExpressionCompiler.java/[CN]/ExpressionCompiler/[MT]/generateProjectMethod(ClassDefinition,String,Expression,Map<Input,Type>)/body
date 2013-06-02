@@ -5,7 +5,7 @@
   MethodDefinition projectionMethod=classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),methodName,type(void.class),parameters.build());
   CompilerContext context=projectionMethod.getCompilerContext();
   context.declareVariable(type(boolean.class),"wasNull");
-  TypedByteCodeNode body=new Visitor(metadata,inputTypes).process(projection,context);
+  TypedByteCodeNode body=new Visitor(bootstrapFunctionBinder,inputTypes).process(projection,context);
   if (body.type != void.class) {
     projectionMethod.getBody().loadConstant(false).storeVariable("wasNull").loadVariable("output").append(body.node);
     Block notNullBlock=new Block(context);

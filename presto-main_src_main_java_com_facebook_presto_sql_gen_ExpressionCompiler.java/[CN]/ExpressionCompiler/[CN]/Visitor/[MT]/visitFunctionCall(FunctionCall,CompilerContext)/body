@@ -1,17 +1,15 @@
 {
   List<TypedByteCodeNode> arguments=new ArrayList<>();
-  List<Class<?>> argumentTypes=new ArrayList<>();
   for (  Expression argument : node.getArguments()) {
     TypedByteCodeNode typedByteCodeNode=process(argument,context);
     if (typedByteCodeNode.type == void.class) {
       return typedByteCodeNode;
     }
     arguments.add(typedByteCodeNode);
-    argumentTypes.add(typedByteCodeNode.type);
   }
-  FunctionInfo function=metadata.getFunction(node.getName(),Lists.transform(argumentTypes,toTupleType()));
-  checkArgument(function != null,"Unknown function %s%s",node.getName(),argumentTypes);
-  MethodType methodType=function.getScalarFunction().type();
+  FunctionBinding functionBinding=bootstrapFunctionBinder.bindFunction(node.getName(),arguments);
+  arguments=functionBinding.getArguments();
+  MethodType methodType=functionBinding.getCallSite().type();
   LabelNode end=new LabelNode("end");
   Block block=new Block(context);
   for (int i=0; i < arguments.size(); i++) {
@@ -20,7 +18,7 @@
     block.append(coerceToType(context,argument,argumentType).node);
   }
   block.append(ifWasNullPopAndGoto(context,end,methodType.returnType(),Lists.reverse(methodType.parameterList())));
-  block.invokeDynamic(function.getName().toString(),methodType);
+  block.invokeDynamic(functionBinding.getName().toString(),methodType,functionBinding.getBindingId());
   block.visitLabel(end);
-  return typedByteCodeNode(block,function.getScalarFunction().type().returnType());
+  return typedByteCodeNode(block,methodType.returnType());
 }
