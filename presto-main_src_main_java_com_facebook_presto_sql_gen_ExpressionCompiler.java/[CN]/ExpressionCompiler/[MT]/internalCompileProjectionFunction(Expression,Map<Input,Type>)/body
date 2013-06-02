@@ -1,7 +1,7 @@
 {
-  ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(),a(PUBLIC,FINAL),typeFromPathName("ProjectionFunction_" + CLASS_ID.incrementAndGet()),type(Object.class),type(ProjectionFunction.class));
-  classDefinition.declareConstructor(new CompilerContext(),a(PUBLIC)).getBody().loadThis().invokeConstructor(Object.class).ret();
-  MethodDefinition projectionMethod=classDefinition.declareMethod(new CompilerContext(),a(PUBLIC),"project",type(void.class),arg("channels",TupleReadable[].class),arg("output",BlockBuilder.class));
+  ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(bootstrapMethod),a(PUBLIC,FINAL),typeFromPathName("ProjectionFunction_" + CLASS_ID.incrementAndGet()),type(Object.class),type(ProjectionFunction.class));
+  classDefinition.declareConstructor(new CompilerContext(bootstrapMethod),a(PUBLIC)).getBody().loadThis().invokeConstructor(Object.class).ret();
+  MethodDefinition projectionMethod=classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),"project",type(void.class),arg("channels",TupleReadable[].class),arg("output",BlockBuilder.class));
   projectionMethod.getBody().loadThis();
   int channels=Ordering.natural().max(transform(inputTypes.keySet(),Input.channelGetter())) + 1;
   for (int i=0; i < channels; i++) {
@@ -11,7 +11,7 @@
   projectionMethod.getBody().invokeVirtual(classDefinition.getType(),"project",type(void.class),ImmutableList.<ParameterizedType>builder().addAll(nCopies(channels,type(TupleReadable.class))).add(type(BlockBuilder.class)).build());
   projectionMethod.getBody().ret();
   Class<?> type=generateProjectMethod(classDefinition,"project",expression,inputTypes);
-  MethodDefinition getTupleInfoMethod=classDefinition.declareMethod(new CompilerContext(),a(PUBLIC),"getTupleInfo",type(TupleInfo.class));
+  MethodDefinition getTupleInfoMethod=classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),"getTupleInfo",type(TupleInfo.class));
   if (type == long.class || type == void.class || type == boolean.class) {
     getTupleInfoMethod.getBody().getStaticField(type(TupleInfo.class),"SINGLE_LONG",type(TupleInfo.class)).retObject();
   }
