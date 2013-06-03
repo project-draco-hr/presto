@@ -1,19 +1,22 @@
 {
   TypedByteCodeNode left=process(node.getLeft(),context);
+  if (left.type == void.class) {
+    left=coerceToType(context,left,boolean.class);
+  }
   Preconditions.checkState(left.type == boolean.class,"Expected logical binary expression left value to be a boolean but is a %s: %s",left.type.getName(),node);
   TypedByteCodeNode right=process(node.getRight(),context);
+  if (right.type == void.class) {
+    right=coerceToType(context,right,boolean.class);
+  }
   Preconditions.checkState(right.type == boolean.class,"Expected logical binary expression right value to be a boolean but is a %s: %s",right.type.getName(),node);
-  Block block=new Block(context).append(left.node).append(right.node);
 switch (node.getType()) {
 case AND:
 {
-      block.invokeStatic(Operations.class,"and",boolean.class,boolean.class,boolean.class);
-      return typedByteCodeNode(block,boolean.class);
+      return visitAnd(context,left,right);
     }
 case OR:
 {
-    block.invokeStatic(Operations.class,"or",boolean.class,boolean.class,boolean.class);
-    return typedByteCodeNode(block,boolean.class);
+    return visitOr(context,left,right);
   }
 }
 throw new UnsupportedOperationException(String.format("not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type));

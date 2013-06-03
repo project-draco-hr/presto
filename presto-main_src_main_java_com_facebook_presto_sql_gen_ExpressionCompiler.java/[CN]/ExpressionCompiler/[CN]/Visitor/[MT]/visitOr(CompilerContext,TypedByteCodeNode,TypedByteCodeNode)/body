@@ -1,0 +1,17 @@
+{
+  Block block=new Block(context);
+  block.append(left.node);
+  IfStatementBuilder ifLeftIsNull=ifStatementBuilder(context).condition(new Block(context).loadVariable("wasNull"));
+  LabelNode end=new LabelNode("end");
+  ifLeftIsNull.ifTrue(new Block(context).loadConstant(false).storeVariable("wasNull").pop().loadConstant(true));
+  LabelNode leftIsFalse=new LabelNode("leftIsFalse");
+  ifLeftIsNull.ifFalse(new Block(context).ifZeroGoto(leftIsFalse).loadConstant(true).gotoLabel(end).visitLabel(leftIsFalse).append(loadBoolean(false)));
+  block.append(ifLeftIsNull.build());
+  block.append(right.node);
+  IfStatementBuilder ifRightIsNull=ifStatementBuilder(context);
+  ifRightIsNull.condition(new Block(context).loadVariable("wasNull"));
+  ifRightIsNull.ifTrue(new Block(context).pop());
+  ifRightIsNull.ifFalse(new Block(context).append(new IfStatement(context,NOP,new Block(context).pop().loadConstant(true),new Block(context).storeVariable("wasNull").loadConstant(false))));
+  block.append(ifRightIsNull.build()).visitLabel(end);
+  return typedByteCodeNode(block,boolean.class);
+}
