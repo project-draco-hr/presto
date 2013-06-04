@@ -1,0 +1,38 @@
+{
+  TypedByteCodeNode patternNode=arguments.get(1);
+  MethodHandle methodHandle;
+  if (patternNode.getNode() instanceof Constant) {
+    Slice patternSlice=(Slice)((Constant)patternNode.getNode()).getValue();
+    String pattern=patternSlice.toString(Charsets.UTF_8);
+    JsonExtractor jsonExtractor;
+switch (name) {
+case "json_extract_scalar":
+      jsonExtractor=generateExtractor(pattern,true);
+    break;
+case "json_extract":
+  jsonExtractor=generateExtractor(pattern,false);
+break;
+default :
+throw new IllegalArgumentException("Unsupported method " + name);
+}
+methodHandle=MethodHandles.insertArguments(constantJsonExtract,1,jsonExtractor);
+arguments=new ArrayList<>(arguments);
+arguments.remove(1);
+arguments=ImmutableList.copyOf(arguments);
+}
+ else {
+ThreadLocalCache<Slice,JsonExtractor> cache;
+switch (name) {
+case "json_extract_scalar":
+cache=new JsonExtractScalarCache();
+break;
+case "json_extract":
+cache=new JsonExtractJsonCache();
+break;
+default :
+throw new IllegalArgumentException("Unsupported method " + name);
+}
+methodHandle=dynamicJsonExtract.bindTo(cache);
+}
+return DefaultFunctionBinder.bindConstantArguments(bindingId,name,arguments,methodHandle,true);
+}
