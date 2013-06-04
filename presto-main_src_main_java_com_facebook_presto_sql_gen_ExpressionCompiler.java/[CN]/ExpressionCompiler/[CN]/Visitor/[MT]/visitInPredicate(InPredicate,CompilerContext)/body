@@ -1,0 +1,68 @@
+{
+  Expression valueListExpression=node.getValueList();
+  if (!(valueListExpression instanceof InListExpression)) {
+    throw new UnsupportedOperationException("Compilation of IN subquery is not supported yet");
+  }
+  TypedByteCodeNode value=process(node.getValue(),context);
+  if (value.type == void.class) {
+    return value;
+  }
+  ImmutableList.Builder<TypedByteCodeNode> values=ImmutableList.builder();
+  InListExpression valueList=(InListExpression)valueListExpression;
+  for (  Expression test : valueList.getValues()) {
+    TypedByteCodeNode testNode=process(test,context);
+    values.add(testNode);
+  }
+  Class<?> type=getType(ImmutableList.<TypedByteCodeNode>builder().add(value).addAll(values.build()).build());
+  ImmutableListMultimap.Builder<Integer,TypedByteCodeNode> hashBuckets=ImmutableListMultimap.builder();
+  ImmutableList.Builder<TypedByteCodeNode> defaultBucket=ImmutableList.builder();
+  for (  TypedByteCodeNode testNode : values.build()) {
+    if (testNode.node instanceof Constant) {
+      Constant constant=(Constant)testNode.node;
+      Object testValue=constant.getValue();
+      int hashCode;
+      if (type == boolean.class) {
+        hashCode=Operations.hashCode(testValue != 0);
+      }
+ else       if (type == long.class) {
+        hashCode=Operations.hashCode((long)testValue);
+      }
+ else       if (type == double.class) {
+        hashCode=Operations.hashCode(((Number)testValue).doubleValue());
+      }
+ else       if (type == Slice.class) {
+        hashCode=Operations.hashCode((Slice)testValue);
+      }
+ else {
+        throw new IllegalStateException("Error processing in statement: unsupported type " + testValue.getClass().getSimpleName());
+      }
+      hashBuckets.put(hashCode,coerceToType(context,testNode,type));
+    }
+ else {
+      defaultBucket.add(coerceToType(context,testNode,type));
+    }
+  }
+  LabelNode end=new LabelNode("end");
+  LabelNode match=new LabelNode("match");
+  LabelNode noMatch=new LabelNode("noMatch");
+  LabelNode defaultLabel=new LabelNode("default");
+  Block switchCaseBlocks=new Block(context);
+  LookupSwitchBuilder switchBuilder=lookupSwitchBuilder();
+  for (  Entry<Integer,Collection<TypedByteCodeNode>> bucket : hashBuckets.build().asMap().entrySet()) {
+    LabelNode label=new LabelNode("inHash" + bucket.getKey());
+    switchBuilder.addCase(bucket.getKey(),label);
+    Collection<TypedByteCodeNode> testValues=bucket.getValue();
+    Block caseBlock=buildCase(context,type,label,match,defaultLabel,testValues,false);
+    switchCaseBlocks.append(caseBlock.setDescription("case " + bucket.getKey()));
+  }
+  switchBuilder.defaultCase(defaultLabel);
+  Block caseBlock=buildCase(context,type,defaultLabel,match,noMatch,defaultBucket.build(),true);
+  switchCaseBlocks.append(caseBlock.setDescription("default"));
+  Block block=new Block(context).append(coerceToType(context,value,type).node).append(ifWasNullPopAndGoto(context,end,boolean.class,type)).dup(type).invokeStatic(Operations.class,"hashCode",int.class,type).append(switchBuilder.build()).append(switchCaseBlocks);
+  Block matchBlock=new Block(context).setDescription("match").visitLabel(match).pop(type).loadConstant(false).storeVariable("wasNull").loadConstant(true).gotoLabel(end);
+  block.append(matchBlock);
+  Block noMatchBlock=new Block(context).setDescription("noMatch").visitLabel(noMatch).pop(type).loadConstant(false).gotoLabel(end);
+  block.append(noMatchBlock);
+  block.visitLabel(end);
+  return typedByteCodeNode(block,boolean.class);
+}

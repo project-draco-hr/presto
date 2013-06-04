@@ -1,0 +1,33 @@
+{
+  Variable caseWasNull=null;
+  if (checkForNulls) {
+    caseWasNull=context.createTempVariable(boolean.class);
+  }
+  Block caseBlock=new Block(context).visitLabel(caseLabel);
+  if (checkForNulls) {
+    caseBlock.loadConstant(false).storeVariable(caseWasNull.getLocalVariableDefinition());
+  }
+  LabelNode elseLabel=new LabelNode("else");
+  Block elseBlock=new Block(context).visitLabel(elseLabel);
+  if (checkForNulls) {
+    elseBlock.loadVariable(caseWasNull.getLocalVariableDefinition()).storeVariable("wasNull");
+  }
+  elseBlock.gotoLabel(noMatchLabel);
+  ByteCodeNode elseNode=elseBlock;
+  for (  TypedByteCodeNode testNode : testValues) {
+    LabelNode testLabel=new LabelNode("test");
+    IfStatementBuilder test=ifStatementBuilder(context);
+    Block condition=new Block(context).visitLabel(testLabel).dup(type).append(coerceToType(context,testNode,type).node);
+    if (checkForNulls) {
+      condition.loadVariable("wasNull").storeVariable(caseWasNull.getLocalVariableDefinition()).append(ifWasNullPopAndGoto(context,elseLabel,void.class,type,type));
+    }
+    condition.invokeStatic(Operations.class,"equal",boolean.class,type,type);
+    test.condition(condition);
+    test.ifTrue(new Block(context).gotoLabel(matchLabel));
+    test.ifFalse(elseNode);
+    elseNode=test.build();
+    elseLabel=testLabel;
+  }
+  caseBlock.append(elseNode);
+  return caseBlock;
+}
