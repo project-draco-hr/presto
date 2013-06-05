@@ -4,23 +4,15 @@
   }
   pageBuilder.reset();
   while (joinCurrentPosition(pageBuilder)) {
-    if (cursors[0] == null || !advanceNextPosition()) {
-      if (!probeIterator.hasNext()) {
-        break;
-      }
-      Page page=probeIterator.next();
-      for (int i=0; i < page.getChannelCount(); i++) {
-        cursors[i]=page.getBlock(i).cursor();
-        cursors[i].advanceNextPosition();
-      }
-      UncompressedBlock probeJoinBlock=(UncompressedBlock)page.getBlock(probeJoinChannel);
-      hash.setProbeSlice(probeJoinBlock.getSlice());
+    if (!advanceProbePosition()) {
+      break;
     }
-    joinPosition=hash.getJoinPosition(cursors[probeJoinChannel]);
+    if (!outerJoinCurrentPosition(pageBuilder)) {
+      break;
+    }
   }
   if (pageBuilder.isEmpty()) {
     return endOfData();
   }
-  Page page=pageBuilder.build();
-  return page;
+  return pageBuilder.build();
 }

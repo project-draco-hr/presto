@@ -1,0 +1,17 @@
+{
+  if (enableOuterJoin && joinPosition < 0) {
+    int outputIndex=0;
+    for (    BlockCursor cursor : cursors) {
+      cursor.appendTupleTo(pageBuilder.getBlockBuilder(outputIndex));
+      outputIndex++;
+    }
+    for (int buildChannel=0; buildChannel < hash.getChannelCount(); buildChannel++) {
+      pageBuilder.getBlockBuilder(outputIndex).appendNull();
+      outputIndex++;
+    }
+    if (pageBuilder.isFull()) {
+      return false;
+    }
+  }
+  return true;
+}
