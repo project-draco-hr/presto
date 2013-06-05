@@ -58,18 +58,18 @@
       LabelNode label=new LabelNode("inHash" + bucket.getKey());
       switchBuilder.addCase(bucket.getKey(),label);
       Collection<TypedByteCodeNode> testValues=bucket.getValue();
-      Block caseBlock=buildCase(context,type,label,match,defaultLabel,testValues,false);
+      Block caseBlock=buildInCase(context,type,label,match,defaultLabel,testValues,false);
       switchCaseBlocks.append(caseBlock.setDescription("case " + bucket.getKey()));
     }
     switchBuilder.defaultCase(defaultLabel);
-    switchBlock=new Block(context).dup(type).invokeStatic(Operations.class,"hashCode",int.class,type).append(switchBuilder.build()).append(switchCaseBlocks);
+    switchBlock=new Block(context).comment("lookupSwitch(hashCode(<stackValue>))").dup(type).invokeStatic(Operations.class,"hashCode",int.class,type).append(switchBuilder.build()).append(switchCaseBlocks);
   }
  else {
     FunctionBinding functionBinding=bootstrapFunctionBinder.bindFunction("in",ImmutableList.<TypedByteCodeNode>of(),new InFunctionBinder(type,constantValues));
-    switchBlock=new IfStatement(context,new Block(context).dup(type).invokeDynamic(functionBinding.getName(),functionBinding.getCallSite().type(),functionBinding.getBindingId()),jump(match),NOP);
+    switchBlock=new Block(context).comment("inListSet.contains(<stackValue>)").append(new IfStatement(context,new Block(context).dup(type).invokeDynamic(functionBinding.getName(),functionBinding.getCallSite().type(),functionBinding.getBindingId()),jump(match),NOP));
   }
-  Block defaultCaseBlock=buildCase(context,type,defaultLabel,match,noMatch,defaultBucket.build(),true).setDescription("default");
-  Block block=new Block(context).append(coerceToType(context,value,type).node).append(ifWasNullPopAndGoto(context,end,boolean.class,type)).append(switchBlock).append(defaultCaseBlock);
+  Block defaultCaseBlock=buildInCase(context,type,defaultLabel,match,noMatch,defaultBucket.build(),true).setDescription("default");
+  Block block=new Block(context).comment(node.toString()).append(coerceToType(context,value,type).node).append(ifWasNullPopAndGoto(context,end,boolean.class,type)).append(switchBlock).append(defaultCaseBlock);
   Block matchBlock=new Block(context).setDescription("match").visitLabel(match).pop(type).loadConstant(false).storeVariable("wasNull").loadConstant(true).gotoLabel(end);
   block.append(matchBlock);
   Block noMatchBlock=new Block(context).setDescription("noMatch").visitLabel(noMatch).pop(type).loadConstant(false).gotoLabel(end);

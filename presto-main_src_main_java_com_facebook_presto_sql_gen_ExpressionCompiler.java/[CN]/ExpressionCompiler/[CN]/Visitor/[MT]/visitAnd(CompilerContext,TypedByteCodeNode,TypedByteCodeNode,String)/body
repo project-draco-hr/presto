@@ -1,0 +1,17 @@
+{
+  Block block=new Block(context).comment(comment).setDescription("AND");
+  block.append(left.node);
+  IfStatementBuilder ifLeftIsNull=ifStatementBuilder(context).comment("if left wasNull...").condition(new Block(context).loadVariable("wasNull"));
+  LabelNode end=new LabelNode("end");
+  ifLeftIsNull.ifTrue(new Block(context).comment("clear the null flag, and push left null flag on the stack (true)").loadConstant(false).storeVariable("wasNull").pop().loadConstant(true));
+  LabelNode leftIsTrue=new LabelNode("leftIsTrue");
+  ifLeftIsNull.ifFalse(new Block(context).comment("if left is false, push false, and goto end").ifNotZeroGoto(leftIsTrue).loadConstant(false).gotoLabel(end).comment("left was true; push left null flag on the stack (false)").visitLabel(leftIsTrue).append(loadBoolean(false)));
+  block.append(ifLeftIsNull.build());
+  block.append(right.node);
+  IfStatementBuilder ifRightIsNull=ifStatementBuilder(context).comment("if right wasNull...").condition(new Block(context).loadVariable("wasNull"));
+  ifRightIsNull.ifTrue(new Block(context).comment("right was null, simply pop one of the two booleans on the stack").pop());
+  LabelNode rightIsTrue=new LabelNode("rightIsTrue");
+  ifRightIsNull.ifFalse(new Block(context).comment("if right is false, pop left null flag off stack, push false and goto end").ifNotZeroGoto(rightIsTrue).pop().loadConstant(false).gotoLabel(end).comment("right was true; store left null flag (on stack) in wasNull variable, and push true").visitLabel(rightIsTrue).storeVariable("wasNull").append(loadBoolean(true)));
+  block.append(ifRightIsNull.build()).visitLabel(end);
+  return typedByteCodeNode(block,boolean.class);
+}

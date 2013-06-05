@@ -9,9 +9,9 @@
   }
   Class<?> type=getType(left,right);
   if (!isNumber(type)) {
-    throw new UnsupportedOperationException(String.format("not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type));
+    throw new UnsupportedOperationException(format("not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type));
   }
-  Block block=new Block(context);
+  Block block=new Block(context).comment(node.toString());
   LabelNode end=new LabelNode("end");
   block.append(coerceToType(context,left,type).node);
   block.append(ifWasNullPopAndGoto(context,end,type,left.type));
@@ -34,7 +34,7 @@ case MODULUS:
 block.invokeStatic(Operations.class,"modulus",type,type,type);
 break;
 default :
-throw new UnsupportedOperationException(String.format("not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type));
+throw new UnsupportedOperationException(format("not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type));
 }
 return typedByteCodeNode(block.visitLabel(end),type);
 }

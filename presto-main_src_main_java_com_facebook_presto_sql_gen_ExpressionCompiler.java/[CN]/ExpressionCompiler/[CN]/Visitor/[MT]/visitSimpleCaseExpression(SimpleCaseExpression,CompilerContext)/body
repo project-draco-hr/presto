@@ -25,8 +25,7 @@
   for (  TypedWhenClause whenClause : Lists.reverse(new ArrayList<>(whenClauses))) {
     LabelNode nullCondition=new LabelNode("nullCondition");
     Block condition=new Block(context).append(coerceToType(context,whenClause.condition,valueType).node).append(ifWasNullPopAndGoto(context,nullCondition,boolean.class,valueType)).loadVariable(tempVariable.getLocalVariableDefinition()).invokeStatic(Operations.class,"equal",boolean.class,valueType,valueType).visitLabel(nullCondition).loadConstant(false).storeVariable("wasNull");
-    block.loadConstant(false).storeVariable("wasNull");
-    elseValue=typedByteCodeNode(new IfStatement(context,condition,coerceToType(context,whenClause.value,resultType).node,elseValue.node),resultType);
+    elseValue=typedByteCodeNode(new IfStatement(context,format("when %s",whenClause),condition,coerceToType(context,whenClause.value,resultType).node,elseValue.node),resultType);
   }
   return typedByteCodeNode(block.append(elseValue.node),resultType);
 }

@@ -1,0 +1,24 @@
+{
+  Block nullCheck=new Block(context).setDescription("ifWasNullGoto").loadVariable("wasNull");
+  String clearComment=null;
+  if (clearNullFlag) {
+    nullCheck.loadConstant(false).storeVariable("wasNull");
+    clearComment="clear wasNull";
+  }
+  Block isNull=new Block(context);
+  for (  Class<?> parameterType : stackArgsToPop) {
+    isNull.pop(parameterType);
+  }
+  isNull.loadJavaDefault(returnType);
+  String loadDefaultComment=null;
+  if (returnType != void.class) {
+    loadDefaultComment=format("loadJavaDefault(%s)",returnType.getName());
+  }
+  isNull.gotoLabel(label);
+  String popComment=null;
+  if (!stackArgsToPop.isEmpty()) {
+    popComment=format("pop(%s)",Joiner.on(", ").join(stackArgsToPop));
+  }
+  String comment=format("if wasNull then %s",Joiner.on(", ").skipNulls().join(clearComment,popComment,loadDefaultComment,"goto " + label.getLabel()));
+  return new IfStatement(context,comment,nullCheck,isNull,NOP);
+}
