@@ -1,17 +1,26 @@
 {
   PhysicalOperation source=node.getSource().accept(this,context);
-  Expression filterExpression=TreeRewriter.rewriteWith(new SymbolToInputRewriter(source.getLayout()),node.getPredicate());
-  List<Expression> projections=new ArrayList<>();
-  Map<Symbol,Input> outputMappings=new HashMap<>();
-  for (int i=0; i < node.getOutputSymbols().size(); i++) {
-    Symbol symbol=node.getOutputSymbols().get(i);
-    Input input=source.getLayout().get(symbol);
-    Preconditions.checkArgument(input != null,"Cannot resolve symbol %s",symbol.getName());
-    projections.add(new InputReference(input));
-    outputMappings.put(symbol,new Input(i,0));
-  }
   ImmutableMap<Input,Type> inputTypes=getInputTypes(source.getLayout(),source.getOperator().getTupleInfos());
-  Function<Operator,Operator> operatorFactory=compiler.compileFilterAndProjectOperator(filterExpression,projections,inputTypes);
-  Operator operator=operatorFactory.apply(source.getOperator());
-  return new PhysicalOperation(operator,outputMappings);
+  try {
+    Expression filterExpression=TreeRewriter.rewriteWith(new SymbolToInputRewriter(source.getLayout()),node.getPredicate());
+    Map<Symbol,Input> outputMappings=new HashMap<>();
+    List<Expression> projections=new ArrayList<>();
+    for (int i=0; i < node.getOutputSymbols().size(); i++) {
+      Symbol symbol=node.getOutputSymbols().get(i);
+      Input input=source.getLayout().get(symbol);
+      Preconditions.checkArgument(input != null,"Cannot resolve symbol %s",symbol.getName());
+      projections.add(new InputReference(input));
+      outputMappings.put(symbol,new Input(i,0));
+    }
+    Function<Operator,Operator> operatorFactory=compiler.compileFilterAndProjectOperator(filterExpression,projections,inputTypes);
+    Operator operator=operatorFactory.apply(source.getOperator());
+    return new PhysicalOperation(operator,outputMappings);
+  }
+ catch (  Exception e) {
+    log.info("Compile failed for filter=%s inputTypes=%s error=%s",node.getPredicate(),inputTypes,e);
+    FilterFunction filter=new InterpretedFilterFunction(node.getPredicate(),source.getLayout(),metadata,context.getSession());
+    IdentityProjectionInfo mappings=computeIdentityMapping(node.getOutputSymbols(),source.getLayout(),context.getTypes());
+    Operator operator=new FilterAndProjectOperator(source.getOperator(),filter,mappings.getProjections());
+    return new PhysicalOperation(operator,mappings.getOutputLayout());
+  }
 }
