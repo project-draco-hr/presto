@@ -1,15 +1,17 @@
 {
   PhysicalOperation source=node.getSource().accept(this,context);
-  FilterFunction filter;
-  try {
-    Expression filterExpression=node.getPredicate();
-    filterExpression=TreeRewriter.rewriteWith(new SymbolToInputRewriter(source.getLayout()),filterExpression);
-    filter=compiler.compileFilterFunction(filterExpression,getInputTypes(source.getLayout(),source.getOperator().getTupleInfos()));
+  Expression filterExpression=TreeRewriter.rewriteWith(new SymbolToInputRewriter(source.getLayout()),node.getPredicate());
+  List<Expression> projections=new ArrayList<>();
+  Map<Symbol,Input> outputMappings=new HashMap<>();
+  for (int i=0; i < node.getOutputSymbols().size(); i++) {
+    Symbol symbol=node.getOutputSymbols().get(i);
+    Input input=source.getLayout().get(symbol);
+    Preconditions.checkArgument(input != null,"Cannot resolve symbol %s",symbol.getName());
+    projections.add(new InputReference(input));
+    outputMappings.put(symbol,new Input(i,0));
   }
- catch (  Exception e) {
-    throw Throwables.propagate(e);
-  }
-  IdentityProjectionInfo mappings=computeIdentityMapping(node.getOutputSymbols(),source.getLayout(),context.getTypes());
-  FilterAndProjectOperator operator=new FilterAndProjectOperator(source.getOperator(),filter,mappings.getProjections());
-  return new PhysicalOperation(operator,mappings.getOutputLayout());
+  ImmutableMap<Input,Type> inputTypes=getInputTypes(source.getLayout(),source.getOperator().getTupleInfos());
+  Function<Operator,Operator> operatorFactory=compiler.compileFilterAndProjectOperator(filterExpression,projections,inputTypes);
+  Operator operator=operatorFactory.apply(source.getOperator());
+  return new PhysicalOperation(operator,outputMappings);
 }
