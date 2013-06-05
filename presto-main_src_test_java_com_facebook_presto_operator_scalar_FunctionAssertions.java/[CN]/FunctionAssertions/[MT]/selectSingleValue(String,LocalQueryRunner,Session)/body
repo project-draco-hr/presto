@@ -1,11 +1,17 @@
 {
   checkNotNull(projection,"projection is null");
-  Operator compiledOperator=createCompiledOperator(projection,session);
-  Object compiledValue=execute(compiledOperator);
-  Type expressionType=Type.fromRaw(compiledOperator.getTupleInfos().get(0).getTypes().get(0));
+  OperatorFactory operatorFactory=createCompiledOperatorFactory(projection);
+  Operator operator=operatorFactory.createOperator(createTableScanOperator(SOURCE),session);
+  Object directOperatorValue=execute(operator);
+  Type expressionType=Type.fromRaw(operator.getTupleInfos().get(0).getTypes().get(0));
+  Object recordValue=execute(operatorFactory.createOperator(createTableScanOperator(createRecordProjectOperator()),session));
+  assertEquals(recordValue,directOperatorValue);
+  ProjectionFunction projectFunction=createCompiledProjectFunction(projection,session);
+  Object projectedValue=execute(projectFunction);
+  assertEquals(projectedValue,directOperatorValue);
   FilterAndProjectOperator interpretedOperator=createInterpretedOperator(projection,expressionType,session);
   Object interpretedValue=execute(interpretedOperator);
-  assertEquals(interpretedValue,compiledValue);
+  assertEquals(interpretedValue,directOperatorValue);
   boolean needsBoundValues=parseExpression(projection).accept(new AstVisitor<Boolean,Object>(){
     @Override public Boolean visitInputReference(    InputReference node,    Object context){
       return true;
@@ -17,7 +23,7 @@
     assertEquals(result.getTupleInfo().getFieldCount(),1);
     assertEquals(result.getMaterializedTuples().size(),1);
     Object queryResult=Iterables.getOnlyElement(result.getMaterializedTuples()).getField(0);
-    assertEquals(compiledValue,queryResult);
+    assertEquals(directOperatorValue,queryResult);
   }
-  return compiledValue;
+  return directOperatorValue;
 }

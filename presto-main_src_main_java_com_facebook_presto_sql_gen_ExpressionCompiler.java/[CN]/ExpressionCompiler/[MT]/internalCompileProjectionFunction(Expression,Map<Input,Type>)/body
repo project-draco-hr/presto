@@ -11,7 +11,8 @@
   projectionMethod.getBody().loadVariable("output");
   projectionMethod.getBody().invokeVirtual(classDefinition.getType(),"project",type(void.class),ImmutableList.<ParameterizedType>builder().addAll(nCopies(channels,type(TupleReadable.class))).add(type(BlockBuilder.class)).build());
   projectionMethod.getBody().ret();
-  Class<?> type=generateProjectMethod(classDefinition,"project",expression,inputTypes);
+  Class<?> type=generateProjectMethod(classDefinition,"project",expression,inputTypes,false);
+  generateProjectMethod(classDefinition,"project",expression,inputTypes,true);
   MethodDefinition getTupleInfoMethod=classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),"getTupleInfo",type(TupleInfo.class));
   if (type == boolean.class) {
     getTupleInfoMethod.getBody().getStaticField(type(TupleInfo.class),"SINGLE_BOOLEAN",type(TupleInfo.class)).retObject();

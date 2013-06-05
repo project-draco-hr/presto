@@ -1,7 +1,27 @@
 {
-  InterpretedProjectionFunction projectionFunction=new InterpretedProjectionFunction(outputType,expression,symbolToInputMappings,DUAL_METADATA_MANAGER,new Session("user","test",Session.DEFAULT_CATALOG,Session.DEFAULT_SCHEMA,null,null));
-  BlockBuilder builder=new BlockBuilder(new TupleInfo(outputType.getRawType()));
-  projectionFunction.project(channels,builder);
-  Object actualValue=Iterables.getOnlyElement(Iterables.concat(BlockAssertions.toValues(builder.build())));
-  assertEquals(actualValue,expectedValue);
+  Builder<Input,Type> inputTypes=ImmutableMap.builder();
+  for (  Input input : symbolToInputMappings.values()) {
+    TupleInfo.Type type=channels[input.getChannel()].getTupleInfo().getTypes().get(input.getField());
+switch (type) {
+case BOOLEAN:
+      inputTypes.put(input,BOOLEAN);
+    break;
+case FIXED_INT_64:
+  inputTypes.put(input,LONG);
+break;
+case VARIABLE_BINARY:
+inputTypes.put(input,STRING);
+break;
+case DOUBLE:
+inputTypes.put(input,DOUBLE);
+break;
+default :
+throw new IllegalStateException("Unsupported type");
+}
+}
+InterpretedProjectionFunction projectionFunction=new InterpretedProjectionFunction(outputType,expression,symbolToInputMappings,DUAL_METADATA_MANAGER,new Session("user","test",Session.DEFAULT_CATALOG,Session.DEFAULT_SCHEMA,null,null),inputTypes.build());
+BlockBuilder builder=new BlockBuilder(new TupleInfo(outputType.getRawType()));
+projectionFunction.project(channels,builder);
+Object actualValue=Iterables.getOnlyElement(Iterables.concat(BlockAssertions.toValues(builder.build())));
+assertEquals(actualValue,expectedValue);
 }

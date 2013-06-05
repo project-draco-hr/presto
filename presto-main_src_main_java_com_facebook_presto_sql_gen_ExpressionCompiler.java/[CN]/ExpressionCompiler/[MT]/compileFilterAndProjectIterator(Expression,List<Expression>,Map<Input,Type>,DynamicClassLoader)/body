@@ -2,12 +2,15 @@
   ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(bootstrapMethod),a(PUBLIC,FINAL),typeFromPathName("FilterAndProjectIterator_" + CLASS_ID.incrementAndGet()),type(AbstractFilterAndProjectIterator.class));
   FieldDefinition sessionField=classDefinition.declareField(a(PRIVATE,FINAL),"session",Session.class);
   classDefinition.declareConstructor(new CompilerContext(bootstrapMethod),a(PUBLIC),arg("tupleInfos",type(Iterable.class,TupleInfo.class)),arg("pageIterator",PageIterator.class),arg("session",Session.class)).getBody().comment("super(tupleInfos, pageIterator);").loadThis().loadVariable("tupleInfos").loadVariable("pageIterator").invokeConstructor(AbstractFilterAndProjectIterator.class,Iterable.class,PageIterator.class).comment("this.session = session;").loadThis().loadVariable("session").putField(classDefinition.getType(),sessionField).ret();
-  generateFilterAndProjectMethod(classDefinition,projections,inputTypes);
-  generateFilterMethod(classDefinition,filter,inputTypes);
+  generateFilterAndProjectCursorMethod(classDefinition,projections);
+  generateFilterAndProjectIteratorMethod(classDefinition,projections,inputTypes);
+  generateFilterMethod(classDefinition,filter,inputTypes,true);
+  generateFilterMethod(classDefinition,filter,inputTypes,false);
   List<TupleInfo> tupleInfos=new ArrayList<>();
   int projectionIndex=0;
   for (  Expression projection : projections) {
-    Class<?> type=generateProjectMethod(classDefinition,"project_" + projectionIndex,projection,inputTypes);
+    Class<?> type=generateProjectMethod(classDefinition,"project_" + projectionIndex,projection,inputTypes,true);
+    generateProjectMethod(classDefinition,"project_" + projectionIndex,projection,inputTypes,false);
     if (type == boolean.class) {
       tupleInfos.add(TupleInfo.SINGLE_BOOLEAN);
     }

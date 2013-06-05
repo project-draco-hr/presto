@@ -17,8 +17,8 @@
     return new PhysicalOperation(operator,outputMappings);
   }
  catch (  Exception e) {
-    log.info("Compile failed for filter=%s inputTypes=%s error=%s",node.getPredicate(),inputTypes,e);
-    FilterFunction filter=new InterpretedFilterFunction(node.getPredicate(),source.getLayout(),metadata,context.getSession());
+    log.error(e,"Compile failed for filter=%s inputTypes=%s error=%s",node.getPredicate(),inputTypes,e);
+    FilterFunction filter=new InterpretedFilterFunction(node.getPredicate(),source.getLayout(),metadata,context.getSession(),inputTypes);
     IdentityProjectionInfo mappings=computeIdentityMapping(node.getOutputSymbols(),source.getLayout(),context.getTypes());
     Operator operator=new FilterAndProjectOperator(source.getOperator(),filter,mappings.getProjections());
     return new PhysicalOperation(operator,mappings.getOutputLayout());
