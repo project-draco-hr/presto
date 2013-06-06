@@ -16,21 +16,24 @@
       Object fieldValue=((PrimitiveObjectInspector)fieldInspectors[outputColumnIndex]).getPrimitiveJavaObject(fieldData);
       checkState(fieldValue != null,"fieldValue should not be null");
 switch (types[outputColumnIndex]) {
-case LONG:
-        longs[outputColumnIndex]=getLongOrBoolean(fieldValue);
+case BOOLEAN:
+        booleans[outputColumnIndex]=(Boolean)fieldValue;
       break;
-case DOUBLE:
-    doubles[outputColumnIndex]=((Number)fieldValue).doubleValue();
+case LONG:
+    longs[outputColumnIndex]=getLongOrTimestamp(fieldValue);
   break;
+case DOUBLE:
+doubles[outputColumnIndex]=((Number)fieldValue).doubleValue();
+break;
 case STRING:
 if (fieldValue instanceof String) {
-  strings[outputColumnIndex]=((String)fieldValue).getBytes(Charsets.UTF_8);
+strings[outputColumnIndex]=((String)fieldValue).getBytes(Charsets.UTF_8);
 }
  else if (fieldValue instanceof byte[]) {
-  strings[outputColumnIndex]=(byte[])fieldValue;
+strings[outputColumnIndex]=(byte[])fieldValue;
 }
  else {
-  throw new IllegalStateException("unsupported string field type: " + fieldValue.getClass().getName());
+throw new IllegalStateException("unsupported string field type: " + fieldValue.getClass().getName());
 }
 break;
 }

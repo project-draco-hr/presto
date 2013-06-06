@@ -14,31 +14,36 @@
           HiveColumnHandle hiveColumnHandle=(HiveColumnHandle)columnHandle;
           String value=entry.getValue();
 switch (hiveColumnHandle.getType()) {
-case LONG:
+case BOOLEAN:
             if (value.length() == 0) {
-              builder.put(columnHandle,0L);
-            }
- else             if (hiveColumnHandle.getHiveType() == HiveType.BOOLEAN) {
-              builder.put(columnHandle,parseBoolean(value));
-            }
- else             if (hiveColumnHandle.getHiveType() == HiveType.TIMESTAMP) {
-              builder.put(columnHandle,MILLISECONDS.toSeconds(HIVE_TIMESTAMP_PARSER.parseMillis(value)));
+              builder.put(columnHandle,false);
             }
  else {
-              builder.put(columnHandle,parseLong(value));
+              builder.put(columnHandle,parseBoolean(value));
             }
           break;
-case DOUBLE:
+case LONG:
         if (value.length() == 0) {
           builder.put(columnHandle,0L);
         }
+ else         if (hiveColumnHandle.getHiveType() == HiveType.TIMESTAMP) {
+          builder.put(columnHandle,MILLISECONDS.toSeconds(HIVE_TIMESTAMP_PARSER.parseMillis(value)));
+        }
  else {
-          builder.put(columnHandle,parseDouble(value));
+          builder.put(columnHandle,parseLong(value));
         }
       break;
-case STRING:
-    builder.put(columnHandle,value);
+case DOUBLE:
+    if (value.length() == 0) {
+      builder.put(columnHandle,0L);
+    }
+ else {
+      builder.put(columnHandle,parseDouble(value));
+    }
   break;
+case STRING:
+builder.put(columnHandle,value);
+break;
 }
 }
 return new HivePartition(tableName,partitionId,builder.build());
