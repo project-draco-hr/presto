@@ -1,14 +1,14 @@
 {
   ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(bootstrapMethod),a(PUBLIC,FINAL),typeFromPathName("ProjectionFunction_" + CLASS_ID.incrementAndGet()),type(Object.class),type(ProjectionFunction.class));
   FieldDefinition sessionField=classDefinition.declareField(a(PRIVATE,FINAL),"session",Session.class);
-  classDefinition.declareConstructor(new CompilerContext(bootstrapMethod),a(PUBLIC),arg("session",Session.class)).getBody().loadThis().invokeConstructor(Object.class).comment("this.session = session;").loadThis().loadVariable("session").putField(classDefinition.getType(),sessionField).ret();
+  classDefinition.declareConstructor(new CompilerContext(bootstrapMethod),a(PUBLIC),arg("session",Session.class)).getBody().pushThis().invokeConstructor(Object.class).comment("this.session = session;").pushThis().getVariable("session").putField(classDefinition.getType(),sessionField).ret();
   MethodDefinition projectionMethod=classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),"project",type(void.class),arg("channels",TupleReadable[].class),arg("output",BlockBuilder.class));
-  projectionMethod.getBody().loadThis();
+  projectionMethod.getBody().pushThis();
   int channels=Ordering.natural().max(transform(inputTypes.keySet(),Input.channelGetter())) + 1;
   for (int i=0; i < channels; i++) {
-    projectionMethod.getBody().loadVariable("channels").loadConstant(i).loadObjectArray();
+    projectionMethod.getBody().getVariable("channels").push(i).getObjectArrayElement();
   }
-  projectionMethod.getBody().loadVariable("output");
+  projectionMethod.getBody().getVariable("output");
   projectionMethod.getBody().invokeVirtual(classDefinition.getType(),"project",type(void.class),ImmutableList.<ParameterizedType>builder().addAll(nCopies(channels,type(TupleReadable.class))).add(type(BlockBuilder.class)).build());
   projectionMethod.getBody().ret();
   Class<?> type=generateProjectMethod(classDefinition,"project",expression,inputTypes,false);
@@ -29,7 +29,7 @@
  else {
     throw new IllegalStateException("Type " + type.getName() + "can be output");
   }
-  classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),"toString",type(String.class)).getBody().loadString(toStringHelper(classDefinition.getType().getJavaClassName()).add("projection",expression).toString()).retObject();
+  classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),"toString",type(String.class)).getBody().push(toStringHelper(classDefinition.getType().getJavaClassName()).add("projection",expression).toString()).retObject();
   Class<? extends ProjectionFunction> projectionClass=defineClasses(ImmutableList.of(classDefinition),createClassLoader()).values().iterator().next().asSubclass(ProjectionFunction.class);
   try {
     final Constructor<? extends ProjectionFunction> constructor=projectionClass.getConstructor(Session.class);

@@ -5,12 +5,12 @@
   }
   Block caseBlock=new Block(context).visitLabel(caseLabel);
   if (checkForNulls) {
-    caseBlock.loadConstant(false).storeVariable(caseWasNull.getLocalVariableDefinition());
+    caseBlock.putVariable(caseWasNull.getLocalVariableDefinition(),false);
   }
   LabelNode elseLabel=new LabelNode("else");
   Block elseBlock=new Block(context).visitLabel(elseLabel);
   if (checkForNulls) {
-    elseBlock.loadVariable(caseWasNull.getLocalVariableDefinition()).storeVariable("wasNull");
+    elseBlock.getVariable(caseWasNull.getLocalVariableDefinition()).putVariable("wasNull");
   }
   elseBlock.gotoLabel(noMatchLabel);
   ByteCodeNode elseNode=elseBlock;
@@ -19,7 +19,7 @@
     IfStatementBuilder test=ifStatementBuilder(context);
     Block condition=new Block(context).visitLabel(testLabel).dup(type).append(coerceToType(context,testNode,type).node);
     if (checkForNulls) {
-      condition.loadVariable("wasNull").storeVariable(caseWasNull.getLocalVariableDefinition()).append(ifWasNullPopAndGoto(context,elseLabel,void.class,type,type));
+      condition.getVariable("wasNull").putVariable(caseWasNull.getLocalVariableDefinition()).append(ifWasNullPopAndGoto(context,elseLabel,void.class,type,type));
     }
     condition.invokeStatic(Operations.class,"equal",boolean.class,type,type);
     test.condition(condition);

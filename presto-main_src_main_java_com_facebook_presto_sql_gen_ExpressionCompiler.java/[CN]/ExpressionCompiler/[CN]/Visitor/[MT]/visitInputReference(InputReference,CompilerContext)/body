@@ -5,30 +5,30 @@
   checkState(type != null,"No type for input %s",input);
   if (sourceIsCursor) {
     int field=input.getField();
-    Block isNullCheck=new Block(context).setDescription(format("cursor.get%s(%d)",type,field)).loadVariable("cursor").loadConstant(field).invokeInterface(RecordCursor.class,"isNull",boolean.class,int.class);
+    Block isNullCheck=new Block(context).setDescription(format("cursor.get%s(%d)",type,field)).getVariable("cursor").push(field).invokeInterface(RecordCursor.class,"isNull",boolean.class,int.class);
 switch (type) {
 case BOOLEAN:
 {
-        Block isNull=new Block(context).loadConstant(true).storeVariable("wasNull").loadJavaDefault(boolean.class);
-        Block isNotNull=new Block(context).loadVariable("cursor").loadConstant(channel).invokeInterface(RecordCursor.class,"getBoolean",boolean.class,int.class);
+        Block isNull=new Block(context).putVariable("wasNull",true).pushJavaDefault(boolean.class);
+        Block isNotNull=new Block(context).getVariable("cursor").push(channel).invokeInterface(RecordCursor.class,"getBoolean",boolean.class,int.class);
         return typedByteCodeNode(new IfStatement(context,isNullCheck,isNull,isNotNull),boolean.class);
       }
 case LONG:
 {
-      Block isNull=new Block(context).loadConstant(true).storeVariable("wasNull").loadJavaDefault(long.class);
-      Block isNotNull=new Block(context).loadVariable("cursor").loadConstant(channel).invokeInterface(RecordCursor.class,"getLong",long.class,int.class);
+      Block isNull=new Block(context).putVariable("wasNull",true).pushJavaDefault(long.class);
+      Block isNotNull=new Block(context).getVariable("cursor").push(channel).invokeInterface(RecordCursor.class,"getLong",long.class,int.class);
       return typedByteCodeNode(new IfStatement(context,isNullCheck,isNull,isNotNull),long.class);
     }
 case DOUBLE:
 {
-    Block isNull=new Block(context).loadConstant(true).storeVariable("wasNull").loadJavaDefault(double.class);
-    Block isNotNull=new Block(context).loadVariable("cursor").loadConstant(channel).invokeInterface(RecordCursor.class,"getDouble",double.class,int.class);
+    Block isNull=new Block(context).putVariable("wasNull",true).pushJavaDefault(double.class);
+    Block isNotNull=new Block(context).getVariable("cursor").push(channel).invokeInterface(RecordCursor.class,"getDouble",double.class,int.class);
     return typedByteCodeNode(new IfStatement(context,isNullCheck,isNull,isNotNull),double.class);
   }
 case STRING:
 {
-  Block isNull=new Block(context).loadConstant(true).storeVariable("wasNull").loadJavaDefault(Slice.class);
-  Block isNotNull=new Block(context).loadVariable("cursor").loadConstant(channel).invokeInterface(RecordCursor.class,"getString",byte[].class,int.class).invokeStatic(Slices.class,"wrappedBuffer",Slice.class,byte[].class);
+  Block isNull=new Block(context).putVariable("wasNull",true).pushJavaDefault(Slice.class);
+  Block isNotNull=new Block(context).getVariable("cursor").push(channel).invokeInterface(RecordCursor.class,"getString",byte[].class,int.class).invokeStatic(Slices.class,"wrappedBuffer",Slice.class,byte[].class);
   return typedByteCodeNode(new IfStatement(context,isNullCheck,isNull,isNotNull),Slice.class);
 }
 default :
@@ -37,30 +37,30 @@ throw new UnsupportedOperationException("not yet implemented: " + type);
 }
  else {
 int field=input.getField();
-Block isNullCheck=new Block(context).setDescription(format("channel_%d.get%s(%d)",channel,type,field)).loadVariable("channel_" + channel).loadConstant(field).invokeInterface(TupleReadable.class,"isNull",boolean.class,int.class);
+Block isNullCheck=new Block(context).setDescription(format("channel_%d.get%s(%d)",channel,type,field)).getVariable("channel_" + channel).push(field).invokeInterface(TupleReadable.class,"isNull",boolean.class,int.class);
 switch (type) {
 case BOOLEAN:
 {
-Block isNull=new Block(context).loadConstant(true).storeVariable("wasNull").loadJavaDefault(boolean.class);
-Block isNotNull=new Block(context).loadVariable("channel_" + channel).loadConstant(field).invokeInterface(TupleReadable.class,"getBoolean",boolean.class,int.class);
+Block isNull=new Block(context).putVariable("wasNull",true).pushJavaDefault(boolean.class);
+Block isNotNull=new Block(context).getVariable("channel_" + channel).push(field).invokeInterface(TupleReadable.class,"getBoolean",boolean.class,int.class);
 return typedByteCodeNode(new IfStatement(context,isNullCheck,isNull,isNotNull),boolean.class);
 }
 case LONG:
 {
-Block isNull=new Block(context).loadConstant(true).storeVariable("wasNull").loadJavaDefault(long.class);
-Block isNotNull=new Block(context).loadVariable("channel_" + channel).loadConstant(field).invokeInterface(TupleReadable.class,"getLong",long.class,int.class);
+Block isNull=new Block(context).putVariable("wasNull",true).pushJavaDefault(long.class);
+Block isNotNull=new Block(context).getVariable("channel_" + channel).push(field).invokeInterface(TupleReadable.class,"getLong",long.class,int.class);
 return typedByteCodeNode(new IfStatement(context,isNullCheck,isNull,isNotNull),long.class);
 }
 case DOUBLE:
 {
-Block isNull=new Block(context).loadConstant(true).storeVariable("wasNull").loadJavaDefault(double.class);
-Block isNotNull=new Block(context).loadVariable("channel_" + channel).loadConstant(field).invokeInterface(TupleReadable.class,"getDouble",double.class,int.class);
+Block isNull=new Block(context).putVariable("wasNull",true).pushJavaDefault(double.class);
+Block isNotNull=new Block(context).getVariable("channel_" + channel).push(field).invokeInterface(TupleReadable.class,"getDouble",double.class,int.class);
 return typedByteCodeNode(new IfStatement(context,isNullCheck,isNull,isNotNull),double.class);
 }
 case STRING:
 {
-Block isNull=new Block(context).loadConstant(true).storeVariable("wasNull").loadJavaDefault(Slice.class);
-Block isNotNull=new Block(context).loadVariable("channel_" + channel).loadConstant(field).invokeInterface(TupleReadable.class,"getSlice",Slice.class,int.class);
+Block isNull=new Block(context).putVariable("wasNull",true).pushJavaDefault(Slice.class);
+Block isNotNull=new Block(context).getVariable("channel_" + channel).push(field).invokeInterface(TupleReadable.class,"getSlice",Slice.class,int.class);
 return typedByteCodeNode(new IfStatement(context,isNullCheck,isNull,isNotNull),Slice.class);
 }
 default :

@@ -1,7 +1,7 @@
 {
   ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(bootstrapMethod),a(PUBLIC,FINAL),typeFromPathName("FilterAndProjectIterator_" + CLASS_ID.incrementAndGet()),type(AbstractFilterAndProjectIterator.class));
   FieldDefinition sessionField=classDefinition.declareField(a(PRIVATE,FINAL),"session",Session.class);
-  classDefinition.declareConstructor(new CompilerContext(bootstrapMethod),a(PUBLIC),arg("tupleInfos",type(Iterable.class,TupleInfo.class)),arg("pageIterator",PageIterator.class),arg("session",Session.class)).getBody().comment("super(tupleInfos, pageIterator);").loadThis().loadVariable("tupleInfos").loadVariable("pageIterator").invokeConstructor(AbstractFilterAndProjectIterator.class,Iterable.class,PageIterator.class).comment("this.session = session;").loadThis().loadVariable("session").putField(classDefinition.getType(),sessionField).ret();
+  classDefinition.declareConstructor(new CompilerContext(bootstrapMethod),a(PUBLIC),arg("tupleInfos",type(Iterable.class,TupleInfo.class)),arg("pageIterator",PageIterator.class),arg("session",Session.class)).getBody().comment("super(tupleInfos, pageIterator);").pushThis().getVariable("tupleInfos").getVariable("pageIterator").invokeConstructor(AbstractFilterAndProjectIterator.class,Iterable.class,PageIterator.class).comment("this.session = session;").pushThis().getVariable("session").putField(classDefinition.getType(),sessionField).ret();
   generateFilterAndProjectCursorMethod(classDefinition,projections);
   generateFilterAndProjectIteratorMethod(classDefinition,projections,inputTypes);
   generateFilterMethod(classDefinition,filter,inputTypes,true);
@@ -28,7 +28,7 @@
     }
     projectionIndex++;
   }
-  classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),"toString",type(String.class)).getBody().loadString(toStringHelper(classDefinition.getType().getJavaClassName()).add("filter",filter).add("projections",projections).toString()).retObject();
+  classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),"toString",type(String.class)).getBody().push(toStringHelper(classDefinition.getType().getJavaClassName()).add("filter",filter).add("projections",projections).toString()).retObject();
   Class<? extends PageIterator> filterAndProjectClass=defineClasses(ImmutableList.of(classDefinition),classLoader).values().iterator().next().asSubclass(PageIterator.class);
   return new TypedPageIteratorClass(filterAndProjectClass,tupleInfos);
 }

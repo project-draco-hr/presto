@@ -12,10 +12,10 @@
   projectionMethod.comment("Projection: %s",projection.toString());
   CompilerContext context=projectionMethod.getCompilerContext();
   context.declareVariable(type(boolean.class),"wasNull");
-  Block getSessionByteCode=new Block(context).loadThis().getField(classDefinition.getType(),"session",type(Session.class));
+  Block getSessionByteCode=new Block(context).pushThis().getField(classDefinition.getType(),"session",type(Session.class));
   TypedByteCodeNode body=new Visitor(bootstrapFunctionBinder,inputTypes,getSessionByteCode,sourceIsCursor).process(projection,context);
   if (body.type != void.class) {
-    projectionMethod.getBody().comment("boolean wasNull = false;").loadConstant(false).storeVariable("wasNull").loadVariable("output").append(body.node);
+    projectionMethod.getBody().comment("boolean wasNull = false;").putVariable("wasNull",false).getVariable("output").append(body.node);
     Block notNullBlock=new Block(context);
     if (body.type == boolean.class) {
       notNullBlock.comment("output.append(<booleanStackValue>);").invokeVirtual(BlockBuilder.class,"append",BlockBuilder.class,boolean.class);
@@ -33,10 +33,10 @@
       throw new UnsupportedOperationException("Type " + body.type + " can not be output yet");
     }
     Block nullBlock=new Block(context).comment("output.appendNull();").pop(body.type).invokeVirtual(BlockBuilder.class,"appendNull",BlockBuilder.class);
-    projectionMethod.getBody().comment("if the result was null, appendNull; otherwise append the value").append(new IfStatement(context,new Block(context).loadVariable("wasNull"),nullBlock,notNullBlock)).ret();
+    projectionMethod.getBody().comment("if the result was null, appendNull; otherwise append the value").append(new IfStatement(context,new Block(context).getVariable("wasNull"),nullBlock,notNullBlock)).ret();
   }
  else {
-    projectionMethod.getBody().comment("output.appendNull();").loadVariable("output").invokeVirtual(BlockBuilder.class,"appendNull",BlockBuilder.class).ret();
+    projectionMethod.getBody().comment("output.appendNull();").getVariable("output").invokeVirtual(BlockBuilder.class,"appendNull",BlockBuilder.class).ret();
   }
   return body.type;
 }

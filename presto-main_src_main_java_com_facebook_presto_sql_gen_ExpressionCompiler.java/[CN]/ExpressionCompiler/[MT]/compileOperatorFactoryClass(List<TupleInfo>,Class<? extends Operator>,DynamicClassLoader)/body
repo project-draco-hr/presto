@@ -8,9 +8,9 @@
   }
   ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(bootstrapMethod),a(PUBLIC,FINAL),typeFromPathName("FilterAndProjectOperatorFactory_" + CLASS_ID.incrementAndGet()),type(Object.class),type(OperatorFactory.class));
   FieldDefinition tupleInfoField=classDefinition.declareField(a(PRIVATE,FINAL),"tupleInfo",type(List.class,TupleInfo.class));
-  classDefinition.declareConstructor(new CompilerContext(bootstrapMethod),a(PUBLIC),arg("tupleInfos",type(List.class,TupleInfo.class))).getBody().comment("super();").loadThis().invokeConstructor(Object.class).comment("this.tupleInfos = tupleInfos;").loadThis().loadVariable("tupleInfos").putField(classDefinition.getType(),tupleInfoField).ret();
+  classDefinition.declareConstructor(new CompilerContext(bootstrapMethod),a(PUBLIC),arg("tupleInfos",type(List.class,TupleInfo.class))).getBody().comment("super();").pushThis().invokeConstructor(Object.class).comment("this.tupleInfos = tupleInfos;").pushThis().getVariable("tupleInfos").putField(classDefinition.getType(),tupleInfoField).ret();
   MethodDefinition applyMethod=classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),"createOperator",type(Operator.class),arg("source",Operator.class),arg("session",Session.class));
-  applyMethod.getBody().comment("return new %s(this.tupleInfo, source, session);",operatorClass.getName()).newObject(operatorClass).dup().loadThis().getField(classDefinition.getType(),tupleInfoField).loadVariable("source").loadVariable("session").invokeConstructor(constructor).retObject();
+  applyMethod.getBody().comment("return new %s(this.tupleInfo, source, session);",operatorClass.getName()).newObject(operatorClass).dup().pushThis().getField(classDefinition.getType(),tupleInfoField).getVariable("source").getVariable("session").invokeConstructor(constructor).retObject();
   Class<? extends OperatorFactory> factoryClass=defineClasses(ImmutableList.of(classDefinition),classLoader).values().iterator().next().asSubclass(OperatorFactory.class);
   try {
     Constructor<? extends OperatorFactory> factoryConstructor=factoryClass.getConstructor(List.class);

@@ -8,13 +8,13 @@
   }
   filterMethod.comment("Filter: %s",filter.toString());
   filterMethod.getCompilerContext().declareVariable(type(boolean.class),"wasNull");
-  Block getSessionByteCode=new Block(filterMethod.getCompilerContext()).loadThis().getField(classDefinition.getType(),"session",type(Session.class));
+  Block getSessionByteCode=new Block(filterMethod.getCompilerContext()).pushThis().getField(classDefinition.getType(),"session",type(Session.class));
   TypedByteCodeNode body=new Visitor(bootstrapFunctionBinder,inputTypes,getSessionByteCode,sourceIsCursor).process(filter,filterMethod.getCompilerContext());
   if (body.type == void.class) {
-    filterMethod.getBody().loadConstant(false).retBoolean();
+    filterMethod.getBody().push(false).retBoolean();
   }
  else {
     LabelNode end=new LabelNode("end");
-    filterMethod.getBody().comment("boolean wasNull = false;").loadConstant(false).storeVariable("wasNull").append(body.node).loadVariable("wasNull").ifZeroGoto(end).pop(boolean.class).loadConstant(false).visitLabel(end).retBoolean();
+    filterMethod.getBody().comment("boolean wasNull = false;").putVariable("wasNull",false).append(body.node).getVariable("wasNull").ifFalseGoto(end).pop(boolean.class).push(false).visitLabel(end).retBoolean();
   }
 }

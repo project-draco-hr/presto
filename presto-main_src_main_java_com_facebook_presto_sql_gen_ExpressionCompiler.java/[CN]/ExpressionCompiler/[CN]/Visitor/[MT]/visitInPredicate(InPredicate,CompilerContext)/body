@@ -70,9 +70,9 @@
   }
   Block defaultCaseBlock=buildInCase(context,type,defaultLabel,match,noMatch,defaultBucket.build(),true).setDescription("default");
   Block block=new Block(context).comment(node.toString()).append(coerceToType(context,value,type).node).append(ifWasNullPopAndGoto(context,end,boolean.class,type)).append(switchBlock).append(defaultCaseBlock);
-  Block matchBlock=new Block(context).setDescription("match").visitLabel(match).pop(type).loadConstant(false).storeVariable("wasNull").loadConstant(true).gotoLabel(end);
+  Block matchBlock=new Block(context).setDescription("match").visitLabel(match).pop(type).putVariable("wasNull",false).push(true).gotoLabel(end);
   block.append(matchBlock);
-  Block noMatchBlock=new Block(context).setDescription("noMatch").visitLabel(noMatch).pop(type).loadConstant(false).gotoLabel(end);
+  Block noMatchBlock=new Block(context).setDescription("noMatch").visitLabel(noMatch).pop(type).push(false).gotoLabel(end);
   block.append(noMatchBlock);
   block.visitLabel(end);
   return typedByteCodeNode(block,boolean.class);
