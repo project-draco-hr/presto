@@ -2,15 +2,20 @@
   SetView<ParameterizedType> conflicts=Sets.intersection(pendingClasses.keySet(),newClasses.keySet());
   Preconditions.checkArgument(conflicts.isEmpty(),"The classes %s have already been defined",conflicts);
   pendingClasses.putAll(newClasses);
-  Map<String,Class<?>> classes=new HashMap<>();
-  for (  ParameterizedType type : newClasses.keySet()) {
-    try {
-      Class<?> clazz=loadClass(type.getJavaClassName());
-      classes.put(type.getJavaClassName(),clazz);
+  try {
+    Map<String,Class<?>> classes=new HashMap<>();
+    for (    ParameterizedType type : newClasses.keySet()) {
+      try {
+        Class<?> clazz=loadClass(type.getJavaClassName());
+        classes.put(type.getJavaClassName(),clazz);
+      }
+ catch (      ClassNotFoundException e) {
+        throw Throwables.propagate(e);
+      }
     }
- catch (    ClassNotFoundException e) {
-      throw Throwables.propagate(e);
-    }
+    return classes;
   }
-  return classes;
+  finally {
+    pendingClasses.keySet().removeAll(newClasses.keySet());
+  }
 }
