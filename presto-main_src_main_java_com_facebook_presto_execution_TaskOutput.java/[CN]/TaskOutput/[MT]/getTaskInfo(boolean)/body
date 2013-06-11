@@ -10,6 +10,11 @@
   }
   SharedBufferInfo sharedBufferInfo=sharedBuffer.getInfo();
 synchronized (this) {
-    return new TaskInfo(taskId,nextTaskInfoVersion.getAndIncrement(),getState(),location,sharedBufferInfo,getNoMoreSplits(),stats.snapshot(full),splitStats,toFailures(failureCauses),getOutputs());
+    TaskState state=getState();
+    List<FailureInfo> failures=ImmutableList.of();
+    if (state == TaskState.FAILED) {
+      failures=toFailures(failureCauses);
+    }
+    return new TaskInfo(taskId,nextTaskInfoVersion.getAndIncrement(),state,location,sharedBufferInfo,getNoMoreSplits(),stats.snapshot(full),splitStats,failures,getOutputs());
   }
 }
