@@ -2,5 +2,12 @@
   if (failure == null) {
     return null;
   }
-  return new FailureInfo(failure.getClass().getCanonicalName(),failure.getMessage(),toFailure(failure.getCause()),toFailures(asList(failure.getSuppressed())),Lists.transform(asList(failure.getStackTrace()),toStringFunction()),getErrorLocation(failure));
+  String type;
+  if (failure instanceof Failure) {
+    type=((Failure)failure).getType();
+  }
+ else {
+    type=failure.getClass().getCanonicalName();
+  }
+  return new FailureInfo(type,failure.getMessage(),toFailure(failure.getCause()),toFailures(asList(failure.getSuppressed())),Lists.transform(asList(failure.getStackTrace()),toStringFunction()),getErrorLocation(failure));
 }
