@@ -1,5 +1,6 @@
 {
   mockClient=new MockHiveMetastoreClient();
   mockHiveCluster=new MockHiveCluster(mockClient);
-  metastore=new CachingHiveMetastore(mockHiveCluster,new Duration(5,TimeUnit.MINUTES));
+  ListeningExecutorService executor=MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).build()));
+  metastore=new CachingHiveMetastore(mockHiveCluster,executor,new Duration(5,TimeUnit.MINUTES),new Duration(1,TimeUnit.MINUTES));
 }

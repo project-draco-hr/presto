@@ -1,0 +1,45 @@
+{
+  this.clientProvider=checkNotNull(hiveCluster,"hiveCluster is null");
+  long expiresAfterWriteMillis=(long)checkNotNull(cacheTtl,"cacheTtl is null").toMillis();
+  long refreshMills=(long)checkNotNull(refreshInterval,"refreshInterval is null").toMillis();
+  ListeningExecutorService listeningExecutor=MoreExecutors.listeningDecorator(executor);
+  databaseNamesCache=CacheBuilder.newBuilder().expireAfterWrite(expiresAfterWriteMillis,MILLISECONDS).refreshAfterWrite(refreshMills,MILLISECONDS).build(new BackgroundCacheLoader<String,List<String>>(listeningExecutor){
+    @Override public List<String> load(    String key) throws Exception {
+      return loadAllDatabases();
+    }
+  }
+);
+  tableNamesCache=CacheBuilder.newBuilder().expireAfterWrite(expiresAfterWriteMillis,MILLISECONDS).refreshAfterWrite(refreshMills,MILLISECONDS).build(new BackgroundCacheLoader<String,List<String>>(listeningExecutor){
+    @Override public List<String> load(    String databaseName) throws Exception {
+      return loadAllTables(databaseName);
+    }
+  }
+);
+  tableCache=CacheBuilder.newBuilder().expireAfterWrite(expiresAfterWriteMillis,MILLISECONDS).refreshAfterWrite(refreshMills,MILLISECONDS).build(new BackgroundCacheLoader<HiveTableName,Table>(listeningExecutor){
+    @Override public Table load(    HiveTableName hiveTableName) throws Exception {
+      return loadTable(hiveTableName);
+    }
+  }
+);
+  partitionNamesCache=CacheBuilder.newBuilder().expireAfterWrite(expiresAfterWriteMillis,MILLISECONDS).refreshAfterWrite(refreshMills,MILLISECONDS).build(new BackgroundCacheLoader<HiveTableName,List<String>>(listeningExecutor){
+    @Override public List<String> load(    HiveTableName hiveTableName) throws Exception {
+      return loadPartitionNames(hiveTableName);
+    }
+  }
+);
+  partitionFilterCache=CacheBuilder.newBuilder().expireAfterWrite(expiresAfterWriteMillis,MILLISECONDS).refreshAfterWrite(refreshMills,MILLISECONDS).build(new BackgroundCacheLoader<PartitionFilter,List<String>>(listeningExecutor){
+    @Override public List<String> load(    PartitionFilter partitionFilter) throws Exception {
+      return loadPartitionNamesByParts(partitionFilter);
+    }
+  }
+);
+  partitionCache=CacheBuilder.newBuilder().expireAfterWrite(expiresAfterWriteMillis,MILLISECONDS).refreshAfterWrite(refreshMills,MILLISECONDS).build(new BackgroundCacheLoader<HivePartitionName,Partition>(listeningExecutor){
+    @Override public Partition load(    HivePartitionName partitionName) throws Exception {
+      return loadPartitionByName(partitionName);
+    }
+    @Override public Map<HivePartitionName,Partition> loadAll(    Iterable<? extends HivePartitionName> partitionNames) throws Exception {
+      return loadPartitionsByNames(partitionNames);
+    }
+  }
+);
+}

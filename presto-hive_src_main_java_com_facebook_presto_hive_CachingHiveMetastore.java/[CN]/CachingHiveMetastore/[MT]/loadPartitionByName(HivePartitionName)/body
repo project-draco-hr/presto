@@ -1,0 +1,11 @@
+{
+  checkNotNull(partitionName,"partitionName is null");
+  return retry().stopOn(NoSuchObjectException.class).stopOnIllegalExceptions().run("getPartitionsByNames",new Callable<Partition>(){
+    @Override public Partition call() throws Exception {
+      try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
+        return client.get_partition_by_name(partitionName.getHiveTableName().getDatabaseName(),partitionName.getHiveTableName().getTableName(),partitionName.getPartitionName());
+      }
+     }
+  }
+);
+}

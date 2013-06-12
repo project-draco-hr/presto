@@ -1,16 +1,3 @@
 {
-  return getWithCallable(partitionNamesCache,HiveTableName.table(databaseName,tableName),new Callable<List<String>>(){
-    @Override public List<String> call() throws Exception {
-      return retry().stopOn(NoSuchObjectException.class).stopOnIllegalExceptions().run("getPartitionNames",new Callable<List<String>>(){
-        @Override public List<String> call() throws Exception {
-          try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
-            List<String> partitionNames=client.get_partition_names(databaseName,tableName,(short)0);
-            return partitionNames;
-          }
-         }
-      }
-);
-    }
-  }
-,NoSuchObjectException.class);
+  return get(partitionNamesCache,HiveTableName.table(databaseName,tableName),NoSuchObjectException.class);
 }

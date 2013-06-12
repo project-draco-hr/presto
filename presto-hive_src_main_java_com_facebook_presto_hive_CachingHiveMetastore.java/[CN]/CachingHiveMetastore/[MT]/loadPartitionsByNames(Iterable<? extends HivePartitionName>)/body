@@ -1,0 +1,27 @@
+{
+  checkNotNull(partitionNames,"partitionNames is null");
+  checkArgument(!Iterables.isEmpty(partitionNames),"partitionNames is empty");
+  HivePartitionName firstPartition=Iterables.get(partitionNames,0);
+  HiveTableName hiveTableName=firstPartition.getHiveTableName();
+  final String databaseName=hiveTableName.getDatabaseName();
+  final String tableName=hiveTableName.getTableName();
+  final List<String> partitionsToFetch=new ArrayList<>();
+  for (  HivePartitionName partitionName : partitionNames) {
+    checkArgument(partitionName.getHiveTableName().equals(hiveTableName),"Expected table name %s but got %s",hiveTableName,partitionName.getHiveTableName());
+    partitionsToFetch.add(partitionName.getPartitionName());
+  }
+  final List<String> partitionColumnNames=ImmutableList.copyOf(Warehouse.makeSpecFromName(firstPartition.getPartitionName()).keySet());
+  return retry().stopOn(NoSuchObjectException.class).stopOnIllegalExceptions().run("getPartitionsByNames",new Callable<Map<HivePartitionName,Partition>>(){
+    @Override public Map<HivePartitionName,Partition> call() throws Exception {
+      try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
+        ImmutableMap.Builder<HivePartitionName,Partition> partitions=ImmutableMap.builder();
+        for (        Partition partition : client.get_partitions_by_names(databaseName,tableName,partitionsToFetch)) {
+          String partitionId=FileUtils.makePartName(partitionColumnNames,partition.getValues(),null);
+          partitions.put(HivePartitionName.partition(databaseName,tableName,partitionId),partition);
+        }
+        return partitions.build();
+      }
+     }
+  }
+);
+}

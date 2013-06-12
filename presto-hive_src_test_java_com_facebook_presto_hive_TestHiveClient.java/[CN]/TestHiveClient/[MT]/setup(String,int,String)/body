@@ -7,7 +7,8 @@
   }
   FileSystemWrapper fileSystemWrapper=new FileSystemWrapperProvider(new FileSystemCache(hiveClientConfig),new SlowDatanodeSwitcher(hiveClientConfig),hiveClientConfig).get();
   HiveCluster hiveCluster=new TestingHiveCluster(hiveClientConfig,host,port);
-  HiveClient client=new HiveClient(new HiveConnectorId(CONNECTOR_ID),new CachingHiveMetastore(hiveCluster,Duration.valueOf("1m")),new HdfsEnvironment(new HdfsConfiguration(hiveClientConfig),fileSystemWrapper),MoreExecutors.sameThreadExecutor(),hiveClientConfig.getMaxSplitSize(),100,50,500);
+  ListeningExecutorService executor=MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).build()));
+  HiveClient client=new HiveClient(new HiveConnectorId(CONNECTOR_ID),new CachingHiveMetastore(hiveCluster,executor,Duration.valueOf("1m"),Duration.valueOf("15s")),new HdfsEnvironment(new HdfsConfiguration(hiveClientConfig),fileSystemWrapper),MoreExecutors.sameThreadExecutor(),hiveClientConfig.getMaxSplitSize(),100,50,500);
   metadata=client;
   splitManager=client;
   recordSetProvider=client;
