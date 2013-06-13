@@ -10,6 +10,10 @@
     field=-1;
   }
   T oldValue=intermediateValues.get(position);
+  long oldSize=0;
+  if (oldValue != null) {
+    oldSize=function.estimateSizeInBytes(oldValue);
+  }
   T newValue;
   if (step == Step.FINAL) {
     newValue=function.addIntermediate(cursor,field,oldValue);
@@ -18,4 +22,5 @@
     newValue=function.addInput(cursor,field,oldValue);
   }
   intermediateValues.set(position,newValue);
+  totalElementSizeInBytes+=function.estimateSizeInBytes(newValue) - oldSize;
 }
