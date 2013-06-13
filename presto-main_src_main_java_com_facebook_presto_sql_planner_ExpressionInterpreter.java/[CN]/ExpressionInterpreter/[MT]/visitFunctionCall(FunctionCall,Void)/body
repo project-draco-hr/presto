@@ -23,7 +23,7 @@
       return node;
     }
  else {
-      throw new RuntimeException("Unhandled value type: " + value.getClass().getName());
+      throw new UnsupportedOperationException("Unhandled value type: " + value.getClass().getName());
     }
     argumentValues.add(value);
     argumentTypes.add(type);
@@ -40,6 +40,8 @@
     return handle.invokeWithArguments(argumentValues);
   }
  catch (  Throwable throwable) {
-    throw new RuntimeException("Exception from function invocation",throwable);
+    Throwables.propagateIfInstanceOf(throwable,RuntimeException.class);
+    Throwables.propagateIfInstanceOf(throwable,Error.class);
+    throw new RuntimeException(throwable.getMessage(),throwable);
   }
 }
