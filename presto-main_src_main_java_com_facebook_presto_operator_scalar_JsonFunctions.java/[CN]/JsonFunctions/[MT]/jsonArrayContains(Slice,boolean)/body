@@ -1,0 +1,24 @@
+{
+  try {
+    JsonParser parser=JSON_FACTORY.createJsonParser(json.getInput());
+    if (parser.nextToken() != START_ARRAY) {
+      return null;
+    }
+    while (true) {
+      JsonToken token=parser.nextToken();
+      if (token == null) {
+        return null;
+      }
+      if (token == END_ARRAY) {
+        return false;
+      }
+      parser.skipChildren();
+      if (((token == VALUE_TRUE) && value) || ((token == VALUE_FALSE) && (!value))) {
+        return true;
+      }
+    }
+  }
+ catch (  IOException e) {
+    return null;
+  }
+}

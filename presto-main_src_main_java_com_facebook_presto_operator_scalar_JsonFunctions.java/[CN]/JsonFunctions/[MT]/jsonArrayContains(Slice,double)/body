@@ -1,0 +1,27 @@
+{
+  if (!Doubles.isFinite(value)) {
+    return false;
+  }
+  try {
+    JsonParser parser=JSON_FACTORY.createJsonParser(json.getInput());
+    if (parser.nextToken() != START_ARRAY) {
+      return null;
+    }
+    while (true) {
+      JsonToken token=parser.nextToken();
+      if (token == null) {
+        return null;
+      }
+      if (token == END_ARRAY) {
+        return false;
+      }
+      parser.skipChildren();
+      if ((token == VALUE_NUMBER_FLOAT) && (parser.getDoubleValue() == value) && (Doubles.isFinite(parser.getDoubleValue()))) {
+        return true;
+      }
+    }
+  }
+ catch (  IOException e) {
+    return null;
+  }
+}
