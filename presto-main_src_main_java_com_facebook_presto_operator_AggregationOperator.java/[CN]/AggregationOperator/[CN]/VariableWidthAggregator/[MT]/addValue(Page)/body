@@ -1,21 +1,16 @@
 {
   if (step == Step.FINAL) {
-    BlockCursor cursor=page.getBlock(input.getChannel()).cursor();
-    while (cursor.advanceNextPosition()) {
-      intermediateValue=function.addIntermediate(cursor,0,intermediateValue);
+    for (int i=0; i < blockCursors.length; i++) {
+      blockCursors[i]=page.getBlock(inputs.get(i).getChannel()).cursor();
+    }
+    while (advanceAll(blockCursors)) {
+      intermediateValue=function.addIntermediate(blockCursors,fields,intermediateValue);
     }
   }
  else {
-    Block block;
-    int field;
-    if (input != null) {
-      block=page.getBlock(input.getChannel());
-      field=input.getField();
+    for (int i=0; i < blocks.length; i++) {
+      blocks[i]=page.getBlock(inputs.get(i).getChannel());
     }
- else {
-      block=null;
-      field=-1;
-    }
-    intermediateValue=function.addInput(page.getPositionCount(),block,field,intermediateValue);
+    intermediateValue=function.addInput(page.getPositionCount(),blocks,fields,intermediateValue);
   }
 }
