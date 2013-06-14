@@ -1,0 +1,16 @@
+{
+  AggregationFunctionDefinition definition=aggregation(function,new Input(0,0),new Input(1,0));
+  MaterializedResult expected=MaterializedResult.resultBuilder(function.getFinalTupleInfo()).row(new Object[]{expectedValue}).build();
+  Aggregator aggregator1=createAggregator(definition,Step.SINGLE);
+  aggregator1.addValue(input);
+  assertEquals(getResult(function.getFinalTupleInfo(),aggregator1),expected);
+  Aggregator aggregator2=createAggregator(definition,Step.SINGLE);
+  BlockCursor[] cursors=new BlockCursor[input.getBlocks().length];
+  for (int i=0; i < cursors.length; i++) {
+    cursors[i]=input.getBlock(i).cursor();
+  }
+  while (BlockAssertions.advanceAllCursorsToNextPosition(cursors)) {
+    aggregator2.addValue(cursors);
+  }
+  assertEquals(getResult(function.getFinalTupleInfo(),aggregator2),expected);
+}
