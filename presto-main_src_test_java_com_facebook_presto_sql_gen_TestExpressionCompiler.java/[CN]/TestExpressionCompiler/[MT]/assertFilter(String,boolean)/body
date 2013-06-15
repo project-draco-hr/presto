@@ -1,0 +1,12 @@
+{
+  Expression parsedExpression=parseExpression(expression);
+  FilterFunction filterFunction;
+  try {
+    filterFunction=compiler.compileFilterFunction(parsedExpression,ImmutableMap.<Input,Type>of(new Input(0,0),Type.LONG,new Input(1,0),Type.STRING,new Input(2,0),Type.DOUBLE,new Input(3,0),Type.LONG,new Input(4,0),Type.STRING));
+  }
+ catch (  Throwable e) {
+    throw new RuntimeException("Error compiling " + expression,e);
+  }
+  boolean value=filterFunction.filter(createTuple(1234L),createTuple("hello"),createTuple(12.34),createTuple(MILLISECONDS.toSeconds(new DateTime(2001,8,22,3,4,5,321,DateTimeZone.UTC).getMillis())),createTuple("%el%"));
+  assertEquals(value,expected);
+}
