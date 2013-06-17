@@ -14,6 +14,9 @@
  else     if (left instanceof Number && right instanceof Number) {
       return ((Number)left).doubleValue() != ((Number)right).doubleValue();
     }
+ else     if (left instanceof Boolean && right instanceof Boolean) {
+      return !left.equals(right);
+    }
  else     if (left instanceof Slice && right instanceof Slice) {
       return !left.equals(right);
     }
@@ -75,6 +78,15 @@ case GREATER_THAN:
 return ((Slice)left).compareTo((Slice)right) > 0;
 case GREATER_THAN_OR_EQUAL:
 return ((Slice)left).compareTo((Slice)right) >= 0;
+}
+throw new UnsupportedOperationException("unhandled type: " + node.getType());
+}
+if (left instanceof Boolean && right instanceof Boolean) {
+switch (node.getType()) {
+case EQUAL:
+return left.equals(right);
+case NOT_EQUAL:
+return !left.equals(right);
 }
 throw new UnsupportedOperationException("unhandled type: " + node.getType());
 }

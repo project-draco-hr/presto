@@ -1,0 +1,10 @@
+{
+  checkNotNull(projection,"projection is null");
+  Operator compiledOperator=createCompiledOperator(projection);
+  Object compiledValue=execute(compiledOperator);
+  Type expressionType=Type.fromRaw(compiledOperator.getTupleInfos().get(0).getTypes().get(0));
+  FilterAndProjectOperator interpretedOperator=createInterpretedOperator(projection,expressionType);
+  Object interpretedValue=execute(interpretedOperator);
+  assertEquals(interpretedValue,compiledValue);
+  return compiledValue;
+}

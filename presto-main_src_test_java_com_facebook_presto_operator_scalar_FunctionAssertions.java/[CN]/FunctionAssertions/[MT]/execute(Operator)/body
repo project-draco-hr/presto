@@ -1,0 +1,19 @@
+{
+  PageIterator pageIterator=operator.iterator(new OperatorStats());
+  assertTrue(pageIterator.hasNext());
+  Page page=pageIterator.next();
+  assertFalse(pageIterator.hasNext());
+  assertEquals(page.getPositionCount(),1);
+  assertEquals(page.getChannelCount(),1);
+  Block block=page.getBlock(0);
+  assertEquals(block.getPositionCount(),1);
+  assertEquals(block.getTupleInfo().getFieldCount(),1);
+  BlockCursor cursor=block.cursor();
+  assertTrue(cursor.advanceNextPosition());
+  if (cursor.isNull(0)) {
+    return null;
+  }
+ else {
+    return cursor.getTuple().toValues().get(0);
+  }
+}
