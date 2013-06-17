@@ -6,7 +6,8 @@
   projectionMethod.comment("Projection: %s",projection.toString());
   CompilerContext context=projectionMethod.getCompilerContext();
   context.declareVariable(type(boolean.class),"wasNull");
-  TypedByteCodeNode body=new Visitor(bootstrapFunctionBinder,inputTypes).process(projection,context);
+  Block getSessionByteCode=new Block(context).loadThis().getField(classDefinition.getType(),"session",type(Session.class));
+  TypedByteCodeNode body=new Visitor(bootstrapFunctionBinder,inputTypes,getSessionByteCode).process(projection,context);
   if (body.type != void.class) {
     projectionMethod.getBody().comment("boolean wasNull = false;").loadConstant(false).storeVariable("wasNull").loadVariable("output").append(body.node);
     Block notNullBlock=new Block(context);

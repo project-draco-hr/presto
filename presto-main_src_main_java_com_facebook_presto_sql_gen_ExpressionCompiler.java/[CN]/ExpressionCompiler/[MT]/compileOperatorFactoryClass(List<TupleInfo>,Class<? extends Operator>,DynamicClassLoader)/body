@@ -1,20 +1,20 @@
 {
   Constructor<? extends Operator> constructor;
   try {
-    constructor=operatorClass.getConstructor(List.class,Operator.class);
+    constructor=operatorClass.getConstructor(List.class,Operator.class,Session.class);
   }
  catch (  NoSuchMethodException e) {
     throw new IllegalArgumentException(e);
   }
-  ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(bootstrapMethod),a(PUBLIC,FINAL),typeFromPathName("FilterAndProjectOperatorFactory_" + CLASS_ID.incrementAndGet()),type(Object.class),type(Function.class,Operator.class,Operator.class));
+  ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(bootstrapMethod),a(PUBLIC,FINAL),typeFromPathName("FilterAndProjectOperatorFactory_" + CLASS_ID.incrementAndGet()),type(Object.class),type(OperatorFactory.class));
   FieldDefinition tupleInfoField=classDefinition.declareField(a(PRIVATE,FINAL),"tupleInfo",type(List.class,TupleInfo.class));
   classDefinition.declareConstructor(new CompilerContext(bootstrapMethod),a(PUBLIC),arg("tupleInfos",type(List.class,TupleInfo.class))).getBody().comment("super();").loadThis().invokeConstructor(Object.class).comment("this.tupleInfos = tupleInfos;").loadThis().loadVariable("tupleInfos").putField(classDefinition.getType(),tupleInfoField).ret();
-  MethodDefinition applyMethod=classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),"apply",type(Object.class),arg("source",Object.class));
-  applyMethod.getBody().comment("return new %s(this.tupleInfo, source);",operatorClass.getName()).newObject(operatorClass).dup().loadThis().getField(classDefinition.getType(),tupleInfoField).loadVariable("source").invokeConstructor(constructor).retObject();
-  Class<? extends Function<Operator,Operator>> factoryClass=(Class<? extends Function<Operator,Operator>>)defineClasses(ImmutableList.of(classDefinition),classLoader).values().iterator().next().asSubclass(Function.class);
+  MethodDefinition applyMethod=classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),"createOperator",type(Operator.class),arg("source",Operator.class),arg("session",Session.class));
+  applyMethod.getBody().comment("return new %s(this.tupleInfo, source, session);",operatorClass.getName()).newObject(operatorClass).dup().loadThis().getField(classDefinition.getType(),tupleInfoField).loadVariable("source").loadVariable("session").invokeConstructor(constructor).retObject();
+  Class<? extends OperatorFactory> factoryClass=defineClasses(ImmutableList.of(classDefinition),classLoader).values().iterator().next().asSubclass(OperatorFactory.class);
   try {
-    Constructor<? extends Function<Operator,Operator>> factoryConstructor=factoryClass.getConstructor(List.class);
-    Function<Operator,Operator> factory=factoryConstructor.newInstance(tupleInfos);
+    Constructor<? extends OperatorFactory> factoryConstructor=factoryClass.getConstructor(List.class);
+    OperatorFactory factory=factoryConstructor.newInstance(tupleInfos);
     return factory;
   }
  catch (  Throwable e) {

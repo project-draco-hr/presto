@@ -1,6 +1,7 @@
 {
   ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(bootstrapMethod),a(PUBLIC,FINAL),typeFromPathName("FilterFunction_" + CLASS_ID.incrementAndGet()),type(Object.class),type(FilterFunction.class));
-  classDefinition.declareConstructor(new CompilerContext(bootstrapMethod),a(PUBLIC)).getBody().loadThis().invokeConstructor(Object.class).ret();
+  FieldDefinition sessionField=classDefinition.declareField(a(PRIVATE,FINAL),"session",Session.class);
+  classDefinition.declareConstructor(new CompilerContext(bootstrapMethod),a(PUBLIC),arg("session",Session.class)).getBody().loadThis().invokeConstructor(Object.class).comment("this.session = session;").loadThis().loadVariable("session").putField(classDefinition.getType(),sessionField).ret();
   MethodDefinition filterMethod=classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),"filter",type(boolean.class),arg("channels",TupleReadable[].class));
   filterMethod.getBody().loadThis();
   int channels=Ordering.natural().max(transform(inputTypes.keySet(),Input.channelGetter())) + 1;
@@ -12,8 +13,19 @@
   generateFilterMethod(classDefinition,expression,inputTypes);
   Class<? extends FilterFunction> filterClass=defineClasses(ImmutableList.of(classDefinition),createClassLoader()).values().iterator().next().asSubclass(FilterFunction.class);
   try {
-    FilterFunction function=filterClass.newInstance();
-    return function;
+    final Constructor<? extends FilterFunction> constructor=filterClass.getConstructor(Session.class);
+    return new Function<Session,FilterFunction>(){
+      @Override public FilterFunction apply(      Session session){
+        try {
+          FilterFunction function=constructor.newInstance(session);
+          return function;
+        }
+ catch (        Throwable e) {
+          throw Throwables.propagate(e);
+        }
+      }
+    }
+;
   }
  catch (  Throwable e) {
     throw Throwables.propagate(e);

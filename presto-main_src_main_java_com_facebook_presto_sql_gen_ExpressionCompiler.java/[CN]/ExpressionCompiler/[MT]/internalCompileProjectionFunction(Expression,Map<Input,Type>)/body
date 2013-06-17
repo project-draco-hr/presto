@@ -1,6 +1,7 @@
 {
   ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(bootstrapMethod),a(PUBLIC,FINAL),typeFromPathName("ProjectionFunction_" + CLASS_ID.incrementAndGet()),type(Object.class),type(ProjectionFunction.class));
-  classDefinition.declareConstructor(new CompilerContext(bootstrapMethod),a(PUBLIC)).getBody().loadThis().invokeConstructor(Object.class).ret();
+  FieldDefinition sessionField=classDefinition.declareField(a(PRIVATE,FINAL),"session",Session.class);
+  classDefinition.declareConstructor(new CompilerContext(bootstrapMethod),a(PUBLIC),arg("session",Session.class)).getBody().loadThis().invokeConstructor(Object.class).comment("this.session = session;").loadThis().loadVariable("session").putField(classDefinition.getType(),sessionField).ret();
   MethodDefinition projectionMethod=classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),"project",type(void.class),arg("channels",TupleReadable[].class),arg("output",BlockBuilder.class));
   projectionMethod.getBody().loadThis();
   int channels=Ordering.natural().max(transform(inputTypes.keySet(),Input.channelGetter())) + 1;
@@ -29,8 +30,19 @@
   }
   Class<? extends ProjectionFunction> projectionClass=defineClasses(ImmutableList.of(classDefinition),createClassLoader()).values().iterator().next().asSubclass(ProjectionFunction.class);
   try {
-    ProjectionFunction function=projectionClass.newInstance();
-    return function;
+    final Constructor<? extends ProjectionFunction> constructor=projectionClass.getConstructor(Session.class);
+    return new Function<Session,ProjectionFunction>(){
+      @Override public ProjectionFunction apply(      Session session){
+        try {
+          ProjectionFunction function=constructor.newInstance(session);
+          return function;
+        }
+ catch (        Throwable e) {
+          throw Throwables.propagate(e);
+        }
+      }
+    }
+;
   }
  catch (  Throwable e) {
     throw Throwables.propagate(e);
