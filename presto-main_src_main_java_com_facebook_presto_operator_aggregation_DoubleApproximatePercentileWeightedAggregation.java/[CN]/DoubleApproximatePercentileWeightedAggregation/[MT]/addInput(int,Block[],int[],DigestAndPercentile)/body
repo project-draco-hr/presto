@@ -1,0 +1,21 @@
+{
+  BlockCursor valueCursor=blocks[VALUE_INDEX].cursor();
+  BlockCursor weightCursor=blocks[WEIGHT_INDEX].cursor();
+  int valueField=fields[VALUE_INDEX];
+  int weightField=fields[WEIGHT_INDEX];
+  while (valueCursor.advanceNextPosition() && weightCursor.advanceNextPosition()) {
+    if (!valueCursor.isNull(valueField) && !weightCursor.isNull(weightField)) {
+      double value=valueCursor.getDouble(valueField);
+      long weight=weightCursor.getLong(weightField);
+      currentValue.digest.add(doubleToSortableLong(value),weight);
+    }
+  }
+  BlockCursor percentileCursor=blocks[PERCENTILE_INDEX].cursor();
+  int percentileField=fields[PERCENTILE_INDEX];
+  if (percentileCursor.advanceNextPosition()) {
+    if (!percentileCursor.isNull(percentileField)) {
+      currentValue.percentile=percentileCursor.getDouble(percentileField);
+    }
+  }
+  return currentValue;
+}

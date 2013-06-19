@@ -1,0 +1,17 @@
+{
+  Preconditions.checkArgument(values.length == weights.length,"values.length must match weights.length");
+  Block valuesBlock;
+  Block weightsBlock;
+  Block percentilesBlock;
+  if (values.length == 0) {
+    valuesBlock=new UncompressedBlock(0,TupleInfo.SINGLE_LONG,Slices.EMPTY_SLICE);
+    weightsBlock=new UncompressedBlock(0,TupleInfo.SINGLE_LONG,Slices.EMPTY_SLICE);
+    percentilesBlock=new UncompressedBlock(0,TupleInfo.SINGLE_DOUBLE,Slices.EMPTY_SLICE);
+  }
+ else {
+    valuesBlock=createDoublesBlock(values);
+    weightsBlock=createLongsBlock(weights);
+    percentilesBlock=new RunLengthEncodedBlock(createTuple(percentile),values.length);
+  }
+  return new Page(valuesBlock,weightsBlock,percentilesBlock);
+}
