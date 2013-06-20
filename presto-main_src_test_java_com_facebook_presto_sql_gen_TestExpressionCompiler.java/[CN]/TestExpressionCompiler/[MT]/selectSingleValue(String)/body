@@ -1,10 +1,13 @@
 {
   checkNotNull(projection,"projection is null");
-  Operator compiledOperator=createCompiledOperator(projection);
-  Object compiledValue=execute(compiledOperator);
-  Type expressionType=Type.fromRaw(compiledOperator.getTupleInfos().get(0).getTypes().get(0));
+  OperatorFactory operatorFactory=createCompiledOperatorFactory(projection);
+  Operator operator=operatorFactory.createOperator(createTableScanOperator(SOURCE),SESSION);
+  Object directOperatorValue=execute(operator);
+  Type expressionType=Type.fromRaw(operator.getTupleInfos().get(0).getTypes().get(0));
+  Object recordValue=execute(operatorFactory.createOperator(createTableScanOperator(createRecordProjectOperator()),SESSION));
+  assertEquals(recordValue,directOperatorValue);
   FilterAndProjectOperator interpretedOperator=createInterpretedOperator(projection,expressionType);
   Object interpretedValue=execute(interpretedOperator);
-  assertEquals(interpretedValue,compiledValue);
-  return compiledValue;
+  assertEquals(interpretedValue,directOperatorValue);
+  return directOperatorValue;
 }
