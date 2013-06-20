@@ -1,8 +1,10 @@
 {
   ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(bootstrapMethod),a(PUBLIC,FINAL),typeFromPathName("FilterAndProjectIterator_" + CLASS_ID.incrementAndGet()),type(AbstractFilterAndProjectIterator.class));
   FieldDefinition sessionField=classDefinition.declareField(a(PRIVATE,FINAL),"session",Session.class);
-  classDefinition.declareConstructor(new CompilerContext(bootstrapMethod),a(PUBLIC),arg("tupleInfos",type(Iterable.class,TupleInfo.class)),arg("pageIterator",PageIterator.class),arg("session",Session.class)).getBody().comment("super(tupleInfos, pageIterator);").pushThis().getVariable("tupleInfos").getVariable("pageIterator").invokeConstructor(AbstractFilterAndProjectIterator.class,Iterable.class,PageIterator.class).comment("this.session = session;").pushThis().getVariable("session").putField(classDefinition.getType(),sessionField).ret();
-  generateFilterAndProjectCursorMethod(classDefinition,projections);
+  FieldDefinition operatorStatsField=classDefinition.declareField(a(PRIVATE,FINAL),"operatorStats",OperatorStats.class);
+  FieldDefinition currentCompletedSizeField=classDefinition.declareField(a(PRIVATE),"currentCompletedSize",long.class);
+  classDefinition.declareConstructor(new CompilerContext(bootstrapMethod),a(PUBLIC),arg("tupleInfos",type(Iterable.class,TupleInfo.class)),arg("pageIterator",PageIterator.class),arg("session",Session.class),arg("operatorStats",OperatorStats.class)).getBody().comment("super(tupleInfos, pageIterator);").pushThis().getVariable("tupleInfos").getVariable("pageIterator").getVariable("operatorStats").invokeConstructor(AbstractFilterAndProjectIterator.class,Iterable.class,PageIterator.class,OperatorStats.class).comment("this.session = session;").pushThis().getVariable("session").putField(sessionField).comment("this.operatorStats = operatorStats;").pushThis().getVariable("operatorStats").putField(operatorStatsField).ret();
+  generateFilterAndProjectCursorMethod(classDefinition,projections,operatorStatsField,currentCompletedSizeField);
   generateFilterAndProjectIteratorMethod(classDefinition,projections,inputTypes);
   generateFilterMethod(classDefinition,filter,inputTypes,true);
   generateFilterMethod(classDefinition,filter,inputTypes,false);
