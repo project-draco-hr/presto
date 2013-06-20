@@ -1,0 +1,14 @@
+{
+  ImmutableList.Builder<Expression> builder=ImmutableList.builder();
+  for (  Map.Entry<Symbol,Collection<Symbol>> entry : equalitySets.asMap().entrySet()) {
+    Symbol canonical=canonicalScopedSymbol(entry.getKey(),symbolScope);
+    if (canonical != null) {
+      for (      Symbol symbol : filter(entry.getValue(),symbolScope)) {
+        if (!symbol.equals(canonical)) {
+          builder.add(new ComparisonExpression(ComparisonExpression.Type.EQUAL,new QualifiedNameReference(canonical.toQualifiedName()),new QualifiedNameReference(symbol.toQualifiedName())));
+        }
+      }
+    }
+  }
+  return builder.build();
+}

@@ -1,0 +1,71 @@
+{
+  if (node.getType() == JoinNode.Type.LEFT) {
+    Set<Symbol> rightSymbols=ImmutableSet.copyOf(node.getRight().getOutputSymbols());
+    for (    Expression conjunct : extractConjuncts(inheritedPredicate)) {
+      if (DeterminismEvaluator.isDeterministic(conjunct)) {
+        Object response=nullInputEvaluator(rightSymbols,conjunct);
+        if (response == null || BooleanLiteral.FALSE_LITERAL.equals(response)) {
+          node=new JoinNode(node.getId(),JoinNode.Type.INNER,node.getLeft(),node.getRight(),node.getCriteria());
+          break;
+        }
+      }
+    }
+  }
+  EqualityInference.Builder inferenceBuilder=new EqualityInference.Builder();
+  inferenceBuilder.addAllEqualities(filter(extractConjuncts(inheritedPredicate),simpleEquality()));
+  EqualityInference inferenceWithoutJoin=inferenceBuilder.build();
+  for (  JoinNode.EquiJoinClause equiJoinClause : node.getCriteria()) {
+    inferenceBuilder.addEquality(equiJoinClause.getLeft(),equiJoinClause.getRight());
+  }
+  EqualityInference inferenceWithJoin=inferenceBuilder.build();
+  List<Expression> leftConjuncts=new ArrayList<>();
+  List<Expression> rightConjuncts=new ArrayList<>();
+  List<Expression> postJoinConjuncts=new ArrayList<>();
+  for (  Expression conjunct : filter(extractConjuncts(inheritedPredicate),not(simpleEquality()))) {
+    if (!DeterminismEvaluator.isDeterministic(conjunct)) {
+      postJoinConjuncts.add(conjunct);
+    }
+ else     if (node.getType() == JoinNode.Type.INNER) {
+      Expression leftRewrittenConjunct=inferenceWithJoin.rewritePredicate(conjunct,in(node.getLeft().getOutputSymbols()));
+      if (leftRewrittenConjunct != null) {
+        leftConjuncts.add(leftRewrittenConjunct);
+      }
+      Expression rightRewrittenConjunct=inferenceWithJoin.rewritePredicate(conjunct,in(node.getRight().getOutputSymbols()));
+      if (rightRewrittenConjunct != null) {
+        rightConjuncts.add(rightRewrittenConjunct);
+      }
+      if (leftRewrittenConjunct == null && rightRewrittenConjunct == null) {
+        postJoinConjuncts.add(conjunct);
+      }
+    }
+ else     if (node.getType() == JoinNode.Type.LEFT) {
+      Set<Symbol> symbols=DependencyExtractor.extract(conjunct);
+      if (node.getLeft().getOutputSymbols().containsAll(symbols)) {
+        leftConjuncts.add(conjunct);
+        Expression rightRewrittenConjunct=inferenceWithJoin.rewritePredicate(conjunct,in(node.getRight().getOutputSymbols()));
+        if (rightRewrittenConjunct != null) {
+          rightConjuncts.add(rightRewrittenConjunct);
+        }
+      }
+ else {
+        postJoinConjuncts.add(conjunct);
+      }
+    }
+ else {
+      throw new UnsupportedOperationException("Unsupported join type: " + node.getType());
+    }
+  }
+  leftConjuncts.addAll(inferenceWithJoin.scopedEqualityPredicates(in(node.getLeft().getOutputSymbols())));
+  rightConjuncts.addAll(inferenceWithJoin.scopedEqualityPredicates(in(node.getRight().getOutputSymbols())));
+  postJoinConjuncts.addAll(inferenceWithoutJoin.scopeBridgePredicates(in(node.getLeft().getOutputSymbols())));
+  PlanNode leftSource=planRewriter.rewrite(node.getLeft(),ExpressionUtils.combineConjuncts(leftConjuncts));
+  PlanNode rightSource=planRewriter.rewrite(node.getRight(),ExpressionUtils.combineConjuncts(rightConjuncts));
+  PlanNode output=node;
+  if (leftSource != node.getLeft() || rightSource != node.getRight()) {
+    output=new JoinNode(node.getId(),node.getType(),leftSource,rightSource,node.getCriteria());
+  }
+  if (!postJoinConjuncts.isEmpty()) {
+    output=new FilterNode(idAllocator.getNextId(),output,and(postJoinConjuncts));
+  }
+  return output;
+}

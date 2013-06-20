@@ -1,0 +1,18 @@
+{
+  ImmutableMap.Builder<Symbol,Object> assignments=ImmutableMap.builder();
+  for (  Map.Entry<ColumnHandle,Object> entry : partition.getKeys().entrySet()) {
+    ColumnHandle columnHandle=entry.getKey();
+    if (columnToSymbol.containsKey(columnHandle)) {
+      Symbol symbol=columnToSymbol.get(columnHandle);
+      assignments.put(symbol,entry.getValue());
+    }
+  }
+  ExpressionInterpreter optimizer=ExpressionInterpreter.expressionOptimizer(new LookupSymbolResolver(assignments.build()),metadata,session);
+  for (  Expression expression : extractConjuncts(predicate)) {
+    Object optimized=optimizer.process(expression,null);
+    if (Boolean.FALSE.equals(optimized) || optimized == null) {
+      return true;
+    }
+  }
+  return false;
+}

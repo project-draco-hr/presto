@@ -1,0 +1,18 @@
+{
+  super(id);
+  Preconditions.checkNotNull(table,"table is null");
+  Preconditions.checkNotNull(outputSymbols,"outputSymbols is null");
+  Preconditions.checkArgument(!outputSymbols.isEmpty(),"outputSymbols is empty");
+  Preconditions.checkNotNull(assignments,"assignments is null");
+  Preconditions.checkArgument(!assignments.isEmpty(),"assignments is empty");
+  Preconditions.checkNotNull(partitionPredicate,"partitionPredicate is null");
+  Preconditions.checkNotNull(upstreamPredicateHint,"upstreamPredicateHint is null");
+  this.table=table;
+  this.outputSymbols=ImmutableList.copyOf(outputSymbols);
+  this.assignments=ImmutableMap.copyOf(assignments);
+  this.partitionPredicate=partitionPredicate;
+  this.upstreamPredicateHint=upstreamPredicateHint;
+  Preconditions.checkArgument(assignments.keySet().containsAll(outputSymbols),"Assignments must provide mappings for all output symbols");
+  Preconditions.checkArgument(assignments.keySet().containsAll(DependencyExtractor.extract(partitionPredicate)),"Assignments must provide mappings for all partition predicate symbols");
+  Preconditions.checkArgument(outputSymbols.containsAll(DependencyExtractor.extract(upstreamPredicateHint)),"Upstream predicate hint must be in terms of output symbols");
+}

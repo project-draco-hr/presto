@@ -1,0 +1,9 @@
+{
+  TableWriter tableWriter=new TableWriter(node,shardManager);
+  NodeSplits nodeSplits=node.getSource().accept(this,tableWriterPartitionPredicate);
+  checkState(nodeSplits.dataSource.isPresent(),"No splits present for import");
+  DataSource dataSource=nodeSplits.dataSource.get();
+  outputReceivers.put(node.getId(),tableWriter.getOutputReceiver());
+  Iterable<Split> newSplits=tableWriter.wrapSplits(nodeSplits.planNodeId,dataSource.getSplits());
+  return new NodeSplits(node.getId(),new DataSource(dataSource.getDataSourceName(),newSplits));
+}

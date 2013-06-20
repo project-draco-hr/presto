@@ -1,0 +1,12 @@
+{
+  HashSet<Symbol> seenCanonicals=new HashSet<>();
+  ImmutableSetMultimap.Builder<Symbol,Symbol> builder=ImmutableSetMultimap.builder();
+  for (  Symbol symbol : map.keySet()) {
+    Symbol canonical=canonicalize(symbol);
+    if (!seenCanonicals.contains(canonical)) {
+      builder.putAll(canonical,extractEqualSymbols(canonical));
+      seenCanonicals.add(canonical);
+    }
+  }
+  return new EqualityInference(builder.build());
+}

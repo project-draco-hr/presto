@@ -1,0 +1,17 @@
+{
+  boolean modified=false;
+  ImmutableList.Builder<PlanNode> builder=ImmutableList.builder();
+  for (int i=0; i < node.getSources().size(); i++) {
+    Expression sourcePredicate=TreeRewriter.rewriteWith(new ExpressionInliner(node.sourceSymbolMap(i)),inheritedPredicate);
+    PlanNode source=node.getSources().get(i);
+    PlanNode rewrittenSource=planRewriter.rewrite(source,sourcePredicate);
+    if (rewrittenSource != source) {
+      modified=true;
+    }
+    builder.add(rewrittenSource);
+  }
+  if (modified) {
+    return new UnionNode(node.getId(),builder.build(),node.getSymbolMapping());
+  }
+  return node;
+}

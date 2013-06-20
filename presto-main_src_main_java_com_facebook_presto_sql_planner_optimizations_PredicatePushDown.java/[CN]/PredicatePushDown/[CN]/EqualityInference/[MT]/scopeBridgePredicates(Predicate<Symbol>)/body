@@ -1,0 +1,11 @@
+{
+  ImmutableList.Builder<Expression> builder=ImmutableList.builder();
+  for (  Map.Entry<Symbol,Collection<Symbol>> entry : equalitySets.asMap().entrySet()) {
+    Symbol canonical=canonicalScopedSymbol(entry.getKey(),symbolScope);
+    Symbol complementCanonical=canonicalScopedSymbol(entry.getKey(),not(symbolScope));
+    if (canonical != null && complementCanonical != null) {
+      builder.add(new ComparisonExpression(ComparisonExpression.Type.EQUAL,new QualifiedNameReference(canonical.toQualifiedName()),new QualifiedNameReference(complementCanonical.toQualifiedName())));
+    }
+  }
+  return builder.build();
+}

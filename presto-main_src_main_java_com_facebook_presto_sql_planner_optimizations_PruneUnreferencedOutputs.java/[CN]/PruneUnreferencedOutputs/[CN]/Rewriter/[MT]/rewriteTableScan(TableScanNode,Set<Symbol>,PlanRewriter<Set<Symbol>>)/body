@@ -1,19 +1,17 @@
 {
-  boolean empty=true;
-  ImmutableMap.Builder<Symbol,ColumnHandle> assignments=ImmutableMap.builder();
-  for (  Map.Entry<Symbol,ColumnHandle> entry : node.getAssignments().entrySet()) {
-    Symbol symbol=entry.getKey();
-    if (expectedOutputs.contains(symbol) || expectedOutputs.isEmpty() && Type.isNumeric(types.get(symbol))) {
-      assignments.put(symbol,entry.getValue());
-      empty=false;
-      if (expectedOutputs.isEmpty()) {
+  if (expectedOutputs.isEmpty()) {
+    for (    Symbol symbol : node.getOutputSymbols()) {
+      if (Type.isNumeric(types.get(symbol))) {
+        expectedOutputs=ImmutableSet.of(symbol);
         break;
       }
     }
+    if (expectedOutputs.isEmpty()) {
+      expectedOutputs=ImmutableSet.of(node.getOutputSymbols().get(0));
+    }
   }
-  if (empty) {
-    Map.Entry<Symbol,ColumnHandle> first=Iterables.getFirst(node.getAssignments().entrySet(),null);
-    assignments.put(first.getKey(),first.getValue());
-  }
-  return new TableScanNode(node.getId(),node.getTable(),assignments.build());
+  checkState(!expectedOutputs.isEmpty());
+  Set<Symbol> requiredSymbols=Sets.union(expectedOutputs,DependencyExtractor.extract(node.getPartitionPredicate()));
+  Map<Symbol,ColumnHandle> newAssignments=Maps.filterKeys(node.getAssignments(),in(requiredSymbols));
+  return new TableScanNode(node.getId(),node.getTable(),ImmutableList.copyOf(expectedOutputs),newAssignments,node.getPartitionPredicate(),node.getUpstreamPredicateHint());
 }

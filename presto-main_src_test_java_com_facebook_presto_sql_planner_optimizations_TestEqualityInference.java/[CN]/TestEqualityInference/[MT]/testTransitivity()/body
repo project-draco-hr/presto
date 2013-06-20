@@ -1,0 +1,18 @@
+{
+  EqualityInference.Builder builder=new EqualityInference.Builder();
+  addEquality("a1","b1",builder);
+  addEquality("b1","c1",builder);
+  addEquality("d1","c1",builder);
+  addEquality("a2","b2",builder);
+  addEquality("b2","a2",builder);
+  addEquality("b2","c2",builder);
+  addEquality("d2","b2",builder);
+  addEquality("c2","d2",builder);
+  EqualityInference inference=builder.build();
+  Assert.assertEquals(inference.rewritePredicate(someExpression("a1","a2"),matchesSymbols("d1","d2")),someExpression("d1","d2"));
+  Assert.assertEquals(inference.rewritePredicate(someExpression("a1","c1"),matchesSymbols("b1")),someExpression("b1","b1"));
+  Assert.assertEquals(inference.rewritePredicate(someExpression("a1","a2"),matchesSymbols("b1","d2","c3")),someExpression("b1","d2"));
+  Assert.assertEquals(inference.canonicalScopedSymbol(new Symbol("a2"),matchesSymbols("c2","d2")),inference.canonicalScopedSymbol(new Symbol("b2"),matchesSymbols("c2","d2")));
+  Symbol canonical=inference.canonicalScopedSymbol(new Symbol("a2"),matchesSymbols("c2","d2"));
+  Assert.assertEquals(inference.rewritePredicate(someExpression("a2","b2"),matchesSymbols("c2","d2")),someExpression(canonical.getName(),canonical.getName()));
+}

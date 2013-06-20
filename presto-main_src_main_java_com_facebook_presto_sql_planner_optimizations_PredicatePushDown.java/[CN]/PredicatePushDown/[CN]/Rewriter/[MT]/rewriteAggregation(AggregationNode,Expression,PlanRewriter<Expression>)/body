@@ -1,0 +1,26 @@
+{
+  EqualityInference equalityInference=new EqualityInference.Builder().addAllEqualities(filter(extractConjuncts(inheritedPredicate),simpleEquality())).build();
+  List<Expression> pushdownConjuncts=new ArrayList<>();
+  List<Expression> postAggregationConjuncts=new ArrayList<>();
+  for (  Expression conjunct : filter(extractConjuncts(inheritedPredicate),not(simpleEquality()))) {
+    Expression rewrittenConjunct=equalityInference.rewritePredicate(conjunct,in(node.getGroupBy()));
+    if (rewrittenConjunct != null && DeterminismEvaluator.isDeterministic(rewrittenConjunct)) {
+      pushdownConjuncts.add(rewrittenConjunct);
+    }
+ else {
+      postAggregationConjuncts.add(conjunct);
+    }
+  }
+  pushdownConjuncts.addAll(equalityInference.scopedEqualityPredicates(in(node.getGroupBy())));
+  postAggregationConjuncts.addAll(equalityInference.scopedEqualityPredicates(not(in(node.getGroupBy()))));
+  postAggregationConjuncts.addAll(equalityInference.scopeBridgePredicates(in(node.getGroupBy())));
+  PlanNode rewrittenSource=planRewriter.rewrite(node.getSource(),ExpressionUtils.combineConjuncts(pushdownConjuncts));
+  PlanNode output=node;
+  if (rewrittenSource != node.getSource()) {
+    output=new AggregationNode(node.getId(),rewrittenSource,node.getGroupBy(),node.getAggregations(),node.getFunctions(),node.getStep());
+  }
+  if (!postAggregationConjuncts.isEmpty()) {
+    output=new FilterNode(idAllocator.getNextId(),output,and(postAggregationConjuncts));
+  }
+  return output;
+}

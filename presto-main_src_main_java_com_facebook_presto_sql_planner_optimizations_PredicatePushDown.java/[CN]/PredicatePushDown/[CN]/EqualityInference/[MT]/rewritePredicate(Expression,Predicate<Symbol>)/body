@@ -1,0 +1,12 @@
+{
+  ImmutableMap.Builder<Symbol,QualifiedNameReference> symbolRemap=ImmutableMap.builder();
+  Set<Symbol> symbols=DependencyExtractor.extract(predicate);
+  for (  Symbol symbol : filter(symbols,not(symbolScope))) {
+    Symbol canonicalSymbol=canonicalScopedSymbol(symbol,symbolScope);
+    if (canonicalSymbol == null) {
+      return null;
+    }
+    symbolRemap.put(symbol,new QualifiedNameReference(canonicalSymbol.toQualifiedName()));
+  }
+  return TreeRewriter.rewriteWith(new ExpressionInliner(symbolRemap.build()),predicate);
+}

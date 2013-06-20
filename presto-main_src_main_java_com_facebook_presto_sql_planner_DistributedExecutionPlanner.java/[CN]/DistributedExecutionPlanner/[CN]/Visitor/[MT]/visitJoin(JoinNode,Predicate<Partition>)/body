@@ -1,0 +1,13 @@
+{
+  NodeSplits leftSplits=node.getLeft().accept(this,tableWriterPartitionPredicate);
+  NodeSplits rightSplits=node.getRight().accept(this,tableWriterPartitionPredicate);
+  if (leftSplits.dataSource.isPresent() && rightSplits.dataSource.isPresent()) {
+    throw new IllegalArgumentException("Both left and right join nodes are partitioned");
+  }
+  if (leftSplits.dataSource.isPresent()) {
+    return leftSplits;
+  }
+ else {
+    return rightSplits;
+  }
+}
