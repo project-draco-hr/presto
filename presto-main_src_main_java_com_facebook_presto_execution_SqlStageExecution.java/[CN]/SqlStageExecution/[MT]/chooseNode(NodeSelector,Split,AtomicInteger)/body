@@ -8,6 +8,15 @@
     if (task == null || task.getQueuedSplits() < maxPendingSplitsPerNode) {
       return chosen;
     }
+    if (!subStages.isEmpty()) {
+      nodeSelector.lockDownNodes();
+      for (      Node node : Sets.difference(new HashSet<>(nodeSelector.allNodes()),tasks.keySet())) {
+        scheduleTask(nextTaskId,node,null);
+      }
+      for (      StageExecutionNode subStage : subStages.values()) {
+        subStage.noMoreOutputBuffers();
+      }
+    }
 synchronized (this) {
       try {
         TimeUnit.SECONDS.timedWait(this,1);
