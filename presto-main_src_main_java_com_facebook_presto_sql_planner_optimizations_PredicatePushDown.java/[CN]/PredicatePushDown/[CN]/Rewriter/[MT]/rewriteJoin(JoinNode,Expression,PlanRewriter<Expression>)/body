@@ -1,16 +1,5 @@
 {
-  if (node.getType() == JoinNode.Type.LEFT) {
-    Set<Symbol> rightSymbols=ImmutableSet.copyOf(node.getRight().getOutputSymbols());
-    for (    Expression conjunct : extractConjuncts(inheritedPredicate)) {
-      if (DeterminismEvaluator.isDeterministic(conjunct)) {
-        Object response=nullInputEvaluator(rightSymbols,conjunct);
-        if (response == null || BooleanLiteral.FALSE_LITERAL.equals(response)) {
-          node=new JoinNode(node.getId(),JoinNode.Type.INNER,node.getLeft(),node.getRight(),node.getCriteria());
-          break;
-        }
-      }
-    }
-  }
+  node=tryNormalizeToInnerJoin(node,inheritedPredicate);
   EqualityInference.Builder inferenceBuilder=new EqualityInference.Builder();
   inferenceBuilder.addAllEqualities(filter(extractConjuncts(inheritedPredicate),simpleEquality()));
   EqualityInference inferenceWithoutJoin=inferenceBuilder.build();
@@ -51,6 +40,19 @@
         postJoinConjuncts.add(conjunct);
       }
     }
+ else     if (node.getType() == JoinNode.Type.RIGHT) {
+      Set<Symbol> symbols=DependencyExtractor.extract(conjunct);
+      if (node.getRight().getOutputSymbols().containsAll(symbols)) {
+        rightConjuncts.add(conjunct);
+        Expression leftRewrittenConjunct=inferenceWithJoin.rewritePredicate(conjunct,in(node.getLeft().getOutputSymbols()));
+        if (leftRewrittenConjunct != null) {
+          leftConjuncts.add(leftRewrittenConjunct);
+        }
+      }
+ else {
+        postJoinConjuncts.add(conjunct);
+      }
+    }
  else {
       throw new UnsupportedOperationException("Unsupported join type: " + node.getType());
     }
@@ -63,6 +65,10 @@ break;
 case LEFT:
 leftConjuncts.addAll(inferenceWithoutJoin.scopedEqualityPredicates(in(node.getLeft().getOutputSymbols())));
 rightConjuncts.addAll(inferenceWithJoin.scopedEqualityPredicates(in(node.getRight().getOutputSymbols())));
+break;
+case RIGHT:
+leftConjuncts.addAll(inferenceWithJoin.scopedEqualityPredicates(in(node.getLeft().getOutputSymbols())));
+rightConjuncts.addAll(inferenceWithoutJoin.scopedEqualityPredicates(in(node.getRight().getOutputSymbols())));
 break;
 default :
 throw new UnsupportedOperationException("Unsupported join type: " + node.getType());

@@ -2,20 +2,15 @@
   List<JoinNode.EquiJoinClause> clauses=node.getCriteria();
   PhysicalOperation leftSource=node.getLeft().accept(this,context);
   List<Symbol> leftSymbols=Lists.transform(clauses,leftGetter());
-  leftSource=packIfNecessary(leftSymbols,leftSource,context.getTypes());
   PhysicalOperation rightSource=node.getRight().accept(this,context);
   List<Symbol> rightSymbols=Lists.transform(clauses,rightGetter());
-  rightSource=packIfNecessary(rightSymbols,rightSource,context.getTypes());
-  int probeChannel=Iterables.getOnlyElement(ImmutableSet.copyOf(getChannelsForSymbols(leftSymbols,leftSource.getLayout())));
-  int buildChannel=Iterables.getOnlyElement(ImmutableSet.copyOf(getChannelsForSymbols(rightSymbols,rightSource.getLayout())));
-  SourceHashProvider hashProvider=context.getJoinHashFactory().getSourceHashProvider(node,rightSource.getOperator(),buildChannel,context.getOperatorStats());
-  ImmutableMultimap.Builder<Symbol,Input> outputMappings=ImmutableMultimap.builder();
-  outputMappings.putAll(leftSource.getLayout());
-  int offset=leftSource.getOperator().getChannelCount();
-  for (  Map.Entry<Symbol,Input> entry : rightSource.getLayout().entries()) {
-    Input input=entry.getValue();
-    outputMappings.put(entry.getKey(),new Input(offset + input.getChannel(),input.getField()));
-  }
-  HashJoinOperator operator=createJoinOperator(node.getType(),hashProvider,leftSource.getOperator(),probeChannel);
-  return new PhysicalOperation(operator,outputMappings.build());
+switch (node.getType()) {
+case INNER:
+case LEFT:
+    return createJoinOperator(node,leftSource,leftSymbols,rightSource,rightSymbols,context);
+case RIGHT:
+  return createJoinOperator(node,rightSource,rightSymbols,leftSource,leftSymbols,context);
+default :
+throw new UnsupportedOperationException("Unsupported join type: " + node.getType());
+}
 }

@@ -1,0 +1,12 @@
+{
+  Set<Symbol> innerSymbols=ImmutableSet.copyOf(innerSymbolsForOuterJoin);
+  for (  Expression conjunct : extractConjuncts(inheritedPredicate)) {
+    if (DeterminismEvaluator.isDeterministic(conjunct)) {
+      Object response=nullInputEvaluator(innerSymbols,conjunct);
+      if (response == null || BooleanLiteral.FALSE_LITERAL.equals(response)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
