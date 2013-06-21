@@ -1,11 +1,11 @@
 {
   QualifiedTableName remoteTableName=createQualifiedTableName(stateMachine.getSession(),statement.getRemote());
   Optional<TableHandle> remoteTableHandle=metadataManager.getTableHandle(remoteTableName);
-  checkState(!remoteTableHandle.isPresent(),"Table %s does not exist",remoteTableName);
+  checkState(remoteTableHandle.isPresent(),"Table %s does not exist",remoteTableName);
   Optional<String> remoteConnectorId=metadataManager.getConnectorId(remoteTableHandle.get());
-  Preconditions.checkArgument(remoteConnectorId.isPresent(),"Table %s can not an alias",remoteTableName);
+  checkArgument(remoteConnectorId.isPresent(),"Alias table %s does not exist",remoteTableName);
   TableAlias tableAlias=aliasDao.getAlias(remoteConnectorId.get(),remoteTableName.getSchemaName(),remoteTableName.getTableName());
-  checkState(tableAlias != null,"Table %s is not an alias",remoteTableName);
+  checkState(tableAlias != null,"Table %s has no alias assigned",remoteTableName);
   aliasDao.dropAlias(tableAlias);
   stateMachine.finished();
 }
