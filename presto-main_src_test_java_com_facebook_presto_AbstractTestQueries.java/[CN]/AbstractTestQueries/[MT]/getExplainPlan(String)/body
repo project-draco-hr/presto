@@ -1,0 +1,8 @@
+{
+  Session session=new Session("user","test",DEFAULT_CATALOG,DEFAULT_SCHEMA,null,null);
+  MetadataManager metadata=new MetadataManager();
+  metadata.addInternalSchemaMetadata(new DualMetadata());
+  List<PlanOptimizer> optimizers=new PlanOptimizersFactory(metadata).get();
+  QueryExplainer explainer=new QueryExplainer(session,optimizers,metadata,new MockPeriodicImportManager(),new MockStorageManager());
+  return explainer.getPlan((Query)SqlParser.createStatement(query));
+}
