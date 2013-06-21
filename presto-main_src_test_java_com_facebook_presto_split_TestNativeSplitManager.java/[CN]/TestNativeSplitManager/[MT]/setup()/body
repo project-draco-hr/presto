@@ -1,0 +1,23 @@
+{
+  IDBI dbi=new DBI("jdbc:h2:mem:test" + System.nanoTime());
+  dummyHandle=dbi.open();
+  dataDir=Files.createTempDir();
+  ShardManager shardManager=new DatabaseShardManager(dbi);
+  InMemoryNodeManager nodeManager=new InMemoryNodeManager();
+  String nodeName=UUID.randomUUID().toString();
+  nodeManager.addNode("native",new Node(nodeName,new URI("http://127.0.0.1/"),NodeVersion.UNKNOWN));
+  MetadataManager metadataManager=new MetadataManager();
+  metadataManager.addConnectorMetadata("local",new NativeMetadata("native",dbi));
+  tableHandle=metadataManager.createTable("local",TEST_TABLE);
+  dsColumnHandle=metadataManager.getColumnHandle(tableHandle,"ds").get();
+  fooColumnHandle=metadataManager.getColumnHandle(tableHandle,"foo").get();
+  symbols=ImmutableMap.<Symbol,ColumnHandle>of(new Symbol("foo"),fooColumnHandle,new Symbol("ds"),dsColumnHandle);
+  long shardId1=shardManager.allocateShard(tableHandle);
+  long shardId2=shardManager.allocateShard(tableHandle);
+  long shardId3=shardManager.allocateShard(tableHandle);
+  long shardId4=shardManager.allocateShard(tableHandle);
+  shardManager.commitPartition(tableHandle,"ds=1",ImmutableList.<PartitionKey>of(new NativePartitionKey("ds=1","ds",ColumnType.STRING,"1")),ImmutableMap.of(shardId1,nodeName,shardId2,nodeName,shardId3,nodeName));
+  shardManager.commitPartition(tableHandle,"ds=2",ImmutableList.<PartitionKey>of(new NativePartitionKey("ds=2","ds",ColumnType.STRING,"2")),ImmutableMap.of(shardId4,nodeName));
+  nativeSplitManager=new NativeSplitManager(nodeManager,shardManager,metadataManager);
+  splitManager=new SplitManager(metadataManager,ImmutableSet.<ConnectorSplitManager>of(nativeSplitManager));
+}

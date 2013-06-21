@@ -1,0 +1,25 @@
+{
+  String nodeName=UUID.randomUUID().toString();
+  dao.insertNode(nodeName);
+  Long nodeId=dao.getNodeId(nodeName);
+  assertNotNull(nodeId);
+  long tableId=1;
+  long partitionId0=dao.insertPartition(tableId,"part_0");
+  long partitionId1=dao.insertPartition(tableId,"part_1");
+  long partitionId2=dao.insertPartition(tableId,"part_2");
+  long shardId0=dao.insertShard(tableId,true);
+  long shardId1=dao.insertShard(tableId,true);
+  long shardId2=dao.insertShard(tableId,true);
+  dao.insertShardNode(shardId0,nodeId);
+  dao.insertShardNode(shardId1,nodeId);
+  dao.insertShardNode(shardId2,nodeId);
+  dao.insertPartitionShard(shardId0,tableId,partitionId0);
+  dao.insertPartitionShard(shardId1,tableId,partitionId1);
+  dao.insertPartitionShard(shardId2,tableId,partitionId2);
+  Set<TablePartition> partitions=dao.getPartitions(tableId);
+  assertEquals(partitions.size(),3);
+  List<ShardNode> partitionNodes=dao.getCommittedShardNodesByPartitionId(partitionId1);
+  assertEquals(partitionNodes.size(),1);
+  List<ShardNode> tableNodes=dao.getCommittedShardNodesByTableId(tableId);
+  assertEquals(tableNodes.size(),3);
+}

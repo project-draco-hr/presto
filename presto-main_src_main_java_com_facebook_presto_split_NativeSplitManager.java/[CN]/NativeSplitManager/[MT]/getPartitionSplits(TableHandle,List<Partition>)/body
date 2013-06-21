@@ -1,18 +1,27 @@
 {
+  Stopwatch splitTimer=new Stopwatch();
+  splitTimer.start();
   checkNotNull(partitions,"partitions is null");
   if (partitions.isEmpty()) {
     return ImmutableList.of();
   }
-  Partition partition=Iterables.getOnlyElement(partitions);
-  checkArgument(partition instanceof NativePartition,"Partition must be a native partition");
-  NativePartition nativePartition=(NativePartition)partition;
   Map<String,Node> nodesById=uniqueIndex(nodeManager.getAllNodes().getActiveNodes(),Node.getIdentifierFunction());
-  Multimap<Long,String> shardNodes=shardManager.getCommittedShardNodes(nativePartition.getTable().getTableId());
-  ImmutableList.Builder<Split> splits=ImmutableList.builder();
-  for (  Map.Entry<Long,Collection<String>> entry : shardNodes.asMap().entrySet()) {
-    List<HostAddress> addresses=getAddressesForNodes(nodesById,entry.getValue());
-    Split split=new NativeSplit(entry.getKey(),addresses);
-    splits.add(split);
+  List<Split> splits=new ArrayList<>();
+  Multimap<Long,Entry<Long,String>> partitionShardNodes=shardManager.getCommittedPartitionShardNodes(tableHandle);
+  for (  Partition partition : partitions) {
+    checkArgument(partition instanceof NativePartition,"Partition must be a native partition");
+    NativePartition nativePartition=(NativePartition)partition;
+    ImmutableMultimap.Builder<Long,String> shardNodes=ImmutableMultimap.builder();
+    for (    Entry<Long,String> partitionShardNode : partitionShardNodes.get(nativePartition.getNativePartitionId())) {
+      shardNodes.put(partitionShardNode.getKey(),partitionShardNode.getValue());
+    }
+    for (    Map.Entry<Long,Collection<String>> entry : shardNodes.build().asMap().entrySet()) {
+      List<HostAddress> addresses=getAddressesForNodes(nodesById,entry.getValue());
+      Split split=new NativeSplit(entry.getKey(),addresses);
+      splits.add(split);
+    }
   }
-  return splits.build();
+  log.debug("Split retrieval for %d partitions (%d splits): %dms",partitions.size(),splits.size(),splitTimer.elapsed(TimeUnit.MILLISECONDS));
+  Collections.shuffle(splits);
+  return ImmutableList.copyOf(splits);
 }

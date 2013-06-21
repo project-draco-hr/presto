@@ -1,0 +1,8 @@
+{
+  List<Partition> partitions=splitManager.getPartitions(tableHandle,Optional.<Map<ColumnHandle,Object>>of(ImmutableMap.<ColumnHandle,Object>of(dsColumnHandle,"foo")));
+  assertEquals(partitions.size(),2);
+  Expression nonMatching=new ComparisonExpression(Type.EQUAL,new QualifiedNameReference(new QualifiedName("foo")),new StringLiteral("bar"));
+  DataSource dataSource=splitManager.getSplits(session,tableHandle,BooleanLiteral.TRUE_LITERAL,nonMatching,Predicates.<Partition>alwaysTrue(),symbols);
+  List<Split> splits=ImmutableList.copyOf(dataSource.getSplits());
+  assertEquals(splits.size(),4);
+}

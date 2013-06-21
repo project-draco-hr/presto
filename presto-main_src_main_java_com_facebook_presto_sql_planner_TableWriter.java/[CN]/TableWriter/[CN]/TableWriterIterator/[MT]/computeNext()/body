@@ -4,12 +4,14 @@
     NativeSplit writingSplit=new NativeSplit(shardManager.allocateShard(tableWriterNode.getTable()),sourceSplit.getAddresses());
     String partition="unpartitioned";
     boolean lastSplit=false;
+    List<? extends PartitionKey> partitionKeys=ImmutableList.of();
     if (sourceSplit instanceof PartitionedSplit) {
       PartitionedSplit partitionedSplit=(PartitionedSplit)sourceSplit;
       partition=partitionedSplit.getPartitionId();
       lastSplit=partitionedSplit.isLastSplit();
+      partitionKeys=partitionedSplit.getPartitionKeys();
     }
-    addPartitionShard(partition,lastSplit,writingSplit.getShardId());
+    addPartitionShard(partition,lastSplit,partitionKeys,writingSplit.getShardId());
     CollocatedSplit collocatedSplit=new CollocatedSplit(ImmutableMap.of(planNodeId,sourceSplit,tableWriterNode.getId(),writingSplit),sourceSplit.getAddresses(),sourceSplit.isRemotelyAccessible());
     shardsInFlight.incrementAndGet();
     return collocatedSplit;

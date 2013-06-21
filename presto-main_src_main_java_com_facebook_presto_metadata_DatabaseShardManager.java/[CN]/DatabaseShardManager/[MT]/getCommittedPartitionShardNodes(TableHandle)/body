@@ -1,0 +1,11 @@
+{
+  checkNotNull(tableHandle,"tableHandle is null");
+  checkState(tableHandle instanceof NativeTableHandle,"tableHandle not a native table");
+  final long tableId=((NativeTableHandle)tableHandle).getTableId();
+  ImmutableMultimap.Builder<Long,Entry<Long,String>> map=ImmutableMultimap.builder();
+  List<ShardNode> shardNodes=dao.getCommittedShardNodesByTableId(tableId);
+  for (  ShardNode shardNode : shardNodes) {
+    map.put(shardNode.getPartitionId(),Maps.immutableEntry(shardNode.getShardId(),shardNode.getNodeIdentifier()));
+  }
+  return map.build();
+}

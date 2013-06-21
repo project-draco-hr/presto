@@ -1,0 +1,39 @@
+{
+  String partitionName=tablePartition.getPartitionName();
+  ImmutableMap.Builder<ColumnHandle,Object> builder=ImmutableMap.builder();
+  for (  PartitionKey partitionKey : allPartitionKeys.get(partitionName)) {
+    ColumnHandle columnHandle=columnHandles.get(partitionKey.getName());
+    checkArgument(columnHandles != null,"Invalid partition key for column %s in partition %s",partitionKey.getName(),tablePartition.getPartitionName());
+    String value=partitionKey.getValue();
+switch (partitionKey.getType()) {
+case BOOLEAN:
+      if (value.length() == 0) {
+        builder.put(columnHandle,false);
+      }
+ else {
+        builder.put(columnHandle,Boolean.parseBoolean(value));
+      }
+    break;
+case LONG:
+  if (value.length() == 0) {
+    builder.put(columnHandle,0L);
+  }
+ else {
+    builder.put(columnHandle,Long.parseLong(value));
+  }
+break;
+case DOUBLE:
+if (value.length() == 0) {
+builder.put(columnHandle,0L);
+}
+ else {
+builder.put(columnHandle,Double.parseDouble(value));
+}
+break;
+case STRING:
+builder.put(columnHandle,value);
+break;
+}
+}
+return new NativePartition(tablePartition.getPartitionId(),builder.build());
+}

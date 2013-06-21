@@ -1,0 +1,11 @@
+{
+  checkNotNull(tableHandle,"tableHandle is null");
+  checkState(tableHandle instanceof NativeTableHandle,"can only commit partitions for native tables");
+  final long tableId=((NativeTableHandle)tableHandle).getTableId();
+  Set<NativePartitionKey> partitionKeys=dao.getPartitionKeys(tableId);
+  ImmutableMultimap.Builder<String,PartitionKey> builder=ImmutableMultimap.builder();
+  for (  NativePartitionKey partitionKey : partitionKeys) {
+    builder.put(partitionKey.getPartitionName(),partitionKey);
+  }
+  return builder.build();
+}

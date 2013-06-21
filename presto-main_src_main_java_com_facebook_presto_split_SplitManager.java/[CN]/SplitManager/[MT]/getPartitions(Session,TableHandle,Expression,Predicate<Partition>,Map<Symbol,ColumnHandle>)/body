@@ -1,7 +1,12 @@
 {
+  Stopwatch partitionTimer=new Stopwatch();
+  partitionTimer.start();
   BiMap<Symbol,ColumnHandle> symbolToColumn=ImmutableBiMap.copyOf(mappings);
   List<Partition> partitions=getCandidatePartitions(table,predicate,symbolToColumn);
+  log.debug("Partition retrieval, table %s (%d partitions): %dms",table,partitions.size(),partitionTimer.elapsed(TimeUnit.MILLISECONDS));
   partitions=ImmutableList.copyOf(filter(partitions,partitionPredicate));
+  log.debug("Partition filter, table %s (%d partitions): %dms",table,partitions.size(),partitionTimer.elapsed(TimeUnit.MILLISECONDS));
   partitions=prunePartitions(session,partitions,predicate,symbolToColumn.inverse());
+  log.debug("Partition pruning, table %s (%d partitions): %dms",table,partitions.size(),partitionTimer.elapsed(TimeUnit.MILLISECONDS));
   return partitions;
 }
