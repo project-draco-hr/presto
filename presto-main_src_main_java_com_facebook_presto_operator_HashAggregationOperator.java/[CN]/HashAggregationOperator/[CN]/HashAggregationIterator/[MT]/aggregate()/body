@@ -1,12 +1,22 @@
 {
+  if (!iterator.hasNext()) {
+    return ImmutableList.<Page>of().iterator();
+  }
+  ImmutableList.Builder<Aggregator> builder=ImmutableList.builder();
+  for (  AggregationFunctionDefinition functionDefinition : checkNotNull(functionDefinitions,"functionDefinitions is null")) {
+    builder.add(createAggregator(functionDefinition,step,expectedGroups));
+  }
+  final List<Aggregator> aggregates=builder.build();
+  SliceHashStrategy hashStrategy=new SliceHashStrategy(groupByTupleInfo);
+  Long2IntOpenCustomHashMap addressToGroupId=new Long2IntOpenCustomHashMap(expectedGroups,hashStrategy);
+  addressToGroupId.defaultReturnValue(-1);
   Slice slice=Slices.allocate((int)BlockBuilder.DEFAULT_MAX_BLOCK_SIZE.toBytes());
   hashStrategy.addSlice(slice);
   BlockBuilder blockBuilder=new BlockBuilder(groupByTupleInfo,slice.length(),slice.getOutput());
   int nextGroupId=0;
   List<UncompressedBlock> groupByBlocks=new ArrayList<>();
   BlockCursor[] cursors=new BlockCursor[iterator.getChannelCount()];
-  while (iterator.hasNext()) {
-    checkMaxMemory(maxSize,hashStrategy);
+  while (!isMaxMemoryExceeded(hashStrategy,aggregates) && iterator.hasNext()) {
     Page page=iterator.next();
     Block[] blocks=page.getBlocks();
     Slice groupBySlice=((UncompressedBlock)blocks[groupChannel]).getSlice();
@@ -46,9 +56,29 @@
       checkState(!cursor.advanceNextPosition());
     }
   }
+  Preconditions.checkState(step != Step.PARTIAL && !isMaxMemoryExceeded(hashStrategy,aggregates),"Query exceeded max operator memory size of %s",maxSize);
   if (!blockBuilder.isEmpty()) {
     UncompressedBlock block=blockBuilder.build();
     groupByBlocks.add(block);
   }
-  return groupByBlocks.iterator();
+  return Iterators.transform(groupByBlocks.iterator(),new Function<UncompressedBlock,Page>(){
+    private int currentPosition=0;
+    @Override public Page apply(    UncompressedBlock groupByBlock){
+      Block[] blocks=new Block[aggregates.size() + 1];
+      blocks[0]=groupByBlock;
+      int pagePositionCount=blocks[0].getPositionCount();
+      for (int channel=1; channel < aggregates.size() + 1; channel++) {
+        Aggregator aggregator=aggregates.get(channel - 1);
+        BlockBuilder blockBuilder=new BlockBuilder(aggregator.getTupleInfo());
+        for (int position=0; position < pagePositionCount; position++) {
+          aggregator.evaluate(currentPosition + position,blockBuilder);
+        }
+        blocks[channel]=blockBuilder.build();
+      }
+      Page page=new Page(blocks);
+      currentPosition+=pagePositionCount;
+      return page;
+    }
+  }
+);
 }

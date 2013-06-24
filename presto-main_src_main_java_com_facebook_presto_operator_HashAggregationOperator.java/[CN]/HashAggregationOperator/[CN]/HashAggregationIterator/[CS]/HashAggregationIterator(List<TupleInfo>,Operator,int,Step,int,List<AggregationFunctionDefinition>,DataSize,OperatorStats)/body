@@ -1,12 +1,12 @@
 {
   super(tupleInfos);
+  checkNotNull(source,"source is null");
+  checkNotNull(operatorStats,"operatorStats is null");
+  this.iterator=source.iterator(operatorStats);
+  this.functionDefinitions=functionDefinitions;
+  this.step=step;
   this.groupChannel=groupChannel;
+  this.maxSize=checkNotNull(maxSize,"maxSize is null");
   this.expectedGroups=expectedGroups;
-  this.maxSize=maxSize;
-  iterator=source.iterator(operatorStats);
-  ImmutableList.Builder<Aggregator> builder=ImmutableList.builder();
-  for (  AggregationFunctionDefinition functionDefinition : functionDefinitions) {
-    builder.add(createAggregator(functionDefinition,step,expectedGroups));
-  }
-  aggregates=builder.build();
+  this.groupByTupleInfo=iterator.getTupleInfos().get(groupChannel);
 }

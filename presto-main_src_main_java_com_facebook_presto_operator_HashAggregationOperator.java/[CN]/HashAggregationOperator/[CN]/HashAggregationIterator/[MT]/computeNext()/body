@@ -1,27 +1,9 @@
 {
-  if (groupByBlocksIterator == null) {
-    TupleInfo groupByTupleInfo=iterator.getTupleInfos().get(groupChannel);
-    SliceHashStrategy hashStrategy=new SliceHashStrategy(groupByTupleInfo);
-    Long2IntOpenCustomHashMap addressToGroupId=new Long2IntOpenCustomHashMap(expectedGroups,hashStrategy);
-    addressToGroupId.defaultReturnValue(-1);
-    groupByBlocksIterator=aggregate(iterator,groupChannel,maxSize,groupByTupleInfo,hashStrategy,addressToGroupId);
+  if (outputIterator == null || !outputIterator.hasNext()) {
+    outputIterator=aggregate();
   }
-  if (!groupByBlocksIterator.hasNext()) {
-    endOfData();
-    return null;
+  if (!outputIterator.hasNext()) {
+    return endOfData();
   }
-  Block[] blocks=new Block[getChannelCount()];
-  blocks[0]=groupByBlocksIterator.next();
-  int pagePositionCount=blocks[0].getPositionCount();
-  for (int channel=1; channel < getChannelCount(); channel++) {
-    Aggregator aggregator=aggregates.get(channel - 1);
-    BlockBuilder blockBuilder=new BlockBuilder(aggregator.getTupleInfo());
-    for (int position=0; position < pagePositionCount; position++) {
-      aggregator.evaluate(currentPosition + position,blockBuilder);
-    }
-    blocks[channel]=blockBuilder.build();
-  }
-  Page page=new Page(blocks);
-  currentPosition+=pagePositionCount;
-  return page;
+  return outputIterator.next();
 }
