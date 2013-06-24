@@ -1,6 +1,7 @@
 {
   checkNotNull(callableName,"callableName is null");
   checkNotNull(callable,"callable is null");
+  long startTime=System.nanoTime();
   int attempt=0;
   while (true) {
     attempt++;
@@ -13,7 +14,7 @@
           throw e;
         }
       }
-      if (attempt >= maxRetryAttempts) {
+      if (attempt >= maxRetryAttempts || Duration.nanosSince(startTime).compareTo(maxRetryTime) >= 0) {
         throw e;
       }
  else {
