@@ -3,5 +3,13 @@
   for (  Aggregator aggregate : aggregates) {
     memorySize+=aggregate.getEstimatedSize();
   }
-  return memorySize > maxSize.toBytes();
+  long delta=memorySize - currentMemoryReservation;
+  if (delta <= 0) {
+    return false;
+  }
+  if (!taskMemoryManager.reserveBytes(delta)) {
+    return true;
+  }
+  currentMemoryReservation=Math.max(currentMemoryReservation,memorySize);
+  return false;
 }

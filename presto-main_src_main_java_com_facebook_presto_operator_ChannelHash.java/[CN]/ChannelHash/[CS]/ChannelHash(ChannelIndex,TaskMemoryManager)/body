@@ -1,0 +1,16 @@
+{
+  hashStrategy=new SliceHashStrategy(channelIndex.getTupleInfo(),channelIndex.getSlices().elements());
+  addressToPositionMap=new AddressToPositionMap(channelIndex.getPositionCount(),hashStrategy);
+  addressToPositionMap.defaultReturnValue(-1);
+  positionLinks=new IntArrayList(new int[channelIndex.getValueAddresses().size()]);
+  Arrays.fill(positionLinks.elements(),-1);
+  long currentHashSize=0;
+  for (int position=0; position < channelIndex.getValueAddresses().size(); position++) {
+    currentHashSize=taskMemoryManager.updateOperatorReservation(currentHashSize,getEstimatedSize());
+    long sliceAddress=channelIndex.getValueAddresses().elements()[position];
+    int oldPosition=addressToPositionMap.put(sliceAddress,position);
+    if (oldPosition >= 0) {
+      positionLinks.set(position,oldPosition);
+    }
+  }
+}

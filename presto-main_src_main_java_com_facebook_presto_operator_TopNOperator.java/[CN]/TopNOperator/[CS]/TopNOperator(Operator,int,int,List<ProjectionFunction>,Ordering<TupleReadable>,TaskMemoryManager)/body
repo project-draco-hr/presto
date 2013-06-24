@@ -1,0 +1,16 @@
+{
+  this.source=checkNotNull(source,"source is null");
+  checkArgument(n > 0,"n must be greater than zero");
+  this.n=n;
+  checkArgument(keyChannelIndex >= 0,"keyChannelIndex must be at least zero");
+  this.keyChannelIndex=keyChannelIndex;
+  this.projections=ImmutableList.copyOf(checkNotNull(projections,"projections is null"));
+  checkArgument(!projections.isEmpty(),"projections is empty");
+  this.ordering=checkNotNull(ordering,"ordering is null").reverse();
+  this.taskMemoryManager=checkNotNull(taskMemoryManager,"taskMemoryManager is null");
+  ImmutableList.Builder<TupleInfo> tupleInfos=ImmutableList.builder();
+  for (  ProjectionFunction projection : projections) {
+    tupleInfos.add(projection.getTupleInfo());
+  }
+  this.tupleInfos=tupleInfos.build();
+}

@@ -1,7 +1,7 @@
 {
   TupleInfo tupleInfo=new TupleInfo(VARIABLE_BINARY,FIXED_INT_64);
   Operator source=createOperator(new Page(new BlockBuilder(tupleInfo).append("a").append(1).append("b").append(2).build()),new Page(new BlockBuilder(tupleInfo).append("f").append(3).append("a").append(4).build()),new Page(new BlockBuilder(tupleInfo).append("d").append(5).append("d").append(7).append("e").append(6).build()));
-  TopNOperator actual=new TopNOperator(source,3,0,ImmutableList.of(ProjectionFunctions.concat(singleColumn(VARIABLE_BINARY,0,0),singleColumn(FIXED_INT_64,0,1))),Ordering.from(new FieldOrderedTupleComparator(ImmutableList.of(0,1),ImmutableList.of(SortItem.Ordering.DESCENDING,SortItem.Ordering.DESCENDING))),new DataSize(1,DataSize.Unit.MEGABYTE));
+  TopNOperator actual=new TopNOperator(source,3,0,ImmutableList.of(ProjectionFunctions.concat(singleColumn(VARIABLE_BINARY,0,0),singleColumn(FIXED_INT_64,0,1))),Ordering.from(new FieldOrderedTupleComparator(ImmutableList.of(0,1),ImmutableList.of(SortItem.Ordering.DESCENDING,SortItem.Ordering.DESCENDING))),new TaskMemoryManager(new DataSize(1,DataSize.Unit.MEGABYTE)));
   Operator expected=createOperator(new Page(new BlockBuilder(tupleInfo).append("f").append(3).append("e").append(6).append("d").append(7).build()));
   assertOperatorEquals(actual,expected);
 }
