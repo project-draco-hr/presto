@@ -1,0 +1,15 @@
+{
+  ImmutableList.Builder<String> cache=ImmutableList.builder();
+  try (StatementClient client=queryRunner.startInternalQuery(query)){
+    while (client.isValid() && !Thread.currentThread().isInterrupted()) {
+      QueryResults results=client.current();
+      if (results.getData() != null) {
+        for (        List<Object> row : results.getData()) {
+          cache.add((String)row.get(0));
+        }
+      }
+      client.advance();
+    }
+  }
+   return cache.build();
+}

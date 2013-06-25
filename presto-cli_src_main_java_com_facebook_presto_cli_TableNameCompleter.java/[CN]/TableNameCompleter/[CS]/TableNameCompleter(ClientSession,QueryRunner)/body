@@ -1,0 +1,17 @@
+{
+  this.clientSession=checkNotNull(clientSession,"clientSession was null!");
+  this.queryRunner=checkNotNull(queryRunner,"queryRunner session was null!");
+  ListeningExecutorService listeningExecutor=MoreExecutors.listeningDecorator(executor);
+  tableCache=CacheBuilder.newBuilder().refreshAfterWrite(RELOAD_TIME_MINUTES,TimeUnit.MINUTES).build(new BackgroundCacheLoader<String,List<String>>(listeningExecutor){
+    @Override public List<String> load(    String schemaName){
+      return queryMetadata(format("SELECT table_name FROM information_schema.tables WHERE table_schema = '%s'",schemaName));
+    }
+  }
+);
+  functionCache=CacheBuilder.newBuilder().build(new BackgroundCacheLoader<String,List<String>>(listeningExecutor){
+    @Override public List<String> load(    String schemaName){
+      return queryMetadata("SHOW FUNCTIONS");
+    }
+  }
+);
+}
