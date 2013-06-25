@@ -20,11 +20,26 @@
         }
       }
     }
-    if (split.isRemotelyAccessible()) {
+  }
+  if (split.isRemotelyAccessible() && chosen.size() < minCount) {
+    for (    HostAddress hint : split.getAddresses()) {
+      InetAddress address;
+      try {
+        address=hint.toInetAddress();
+      }
+ catch (      UnknownHostException e) {
+        continue;
+      }
       for (      Node node : nodeMap.getNodesByRack().get(Rack.of(address))) {
         if (chosen.add(node)) {
           scheduleRack.incrementAndGet();
         }
+        if (chosen.size() == minCount) {
+          break;
+        }
+      }
+      if (chosen.size() == minCount) {
+        break;
       }
     }
   }
