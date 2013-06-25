@@ -57,6 +57,9 @@
     }
   }
   Preconditions.checkState(step == Step.PARTIAL || !isMaxMemoryExceeded(hashStrategy,aggregates),"Task exceeded max memory size of %s",taskMemoryManager.getMaxMemorySize());
+  if (isMaxMemoryExceeded(hashStrategy,aggregates)) {
+    checkState(step == Step.PARTIAL && currentMemoryReservation > taskMemoryManager.getMinFlushSize().toBytes(),"Task exceeded max memory size of %s",taskMemoryManager.getMaxMemorySize());
+  }
   if (!blockBuilder.isEmpty()) {
     UncompressedBlock block=blockBuilder.build();
     groupByBlocks.add(block);
