@@ -57,7 +57,19 @@
   binder.bind(ShardCleaner.class).in(Scopes.SINGLETON);
   httpClientBinder(binder).bindHttpClient("shard-cleaner",ForShardCleaner.class);
   binder.bind(ShardResource.class).in(Scopes.SINGLETON);
-  ServiceAnnouncementBuilder announcementBuilder=discoveryBinder(binder).bindHttpAnnouncement("presto");
+  String prestoVersion=configurationFactory.getProperties().get("presto.version");
+  if (prestoVersion != null) {
+    configurationFactory.consumeProperty("presto.version");
+  }
+ else {
+    String implementationTitle=Main.class.getPackage().getImplementationTitle();
+    String implementationVersion=Main.class.getPackage().getImplementationVersion();
+    prestoVersion=(implementationTitle == null || implementationVersion == null) ? null : implementationTitle + ":" + implementationVersion;
+  }
+  checkState(prestoVersion != null,"presto.version must be provided when it cannot be automatically determined");
+  NodeVersion nodeVersion=new NodeVersion(prestoVersion);
+  binder.bind(NodeVersion.class).toInstance(nodeVersion);
+  ServiceAnnouncementBuilder announcementBuilder=discoveryBinder(binder).bindHttpAnnouncement("presto").addProperty("node_version",nodeVersion.toString());
   String datasources=configurationFactory.getProperties().get("datasources");
   if (datasources != null) {
     configurationFactory.consumeProperty("datasources");

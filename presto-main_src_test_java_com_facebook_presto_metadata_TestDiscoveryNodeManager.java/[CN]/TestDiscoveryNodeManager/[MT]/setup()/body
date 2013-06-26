@@ -1,8 +1,10 @@
 {
-  nodes=ImmutableList.of(new Node(UUID.randomUUID().toString(),URI.create("http://192.0.2.1:8080")),new Node(UUID.randomUUID().toString(),URI.create("http://192.0.2.3")),new Node(UUID.randomUUID().toString(),URI.create("https://192.0.2.8")));
+  expectedVersion=new NodeVersion("1");
+  activeNodes=ImmutableList.of(new Node(UUID.randomUUID().toString(),URI.create("http://192.0.2.1:8080"),expectedVersion),new Node(UUID.randomUUID().toString(),URI.create("http://192.0.2.3"),expectedVersion),new Node(UUID.randomUUID().toString(),URI.create("https://192.0.2.8"),expectedVersion));
+  inactiveNodes=ImmutableList.of(new Node(UUID.randomUUID().toString(),URI.create("https://192.0.3.9"),NodeVersion.UNKNOWN),new Node(UUID.randomUUID().toString(),URI.create("https://192.0.4.9"),new NodeVersion("2")));
   List<ServiceDescriptor> descriptors=new ArrayList<>();
-  for (  Node node : nodes) {
-    descriptors.add(serviceDescriptor("presto").setNodeId(node.getNodeIdentifier()).addProperty("http",node.getHttpUri().toString()).build());
+  for (  Node node : Iterables.concat(activeNodes,inactiveNodes)) {
+    descriptors.add(serviceDescriptor("presto").setNodeId(node.getNodeIdentifier()).addProperty("http",node.getHttpUri().toString()).addProperty("node_version",node.getNodeVersion().toString()).build());
   }
   selector=new StaticServiceSelector(descriptors);
 }

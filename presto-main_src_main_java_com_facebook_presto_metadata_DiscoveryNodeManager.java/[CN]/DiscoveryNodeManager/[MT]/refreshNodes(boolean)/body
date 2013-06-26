@@ -3,26 +3,34 @@
     lastUpdateTimestamp=System.nanoTime();
     Set<ServiceDescriptor> services=IterableTransformer.on(serviceSelector.selectAllServices()).select(not(in(failureDetector.getFailed()))).set();
     currentNode=null;
-    ImmutableSet.Builder<Node> allBuilder=ImmutableSet.builder();
+    ImmutableSet.Builder<Node> activeNodesBuilder=ImmutableSet.builder();
+    ImmutableSet.Builder<Node> inactiveNodesBuilder=ImmutableSet.builder();
     ImmutableSetMultimap.Builder<String,Node> byDataSourceBuilder=ImmutableSetMultimap.builder();
     for (    ServiceDescriptor service : services) {
       URI uri=getHttpUri(service);
-      if (uri != null) {
-        Node node=new Node(service.getNodeId(),uri);
+      NodeVersion nodeVersion=getNodeVersion(service);
+      if (uri != null && nodeVersion != null) {
+        Node node=new Node(service.getNodeId(),uri,nodeVersion);
         if (node.getNodeIdentifier().equals(nodeInfo.getNodeId())) {
           currentNode=node;
+          checkState(currentNode.getNodeVersion().equals(expectedNodeVersion),"INVARIANT: current node version should be equal to expected node version");
         }
-        allBuilder.add(node);
-        String dataSources=service.getProperties().get("datasources");
-        if (dataSources != null) {
-          dataSources=dataSources.toLowerCase();
-          for (          String dataSource : DATASOURCES_SPLITTER.split(dataSources)) {
-            byDataSourceBuilder.put(dataSource,node);
+        if (isActive(node)) {
+          activeNodesBuilder.add(node);
+          String dataSources=service.getProperties().get("datasources");
+          if (dataSources != null) {
+            dataSources=dataSources.toLowerCase();
+            for (            String dataSource : DATASOURCES_SPLITTER.split(dataSources)) {
+              byDataSourceBuilder.put(dataSource,node);
+            }
           }
+        }
+ else {
+          inactiveNodesBuilder.add(node);
         }
       }
     }
-    allNodes=allBuilder.build();
-    nodesByDataSource=byDataSourceBuilder.build();
+    allNodes=new AllNodes(activeNodesBuilder.build(),inactiveNodesBuilder.build());
+    activeNodesByDataSource=byDataSourceBuilder.build();
   }
 }
