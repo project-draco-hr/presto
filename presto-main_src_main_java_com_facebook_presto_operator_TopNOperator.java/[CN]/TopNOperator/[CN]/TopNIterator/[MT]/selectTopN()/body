@@ -7,9 +7,7 @@
     long sizeDelta=mergeWithGlobalCandidates(globalCandidates,page,keyAndPositions);
     memorySize=taskMemoryManager.updateOperatorReservation(memorySize,memorySize + sizeDelta);
   }
-  if (isMaxMemoryExceeded(memorySize)) {
-    checkState(partial && memorySize > taskMemoryManager.getMinFlushSize().toBytes(),"Task exceeded max memory size of %s",taskMemoryManager.getMaxMemorySize());
-  }
+  checkState(partial || !isMaxMemoryExceeded(memorySize),"Task exceeded max memory size of %s",taskMemoryManager.getMaxMemorySize());
   ImmutableList.Builder<KeyAndTuples> minSortedGlobalCandidates=ImmutableList.builder();
   while (!globalCandidates.isEmpty()) {
     minSortedGlobalCandidates.add(globalCandidates.remove());
