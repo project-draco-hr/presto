@@ -55,17 +55,27 @@
       throw new UnsupportedOperationException("Unsupported join type: " + node.getType());
     }
   }
-  leftConjuncts.addAll(inferenceWithJoin.scopedEqualityPredicates(in(node.getLeft().getOutputSymbols())));
+switch (node.getType()) {
+case INNER:
+    leftConjuncts.addAll(inferenceWithJoin.scopedEqualityPredicates(in(node.getLeft().getOutputSymbols())));
   rightConjuncts.addAll(inferenceWithJoin.scopedEqualityPredicates(in(node.getRight().getOutputSymbols())));
-  postJoinConjuncts.addAll(inferenceWithoutJoin.scopeBridgePredicates(in(node.getLeft().getOutputSymbols())));
-  PlanNode leftSource=planRewriter.rewrite(node.getLeft(),ExpressionUtils.combineConjuncts(leftConjuncts));
-  PlanNode rightSource=planRewriter.rewrite(node.getRight(),ExpressionUtils.combineConjuncts(rightConjuncts));
-  PlanNode output=node;
-  if (leftSource != node.getLeft() || rightSource != node.getRight()) {
-    output=new JoinNode(node.getId(),node.getType(),leftSource,rightSource,node.getCriteria());
-  }
-  if (!postJoinConjuncts.isEmpty()) {
-    output=new FilterNode(idAllocator.getNextId(),output,and(postJoinConjuncts));
-  }
-  return output;
+break;
+case LEFT:
+leftConjuncts.addAll(inferenceWithoutJoin.scopedEqualityPredicates(in(node.getLeft().getOutputSymbols())));
+rightConjuncts.addAll(inferenceWithJoin.scopedEqualityPredicates(in(node.getRight().getOutputSymbols())));
+break;
+default :
+throw new UnsupportedOperationException("Unsupported join type: " + node.getType());
+}
+postJoinConjuncts.addAll(inferenceWithoutJoin.scopeBridgePredicates(in(node.getLeft().getOutputSymbols())));
+PlanNode leftSource=planRewriter.rewrite(node.getLeft(),ExpressionUtils.combineConjuncts(leftConjuncts));
+PlanNode rightSource=planRewriter.rewrite(node.getRight(),ExpressionUtils.combineConjuncts(rightConjuncts));
+PlanNode output=node;
+if (leftSource != node.getLeft() || rightSource != node.getRight()) {
+output=new JoinNode(node.getId(),node.getType(),leftSource,rightSource,node.getCriteria());
+}
+if (!postJoinConjuncts.isEmpty()) {
+output=new FilterNode(idAllocator.getNextId(),output,and(postJoinConjuncts));
+}
+return output;
 }
