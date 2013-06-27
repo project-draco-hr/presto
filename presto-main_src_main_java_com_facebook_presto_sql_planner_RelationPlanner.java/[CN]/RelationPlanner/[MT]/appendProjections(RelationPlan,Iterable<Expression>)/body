@@ -6,10 +6,14 @@
     Expression expression=new QualifiedNameReference(symbol.toQualifiedName());
     projections.put(symbol,expression);
   }
+  ImmutableMap.Builder<Symbol,Expression> newTranslations=ImmutableMap.builder();
   for (  Expression expression : expressions) {
     Symbol symbol=symbolAllocator.newSymbol(expression,analysis.getType(expression));
     projections.put(symbol,translations.rewrite(expression));
-    translations.put(expression,symbol);
+    newTranslations.put(symbol,expression);
+  }
+  for (  Map.Entry<Symbol,Expression> entry : newTranslations.build().entrySet()) {
+    translations.put(entry.getValue(),entry.getKey());
   }
   return new PlanBuilder(translations,new ProjectNode(idAllocator.getNextId(),subPlan.getRoot(),projections.build()));
 }
