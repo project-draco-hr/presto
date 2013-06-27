@@ -2,11 +2,11 @@
   List<TupleInfo> tupleInfo=getSourceOperatorTupleInfos(node,context.getTypes());
   SourceOperator operator=new ExchangeOperator(exchangeClientProvider,tupleInfo);
   context.addSourceOperator(node,operator);
-  Map<Symbol,Input> outputMappings=new HashMap<>();
+  ImmutableMultimap.Builder<Symbol,Input> outputMappings=ImmutableMultimap.builder();
   int channel=0;
   for (  Symbol symbol : node.getOutputSymbols()) {
     outputMappings.put(symbol,new Input(channel,0));
     channel++;
   }
-  return new PhysicalOperation(operator,outputMappings);
+  return new PhysicalOperation(operator,outputMappings.build());
 }

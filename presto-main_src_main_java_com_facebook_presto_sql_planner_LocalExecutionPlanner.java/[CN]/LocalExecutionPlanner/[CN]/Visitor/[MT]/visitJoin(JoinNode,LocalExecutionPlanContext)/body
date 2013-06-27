@@ -6,13 +6,13 @@
   PhysicalOperation rightSource=node.getRight().accept(this,context);
   List<Symbol> rightSymbols=Lists.transform(clauses,rightGetter());
   rightSource=packIfNecessary(rightSymbols,rightSource,context.getTypes());
-  int probeChannel=Iterables.getOnlyElement(getChannelsForSymbols(leftSymbols,leftSource.getLayout()));
-  int buildChannel=Iterables.getOnlyElement(getChannelsForSymbols(rightSymbols,rightSource.getLayout()));
+  int probeChannel=Iterables.getOnlyElement(ImmutableSet.copyOf(getChannelsForSymbols(leftSymbols,leftSource.getLayout())));
+  int buildChannel=Iterables.getOnlyElement(ImmutableSet.copyOf(getChannelsForSymbols(rightSymbols,rightSource.getLayout())));
   SourceHashProvider hashProvider=context.getJoinHashFactory().getSourceHashProvider(node,rightSource.getOperator(),buildChannel,context.getOperatorStats());
-  ImmutableMap.Builder<Symbol,Input> outputMappings=ImmutableMap.builder();
+  ImmutableMultimap.Builder<Symbol,Input> outputMappings=ImmutableMultimap.builder();
   outputMappings.putAll(leftSource.getLayout());
   int offset=leftSource.getOperator().getChannelCount();
-  for (  Map.Entry<Symbol,Input> entry : rightSource.getLayout().entrySet()) {
+  for (  Map.Entry<Symbol,Input> entry : rightSource.getLayout().entries()) {
     Input input=entry.getValue();
     outputMappings.put(entry.getKey(),new Input(offset + input.getChannel(),input.getField()));
   }

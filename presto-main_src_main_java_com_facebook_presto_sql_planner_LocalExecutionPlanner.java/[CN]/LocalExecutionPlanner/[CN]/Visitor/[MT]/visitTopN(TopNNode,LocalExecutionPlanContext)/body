@@ -2,11 +2,11 @@
   PhysicalOperation source=node.getSource().accept(this,context);
   List<Symbol> orderBySymbols=node.getOrderBy();
   source=packIfNecessary(orderBySymbols,source,context.getTypes());
-  int orderByChannel=Iterables.getOnlyElement(getChannelsForSymbols(orderBySymbols,source.getLayout()));
+  int orderByChannel=Iterables.getOnlyElement(ImmutableSet.copyOf(getChannelsForSymbols(orderBySymbols,source.getLayout())));
   List<Integer> sortFields=new ArrayList<>();
   List<SortItem.Ordering> sortOrders=new ArrayList<>();
   for (  Symbol symbol : orderBySymbols) {
-    sortFields.add(source.getLayout().get(symbol).getField());
+    sortFields.add(getFirst(source.getLayout().get(symbol)).getField());
     sortOrders.add(node.getOrderings().get(symbol));
   }
   Ordering<TupleReadable> ordering=Ordering.from(new FieldOrderedTupleComparator(sortFields,sortOrders));

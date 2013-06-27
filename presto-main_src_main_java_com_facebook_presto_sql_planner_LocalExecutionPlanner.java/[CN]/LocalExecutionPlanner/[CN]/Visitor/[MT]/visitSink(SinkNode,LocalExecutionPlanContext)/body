@@ -1,6 +1,6 @@
 {
   PhysicalOperation source=node.getSource().accept(this,context);
-  boolean projectionMatchesOutput=IterableTransformer.on(source.getLayout().entrySet()).orderBy(inputOrdering().onResultOf(MoreFunctions.<Symbol,Input>valueGetter())).transform(MoreFunctions.<Symbol,Input>keyGetter()).list().equals(node.getOutputSymbols());
+  boolean projectionMatchesOutput=IterableTransformer.on(source.getLayout().entries()).orderBy(inputOrdering().onResultOf(MoreFunctions.<Symbol,Input>valueGetter())).transform(MoreFunctions.<Symbol,Input>keyGetter()).list().equals(node.getOutputSymbols());
   boolean hasMultiFieldChannels=IterableTransformer.on(source.getLayout().values()).transform(fieldGetter()).any(not(equalTo(0)));
   if (hasMultiFieldChannels || !projectionMatchesOutput) {
     IdentityProjectionInfo mappings=computeIdentityMapping(node.getOutputSymbols(),source.getLayout(),context.getTypes());
