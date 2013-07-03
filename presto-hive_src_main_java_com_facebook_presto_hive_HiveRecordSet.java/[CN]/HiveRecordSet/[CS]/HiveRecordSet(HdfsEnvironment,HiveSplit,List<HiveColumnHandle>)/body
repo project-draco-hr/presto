@@ -1,5 +1,4 @@
 {
-  this.hdfsEnvironment=Preconditions.checkNotNull(hdfsEnvironment,"hdfsEnvironment is null");
   this.split=split;
   this.columns=columns;
   this.columnTypes=ImmutableList.copyOf(Iterables.transform(columns,nativeTypeGetter()));
@@ -9,4 +8,7 @@
     readColumns=ImmutableList.of(primitiveColumn);
   }
   readHiveColumnIndexes=new ArrayList<>(transform(readColumns,hiveColumnIndexGetter()));
+  Path path=new Path(split.getPath());
+  this.configuration=hdfsEnvironment.getConfiguration(path);
+  this.wrappedPath=hdfsEnvironment.getFileSystemWrapper().wrap(path);
 }

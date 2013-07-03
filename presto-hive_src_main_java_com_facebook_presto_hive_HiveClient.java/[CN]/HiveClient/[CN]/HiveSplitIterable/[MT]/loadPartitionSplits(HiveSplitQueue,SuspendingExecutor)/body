@@ -9,17 +9,19 @@
       final String partitionName=nameIterator.next();
       final Properties schema=getPartitionSchema(table,partition);
       final List<HivePartitionKey> partitionKeys=getPartitionKeys(table,partition);
-      final InputFormat<?,?> inputFormat=getInputFormat(hdfsEnvironment.getConfiguration(),schema,false);
-      Path partitionPath=hdfsEnvironment.getFileSystemWrapper().wrap(new Path(getPartitionLocation(table,partition)));
-      final FileSystem fs=partitionPath.getFileSystem(hdfsEnvironment.getConfiguration());
+      Path path=new Path(getPartitionLocation(table,partition));
+      final Configuration configuration=hdfsEnvironment.getConfiguration(path);
+      final InputFormat<?,?> inputFormat=getInputFormat(configuration,schema,false);
+      Path partitionPath=hdfsEnvironment.getFileSystemWrapper().wrap(path);
+      final FileSystem fs=partitionPath.getFileSystem(configuration);
       final LastSplitMarkingQueue markerQueue=new LastSplitMarkingQueue(hiveSplitQueue);
       if (inputFormat instanceof SymlinkTextInputFormat) {
-        JobConf jobConf=new JobConf(hdfsEnvironment.getConfiguration());
+        JobConf jobConf=new JobConf(configuration);
         FileInputFormat.setInputPaths(jobConf,partitionPath);
         InputSplit[] splits=inputFormat.getSplits(jobConf,0);
         for (        InputSplit rawSplit : splits) {
           FileSplit split=((SymlinkTextInputSplit)rawSplit).getTargetSplit();
-          FileSystem targetFilesystem=split.getPath().getFileSystem(hdfsEnvironment.getConfiguration());
+          FileSystem targetFilesystem=split.getPath().getFileSystem(configuration);
           markerQueue.addToQueue(createHiveSplits(partitionName,targetFilesystem.getFileStatus(split.getPath()),split.getStart(),split.getLength(),schema,partitionKeys,targetFilesystem,false));
         }
         markerQueue.finish();
@@ -28,7 +30,7 @@
       ListenableFuture<Void> partitionFuture=new AsyncRecursiveWalker(fs,suspendingExecutor).beginWalk(partitionPath,new FileStatusCallback(){
         @Override public void process(        FileStatus file){
           try {
-            boolean splittable=isSplittable(inputFormat,file.getPath().getFileSystem(hdfsEnvironment.getConfiguration()),file.getPath());
+            boolean splittable=isSplittable(inputFormat,file.getPath().getFileSystem(configuration),file.getPath());
             markerQueue.addToQueue(createHiveSplits(partitionName,file,0,file.getLen(),schema,partitionKeys,fs,splittable));
           }
  catch (          IOException e) {
