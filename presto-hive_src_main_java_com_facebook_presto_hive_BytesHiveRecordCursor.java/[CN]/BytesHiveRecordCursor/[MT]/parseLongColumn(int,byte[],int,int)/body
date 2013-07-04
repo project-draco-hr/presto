@@ -1,0 +1,16 @@
+{
+  boolean wasNull;
+  if (length == 0 || (length == "\\N".length() && bytes[start] == '\\' && bytes[start + 1] == 'N')) {
+    wasNull=true;
+  }
+ else   if (hiveTypes[column] == HiveType.TIMESTAMP) {
+    String value=new String(bytes,start,length);
+    longs[column]=MILLISECONDS.toSeconds(HiveUtil.HIVE_TIMESTAMP_PARSER.parseMillis(value));
+    wasNull=false;
+  }
+ else {
+    longs[column]=parseLong(bytes,start,length);
+    wasNull=false;
+  }
+  nulls[column]=wasNull;
+}

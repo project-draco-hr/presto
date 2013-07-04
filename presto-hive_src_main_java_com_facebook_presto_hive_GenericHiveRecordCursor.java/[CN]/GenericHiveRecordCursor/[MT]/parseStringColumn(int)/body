@@ -1,0 +1,26 @@
+{
+  checkArgument(!isPartitionColumn[column],"Column is a partition key");
+  loaded[column]=true;
+  Object fieldData=rowInspector.getStructFieldData(rowData,structFields[column]);
+  if (fieldData == null) {
+    nulls[column]=true;
+  }
+ else   if (hiveTypes[column] == HiveType.MAP || hiveTypes[column] == HiveType.LIST || hiveTypes[column] == HiveType.STRUCT) {
+    strings[column]=SerDeUtils.getJSONString(fieldData,fieldInspectors[column]).getBytes(Charsets.UTF_8);
+    nulls[column]=false;
+  }
+ else {
+    Object fieldValue=((PrimitiveObjectInspector)fieldInspectors[column]).getPrimitiveJavaObject(fieldData);
+    checkState(fieldValue != null,"fieldValue should not be null");
+    if (fieldValue instanceof String) {
+      strings[column]=((String)fieldValue).getBytes(Charsets.UTF_8);
+    }
+ else     if (fieldValue instanceof byte[]) {
+      strings[column]=(byte[])fieldValue;
+    }
+ else {
+      throw new IllegalStateException("unsupported string field type: " + fieldValue.getClass().getName());
+    }
+    nulls[column]=false;
+  }
+}

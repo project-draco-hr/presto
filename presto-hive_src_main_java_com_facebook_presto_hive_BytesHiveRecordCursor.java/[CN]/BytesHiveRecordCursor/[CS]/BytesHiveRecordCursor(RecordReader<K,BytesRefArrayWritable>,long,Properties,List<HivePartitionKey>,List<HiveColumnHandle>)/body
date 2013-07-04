@@ -1,10 +1,10 @@
 {
-  Preconditions.checkNotNull(recordReader,"recordReader is null");
-  Preconditions.checkArgument(totalBytes >= 0,"totalBytes is negative");
-  Preconditions.checkNotNull(splitSchema,"splitSchema is null");
-  Preconditions.checkNotNull(partitionKeys,"partitionKeys is null");
-  Preconditions.checkNotNull(columns,"columns is null");
-  Preconditions.checkArgument(!columns.isEmpty(),"columns is empty");
+  checkNotNull(recordReader,"recordReader is null");
+  checkArgument(totalBytes >= 0,"totalBytes is negative");
+  checkNotNull(splitSchema,"splitSchema is null");
+  checkNotNull(partitionKeys,"partitionKeys is null");
+  checkNotNull(columns,"columns is null");
+  checkArgument(!columns.isEmpty(),"columns is empty");
   this.recordReader=recordReader;
   this.totalBytes=totalBytes;
   this.key=recordReader.createKey();
@@ -15,6 +15,8 @@
   this.hiveTypes=new HiveType[size];
   this.fieldInspectors=new ObjectInspector[size];
   this.hiveColumnIndexes=new int[size];
+  this.isPartitionColumn=new boolean[size];
+  this.loaded=new boolean[size];
   this.booleans=new boolean[size];
   this.longs=new long[size];
   this.doubles=new double[size];
@@ -32,6 +34,7 @@
         fieldInspectors[i]=rowInspector.getStructFieldRef(column.getName()).getFieldObjectInspector();
       }
       hiveColumnIndexes[i]=column.getHiveColumnIndex();
+      isPartitionColumn[i]=column.isPartitionKey();
     }
   }
  catch (  Exception e) {
@@ -42,9 +45,39 @@
     HiveColumnHandle column=columns.get(columnIndex);
     if (column.isPartitionKey()) {
       HivePartitionKey partitionKey=partitionKeysByName.get(column.getName());
-      Preconditions.checkArgument(partitionKey != null,"Unknown partition key %s",column.getName());
+      checkArgument(partitionKey != null,"Unknown partition key %s",column.getName());
       byte[] bytes=partitionKey.getValue().getBytes(Charsets.UTF_8);
-      parsePrimitiveColumn(columnIndex,bytes,0,bytes.length);
+switch (types[columnIndex]) {
+case BOOLEAN:
+        if (isTrue(bytes,0,bytes.length)) {
+          booleans[columnIndex]=true;
+        }
+ else         if (isFalse(bytes,0,bytes.length)) {
+          booleans[columnIndex]=false;
+        }
+ else {
+          String valueString=new String(bytes,Charsets.UTF_8);
+          throw new IllegalArgumentException(String.format("Invalid partition value '%s' for BOOLEAN partition key %s",valueString,names[columnIndex]));
+        }
+      break;
+case LONG:
+    if (bytes.length == 0) {
+      throw new IllegalArgumentException(String.format("Invalid partition value '' for BIGINT partition key %s",names[columnIndex]));
     }
-  }
+  longs[columnIndex]=parseLong(bytes,0,bytes.length);
+break;
+case DOUBLE:
+if (bytes.length == 0) {
+throw new IllegalArgumentException(String.format("Invalid partition value '' for DOUBLE partition key %s",names[columnIndex]));
+}
+doubles[columnIndex]=parseDouble(bytes,0,bytes.length);
+break;
+case STRING:
+strings[columnIndex]=Arrays.copyOf(bytes,bytes.length);
+break;
+default :
+throw new UnsupportedOperationException("Unsupported column type: " + types[columnIndex]);
+}
+}
+}
 }
