@@ -1,5 +1,6 @@
 {
   state=State.FAILED;
+  boolean sawThrowable=false;
   try {
     next=computeNext();
     if (state != State.DONE) {
@@ -9,9 +10,23 @@
     }
     return false;
   }
-  finally {
+ catch (  Throwable t) {
+    sawThrowable=true;
+    throw t;
+  }
+ finally {
     if (state != State.READY) {
-      doClose();
+      try {
+        doClose();
+      }
+ catch (      Throwable t) {
+        if (!sawThrowable) {
+          throw t;
+        }
+ else {
+          log.warn(t,"While closing iterator");
+        }
+      }
     }
   }
 }
