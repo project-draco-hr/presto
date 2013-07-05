@@ -1,3 +1,7 @@
 {
-  return new FileSystemWrapper(slowDatanodeSwitcherEnabled && SlowDatanodeSwitcher.isSupported() ? slowDatanodeSwitcher.createFileSystemWrapper() : Functions.<FileSystem>identity(),fileSystemCache.createPathWrapper(),Functions.<FileStatus>identity());
+  Function<FileSystem,FileSystem> fileSystemWrapper=createThreadContextClassLoaderWrapper();
+  if (slowDatanodeSwitcherEnabled && SlowDatanodeSwitcher.isSupported()) {
+    fileSystemWrapper=Functions.compose(fileSystemWrapper,slowDatanodeSwitcher.createFileSystemWrapper());
+  }
+  return new FileSystemWrapper(fileSystemWrapper,fileSystemCache.createPathWrapper(),Functions.<FileStatus>identity());
 }
