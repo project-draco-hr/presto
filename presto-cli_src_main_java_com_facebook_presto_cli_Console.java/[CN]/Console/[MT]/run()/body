@@ -1,13 +1,27 @@
 {
   ClientSession session=clientOptions.toClientSession();
   boolean hasQuery=!Strings.isNullOrEmpty(clientOptions.execute);
-  if (!hasQuery) {
+  boolean isFromFile=!Strings.isNullOrEmpty(clientOptions.file);
+  if (!hasQuery || !isFromFile) {
     AnsiConsole.systemInstall();
   }
   initializeLogging(session.isDebug());
+  String query=clientOptions.execute;
+  if (isFromFile) {
+    if (hasQuery) {
+      throw new RuntimeException("both --execute and --file specified");
+    }
+    try {
+      query=Files.toString(new File(clientOptions.file),Charsets.UTF_8);
+      hasQuery=true;
+    }
+ catch (    IOException e) {
+      throw new RuntimeException(format("Error reading from file %s: %s",clientOptions.file,e.getMessage()));
+    }
+  }
   try (QueryRunner queryRunner=QueryRunner.create(session)){
     if (hasQuery) {
-      executeCommand(queryRunner,clientOptions.execute,clientOptions.outputFormat);
+      executeCommand(queryRunner,query,clientOptions.outputFormat);
     }
  else {
       runConsole(queryRunner,session);
