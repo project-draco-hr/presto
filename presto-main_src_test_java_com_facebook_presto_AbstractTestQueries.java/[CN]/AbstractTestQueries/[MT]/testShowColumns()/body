@@ -1,11 +1,5 @@
 {
-  MaterializedResult result=computeActual("SHOW COLUMNS FROM orders");
-  ImmutableSet<String> columnNames=ImmutableSet.copyOf(transform(result.getMaterializedTuples(),new Function<MaterializedTuple,String>(){
-    @Override public String apply(    MaterializedTuple input){
-      assertEquals(input.getFieldCount(),4);
-      return (String)input.getField(0);
-    }
-  }
-));
-  assertEquals(columnNames,ImmutableSet.of("orderkey","custkey","orderstatus","totalprice","orderdate","orderpriority","clerk","shippriority","comment"));
+  MaterializedResult actual=computeActual("SHOW COLUMNS FROM orders");
+  MaterializedResult expected=resultBuilder(VARIABLE_BINARY,VARIABLE_BINARY,BOOLEAN,BOOLEAN).row("orderkey","bigint",true,false).row("custkey","bigint",true,false).row("orderstatus","varchar",true,false).row("totalprice","double",true,false).row("orderdate","varchar",true,false).row("orderpriority","varchar",true,false).row("clerk","varchar",true,false).row("shippriority","bigint",true,false).row("comment","varchar",true,false).build();
+  assertEquals(actual,expected);
 }
