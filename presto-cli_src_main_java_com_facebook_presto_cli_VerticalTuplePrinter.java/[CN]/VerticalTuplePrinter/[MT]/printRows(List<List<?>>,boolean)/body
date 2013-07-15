@@ -1,0 +1,25 @@
+{
+  int valuesWidth=0;
+  for (  List<?> row : rows) {
+    for (    Object o : row) {
+      valuesWidth=max(valuesWidth,maxLineLength(formatValue(o)));
+    }
+  }
+  for (  List<?> row : rows) {
+    rowCount++;
+    String header="-[ RECORD " + rowCount + " ]";
+    if ((namesWidth + 1) >= header.length()) {
+      header+=repeat("-",(namesWidth + 1) - header.length()) + "+";
+    }
+    header+=repeat("-",max(0,(namesWidth + valuesWidth + 3) - header.length()));
+    writer.append(header).append('\n');
+    for (int i=0; i < row.size(); i++) {
+      String name=fieldNames.get(i);
+      String column=formatValue(row.get(i));
+      for (      String line : LINE_SPLITTER.split(column)) {
+        writer.append(name).append(repeat(" ",namesWidth - name.length())).append(" | ").append(formatValue(line)).append("\n");
+        name=repeat(" ",name.length());
+      }
+    }
+  }
+}

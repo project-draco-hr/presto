@@ -34,9 +34,14 @@ case "help":
 }
 }
 buffer.append(line).append("\n");
-StatementSplitter splitter=new StatementSplitter(buffer.toString());
+String sql=buffer.toString();
+StatementSplitter splitter=new StatementSplitter(sql,ImmutableSet.of(";","\\G"));
 for (Statement split : splitter.getCompleteStatements()) {
-process(queryRunner,split.statement(),OutputFormat.PAGED);
+OutputFormat outputFormat=OutputFormat.ALIGNED;
+if (split.terminator().equals("\\G")) {
+  outputFormat=OutputFormat.VERTICAL;
+}
+process(queryRunner,split.statement(),outputFormat,true);
 reader.getHistory().add(squeezeStatement(split.statement()) + split.terminator());
 }
 buffer=new StringBuilder();
