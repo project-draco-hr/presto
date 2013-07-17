@@ -1,30 +1,39 @@
 {
   checkNotNull(taskId,"taskId is null");
   checkNotNull(outputId,"outputId is null");
-  try {
-    BufferResult result=taskManager.getTaskResults(taskId,outputId,pageSequenceId,DEFAULT_MAX_SIZE,DEFAULT_MAX_WAIT_TIME);
-    if (!result.isEmpty()) {
-      GenericEntity<?> entity=new GenericEntity<>(result.getElements(),new TypeToken<List<Page>>(){
-      }
+  long remainingNanos=(long)DEFAULT_MAX_WAIT_TIME.convertTo(NANOSECONDS);
+  long start=System.nanoTime();
+  long end=start + remainingNanos;
+  int maxSleepMillis=1;
+  Exception lastError=null;
+  while (remainingNanos > 0) {
+    try {
+      BufferResult result=taskManager.getTaskResults(taskId,outputId,pageSequenceId,DEFAULT_MAX_SIZE,new Duration(remainingNanos,NANOSECONDS));
+      if (!result.isEmpty()) {
+        GenericEntity<?> entity=new GenericEntity<>(result.getElements(),new TypeToken<List<Page>>(){
+        }
 .getType());
-      return Response.ok(entity).header(PRESTO_PAGE_SEQUENCE_ID,result.getStartingSequenceId()).build();
-    }
- else     if (result.isBufferClosed() || isDone(taskId)) {
-      return Response.status(Status.GONE).header(PRESTO_PAGE_SEQUENCE_ID,result.getStartingSequenceId()).build();
-    }
+        return Response.ok(entity).header(PRESTO_PAGE_SEQUENCE_ID,result.getStartingSequenceId()).build();
+      }
+ else       if (result.isBufferClosed() || isDone(taskId)) {
+        return Response.status(Status.GONE).header(PRESTO_PAGE_SEQUENCE_ID,result.getStartingSequenceId()).build();
+      }
  else {
-      return Response.status(Status.NO_CONTENT).header(PRESTO_PAGE_SEQUENCE_ID,result.getStartingSequenceId()).build();
+        return Response.status(Status.NO_CONTENT).header(PRESTO_PAGE_SEQUENCE_ID,result.getStartingSequenceId()).build();
+      }
     }
-  }
- catch (  NoSuchElementException|NoSuchBufferException ignored) {
-    if (limiter.tryAcquire()) {
-      log.debug(ignored,"Error getting results");
+ catch (    NoSuchElementException|NoSuchBufferException ignored) {
+      lastError=ignored;
     }
+    if (isDone(taskId)) {
+      return Response.status(Status.GONE).header(PRESTO_PAGE_SEQUENCE_ID,pageSequenceId).build();
+    }
+    NANOSECONDS.sleep(Math.min(remainingNanos,MILLISECONDS.toNanos(maxSleepMillis)));
+    remainingNanos=end - System.nanoTime();
+    maxSleepMillis*=2;
   }
-  if (isDone(taskId)) {
-    return Response.status(Status.GONE).header(PRESTO_PAGE_SEQUENCE_ID,pageSequenceId).build();
+  if (lastError != null && limiter.tryAcquire()) {
+    log.debug(lastError,"Error getting results");
   }
- else {
-    return Response.status(Status.NO_CONTENT).header(PRESTO_PAGE_SEQUENCE_ID,pageSequenceId).build();
-  }
+  return Response.status(Status.NO_CONTENT).header(PRESTO_PAGE_SEQUENCE_ID,pageSequenceId).build();
 }
