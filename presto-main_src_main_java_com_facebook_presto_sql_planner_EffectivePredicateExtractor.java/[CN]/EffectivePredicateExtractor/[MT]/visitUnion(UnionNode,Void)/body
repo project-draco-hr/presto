@@ -1,0 +1,11 @@
+{
+  Expression firstUnderlyingPredicate=node.getSources().get(0).accept(this,context);
+  Expression firstOutputPredicate=TreeRewriter.rewriteWith(new ExpressionSymbolInliner(node.outputSymbolMap(0)),firstUnderlyingPredicate);
+  Set<Expression> conjuncts=ImmutableSet.copyOf(extractConjuncts(firstOutputPredicate));
+  for (int i=1; i < node.getSources().size(); i++) {
+    Expression underlyingPredicate=node.getSources().get(i).accept(this,context);
+    Expression outputPredicate=TreeRewriter.rewriteWith(new ExpressionSymbolInliner(node.outputSymbolMap(i)),underlyingPredicate);
+    conjuncts=Sets.intersection(conjuncts,ImmutableSet.copyOf(extractConjuncts(outputPredicate)));
+  }
+  return combineConjuncts(conjuncts);
+}

@@ -1,0 +1,18 @@
+{
+  Iterable<Expression> subExpressions=SubExpressionExtractor.extract(expression);
+  if (!allowFullReplacement) {
+    subExpressions=filter(subExpressions,not(equalTo(expression)));
+  }
+  ImmutableMap.Builder<Expression,Expression> expressionRemap=ImmutableMap.builder();
+  for (  Expression subExpression : subExpressions) {
+    Expression canonical=getScopedCanonical(subExpression,symbolScope);
+    if (canonical != null) {
+      expressionRemap.put(subExpression,canonical);
+    }
+  }
+  Expression rewritten=TreeRewriter.rewriteWith(new ExpressionNodeInliner(expressionRemap.build()),expression);
+  if (!symbolToExpressionPredicate(symbolScope).apply(rewritten)) {
+    return null;
+  }
+  return rewritten;
+}

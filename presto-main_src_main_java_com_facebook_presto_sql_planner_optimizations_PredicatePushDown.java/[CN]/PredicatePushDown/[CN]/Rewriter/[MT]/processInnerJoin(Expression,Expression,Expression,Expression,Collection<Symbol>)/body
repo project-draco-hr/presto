@@ -1,0 +1,61 @@
+{
+  checkArgument(Iterables.all(DependencyExtractor.extract(leftEffectivePredicate),in(leftSymbols)),"leftEffectivePredicate must only contain symbols from leftSymbols");
+  checkArgument(Iterables.all(DependencyExtractor.extract(rightEffectivePredicate),not(in(leftSymbols))),"rightEffectivePredicate must not contain symbols from leftSymbols");
+  ImmutableList.Builder<Expression> leftPushDownConjuncts=ImmutableList.builder();
+  ImmutableList.Builder<Expression> rightPushDownConjuncts=ImmutableList.builder();
+  ImmutableList.Builder<Expression> joinConjuncts=ImmutableList.builder();
+  joinConjuncts.addAll(filter(extractConjuncts(inheritedPredicate),not(deterministic())));
+  inheritedPredicate=stripNonDeterministicConjuncts(inheritedPredicate);
+  joinConjuncts.addAll(filter(extractConjuncts(joinPredicate),not(deterministic())));
+  joinPredicate=stripNonDeterministicConjuncts(joinPredicate);
+  leftEffectivePredicate=stripNonDeterministicConjuncts(leftEffectivePredicate);
+  rightEffectivePredicate=stripNonDeterministicConjuncts(rightEffectivePredicate);
+  EqualityInference allInference=createEqualityInference(inheritedPredicate,leftEffectivePredicate,rightEffectivePredicate,joinPredicate);
+  EqualityInference allInferenceWithoutLeftInferred=createEqualityInference(inheritedPredicate,rightEffectivePredicate,joinPredicate);
+  EqualityInference allInferenceWithoutRightInferred=createEqualityInference(inheritedPredicate,leftEffectivePredicate,joinPredicate);
+  for (  Expression conjunct : EqualityInference.nonInferrableConjuncts(inheritedPredicate)) {
+    Expression leftRewrittenConjunct=allInference.rewriteExpression(conjunct,in(leftSymbols));
+    if (leftRewrittenConjunct != null) {
+      leftPushDownConjuncts.add(leftRewrittenConjunct);
+    }
+    Expression rightRewrittenConjunct=allInference.rewriteExpression(conjunct,not(in(leftSymbols)));
+    if (rightRewrittenConjunct != null) {
+      rightPushDownConjuncts.add(rightRewrittenConjunct);
+    }
+    if (leftRewrittenConjunct == null && rightRewrittenConjunct == null) {
+      joinConjuncts.add(conjunct);
+    }
+  }
+  for (  Expression conjunct : EqualityInference.nonInferrableConjuncts(rightEffectivePredicate)) {
+    Expression rewritten=allInference.rewriteExpression(conjunct,in(leftSymbols));
+    if (rewritten != null) {
+      leftPushDownConjuncts.add(rewritten);
+    }
+  }
+  for (  Expression conjunct : EqualityInference.nonInferrableConjuncts(leftEffectivePredicate)) {
+    Expression rewritten=allInference.rewriteExpression(conjunct,not(in(leftSymbols)));
+    if (rewritten != null) {
+      rightPushDownConjuncts.add(rewritten);
+    }
+  }
+  for (  Expression conjunct : EqualityInference.nonInferrableConjuncts(joinPredicate)) {
+    Expression leftRewritten=allInference.rewriteExpression(conjunct,in(leftSymbols));
+    if (leftRewritten != null) {
+      leftPushDownConjuncts.add(leftRewritten);
+    }
+    Expression rightRewritten=allInference.rewriteExpression(conjunct,not(in(leftSymbols)));
+    if (rightRewritten != null) {
+      rightPushDownConjuncts.add(rightRewritten);
+    }
+    if (leftRewritten == null && rightRewritten == null) {
+      joinConjuncts.add(conjunct);
+    }
+  }
+  leftPushDownConjuncts.addAll(allInferenceWithoutLeftInferred.generateEqualitiesPartitionedBy(in(leftSymbols)).getScopeEqualities());
+  rightPushDownConjuncts.addAll(allInferenceWithoutRightInferred.generateEqualitiesPartitionedBy(not(in(leftSymbols))).getScopeEqualities());
+  joinConjuncts.addAll(allInference.generateEqualitiesPartitionedBy(in(leftSymbols)).getScopeStraddlingEqualities());
+  List<Expression> joinConjunctsList=joinConjuncts.build();
+  List<Expression> postJoinConjuncts=ImmutableList.copyOf(filter(joinConjunctsList,not(joinEqualityExpression(leftSymbols))));
+  joinConjunctsList=ImmutableList.copyOf(filter(joinConjunctsList,joinEqualityExpression(leftSymbols)));
+  return new InnerJoinPushDownResult(combineConjuncts(leftPushDownConjuncts.build()),combineConjuncts(rightPushDownConjuncts.build()),combineConjuncts(joinConjunctsList),combineConjuncts(postJoinConjuncts));
+}

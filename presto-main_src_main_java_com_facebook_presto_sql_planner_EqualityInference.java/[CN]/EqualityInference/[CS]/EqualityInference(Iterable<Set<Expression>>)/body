@@ -1,0 +1,16 @@
+{
+  ImmutableSetMultimap.Builder<Expression,Expression> setBuilder=ImmutableSetMultimap.builder();
+  for (  Set<Expression> equalityGroup : equalityGroups) {
+    if (!equalityGroup.isEmpty()) {
+      setBuilder.putAll(CANONICAL_ORDERING.min(equalityGroup),equalityGroup);
+    }
+  }
+  equalitySets=setBuilder.build();
+  ImmutableMap.Builder<Expression,Expression> mapBuilder=ImmutableMap.builder();
+  for (  Map.Entry<Expression,Expression> entry : equalitySets.entries()) {
+    Expression canonical=entry.getKey();
+    Expression expression=entry.getValue();
+    mapBuilder.put(expression,canonical);
+  }
+  canonicalMap=mapBuilder.build();
+}

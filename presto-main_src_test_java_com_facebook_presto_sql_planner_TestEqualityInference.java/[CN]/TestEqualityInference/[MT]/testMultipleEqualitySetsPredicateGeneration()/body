@@ -1,0 +1,25 @@
+{
+  EqualityInference.Builder builder=new EqualityInference.Builder();
+  addEquality("a1","b1",builder);
+  addEquality("b1","c1",builder);
+  addEquality("c1","d1",builder);
+  addEquality("a2","b2",builder);
+  addEquality("b2","c2",builder);
+  addEquality("c2","d2",builder);
+  EqualityInference inference=builder.build();
+  EqualityInference.EqualityPartition equalityPartition=inference.generateEqualitiesPartitionedBy(symbolBeginsWith("a","b"));
+  Assert.assertFalse(equalityPartition.getScopeEqualities().isEmpty());
+  Assert.assertTrue(Iterables.all(equalityPartition.getScopeEqualities(),matchesSymbolScope(symbolBeginsWith("a","b"))));
+  Assert.assertTrue(Iterables.all(equalityPartition.getScopeEqualities(),EqualityInference.inferrableEqualityExpression()));
+  Assert.assertFalse(equalityPartition.getInverseScopeEqualities().isEmpty());
+  Assert.assertTrue(Iterables.all(equalityPartition.getInverseScopeEqualities(),matchesSymbolScope(not(symbolBeginsWith("a","b")))));
+  Assert.assertTrue(Iterables.all(equalityPartition.getInverseScopeEqualities(),EqualityInference.inferrableEqualityExpression()));
+  Assert.assertFalse(equalityPartition.getScopeStraddlingEqualities().isEmpty());
+  Assert.assertTrue(Iterables.any(equalityPartition.getScopeStraddlingEqualities(),matchesStraddlingScope(symbolBeginsWith("a","b"))));
+  Assert.assertTrue(Iterables.all(equalityPartition.getScopeStraddlingEqualities(),EqualityInference.inferrableEqualityExpression()));
+  EqualityInference newInference=new EqualityInference.Builder().addAllEqualities(equalityPartition.getScopeEqualities()).addAllEqualities(equalityPartition.getInverseScopeEqualities()).addAllEqualities(equalityPartition.getScopeStraddlingEqualities()).build();
+  EqualityInference.EqualityPartition newEqualityPartition=newInference.generateEqualitiesPartitionedBy(symbolBeginsWith("a","b"));
+  Assert.assertEquals(setCopy(equalityPartition.getScopeEqualities()),setCopy(newEqualityPartition.getScopeEqualities()));
+  Assert.assertEquals(setCopy(equalityPartition.getInverseScopeEqualities()),setCopy(newEqualityPartition.getInverseScopeEqualities()));
+  Assert.assertEquals(setCopy(equalityPartition.getScopeStraddlingEqualities()),setCopy(newEqualityPartition.getScopeStraddlingEqualities()));
+}

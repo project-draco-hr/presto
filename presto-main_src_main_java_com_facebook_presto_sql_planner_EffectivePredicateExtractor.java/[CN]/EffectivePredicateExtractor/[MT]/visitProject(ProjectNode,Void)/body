@@ -1,0 +1,21 @@
+{
+  Expression underlyingPredicate=node.getSource().accept(this,context);
+  Iterable<Expression> projectionEqualities=transform(node.getOutputMap().entrySet(),new Function<Map.Entry<Symbol,Expression>,Expression>(){
+    @Override public Expression apply(    Map.Entry<Symbol,Expression> entry){
+      QualifiedNameReference reference=new QualifiedNameReference(entry.getKey().toQualifiedName());
+      Expression expression=entry.getValue();
+      return new ComparisonExpression(ComparisonExpression.Type.EQUAL,reference,expression);
+    }
+  }
+);
+  EqualityInference projectionInference=createEqualityInference(combineConjuncts(projectionEqualities),underlyingPredicate);
+  ImmutableList.Builder<Expression> effectiveConjuncts=ImmutableList.builder();
+  for (  Expression conjunct : EqualityInference.nonInferrableConjuncts(underlyingPredicate)) {
+    Expression rewritten=projectionInference.rewriteExpression(conjunct,in(node.getOutputSymbols()));
+    if (rewritten != null) {
+      effectiveConjuncts.add(rewritten);
+    }
+  }
+  effectiveConjuncts.addAll(projectionInference.generateEqualitiesPartitionedBy(in(node.getOutputSymbols())).getScopeEqualities());
+  return combineConjuncts(effectiveConjuncts.build());
+}

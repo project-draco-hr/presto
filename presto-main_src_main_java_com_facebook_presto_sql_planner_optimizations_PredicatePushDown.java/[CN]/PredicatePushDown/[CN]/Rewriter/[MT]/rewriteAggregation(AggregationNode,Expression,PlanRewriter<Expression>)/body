@@ -1,9 +1,9 @@
 {
-  EqualityInference equalityInference=new EqualityInference.Builder().addAllEqualities(filter(extractConjuncts(inheritedPredicate),simpleEquality())).build();
+  EqualityInference equalityInference=createEqualityInference(inheritedPredicate);
   List<Expression> pushdownConjuncts=new ArrayList<>();
   List<Expression> postAggregationConjuncts=new ArrayList<>();
-  for (  Expression conjunct : filter(extractConjuncts(inheritedPredicate),not(simpleEquality()))) {
-    Expression rewrittenConjunct=equalityInference.rewritePredicate(conjunct,in(node.getGroupBy()));
+  for (  Expression conjunct : EqualityInference.nonInferrableConjuncts(inheritedPredicate)) {
+    Expression rewrittenConjunct=equalityInference.rewriteExpression(conjunct,in(node.getGroupBy()));
     if (rewrittenConjunct != null && DeterminismEvaluator.isDeterministic(rewrittenConjunct)) {
       pushdownConjuncts.add(rewrittenConjunct);
     }
@@ -11,16 +11,17 @@
       postAggregationConjuncts.add(conjunct);
     }
   }
-  pushdownConjuncts.addAll(equalityInference.scopedEqualityPredicates(in(node.getGroupBy())));
-  postAggregationConjuncts.addAll(equalityInference.scopedEqualityPredicates(not(in(node.getGroupBy()))));
-  postAggregationConjuncts.addAll(equalityInference.scopeBridgePredicates(in(node.getGroupBy())));
-  PlanNode rewrittenSource=planRewriter.rewrite(node.getSource(),ExpressionUtils.combineConjuncts(pushdownConjuncts));
+  EqualityInference.EqualityPartition equalityPartition=equalityInference.generateEqualitiesPartitionedBy(in(node.getGroupBy()));
+  pushdownConjuncts.addAll(equalityPartition.getScopeEqualities());
+  postAggregationConjuncts.addAll(equalityPartition.getInverseScopeEqualities());
+  postAggregationConjuncts.addAll(equalityPartition.getScopeStraddlingEqualities());
+  PlanNode rewrittenSource=planRewriter.rewrite(node.getSource(),combineConjuncts(pushdownConjuncts));
   PlanNode output=node;
   if (rewrittenSource != node.getSource()) {
     output=new AggregationNode(node.getId(),rewrittenSource,node.getGroupBy(),node.getAggregations(),node.getFunctions(),node.getStep());
   }
   if (!postAggregationConjuncts.isEmpty()) {
-    output=new FilterNode(idAllocator.getNextId(),output,and(postAggregationConjuncts));
+    output=new FilterNode(idAllocator.getNextId(),output,combineConjuncts(postAggregationConjuncts));
   }
   return output;
 }

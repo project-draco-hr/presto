@@ -1,10 +1,10 @@
 {
   Set<Symbol> partitionSymbols=Sets.filter(MapTransformer.of(node.getAssignments()).filterValues(partitionColumn(node.getTable())).immutableMap().keySet(),in(node.getOutputSymbols()));
-  EqualityInference equalityInference=new EqualityInference.Builder().addAllEqualities(filter(extractConjuncts(inheritedPredicate),simpleEquality())).build();
+  EqualityInference equalityInference=createEqualityInference(inheritedPredicate);
   List<Expression> partitionConjuncts=new ArrayList<>();
   List<Expression> postScanConjuncts=new ArrayList<>();
-  for (  Expression conjunct : filter(extractConjuncts(inheritedPredicate),not(simpleEquality()))) {
-    Expression rewrittenConjunct=equalityInference.rewritePredicate(conjunct,in(partitionSymbols));
+  for (  Expression conjunct : EqualityInference.nonInferrableConjuncts(inheritedPredicate)) {
+    Expression rewrittenConjunct=equalityInference.rewriteExpression(conjunct,in(partitionSymbols));
     if (rewrittenConjunct != null && DeterminismEvaluator.isDeterministic(rewrittenConjunct)) {
       partitionConjuncts.add(rewrittenConjunct);
     }
@@ -12,9 +12,10 @@
       postScanConjuncts.add(conjunct);
     }
   }
-  partitionConjuncts.addAll(equalityInference.scopedEqualityPredicates(in(partitionSymbols)));
-  postScanConjuncts.addAll(equalityInference.scopedEqualityPredicates(not(in(partitionSymbols))));
-  postScanConjuncts.addAll(equalityInference.scopeBridgePredicates(in(partitionSymbols)));
+  EqualityInference.EqualityPartition equalityPartition=equalityInference.generateEqualitiesPartitionedBy(in(partitionSymbols));
+  partitionConjuncts.addAll(equalityPartition.getScopeEqualities());
+  postScanConjuncts.addAll(equalityPartition.getInverseScopeEqualities());
+  postScanConjuncts.addAll(equalityPartition.getScopeStraddlingEqualities());
   PlanNode output=node;
   if (!partitionConjuncts.isEmpty() || !postScanConjuncts.isEmpty()) {
     if (!node.getPartitionPredicate().equals(BooleanLiteral.TRUE_LITERAL)) {
@@ -23,7 +24,7 @@
     output=new TableScanNode(node.getId(),node.getTable(),node.getOutputSymbols(),node.getAssignments(),combineConjuncts(partitionConjuncts),combineConjuncts(postScanConjuncts));
   }
   if (!postScanConjuncts.isEmpty()) {
-    output=new FilterNode(idAllocator.getNextId(),output,and(postScanConjuncts));
+    output=new FilterNode(idAllocator.getNextId(),output,combineConjuncts(postScanConjuncts));
   }
   return output;
 }

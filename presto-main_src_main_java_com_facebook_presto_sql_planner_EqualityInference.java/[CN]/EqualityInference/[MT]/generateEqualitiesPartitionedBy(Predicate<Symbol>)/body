@@ -1,0 +1,47 @@
+{
+  Set<Expression> scopeEqualities=new HashSet<>();
+  Set<Expression> inverseScopeEqualities=new HashSet<>();
+  Set<Expression> scopeStraddlingEqualities=new HashSet<>();
+  for (  Collection<Expression> equalitySet : equalitySets.asMap().values()) {
+    Set<Expression> scopeExpressions=new HashSet<>();
+    Set<Expression> inverseScopeExpressions=new HashSet<>();
+    Set<Expression> unpartitionableExpressions=new HashSet<>();
+    for (    Expression expression : equalitySet) {
+      Expression scopeRewritten=rewriteExpression(expression,symbolScope,false);
+      if (scopeRewritten != null) {
+        scopeExpressions.add(scopeRewritten);
+      }
+      Expression inverseScopeRewritten=rewriteExpression(expression,not(symbolScope),false);
+      if (inverseScopeRewritten != null) {
+        inverseScopeExpressions.add(inverseScopeRewritten);
+      }
+      if (scopeRewritten == null && inverseScopeRewritten == null) {
+        unpartitionableExpressions.add(expression);
+      }
+    }
+    Expression matchingCanonical=getCanonical(scopeExpressions);
+    if (scopeExpressions.size() >= 2) {
+      for (      Expression expression : filter(scopeExpressions,not(equalTo(matchingCanonical)))) {
+        scopeEqualities.add(new ComparisonExpression(ComparisonExpression.Type.EQUAL,matchingCanonical,expression));
+      }
+    }
+    Expression inverseCanonical=getCanonical(inverseScopeExpressions);
+    if (inverseScopeExpressions.size() >= 2) {
+      for (      Expression expression : filter(inverseScopeExpressions,not(equalTo(inverseCanonical)))) {
+        inverseScopeEqualities.add(new ComparisonExpression(ComparisonExpression.Type.EQUAL,inverseCanonical,expression));
+      }
+    }
+    List<Expression> connectingExpressions=new ArrayList<>();
+    connectingExpressions.add(matchingCanonical);
+    connectingExpressions.add(inverseCanonical);
+    connectingExpressions.addAll(unpartitionableExpressions);
+    connectingExpressions=ImmutableList.copyOf(filter(connectingExpressions,Predicates.notNull()));
+    Expression connectingCanonical=getCanonical(connectingExpressions);
+    if (connectingCanonical != null) {
+      for (      Expression expression : filter(connectingExpressions,not(equalTo(connectingCanonical)))) {
+        scopeStraddlingEqualities.add(new ComparisonExpression(ComparisonExpression.Type.EQUAL,connectingCanonical,expression));
+      }
+    }
+  }
+  return new EqualityPartition(scopeEqualities,inverseScopeEqualities,scopeStraddlingEqualities);
+}

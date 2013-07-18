@@ -1,0 +1,18 @@
+{
+  Expression leftPredicate=node.getLeft().accept(this,context);
+  Expression rightPredicate=node.getRight().accept(this,context);
+  List<Expression> joinConjuncts=new ArrayList<>();
+  for (  JoinNode.EquiJoinClause clause : node.getCriteria()) {
+    joinConjuncts.add(new ComparisonExpression(ComparisonExpression.Type.EQUAL,new QualifiedNameReference(clause.getLeft().toQualifiedName()),new QualifiedNameReference(clause.getRight().toQualifiedName())));
+  }
+switch (node.getType()) {
+case INNER:
+    return combineConjuncts(ImmutableList.<Expression>builder().add(leftPredicate).add(rightPredicate).addAll(joinConjuncts).build());
+case LEFT:
+  return combineConjuncts(ImmutableList.<Expression>builder().add(leftPredicate).addAll(transform(extractConjuncts(rightPredicate),expressionOrNullSymbols(in(node.getRight().getOutputSymbols())))).addAll(transform(joinConjuncts,expressionOrNullSymbols(in(node.getRight().getOutputSymbols())))).build());
+case RIGHT:
+return combineConjuncts(ImmutableList.<Expression>builder().add(rightPredicate).addAll(transform(extractConjuncts(leftPredicate),expressionOrNullSymbols(in(node.getLeft().getOutputSymbols())))).addAll(transform(joinConjuncts,expressionOrNullSymbols(in(node.getLeft().getOutputSymbols())))).build());
+default :
+throw new UnsupportedOperationException("Unknown join type: " + node.getType());
+}
+}

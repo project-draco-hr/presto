@@ -1,0 +1,10 @@
+{
+  ExpressionAnalyzer expressionAnalyzer=new ExpressionAnalyzer(metadata);
+  List<Field> fields=IterableTransformer.<Symbol>on(DependencyExtractor.extract(expression)).transform(new Function<Symbol,Field>(){
+    @Override public Field apply(    Symbol symbol){
+      return Field.newUnqualified(symbol.getName(),symbolAllocator.getTypes().get(symbol));
+    }
+  }
+).list();
+  return expressionAnalyzer.analyze(expression,new TupleDescriptor(fields));
+}

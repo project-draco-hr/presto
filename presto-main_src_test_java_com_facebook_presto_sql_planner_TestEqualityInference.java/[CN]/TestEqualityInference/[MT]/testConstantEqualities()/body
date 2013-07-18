@@ -1,0 +1,12 @@
+{
+  EqualityInference.Builder builder=new EqualityInference.Builder();
+  addEquality("a1","b1",builder);
+  addEquality("b1","c1",builder);
+  builder.addEquality(nameReference("c1"),number(1));
+  EqualityInference inference=builder.build();
+  Assert.assertEquals(inference.rewriteExpression(nameReference("a1"),matchesSymbols("a1","b1")),number(1));
+  EqualityInference.EqualityPartition equalityPartition=inference.generateEqualitiesPartitionedBy(matchesSymbols("a1","b1"));
+  Assert.assertEquals(equalitiesAsSets(equalityPartition.getScopeEqualities()),set(set(nameReference("a1"),number(1)),set(nameReference("b1"),number(1))));
+  Assert.assertEquals(equalitiesAsSets(equalityPartition.getInverseScopeEqualities()),set(set(nameReference("c1"),number(1))));
+  Assert.assertTrue(equalityPartition.getScopeStraddlingEqualities().isEmpty());
+}
