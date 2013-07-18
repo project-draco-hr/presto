@@ -1,4 +1,8 @@
 {
   PlanNode source=planRewriter.rewrite(node.getSource(),context);
-  return new FilterNode(node.getId(),source,simplifyExpression(node.getPredicate()));
+  Expression simplified=simplifyExpression(node.getPredicate());
+  if (simplified.equals(BooleanLiteral.TRUE_LITERAL)) {
+    return source;
+  }
+  return new FilterNode(node.getId(),source,simplified);
 }
