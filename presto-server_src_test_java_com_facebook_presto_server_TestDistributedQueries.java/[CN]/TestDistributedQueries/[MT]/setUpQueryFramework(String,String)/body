@@ -1,15 +1,15 @@
 {
   try {
     discoveryServer=new DiscoveryTestingServer();
-    coordinator=new PrestoTestingServer(discoveryServer.getBaseUrl());
-    servers=ImmutableList.<PrestoTestingServer>builder().add(coordinator).add(new PrestoTestingServer(discoveryServer.getBaseUrl())).add(new PrestoTestingServer(discoveryServer.getBaseUrl())).build();
+    coordinator=createTestingPrestoServer(discoveryServer.getBaseUrl());
+    servers=ImmutableList.<TestingPrestoServer>builder().add(coordinator).add(createTestingPrestoServer(discoveryServer.getBaseUrl())).add(createTestingPrestoServer(discoveryServer.getBaseUrl())).build();
   }
  catch (  Exception e) {
     tearDownQueryFramework();
     throw e;
   }
   this.httpClient=new StandaloneNettyAsyncHttpClient("test",new HttpClientConfig().setConnectTimeout(new Duration(1,TimeUnit.DAYS)).setReadTimeout(new Duration(10,TimeUnit.DAYS)));
-  for (  PrestoTestingServer server : servers) {
+  for (  TestingPrestoServer server : servers) {
     server.refreshServiceSelectors();
   }
   log.info("Loading data...");

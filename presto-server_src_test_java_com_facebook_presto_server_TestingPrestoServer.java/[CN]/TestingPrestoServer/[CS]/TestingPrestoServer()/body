@@ -1,18 +1,3 @@
 {
-  baseDataDir=Files.createTempDir();
-  Map<String,String> serverProperties=ImmutableMap.<String,String>builder().put("storage-manager.data-directory",baseDataDir.getPath()).put("presto-metastore.db.type","h2").put("presto-metastore.db.filename",new File(baseDataDir,"db/MetaStore").getPath()).put("presto.version","testversion").build();
-  Bootstrap app=new Bootstrap(new TestingNodeModule(),new TestingDiscoveryModule(),new TestingHttpServerModule(),new JsonModule(),new JaxrsModule(),new MBeanModule(),new TestingJmxModule(),new InMemoryEventModule(),new TraceTokenModule(),new FailureDetectorModule(),new ServerMainModule(),new TpchModule(),new Module(){
-    @Override public void configure(    Binder binder){
-      binder.bind(TpchBlocksProvider.class).to(InMemoryTpchBlocksProvider.class).in(Scopes.SINGLETON);
-    }
-  }
-);
-  Injector injector=app.strictConfig().doNotInitializeLogging().setRequiredConfigurationProperties(serverProperties).initialize();
-  injector.getInstance(Announcer.class).start();
-  injector.getInstance(NodeManager.class).refreshNodes(true);
-  lifeCycleManager=injector.getInstance(LifeCycleManager.class);
-  ConnectorManager connectorManager=injector.getInstance(ConnectorManager.class);
-  connectorManager.createConnection("default","native",ImmutableMap.<String,String>of());
-  connectorManager.createConnection("tpch","tpch",ImmutableMap.<String,String>of());
-  server=injector.getInstance(TestingHttpServer.class);
+  this(ImmutableMap.<String,String>of(),null,null);
 }
