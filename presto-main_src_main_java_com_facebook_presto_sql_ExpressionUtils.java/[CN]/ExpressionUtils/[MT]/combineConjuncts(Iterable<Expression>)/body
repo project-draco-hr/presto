@@ -1,5 +1,14 @@
 {
   Preconditions.checkNotNull(expressions,"expressions is null");
+  expressions=Iterables.concat(Iterables.transform(expressions,new Function<Expression,Iterable<Expression>>(){
+    @Override public Iterable<Expression> apply(    Expression expression){
+      return extractConjuncts(expression);
+    }
+  }
+));
   expressions=Iterables.filter(expressions,not(Predicates.<Expression>equalTo(TRUE_LITERAL)));
+  Iterable<Expression> nonDeterministicConjuncts=Iterables.filter(expressions,not(deterministic()));
+  Iterable<Expression> deterministicConjuncts=ImmutableSet.copyOf(Iterables.filter(expressions,deterministic()));
+  expressions=Iterables.concat(nonDeterministicConjuncts,deterministicConjuncts);
   return Iterables.isEmpty(expressions) ? TRUE_LITERAL : and(expressions);
 }
