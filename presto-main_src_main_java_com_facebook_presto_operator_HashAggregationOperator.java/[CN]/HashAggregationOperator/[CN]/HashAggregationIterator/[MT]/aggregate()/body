@@ -16,7 +16,7 @@
   int nextGroupId=0;
   List<UncompressedBlock> groupByBlocks=new ArrayList<>();
   BlockCursor[] cursors=new BlockCursor[iterator.getChannelCount()];
-  while (!isMaxMemoryExceeded(hashStrategy,aggregates) && iterator.hasNext()) {
+  while (!operatorStats.isDone() && !isMaxMemoryExceeded(hashStrategy,aggregates) && iterator.hasNext()) {
     Page page=iterator.next();
     Block[] blocks=page.getBlocks();
     Slice groupBySlice=((UncompressedBlock)blocks[groupChannel]).getSlice();
@@ -56,7 +56,6 @@
       checkState(!cursor.advanceNextPosition());
     }
   }
-  Preconditions.checkState(step == Step.PARTIAL || !isMaxMemoryExceeded(hashStrategy,aggregates),"Task exceeded max memory size of %s",taskMemoryManager.getMaxMemorySize());
   checkState(step == Step.PARTIAL || !isMaxMemoryExceeded(hashStrategy,aggregates),"Task exceeded max memory size of %s",taskMemoryManager.getMaxMemorySize());
   if (!blockBuilder.isEmpty()) {
     UncompressedBlock block=blockBuilder.build();

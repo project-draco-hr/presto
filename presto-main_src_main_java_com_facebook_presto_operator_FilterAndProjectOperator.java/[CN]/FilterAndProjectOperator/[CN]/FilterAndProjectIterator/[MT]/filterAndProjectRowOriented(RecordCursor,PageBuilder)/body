@@ -2,6 +2,9 @@
   long completedPositions=0;
   while (!pageBuilder.isFull() && cursor.advanceNextPosition()) {
     completedPositions++;
+    if (shouldCheckDoneFlag(completedPositions) && operatorStats.isDone()) {
+      break;
+    }
     if (filterFunction.filter(cursor)) {
       pageBuilder.declarePosition();
       for (int i=0; i < projections.size(); i++) {
