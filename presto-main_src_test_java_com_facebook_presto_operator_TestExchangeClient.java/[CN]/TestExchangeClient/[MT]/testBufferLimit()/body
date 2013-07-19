@@ -6,13 +6,15 @@
   exchangeClient.addLocation(location);
   exchangeClient.noMoreLocations();
   assertEquals(exchangeClient.isClosed(),false);
+  long start=System.nanoTime();
   processor.addPage(location,createPage(1));
   processor.addPage(location,createPage(2));
   processor.addPage(location,createPage(3));
   processor.setComplete(location);
   exchangeClient.scheduleRequestIfNecessary();
   do {
-    Uninterruptibles.sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
+    assertLessThan(Duration.nanosSince(start),new Duration(5,TimeUnit.SECONDS));
+    sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
   }
  while (exchangeClient.getStatus().getBufferedPages() == 0);
   assertEquals(exchangeClient.getStatus().getBufferedPages(),1);
@@ -20,7 +22,8 @@
   assertStatus(exchangeClient.getStatus().getPageBufferClientStatuses().get(0),location,"queued",1,1,1,"queued");
   assertPageEquals(exchangeClient.getNextPage(new Duration(0,TimeUnit.SECONDS)),createPage(1));
   do {
-    Uninterruptibles.sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
+    assertLessThan(Duration.nanosSince(start),new Duration(5,TimeUnit.SECONDS));
+    sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
   }
  while (exchangeClient.getStatus().getBufferedPages() == 0);
   assertStatus(exchangeClient.getStatus().getPageBufferClientStatuses().get(0),location,"queued",2,2,2,"queued");
@@ -28,7 +31,8 @@
   assertTrue(exchangeClient.getStatus().getBufferedBytes() > 0);
   assertPageEquals(exchangeClient.getNextPage(new Duration(0,TimeUnit.SECONDS)),createPage(2));
   do {
-    Uninterruptibles.sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
+    assertLessThan(Duration.nanosSince(start),new Duration(5,TimeUnit.SECONDS));
+    sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
   }
  while (exchangeClient.getStatus().getBufferedPages() == 0);
   assertStatus(exchangeClient.getStatus().getPageBufferClientStatuses().get(0),location,"queued",3,3,3,"queued");
