@@ -1,13 +1,13 @@
 {
   Preconditions.checkNotNull(config,"config is null");
-  streamRateDecayAlpha=ExponentialDecay.seconds((int)config.getStreamRateDecay().convertTo(SECONDS));
+  streamRateDecayAlpha=ExponentialDecay.seconds(Ints.checkedCast(config.getStreamRateDecay().roundTo(SECONDS)));
   minMonitorThreshold=config.getMinMonitorThreshold();
   minStreamSamplingTime=config.getMinStreamSamplingTime();
   minGlobalSamples=config.getMinGlobalSamples();
   minStreamRate=config.getMinStreamRate();
   slowStreamPercentile=config.getSlowStreamPercentile();
   Duration unfavoredNodeCacheTime=config.getUnfavoredNodeCacheTime();
-  unfavoredNodes=CacheBuilder.newBuilder().expireAfterWrite((long)unfavoredNodeCacheTime.toMillis(),TimeUnit.MILLISECONDS).build();
+  unfavoredNodes=CacheBuilder.newBuilder().expireAfterWrite(unfavoredNodeCacheTime.toMillis(),TimeUnit.MILLISECONDS).build();
   Duration globalDistributionDecay=config.getGlobalDistributionDecay();
-  globalDistribution=new Distribution2(ExponentialDecay.seconds((int)globalDistributionDecay.convertTo(SECONDS)));
+  globalDistribution=new Distribution2(ExponentialDecay.seconds(Ints.checkedCast(globalDistributionDecay.roundTo(SECONDS))));
 }

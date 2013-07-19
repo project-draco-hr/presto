@@ -3,9 +3,9 @@
   int result=in.read(b,off,len);
   if (result > minMonitorThreshold.toBytes()) {
     Duration duration=Duration.nanosSince(start);
-    long byteRate=(long)(result / duration.convertTo(SECONDS));
+    long byteRate=(long)(result / duration.getValue(SECONDS));
     globalDistribution.add(byteRate,result);
-    streamByteRate.add(result,(long)duration.convertTo(TimeUnit.MILLISECONDS));
+    streamByteRate.add(result,duration.toMillis());
     if (streamByteRate.getMillis() > minStreamSamplingTime.toMillis()) {
       List<Long> percentileValues=globalDistribution.getPercentiles(ImmutableList.of(slowStreamPercentile / 100.0,0.50));
       if (streamByteRate.getBytesPerSecond() < minStreamRate.toBytes() || globalDistribution.getCount() > minGlobalSamples && streamByteRate.getBytesPerSecond() < percentileValues.get(0)) {
