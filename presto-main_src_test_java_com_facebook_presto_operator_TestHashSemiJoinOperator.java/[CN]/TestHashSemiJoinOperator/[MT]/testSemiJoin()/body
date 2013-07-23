@@ -1,0 +1,8 @@
+{
+  Operator buildSource=createOperator(new Page(createLongsBlock(10,30,30,35,36,37,50)));
+  Operator probeSource=createOperator(new Page(createLongSequenceBlock(30,40),createLongSequenceBlock(0,10)));
+  SourceSetProvider setProvider=new SourceSetProvider(buildSource,0,10,new TaskMemoryManager(new DataSize(1,MEGABYTE)),new OperatorStats());
+  HashSemiJoinOperator semiJoinOperator=new HashSemiJoinOperator(probeSource,0,setProvider);
+  Operator expected=createOperator(new Page(createLongSequenceBlock(30,40),createLongSequenceBlock(0,10),createBooleansBlock(true,false,false,false,false,true,true,true,false,false)));
+  assertOperatorEquals(semiJoinOperator,expected);
+}

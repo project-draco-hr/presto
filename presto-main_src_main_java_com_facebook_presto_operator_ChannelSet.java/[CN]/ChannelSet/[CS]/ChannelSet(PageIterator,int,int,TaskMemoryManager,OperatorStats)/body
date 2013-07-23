@@ -1,0 +1,43 @@
+{
+  checkNotNull(source,"source is null");
+  checkArgument(setChannel >= 0,"setChannel must be greater than or equal to zero");
+  checkArgument(expectedPositions >= 0,"expectedPositions must be greater than or equal to zero");
+  checkNotNull(taskMemoryManager,"taskMemoryManager is null");
+  checkNotNull(operatorStats,"operatorStats is null");
+  TupleInfo tupleInfo=source.getTupleInfos().get(setChannel);
+  strategy=new SliceHashStrategy(tupleInfo);
+  addressValueSet=new AddressValueSet(expectedPositions,strategy);
+  Slice slice=Slices.allocate((int)BlockBuilder.DEFAULT_MAX_BLOCK_SIZE.toBytes());
+  strategy.addSlice(slice);
+  BlockBuilder blockBuilder=new BlockBuilder(tupleInfo,slice.length(),slice.getOutput());
+  int currentBlockId=0;
+  long currentSize=0;
+  boolean containsNull=false;
+  try (PageIterator pageIterator=source){
+    while (pageIterator.hasNext() && !operatorStats.isDone()) {
+      currentSize=taskMemoryManager.updateOperatorReservation(currentSize,getEstimatedSize());
+      Block sourceBlock=pageIterator.next().getBlock(setChannel);
+      BlockCursor sourceCursor=sourceBlock.cursor();
+      Slice sourceSlice=((UncompressedBlock)sourceBlock).getSlice();
+      strategy.setLookupSlice(sourceSlice);
+      for (int position=0; position < sourceBlock.getPositionCount(); position++) {
+        checkState(sourceCursor.advanceNextPosition());
+        containsNull|=tupleContainsNull(sourceCursor,tupleInfo.getFieldCount());
+        long sourceAddress=encodeSyntheticAddress(LOOKUP_SLICE_INDEX,sourceCursor.getRawOffset());
+        if (!addressValueSet.contains(sourceAddress)) {
+          int length=tupleInfo.size(sourceSlice,sourceCursor.getRawOffset());
+          if (blockBuilder.writableBytes() < length) {
+            slice=Slices.allocate(Math.max((int)BlockBuilder.DEFAULT_MAX_BLOCK_SIZE.toBytes(),length));
+            strategy.addSlice(slice);
+            blockBuilder=new BlockBuilder(tupleInfo,slice.length(),slice.getOutput());
+            currentBlockId++;
+          }
+          int blockRawOffset=blockBuilder.size();
+          blockBuilder.appendTuple(sourceSlice,sourceCursor.getRawOffset(),length);
+          addressValueSet.add(encodeSyntheticAddress(currentBlockId,blockRawOffset));
+        }
+      }
+    }
+  }
+   this.containsNull=containsNull;
+}

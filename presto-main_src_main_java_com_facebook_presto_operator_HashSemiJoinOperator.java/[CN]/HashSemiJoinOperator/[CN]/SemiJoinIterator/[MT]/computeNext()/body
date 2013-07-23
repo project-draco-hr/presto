@@ -1,0 +1,30 @@
+{
+  if (channelSet == null) {
+    channelSet=sourceSetProvider.get();
+  }
+  if (operatorStats.isDone() || !probeIterator.hasNext()) {
+    return endOfData();
+  }
+  Page page=probeIterator.next();
+  UncompressedBlock probeJoinBlock=(UncompressedBlock)page.getBlock(probeJoinChannel);
+  BlockCursor probeJoinCursor=probeJoinBlock.cursor();
+  channelSet.setLookupSlice(probeJoinBlock.getSlice());
+  BlockBuilder blockBuilder=new BlockBuilder(TupleInfo.SINGLE_BOOLEAN);
+  for (int position=0; position < page.getPositionCount(); position++) {
+    checkState(probeJoinCursor.advanceNextPosition());
+    if (tupleContainsNull(probeJoinCursor)) {
+      blockBuilder.appendNull();
+    }
+ else {
+      boolean contains=channelSet.contains(probeJoinCursor);
+      if (!contains && channelSet.containsNull()) {
+        blockBuilder.appendNull();
+      }
+ else {
+        blockBuilder.append(contains);
+      }
+    }
+  }
+  Block[] sourceBlocks=page.getBlocks();
+  return new Page(ImmutableList.<Block>builder().add(sourceBlocks).add(blockBuilder.build()).build().toArray(sourceBlocks));
+}
