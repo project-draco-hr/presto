@@ -5,7 +5,7 @@
   if (proxy != null) {
     hiveClientConfig.setMetastoreSocksProxy(HostAndPort.fromString(proxy));
   }
-  FileSystemWrapper fileSystemWrapper=new FileSystemWrapperProvider(new FileSystemCache(hiveClientConfig),new SlowDatanodeSwitcher(hiveClientConfig),hiveClientConfig).get();
+  FileSystemWrapper fileSystemWrapper=new FileSystemWrapperProvider(new FileSystemCache(hiveClientConfig)).get();
   HiveCluster hiveCluster=new TestingHiveCluster(hiveClientConfig,host,port);
   ListeningExecutorService executor=MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).build()));
   HiveClient client=new HiveClient(new HiveConnectorId(CONNECTOR_ID),new CachingHiveMetastore(hiveCluster,executor,Duration.valueOf("1m"),Duration.valueOf("15s")),new HdfsEnvironment(new HdfsConfiguration(hiveClientConfig),fileSystemWrapper),MoreExecutors.sameThreadExecutor(),hiveClientConfig.getMaxSplitSize(),100,50,10,500);
