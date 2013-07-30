@@ -20,16 +20,18 @@
     for (    String column : columns) {
       Expression leftExpression=new QualifiedNameReference(QualifiedName.of(column));
       Expression rightExpression=new QualifiedNameReference(QualifiedName.of(column));
-      Analyzer.analyzeExpression(metadata,left,analysis,leftExpression);
-      Analyzer.analyzeExpression(metadata,right,analysis,rightExpression);
+      ExpressionAnalysis leftExpressionAnalysis=Analyzer.analyzeExpression(session,metadata,left,analysis,context,leftExpression);
+      ExpressionAnalysis rightExpressionAnalysis=Analyzer.analyzeExpression(session,metadata,right,analysis,context,rightExpression);
+      Preconditions.checkState(leftExpressionAnalysis.getSubqueryInPredicates().isEmpty(),"INVARIANT");
+      Preconditions.checkState(rightExpressionAnalysis.getSubqueryInPredicates().isEmpty(),"INVARIANT");
       builder.add(new EquiJoinClause(leftExpression,rightExpression));
     }
     analysis.setEquijoinCriteria(node,builder.build());
   }
  else   if (criteria instanceof JoinOn) {
     Expression expression=((JoinOn)criteria).getExpression();
-    ExpressionAnalyzer analyzer=new ExpressionAnalyzer(metadata);
-    analyzer.analyze(expression,output);
+    ExpressionAnalyzer analyzer=new ExpressionAnalyzer(analysis,session,metadata);
+    analyzer.analyze(expression,output,context);
     Analyzer.verifyNoAggregatesOrWindowFunctions(metadata,expression,"JOIN");
     Object optimizedExpression=ExpressionInterpreter.expressionOptimizer(NoOpSymbolResolver.INSTANCE,metadata,session).process(expression,null);
     if (!(optimizedExpression instanceof Expression)) {
@@ -59,8 +61,9 @@
  else {
         throw new SemanticException(NOT_SUPPORTED,node,"Non-equi joins not supported: %s",conjunct);
       }
-      Analyzer.analyzeExpression(metadata,left,analysis,leftExpression);
-      Analyzer.analyzeExpression(metadata,right,analysis,rightExpression);
+      ExpressionAnalysis leftExpressionAnalysis=Analyzer.analyzeExpression(session,metadata,left,analysis,context,leftExpression);
+      ExpressionAnalysis rightExpressionAnalysis=Analyzer.analyzeExpression(session,metadata,right,analysis,context,rightExpression);
+      analysis.addJoinInPredicates(node,new Analysis.JoinInPredicates(leftExpressionAnalysis.getSubqueryInPredicates(),rightExpressionAnalysis.getSubqueryInPredicates()));
       clauses.add(new EquiJoinClause(leftExpression,rightExpression));
     }
     analysis.setEquijoinCriteria(node,clauses.build());

@@ -1,0 +1,32 @@
+{
+  ImmutableList.Builder<FieldOrExpression> outputExpressionBuilder=ImmutableList.builder();
+  for (  SelectItem item : node.getSelect().getSelectItems()) {
+    if (item instanceof AllColumns) {
+      Optional<QualifiedName> starPrefix=((AllColumns)item).getPrefix();
+      List<Integer> fields=tupleDescriptor.resolveFieldIndexesWithPrefix(starPrefix);
+      if (fields.isEmpty()) {
+        if (starPrefix.isPresent()) {
+          throw new SemanticException(MISSING_TABLE,item,"Table '%s' not found",starPrefix.get());
+        }
+ else {
+          throw new SemanticException(WILDCARD_WITHOUT_FROM,item,"SELECT * not allowed in queries without FROM clause");
+        }
+      }
+      for (      int fieldIndex : fields) {
+        outputExpressionBuilder.add(new FieldOrExpression(fieldIndex));
+      }
+    }
+ else     if (item instanceof SingleColumn) {
+      SingleColumn column=(SingleColumn)item;
+      ExpressionAnalysis expressionAnalysis=Analyzer.analyzeExpression(session,metadata,tupleDescriptor,analysis,context,column.getExpression());
+      analysis.addInPredicates(node,expressionAnalysis.getSubqueryInPredicates());
+      outputExpressionBuilder.add(new FieldOrExpression(column.getExpression()));
+    }
+ else {
+      throw new IllegalArgumentException("Unsupported SelectItem type: " + item.getClass().getName());
+    }
+  }
+  ImmutableList<FieldOrExpression> result=outputExpressionBuilder.build();
+  analysis.setOutputExpressions(node,result);
+  return result;
+}

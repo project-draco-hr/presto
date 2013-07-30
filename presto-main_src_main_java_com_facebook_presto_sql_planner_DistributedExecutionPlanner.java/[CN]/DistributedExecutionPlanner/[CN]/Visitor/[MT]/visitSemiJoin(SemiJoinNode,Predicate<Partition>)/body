@@ -1,0 +1,8 @@
+{
+  NodeSplits sourceSplits=node.getSource().accept(this,tableWriterPartitionPredicate);
+  NodeSplits filteringSourceSplits=node.getFilteringSource().accept(this,tableWriterPartitionPredicate);
+  if (sourceSplits.dataSource.isPresent() && filteringSourceSplits.dataSource.isPresent()) {
+    throw new IllegalArgumentException("Both source and filteringSource semi join nodes are partitioned");
+  }
+  return sourceSplits.dataSource.isPresent() ? sourceSplits : filteringSourceSplits;
+}
