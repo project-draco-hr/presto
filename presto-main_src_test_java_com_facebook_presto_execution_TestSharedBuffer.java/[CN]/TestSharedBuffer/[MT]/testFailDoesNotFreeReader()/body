@@ -1,0 +1,17 @@
+{
+  SharedBuffer sharedBuffer=new SharedBuffer(sizeOfPages(5));
+  sharedBuffer.addQueue("queue");
+  assertFalse(sharedBuffer.isFinished());
+  ExecutorService executor=Executors.newCachedThreadPool();
+  GetPagesJob getPagesJob=new GetPagesJob(sharedBuffer,0,2,1);
+  executor.submit(getPagesJob);
+  getPagesJob.waitForStarted();
+  getPagesJob.assertBlockedWithCount(0);
+  assertTrue(sharedBuffer.offer(createPage(0)));
+  getPagesJob.assertBlockedWithCount(1);
+  sharedBuffer.fail();
+  Uninterruptibles.sleepUninterruptibly(10,TimeUnit.MILLISECONDS);
+  getPagesJob.assertBlockedWithCount(1);
+  assertEquals(getPagesJob.getElements().size(),1);
+  getPagesJob.die();
+}

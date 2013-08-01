@@ -1,9 +1,9 @@
 {
   Preconditions.checkNotNull(page,"page is null");
-  while (!closed.get() && bufferedBytes >= maxBufferedBytes) {
+  while (!closed.get() && !failed.get() && bufferedBytes >= maxBufferedBytes) {
     TimeUnit.SECONDS.timedWait(this,1);
   }
-  if (closed.get()) {
+  if (closed.get() || failed.get()) {
     return false;
   }
   addInternal(page);
