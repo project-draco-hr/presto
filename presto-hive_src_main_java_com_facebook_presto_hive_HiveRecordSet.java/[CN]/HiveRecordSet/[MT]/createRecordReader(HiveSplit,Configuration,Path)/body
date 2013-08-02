@@ -1,11 +1,16 @@
 {
-  InputFormat<?,?> inputFormat=getInputFormat(configuration,split.getSchema(),true);
-  JobConf jobConf=new JobConf(configuration);
-  FileSplit fileSplit=createFileSplit(wrappedPath,split.getStart(),split.getLength());
+  final InputFormat<?,?> inputFormat=getInputFormat(configuration,split.getSchema(),true);
+  final JobConf jobConf=new JobConf(configuration);
+  final FileSplit fileSplit=createFileSplit(wrappedPath,split.getStart(),split.getLength());
   try {
-    return inputFormat.getRecordReader(fileSplit,jobConf,Reporter.NULL);
+    return retry().stopOnIllegalExceptions().run("createRecordReader",new Callable<RecordReader<?,?>>(){
+      @Override public RecordReader<?,?> call() throws IOException {
+        return inputFormat.getRecordReader(fileSplit,jobConf,Reporter.NULL);
+      }
+    }
+);
   }
- catch (  IOException e) {
+ catch (  Exception e) {
     throw new RuntimeException(String.format("Error opening Hive split %s (offset=%s, length=%s) using %s: %s",split.getPath(),split.getStart(),split.getLength(),getInputFormatName(split.getSchema()),e.getMessage()),e);
   }
 }
