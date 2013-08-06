@@ -1,24 +1,21 @@
 {
   checkState(queryExplainer.isPresent(),"query explainer not available");
-  String queryPlan=null;
+  ExplainType.Type planType=LOGICAL;
+  ExplainFormat.Type planFormat=TEXT;
   List<ExplainOption> options=node.getOptions();
   for (  ExplainOption option : options) {
-    if (option instanceof ExplainFormat) {
-switch (((ExplainFormat)option).getType()) {
-case TEXT:
-        queryPlan=queryExplainer.get().getPlan(node.getQuery());
+    if (option instanceof ExplainType) {
+      planType=((ExplainType)option).getType();
       break;
-case GRAPHVIZ:
-    queryPlan=queryExplainer.get().getGraphvizPlan(node.getQuery());
-  break;
-default :
-throw new SemanticException(NOT_SUPPORTED,option,"Invalid explain format '" + ((ExplainFormat)option).getType().toString() + "'");
-}
-}
-}
-if (queryPlan == null) {
-queryPlan=queryExplainer.get().getPlan(node.getQuery());
-}
-Query query=new Query(Optional.<With>absent(),new QuerySpecification(selectList(new SingleColumn(new StringLiteral(queryPlan),"Query Plan")),null,Optional.<Expression>absent(),ImmutableList.<Expression>of(),Optional.<Expression>absent(),ImmutableList.<SortItem>of(),Optional.<String>absent()),ImmutableList.<SortItem>of(),Optional.<String>absent());
-return process(query,context);
+    }
+  }
+  for (  ExplainOption option : options) {
+    if (option instanceof ExplainFormat) {
+      planFormat=((ExplainFormat)option).getType();
+      break;
+    }
+  }
+  String queryPlan=getQueryPlan(node,planType,planFormat);
+  Query query=new Query(Optional.<With>absent(),new QuerySpecification(selectList(new SingleColumn(new StringLiteral(queryPlan),"Query Plan")),null,Optional.<Expression>absent(),ImmutableList.<Expression>of(),Optional.<Expression>absent(),ImmutableList.<SortItem>of(),Optional.<String>absent()),ImmutableList.<SortItem>of(),Optional.<String>absent());
+  return process(query,context);
 }

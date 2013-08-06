@@ -3,5 +3,6 @@
   Analysis analysis=analyzer.analyze(query);
   PlanNodeIdAllocator idAllocator=new PlanNodeIdAllocator();
   LogicalPlanner logicalPlanner=new LogicalPlanner(session,planOptimizers,idAllocator,metadata,periodicImportManager,storageManager);
-  return logicalPlanner.plan(analysis);
+  Plan plan=logicalPlanner.plan(analysis);
+  return new DistributedLogicalPlanner(metadata,idAllocator).createSubplans(plan,false);
 }
