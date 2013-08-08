@@ -8,14 +8,5 @@
     }
   }
 );
-  EqualityInference projectionInference=createEqualityInference(combineConjuncts(projectionEqualities),underlyingPredicate);
-  ImmutableList.Builder<Expression> effectiveConjuncts=ImmutableList.builder();
-  for (  Expression conjunct : EqualityInference.nonInferrableConjuncts(underlyingPredicate)) {
-    Expression rewritten=projectionInference.rewriteExpression(conjunct,in(node.getOutputSymbols()));
-    if (rewritten != null) {
-      effectiveConjuncts.add(rewritten);
-    }
-  }
-  effectiveConjuncts.addAll(projectionInference.generateEqualitiesPartitionedBy(in(node.getOutputSymbols())).getScopeEqualities());
-  return combineConjuncts(effectiveConjuncts.build());
+  return pullExpressionThroughSymbols(combineConjuncts(ImmutableList.<Expression>builder().addAll(projectionEqualities).add(underlyingPredicate).build()),node.getOutputSymbols());
 }

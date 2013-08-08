@@ -12,7 +12,7 @@
     }
   }
   checkState(!requiredTableScanOutputs.isEmpty());
-  Set<Symbol> requiredSymbols=Sets.union(requiredTableScanOutputs,DependencyExtractor.extract(node.getPartitionPredicate()));
+  Set<Symbol> requiredSymbols=Sets.union(requiredTableScanOutputs,DependencyExtractor.extractUnique(node.getPartitionPredicate()));
   Map<Symbol,ColumnHandle> newAssignments=Maps.filterKeys(node.getAssignments(),in(requiredSymbols));
   return new TableScanNode(node.getId(),node.getTable(),ImmutableList.copyOf(requiredTableScanOutputs),newAssignments,node.getPartitionPredicate(),node.getUpstreamPredicateHint());
 }

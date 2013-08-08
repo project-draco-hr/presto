@@ -10,16 +10,16 @@
   EqualityInference.EqualityPartition equalityPartition=inference.generateEqualitiesPartitionedBy(symbolBeginsWith("a","b"));
   Assert.assertFalse(equalityPartition.getScopeEqualities().isEmpty());
   Assert.assertTrue(Iterables.all(equalityPartition.getScopeEqualities(),matchesSymbolScope(symbolBeginsWith("a","b"))));
-  Assert.assertTrue(Iterables.all(equalityPartition.getScopeEqualities(),EqualityInference.inferrableEqualityExpression()));
-  Assert.assertFalse(equalityPartition.getInverseScopeEqualities().isEmpty());
-  Assert.assertTrue(Iterables.all(equalityPartition.getInverseScopeEqualities(),matchesSymbolScope(not(symbolBeginsWith("a","b")))));
-  Assert.assertTrue(Iterables.all(equalityPartition.getInverseScopeEqualities(),EqualityInference.inferrableEqualityExpression()));
+  Assert.assertTrue(Iterables.all(equalityPartition.getScopeEqualities(),EqualityInference.isInferenceCandidate()));
+  Assert.assertFalse(equalityPartition.getScopeComplementEqualities().isEmpty());
+  Assert.assertTrue(Iterables.all(equalityPartition.getScopeComplementEqualities(),matchesSymbolScope(not(symbolBeginsWith("a","b")))));
+  Assert.assertTrue(Iterables.all(equalityPartition.getScopeComplementEqualities(),EqualityInference.isInferenceCandidate()));
   Assert.assertFalse(equalityPartition.getScopeStraddlingEqualities().isEmpty());
   Assert.assertTrue(Iterables.any(equalityPartition.getScopeStraddlingEqualities(),matchesStraddlingScope(symbolBeginsWith("a","b"))));
-  Assert.assertTrue(Iterables.all(equalityPartition.getScopeStraddlingEqualities(),EqualityInference.inferrableEqualityExpression()));
-  EqualityInference newInference=new EqualityInference.Builder().addAllEqualities(equalityPartition.getScopeEqualities()).addAllEqualities(equalityPartition.getInverseScopeEqualities()).addAllEqualities(equalityPartition.getScopeStraddlingEqualities()).build();
+  Assert.assertTrue(Iterables.all(equalityPartition.getScopeStraddlingEqualities(),EqualityInference.isInferenceCandidate()));
+  EqualityInference newInference=new EqualityInference.Builder().addAllEqualities(equalityPartition.getScopeEqualities()).addAllEqualities(equalityPartition.getScopeComplementEqualities()).addAllEqualities(equalityPartition.getScopeStraddlingEqualities()).build();
   EqualityInference.EqualityPartition newEqualityPartition=newInference.generateEqualitiesPartitionedBy(symbolBeginsWith("a","b"));
   Assert.assertEquals(setCopy(equalityPartition.getScopeEqualities()),setCopy(newEqualityPartition.getScopeEqualities()));
-  Assert.assertEquals(setCopy(equalityPartition.getInverseScopeEqualities()),setCopy(newEqualityPartition.getInverseScopeEqualities()));
+  Assert.assertEquals(setCopy(equalityPartition.getScopeComplementEqualities()),setCopy(newEqualityPartition.getScopeComplementEqualities()));
   Assert.assertEquals(setCopy(equalityPartition.getScopeStraddlingEqualities()),setCopy(newEqualityPartition.getScopeStraddlingEqualities()));
 }

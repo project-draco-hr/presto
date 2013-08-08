@@ -1,6 +1,6 @@
 {
-  checkArgument(Iterables.all(DependencyExtractor.extract(outerEffectivePredicate),in(outerSymbols)),"outerEffectivePredicate must only contain symbols from outerSymbols");
-  checkArgument(Iterables.all(DependencyExtractor.extract(innerEffectivePredicate),not(in(outerSymbols))),"innerEffectivePredicate must not contain symbols from outerSymbols");
+  checkArgument(Iterables.all(DependencyExtractor.extractUnique(outerEffectivePredicate),in(outerSymbols)),"outerEffectivePredicate must only contain symbols from outerSymbols");
+  checkArgument(Iterables.all(DependencyExtractor.extractUnique(innerEffectivePredicate),not(in(outerSymbols))),"innerEffectivePredicate must not contain symbols from outerSymbols");
   ImmutableList.Builder<Expression> outerPushdownConjuncts=ImmutableList.builder();
   ImmutableList.Builder<Expression> innerPushdownConjuncts=ImmutableList.builder();
   ImmutableList.Builder<Expression> postJoinConjuncts=ImmutableList.builder();
@@ -35,7 +35,7 @@
     }
   }
   outerPushdownConjuncts.addAll(equalityPartition.getScopeEqualities());
-  postJoinConjuncts.addAll(equalityPartition.getInverseScopeEqualities());
+  postJoinConjuncts.addAll(equalityPartition.getScopeComplementEqualities());
   postJoinConjuncts.addAll(equalityPartition.getScopeStraddlingEqualities());
   innerPushdownConjuncts.addAll(potentialNullSymbolInferenceWithoutInnerInferred.generateEqualitiesPartitionedBy(not(in(outerSymbols))).getScopeEqualities());
   return new OuterJoinPushDownResult(combineConjuncts(outerPushdownConjuncts.build()),combineConjuncts(innerPushdownConjuncts.build()),combineConjuncts(postJoinConjuncts.build()));

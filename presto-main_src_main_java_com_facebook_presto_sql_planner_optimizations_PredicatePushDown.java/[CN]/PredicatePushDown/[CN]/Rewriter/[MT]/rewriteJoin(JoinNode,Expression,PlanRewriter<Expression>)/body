@@ -51,7 +51,7 @@ ImmutableList.Builder<JoinNode.EquiJoinClause> builder=ImmutableList.builder();
 for (Expression conjunct : simplifiedJoinConjuncts) {
 checkState(joinEqualityExpression(node.getLeft().getOutputSymbols()).apply(conjunct),"Expected join predicate to be a valid join equality");
 ComparisonExpression equality=(ComparisonExpression)conjunct;
-boolean alignedComparison=Iterables.all(DependencyExtractor.extract(equality.getLeft()),in(node.getLeft().getOutputSymbols()));
+boolean alignedComparison=Iterables.all(DependencyExtractor.extractUnique(equality.getLeft()),in(node.getLeft().getOutputSymbols()));
 Expression leftExpression=(alignedComparison) ? equality.getLeft() : equality.getRight();
 Expression rightExpression=(alignedComparison) ? equality.getRight() : equality.getLeft();
 Symbol leftSymbol=symbolAllocator.newSymbol(leftExpression,extractType(leftExpression));

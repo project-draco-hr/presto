@@ -1,22 +1,22 @@
 {
   Set<Expression> scopeEqualities=new HashSet<>();
-  Set<Expression> inverseScopeEqualities=new HashSet<>();
+  Set<Expression> scopeComplementEqualities=new HashSet<>();
   Set<Expression> scopeStraddlingEqualities=new HashSet<>();
   for (  Collection<Expression> equalitySet : equalitySets.asMap().values()) {
     Set<Expression> scopeExpressions=new HashSet<>();
-    Set<Expression> inverseScopeExpressions=new HashSet<>();
-    Set<Expression> unpartitionableExpressions=new HashSet<>();
+    Set<Expression> scopeComplementExpressions=new HashSet<>();
+    Set<Expression> scopeStraddlingExpressions=new HashSet<>();
     for (    Expression expression : equalitySet) {
       Expression scopeRewritten=rewriteExpression(expression,symbolScope,false);
       if (scopeRewritten != null) {
         scopeExpressions.add(scopeRewritten);
       }
-      Expression inverseScopeRewritten=rewriteExpression(expression,not(symbolScope),false);
-      if (inverseScopeRewritten != null) {
-        inverseScopeExpressions.add(inverseScopeRewritten);
+      Expression scopeComplementRewritten=rewriteExpression(expression,not(symbolScope),false);
+      if (scopeComplementRewritten != null) {
+        scopeComplementExpressions.add(scopeComplementRewritten);
       }
-      if (scopeRewritten == null && inverseScopeRewritten == null) {
-        unpartitionableExpressions.add(expression);
+      if (scopeRewritten == null && scopeComplementRewritten == null) {
+        scopeStraddlingExpressions.add(expression);
       }
     }
     Expression matchingCanonical=getCanonical(scopeExpressions);
@@ -25,16 +25,16 @@
         scopeEqualities.add(new ComparisonExpression(ComparisonExpression.Type.EQUAL,matchingCanonical,expression));
       }
     }
-    Expression inverseCanonical=getCanonical(inverseScopeExpressions);
-    if (inverseScopeExpressions.size() >= 2) {
-      for (      Expression expression : filter(inverseScopeExpressions,not(equalTo(inverseCanonical)))) {
-        inverseScopeEqualities.add(new ComparisonExpression(ComparisonExpression.Type.EQUAL,inverseCanonical,expression));
+    Expression complementCanonical=getCanonical(scopeComplementExpressions);
+    if (scopeComplementExpressions.size() >= 2) {
+      for (      Expression expression : filter(scopeComplementExpressions,not(equalTo(complementCanonical)))) {
+        scopeComplementEqualities.add(new ComparisonExpression(ComparisonExpression.Type.EQUAL,complementCanonical,expression));
       }
     }
     List<Expression> connectingExpressions=new ArrayList<>();
     connectingExpressions.add(matchingCanonical);
-    connectingExpressions.add(inverseCanonical);
-    connectingExpressions.addAll(unpartitionableExpressions);
+    connectingExpressions.add(complementCanonical);
+    connectingExpressions.addAll(scopeStraddlingExpressions);
     connectingExpressions=ImmutableList.copyOf(filter(connectingExpressions,Predicates.notNull()));
     Expression connectingCanonical=getCanonical(connectingExpressions);
     if (connectingCanonical != null) {
@@ -43,5 +43,5 @@
       }
     }
   }
-  return new EqualityPartition(scopeEqualities,inverseScopeEqualities,scopeStraddlingEqualities);
+  return new EqualityPartition(scopeEqualities,scopeComplementEqualities,scopeStraddlingEqualities);
 }

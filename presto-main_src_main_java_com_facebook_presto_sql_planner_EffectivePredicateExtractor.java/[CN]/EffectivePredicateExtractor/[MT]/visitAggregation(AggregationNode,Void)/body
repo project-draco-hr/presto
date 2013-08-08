@@ -1,13 +1,4 @@
 {
   Expression underlyingPredicate=node.getSource().accept(this,context);
-  EqualityInference equalityInference=createEqualityInference(underlyingPredicate);
-  ImmutableList.Builder<Expression> effectiveConjuncts=ImmutableList.builder();
-  for (  Expression conjunct : EqualityInference.nonInferrableConjuncts(underlyingPredicate)) {
-    Expression rewritten=equalityInference.rewriteExpression(conjunct,in(node.getGroupBy()));
-    if (rewritten != null) {
-      effectiveConjuncts.add(rewritten);
-    }
-  }
-  effectiveConjuncts.addAll(equalityInference.generateEqualitiesPartitionedBy(in(node.getGroupBy())).getScopeEqualities());
-  return combineConjuncts(effectiveConjuncts.build());
+  return pullExpressionThroughSymbols(underlyingPredicate,node.getGroupBy());
 }

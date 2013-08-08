@@ -1,0 +1,12 @@
+{
+  EqualityInference equalityInference=createEqualityInference(expression);
+  ImmutableList.Builder<Expression> effectiveConjuncts=ImmutableList.builder();
+  for (  Expression conjunct : EqualityInference.nonInferrableConjuncts(expression)) {
+    Expression rewritten=equalityInference.rewriteExpression(conjunct,in(symbols));
+    if (rewritten != null) {
+      effectiveConjuncts.add(rewritten);
+    }
+  }
+  effectiveConjuncts.addAll(equalityInference.generateEqualitiesPartitionedBy(in(symbols)).getScopeEqualities());
+  return combineConjuncts(effectiveConjuncts.build());
+}
