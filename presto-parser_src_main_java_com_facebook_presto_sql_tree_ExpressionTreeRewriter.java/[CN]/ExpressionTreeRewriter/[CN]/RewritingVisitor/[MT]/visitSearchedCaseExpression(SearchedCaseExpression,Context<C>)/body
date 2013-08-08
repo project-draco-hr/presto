@@ -1,0 +1,20 @@
+{
+  if (!context.isDefaultRewrite()) {
+    Expression result=rewriter.rewriteSearchedCaseExpression(node,context.get(),ExpressionTreeRewriter.this);
+    if (result != null) {
+      return result;
+    }
+  }
+  ImmutableList.Builder<WhenClause> builder=ImmutableList.builder();
+  for (  WhenClause expression : node.getWhenClauses()) {
+    builder.add(rewrite(expression,context.get()));
+  }
+  Expression defaultValue=null;
+  if (node.getDefaultValue() != null) {
+    defaultValue=rewrite(node.getDefaultValue(),context.get());
+  }
+  if (defaultValue != node.getDefaultValue() || !sameElements(node.getWhenClauses(),builder.build())) {
+    return new SearchedCaseExpression(builder.build(),defaultValue);
+  }
+  return node;
+}

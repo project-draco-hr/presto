@@ -13,12 +13,12 @@
   List<Expression> expressions=node.getExpressions();
   Map<Input,Type> inputTypes=null;
   try {
-    Expression rewrittenFilterExpression=TreeRewriter.rewriteWith(new SymbolToInputRewriter(convertLayoutToInputMap(source.getLayout())),filterExpression);
+    Expression rewrittenFilterExpression=ExpressionTreeRewriter.rewriteWith(new SymbolToInputRewriter(convertLayoutToInputMap(source.getLayout())),filterExpression);
     ImmutableMultimap.Builder<Symbol,Input> outputMappings=ImmutableMultimap.builder();
     List<Expression> projections=new ArrayList<>();
     for (int i=0; i < expressions.size(); i++) {
       Symbol symbol=node.getOutputSymbols().get(i);
-      projections.add(TreeRewriter.rewriteWith(new SymbolToInputRewriter(convertLayoutToInputMap(source.getLayout())),expressions.get(i)));
+      projections.add(ExpressionTreeRewriter.rewriteWith(new SymbolToInputRewriter(convertLayoutToInputMap(source.getLayout())),expressions.get(i)));
       outputMappings.put(symbol,new Input(i,0));
     }
     inputTypes=getInputTypes(source.getLayout(),source.getOperator().getTupleInfos());

@@ -1,0 +1,15 @@
+{
+  if (!context.isDefaultRewrite()) {
+    Expression result=rewriter.rewriteBetweenPredicate(node,context.get(),ExpressionTreeRewriter.this);
+    if (result != null) {
+      return result;
+    }
+  }
+  Expression value=rewrite(node.getValue(),context.get());
+  Expression min=rewrite(node.getMin(),context.get());
+  Expression max=rewrite(node.getMax(),context.get());
+  if (value != node.getValue() || min != node.getMin() || max != node.getMax()) {
+    return new BetweenPredicate(value,min,max);
+  }
+  return node;
+}

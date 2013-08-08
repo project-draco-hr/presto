@@ -1,0 +1,14 @@
+{
+  if (!context.isDefaultRewrite()) {
+    Expression result=rewriter.rewriteInPredicate(node,context.get(),ExpressionTreeRewriter.this);
+    if (result != null) {
+      return result;
+    }
+  }
+  Expression value=rewrite(node.getValue(),context.get());
+  Expression list=rewrite(node.getValueList(),context.get());
+  if (node.getValue() != value || node.getValueList() != list) {
+    return new InPredicate(value,list);
+  }
+  return node;
+}

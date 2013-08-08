@@ -1,0 +1,36 @@
+{
+  if (!context.isDefaultRewrite()) {
+    Expression result=rewriter.rewriteFunctionCall(node,context.get(),ExpressionTreeRewriter.this);
+    if (result != null) {
+      return result;
+    }
+  }
+  Window rewrittenWindow=node.getWindow().orNull();
+  if (rewrittenWindow != null) {
+    ImmutableList.Builder<Expression> partitionBy=ImmutableList.builder();
+    for (    Expression expression : rewrittenWindow.getPartitionBy()) {
+      partitionBy.add(rewrite(expression,context.get()));
+    }
+    ImmutableList.Builder<SortItem> orderBy=ImmutableList.builder();
+    for (    SortItem sortItem : rewrittenWindow.getOrderBy()) {
+      Expression sortKey=rewrite(sortItem.getSortKey(),context.get());
+      if (sortItem.getSortKey() != sortKey) {
+        orderBy.add(new SortItem(sortKey,sortItem.getOrdering(),sortItem.getNullOrdering()));
+      }
+ else {
+        orderBy.add(sortItem);
+      }
+    }
+    if (!sameElements(rewrittenWindow.getPartitionBy(),partitionBy.build()) || !sameElements(rewrittenWindow.getOrderBy(),orderBy.build())) {
+      rewrittenWindow=new Window(partitionBy.build(),orderBy.build(),rewrittenWindow.getFrame().orNull());
+    }
+  }
+  ImmutableList.Builder<Expression> arguments=ImmutableList.builder();
+  for (  Expression expression : node.getArguments()) {
+    arguments.add(rewrite(expression,context.get()));
+  }
+  if (!sameElements(node.getArguments(),arguments.build()) || (rewrittenWindow != node.getWindow().orNull())) {
+    return new FunctionCall(node.getName(),rewrittenWindow,node.isDistinct(),arguments.build());
+  }
+  return node;
+}
