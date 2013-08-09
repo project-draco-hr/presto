@@ -1,0 +1,11 @@
+{
+  Expression identityNormalizedExpression=expressionCache.get(expression);
+  if (identityNormalizedExpression == null) {
+    for (    Expression subExpression : Iterables.filter(SubExpressionExtractor.extract(expression),Predicates.not(Predicates.equalTo(expression)))) {
+      normalize(subExpression);
+    }
+    identityNormalizedExpression=TreeRewriter.rewriteWith(new ExpressionNodeInliner(expressionCache),expression);
+    expressionCache.put(identityNormalizedExpression,identityNormalizedExpression);
+  }
+  return identityNormalizedExpression;
+}

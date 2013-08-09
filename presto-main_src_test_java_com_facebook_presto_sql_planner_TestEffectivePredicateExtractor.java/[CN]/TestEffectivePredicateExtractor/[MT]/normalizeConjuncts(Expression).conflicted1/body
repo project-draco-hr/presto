@@ -1,0 +1,12 @@
+{
+  predicate=expressionNormalizer.normalize(predicate);
+  EqualityInference inference=EqualityInference.createEqualityInference(predicate);
+  Set<Expression> rewrittenSet=new HashSet<>();
+  for (  Expression expression : EqualityInference.nonInferrableConjuncts(predicate)) {
+    Expression rewritten=inference.rewriteExpression(expression,Predicates.<Symbol>alwaysTrue());
+    Preconditions.checkState(rewritten != null,"Rewrite with full symbol scope should always be possible");
+    rewrittenSet.add(rewritten);
+  }
+  rewrittenSet.addAll(inference.generateEqualitiesPartitionedBy(Predicates.<Symbol>alwaysTrue()).getScopeEqualities());
+  return rewrittenSet;
+}
