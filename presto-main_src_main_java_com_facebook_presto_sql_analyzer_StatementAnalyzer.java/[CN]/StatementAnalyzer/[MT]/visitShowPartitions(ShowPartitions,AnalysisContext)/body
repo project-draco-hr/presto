@@ -5,14 +5,20 @@
     throw new SemanticException(MISSING_TABLE,showPartitions,"Table '%s' does not exist",table);
   }
   ImmutableList.Builder<SelectItem> selectList=ImmutableList.builder();
+  ImmutableList.Builder<SelectItem> wrappedList=ImmutableList.builder();
+  selectList.add(unaliasedName("partition_number"));
   for (  ColumnMetadata column : metadata.getTableMetadata(tableHandle.get()).getColumns()) {
     if (!column.isPartitionKey()) {
       continue;
     }
     Expression key=equal(nameReference("partition_key"),new StringLiteral(column.getName()));
-    Expression function=functionCall("max",caseWhen(key,nameReference("partition_value")));
+    Expression value=caseWhen(key,nameReference("partition_value"));
+    value=new Cast(value,Type.fromRaw(column.getType()).getName());
+    Expression function=functionCall("max",value);
     selectList.add(new SingleColumn(function,column.getName()));
+    wrappedList.add(unaliasedName(column.getName()));
   }
-  Query query=new Query(Optional.<With>absent(),new QuerySpecification(selectAll(selectList.build()),table(QualifiedName.of(table.getCatalogName(),TABLE_INTERNAL_PARTITIONS.getSchemaName(),TABLE_INTERNAL_PARTITIONS.getTableName())),Optional.of(logicalAnd(equal(nameReference("table_schema"),new StringLiteral(table.getSchemaName())),equal(nameReference("table_name"),new StringLiteral(table.getTableName())))),ImmutableList.of(nameReference("partition_number")),Optional.<Expression>absent(),ImmutableList.of(ascending("partition_number")),Optional.<String>absent()),ImmutableList.<SortItem>of(),Optional.<String>absent());
+  Query query=new Query(Optional.<With>absent(),new QuerySpecification(selectAll(selectList.build()),table(QualifiedName.of(table.getCatalogName(),TABLE_INTERNAL_PARTITIONS.getSchemaName(),TABLE_INTERNAL_PARTITIONS.getTableName())),Optional.of(logicalAnd(equal(nameReference("table_schema"),new StringLiteral(table.getSchemaName())),equal(nameReference("table_name"),new StringLiteral(table.getTableName())))),ImmutableList.of(nameReference("partition_number")),Optional.<Expression>absent(),ImmutableList.<SortItem>of(),Optional.<String>absent()),ImmutableList.<SortItem>of(),Optional.<String>absent());
+  query=new Query(Optional.<With>absent(),new QuerySpecification(selectAll(wrappedList.build()),subquery(query),showPartitions.getWhere(),ImmutableList.<Expression>of(),Optional.<Expression>absent(),ImmutableList.<SortItem>builder().addAll(showPartitions.getOrderBy()).add(ascending("partition_number")).build(),Optional.<String>absent()),ImmutableList.<SortItem>of(),Optional.<String>absent());
   return process(query,context);
 }
