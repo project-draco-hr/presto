@@ -19,6 +19,6 @@
     wrappedList.add(unaliasedName(column.getName()));
   }
   Query query=new Query(Optional.<With>absent(),new QuerySpecification(selectAll(selectList.build()),table(QualifiedName.of(table.getCatalogName(),TABLE_INTERNAL_PARTITIONS.getSchemaName(),TABLE_INTERNAL_PARTITIONS.getTableName())),Optional.of(logicalAnd(equal(nameReference("table_schema"),new StringLiteral(table.getSchemaName())),equal(nameReference("table_name"),new StringLiteral(table.getTableName())))),ImmutableList.of(nameReference("partition_number")),Optional.<Expression>absent(),ImmutableList.<SortItem>of(),Optional.<String>absent()),ImmutableList.<SortItem>of(),Optional.<String>absent());
-  query=new Query(Optional.<With>absent(),new QuerySpecification(selectAll(wrappedList.build()),subquery(query),showPartitions.getWhere(),ImmutableList.<Expression>of(),Optional.<Expression>absent(),ImmutableList.<SortItem>builder().addAll(showPartitions.getOrderBy()).add(ascending("partition_number")).build(),Optional.<String>absent()),ImmutableList.<SortItem>of(),Optional.<String>absent());
+  query=new Query(Optional.<With>absent(),new QuerySpecification(selectAll(wrappedList.build()),subquery(query),showPartitions.getWhere(),ImmutableList.<Expression>of(),Optional.<Expression>absent(),ImmutableList.<SortItem>builder().addAll(showPartitions.getOrderBy()).add(ascending("partition_number")).build(),showPartitions.getLimit()),ImmutableList.<SortItem>of(),Optional.<String>absent());
   return process(query,context);
 }
