@@ -1,0 +1,30 @@
+{
+  final MemoryPoolMXBean codeCacheMbean=findCodeCacheMBean();
+  Preconditions.checkNotNull(codeCacheMbean,"Could not obtain a reference to the 'Code Cache' MemoryPoolMXBean");
+  Thread gcThread=new Thread(new Runnable(){
+    @Override public void run(){
+      Logger log=Logger.get("Code-Cache-GC-Trigger");
+      while (!Thread.currentThread().isInterrupted()) {
+        long used=codeCacheMbean.getUsage().getUsed();
+        long max=codeCacheMbean.getUsage().getMax();
+        if (used > 0.7 * max) {
+          log.info("Triggering GC to avoid Code Cache eviction bugs");
+          System.gc();
+        }
+ else         if (used > 0.95 * max) {
+          log.error("Code Cache is more than 95% full. JIT may stop working.");
+        }
+        try {
+          Thread.sleep(1000);
+        }
+ catch (        InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      }
+    }
+  }
+);
+  gcThread.setDaemon(true);
+  gcThread.setName("Code-Cache-GC-Trigger");
+  gcThread.start();
+}
