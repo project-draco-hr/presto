@@ -1,0 +1,11 @@
+{
+  long analysisStart=System.nanoTime();
+  Analyzer analyzer=new Analyzer(stateMachine.getSession(),metadata,Optional.of(queryExplainer));
+  Analysis analysis=analyzer.analyze(statement);
+  PlanNodeIdAllocator idAllocator=new PlanNodeIdAllocator();
+  LogicalPlanner logicalPlanner=new LogicalPlanner(stateMachine.getSession(),planOptimizers,idAllocator,metadata,periodicImportManager,storageManager);
+  Plan plan=logicalPlanner.plan(analysis);
+  SubPlan subplan=new DistributedLogicalPlanner(metadata,idAllocator).createSubplans(plan,false);
+  stateMachine.getStats().recordAnalysisTime(analysisStart);
+  return subplan;
+}
