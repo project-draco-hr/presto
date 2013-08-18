@@ -1,2 +1,28 @@
 {
+  taskCount.incrementAndGet();
+  executor.execute(new Runnable(){
+    @Override public void run(){
+      try {
+        FileStatus[] statuses=fileSystem.listStatus(path);
+        checkState(statuses != null,"Partition location %s does not exist",path);
+        for (        FileStatus status : statuses) {
+          if (status.isDir()) {
+            recursiveWalk(status.getPath(),callback,taskCount,settableFuture);
+          }
+ else {
+            callback.process(status);
+          }
+        }
+      }
+ catch (      Exception e) {
+        settableFuture.setException(e);
+      }
+ finally {
+        if (taskCount.decrementAndGet() == 0) {
+          settableFuture.set(null);
+        }
+      }
+    }
+  }
+);
 }

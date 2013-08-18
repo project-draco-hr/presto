@@ -1,2 +1,29 @@
 {
+  checkNotNull(query,"query is null");
+  Preconditions.checkArgument(!query.isEmpty(),"query must not be empty string");
+  QueryId queryId=queryIdGenerator.createNextQueryId();
+  Statement statement;
+  try {
+    statement=SqlParser.createStatement(query);
+  }
+ catch (  ParsingException e) {
+    return createFailedQuery(session,query,queryId,e);
+  }
+  QueryExecutionFactory<?> queryExecutionFactory=executionFactories.get(statement.getClass());
+  Preconditions.checkState(queryExecutionFactory != null,"Unsupported statement type %s",statement.getClass().getName());
+  final QueryExecution queryExecution=queryExecutionFactory.createQueryExecution(queryId,query,session,statement);
+  queryMonitor.createdEvent(queryExecution.getQueryInfo());
+  queryExecution.addStateChangeListener(new StateChangeListener<QueryState>(){
+    @Override public void stateChanged(    QueryState newValue){
+      if (newValue.isDone()) {
+        QueryInfo info=queryExecution.getQueryInfo();
+        stats.queryFinished(info);
+        queryMonitor.completionEvent(info);
+      }
+    }
+  }
+);
+  queries.put(queryId,queryExecution);
+  queryExecutor.submit(new QueryStarter(queryExecution,stats));
+  return queryExecution.getQueryInfo();
 }
