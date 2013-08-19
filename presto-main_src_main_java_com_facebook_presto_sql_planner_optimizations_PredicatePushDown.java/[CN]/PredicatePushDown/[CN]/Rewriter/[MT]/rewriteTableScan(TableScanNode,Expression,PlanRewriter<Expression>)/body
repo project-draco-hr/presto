@@ -3,9 +3,11 @@
   EqualityInference equalityInference=createEqualityInference(inheritedPredicate);
   List<Expression> partitionConjuncts=new ArrayList<>();
   List<Expression> postScanConjuncts=new ArrayList<>();
+  postScanConjuncts.addAll(ImmutableList.copyOf(filter(extractConjuncts(inheritedPredicate),not(deterministic()))));
+  inheritedPredicate=stripNonDeterministicConjuncts(inheritedPredicate);
   for (  Expression conjunct : EqualityInference.nonInferrableConjuncts(inheritedPredicate)) {
     Expression rewrittenConjunct=equalityInference.rewriteExpression(conjunct,in(partitionSymbols));
-    if (rewrittenConjunct != null && DeterminismEvaluator.isDeterministic(rewrittenConjunct)) {
+    if (rewrittenConjunct != null) {
       partitionConjuncts.add(rewrittenConjunct);
     }
  else {

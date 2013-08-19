@@ -2,9 +2,11 @@
   EqualityInference equalityInference=createEqualityInference(inheritedPredicate);
   List<Expression> pushdownConjuncts=new ArrayList<>();
   List<Expression> postAggregationConjuncts=new ArrayList<>();
+  postAggregationConjuncts.addAll(ImmutableList.copyOf(filter(extractConjuncts(inheritedPredicate),not(deterministic()))));
+  inheritedPredicate=stripNonDeterministicConjuncts(inheritedPredicate);
   for (  Expression conjunct : EqualityInference.nonInferrableConjuncts(inheritedPredicate)) {
     Expression rewrittenConjunct=equalityInference.rewriteExpression(conjunct,in(node.getGroupBy()));
-    if (rewrittenConjunct != null && DeterminismEvaluator.isDeterministic(rewrittenConjunct)) {
+    if (rewrittenConjunct != null) {
       pushdownConjuncts.add(rewrittenConjunct);
     }
  else {

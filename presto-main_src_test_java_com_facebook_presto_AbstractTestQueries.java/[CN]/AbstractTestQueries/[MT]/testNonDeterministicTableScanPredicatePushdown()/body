@@ -1,0 +1,7 @@
+{
+  MaterializedResult materializedResult=computeActual("" + "SELECT COUNT(*)\n" + "FROM (\n"+ "  SELECT *\n"+ "  FROM lineitem\n"+ "  LIMIT 1000\n"+ ")\n"+ "WHERE rand() > 0.5");
+  MaterializedTuple tuple=Iterables.getOnlyElement(materializedResult.getMaterializedTuples());
+  Assert.assertEquals(tuple.getFieldCount(),1);
+  long count=(Long)tuple.getField(0);
+  Assert.assertTrue(count > 0 && count < 1000);
+}
