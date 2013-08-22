@@ -3,7 +3,7 @@
   buildSource=packIfNecessary(buildSymbols,buildSource,context.getTypes());
   int probeChannel=Iterables.getOnlyElement(getChannelSetForSymbols(probeSymbols,probeSource.getLayout()));
   int buildChannel=Iterables.getOnlyElement(getChannelSetForSymbols(buildSymbols,buildSource.getLayout()));
-  SourceHashProvider hashProvider=context.getJoinHashFactory().getSourceHashProvider(node,buildSource.getOperator(),buildChannel,context.getOperatorStats());
+  SourceHashSupplier hashSupplier=context.getJoinHashFactory().getSourceHashSupplier(node,buildSource.getOperator(),buildChannel,context.getOperatorStats());
   ImmutableMultimap.Builder<Symbol,Input> outputMappings=ImmutableMultimap.builder();
   outputMappings.putAll(probeSource.getLayout());
   int offset=probeSource.getOperator().getChannelCount();
@@ -11,6 +11,6 @@
     Input input=entry.getValue();
     outputMappings.put(entry.getKey(),new Input(offset + input.getChannel(),input.getField()));
   }
-  HashJoinOperator operator=createJoinOperator(node.getType(),hashProvider,probeSource.getOperator(),probeChannel);
+  HashJoinOperator operator=createJoinOperator(node.getType(),hashSupplier,probeSource.getOperator(),probeChannel);
   return new PhysicalOperation(operator,outputMappings.build());
 }
