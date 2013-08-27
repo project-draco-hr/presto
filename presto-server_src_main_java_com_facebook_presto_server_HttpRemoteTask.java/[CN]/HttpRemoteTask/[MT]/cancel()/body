@@ -15,6 +15,9 @@
         @Override public void onSuccess(        StatusResponse result){
         }
         @Override public void onFailure(        Throwable t){
+          if (t instanceof RejectedExecutionException) {
+            return;
+          }
           if (Duration.nanosSince(start).compareTo(new Duration(2,TimeUnit.MINUTES)) < 0) {
             Futures.addCallback(httpClient.executeAsync(request,createStatusResponseHandler()),this,executor);
           }
