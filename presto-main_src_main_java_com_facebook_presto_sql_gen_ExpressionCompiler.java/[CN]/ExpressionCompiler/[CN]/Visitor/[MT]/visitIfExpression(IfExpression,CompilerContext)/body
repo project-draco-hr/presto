@@ -2,16 +2,16 @@
   TypedByteCodeNode conditionValue=process(node.getCondition(),context);
   TypedByteCodeNode trueValue=process(node.getTrueValue(),context);
   TypedByteCodeNode falseValue=process(node.getFalseValue().or(new NullLiteral()),context);
-  if (conditionValue.type == void.class) {
+  if (conditionValue.getType() == void.class) {
     return falseValue;
   }
-  Preconditions.checkState(conditionValue.type == boolean.class);
-  Block condition=new Block(context).comment(node.toString()).append(conditionValue.node).comment("... and condition value was not null").getVariable("wasNull").invokeStatic(Operations.class,"not",boolean.class,boolean.class).invokeStatic(Operations.class,"and",boolean.class,boolean.class,boolean.class).putVariable("wasNull",false);
+  Preconditions.checkState(conditionValue.getType() == boolean.class);
+  Block condition=new Block(context).comment(node.toString()).append(conditionValue.getNode()).comment("... and condition value was not null").getVariable("wasNull").invokeStatic(Operations.class,"not",boolean.class,boolean.class).invokeStatic(Operations.class,"and",boolean.class,boolean.class,boolean.class).putVariable("wasNull",false);
   Class<?> type=getType(trueValue,falseValue);
   if (type == void.class) {
     return trueValue;
   }
   trueValue=coerceToType(context,trueValue,type);
   falseValue=coerceToType(context,falseValue,type);
-  return typedByteCodeNode(new IfStatement(context,condition,trueValue.node,falseValue.node),type);
+  return typedByteCodeNode(new IfStatement(context,condition,trueValue.getNode(),falseValue.getNode()),type);
 }

@@ -6,9 +6,9 @@
   Class<?> type=getType(operands);
   TypedByteCodeNode nullValue=coerceToType(context,process(new NullLiteral(),context),type);
   for (  TypedByteCodeNode operand : Lists.reverse(operands)) {
-    Block condition=new Block(context).append(coerceToType(context,operand,type).node).getVariable("wasNull");
-    Block nullBlock=new Block(context).pop(type).putVariable("wasNull",false).append(nullValue.node);
+    Block condition=new Block(context).append(coerceToType(context,operand,type).getNode()).getVariable("wasNull");
+    Block nullBlock=new Block(context).pop(type).putVariable("wasNull",false).append(nullValue.getNode());
     nullValue=typedByteCodeNode(new IfStatement(context,condition,nullBlock,NOP),type);
   }
-  return typedByteCodeNode(nullValue.node,type);
+  return typedByteCodeNode(nullValue.getNode(),type);
 }

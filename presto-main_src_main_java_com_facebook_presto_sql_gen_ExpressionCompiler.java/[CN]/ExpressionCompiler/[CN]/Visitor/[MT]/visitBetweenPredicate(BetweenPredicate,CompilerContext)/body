@@ -1,24 +1,24 @@
 {
   TypedByteCodeNode value=process(node.getValue(),context);
-  if (value.type == void.class) {
+  if (value.getType() == void.class) {
     return value;
   }
   TypedByteCodeNode min=process(node.getMin(),context);
-  if (min.type == void.class) {
+  if (min.getType() == void.class) {
     return min;
   }
   TypedByteCodeNode max=process(node.getMax(),context);
-  if (max.type == void.class) {
+  if (max.getType() == void.class) {
     return max;
   }
   Class<?> type=getType(value,min,max);
   LabelNode end=new LabelNode("end");
   Block block=new Block(context).comment(node.toString());
-  block.append(coerceToType(context,value,type).node);
+  block.append(coerceToType(context,value,type).getNode());
   block.append(ifWasNullPopAndGoto(context,end,boolean.class,type));
-  block.append(coerceToType(context,min,type).node);
+  block.append(coerceToType(context,min,type).getNode());
   block.append(ifWasNullPopAndGoto(context,end,boolean.class,type,type));
-  block.append(coerceToType(context,max,type).node);
+  block.append(coerceToType(context,max,type).getNode());
   block.append(ifWasNullPopAndGoto(context,end,boolean.class,type,type,type));
   block.invokeStatic(Operations.class,"between",boolean.class,type,type,type);
   return typedByteCodeNode(block.visitLabel(end),boolean.class);

@@ -1,22 +1,22 @@
 {
   TypedByteCodeNode left=process(node.getLeft(),context);
-  if (left.type == void.class) {
+  if (left.getType() == void.class) {
     return left;
   }
   TypedByteCodeNode right=process(node.getRight(),context);
-  if (right.type == void.class) {
+  if (right.getType() == void.class) {
     return right;
   }
   Class<?> type=getType(left,right);
   if (!isNumber(type)) {
-    throw new UnsupportedOperationException(format("not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type));
+    throw new UnsupportedOperationException(format("not yet implemented: %s(%s, %s)",node.getType(),left.getType(),right.getType()));
   }
   Block block=new Block(context).comment(node.toString());
   LabelNode end=new LabelNode("end");
-  block.append(coerceToType(context,left,type).node);
-  block.append(ifWasNullPopAndGoto(context,end,type,left.type));
-  block.append(coerceToType(context,right,type).node);
-  block.append(ifWasNullPopAndGoto(context,end,type,type,right.type));
+  block.append(coerceToType(context,left,type).getNode());
+  block.append(ifWasNullPopAndGoto(context,end,type,left.getType()));
+  block.append(coerceToType(context,right,type).getNode());
+  block.append(ifWasNullPopAndGoto(context,end,type,type,right.getType()));
 switch (node.getType()) {
 case ADD:
     block.invokeStatic(Operations.class,"add",type,type,type);
@@ -34,7 +34,7 @@ case MODULUS:
 block.invokeStatic(Operations.class,"modulus",type,type,type);
 break;
 default :
-throw new UnsupportedOperationException(format("not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type));
+throw new UnsupportedOperationException(format("not yet implemented: %s(%s, %s)",node.getType(),left.getType(),right.getType()));
 }
 return typedByteCodeNode(block.visitLabel(end),type);
 }

@@ -3,11 +3,11 @@
     return visitIsDistinctFrom(node,context);
   }
   TypedByteCodeNode left=process(node.getLeft(),context);
-  if (left.type == void.class) {
+  if (left.getType() == void.class) {
     return left;
   }
   TypedByteCodeNode right=process(node.getRight(),context);
-  if (right.type == void.class) {
+  if (right.getType() == void.class) {
     return right;
   }
   Class<?> type=getType(left,right);
@@ -20,30 +20,30 @@ case NOT_EQUAL:
 function="notEqual";
 break;
 case LESS_THAN:
-checkArgument(type != boolean.class,"not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type);
+checkArgument(type != boolean.class,"not yet implemented: %s(%s, %s)",node.getType(),left.getType(),right.getType());
 function="lessThan";
 break;
 case LESS_THAN_OR_EQUAL:
-checkArgument(type != boolean.class,"not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type);
+checkArgument(type != boolean.class,"not yet implemented: %s(%s, %s)",node.getType(),left.getType(),right.getType());
 function="lessThanOrEqual";
 break;
 case GREATER_THAN:
-checkArgument(type != boolean.class,"not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type);
+checkArgument(type != boolean.class,"not yet implemented: %s(%s, %s)",node.getType(),left.getType(),right.getType());
 function="greaterThan";
 break;
 case GREATER_THAN_OR_EQUAL:
-checkArgument(type != boolean.class,"not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type);
+checkArgument(type != boolean.class,"not yet implemented: %s(%s, %s)",node.getType(),left.getType(),right.getType());
 function="greaterThanOrEqual";
 break;
 default :
-throw new UnsupportedOperationException(format("not yet implemented: %s(%s, %s)",node.getType(),left.type,right.type));
+throw new UnsupportedOperationException(format("not yet implemented: %s(%s, %s)",node.getType(),left.getType(),right.getType()));
 }
 LabelNode end=new LabelNode("end");
 Block block=new Block(context).comment(node.toString());
-block.append(coerceToType(context,left,type).node);
-block.append(ifWasNullPopAndGoto(context,end,boolean.class,left.type));
-block.append(coerceToType(context,right,type).node);
-block.append(ifWasNullPopAndGoto(context,end,boolean.class,type,right.type));
+block.append(coerceToType(context,left,type).getNode());
+block.append(ifWasNullPopAndGoto(context,end,boolean.class,left.getType()));
+block.append(coerceToType(context,right,type).getNode());
+block.append(ifWasNullPopAndGoto(context,end,boolean.class,type,right.getType()));
 block.invokeStatic(Operations.class,function,boolean.class,type,type);
 return typedByteCodeNode(block.visitLabel(end),boolean.class);
 }

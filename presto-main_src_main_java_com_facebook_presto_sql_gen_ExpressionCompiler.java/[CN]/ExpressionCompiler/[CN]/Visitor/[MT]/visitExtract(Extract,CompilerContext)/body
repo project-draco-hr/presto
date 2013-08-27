@@ -1,10 +1,10 @@
 {
   TypedByteCodeNode expression=process(node.getExpression(),context);
-  if (expression.type == void.class) {
+  if (expression.getType() == void.class) {
     return expression;
   }
   if (node.getField() == Extract.Field.TIMEZONE_HOUR || node.getField() == Extract.Field.TIMEZONE_MINUTE) {
-    return new TypedByteCodeNode(new Block(context).append(expression.node).pop(long.class).push(0L),long.class);
+    return typedByteCodeNode(new Block(context).append(expression.getNode()).pop(long.class).push(0L),long.class);
   }
   QualifiedName functionName=QualifiedName.of(node.getField().name().toLowerCase());
   FunctionBinding functionBinding=bootstrapFunctionBinder.bindFunction(functionName,getSessionByteCode,ImmutableList.of(expression));

@@ -15,12 +15,12 @@
   Class<?> type=getType(ImmutableList.<TypedByteCodeNode>builder().addAll(transform(whenClauses,whenValueGetter())).add(elseValue).build());
   elseValue=coerceToType(context,elseValue,type);
   for (  TypedWhenClause whenClause : Lists.reverse(new ArrayList<>(whenClauses))) {
-    if (whenClause.condition.type == void.class) {
+    if (whenClause.condition.getType() == void.class) {
       continue;
     }
-    Preconditions.checkState(whenClause.condition.type == boolean.class);
-    Block condition=new Block(context).append(whenClause.condition.node).comment("... and condition value was not null").getVariable("wasNull").invokeStatic(Operations.class,"not",boolean.class,boolean.class).invokeStatic(Operations.class,"and",boolean.class,boolean.class,boolean.class).putVariable("wasNull",false);
-    elseValue=typedByteCodeNode(new IfStatement(context,condition,coerceToType(context,whenClause.value,type).node,elseValue.node),type);
+    Preconditions.checkState(whenClause.condition.getType() == boolean.class);
+    Block condition=new Block(context).append(whenClause.condition.getNode()).comment("... and condition value was not null").getVariable("wasNull").invokeStatic(Operations.class,"not",boolean.class,boolean.class).invokeStatic(Operations.class,"and",boolean.class,boolean.class,boolean.class).putVariable("wasNull",false);
+    elseValue=typedByteCodeNode(new IfStatement(context,condition,coerceToType(context,whenClause.value,type).getNode(),elseValue.getNode()),type);
   }
   return elseValue;
 }

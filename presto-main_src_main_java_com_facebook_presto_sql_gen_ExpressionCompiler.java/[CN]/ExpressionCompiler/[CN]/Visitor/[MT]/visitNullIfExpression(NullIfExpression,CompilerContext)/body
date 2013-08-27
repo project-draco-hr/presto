@@ -1,14 +1,14 @@
 {
   TypedByteCodeNode first=process(node.getFirst(),context);
   TypedByteCodeNode second=process(node.getSecond(),context);
-  if (first.type == void.class) {
+  if (first.getType() == void.class) {
     return first;
   }
   Class<?> comparisonType=getType(first,second);
   LabelNode notMatch=new LabelNode("notMatch");
-  Block block=new Block(context).comment(node.toString()).append(first.node).append(ifWasNullPopAndGoto(context,notMatch,void.class)).append(coerceToType(context,typedByteCodeNode(new Block(context).dup(first.type),first.type),comparisonType).node).append(coerceToType(context,second,comparisonType).node).append(ifWasNullClearPopAndGoto(context,notMatch,void.class,comparisonType,comparisonType));
+  Block block=new Block(context).comment(node.toString()).append(first.getNode()).append(ifWasNullPopAndGoto(context,notMatch,void.class)).append(coerceToType(context,typedByteCodeNode(new Block(context).dup(first.getType()),first.getType()),comparisonType).getNode()).append(coerceToType(context,second,comparisonType).getNode()).append(ifWasNullClearPopAndGoto(context,notMatch,void.class,comparisonType,comparisonType));
   Block conditionBlock=new Block(context).invokeStatic(Operations.class,"equal",boolean.class,comparisonType,comparisonType);
-  Block trueBlock=new Block(context).putVariable("wasNull",true).pop(first.type).pushJavaDefault(first.type);
+  Block trueBlock=new Block(context).putVariable("wasNull",true).pop(first.getType()).pushJavaDefault(first.getType());
   block.append(new IfStatement(context,conditionBlock,trueBlock,notMatch));
-  return typedByteCodeNode(block,first.type);
+  return typedByteCodeNode(block,first.getType());
 }

@@ -3,8 +3,8 @@
   TypedByteCodeNode right=process(node.getRight(),context);
   Class<?> type=getType(left,right);
   if (type == void.class) {
-    return new TypedByteCodeNode(loadBoolean(false),boolean.class);
+    return typedByteCodeNode(loadBoolean(false),boolean.class);
   }
-  Block block=new Block(context).comment(node.toString()).comment("left").append(coerceToType(context,left,type).node).getVariable("wasNull").comment("clear was null").putVariable("wasNull",false).comment("right").append(coerceToType(context,right,type).node).getVariable("wasNull").comment("clear was null").putVariable("wasNull",false).invokeStatic(Operations.class,"isDistinctFrom",boolean.class,type,boolean.class,type,boolean.class);
-  return new TypedByteCodeNode(block,boolean.class);
+  Block block=new Block(context).comment(node.toString()).comment("left").append(coerceToType(context,left,type).getNode()).getVariable("wasNull").comment("clear was null").putVariable("wasNull",false).comment("right").append(coerceToType(context,right,type).getNode()).getVariable("wasNull").comment("clear was null").putVariable("wasNull",false).invokeStatic(Operations.class,"isDistinctFrom",boolean.class,type,boolean.class,type,boolean.class);
+  return typedByteCodeNode(block,boolean.class);
 }

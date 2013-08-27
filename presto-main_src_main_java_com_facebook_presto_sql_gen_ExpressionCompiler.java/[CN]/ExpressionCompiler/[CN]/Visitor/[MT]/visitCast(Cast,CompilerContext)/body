@@ -1,8 +1,8 @@
 {
   TypedByteCodeNode value=process(node.getExpression(),context);
   Block block=new Block(context).comment(node.toString());
-  block.append(value.node);
-  if (value.type == void.class) {
+  block.append(value.getNode());
+  if (value.getType() == void.class) {
 switch (node.getType()) {
 case "BOOLEAN":
       block.pushJavaDefault(boolean.class);
@@ -22,20 +22,20 @@ return typedByteCodeNode(block,Slice.class);
 LabelNode end=new LabelNode("end");
 switch (node.getType()) {
 case "BOOLEAN":
-block.append(ifWasNullPopAndGoto(context,end,boolean.class,value.type));
-block.invokeStatic(Operations.class,"castToBoolean",boolean.class,value.type);
+block.append(ifWasNullPopAndGoto(context,end,boolean.class,value.getType()));
+block.invokeStatic(Operations.class,"castToBoolean",boolean.class,value.getType());
 return typedByteCodeNode(block.visitLabel(end),boolean.class);
 case "BIGINT":
-block.append(ifWasNullPopAndGoto(context,end,long.class,value.type));
-block.invokeStatic(Operations.class,"castToLong",long.class,value.type);
+block.append(ifWasNullPopAndGoto(context,end,long.class,value.getType()));
+block.invokeStatic(Operations.class,"castToLong",long.class,value.getType());
 return typedByteCodeNode(block.visitLabel(end),long.class);
 case "DOUBLE":
-block.append(ifWasNullPopAndGoto(context,end,double.class,value.type));
-block.invokeStatic(Operations.class,"castToDouble",double.class,value.type);
+block.append(ifWasNullPopAndGoto(context,end,double.class,value.getType()));
+block.invokeStatic(Operations.class,"castToDouble",double.class,value.getType());
 return typedByteCodeNode(block.visitLabel(end),double.class);
 case "VARCHAR":
-block.append(ifWasNullPopAndGoto(context,end,Slice.class,value.type));
-block.invokeStatic(Operations.class,"castToSlice",Slice.class,value.type);
+block.append(ifWasNullPopAndGoto(context,end,Slice.class,value.getType()));
+block.invokeStatic(Operations.class,"castToSlice",Slice.class,value.getType());
 return typedByteCodeNode(block.visitLabel(end),Slice.class);
 }
 }

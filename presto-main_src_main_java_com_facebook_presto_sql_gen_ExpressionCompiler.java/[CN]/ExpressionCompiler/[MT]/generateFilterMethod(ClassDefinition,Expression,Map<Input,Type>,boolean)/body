@@ -10,11 +10,11 @@
   filterMethod.getCompilerContext().declareVariable(type(boolean.class),"wasNull");
   Block getSessionByteCode=new Block(filterMethod.getCompilerContext()).pushThis().getField(classDefinition.getType(),"session",type(Session.class));
   TypedByteCodeNode body=new Visitor(bootstrapFunctionBinder,inputTypes,getSessionByteCode,sourceIsCursor).process(filter,filterMethod.getCompilerContext());
-  if (body.type == void.class) {
+  if (body.getType() == void.class) {
     filterMethod.getBody().push(false).retBoolean();
   }
  else {
     LabelNode end=new LabelNode("end");
-    filterMethod.getBody().comment("boolean wasNull = false;").putVariable("wasNull",false).append(body.node).getVariable("wasNull").ifFalseGoto(end).pop(boolean.class).push(false).visitLabel(end).retBoolean();
+    filterMethod.getBody().comment("boolean wasNull = false;").putVariable("wasNull",false).append(body.getNode()).getVariable("wasNull").ifFalseGoto(end).pop(boolean.class).push(false).visitLabel(end).retBoolean();
   }
 }
