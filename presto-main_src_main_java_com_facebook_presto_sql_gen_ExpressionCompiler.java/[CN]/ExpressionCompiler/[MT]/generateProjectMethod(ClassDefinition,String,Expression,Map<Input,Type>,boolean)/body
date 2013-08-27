@@ -13,7 +13,7 @@
   CompilerContext context=projectionMethod.getCompilerContext();
   context.declareVariable(type(boolean.class),"wasNull");
   Block getSessionByteCode=new Block(context).pushThis().getField(classDefinition.getType(),"session",type(Session.class));
-  TypedByteCodeNode body=new Visitor(bootstrapFunctionBinder,inputTypes,getSessionByteCode,sourceIsCursor).process(projection,context);
+  TypedByteCodeNode body=new ByteCodeExpressionVisitor(bootstrapFunctionBinder,inputTypes,getSessionByteCode,sourceIsCursor).process(projection,context);
   if (body.getType() != void.class) {
     projectionMethod.getBody().comment("boolean wasNull = false;").putVariable("wasNull",false).getVariable("output").append(body.getNode());
     Block notNullBlock=new Block(context);
