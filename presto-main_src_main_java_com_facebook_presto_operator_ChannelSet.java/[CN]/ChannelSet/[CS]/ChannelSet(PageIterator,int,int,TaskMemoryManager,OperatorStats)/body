@@ -5,6 +5,7 @@
   checkNotNull(taskMemoryManager,"taskMemoryManager is null");
   checkNotNull(operatorStats,"operatorStats is null");
   TupleInfo tupleInfo=source.getTupleInfos().get(setChannel);
+  checkArgument(tupleInfo.getFieldCount() == 1,"ChannelSet only supports single field set building channels");
   strategy=new SliceHashStrategy(tupleInfo);
   addressValueSet=new AddressValueSet(expectedPositions,strategy);
   Slice slice=Slices.allocate((int)BlockBuilder.DEFAULT_MAX_BLOCK_SIZE.toBytes());
@@ -22,7 +23,7 @@
       strategy.setLookupSlice(sourceSlice);
       for (int position=0; position < sourceBlock.getPositionCount(); position++) {
         checkState(sourceCursor.advanceNextPosition());
-        containsNull|=tupleContainsNull(sourceCursor,tupleInfo.getFieldCount());
+        containsNull|=sourceCursor.isNull(0);
         long sourceAddress=encodeSyntheticAddress(LOOKUP_SLICE_INDEX,sourceCursor.getRawOffset());
         if (!addressValueSet.contains(sourceAddress)) {
           int length=tupleInfo.size(sourceSlice,sourceCursor.getRawOffset());
