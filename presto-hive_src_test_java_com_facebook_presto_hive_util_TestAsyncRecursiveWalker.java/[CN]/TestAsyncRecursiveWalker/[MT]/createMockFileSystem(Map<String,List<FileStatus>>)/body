@@ -1,5 +1,12 @@
 {
   return new StubFileSystem(){
+    @Override public RemoteIterator<LocatedFileStatus> listLocatedStatus(    Path f) throws IOException {
+      ImmutableList.Builder<LocatedFileStatus> list=ImmutableList.builder();
+      for (      FileStatus status : paths.get(f.toString())) {
+        list.add(new LocatedFileStatus(status,new BlockLocation[0]));
+      }
+      return remoteIterator(list.build().iterator());
+    }
     @Override public FileStatus[] listStatus(    Path f) throws IOException {
       List<FileStatus> fileStatuses=paths.get(f.toString());
       return fileStatuses.toArray(new FileStatus[fileStatuses.size()]);

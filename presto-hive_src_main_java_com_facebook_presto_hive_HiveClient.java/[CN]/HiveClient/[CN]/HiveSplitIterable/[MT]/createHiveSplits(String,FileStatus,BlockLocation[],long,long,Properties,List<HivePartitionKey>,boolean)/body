@@ -1,8 +1,7 @@
 {
-  BlockLocation[] fileBlockLocations=fs.getFileBlockLocations(file,start,length);
   ImmutableList.Builder<HiveSplit> builder=ImmutableList.builder();
   if (splittable) {
-    for (    BlockLocation blockLocation : fileBlockLocations) {
+    for (    BlockLocation blockLocation : blockLocations) {
       List<HostAddress> addresses=toHostAddress(blockLocation.getHosts());
       int chunks=Math.max(1,(int)(blockLocation.getLength() / maxSplitSize.toBytes()));
       long targetChunkSize=(long)Math.ceil(blockLocation.getLength() * 1.0 / chunks);
@@ -16,7 +15,7 @@
     }
   }
  else {
-    builder.add(new HiveSplit(clientId,table.getDbName(),table.getTableName(),partitionName,false,file.getPath().toString(),start,length,schema,partitionKeys,toHostAddress(fileBlockLocations[0].getHosts())));
+    builder.add(new HiveSplit(clientId,table.getDbName(),table.getTableName(),partitionName,false,file.getPath().toString(),start,length,schema,partitionKeys,toHostAddress(blockLocations[0].getHosts())));
   }
   return builder.build();
 }

@@ -22,16 +22,16 @@
         for (        InputSplit rawSplit : splits) {
           FileSplit split=((SymlinkTextInputSplit)rawSplit).getTargetSplit();
           FileSystem targetFilesystem=split.getPath().getFileSystem(configuration);
-          markerQueue.addToQueue(createHiveSplits(partitionName,targetFilesystem.getFileStatus(split.getPath()),split.getStart(),split.getLength(),schema,partitionKeys,targetFilesystem,false));
+          markerQueue.addToQueue(createHiveSplits(partitionName,targetFilesystem.getFileStatus(split.getPath()),targetFilesystem.getFileBlockLocations(split.getPath(),split.getStart(),split.getLength()),split.getStart(),split.getLength(),schema,partitionKeys,false));
         }
         markerQueue.finish();
         continue;
       }
       ListenableFuture<Void> partitionFuture=new AsyncRecursiveWalker(fs,suspendingExecutor).beginWalk(partitionPath,new FileStatusCallback(){
-        @Override public void process(        FileStatus file){
+        @Override public void process(        FileStatus file,        BlockLocation[] blockLocations){
           try {
             boolean splittable=isSplittable(inputFormat,file.getPath().getFileSystem(configuration),file.getPath());
-            markerQueue.addToQueue(createHiveSplits(partitionName,file,0,file.getLen(),schema,partitionKeys,fs,splittable));
+            markerQueue.addToQueue(createHiveSplits(partitionName,file,blockLocations,0,file.getLen(),schema,partitionKeys,splittable));
           }
  catch (          IOException e) {
             hiveSplitQueue.fail(e);
