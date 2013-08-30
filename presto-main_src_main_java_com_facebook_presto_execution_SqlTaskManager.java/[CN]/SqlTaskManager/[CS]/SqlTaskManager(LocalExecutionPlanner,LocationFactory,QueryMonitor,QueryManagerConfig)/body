@@ -9,8 +9,12 @@
   this.infoCacheTime=config.getInfoMaxAge();
   this.clientTimeout=config.getClientTimeout();
   taskMasterExecutor=Executors.newCachedThreadPool(threadsNamed("task-processor-%d"));
-  shardExecutor=MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(config.getMaxShardProcessorThreads(),threadsNamed("shard-processor-%d")));
+  taskMasterExecutorMBean=new ThreadPoolExecutorMBean((ThreadPoolExecutor)taskMasterExecutor);
+  ExecutorService shardExecutor=Executors.newFixedThreadPool(config.getMaxShardProcessorThreads(),threadsNamed("shard-processor-%d"));
+  this.shardExecutor=MoreExecutors.listeningDecorator(shardExecutor);
+  this.shardExecutorMBean=new ThreadPoolExecutorMBean((ThreadPoolExecutor)shardExecutor);
   taskManagementExecutor=Executors.newScheduledThreadPool(5,threadsNamed("task-management-%d"));
+  taskManagementExecutorMBean=new ThreadPoolExecutorMBean((ThreadPoolExecutor)taskManagementExecutor);
   taskManagementExecutor.scheduleAtFixedRate(new Runnable(){
     @Override public void run(){
       try {

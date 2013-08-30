@@ -6,6 +6,7 @@
   this.dbi=checkNotNull(dbi,"dbi is null");
   this.dao=dbi.onDemand(StorageManagerDao.class);
   this.executor=newFixedThreadPool(config.getTasksPerNode(),threadsNamed("local-storage-manager-%s"));
+  this.executorMBean=new ThreadPoolExecutorMBean((ThreadPoolExecutor)executor);
   this.shardBoundedExecutor=new KeyBoundedExecutor<>(executor);
   dao.createTableColumns();
 }
