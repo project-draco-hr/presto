@@ -1,0 +1,41 @@
+{
+  if (!finishing) {
+    for (int i=0; i < 16384; i++) {
+      if (pageBuilder.isFull()) {
+        break;
+      }
+      if (!cursor.advanceNextPosition()) {
+        finishing=true;
+        break;
+      }
+      for (int column=0; column < tupleInfos.size(); column++) {
+        BlockBuilder output=pageBuilder.getBlockBuilder(column);
+        if (cursor.isNull(column)) {
+          output.appendNull();
+        }
+ else {
+switch (getTupleInfos().get(column).getTypes().get(0)) {
+case BOOLEAN:
+            output.append(cursor.getBoolean(column));
+          break;
+case FIXED_INT_64:
+        output.append(cursor.getLong(column));
+      break;
+case DOUBLE:
+    output.append(cursor.getDouble(column));
+  break;
+case VARIABLE_BINARY:
+output.append(cursor.getString(column));
+break;
+}
+}
+}
+}
+}
+if (pageBuilder.isEmpty() || (!finishing && !pageBuilder.isFull())) {
+return null;
+}
+Page page=pageBuilder.build();
+pageBuilder.reset();
+return page;
+}
