@@ -1,0 +1,14 @@
+{
+  if (state == State.NEEDS_INPUT) {
+    state=State.HAS_OUTPUT;
+    int[] orderFields=Ints.concat(partitionFields,sortFields);
+    boolean[] partitionOrder=new boolean[partitionFields.length];
+    Arrays.fill(partitionOrder,true);
+    boolean[] ordering=Booleans.concat(partitionOrder,sortOrder);
+    pageIndex.sort(orderingChannel,orderFields,ordering);
+    ChannelIndex index=pageIndex.getIndex(orderingChannel);
+    partitionComparator=new MultiSliceFieldOrderedTupleComparator(partitionFields,partitionOrder,index);
+    index=pageIndex.getIndex(orderingChannel);
+    orderComparator=new MultiSliceFieldOrderedTupleComparator(sortFields,sortOrder,index);
+  }
+}
