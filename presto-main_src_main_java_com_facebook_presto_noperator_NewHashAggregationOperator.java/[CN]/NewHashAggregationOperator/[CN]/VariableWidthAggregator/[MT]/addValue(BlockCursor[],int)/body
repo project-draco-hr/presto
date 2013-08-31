@@ -1,0 +1,23 @@
+{
+  for (int i=0; i < blockCursors.length; i++) {
+    blockCursors[i]=cursors[inputs.get(i).getChannel()];
+  }
+  T oldValue=intermediateValues.get(position);
+  long oldSize=0;
+  if (oldValue != null) {
+    oldSize=function.estimateSizeInBytes(oldValue);
+  }
+  T newValue;
+  if (step == Step.FINAL) {
+    newValue=function.addIntermediate(blockCursors,fields,oldValue);
+  }
+ else {
+    newValue=function.addInput(blockCursors,fields,oldValue);
+  }
+  intermediateValues.set(position,newValue);
+  long newSize=0;
+  if (newValue != null) {
+    newSize=function.estimateSizeInBytes(newValue);
+  }
+  totalElementSizeInBytes+=newSize - oldSize;
+}

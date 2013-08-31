@@ -1,0 +1,16 @@
+{
+  this.groupByChannel=groupByChannel;
+  this.groupByTupleInfo=groupByTupleInfo;
+  this.memoryManager=memoryManager;
+  ImmutableList.Builder<Aggregator> builder=ImmutableList.builder();
+  for (  AggregationFunctionDefinition functionDefinition : checkNotNull(functionDefinitions,"functionDefinitions is null")) {
+    builder.add(createAggregator(functionDefinition,step,expectedGroups));
+  }
+  aggregates=builder.build();
+  hashStrategy=new SliceHashStrategy(groupByTupleInfo);
+  addressToGroupId=new Long2IntOpenCustomHashMap(expectedGroups,hashStrategy);
+  addressToGroupId.defaultReturnValue(-1);
+  Slice slice=Slices.allocate((int)BlockBuilder.DEFAULT_MAX_BLOCK_SIZE.toBytes());
+  hashStrategy.addSlice(slice);
+  blockBuilder=new BlockBuilder(groupByTupleInfo,slice.length(),slice.getOutput());
+}

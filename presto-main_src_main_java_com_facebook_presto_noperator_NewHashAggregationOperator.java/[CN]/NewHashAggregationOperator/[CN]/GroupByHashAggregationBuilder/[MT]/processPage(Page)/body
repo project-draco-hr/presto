@@ -1,0 +1,20 @@
+{
+  Block[] blocks=page.getBlocks();
+  BlockCursor[] cursors=new BlockCursor[blocks.length];
+  for (int i=0; i < blocks.length; i++) {
+    cursors[i]=blocks[i].cursor();
+  }
+  Slice groupBySlice=((UncompressedBlock)blocks[groupByChannel]).getSlice();
+  hashStrategy.setLookupSlice(groupBySlice);
+  int rows=page.getPositionCount();
+  for (int position=0; position < rows; position++) {
+    for (    BlockCursor cursor : cursors) {
+      checkState(cursor.advanceNextPosition());
+    }
+    int groupId=putIfAbsent(groupBySlice,cursors);
+    processRow(cursors,groupId);
+  }
+  for (  BlockCursor cursor : cursors) {
+    checkState(!cursor.advanceNextPosition());
+  }
+}

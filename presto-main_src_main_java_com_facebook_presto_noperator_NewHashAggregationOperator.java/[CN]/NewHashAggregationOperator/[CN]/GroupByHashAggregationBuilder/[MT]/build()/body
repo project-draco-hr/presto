@@ -1,0 +1,26 @@
+{
+  if (!blockBuilder.isEmpty()) {
+    UncompressedBlock block=blockBuilder.build();
+    groupByBlocks.add(block);
+  }
+  return Iterators.transform(groupByBlocks.iterator(),new Function<UncompressedBlock,Page>(){
+    private int currentPosition=0;
+    @Override public Page apply(    UncompressedBlock groupByBlock){
+      Block[] blocks=new Block[aggregates.size() + 1];
+      blocks[0]=groupByBlock;
+      int pagePositionCount=groupByBlock.getPositionCount();
+      for (int channel=1; channel < aggregates.size() + 1; channel++) {
+        Aggregator aggregator=aggregates.get(channel - 1);
+        BlockBuilder blockBuilder=new BlockBuilder(aggregator.getTupleInfo());
+        for (int position=0; position < pagePositionCount; position++) {
+          aggregator.evaluate(currentPosition + position,blockBuilder);
+        }
+        blocks[channel]=blockBuilder.build();
+      }
+      Page page=new Page(blocks);
+      currentPosition+=pagePositionCount;
+      return page;
+    }
+  }
+);
+}
