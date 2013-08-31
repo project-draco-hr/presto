@@ -1,0 +1,9 @@
+{
+  NewOperator buildOperator=new StaticOperator(rowPagesBuilder(SINGLE_VARBINARY,SINGLE_LONG,SINGLE_LONG).addSequencePage(10,20,30,40).build());
+  NewHashSupplier hashSupplier=new NewHashSupplier(buildOperator.getTupleInfos());
+  NewHashBuilderOperator hashBuilderOperator=new NewHashBuilderOperator(hashSupplier,0,100,new TaskMemoryManager(new DataSize(100,BYTE)));
+  Driver driver=new Driver(new OperatorStats(),buildOperator,hashBuilderOperator);
+  while (!driver.isFinished()) {
+    driver.process();
+  }
+}
