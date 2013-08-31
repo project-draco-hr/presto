@@ -1,6 +1,7 @@
 {
   List<Page> input=rowPagesBuilder(SINGLE_LONG,SINGLE_DOUBLE).row(2,0.3).row(4,0.2).row(6,0.1).pageBreak().row(-1,-0.1).row(5,0.4).build();
-  NewOperator operator=new NewInMemoryWindowOperator(ImmutableList.of(SINGLE_LONG,SINGLE_DOUBLE),0,ints(1,0),ROW_NUMBER,ints(),ints(0),bools(true),10,new TaskMemoryManager(MAX_SIZE));
+  NewInMemoryWindowOperatorFactory operatorFactory=new NewInMemoryWindowOperatorFactory(0,ImmutableList.of(SINGLE_LONG,SINGLE_DOUBLE),0,ints(1,0),ROW_NUMBER,ints(),ints(0),bools(true),10);
+  NewOperator operator=operatorFactory.createOperator(driverContext);
   MaterializedResult expected=resultBuilder(DOUBLE,FIXED_INT_64,FIXED_INT_64).row(-0.1,-1,1).row(0.3,2,2).row(0.2,4,3).row(0.4,5,4).row(0.1,6,5).build();
   assertOperatorEquals(operator,input,expected);
 }

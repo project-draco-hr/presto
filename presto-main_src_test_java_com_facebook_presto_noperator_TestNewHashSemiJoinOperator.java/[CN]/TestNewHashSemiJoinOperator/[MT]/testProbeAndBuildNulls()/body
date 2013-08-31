@@ -1,16 +1,16 @@
 {
-  TaskMemoryManager taskMemoryManager=new TaskMemoryManager(new DataSize(256,MEGABYTE));
-  OperatorStats operatorStats=new OperatorStats();
-  NewOperator buildOperator=new StaticOperator(rowPagesBuilder(SINGLE_LONG).row(0).row(1).row((Object)null).row(3).build());
-  NewSetSupplier setSupplier=new NewSetSupplier(SINGLE_LONG);
-  NewSetBuilderOperator setBuilderOperator=new NewSetBuilderOperator(setSupplier,0,10,taskMemoryManager);
-  Driver driver=new Driver(operatorStats,buildOperator,setBuilderOperator);
+  DriverContext driverContext=taskContext.addPipelineContext().addDriverContext();
+  OperatorContext operatorContext=driverContext.addOperatorContext(0,StaticOperator.class.getSimpleName());
+  NewOperator buildOperator=new StaticOperator(operatorContext,rowPagesBuilder(SINGLE_LONG).row(0).row(1).row((Object)null).row(3).build());
+  NewSetBuilderOperatorFactory setBuilderOperatorFactory=new NewSetBuilderOperatorFactory(1,buildOperator.getTupleInfos(),0,10);
+  NewOperator setBuilderOperator=setBuilderOperatorFactory.createOperator(driverContext);
+  Driver driver=new Driver(driverContext,buildOperator,setBuilderOperator);
   while (!driver.isFinished()) {
     driver.process();
   }
   List<Page> probeInput=rowPagesBuilder(SINGLE_LONG).row(0).row((Object)null).row(1).row(2).build();
-  NewHashSemiJoinOperatorFactory joinOperatorFactory=new NewHashSemiJoinOperatorFactory(setSupplier,ImmutableList.of(SINGLE_LONG),0);
-  NewOperator joinOperator=joinOperatorFactory.createOperator(operatorStats,taskMemoryManager);
+  NewHashSemiJoinOperatorFactory joinOperatorFactory=new NewHashSemiJoinOperatorFactory(2,setBuilderOperatorFactory.getSetProvider(),ImmutableList.of(SINGLE_LONG),0);
+  NewOperator joinOperator=joinOperatorFactory.createOperator(driverContext);
   MaterializedResult expected=resultBuilder(FIXED_INT_64,BOOLEAN).row(0,true).row(null,null).row(1,true).row(2,null).build();
   NewOperatorAssertion.assertOperatorEquals(joinOperator,probeInput,expected);
 }

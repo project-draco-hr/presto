@@ -1,10 +1,16 @@
 {
-  for (  AbstractBenchmark benchmark : BenchmarkSuite.createBenchmarks(new InMemoryTpchBlocksProvider())) {
-    try {
-      benchmark.runOnce();
+  ExecutorService executor=newCachedThreadPool(daemonThreadsNamed("test"));
+  try {
+    for (    AbstractBenchmark benchmark : BenchmarkSuite.createBenchmarks(executor,new InMemoryTpchBlocksProvider())) {
+      try {
+        benchmark.runOnce();
+      }
+ catch (      Exception e) {
+        throw new AssertionError("Error running " + benchmark.getBenchmarkName(),e);
+      }
     }
- catch (    Exception e) {
-      throw new AssertionError("Error running " + benchmark.getBenchmarkName(),e);
-    }
+  }
+  finally {
+    executor.shutdownNow();
   }
 }

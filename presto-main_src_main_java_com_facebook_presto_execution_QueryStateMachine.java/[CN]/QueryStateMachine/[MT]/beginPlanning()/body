@@ -2,6 +2,9 @@
   if (!queryState.compareAndSet(QueryState.QUEUED,QueryState.PLANNING)) {
     return false;
   }
-  queryStats.recordAnalysisStart();
+synchronized (this) {
+    Preconditions.checkState(createNanos > 0,"Can not record analysis start");
+    queuedTime=Duration.nanosSince(createNanos).convertToMostSuccinctTimeUnit();
+  }
   return true;
 }

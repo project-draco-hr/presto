@@ -1,16 +1,16 @@
 {
-  TaskMemoryManager taskMemoryManager=new TaskMemoryManager(new DataSize(256,MEGABYTE));
-  OperatorStats operatorStats=new OperatorStats();
-  NewOperator buildOperator=new StaticOperator(rowPagesBuilder(SINGLE_VARBINARY).row("a").row("b").row("c").build());
-  NewHashSupplier hashSupplier=new NewHashSupplier(buildOperator.getTupleInfos());
-  NewHashBuilderOperator sourceHashProvider=new NewHashBuilderOperator(hashSupplier,0,10,taskMemoryManager);
-  Driver driver=new Driver(operatorStats,buildOperator,sourceHashProvider);
+  DriverContext driverContext=taskContext.addPipelineContext().addDriverContext();
+  OperatorContext operatorContext=driverContext.addOperatorContext(0,StaticOperator.class.getSimpleName());
+  NewOperator buildOperator=new StaticOperator(operatorContext,rowPagesBuilder(SINGLE_VARBINARY).row("a").row("b").row("c").build());
+  NewHashBuilderOperatorFactory hashBuilderOperatorFactory=new NewHashBuilderOperatorFactory(1,buildOperator.getTupleInfos(),0,100);
+  NewOperator sourceHashProvider=hashBuilderOperatorFactory.createOperator(driverContext);
+  Driver driver=new Driver(driverContext,buildOperator,sourceHashProvider);
   while (!driver.isFinished()) {
     driver.process();
   }
   List<Page> probeInput=rowPagesBuilder(SINGLE_VARBINARY).row("a").row((String)null).row((String)null).row("a").row("b").build();
-  NewHashJoinOperatorFactory joinOperatorFactory=NewHashJoinOperator.outerJoin(hashSupplier,ImmutableList.of(SINGLE_VARBINARY),0);
-  NewOperator joinOperator=joinOperatorFactory.createOperator(operatorStats,taskMemoryManager);
+  NewHashJoinOperatorFactory joinOperatorFactory=NewHashJoinOperator.outerJoin(0,hashBuilderOperatorFactory.getHashSupplier(),ImmutableList.of(SINGLE_VARBINARY),0);
+  NewOperator joinOperator=joinOperatorFactory.createOperator(taskContext.addPipelineContext().addDriverContext());
   MaterializedResult expected=resultBuilder(new TupleInfo(VARIABLE_BINARY,VARIABLE_BINARY)).row("a","a").row(null,null).row(null,null).row("a","a").row("b","b").build();
   assertOperatorEquals(joinOperator,probeInput,expected);
 }

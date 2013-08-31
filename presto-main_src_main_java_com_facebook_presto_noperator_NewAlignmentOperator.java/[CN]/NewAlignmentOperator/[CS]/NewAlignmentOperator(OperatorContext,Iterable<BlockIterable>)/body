@@ -1,0 +1,23 @@
+{
+  this.operatorContext=checkNotNull(operatorContext,"operatorContext is null");
+  this.tupleInfos=toTupleInfos(checkNotNull(channels,"channels is null"));
+  expectedDataSize=BlockIterables.getDataSize(channels);
+  expectedPositionCount=BlockIterables.getPositionCount(channels);
+  ImmutableList.Builder<Iterator<Block>> iterators=ImmutableList.builder();
+  for (  BlockIterable channel : channels) {
+    iterators.add(channel.iterator());
+  }
+  this.iterators=iterators.build();
+  cursors=new ArrayList<>(this.iterators.size());
+  if (this.iterators.get(0).hasNext()) {
+    for (    Iterator<Block> iterator : this.iterators) {
+      cursors.add(iterator.next().cursor());
+    }
+  }
+ else {
+    for (    Iterator<Block> iterator : this.iterators) {
+      checkState(!iterator.hasNext());
+    }
+    finished=true;
+  }
+}

@@ -7,9 +7,9 @@
     columns.add(entry.getValue());
   }
   IdentityProjectionInfo mappings=computeIdentityMapping(symbols.build(),query.getLayout(),context.getTypes());
-  NewOperatorFactory sourceOperator=new NewFilterAndProjectOperatorFactory(FilterFunctions.TRUE_FUNCTION,mappings.getProjections());
+  NewOperatorFactory sourceOperator=new NewFilterAndProjectOperatorFactory(context.getNextOperatorId(),FilterFunctions.TRUE_FUNCTION,mappings.getProjections());
   PhysicalOperation source=new PhysicalOperation(sourceOperator,mappings.getOutputLayout(),query);
   Symbol outputSymbol=Iterables.getOnlyElement(node.getOutputSymbols());
-  NewTableWriterOperatorFactory operator=new NewTableWriterOperatorFactory(node.getId(),storageManager,nodeInfo.getNodeId(),columns.build());
+  NewTableWriterOperatorFactory operator=new NewTableWriterOperatorFactory(context.getNextOperatorId(),node.getId(),storageManager,nodeInfo.getNodeId(),columns.build());
   return new PhysicalOperation(operator,ImmutableMultimap.of(outputSymbol,new Input(0,0)),source);
 }

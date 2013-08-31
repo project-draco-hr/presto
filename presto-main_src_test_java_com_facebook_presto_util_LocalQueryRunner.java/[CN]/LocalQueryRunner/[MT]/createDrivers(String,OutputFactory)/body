@@ -16,11 +16,12 @@
   assertTrue(subplan.getChildren().isEmpty(),"Expected subplan to have no children");
   NewLocalExecutionPlanner executionPlanner=new NewLocalExecutionPlanner(new NodeInfo(new NodeConfig().setEnvironment("test").setNodeId("test-node")),metadata,dataStreamProvider,storageManager,null,compiler);
   NewLocalExecutionPlan localExecutionPlan=executionPlanner.plan(session,subplan.getFragment().getRoot(),plan.getTypes(),outputFactory);
+  TaskContext taskContext=new TaskContext(new TaskId("query","stage","task"),executor,session);
   List<Driver> drivers=new ArrayList<>();
   Map<PlanNodeId,Driver> driversBySource=new HashMap<>();
   List<DriverFactory> driverFactories=localExecutionPlan.getDriverFactories();
   for (  DriverFactory driverFactory : driverFactories) {
-    Driver driver=driverFactory.createDriver(new OperatorStats(),new TaskMemoryManager(new DataSize(256,MEGABYTE)));
+    Driver driver=driverFactory.createDriver(taskContext.addPipelineContext().addDriverContext());
     drivers.add(driver);
     for (    PlanNodeId sourceId : driver.getSourceIds()) {
       driversBySource.put(sourceId,driver);

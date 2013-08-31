@@ -4,14 +4,15 @@
   for (int i=0; i < node.getSources().size(); i++) {
     PlanNode subplan=node.getSources().get(i);
     List<Symbol> expectedLayout=node.sourceOutputLayout(i);
-    PhysicalOperation source=subplan.accept(this,context);
+    LocalExecutionPlanContext subContext=context.createSubContext();
+    PhysicalOperation source=subplan.accept(this,subContext);
     List<NewOperatorFactory> operatorFactories=new ArrayList<>(source.getOperatorFactories());
     boolean projectionMatchesOutput=IterableTransformer.on(source.getLayout().entries()).orderBy(inputOrdering().onResultOf(MoreFunctions.<Symbol,Input>valueGetter())).transform(MoreFunctions.<Symbol,Input>keyGetter()).list().equals(expectedLayout);
     if (!projectionMatchesOutput) {
       IdentityProjectionInfo mappings=computeIdentityMapping(expectedLayout,source.getLayout(),context.getTypes());
-      operatorFactories.add(new NewFilterAndProjectOperatorFactory(FilterFunctions.TRUE_FUNCTION,mappings.getProjections()));
+      operatorFactories.add(new NewFilterAndProjectOperatorFactory(subContext.getNextOperatorId(),FilterFunctions.TRUE_FUNCTION,mappings.getProjections()));
     }
-    operatorFactories.add(inMemoryExchange.createSinkFactory());
+    operatorFactories.add(inMemoryExchange.createSinkFactory(subContext.getNextOperatorId()));
     DriverFactory driverFactory=new DriverFactory(operatorFactories);
     context.addDriverFactory(driverFactory);
   }
@@ -22,5 +23,5 @@
     outputMappings.put(symbol,new Input(channel,0));
     channel++;
   }
-  return new PhysicalOperation(new InMemoryExchangeSourceOperatorFactory(inMemoryExchange),outputMappings.build());
+  return new PhysicalOperation(new InMemoryExchangeSourceOperatorFactory(context.getNextOperatorId(),inMemoryExchange),outputMappings.build());
 }

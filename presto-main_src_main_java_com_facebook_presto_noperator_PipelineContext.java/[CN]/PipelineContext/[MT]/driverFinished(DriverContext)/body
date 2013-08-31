@@ -1,0 +1,34 @@
+{
+  checkNotNull(driverContext,"driverContext is null");
+  if (!runningDrivers.remove(driverContext)) {
+    throw new IllegalArgumentException("Unknown driver " + driverContext);
+  }
+  DriverStats driverStats=driverContext.getDriverStats();
+  completedDrivers.getAndIncrement();
+  memoryReservation.getAndAdd(-driverStats.getMemoryReservation().toBytes());
+  queuedTime.add(driverStats.getQueuedTime().roundTo(NANOSECONDS));
+  elapsedTime.add(driverStats.getElapsedTime().roundTo(NANOSECONDS));
+  totalScheduledTime.getAndAdd((driverStats.getTotalScheduledTime().roundTo(NANOSECONDS)));
+  totalCpuTime.getAndAdd((driverStats.getTotalCpuTime().roundTo(NANOSECONDS)));
+  totalUserTime.getAndAdd((driverStats.getTotalUserTime().roundTo(NANOSECONDS)));
+  totalBlockedTime.getAndAdd((driverStats.getTotalBlockedTime().roundTo(NANOSECONDS)));
+  List<OperatorStats> operators=driverStats.getOperatorStats();
+  for (  OperatorStats operator : operators) {
+    OperatorStats operatorSummary=operatorSummaries.get(operator.getOperatorId());
+    if (operatorSummary != null) {
+      operatorSummary=operatorSummary.add(operator);
+    }
+ else {
+      operatorSummary=operator;
+    }
+    operatorSummaries.put(operator.getOperatorId(),operatorSummary);
+  }
+  OperatorStats inputOperator=getFirst(operators,null);
+  if (inputOperator != null) {
+    inputDataSize.getAndAdd((inputOperator.getInputDataSize().toBytes()));
+    inputPositions.getAndAdd((inputOperator.getInputPositions()));
+    OperatorStats outputOperator=checkNotNull(getLast(operators,null));
+    outputDataSize.getAndAdd((outputOperator.getOutputDataSize().toBytes()));
+    outputPositions.getAndAdd((outputOperator.getOutputPositions()));
+  }
+}

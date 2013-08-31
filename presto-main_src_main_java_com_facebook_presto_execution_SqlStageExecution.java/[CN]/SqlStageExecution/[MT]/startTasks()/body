@@ -14,7 +14,7 @@ synchronized (this) {
  else {
         long getSplitStart=System.nanoTime();
         for (        Split split : dataSource.get().getSplits()) {
-          stageStats.addGetSplitDuration(Duration.nanosSince(getSplitStart));
+          getSplitDistribution.add(System.nanoTime() - getSplitStart);
           long scheduleSplitStart=System.nanoTime();
           Node chosen=chooseNode(nodeSelector,split,nextTaskId);
           if (getState().isDone()) {
@@ -23,11 +23,11 @@ synchronized (this) {
           RemoteTask task=tasks.get(chosen);
           if (task == null) {
             scheduleTask(nextTaskId,chosen,split);
-            stageStats.addScheduleTaskDuration(Duration.nanosSince(scheduleSplitStart));
+            scheduleTaskDistribution.add(System.nanoTime() - scheduleSplitStart);
           }
  else {
             task.addSplit(split);
-            stageStats.addAddSplitDuration(Duration.nanosSince(scheduleSplitStart));
+            addSplitDistribution.add(System.nanoTime() - scheduleSplitStart);
           }
           getSplitStart=System.nanoTime();
         }

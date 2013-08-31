@@ -1,9 +1,13 @@
 {
-  if (partitionedSourceId != null && !taskOutput.getNoMoreSplits().contains(partitionedSourceId)) {
+  if (partitionedSourceId != null && !noMoreSplits.contains(partitionedSourceId)) {
     return;
   }
   if (pendingWorkerCount.get() != 0) {
     return;
   }
-  taskOutput.finish();
+  sharedBuffer.finish();
+  if (!sharedBuffer.isFinished()) {
+    return;
+  }
+  taskStateMachine.finished();
 }

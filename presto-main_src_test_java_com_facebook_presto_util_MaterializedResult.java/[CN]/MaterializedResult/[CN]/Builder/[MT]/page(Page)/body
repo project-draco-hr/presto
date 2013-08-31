@@ -1,0 +1,22 @@
+{
+  checkNotNull(page,"page is null");
+  List<BlockCursor> cursors=new ArrayList<>();
+  for (  Block block : page.getBlocks()) {
+    cursors.add(block.cursor());
+  }
+  while (true) {
+    boolean hasResults=false;
+    for (    BlockCursor cursor : cursors) {
+      if (cursor.advanceNextPosition()) {
+        builder.append(cursor.getTuple());
+        hasResults=true;
+      }
+ else {
+        checkState(!hasResults,"unaligned cursors");
+      }
+    }
+    if (!hasResults) {
+      return this;
+    }
+  }
+}

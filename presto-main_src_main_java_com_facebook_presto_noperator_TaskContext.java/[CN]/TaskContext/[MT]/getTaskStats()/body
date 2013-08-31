@@ -1,0 +1,54 @@
+{
+  if (taskStateMachine.getState().isDone()) {
+    if (executionEndTime.compareAndSet(null,DateTime.now())) {
+      endNanos.set(System.nanoTime());
+    }
+  }
+  List<PipelineStats> pipelineStats=ImmutableList.copyOf(transform(pipelineContexts,pipelineStatsGetter()));
+  int totalDrivers=0;
+  int queuedDrivers=0;
+  int startedDrivers=0;
+  int runningDrivers=0;
+  int completedDrivers=0;
+  long totalScheduledTime=0;
+  long totalCpuTime=0;
+  long totalUserTime=0;
+  long totalBlockedTime=0;
+  long inputDataSize=0;
+  long inputPositions=0;
+  long outputDataSize=0;
+  long outputPositions=0;
+  for (  PipelineStats pipeline : pipelineStats) {
+    totalDrivers+=pipeline.getTotalDrivers();
+    queuedDrivers+=pipeline.getQueuedDrivers();
+    startedDrivers+=pipeline.getStartedDrivers();
+    runningDrivers+=pipeline.getRunningDrivers().size();
+    completedDrivers+=pipeline.getCompletedDrivers();
+    totalScheduledTime+=pipeline.getTotalScheduledTime().roundTo(NANOSECONDS);
+    totalCpuTime+=pipeline.getTotalCpuTime().roundTo(NANOSECONDS);
+    totalUserTime+=pipeline.getTotalUserTime().roundTo(NANOSECONDS);
+    totalBlockedTime+=pipeline.getTotalBlockedTime().roundTo(NANOSECONDS);
+    OperatorStats inputOperator=getFirst(pipeline.getOperatorSummaries(),null);
+    if (inputOperator != null) {
+      inputDataSize+=inputOperator.getInputDataSize().toBytes();
+      inputPositions+=inputOperator.getInputPositions();
+      OperatorStats outputOperator=checkNotNull(getLast(pipeline.getOperatorSummaries(),null));
+      outputDataSize+=outputOperator.getOutputDataSize().toBytes();
+      outputPositions+=outputOperator.getOutputPositions();
+    }
+  }
+  long startNanos=this.startNanos.get();
+  if (startNanos < createNanos) {
+    startNanos=System.nanoTime();
+  }
+  Duration queuedTime=new Duration(startNanos - createNanos,NANOSECONDS);
+  long endNanos=this.endNanos.get();
+  Duration elapsedTime;
+  if (endNanos >= startNanos) {
+    elapsedTime=new Duration(endNanos - createNanos,NANOSECONDS);
+  }
+ else {
+    elapsedTime=new Duration(0,NANOSECONDS);
+  }
+  return new TaskStats(createdTime,executionStartTime.get(),executionEndTime.get(),elapsedTime.convertToMostSuccinctTimeUnit(),queuedTime.convertToMostSuccinctTimeUnit(),totalDrivers,queuedDrivers,startedDrivers,runningDrivers,completedDrivers,new DataSize(memoryReservation.get(),BYTE).convertToMostSuccinctDataSize(),new Duration(totalScheduledTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalCpuTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalUserTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalBlockedTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new DataSize(inputDataSize,BYTE).convertToMostSuccinctDataSize(),inputPositions,new DataSize(outputDataSize,BYTE).convertToMostSuccinctDataSize(),outputPositions,pipelineStats);
+}

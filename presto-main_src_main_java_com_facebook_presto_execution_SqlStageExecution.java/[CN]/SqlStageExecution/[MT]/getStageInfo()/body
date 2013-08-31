@@ -2,6 +2,47 @@
   try (SetThreadName setThreadName=new SetThreadName("Stage-%s",stageId)){
     List<TaskInfo> taskInfos=IterableTransformer.on(tasks.values()).transform(taskInfoGetter()).list();
     List<StageInfo> subStageInfos=IterableTransformer.on(subStages.values()).transform(stageInfoGetter()).list();
-    return new StageInfo(stageId,stageState.get(),location,fragment,tupleInfos,stageStats.snapshot(),taskInfos,subStageInfos,toFailures(failureCauses));
+    int totalTasks=taskInfos.size();
+    int runningTasks=0;
+    int completedTasks=0;
+    int totalDrivers=0;
+    int queuedDrivers=0;
+    int startedDrivers=0;
+    int runningDrivers=0;
+    int completedDrivers=0;
+    long totalMemoryReservation=0;
+    long totalScheduledTime=0;
+    long totalCpuTime=0;
+    long totalUserTime=0;
+    long totalBlockedTime=0;
+    long inputDataSize=0;
+    long inputPositions=0;
+    long outputDataSize=0;
+    long outputPositions=0;
+    for (    TaskInfo taskInfo : taskInfos) {
+      if (taskInfo.getState().isDone()) {
+        completedTasks++;
+      }
+ else {
+        runningTasks++;
+      }
+      TaskStats taskStats=taskInfo.getStats();
+      totalDrivers=taskStats.getTotalDrivers();
+      queuedDrivers=taskStats.getQueuedDrivers();
+      startedDrivers=taskStats.getStartedDrivers();
+      runningDrivers=taskStats.getRunningDrivers();
+      completedDrivers=taskStats.getCompletedDrivers();
+      totalMemoryReservation+=taskStats.getMemoryReservation().toBytes();
+      totalScheduledTime+=taskStats.getTotalScheduledTime().roundTo(NANOSECONDS);
+      totalCpuTime+=taskStats.getTotalCpuTime().roundTo(NANOSECONDS);
+      totalUserTime+=taskStats.getTotalUserTime().roundTo(NANOSECONDS);
+      totalBlockedTime+=taskStats.getTotalBlockedTime().roundTo(NANOSECONDS);
+      inputDataSize+=taskStats.getInputDataSize().toBytes();
+      inputPositions+=taskStats.getInputPositions();
+      outputDataSize+=taskStats.getOutputDataSize().toBytes();
+      outputPositions+=taskStats.getOutputPositions();
+    }
+    StageStats stageStats=new StageStats(getSplitDistribution.snapshot(),scheduleTaskDistribution.snapshot(),addSplitDistribution.snapshot(),totalTasks,runningTasks,completedTasks,totalDrivers,queuedDrivers,startedDrivers,runningDrivers,completedDrivers,new DataSize(totalMemoryReservation,BYTE).convertToMostSuccinctDataSize(),new Duration(totalScheduledTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalCpuTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalUserTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalBlockedTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new DataSize(inputDataSize,BYTE).convertToMostSuccinctDataSize(),inputPositions,new DataSize(outputDataSize,BYTE).convertToMostSuccinctDataSize(),outputPositions);
+    return new StageInfo(stageId,stageState.get(),location,fragment,tupleInfos,stageStats,taskInfos,subStageInfos,toFailures(failureCauses));
   }
  }

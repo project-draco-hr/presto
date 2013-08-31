@@ -1,0 +1,17 @@
+{
+  checkNotNull(sourceTupleInfo,"sourceTupleInfo is null");
+  return new NewOperatorFactory(){
+    @Override public List<TupleInfo> getTupleInfos(){
+      return ImmutableList.of();
+    }
+    @Override public NewOperator createOperator(    DriverContext driverContext){
+      checkState(materializingOperator == null,"Output already created");
+      OperatorContext operatorContext=driverContext.addOperatorContext(operatorId,MaterializingOperator.class.getSimpleName());
+      materializingOperator=new MaterializingOperator(operatorContext,sourceTupleInfo);
+      return materializingOperator;
+    }
+    @Override public void close(){
+    }
+  }
+;
+}

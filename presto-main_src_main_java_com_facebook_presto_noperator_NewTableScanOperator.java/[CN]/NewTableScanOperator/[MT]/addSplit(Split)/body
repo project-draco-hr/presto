@@ -1,5 +1,9 @@
 {
   checkNotNull(split,"split is null");
   checkState(getSource() == null,"Table scan split already set");
-  source=dataStreamProvider.createNewDataStream(split,columns);
+  source=dataStreamProvider.createNewDataStream(operatorContext,split,columns);
+  Object splitInfo=split.getInfo();
+  if (splitInfo != null) {
+    operatorContext.setInfoSupplier(Suppliers.ofInstance(splitInfo));
+  }
 }

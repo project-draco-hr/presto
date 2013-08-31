@@ -1,8 +1,11 @@
 {
-  NewOperator buildOperator=new StaticOperator(rowPagesBuilder(SINGLE_LONG).addSequencePage(1000,20).build());
-  NewSetSupplier setSupplier=new NewSetSupplier(SINGLE_LONG);
-  NewSetBuilderOperator setBuilderOperator=new NewSetBuilderOperator(setSupplier,0,10,new TaskMemoryManager(new DataSize(100,BYTE)));
-  Driver driver=new Driver(new OperatorStats(),buildOperator,setBuilderOperator);
+  Session session=new Session("user","source","catalog","schema","address","agent");
+  DriverContext driverContext=new TaskContext(new TaskId("query","stage","task"),executor,session,new DataSize(100,BYTE)).addPipelineContext().addDriverContext();
+  OperatorContext operatorContext=driverContext.addOperatorContext(0,StaticOperator.class.getSimpleName());
+  NewOperator buildOperator=new StaticOperator(operatorContext,rowPagesBuilder(SINGLE_LONG).addSequencePage(1000,20).build());
+  NewSetBuilderOperatorFactory setBuilderOperatorFactory=new NewSetBuilderOperatorFactory(1,buildOperator.getTupleInfos(),0,10);
+  NewOperator setBuilderOperator=setBuilderOperatorFactory.createOperator(driverContext);
+  Driver driver=new Driver(driverContext,buildOperator,setBuilderOperator);
   while (!driver.isFinished()) {
     driver.process();
   }

@@ -1,6 +1,11 @@
 {
-  try (SetThreadName setThreadName=new SetThreadName("Task-%s",taskOutput.getTaskId())){
+  try (SetThreadName setThreadName=new SetThreadName("Task-%s",taskId)){
     checkTaskCompletion();
-    return taskOutput.getTaskInfo(full);
+    TaskState state=taskStateMachine.getState();
+    List<FailureInfo> failures=ImmutableList.of();
+    if (state == TaskState.FAILED) {
+      failures=toFailures(taskStateMachine.getFailureCauses());
+    }
+    return new TaskInfo(taskStateMachine.getTaskId(),nextTaskInfoVersion.getAndIncrement(),state,location,lastHeartbeat,sharedBuffer.getInfo(),getNoMoreSplits(),taskContext.getTaskStats(),failures,taskContext.getOutputItems());
   }
  }

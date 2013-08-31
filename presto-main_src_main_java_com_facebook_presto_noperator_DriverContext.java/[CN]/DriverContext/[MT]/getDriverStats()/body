@@ -1,0 +1,51 @@
+{
+  long totalScheduledTime=0;
+  long totalCpuTime=0;
+  long totalUserTime=0;
+  long totalBlockedTime=0;
+  List<OperatorStats> operators=ImmutableList.copyOf(transform(operatorContexts,operatorStatsGetter()));
+  for (  OperatorStats operator : operators) {
+    totalScheduledTime+=operator.getGetOutputWall().roundTo(NANOSECONDS);
+    totalCpuTime+=operator.getGetOutputCpu().roundTo(NANOSECONDS);
+    totalUserTime+=operator.getGetOutputUser().roundTo(NANOSECONDS);
+    totalScheduledTime+=operator.getAddInputWall().roundTo(NANOSECONDS);
+    totalCpuTime+=operator.getAddInputCpu().roundTo(NANOSECONDS);
+    totalUserTime+=operator.getAddInputUser().roundTo(NANOSECONDS);
+    totalScheduledTime+=operator.getFinishWall().roundTo(NANOSECONDS);
+    totalCpuTime+=operator.getFinishCpu().roundTo(NANOSECONDS);
+    totalUserTime+=operator.getFinishUser().roundTo(NANOSECONDS);
+    totalBlockedTime+=operator.getBlockedWall().roundTo(NANOSECONDS);
+  }
+  OperatorStats inputOperator=getFirst(operators,null);
+  DataSize inputDataSize;
+  long inputPositions;
+  DataSize outputDataSize;
+  long outputPositions;
+  if (inputOperator != null) {
+    inputDataSize=inputOperator.getInputDataSize();
+    inputPositions=inputOperator.getInputPositions();
+    OperatorStats outputOperator=checkNotNull(getLast(operators,null));
+    outputDataSize=outputOperator.getOutputDataSize();
+    outputPositions=outputOperator.getOutputPositions();
+  }
+ else {
+    inputDataSize=new DataSize(0,BYTE);
+    inputPositions=0;
+    outputDataSize=new DataSize(0,BYTE);
+    outputPositions=0;
+  }
+  long startNanos=this.startNanos.get();
+  if (startNanos < createNanos) {
+    startNanos=System.nanoTime();
+  }
+  Duration queuedTime=new Duration(startNanos - createNanos,NANOSECONDS);
+  long endNanos=this.endNanos.get();
+  Duration elapsedTime;
+  if (endNanos >= startNanos) {
+    elapsedTime=new Duration(endNanos - createNanos,NANOSECONDS);
+  }
+ else {
+    elapsedTime=new Duration(0,NANOSECONDS);
+  }
+  return new DriverStats(createdTime,executionStartTime.get(),executionEndTime.get(),queuedTime.convertToMostSuccinctTimeUnit(),elapsedTime.convertToMostSuccinctTimeUnit(),new DataSize(memoryReservation.get(),BYTE).convertToMostSuccinctDataSize(),new Duration(totalScheduledTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalCpuTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalUserTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalBlockedTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),inputDataSize.convertToMostSuccinctDataSize(),inputPositions,outputDataSize.convertToMostSuccinctDataSize(),outputPositions,ImmutableList.copyOf(Iterables.transform(operatorContexts,operatorStatsGetter())));
+}

@@ -1,5 +1,8 @@
 {
   List<Page> input=rowPagesBuilder(SINGLE_LONG,SINGLE_DOUBLE).row(1,0.1).row(2,0.2).pageBreak().row(-1,-0.1).row(4,0.4).build();
-  NewOperator operator=new NewInMemoryOrderByOperator(ImmutableList.of(SINGLE_LONG,SINGLE_DOUBLE),0,new int[]{1},10,new TaskMemoryManager(new DataSize(10,Unit.BYTE)));
+  Session session=new Session("user","source","catalog","schema","address","agent");
+  DriverContext driverContext=new TaskContext(new TaskId("query","stage","task"),executor,session,new DataSize(10,Unit.BYTE)).addPipelineContext().addDriverContext();
+  NewInMemoryOrderByOperatorFactory operatorFactory=new NewInMemoryOrderByOperatorFactory(0,ImmutableList.of(SINGLE_LONG,SINGLE_DOUBLE),0,new int[]{1},10);
+  NewOperator operator=operatorFactory.createOperator(driverContext);
   toPages(operator,input);
 }

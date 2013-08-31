@@ -1,0 +1,36 @@
+{
+  long getOutputWall=this.getOutputWall.roundTo(NANOSECONDS);
+  long getOutputCpu=this.getOutputCpu.roundTo(NANOSECONDS);
+  long getOutputUser=this.getOutputUser.roundTo(NANOSECONDS);
+  long outputDataSize=this.outputDataSize.toBytes();
+  long outputPositions=this.outputPositions;
+  long addInputWall=this.addInputWall.roundTo(NANOSECONDS);
+  long addInputCpu=this.addInputCpu.roundTo(NANOSECONDS);
+  long addInputUser=this.addInputUser.roundTo(NANOSECONDS);
+  long inputDataSize=this.inputDataSize.toBytes();
+  long inputPositions=this.inputPositions;
+  long blockedWall=this.blockedWall.roundTo(NANOSECONDS);
+  long finishWall=this.finishWall.roundTo(NANOSECONDS);
+  long finishCpu=this.finishCpu.roundTo(NANOSECONDS);
+  long finishUser=this.finishUser.roundTo(NANOSECONDS);
+  long memoryReservation=this.memoryReservation.toBytes();
+  for (  OperatorStats operator : operators) {
+    checkArgument(operator.getOperatorId() == operatorId,"Expected operatorId to be %s but was %s",operatorId,operator.getOperatorId());
+    getOutputWall+=operator.getGetOutputWall().roundTo(NANOSECONDS);
+    getOutputCpu+=operator.getGetOutputCpu().roundTo(NANOSECONDS);
+    getOutputUser+=operator.getGetOutputUser().roundTo(NANOSECONDS);
+    outputDataSize+=operator.getOutputDataSize().toBytes();
+    outputPositions+=operator.getOutputPositions();
+    addInputWall+=operator.getAddInputWall().roundTo(NANOSECONDS);
+    addInputCpu+=operator.getAddInputCpu().roundTo(NANOSECONDS);
+    addInputUser+=operator.getAddInputUser().roundTo(NANOSECONDS);
+    inputDataSize+=operator.getInputDataSize().toBytes();
+    inputPositions+=operator.getInputPositions();
+    finishWall+=operator.getFinishWall().roundTo(NANOSECONDS);
+    finishCpu+=operator.getFinishCpu().roundTo(NANOSECONDS);
+    finishUser+=operator.getFinishUser().roundTo(NANOSECONDS);
+    blockedWall+=operator.getBlockedWall().roundTo(NANOSECONDS);
+    memoryReservation+=operator.getMemoryReservation().toBytes();
+  }
+  return new OperatorStats(operatorId,operatorType,new Duration(getOutputWall,NANOSECONDS),new Duration(getOutputCpu,NANOSECONDS),new Duration(getOutputUser,NANOSECONDS),new DataSize(outputDataSize,BYTE),outputPositions,new Duration(addInputWall,NANOSECONDS),new Duration(addInputCpu,NANOSECONDS),new Duration(addInputUser,NANOSECONDS),new DataSize(inputDataSize,BYTE),inputPositions,new Duration(blockedWall,NANOSECONDS),new Duration(finishWall,NANOSECONDS),new Duration(finishCpu,NANOSECONDS),new Duration(finishUser,NANOSECONDS),new DataSize(memoryReservation,BYTE),null);
+}

@@ -1,6 +1,7 @@
 {
   List<Page> input=rowPagesBuilder(SINGLE_VARBINARY,SINGLE_LONG,SINGLE_VARBINARY,COMPOSITE_SEQUENCE_TUPLE_INFO).addSequencePage(100,0,0,300,500).build();
-  NewAggregationOperator operator=new NewAggregationOperator(Step.SINGLE,ImmutableList.of(aggregation(COUNT,new Input(0,0)),aggregation(LONG_SUM,new Input(1,0)),aggregation(LONG_AVERAGE,new Input(1,0)),aggregation(VAR_BINARY_MAX,new Input(2,0)),aggregation(COUNT_COLUMN,new Input(0,0)),aggregation(LONG_SUM,new Input(3,1)),aggregation(DOUBLE_SUM,new Input(3,2)),aggregation(VAR_BINARY_MAX,new Input(3,3))));
+  NewOperatorFactory operatorFactory=new NewAggregationOperatorFactory(0,Step.SINGLE,ImmutableList.of(aggregation(COUNT,new Input(0,0)),aggregation(LONG_SUM,new Input(1,0)),aggregation(LONG_AVERAGE,new Input(1,0)),aggregation(VAR_BINARY_MAX,new Input(2,0)),aggregation(COUNT_COLUMN,new Input(0,0)),aggregation(LONG_SUM,new Input(3,1)),aggregation(DOUBLE_SUM,new Input(3,2)),aggregation(VAR_BINARY_MAX,new Input(3,3))));
+  NewOperator operator=operatorFactory.createOperator(driverContext);
   MaterializedResult expected=resultBuilder(FIXED_INT_64,FIXED_INT_64,DOUBLE,VARIABLE_BINARY,FIXED_INT_64,FIXED_INT_64,DOUBLE,VARIABLE_BINARY).row(100,4950,49.5,"399",100,54950,54950.0,"599").build();
   assertOperatorEquals(operator,input,expected);
 }
