@@ -1,5 +1,8 @@
 {
-  this.fragment=fragment;
-  URI location=URI.create("fake://task/" + taskId);
-  taskOutput=new TaskOutput(taskId,location,new DataSize(1,Unit.BYTE),executor,new SqlTaskManagerStats());
+  this.taskStateMachine=new TaskStateMachine(checkNotNull(taskId,"taskId is null"),checkNotNull(executor,"executor is null"));
+  Session session=new Session("user","source","catalog","schema","address","agent");
+  this.taskContext=new TaskContext(taskStateMachine,executor,session,new DataSize(256,MEGABYTE),new DataSize(1,MEGABYTE));
+  this.location=URI.create("fake://task/" + taskId);
+  this.sharedBuffer=new SharedBuffer(checkNotNull(new DataSize(1,Unit.BYTE),"maxBufferSize is null"));
+  this.fragment=checkNotNull(fragment,"fragment is null");
 }
