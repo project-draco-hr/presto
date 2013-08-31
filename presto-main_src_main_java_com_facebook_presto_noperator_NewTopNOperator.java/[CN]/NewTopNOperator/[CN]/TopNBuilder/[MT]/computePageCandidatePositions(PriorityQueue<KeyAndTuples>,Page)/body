@@ -1,0 +1,17 @@
+{
+  PriorityQueue<KeyAndPosition> pageCandidates=new PriorityQueue<>(Math.min(n,MAX_INITIAL_PRIORITY_QUEUE_SIZE),KeyAndPosition.keyComparator(ordering));
+  KeyAndTuples smallestGlobalCandidate=globalCandidates.peek();
+  BlockCursor cursor=page.getBlock(keyChannelIndex).cursor();
+  while (cursor.advanceNextPosition()) {
+    if (globalCandidates.size() < n || ordering.compare(cursor,smallestGlobalCandidate.getKey()) > 0) {
+      if (pageCandidates.size() < n) {
+        pageCandidates.add(new KeyAndPosition(cursor.getTuple(),cursor.getPosition()));
+      }
+ else       if (ordering.compare(cursor,pageCandidates.peek().getKey()) > 0) {
+        pageCandidates.remove();
+        pageCandidates.add(new KeyAndPosition(cursor.getTuple(),cursor.getPosition()));
+      }
+    }
+  }
+  return pageCandidates;
+}

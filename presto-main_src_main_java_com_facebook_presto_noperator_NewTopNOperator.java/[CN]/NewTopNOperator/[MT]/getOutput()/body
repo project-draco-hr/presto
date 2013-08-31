@@ -1,0 +1,22 @@
+{
+  if (outputIterator == null || !outputIterator.hasNext()) {
+    if (topNBuilder == null) {
+      return null;
+    }
+    if (!finishing && !topNBuilder.isFull()) {
+      return null;
+    }
+    checkState(finishing || partial,"Task exceeded max memory size of %s",memoryManager.getMaxMemorySize());
+    outputIterator=topNBuilder.build();
+    topNBuilder=null;
+  }
+  pageBuilder.reset();
+  while (!pageBuilder.isFull() && outputIterator.hasNext()) {
+    KeyAndTuples next=outputIterator.next();
+    for (int i=0; i < projections.size(); i++) {
+      projections.get(i).project(next.getTuples(),pageBuilder.getBlockBuilder(i));
+    }
+  }
+  Page page=pageBuilder.build();
+  return page;
+}
