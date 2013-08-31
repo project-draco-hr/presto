@@ -1,0 +1,46 @@
+{
+  Statement statement=SqlParser.createStatement(sql);
+  if (printPlan) {
+    assertFormattedSql(statement);
+  }
+  PlanNodeIdAllocator idAllocator=new PlanNodeIdAllocator();
+  PlanOptimizersFactory planOptimizersFactory=new PlanOptimizersFactory(metadata);
+  QueryExplainer queryExplainer=new QueryExplainer(session,planOptimizersFactory.get(),metadata,new MockPeriodicImportManager(),new MockStorageManager());
+  Analyzer analyzer=new Analyzer(session,metadata,Optional.of(queryExplainer));
+  Analysis analysis=analyzer.analyze(statement);
+  Plan plan=new LogicalPlanner(session,planOptimizersFactory.get(),idAllocator,metadata,new MockPeriodicImportManager(),new MockStorageManager()).plan(analysis);
+  if (printPlan) {
+    System.out.println(PlanPrinter.textLogicalPlan(plan.getRoot(),plan.getTypes()));
+  }
+  SubPlan subplan=new DistributedLogicalPlanner(metadata,idAllocator).createSubplans(plan,true);
+  assertTrue(subplan.getChildren().isEmpty(),"Expected subplan to have no children");
+  NewLocalExecutionPlanner executionPlanner=new NewLocalExecutionPlanner(new NodeInfo(new NodeConfig().setEnvironment("test").setNodeId("test-node")),metadata,dataStreamProvider,storageManager,null,compiler);
+  NewLocalExecutionPlan localExecutionPlan=executionPlanner.plan(session,subplan.getFragment().getRoot(),plan.getTypes(),outputFactory);
+  Multimap<PlanNodeId,Split> splits=ArrayListMultimap.create();
+  for (  PlanNode source : subplan.getFragment().getSources()) {
+    TableScanNode tableScan=(TableScanNode)source;
+    splits.putAll(source.getId(),splitManager.getSplits(session,tableScan.getTable(),tableScan.getPartitionPredicate(),tableScan.getUpstreamPredicateHint(),Predicates.<Partition>alwaysTrue(),tableScan.getAssignments()).getSplits());
+  }
+  List<Driver> drivers=new ArrayList<>();
+  Map<PlanNodeId,Driver> driversBySource=new HashMap<>();
+  for (  DriverFactory driverFactory : localExecutionPlan.getDriverFactories()) {
+    DriverContext driverContext=taskContext.addPipelineContext(driverFactory.isInputDriver(),driverFactory.isOutputDriver()).addDriverContext();
+    Driver driver=driverFactory.createDriver(driverContext);
+    drivers.add(driver);
+    for (    PlanNodeId sourceId : driver.getSourceIds()) {
+      driversBySource.put(sourceId,driver);
+    }
+    driverFactory.close();
+  }
+  for (  Entry<PlanNodeId,Split> entry : splits.entries()) {
+    Driver driver=driversBySource.get(entry.getKey());
+    checkState(driver != null,"Unknown source %s",entry.getKey());
+    driver.addSplit(entry.getKey(),entry.getValue());
+  }
+  for (  Driver driver : drivers) {
+    for (    PlanNodeId sourceId : driver.getSourceIds()) {
+      driver.noMoreSplits(sourceId);
+    }
+  }
+  return ImmutableList.copyOf(drivers);
+}

@@ -1,0 +1,14 @@
+{
+  Session session=new Session("user","source","catalog","schema","address","agent");
+  TaskContext taskContext=new TaskContext(new TaskId("query","stage","task"),executor,session);
+  CpuTimer cpuTimer=new CpuTimer();
+  execute(taskContext);
+  CpuDuration executionTime=cpuTimer.elapsedTime();
+  TaskStats taskStats=taskContext.getTaskStats();
+  long inputRows=taskStats.getRawInputPositions();
+  long inputBytes=taskStats.getRawInputDataSize().toBytes();
+  long outputRows=taskStats.getOutputPositions();
+  long outputBytes=taskStats.getOutputDataSize().toBytes();
+  double inputMegaBytes=new DataSize(inputBytes,BYTE).getValue(MEGABYTE);
+  return ImmutableMap.<String,Long>builder().put("elapsed_millis",executionTime.getWall().toMillis()).put("input_rows_per_second",(long)(inputRows / executionTime.getWall().getValue(SECONDS))).put("output_rows_per_second",(long)(outputRows / executionTime.getWall().getValue(SECONDS))).put("input_megabytes",(long)inputMegaBytes).put("input_megabytes_per_second",(long)(inputMegaBytes / executionTime.getWall().getValue(SECONDS))).put("wall_nanos",executionTime.getWall().roundTo(NANOSECONDS)).put("cpu_nanos",executionTime.getCpu().roundTo(NANOSECONDS)).put("user_nanos",executionTime.getUser().roundTo(NANOSECONDS)).put("input_rows",inputRows).put("input_bytes",inputBytes).put("output_rows",outputRows).put("output_bytes",outputBytes).build();
+}

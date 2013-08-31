@@ -1,0 +1,10 @@
+{
+  BlockIterable extendedPrice=getBlockIterable("lineitem","extendedprice",BlocksFileEncoding.RAW);
+  BlockIterable discount=getBlockIterable("lineitem","discount",BlocksFileEncoding.RAW);
+  BlockIterable shipDate=getBlockIterable("lineitem","shipdate",BlocksFileEncoding.RAW);
+  BlockIterable quantity=getBlockIterable("lineitem","quantity",BlocksFileEncoding.RAW);
+  NewAlignmentOperatorFactory alignmentOperator=new NewAlignmentOperatorFactory(0,extendedPrice,discount,shipDate,quantity);
+  TpchQuery6OperatorFactory tpchQuery6Operator=new TpchQuery6OperatorFactory(1);
+  NewAggregationOperatorFactory aggregationOperator=new NewAggregationOperatorFactory(2,Step.SINGLE,ImmutableList.of(aggregation(DOUBLE_SUM,new Input(0,0))));
+  return ImmutableList.of(alignmentOperator,tpchQuery6Operator,aggregationOperator);
+}
