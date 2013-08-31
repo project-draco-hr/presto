@@ -1,0 +1,27 @@
+{
+  if (finished) {
+    return null;
+  }
+  if (cursors.get(0).getRemainingPositions() <= 0 && !iterators.get(0).hasNext()) {
+    for (    Iterator<Block> iterator : iterators) {
+      checkState(!iterator.hasNext());
+    }
+    finished=true;
+    return null;
+  }
+  int length=Integer.MAX_VALUE;
+  for (int i=0; i < iterators.size(); i++) {
+    Iterator<? extends Block> iterator=iterators.get(i);
+    BlockCursor cursor=cursors.get(i);
+    if (cursor.getRemainingPositions() <= 0) {
+      cursor=iterator.next().cursor();
+      cursors.set(i,cursor);
+    }
+    length=Math.min(length,cursor.getRemainingPositions());
+  }
+  Block[] blocks=new Block[iterators.size()];
+  for (int i=0; i < cursors.size(); i++) {
+    blocks[i]=cursors.get(i).getRegionAndAdvance(length);
+  }
+  return new Page(blocks);
+}
