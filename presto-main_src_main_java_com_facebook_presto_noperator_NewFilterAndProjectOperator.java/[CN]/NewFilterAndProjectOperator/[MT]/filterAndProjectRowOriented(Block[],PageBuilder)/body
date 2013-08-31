@@ -1,0 +1,21 @@
+{
+  int rows=blocks[0].getPositionCount();
+  BlockCursor[] cursors=new BlockCursor[blocks.length];
+  for (int i=0; i < blocks.length; i++) {
+    cursors[i]=blocks[i].cursor();
+  }
+  for (int position=0; position < rows; position++) {
+    for (    BlockCursor cursor : cursors) {
+      checkState(cursor.advanceNextPosition());
+    }
+    if (filterFunction.filter(cursors)) {
+      pageBuilder.declarePosition();
+      for (int i=0; i < projections.size(); i++) {
+        projections.get(i).project(cursors,pageBuilder.getBlockBuilder(i));
+      }
+    }
+  }
+  for (  BlockCursor cursor : cursors) {
+    checkState(!cursor.advanceNextPosition());
+  }
+}
