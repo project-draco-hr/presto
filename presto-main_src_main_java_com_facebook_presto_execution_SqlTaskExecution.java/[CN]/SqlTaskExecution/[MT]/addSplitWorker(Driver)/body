@@ -2,10 +2,12 @@
   drivers.add(new WeakReference<>(driver));
   pendingWorkerCount.incrementAndGet();
   taskOutput.getStats().addSplits(1);
-  final ListenableFuture<?> finishedFuture=taskExecutor.addSplit(taskHandle,new Callable<Boolean>(){
-    @Override public Boolean call() throws Exception {
-      driver.process();
+  final ListenableFuture<?> finishedFuture=taskExecutor.addSplit(taskHandle,new SplitRunner(){
+    @Override public boolean isFinished(){
       return driver.isFinished();
+    }
+    @Override public ListenableFuture<?> process() throws Exception {
+      return driver.process();
     }
   }
 );

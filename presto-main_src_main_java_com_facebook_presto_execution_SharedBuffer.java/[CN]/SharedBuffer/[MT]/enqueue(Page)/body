@@ -1,0 +1,13 @@
+{
+  Preconditions.checkNotNull(page,"page is null");
+  if (closed.get() || failed.get()) {
+    return Futures.immediateFuture(true);
+  }
+  if (bufferedBytes < maxBufferedBytes) {
+    addInternal(page);
+    return Futures.immediateFuture(true);
+  }
+  QueuedPage queuedPage=new QueuedPage(page);
+  queuedPages.addLast(queuedPage);
+  return queuedPage.getFuture();
+}

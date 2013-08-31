@@ -1,12 +1,8 @@
 {
   checkNotNull(page,"page is null");
-  try {
-    if (!taskOutput.addPage(page)) {
-      finished=true;
-    }
-  }
- catch (  InterruptedException e) {
-    Thread.currentThread().interrupt();
-    throw Throwables.propagate(e);
+  checkState(blocked == NOT_BLOCKED,"output is already blocked");
+  ListenableFuture<?> future=taskOutput.enqueuePage(page);
+  if (!future.isDone()) {
+    this.blocked=future;
   }
 }

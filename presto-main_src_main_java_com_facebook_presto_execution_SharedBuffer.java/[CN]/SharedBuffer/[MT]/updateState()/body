@@ -20,6 +20,11 @@
       Page page=masterQueue.removeFirst();
       bufferedBytes-=page.getDataSize().toBytes();
     }
+    while (!queuedPages.isEmpty() && bufferedBytes >= maxBufferedBytes) {
+      QueuedPage queuedPage=queuedPages.removeFirst();
+      addInternal(queuedPage.getPage());
+      queuedPage.getFuture().set(null);
+    }
   }
   if (state == QueueState.NO_MORE_QUEUES && closed.get() && openQueuesBySequenceId.isEmpty()) {
     state=QueueState.FINISHED;
