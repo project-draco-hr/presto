@@ -2,29 +2,21 @@
   if (!started.compareAndSet(false,true)) {
     return null;
   }
-  if (taskOutput.getState().isDone()) {
-    return null;
-  }
-  try (SetThreadName setThreadName=new SetThreadName("SplitWorker-Task-%s-%s",taskOutput.getTaskId(),workerId)){
+  try (SetThreadName setThreadName=new SetThreadName("SplitWorker-Task-%s-%s",taskId,workerId)){
+    Driver driver=this.driver.get();
+    if (operatorStats.isDone()) {
+      return null;
+    }
     operatorStats.start();
-    try (PageIterator pages=operator.get().iterator(operatorStats)){
-      while (pages.hasNext()) {
-        Page page=pages.next();
-        taskOutput.getStats().addOutputDataSize(page.getDataSize());
-        taskOutput.getStats().addOutputPositions(page.getPositionCount());
-        if (!taskOutput.addPage(page)) {
-          break;
-        }
+    try {
+      while (!driver.isFinished()) {
+        driver.process();
       }
     }
   finally {
       operatorStats.finish();
-      queryMonitor.splitCompletionEvent(taskOutput.getTaskInfo(false),operatorStats.snapshot());
-      for (      Entry<PlanNodeId,OutputProducingOperator<?>> entry : outputOperators.entrySet()) {
-        taskOutput.addOutput(entry.getKey(),entry.getValue().getOutput());
-      }
+      this.driver.set(null);
     }
-    operator.set(null);
     return null;
   }
  }

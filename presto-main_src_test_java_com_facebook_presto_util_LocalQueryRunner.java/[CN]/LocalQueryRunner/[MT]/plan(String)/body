@@ -1,36 +1,17 @@
 {
-  Statement statement=SqlParser.createStatement(sql);
-  if (printPlan) {
-    assertFormattedSql(statement);
-  }
-  PlanNodeIdAllocator idAllocator=new PlanNodeIdAllocator();
-  PlanOptimizersFactory planOptimizersFactory=new PlanOptimizersFactory(metadata);
-  QueryExplainer queryExplainer=new QueryExplainer(session,planOptimizersFactory.get(),metadata,new MockPeriodicImportManager(),new MockStorageManager());
-  Analyzer analyzer=new Analyzer(session,metadata,Optional.of(queryExplainer));
-  Analysis analysis=analyzer.analyze(statement);
-  Plan plan=new LogicalPlanner(session,planOptimizersFactory.get(),idAllocator,metadata,new MockPeriodicImportManager(),new MockStorageManager()).plan(analysis);
-  if (printPlan) {
-    System.out.println(PlanPrinter.textLogicalPlan(plan.getRoot(),plan.getTypes()));
-  }
-  SubPlan subplan=new DistributedLogicalPlanner(metadata,idAllocator).createSubplans(plan,true);
-  assertTrue(subplan.getChildren().isEmpty(),"Expected subplan to have no children");
-  DataSize maxOperatorMemoryUsage=new DataSize(256,MEGABYTE);
-  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(new NodeInfo(new NodeConfig().setEnvironment("test").setNodeId("test-node")),metadata,dataStreamProvider,storageManager,null,compiler);
-  TaskMemoryManager taskMemoryManager=new TaskMemoryManager(new DataSize(256,MEGABYTE));
-  LocalExecutionPlan localExecutionPlan=executionPlanner.plan(session,subplan.getFragment().getRoot(),plan.getTypes(),new JoinBuildSourceSupplierFactory(taskMemoryManager),taskMemoryManager,new OperatorStats());
-  Map<PlanNodeId,SourceOperator> sourceOperators=localExecutionPlan.getSourceOperators();
-  for (  PlanNode source : subplan.getFragment().getSources()) {
-    TableScanNode tableScan=(TableScanNode)source;
-    SourceOperator sourceOperator=sourceOperators.get(tableScan.getId());
-    Preconditions.checkArgument(sourceOperator != null,"Unknown plan source %s; known sources are %s",tableScan.getId(),sourceOperators.keySet());
-    List<Split> splits=ImmutableList.copyOf(splitManager.getSplits(session,tableScan.getTable(),tableScan.getPartitionPredicate(),tableScan.getUpstreamPredicateHint(),Predicates.<Partition>alwaysTrue(),tableScan.getAssignments()).getSplits());
-    checkState(splits.size() <= 1,"expected at most a single split");
-    if (!splits.isEmpty()) {
-      sourceOperator.addSplit(Iterables.getOnlyElement(splits));
+  InMemoryExchangeOutputFactory outputFactory=new InMemoryExchangeOutputFactory();
+  final List<Driver> drivers=createDrivers(sql,outputFactory);
+  final InMemoryExchange inMemoryExchange=outputFactory.getInMemoryExchange();
+  return new Operator(){
+    @Override public int getChannelCount(){
+      return getTupleInfos().size();
+    }
+    @Override public List<TupleInfo> getTupleInfos(){
+      return inMemoryExchange.getTupleInfos();
+    }
+    @Override public PageIterator iterator(    OperatorStats operatorStats){
+      return new DriverOperatorIterator(drivers,inMemoryExchange,operatorStats);
     }
   }
-  for (  SourceOperator sourceOperator : sourceOperators.values()) {
-    sourceOperator.noMoreSplits();
-  }
-  return localExecutionPlan.getRootOperator();
+;
 }

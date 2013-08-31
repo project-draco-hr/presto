@@ -1,0 +1,15 @@
+{
+  checkState(!closed,"DriverFactory is already closed");
+  checkNotNull(operatorStats,"operatorStats is null");
+  ImmutableList.Builder<NewOperator> operators=ImmutableList.builder();
+  for (  NewOperatorFactory operatorFactory : operatorFactories) {
+    NewOperator operator=operatorFactory.createOperator(operatorStats,taskMemoryManager);
+    if (operator instanceof NewTableWriterOperator) {
+      checkArgument(taskOutput != null,"TaskOutput is null and a table writer is present");
+      NewTableWriterOperator newTableWriterOperator=(NewTableWriterOperator)operator;
+      newTableWriterOperator.setTaskOutput(taskOutput);
+    }
+    operators.add(operator);
+  }
+  return new Driver(operatorStats,operators.build());
+}

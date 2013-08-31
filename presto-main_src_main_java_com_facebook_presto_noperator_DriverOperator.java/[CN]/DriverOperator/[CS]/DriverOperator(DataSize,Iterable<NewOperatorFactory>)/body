@@ -1,3 +1,8 @@
 {
-  this(checkNotNull(maxMemory,"maxMemory is null"),new DriverFactory(ImmutableList.copyOf(checkNotNull(operatorFactories,"operatorFactories is null"))));
+  this.maxMemory=checkNotNull(maxMemory,"maxMemory is null");
+  List<NewOperatorFactory> operators=newArrayList(operatorFactories);
+  inMemoryExchange=new InMemoryExchange(Iterables.getLast(operators).getTupleInfos());
+  operators.add(inMemoryExchange.createSinkFactory());
+  inMemoryExchange.noMoreSinkFactories();
+  driverFactories=ImmutableList.of(new DriverFactory(operators));
 }

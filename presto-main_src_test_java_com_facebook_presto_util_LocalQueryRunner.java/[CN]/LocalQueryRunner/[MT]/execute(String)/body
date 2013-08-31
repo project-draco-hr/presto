@@ -1,3 +1,16 @@
 {
-  return materialize(plan(sql));
+  MaterializedOutputFactory outputFactory=new MaterializedOutputFactory();
+  List<Driver> drivers=createDrivers(sql,outputFactory);
+  boolean done=false;
+  while (!done) {
+    boolean processed=false;
+    for (    Driver driver : drivers) {
+      if (!driver.isFinished()) {
+        driver.process();
+        processed=true;
+      }
+    }
+    done=!processed;
+  }
+  return outputFactory.getMaterializingOperator().getMaterializedResult();
 }

@@ -1,32 +1,11 @@
 {
-  SplitWorker worker=new SplitWorker(nextSplitWorkerId++,session,taskOutput,planner,fragment,getJoinBuildSourceSupplierFactory(),taskMemoryManager,queryMonitor);
-  if (partitionedSourceId != null) {
-    worker.addSplit(partitionedSourceId,partitionedSplit);
-  }
+  SplitWorker worker=new SplitWorker(taskOutput.getTaskId(),nextSplitWorkerId++,partitionedSourceId,partitionedDriverFactory.createDriver(taskOutput,taskMemoryManager));
+  worker.addSplit(partitionedSourceId,partitionedSplit);
   for (  Entry<PlanNodeId,Split> entry : unpartitionedSources.entries()) {
     worker.addSplit(entry.getKey(),entry.getValue());
   }
-  splitWorkers.add(new WeakReference<>(worker));
-  pendingWorkerCount.incrementAndGet();
-  taskOutput.getStats().addSplits(1);
-  final ListenableFutureTask<?> workerFutureTask=ListenableFutureTask.create(worker);
-  unfinishedWorkerTasks.addFirst(workerFutureTask);
-  shardExecutor.submit(workerFutureTask);
-  Futures.addCallback(workerFutureTask,new FutureCallback<Object>(){
-    @Override public void onSuccess(    Object result){
-      try (SetThreadName setThreadName=new SetThreadName("Task-%s",taskOutput.getTaskId())){
-        pendingWorkerCount.decrementAndGet();
-        checkTaskCompletion();
-        unfinishedWorkerTasks.removeFirstOccurrence(workerFutureTask);
-      }
-     }
-    @Override public void onFailure(    Throwable t){
-      try (SetThreadName setThreadName=new SetThreadName("Task-%s",taskOutput.getTaskId())){
-        taskOutput.queryFailed(t);
-        pendingWorkerCount.decrementAndGet();
-        unfinishedWorkerTasks.removeFirstOccurrence(workerFutureTask);
-      }
-     }
+  for (  PlanNodeId completedUnpartitionedSource : completedUnpartitionedSources) {
+    worker.noMoreSplits(completedUnpartitionedSource);
   }
-);
+  addSplitWorker(worker);
 }

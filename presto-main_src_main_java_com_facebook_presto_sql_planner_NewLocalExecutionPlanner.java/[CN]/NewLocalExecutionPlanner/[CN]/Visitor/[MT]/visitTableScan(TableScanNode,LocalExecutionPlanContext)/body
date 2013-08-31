@@ -1,0 +1,13 @@
+{
+  ImmutableMultimap.Builder<Symbol,Input> outputMappings=ImmutableMultimap.builder();
+  List<ColumnHandle> columns=new ArrayList<>();
+  int channel=0;
+  for (  Symbol symbol : node.getOutputSymbols()) {
+    columns.add(node.getAssignments().get(symbol));
+    outputMappings.put(symbol,new Input(channel,0));
+    channel++;
+  }
+  List<TupleInfo> tupleInfos=getSourceOperatorTupleInfos(node,context.getTypes());
+  NewOperatorFactory operatorFactory=new NewTableScanOperatorFactory(node.getId(),dataStreamProvider,tupleInfos,columns);
+  return new PhysicalOperation(operatorFactory,outputMappings.build());
+}
