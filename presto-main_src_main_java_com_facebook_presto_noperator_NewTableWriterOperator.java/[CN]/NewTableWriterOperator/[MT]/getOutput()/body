@@ -1,0 +1,19 @@
+{
+  if (state != State.FINISHING) {
+    return null;
+  }
+  state=State.FINISHED;
+  if (columnFileHandle != null) {
+    try {
+      storageManager.commit(columnFileHandle);
+    }
+ catch (    IOException e) {
+      throw Throwables.propagate(e);
+    }
+    TaskOutput taskOutput=this.taskOutput.get();
+    checkState(taskOutput != null,"TaskOutput not set");
+    taskOutput.addOutput(sourceId,ImmutableSet.of(new TableWriterResult(input.get().getShardId(),nodeIdentifier)));
+  }
+  Block block=new BlockBuilder(SINGLE_LONG).append(rowCount).build();
+  return new Page(block);
+}

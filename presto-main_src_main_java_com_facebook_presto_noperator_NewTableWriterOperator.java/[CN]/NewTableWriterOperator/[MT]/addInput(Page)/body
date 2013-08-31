@@ -1,0 +1,13 @@
+{
+  checkNotNull(page,"page is null");
+  checkState(state == State.RUNNING,"Operator is finishing");
+  if (columnFileHandle == null) {
+    try {
+      columnFileHandle=storageManager.createStagingFileHandles(input.get().getShardId(),columnHandles);
+    }
+ catch (    IOException e) {
+      throw Throwables.propagate(e);
+    }
+  }
+  rowCount+=columnFileHandle.append(page);
+}
