@@ -1,12 +1,8 @@
 {
   long shardId=456;
   List<ColumnHandle> columnHandles=ImmutableList.<ColumnHandle>of(new NativeColumnHandle("column_13",13L));
-  InMemoryRecordSet records=new InMemoryRecordSet(ImmutableList.of(STRING),ImmutableList.copyOf(new List<?>[]{}));
-  RecordProjectOperator source=new RecordProjectOperator(records);
-  assertFalse(storageManager.shardExists(shardId));
-  storageManager.importShard(shardId,columnHandles,source);
+  ColumnFileHandle fileHandles=storageManager.createStagingFileHandles(shardId,columnHandles);
+  storageManager.commit(fileHandles);
   assertTrue(storageManager.shardExists(shardId));
   assertTrue(Iterables.isEmpty(storageManager.getBlocks(shardId,columnHandles.get(0))));
-  AlignmentOperator actual=new AlignmentOperator(storageManager.getBlocks(shardId,columnHandles.get(0)));
-  assertFalse(actual.iterator(new OperatorStats()).hasNext());
 }

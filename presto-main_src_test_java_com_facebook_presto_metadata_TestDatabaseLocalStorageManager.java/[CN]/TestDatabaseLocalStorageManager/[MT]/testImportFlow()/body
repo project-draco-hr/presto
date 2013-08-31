@@ -1,10 +1,16 @@
 {
   long shardId=123;
-  List<ColumnHandle> columnHandles=ImmutableList.<ColumnHandle>of(new NativeColumnHandle("column_7",7L),new NativeColumnHandle("column_11",11L));
-  InMemoryRecordSet records=new InMemoryRecordSet(ImmutableList.of(STRING,LONG),ImmutableList.copyOf(new List<?>[]{ImmutableList.of("abc",1L),ImmutableList.of("def",2L),ImmutableList.of("g",0L)}));
-  RecordProjectOperator source=new RecordProjectOperator(records);
   assertFalse(storageManager.shardExists(shardId));
-  storageManager.importShard(shardId,columnHandles,source);
+  List<ColumnHandle> columnHandles=ImmutableList.<ColumnHandle>of(new NativeColumnHandle("column_7",7L),new NativeColumnHandle("column_11",11L));
+  List<Page> pages=rowPagesBuilder(SINGLE_VARBINARY,SINGLE_LONG).row("alice",0).row("bob",1).row("charlie",2).row("dave",3).pageBreak().row("alice",4).row("bob",5).row("charlie",6).row("dave",7).pageBreak().row("alice",8).row("bob",9).row("charlie",10).row("dave",11).build();
+  ColumnFileHandle fileHandles=storageManager.createStagingFileHandles(shardId,columnHandles);
+  for (  Page page : pages) {
+    fileHandles.append(page);
+  }
+  storageManager.commit(fileHandles);
   assertTrue(storageManager.shardExists(shardId));
-  assertOperatorEquals(new AlignmentOperator(storageManager.getBlocks(shardId,columnHandles.get(0)),storageManager.getBlocks(shardId,columnHandles.get(1))),new RecordProjectOperator(records));
+  NewAlignmentOperatorFactory factory=new NewAlignmentOperatorFactory(0,storageManager.getBlocks(shardId,columnHandles.get(0)),storageManager.getBlocks(shardId,columnHandles.get(1)));
+  NewOperator operator=factory.createOperator(driverContext);
+  MaterializedResult expected=toMaterializedResult(operator.getTupleInfos(),pages);
+  NewOperatorAssertion.assertOperatorEquals(operator,expected);
 }

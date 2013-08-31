@@ -44,7 +44,9 @@
   List<BlockIterable> sources=sourcesBuilder.build();
   ColumnFileHandle targetFileHandle=builder.build();
   if (!sources.isEmpty()) {
-    AlignmentOperator source=new AlignmentOperator(sources);
+    Session session=new Session("user","source","catalog","schema","address","agent");
+    OperatorContext operatorContext=new TaskContext(new TaskId("query","stage","task"),executor,session).addPipelineContext(true,true).addDriverContext().addOperatorContext(0,"OptimizeEncodings");
+    NewAlignmentOperator source=new NewAlignmentOperator(operatorContext,sources);
     importData(source,targetFileHandle);
   }
   try {
