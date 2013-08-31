@@ -1,0 +1,18 @@
+{
+  checkState(!Thread.holdsLock(this),"Can not get next page while holding a lock on this");
+  if (page == NO_MORE_PAGES) {
+    closed.set(true);
+    checkState(pageBuffer.add(NO_MORE_PAGES),"Could not add no more pages marker");
+    page=null;
+  }
+  if (page != null) {
+synchronized (this) {
+      bufferBytes-=page.getDataSize().toBytes();
+    }
+    if (!closed.get() && pageBuffer.peek() == NO_MORE_PAGES) {
+      closed.set(true);
+    }
+    scheduleRequestIfNecessary();
+  }
+  return page;
+}

@@ -1,0 +1,22 @@
+{
+  ImmutableList<String> parts=ImmutableList.copyOf(Splitter.on("/").omitEmptyStrings().split(request.getUri().getPath()));
+  assertEquals(parts.size(),2);
+  String taskId=parts.get(0);
+  int pageSequenceId=Integer.parseInt(parts.get(1));
+  Builder<String,String> headers=ImmutableListMultimap.builder();
+  headers.put(PRESTO_PAGE_SEQUENCE_ID,String.valueOf(pageSequenceId));
+  TaskBuffer taskBuffer=taskBuffers.getUnchecked(taskId);
+  Page page=taskBuffer.getPage(pageSequenceId);
+  if (page != null) {
+    headers.put(CONTENT_TYPE,PRESTO_PAGES);
+    DynamicSliceOutput output=new DynamicSliceOutput(256);
+    PagesSerde.writePages(output,page);
+    return new TestingResponse(HttpStatus.OK,headers.build(),output.slice().getInput());
+  }
+ else   if (taskBuffer.isClosed()) {
+    return new TestingResponse(HttpStatus.GONE,headers.build(),new byte[0]);
+  }
+ else {
+    return new TestingResponse(HttpStatus.NO_CONTENT,headers.build(),new byte[0]);
+  }
+}
