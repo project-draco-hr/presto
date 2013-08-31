@@ -1,6 +1,7 @@
 {
   if (!finishing) {
-    for (int i=0; i < 16384; i++) {
+    int i=0;
+    for (; i < 16384; i++) {
       if (pageBuilder.isFull()) {
         break;
       }
@@ -31,6 +32,9 @@ break;
 }
 }
 }
+long bytesProcessed=cursor.getCompletedBytes() - completedBytes;
+operatorContext.recordGeneratedInput(new DataSize(bytesProcessed,BYTE),i);
+completedBytes+=bytesProcessed;
 }
 if (pageBuilder.isEmpty() || (!finishing && !pageBuilder.isFull())) {
 return null;

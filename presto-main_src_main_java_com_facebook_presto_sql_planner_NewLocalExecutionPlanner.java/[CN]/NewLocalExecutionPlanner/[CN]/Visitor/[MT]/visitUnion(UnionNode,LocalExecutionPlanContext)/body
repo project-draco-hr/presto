@@ -13,10 +13,11 @@
       operatorFactories.add(new NewFilterAndProjectOperatorFactory(subContext.getNextOperatorId(),FilterFunctions.TRUE_FUNCTION,mappings.getProjections()));
     }
     operatorFactories.add(inMemoryExchange.createSinkFactory(subContext.getNextOperatorId()));
-    DriverFactory driverFactory=new DriverFactory(operatorFactories);
+    DriverFactory driverFactory=new DriverFactory(subContext.isInputDriver(),false,operatorFactories);
     context.addDriverFactory(driverFactory);
   }
   inMemoryExchange.noMoreSinkFactories();
+  context.setInputDriver(false);
   ImmutableMultimap.Builder<Symbol,Input> outputMappings=ImmutableMultimap.builder();
   int channel=0;
   for (  Symbol symbol : node.getOutputSymbols()) {

@@ -1,15 +1,13 @@
 {
   List<JoinNode.EquiJoinClause> clauses=node.getCriteria();
-  PhysicalOperation leftSource=node.getLeft().accept(this,context);
   List<Symbol> leftSymbols=Lists.transform(clauses,leftGetter());
-  PhysicalOperation rightSource=node.getRight().accept(this,context);
   List<Symbol> rightSymbols=Lists.transform(clauses,rightGetter());
 switch (node.getType()) {
 case INNER:
 case LEFT:
-    return createJoinOperator(node,leftSource,leftSymbols,rightSource,rightSymbols,context);
+    return createJoinOperator(node,node.getLeft(),leftSymbols,node.getRight(),rightSymbols,context);
 case RIGHT:
-  return createJoinOperator(node,rightSource,rightSymbols,leftSource,leftSymbols,context);
+  return createJoinOperator(node,node.getRight(),rightSymbols,node.getLeft(),leftSymbols,context);
 default :
 throw new UnsupportedOperationException("Unsupported join type: " + node.getType());
 }
