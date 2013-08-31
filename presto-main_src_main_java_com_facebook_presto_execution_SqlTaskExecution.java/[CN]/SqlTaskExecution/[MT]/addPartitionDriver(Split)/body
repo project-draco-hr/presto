@@ -1,0 +1,15 @@
+{
+  Driver driver=partitionedDriverFactory.createDriver(taskOutput,taskMemoryManager);
+  driver.addSplit(partitionedSourceId,partitionedSplit);
+  Object splitInfo=partitionedSplit.getInfo();
+  if (splitInfo != null) {
+    driver.getOperatorStats().addSplitInfo(splitInfo);
+  }
+  for (  Entry<PlanNodeId,Split> entry : unpartitionedSources.entries()) {
+    driver.addSplit(entry.getKey(),entry.getValue());
+  }
+  for (  PlanNodeId completedUnpartitionedSource : completedUnpartitionedSources) {
+    driver.noMoreSplits(completedUnpartitionedSource);
+  }
+  addSplitWorker(driver);
+}

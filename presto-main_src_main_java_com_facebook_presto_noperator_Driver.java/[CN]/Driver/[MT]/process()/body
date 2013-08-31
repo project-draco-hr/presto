@@ -1,19 +1,26 @@
 {
-  for (int i=0; i < operators.size() - 1 && !operatorStats.isDone(); i++) {
-    NewOperator current=operators.get(i);
-    NewOperator next=operators.get(i + 1);
-    if (current.isFinished()) {
-      next.finish();
-    }
- else     if (next.needsInput()) {
-      Page page=current.getOutput();
-      if (page != null) {
-        if (i == 0) {
-          operatorStats.addCompletedDataSize(page.getDataSize().toBytes());
-          operatorStats.addCompletedPositions(page.getPositionCount());
+  operatorStats.start();
+  try {
+    for (int i=0; i < operators.size() - 1 && !operatorStats.isDone(); i++) {
+      NewOperator current=operators.get(i);
+      NewOperator next=operators.get(i + 1);
+      if (current.isFinished()) {
+        next.finish();
+      }
+ else       if (next.needsInput()) {
+        Page page=current.getOutput();
+        if (page != null) {
+          if (i == 0) {
+            operatorStats.addCompletedDataSize(page.getDataSize().toBytes());
+            operatorStats.addCompletedPositions(page.getPositionCount());
+          }
+          next.addInput(page);
         }
-        next.addInput(page);
       }
     }
+  }
+ catch (  Throwable t) {
+    operatorStats.fail(t);
+    throw t;
   }
 }

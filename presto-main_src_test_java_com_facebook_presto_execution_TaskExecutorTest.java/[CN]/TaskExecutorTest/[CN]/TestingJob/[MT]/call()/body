@@ -1,0 +1,13 @@
+{
+  int phase=awaitWorkers.arriveAndAwaitAdvance();
+  firstPhase.compareAndSet(-1,phase - 1);
+  lastPhase.set(phase);
+  awaitVerifiers.arriveAndAwaitAdvance();
+  completedPhases.getAndIncrement();
+  boolean isFinished=completedPhases.get() >= requiredPhases;
+  if (isFinished) {
+    awaitVerifiers.arriveAndDeregister();
+    awaitWorkers.arriveAndDeregister();
+  }
+  return isFinished;
+}

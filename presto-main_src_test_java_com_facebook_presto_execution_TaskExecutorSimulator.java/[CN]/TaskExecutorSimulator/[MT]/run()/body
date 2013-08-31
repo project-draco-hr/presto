@@ -1,0 +1,69 @@
+{
+  Multimap<Integer,SimulationTask> tasks=Multimaps.synchronizedListMultimap(ArrayListMultimap.<Integer,SimulationTask>create());
+  Set<ListenableFuture<?>> finishFutures=Sets.newSetFromMap(new ConcurrentHashMap<ListenableFuture<?>,Boolean>());
+  AtomicBoolean done=new AtomicBoolean();
+  long start=System.nanoTime();
+  for (int userId=0; userId < 3; userId++) {
+    ListenableFuture<?> future=createUser("Large-" + userId,100,taskExecutor,done,tasks);
+    finishFutures.add(future);
+  }
+  for (int userId=0; userId < 4; userId++) {
+    ListenableFuture<?> future=createUser("Small-" + userId,5,taskExecutor,done,tasks);
+    finishFutures.add(future);
+  }
+  for (int userId=0; userId < 1; userId++) {
+    ListenableFuture<?> future=createUser("Tiny-" + userId,1,taskExecutor,done,tasks);
+    finishFutures.add(future);
+  }
+  for (int i=0; i < 30; i++) {
+    TimeUnit.MILLISECONDS.sleep(1000);
+    System.out.println(taskExecutor);
+  }
+  tasks.clear();
+  for (int i=0; i < 60; i++) {
+    TimeUnit.MILLISECONDS.sleep(1000);
+    System.out.println(taskExecutor);
+    if (PRINT_RUNNING_SPLITS) {
+      System.out.println("    " + Joiner.on("\n    ").join(taskExecutor.getRunningSplits()));
+    }
+    if (PRINT_PREEMPTED_SPLITS) {
+      System.out.println("        " + Joiner.on("\n        ").join(taskExecutor.getPreemptedSplits()));
+    }
+  }
+  Map<Integer,Collection<SimulationTask>> middleTasks;
+synchronized (tasks) {
+    middleTasks=new TreeMap<>(tasks.asMap());
+  }
+  done.set(true);
+  Futures.allAsList(finishFutures).get(1,TimeUnit.MINUTES);
+  Duration runtime=Duration.nanosSince(start).convertToMostSuccinctTimeUnit();
+synchronized (this) {
+    System.out.println();
+    System.out.println("Simulation finished in  " + runtime);
+    System.out.println();
+    for (    Entry<Integer,Collection<SimulationTask>> entry : middleTasks.entrySet()) {
+      Distribution durationDistribution=new Distribution();
+      Distribution taskParallelismDistribution=new Distribution();
+      for (      SimulationTask task : entry.getValue()) {
+        long taskStart=Long.MAX_VALUE;
+        long taskEnd=0;
+        long totalCpuTime=0;
+        for (        SimulationSplit split : task.getSplits()) {
+          taskStart=Math.min(taskStart,split.getStartNanos());
+          taskEnd=Math.max(taskEnd,split.getDoneNanos());
+          totalCpuTime+=TimeUnit.MILLISECONDS.toNanos(split.getRequiredProcessMillis());
+        }
+        Duration taskDuration=new Duration(taskEnd - taskStart,NANOSECONDS).convertTo(TimeUnit.MILLISECONDS);
+        durationDistribution.add(taskDuration.toMillis());
+        double taskParallelism=1.0 * totalCpuTime / (taskEnd - taskStart);
+        taskParallelismDistribution.add((long)(taskParallelism * 100));
+      }
+      System.out.println("Splits " + entry.getKey() + ": Completed "+ entry.getValue().size());
+      Map<Double,Long> durationPercentiles=durationDistribution.getPercentiles();
+      System.out.printf("   wall time ms :: p01 %4s :: p05 %4s :: p10 %4s :: p97 %4s :: p50 %4s :: p75 %4s :: p90 %4s :: p95 %4s :: p99 %4s\n",durationPercentiles.get(0.01),durationPercentiles.get(0.05),durationPercentiles.get(0.10),durationPercentiles.get(0.25),durationPercentiles.get(0.50),durationPercentiles.get(0.75),durationPercentiles.get(0.90),durationPercentiles.get(0.95),durationPercentiles.get(0.99));
+      Map<Double,Long> parallelismPercentiles=taskParallelismDistribution.getPercentiles();
+      System.out.printf("    parallelism :: p99 %4.2f :: p95 %4.2f :: p90 %4.2f :: p75 %4.2f :: p50 %4.2f :: p25 %4.2f :: p10 %4.2f :: p05 %4.2f :: p01 %4.2f\n",parallelismPercentiles.get(0.99) / 100.0,parallelismPercentiles.get(0.95) / 100.0,parallelismPercentiles.get(0.90) / 100.0,parallelismPercentiles.get(0.75) / 100.0,parallelismPercentiles.get(0.50) / 100.0,parallelismPercentiles.get(0.25) / 100.0,parallelismPercentiles.get(0.10) / 100.0,parallelismPercentiles.get(0.05) / 100.0,parallelismPercentiles.get(0.01) / 100.0);
+    }
+  }
+  Thread.sleep(10);
+}

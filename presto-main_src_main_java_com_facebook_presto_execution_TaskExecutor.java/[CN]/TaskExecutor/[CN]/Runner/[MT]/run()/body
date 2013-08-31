@@ -1,0 +1,44 @@
+{
+  try (SetThreadName runnerName=new SetThreadName("SplitRunner-%s",runnerId)){
+    while (!closed && !Thread.currentThread().isInterrupted()) {
+      SplitWorker split;
+      try {
+        split=preemptedSplits.take();
+        if (split.updatePriorityLevel()) {
+          preemptedSplits.put(split);
+          continue;
+        }
+      }
+ catch (      InterruptedException e) {
+        Thread.currentThread().interrupt();
+        return;
+      }
+      try (SetThreadName splitName=new SetThreadName(split.toString())){
+        runningSplits.add(split);
+        boolean finished;
+        try {
+          finished=split.call();
+        }
+  finally {
+          runningSplits.remove(split);
+        }
+        if (!finished) {
+          preemptedSplits.put(split);
+        }
+ else {
+          log.debug("%s is finished",split);
+          splitFinished(split);
+        }
+      }
+ catch (      Throwable t) {
+        log.error(t,"Error processing %s",split);
+        splitFinished(split);
+      }
+    }
+  }
+  finally {
+    if (!closed) {
+      addRunnerThread();
+    }
+  }
+}

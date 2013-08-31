@@ -1,0 +1,29 @@
+{
+  drivers.add(new WeakReference<>(driver));
+  pendingWorkerCount.incrementAndGet();
+  taskOutput.getStats().addSplits(1);
+  final ListenableFuture<?> finishedFuture=taskExecutor.addSplit(taskHandle,new Callable<Boolean>(){
+    @Override public Boolean call() throws Exception {
+      driver.process();
+      return driver.isFinished();
+    }
+  }
+);
+  Futures.addCallback(finishedFuture,new FutureCallback<Object>(){
+    @Override public void onSuccess(    Object result){
+      try (SetThreadName setThreadName=new SetThreadName("Task-%s",taskOutput.getTaskId())){
+        pendingWorkerCount.decrementAndGet();
+        checkTaskCompletion();
+        queryMonitor.splitCompletionEvent(taskOutput.getTaskInfo(false),driver.getOperatorStats().snapshot());
+      }
+     }
+    @Override public void onFailure(    Throwable t){
+      try (SetThreadName setThreadName=new SetThreadName("Task-%s",taskOutput.getTaskId())){
+        taskOutput.queryFailed(t);
+        pendingWorkerCount.decrementAndGet();
+        queryMonitor.splitCompletionEvent(taskOutput.getTaskInfo(false),driver.getOperatorStats().snapshot());
+      }
+     }
+  }
+);
+}

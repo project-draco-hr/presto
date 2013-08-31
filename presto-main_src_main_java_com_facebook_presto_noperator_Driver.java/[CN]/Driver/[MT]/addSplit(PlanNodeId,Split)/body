@@ -1,7 +1,16 @@
 {
   checkNotNull(sourceId,"sourceId is null");
   checkNotNull(split,"split is null");
-  NewSourceOperator sourceOperator=sourceOperators.get(sourceId);
-  checkArgument(sourceOperator != null,"No source %s",sourceId);
-  sourceOperator.addSplit(split);
+  if (split instanceof CollocatedSplit) {
+    CollocatedSplit collocatedSplit=(CollocatedSplit)split;
+    for (    Entry<PlanNodeId,Split> entry : collocatedSplit.getSplits().entrySet()) {
+      addSplit(entry.getKey(),entry.getValue());
+    }
+  }
+ else {
+    NewSourceOperator sourceOperator=sourceOperators.get(sourceId);
+    if (sourceOperator != null) {
+      sourceOperator.addSplit(split);
+    }
+  }
 }

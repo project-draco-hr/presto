@@ -1,0 +1,16 @@
+{
+  long callStart=System.nanoTime();
+  startNanos.compareAndSet(-1,callStart);
+  calls.incrementAndGet();
+  queuedNanos.addAndGet(callStart - lastCallNanos);
+  long processMillis=Math.min(requiredProcessMillis - completedProcessMillis.get(),processMillisPerCall);
+  TimeUnit.MILLISECONDS.sleep(processMillis);
+  long completedMillis=completedProcessMillis.addAndGet(processMillis);
+  boolean isFinished=completedMillis >= requiredProcessMillis;
+  long callEnd=System.nanoTime();
+  lastCallNanos=callEnd;
+  if (isFinished) {
+    doneNanos.compareAndSet(-1,callEnd);
+  }
+  return isFinished;
+}
