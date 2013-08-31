@@ -7,6 +7,11 @@
   results.add(executeFilter(operatorFactory,session));
   boolean interpretedValue=executeFilter(interpretedFilterProject(filterExpression,TRUE_LITERAL,expressionType,session));
   results.add(interpretedValue);
+  NewSourceOperatorFactory scanProjectOperatorFactory=compileScanFilterProject(filterExpression,TRUE_LITERAL);
+  boolean scanOperatorValue=executeFilter(scanProjectOperatorFactory,createNormalSplit(),session);
+  results.add(scanOperatorValue);
+  boolean recordValue=executeFilter(scanProjectOperatorFactory,createRecordSetSplit(),session);
+  results.add(recordValue);
   if (!needsBoundValue(filterExpression)) {
     try {
       LocalQueryRunner runner=createDualLocalQueryRunner(session,EXECUTOR);

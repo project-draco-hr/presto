@@ -8,6 +8,11 @@
   results.add(directOperatorValue);
   Object interpretedValue=selectSingleValue(interpretedFilterProject(TRUE_LITERAL,projectionExpression,expressionType,session));
   results.add(interpretedValue);
+  NewSourceOperatorFactory scanProjectOperatorFactory=compileScanFilterProject(TRUE_LITERAL,projectionExpression);
+  Object scanOperatorValue=selectSingleValue(scanProjectOperatorFactory,createNormalSplit(),session);
+  results.add(scanOperatorValue);
+  Object recordValue=selectSingleValue(scanProjectOperatorFactory,createRecordSetSplit(),session);
+  results.add(recordValue);
   if (!needsBoundValue(projectionExpression)) {
     try {
       LocalQueryRunner runner=createDualLocalQueryRunner(session,EXECUTOR);

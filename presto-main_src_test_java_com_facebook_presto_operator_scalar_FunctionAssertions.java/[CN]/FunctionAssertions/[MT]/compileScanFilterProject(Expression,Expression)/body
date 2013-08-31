@@ -1,0 +1,13 @@
+{
+  filter=ExpressionTreeRewriter.rewriteWith(new SymbolToInputRewriter(INPUT_MAPPING),filter);
+  projection=ExpressionTreeRewriter.rewriteWith(new SymbolToInputRewriter(INPUT_MAPPING),projection);
+  try {
+    return COMPILER.compileScanFilterAndProjectOperator(0,SOURCE_ID,DATA_STREAM_PROVIDER,ImmutableList.<ColumnHandle>of(),filter,ImmutableList.of(projection),INPUT_TYPES);
+  }
+ catch (  Throwable e) {
+    if (e instanceof UncheckedExecutionException) {
+      e=e.getCause();
+    }
+    throw new RuntimeException("Error compiling " + projection + ": "+ e.getMessage(),e);
+  }
+}
