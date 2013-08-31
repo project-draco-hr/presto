@@ -1,0 +1,13 @@
+{
+  DynamicClassLoader classLoader=createClassLoader();
+  TypedNewOperatorClass typedNewOperatorClass=compileFilterAndProjectOperator(filter,projections,inputTypes,classLoader);
+  Constructor<? extends NewOperator> constructor;
+  try {
+    constructor=typedNewOperatorClass.getNewOperatorClass().getConstructor(OperatorContext.class,Iterable.class);
+  }
+ catch (  NoSuchMethodException e) {
+    throw Throwables.propagate(e);
+  }
+  FilterAndProjectOperatorFactoryFactory operatorFactoryFactory=new FilterAndProjectOperatorFactoryFactory(constructor,typedNewOperatorClass.getTupleInfos());
+  return operatorFactoryFactory;
+}

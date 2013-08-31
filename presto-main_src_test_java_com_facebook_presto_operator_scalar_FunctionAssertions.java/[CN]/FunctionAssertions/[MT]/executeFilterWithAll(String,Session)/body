@@ -1,0 +1,29 @@
+{
+  checkNotNull(filter,"filter is null");
+  Expression filterExpression=createExpression(filter);
+  List<Boolean> results=new ArrayList<>();
+  NewOperatorFactory operatorFactory=compileFilterProject(filterExpression,TRUE_LITERAL);
+  Type expressionType=Type.fromRaw(operatorFactory.getTupleInfos().get(0).getTypes().get(0));
+  results.add(executeFilter(operatorFactory,session));
+  boolean interpretedValue=executeFilter(interpretedFilterProject(filterExpression,TRUE_LITERAL,expressionType,session));
+  results.add(interpretedValue);
+  if (!needsBoundValue(filterExpression)) {
+    try {
+      LocalQueryRunner runner=createDualLocalQueryRunner(session,EXECUTOR);
+      MaterializedResult result=runner.execute("SELECT TRUE FROM dual WHERE " + filter);
+      assertEquals(result.getTupleInfo().getFieldCount(),1);
+      Boolean queryResult;
+      if (result.getMaterializedTuples().isEmpty()) {
+        queryResult=false;
+      }
+ else {
+        assertEquals(result.getMaterializedTuples().size(),1);
+        queryResult=(Boolean)Iterables.getOnlyElement(result.getMaterializedTuples()).getField(0);
+      }
+      results.add(queryResult);
+    }
+ catch (    SemanticException e) {
+    }
+  }
+  return results;
+}

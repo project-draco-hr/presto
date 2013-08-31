@@ -1,8 +1,25 @@
 {
   PhysicalOperation source=node.getSource().accept(this,context);
   Map<Input,Type> inputTypes=getInputTypes(source.getLayout(),source.getTupleInfos());
-  FilterFunction filter=new InterpretedFilterFunction(node.getPredicate(),convertLayoutToInputMap(source.getLayout()),metadata,context.getSession(),inputTypes);
-  IdentityProjectionInfo mappings=computeIdentityMapping(node.getOutputSymbols(),source.getLayout(),context.getTypes());
-  NewOperatorFactory operatorFactory=new NewFilterAndProjectOperatorFactory(context.getNextOperatorId(),filter,mappings.getProjections());
-  return new PhysicalOperation(operatorFactory,mappings.getOutputLayout(),source);
+  try {
+    Expression filterExpression=ExpressionTreeRewriter.rewriteWith(new SymbolToInputRewriter(convertLayoutToInputMap(source.getLayout())),node.getPredicate());
+    ImmutableMultimap.Builder<Symbol,Input> outputMappings=ImmutableMultimap.builder();
+    List<Expression> projections=new ArrayList<>();
+    for (int i=0; i < node.getOutputSymbols().size(); i++) {
+      Symbol symbol=node.getOutputSymbols().get(i);
+      Input input=getFirst(source.getLayout().get(symbol));
+      checkArgument(input != null,"Cannot resolve symbol %s",symbol.getName());
+      projections.add(new InputReference(input));
+      outputMappings.put(symbol,new Input(i,0));
+    }
+    NewOperatorFactory operatorFactory=compiler.compileFilterAndProjectOperator(context.getNextOperatorId(),filterExpression,projections,inputTypes);
+    return new PhysicalOperation(operatorFactory,outputMappings.build(),source);
+  }
+ catch (  Exception e) {
+    log.error(e,"Compile failed for filter=%s inputTypes=%s error=%s",node.getPredicate(),inputTypes,e);
+    FilterFunction filter=new InterpretedFilterFunction(node.getPredicate(),convertLayoutToInputMap(source.getLayout()),metadata,context.getSession(),inputTypes);
+    IdentityProjectionInfo mappings=computeIdentityMapping(node.getOutputSymbols(),source.getLayout(),context.getTypes());
+    NewOperatorFactory operatorFactory=new NewFilterAndProjectOperatorFactory(context.getNextOperatorId(),filter,mappings.getProjections());
+    return new PhysicalOperation(operatorFactory,mappings.getOutputLayout(),source);
+  }
 }

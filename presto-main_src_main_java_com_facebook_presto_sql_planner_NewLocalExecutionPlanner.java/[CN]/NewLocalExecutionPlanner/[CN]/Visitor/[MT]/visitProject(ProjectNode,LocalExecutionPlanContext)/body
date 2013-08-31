@@ -12,29 +12,45 @@
   }
   List<Expression> expressions=node.getExpressions();
   Map<Input,Type> inputTypes=null;
-  FilterFunction filter;
-  if (filterExpression != BooleanLiteral.TRUE_LITERAL) {
-    filter=new InterpretedFilterFunction(filterExpression,convertLayoutToInputMap(source.getLayout()),metadata,context.getSession(),inputTypes);
+  try {
+    Expression rewrittenFilterExpression=ExpressionTreeRewriter.rewriteWith(new SymbolToInputRewriter(convertLayoutToInputMap(source.getLayout())),filterExpression);
+    ImmutableMultimap.Builder<Symbol,Input> outputMappings=ImmutableMultimap.builder();
+    List<Expression> projections=new ArrayList<>();
+    for (int i=0; i < expressions.size(); i++) {
+      Symbol symbol=node.getOutputSymbols().get(i);
+      projections.add(ExpressionTreeRewriter.rewriteWith(new SymbolToInputRewriter(convertLayoutToInputMap(source.getLayout())),expressions.get(i)));
+      outputMappings.put(symbol,new Input(i,0));
+    }
+    inputTypes=getInputTypes(source.getLayout(),source.getTupleInfos());
+    NewOperatorFactory operatorFactory=compiler.compileFilterAndProjectOperator(context.getNextOperatorId(),rewrittenFilterExpression,projections,inputTypes);
+    return new PhysicalOperation(operatorFactory,outputMappings.build(),source);
   }
- else {
-    filter=FilterFunctions.TRUE_FUNCTION;
-  }
-  ImmutableMultimap.Builder<Symbol,Input> outputMappings=ImmutableMultimap.builder();
-  List<ProjectionFunction> projections=new ArrayList<>();
-  for (int i=0; i < expressions.size(); i++) {
-    Symbol symbol=node.getOutputSymbols().get(i);
-    Expression expression=expressions.get(i);
-    ProjectionFunction function;
-    if (expression instanceof QualifiedNameReference) {
-      Symbol reference=Symbol.fromQualifiedName(((QualifiedNameReference)expression).getName());
-      function=ProjectionFunctions.singleColumn(context.getTypes().get(reference).getRawType(),getFirst(source.getLayout().get(symbol)));
+ catch (  Exception e) {
+    log.error(e,"Compile failed for filter=%s projections=%s inputTypes=%s error=%s",filterExpression,node.getExpressions(),inputTypes,e);
+    FilterFunction filter;
+    if (filterExpression != BooleanLiteral.TRUE_LITERAL) {
+      filter=new InterpretedFilterFunction(filterExpression,convertLayoutToInputMap(source.getLayout()),metadata,context.getSession(),inputTypes);
     }
  else {
-      function=new InterpretedProjectionFunction(context.getTypes().get(symbol),expression,convertLayoutToInputMap(source.getLayout()),metadata,context.getSession(),inputTypes);
+      filter=FilterFunctions.TRUE_FUNCTION;
     }
-    projections.add(function);
-    outputMappings.put(symbol,new Input(i,0));
+    ImmutableMultimap.Builder<Symbol,Input> outputMappings=ImmutableMultimap.builder();
+    List<ProjectionFunction> projections=new ArrayList<>();
+    for (int i=0; i < expressions.size(); i++) {
+      Symbol symbol=node.getOutputSymbols().get(i);
+      Expression expression=expressions.get(i);
+      ProjectionFunction function;
+      if (expression instanceof QualifiedNameReference) {
+        Symbol reference=Symbol.fromQualifiedName(((QualifiedNameReference)expression).getName());
+        function=ProjectionFunctions.singleColumn(context.getTypes().get(reference).getRawType(),getFirst(source.getLayout().get(symbol)));
+      }
+ else {
+        function=new InterpretedProjectionFunction(context.getTypes().get(symbol),expression,convertLayoutToInputMap(source.getLayout()),metadata,context.getSession(),inputTypes);
+      }
+      projections.add(function);
+      outputMappings.put(symbol,new Input(i,0));
+    }
+    NewOperatorFactory operatorFactory=new NewFilterAndProjectOperatorFactory(context.getNextOperatorId(),filter,projections);
+    return new PhysicalOperation(operatorFactory,outputMappings.build(),source);
   }
-  NewOperatorFactory operatorFactory=new NewFilterAndProjectOperatorFactory(context.getNextOperatorId(),filter,projections);
-  return new PhysicalOperation(operatorFactory,outputMappings.build(),source);
 }

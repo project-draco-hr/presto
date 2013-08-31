@@ -1,0 +1,42 @@
+{
+  MethodDefinition projectionMethod;
+  if (sourceIsCursor) {
+    projectionMethod=classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),methodName,type(void.class),arg("cursor",RecordCursor.class),arg("output",BlockBuilder.class));
+  }
+ else {
+    ImmutableList.Builder<NamedParameterDefinition> parameters=ImmutableList.builder();
+    parameters.addAll(toTupleReaderParameters(inputTypes));
+    parameters.add(arg("output",BlockBuilder.class));
+    projectionMethod=classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),methodName,type(void.class),parameters.build());
+  }
+  projectionMethod.comment("Projection: %s",projection.toString());
+  CompilerContext context=projectionMethod.getCompilerContext();
+  context.declareVariable(type(boolean.class),"wasNull");
+  Block getSessionByteCode=new Block(context).pushThis().getField(classDefinition.getType(),"session",type(Session.class));
+  TypedByteCodeNode body=new ByteCodeExpressionVisitor(bootstrapFunctionBinder,inputTypes,getSessionByteCode,sourceIsCursor).process(projection,context);
+  if (body.getType() != void.class) {
+    projectionMethod.getBody().comment("boolean wasNull = false;").putVariable("wasNull",false).getVariable("output").append(body.getNode());
+    Block notNullBlock=new Block(context);
+    if (body.getType() == boolean.class) {
+      notNullBlock.comment("output.append(<booleanStackValue>);").invokeVirtual(BlockBuilder.class,"append",BlockBuilder.class,boolean.class).pop();
+    }
+ else     if (body.getType() == long.class) {
+      notNullBlock.comment("output.append(<longStackValue>);").invokeVirtual(BlockBuilder.class,"append",BlockBuilder.class,long.class).pop();
+    }
+ else     if (body.getType() == double.class) {
+      notNullBlock.comment("output.append(<doubleStackValue>);").invokeVirtual(BlockBuilder.class,"append",BlockBuilder.class,double.class).pop();
+    }
+ else     if (body.getType() == Slice.class) {
+      notNullBlock.comment("output.append(<sliceStackValue>);").invokeVirtual(BlockBuilder.class,"append",BlockBuilder.class,Slice.class).pop();
+    }
+ else {
+      throw new UnsupportedOperationException("Type " + body.getType() + " can not be output yet");
+    }
+    Block nullBlock=new Block(context).comment("output.appendNull();").pop(body.getType()).invokeVirtual(BlockBuilder.class,"appendNull",BlockBuilder.class).pop();
+    projectionMethod.getBody().comment("if the result was null, appendNull; otherwise append the value").append(new IfStatement(context,new Block(context).getVariable("wasNull"),nullBlock,notNullBlock)).ret();
+  }
+ else {
+    projectionMethod.getBody().comment("output.appendNull();").getVariable("output").invokeVirtual(BlockBuilder.class,"appendNull",BlockBuilder.class).pop().ret();
+  }
+  return body.getType();
+}
