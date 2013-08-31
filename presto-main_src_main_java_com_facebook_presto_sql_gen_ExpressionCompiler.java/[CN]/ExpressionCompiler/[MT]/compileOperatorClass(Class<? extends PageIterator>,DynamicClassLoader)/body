@@ -1,8 +1,0 @@
-{
-  ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(bootstrapMethod),a(PUBLIC,FINAL),typeFromPathName("FilterAndProjectOperator_" + CLASS_ID.incrementAndGet()),type(AbstractFilterAndProjectOperator.class));
-  FieldDefinition sessionField=classDefinition.declareField(a(PRIVATE,FINAL),"session",Session.class);
-  classDefinition.declareConstructor(new CompilerContext(bootstrapMethod),a(PUBLIC),arg("tupleInfos",type(List.class,TupleInfo.class)),arg("source",Operator.class),arg("session",Session.class)).getBody().comment("super(tupleInfos, source);").pushThis().getVariable("tupleInfos").getVariable("source").invokeConstructor(AbstractFilterAndProjectOperator.class,List.class,Operator.class).comment("this.session = session;").pushThis().getVariable("session").putField(sessionField).ret();
-  MethodDefinition iteratorMethod=classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),"iterator",type(PageIterator.class),arg("source",PageIterator.class),arg("operatorStats",OperatorStats.class));
-  iteratorMethod.getBody().comment("return new %s(getTupleInfos(), source);",iteratorClass.getName()).newObject(iteratorClass).dup().pushThis().invokeInterface(Operator.class,"getTupleInfos",List.class).getVariable("source").pushThis().getField(sessionField).getVariable("operatorStats").invokeConstructor(iteratorClass,Iterable.class,PageIterator.class,Session.class,OperatorStats.class).retObject();
-  return defineClasses(ImmutableList.of(classDefinition),classLoader).values().iterator().next().asSubclass(Operator.class);
-}
