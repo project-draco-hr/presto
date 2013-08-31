@@ -1,12 +1,12 @@
 {
-  Preconditions.checkNotNull(taskId,"taskId is null");
-  Preconditions.checkNotNull(outputId,"outputId is null");
-  TaskOutput taskOutput;
+  checkNotNull(taskId,"taskId is null");
+  checkNotNull(outputId,"outputId is null");
+  MockTask task;
 synchronized (this) {
-    taskOutput=tasks.get(taskId);
-    if (taskOutput == null) {
-      throw new NoSuchElementException();
-    }
+    task=tasks.get(taskId);
   }
-  return taskOutput.getResults(outputId,startingSequenceId,maxSize,maxWaitTime);
+  if (task == null) {
+    throw new NoSuchElementException();
+  }
+  return task.getResults(outputId,startingSequenceId,maxSize,maxWaitTime);
 }

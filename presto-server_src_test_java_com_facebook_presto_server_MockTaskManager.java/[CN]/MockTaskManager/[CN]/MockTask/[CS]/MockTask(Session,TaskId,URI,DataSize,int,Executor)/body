@@ -1,0 +1,17 @@
+{
+  this.taskStateMachine=new TaskStateMachine(checkNotNull(taskId,"taskId is null"),checkNotNull(executor,"executor is null"));
+  this.taskContext=new TaskContext(taskStateMachine,executor,session,new DataSize(256,MEGABYTE),new DataSize(1,MEGABYTE));
+  this.location=checkNotNull(location,"location is null");
+  this.sharedBuffer=new SharedBuffer(checkNotNull(maxBufferSize,"maxBufferSize is null"));
+  List<String> data=ImmutableList.of("apple","banana","cherry","date");
+  for (int i=0; i < initialPages; i++) {
+    try {
+      sharedBuffer.add(new Page(createStringsBlock(Iterables.concat(Collections.nCopies(i + 1,data)))));
+    }
+ catch (    InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw Throwables.propagate(e);
+    }
+  }
+  sharedBuffer.finish();
+}
