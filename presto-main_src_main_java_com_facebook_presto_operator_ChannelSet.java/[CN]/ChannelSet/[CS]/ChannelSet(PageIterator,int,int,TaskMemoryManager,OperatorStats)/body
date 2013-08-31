@@ -6,39 +6,14 @@
   checkNotNull(operatorStats,"operatorStats is null");
   TupleInfo tupleInfo=source.getTupleInfos().get(setChannel);
   checkArgument(tupleInfo.getFieldCount() == 1,"ChannelSet only supports single field set building channels");
-  strategy=new SliceHashStrategy(tupleInfo);
-  addressValueSet=new AddressValueSet(expectedPositions,strategy);
-  Slice slice=Slices.allocate((int)BlockBuilder.DEFAULT_MAX_BLOCK_SIZE.toBytes());
-  strategy.addSlice(slice);
-  BlockBuilder blockBuilder=new BlockBuilder(tupleInfo,slice.length(),slice.getOutput());
-  int currentBlockId=0;
-  long currentSize=0;
-  boolean containsNull=false;
+  ChannelSetBuilder builder=new ChannelSetBuilder(tupleInfo,expectedPositions,taskMemoryManager);
   try (PageIterator pageIterator=source){
     while (pageIterator.hasNext() && !operatorStats.isDone()) {
-      currentSize=taskMemoryManager.updateOperatorReservation(currentSize,getEstimatedSize());
       Block sourceBlock=pageIterator.next().getBlock(setChannel);
-      BlockCursor sourceCursor=sourceBlock.cursor();
-      Slice sourceSlice=((UncompressedBlock)sourceBlock).getSlice();
-      strategy.setLookupSlice(sourceSlice);
-      for (int position=0; position < sourceBlock.getPositionCount(); position++) {
-        checkState(sourceCursor.advanceNextPosition());
-        containsNull|=sourceCursor.isNull(0);
-        long sourceAddress=encodeSyntheticAddress(LOOKUP_SLICE_INDEX,sourceCursor.getRawOffset());
-        if (!addressValueSet.contains(sourceAddress)) {
-          int length=tupleInfo.size(sourceSlice,sourceCursor.getRawOffset());
-          if (blockBuilder.writableBytes() < length) {
-            slice=Slices.allocate(Math.max((int)BlockBuilder.DEFAULT_MAX_BLOCK_SIZE.toBytes(),length));
-            strategy.addSlice(slice);
-            blockBuilder=new BlockBuilder(tupleInfo,slice.length(),slice.getOutput());
-            currentBlockId++;
-          }
-          int blockRawOffset=blockBuilder.size();
-          blockBuilder.appendTuple(sourceSlice,sourceCursor.getRawOffset(),length);
-          addressValueSet.add(encodeSyntheticAddress(currentBlockId,blockRawOffset));
-        }
-      }
+      builder.addBlock(sourceBlock);
     }
   }
-   this.containsNull=containsNull;
+   this.strategy=builder.strategy;
+  this.addressValueSet=builder.addressValueSet;
+  this.containsNull=builder.containsNull;
 }

@@ -1,0 +1,23 @@
+{
+  currentSize=taskMemoryManager.updateOperatorReservation(currentSize,getEstimatedSize());
+  BlockCursor sourceCursor=sourceBlock.cursor();
+  Slice sourceSlice=((UncompressedBlock)sourceBlock).getSlice();
+  strategy.setLookupSlice(sourceSlice);
+  for (int position=0; position < sourceBlock.getPositionCount(); position++) {
+    checkState(sourceCursor.advanceNextPosition());
+    containsNull|=sourceCursor.isNull(0);
+    long sourceAddress=encodeSyntheticAddress(LOOKUP_SLICE_INDEX,sourceCursor.getRawOffset());
+    if (!addressValueSet.contains(sourceAddress)) {
+      int length=tupleInfo.size(sourceSlice,sourceCursor.getRawOffset());
+      if (blockBuilder.writableBytes() < length) {
+        Slice slice=Slices.allocate(Math.max((int)BlockBuilder.DEFAULT_MAX_BLOCK_SIZE.toBytes(),length));
+        strategy.addSlice(slice);
+        blockBuilder=new BlockBuilder(tupleInfo,slice.length(),slice.getOutput());
+        currentBlockId++;
+      }
+      int blockRawOffset=blockBuilder.size();
+      blockBuilder.appendTuple(sourceSlice,sourceCursor.getRawOffset(),length);
+      addressValueSet.add(encodeSyntheticAddress(currentBlockId,blockRawOffset));
+    }
+  }
+}

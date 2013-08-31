@@ -1,0 +1,31 @@
+{
+  checkNotNull(page,"page is null");
+  checkState(!finishing,"Operator is finishing");
+  checkState(channelSet != null,"Set has not been built yet");
+  checkState(outputPage == null,"Operator still has pending output");
+  UncompressedBlock probeJoinBlock=(UncompressedBlock)page.getBlock(probeJoinChannel);
+  channelSet.setLookupSlice(probeJoinBlock.getSlice());
+  int blockSize=page.getPositionCount() * TupleInfo.SINGLE_BOOLEAN.getFixedSize();
+  BlockBuilder blockBuilder=new BlockBuilder(TupleInfo.SINGLE_BOOLEAN,blockSize,Slices.allocate(blockSize).getOutput());
+  BlockCursor probeJoinCursor=probeJoinBlock.cursor();
+  for (int position=0; position < page.getPositionCount(); position++) {
+    checkState(probeJoinCursor.advanceNextPosition());
+    if (probeJoinCursor.isNull(0)) {
+      blockBuilder.appendNull();
+    }
+ else {
+      boolean contains=channelSet.contains(probeJoinCursor);
+      if (!contains && channelSet.containsNull()) {
+        blockBuilder.appendNull();
+      }
+ else {
+        blockBuilder.append(contains);
+      }
+    }
+  }
+  Block[] sourceBlocks=page.getBlocks();
+  Block[] outputBlocks=new Block[sourceBlocks.length + 1];
+  System.arraycopy(sourceBlocks,0,outputBlocks,0,sourceBlocks.length);
+  outputBlocks[sourceBlocks.length]=blockBuilder.build();
+  outputPage=new Page(outputBlocks);
+}
