@@ -1,0 +1,18 @@
+{
+  int completedPositions=0;
+  for (; completedPositions < 16384; completedPositions++) {
+    if (pageBuilder.isFull()) {
+      break;
+    }
+    if (!cursor.advanceNextPosition()) {
+      break;
+    }
+    if (filterFunction.filter(cursor)) {
+      pageBuilder.declarePosition();
+      for (int channel=0; channel < projections.size(); channel++) {
+        projections.get(channel).project(cursor,pageBuilder.getBlockBuilder(channel));
+      }
+    }
+  }
+  return completedPositions;
+}
