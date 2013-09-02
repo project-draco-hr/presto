@@ -11,7 +11,7 @@
     if (!subStages.isEmpty()) {
       nodeSelector.lockDownNodes();
       for (      Node node : Sets.difference(new HashSet<>(nodeSelector.allNodes()),tasks.keySet())) {
-        scheduleTask(nextTaskId,node,null);
+        scheduleTask(nextTaskId.getAndIncrement(),node);
       }
       for (      StageExecutionNode subStage : subStages.values()) {
         subStage.noMoreOutputBuffers();
@@ -26,6 +26,6 @@ synchronized (this) {
         throw Throwables.propagate(e);
       }
     }
-    addNewExchangesAndBuffers(false);
+    updateNewExchangesAndBuffers(false);
   }
 }

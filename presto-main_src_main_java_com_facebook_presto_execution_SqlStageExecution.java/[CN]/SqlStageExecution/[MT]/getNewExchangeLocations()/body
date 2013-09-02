@@ -1,0 +1,19 @@
+{
+  Multimap<PlanNodeId,URI> exchangeLocations=this.exchangeLocations.get();
+  ImmutableMultimap.Builder<PlanNodeId,URI> newExchangeLocations=ImmutableMultimap.builder();
+  for (  PlanNode planNode : fragment.getSources()) {
+    if (planNode instanceof ExchangeNode) {
+      ExchangeNode exchangeNode=(ExchangeNode)planNode;
+      for (      PlanFragmentId planFragmentId : exchangeNode.getSourceFragmentIds()) {
+        StageExecutionNode subStage=subStages.get(planFragmentId);
+        Preconditions.checkState(subStage != null,"Unknown sub stage %s, known stages %s",planFragmentId,subStages.keySet());
+        for (        URI taskLocation : subStage.getTaskLocations()) {
+          if (!exchangeLocations.containsEntry(exchangeNode.getId(),taskLocation)) {
+            newExchangeLocations.putAll(exchangeNode.getId(),taskLocation);
+          }
+        }
+      }
+    }
+  }
+  return newExchangeLocations.build();
+}

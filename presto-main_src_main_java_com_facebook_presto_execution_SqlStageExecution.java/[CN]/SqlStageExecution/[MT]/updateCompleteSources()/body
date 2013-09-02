@@ -1,0 +1,21 @@
+{
+  for (  PlanNode planNode : fragment.getSources()) {
+    if (!completeSources.contains(planNode.getId()) && planNode instanceof ExchangeNode) {
+      ExchangeNode exchangeNode=(ExchangeNode)planNode;
+      boolean exchangeFinished=true;
+      for (      PlanFragmentId planFragmentId : exchangeNode.getSourceFragmentIds()) {
+        StageExecutionNode subStage=subStages.get(planFragmentId);
+switch (subStage.getState()) {
+case PLANNED:
+case SCHEDULING:
+          exchangeFinished=false;
+        break;
+    }
+  }
+  if (exchangeFinished) {
+    completeSources.add(planNode.getId());
+  }
+}
+}
+return completeSources;
+}

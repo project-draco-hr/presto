@@ -1,0 +1,22 @@
+{
+  while (!getState().isDone()) {
+    Set<PlanNodeId> completeSources=updateCompleteSources();
+    boolean allSourceComplete=completeSources.containsAll(fragment.getSourceIds());
+    if (allSourceComplete && noMoreOutputIds) {
+      return;
+    }
+    if (!newOutputBuffers.isEmpty()) {
+      return;
+    }
+    if (!getNewExchangeLocations().isEmpty()) {
+      return;
+    }
+    try {
+      TimeUnit.SECONDS.timedWait(this,1);
+    }
+ catch (    InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw Throwables.propagate(e);
+    }
+  }
+}

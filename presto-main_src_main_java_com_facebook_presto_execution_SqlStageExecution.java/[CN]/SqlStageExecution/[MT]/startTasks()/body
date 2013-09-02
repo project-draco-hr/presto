@@ -7,39 +7,23 @@ synchronized (this) {
           return;
         }
       }
-      AtomicInteger nextTaskId=new AtomicInteger(0);
-      if (!dataSource.isPresent()) {
-        scheduleTask(nextTaskId,nodeSelector.selectRandomNode(),null);
+      if (fragment.getPartitioning() == PlanFragment.Partitioning.NONE) {
+        scheduleNotPartitioned();
+      }
+ else       if (fragment.getPartitioning() == PlanFragment.Partitioning.HASH) {
+        scheduleHashPartitioned();
+      }
+ else       if (fragment.getPartitioning() == PlanFragment.Partitioning.SOURCE) {
+        scheduleSourcePartitioned();
       }
  else {
-        long getSplitStart=System.nanoTime();
-        for (        Split split : dataSource.get().getSplits()) {
-          getSplitDistribution.add(System.nanoTime() - getSplitStart);
-          long scheduleSplitStart=System.nanoTime();
-          Node chosen=chooseNode(nodeSelector,split,nextTaskId);
-          if (getState().isDone()) {
-            break;
-          }
-          RemoteTask task=tasks.get(chosen);
-          if (task == null) {
-            scheduleTask(nextTaskId,chosen,split);
-            scheduleTaskDistribution.add(System.nanoTime() - scheduleSplitStart);
-          }
- else {
-            task.addSplit(split);
-            addSplitDistribution.add(System.nanoTime() - scheduleSplitStart);
-          }
-          getSplitStart=System.nanoTime();
-        }
-        for (        RemoteTask task : tasks.values()) {
-          task.noMoreSplits();
-        }
+        throw new IllegalStateException("Unsupported partitioning: " + fragment.getPartitioning());
       }
       stageState.set(StageState.SCHEDULED);
       for (      StageExecutionNode subStage : subStages.values()) {
         subStage.noMoreOutputBuffers();
       }
-      addNewExchangesAndBuffers(true);
+      updateNewExchangesAndBuffers(true);
     }
  catch (    Throwable e) {
       if (!getState().isDone()) {
