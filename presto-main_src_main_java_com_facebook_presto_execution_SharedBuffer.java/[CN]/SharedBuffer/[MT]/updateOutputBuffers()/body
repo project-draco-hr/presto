@@ -1,0 +1,18 @@
+{
+  for (  String bufferId : outputBuffers.getBufferIds()) {
+    if (!namedQueues.containsKey(bufferId)) {
+      Preconditions.checkState(state == QueueState.OPEN,"%s is not OPEN",SharedBuffer.class.getSimpleName());
+      NamedQueue namedQueue=new NamedQueue(bufferId);
+      namedQueues.put(bufferId,namedQueue);
+      openQueuesBySequenceId.add(namedQueue);
+    }
+  }
+  if (outputBuffers.isNoMoreBufferIds()) {
+    namedQueues=ImmutableMap.copyOf(namedQueues);
+    if (state != QueueState.OPEN) {
+      return;
+    }
+    state=QueueState.NO_MORE_QUEUES;
+    updateState();
+  }
+}

@@ -1,5 +1,5 @@
 {
-  SharedBuffer sharedBuffer=new SharedBuffer(sizeOfPages(10));
+  SharedBuffer sharedBuffer=new SharedBuffer(sizeOfPages(10),new OutputBuffers(0,false));
   assertFalse(sharedBuffer.isFinished());
   try {
     sharedBuffer.get("unknown",0,sizeOfPages(1),NO_WAIT);
@@ -16,7 +16,7 @@
  catch (  NoSuchBufferException expected) {
   }
   sharedBuffer.abort("unknown");
-  sharedBuffer.noMoreQueues();
+  sharedBuffer.setOutputBuffers(new OutputBuffers(1,true));
   try {
     sharedBuffer.get("unknown",0,sizeOfPages(1),NO_WAIT);
     fail("Expected NoSuchBufferException from operation on unknown queue");

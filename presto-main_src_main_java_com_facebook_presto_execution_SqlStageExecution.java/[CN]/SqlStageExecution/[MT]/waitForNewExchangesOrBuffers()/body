@@ -2,11 +2,13 @@
   while (!getState().isDone()) {
     Set<PlanNodeId> completeSources=updateCompleteSources();
     boolean allSourceComplete=completeSources.containsAll(fragment.getSourceIds());
-    if (allSourceComplete && noMoreOutputIds) {
+    if (allSourceComplete && getCurrentOutputBuffers().isNoMoreBufferIds()) {
       return;
     }
-    if (!newOutputBuffers.isEmpty()) {
-      return;
+synchronized (this) {
+      if (nextOutputBuffers != null) {
+        return;
+      }
     }
     if (!getNewExchangeLocations().isEmpty()) {
       return;
