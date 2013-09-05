@@ -1,14 +1,17 @@
 {
-  SharedBuffer sharedBuffer=new SharedBuffer(sizeOfPages(10),new OutputBuffers(0,false));
+  OutputBuffers outputBuffers=INITIAL_EMPTY_OUTPUT_BUFFERS;
+  SharedBuffer sharedBuffer=new SharedBuffer(sizeOfPages(10),outputBuffers);
   assertFalse(sharedBuffer.isFinished());
-  sharedBuffer.setOutputBuffers(new OutputBuffers(1,true));
+  outputBuffers=outputBuffers.withNoMoreBufferIds();
+  sharedBuffer.setOutputBuffers(outputBuffers);
   assertFalse(sharedBuffer.isFinished());
-  sharedBuffer.setOutputBuffers(new OutputBuffers(2,true));
+  sharedBuffer.setOutputBuffers(outputBuffers);
   assertFalse(sharedBuffer.isFinished());
-  sharedBuffer.setOutputBuffers(new OutputBuffers(3,true));
+  sharedBuffer.setOutputBuffers(outputBuffers);
   assertFalse(sharedBuffer.isFinished());
   try {
-    sharedBuffer.setOutputBuffers(new OutputBuffers(4,true,"foo"));
+    outputBuffers=INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffer("foo",new UnpartitionedPagePartitionFunction()).withNoMoreBufferIds();
+    sharedBuffer.setOutputBuffers(outputBuffers);
     fail("Expected IllegalStateException from addQueue after noMoreQueues has been called");
   }
  catch (  IllegalStateException expected) {

@@ -1,7 +1,7 @@
 {
   Preconditions.checkNotNull(query,"query is null");
   TaskId outputTaskId=new TaskId(String.valueOf(nextQueryId.getAndIncrement()),"0","0");
-  mockTaskManager.updateTask(session,outputTaskId,null,ImmutableList.<TaskSource>of(),new OutputBuffers(0,true,"out"));
+  mockTaskManager.updateTask(session,outputTaskId,null,ImmutableList.<TaskSource>of(),INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffer("out",new UnpartitionedPagePartitionFunction()).withNoMoreBufferIds());
   SimpleQuery simpleQuery=new SimpleQuery(outputTaskId,locationFactory.createQueryLocation(outputTaskId.getQueryId()),mockTaskManager,locationFactory);
   queries.put(outputTaskId.getQueryId(),simpleQuery);
   return simpleQuery.getQueryInfo();

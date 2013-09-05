@@ -7,7 +7,7 @@
     log.debug("scheduleRequest() called, but future is not null");
     return;
   }
-  final URI uri=HttpUriBuilder.uriBuilderFrom(location).appendPath(String.valueOf(sequenceId)).build();
+  final URI uri=HttpUriBuilder.uriBuilderFrom(location).appendPath(String.valueOf(token)).build();
   future=httpClient.executeAsync(prepareGet().setHeader(PRESTO_MAX_SIZE,maxResponseSize.toString()).setUri(uri).build(),new PageResponseHandler());
   Futures.addCallback(future,new FutureCallback<PagesResponse>(){
     @Override public void onSuccess(    PagesResponse result){
@@ -17,8 +17,13 @@
       requestsCompleted.incrementAndGet();
       List<Page> pages;
 synchronized (HttpPageBufferClient.this) {
-        pages=result.getPages(sequenceId);
-        sequenceId+=pages.size();
+        if (result.getToken() == token) {
+          pages=result.getPages();
+          token=result.getNextToken();
+        }
+ else {
+          pages=ImmutableList.of();
+        }
       }
       for (      Page page : pages) {
         pagesReceived.incrementAndGet();

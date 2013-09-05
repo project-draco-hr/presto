@@ -11,6 +11,7 @@
     RemoteTask task=tasks.get(chosen);
     if (task == null) {
       scheduleTask(nextTaskId.getAndIncrement(),chosen,fragment.getPartitionedSource(),split);
+      addSubStageBufferId(chosen.getNodeIdentifier(),new UnpartitionedPagePartitionFunction());
       scheduleTaskDistribution.add(System.nanoTime() - scheduleSplitStart);
     }
  else {
@@ -23,4 +24,5 @@
     task.noMoreSplits(fragment.getPartitionedSource());
   }
   completeSources.add(fragment.getPartitionedSource());
+  setSubStageNoMoreBufferIds();
 }

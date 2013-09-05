@@ -1,0 +1,34 @@
+{
+  if (pages.isEmpty()) {
+    return pages;
+  }
+  List<TupleInfo> tupleInfos=getTupleInfos(pages);
+  PageBuilder pageBuilder=new PageBuilder(tupleInfos);
+  ImmutableList.Builder<Page> partitionedPages=ImmutableList.builder();
+  for (  Page page : pages) {
+    BlockCursor[] cursors=new BlockCursor[tupleInfos.size()];
+    for (int i=0; i < cursors.length; i++) {
+      cursors[i]=page.getBlock(i).cursor();
+    }
+    for (int position=0; position < page.getPositionCount(); position++) {
+      for (      BlockCursor cursor : cursors) {
+        cursor.advanceNextPosition();
+      }
+      int partitionHashBucket=getPartitionHashBucket(tupleInfos,cursors);
+      if (partitionHashBucket != partition) {
+        continue;
+      }
+      for (int channel=0; channel < cursors.length; channel++) {
+        pageBuilder.getBlockBuilder(channel).append(cursors[channel]);
+      }
+      if (pageBuilder.isFull()) {
+        partitionedPages.add(pageBuilder.build());
+        pageBuilder.reset();
+      }
+    }
+  }
+  if (!pageBuilder.isEmpty()) {
+    partitionedPages.add(pageBuilder.build());
+  }
+  return partitionedPages.build();
+}

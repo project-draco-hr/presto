@@ -1,8 +1,9 @@
 {
-  for (  String bufferId : outputBuffers.getBufferIds()) {
+  for (  Entry<String,PagePartitionFunction> entry : outputBuffers.getBuffers().entrySet()) {
+    String bufferId=entry.getKey();
     if (!namedQueues.containsKey(bufferId)) {
       Preconditions.checkState(state == QueueState.OPEN,"%s is not OPEN",SharedBuffer.class.getSimpleName());
-      NamedQueue namedQueue=new NamedQueue(bufferId);
+      NamedQueue namedQueue=new NamedQueue(bufferId,entry.getValue());
       namedQueues.put(bufferId,namedQueue);
       openQueuesBySequenceId.add(namedQueue);
     }

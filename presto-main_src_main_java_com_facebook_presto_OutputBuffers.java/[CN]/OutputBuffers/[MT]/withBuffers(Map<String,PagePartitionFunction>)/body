@@ -1,0 +1,16 @@
+{
+  checkNotNull(buffers,"buffers is null");
+  checkState(!noMoreBufferIds,"No more buffer ids already set");
+  ImmutableMap.Builder<String,PagePartitionFunction> newBuffers=ImmutableMap.builder();
+  newBuffers.putAll(this.buffers);
+  for (  Entry<String,PagePartitionFunction> entry : buffers.entrySet()) {
+    String bufferId=entry.getKey();
+    PagePartitionFunction pagePartitionFunction=entry.getValue();
+    if (this.buffers.containsKey(bufferId)) {
+      checkHasBuffer(bufferId,pagePartitionFunction);
+      continue;
+    }
+    newBuffers.put(bufferId,pagePartitionFunction);
+  }
+  return new OutputBuffers(version + 1,false,newBuffers.build());
+}

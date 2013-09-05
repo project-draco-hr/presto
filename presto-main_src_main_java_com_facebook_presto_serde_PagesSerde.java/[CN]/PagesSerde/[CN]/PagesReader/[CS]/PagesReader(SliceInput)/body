@@ -1,8 +1,14 @@
 {
   this.sliceInput=sliceInput;
-  int channelCount=sliceInput.readInt();
-  blockEncodings=new BlockEncoding[channelCount];
-  for (int i=0; i < blockEncodings.length; i++) {
-    blockEncodings[i]=BlockEncodings.readBlockEncoding(sliceInput);
+  if (!sliceInput.isReadable()) {
+    endOfData();
+    blockEncodings=new BlockEncoding[0];
+  }
+ else {
+    int channelCount=sliceInput.readInt();
+    blockEncodings=new BlockEncoding[channelCount];
+    for (int i=0; i < blockEncodings.length; i++) {
+      blockEncodings[i]=BlockEncodings.readBlockEncoding(sliceInput);
+    }
   }
 }
