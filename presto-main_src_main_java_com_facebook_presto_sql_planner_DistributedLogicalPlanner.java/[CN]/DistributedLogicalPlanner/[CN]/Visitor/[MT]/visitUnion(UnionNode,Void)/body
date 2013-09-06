@@ -4,18 +4,20 @@
     for (    PlanNode source : node.getSources()) {
       sourceBuilder.add(source.accept(this,context).getRoot());
     }
-    return newSubPlan(new UnionNode(node.getId(),sourceBuilder.build(),node.getSymbolMapping()));
+    UnionNode unionNode=new UnionNode(node.getId(),sourceBuilder.build(),node.getSymbolMapping());
+    return unpartitionedSubPlan(unionNode);
   }
  else {
     ImmutableList.Builder<SubPlan> sourceBuilder=ImmutableList.builder();
     ImmutableList.Builder<PlanFragmentId> fragmentIdBuilder=ImmutableList.builder();
     for (int i=0; i < node.getSources().size(); i++) {
-      PlanNode subplan=node.getSources().get(i);
-      SubPlanBuilder current=subplan.accept(this,context);
+      PlanNode subPlan=node.getSources().get(i);
+      SubPlanBuilder current=subPlan.accept(this,context);
       current.setRoot(new SinkNode(idAllocator.getNextId(),current.getRoot(),node.sourceOutputLayout(i)));
       fragmentIdBuilder.add(current.getId());
       sourceBuilder.add(current.build());
     }
-    return newSubPlan(new ExchangeNode(idAllocator.getNextId(),fragmentIdBuilder.build(),node.getOutputSymbols())).setUnpartitionedSource().setChildren(sourceBuilder.build());
+    ExchangeNode exchangeNode=new ExchangeNode(idAllocator.getNextId(),fragmentIdBuilder.build(),node.getOutputSymbols());
+    return unpartitionedSubPlan(exchangeNode).setChildren(sourceBuilder.build());
   }
 }

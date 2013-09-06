@@ -10,9 +10,15 @@
     intermediateFunctions.put(intermediateSymbol,functionHandle);
     finalCalls.put(entry.getKey(),new FunctionCall(function.getName(),ImmutableList.<Expression>of(new QualifiedNameReference(intermediateSymbol.toQualifiedName()))));
   }
-  AggregationNode aggregation=new AggregationNode(idAllocator.getNextId(),plan.getRoot(),groupBy,intermediateCalls,intermediateFunctions,PARTIAL);
-  plan.setRoot(new SinkNode(idAllocator.getNextId(),aggregation,aggregation.getOutputSymbols()));
+  AggregationNode partialAggregation=new AggregationNode(idAllocator.getNextId(),plan.getRoot(),groupBy,intermediateCalls,intermediateFunctions,PARTIAL);
+  plan.setRoot(new SinkNode(idAllocator.getNextId(),partialAggregation,partialAggregation.getOutputSymbols()));
   ExchangeNode source=new ExchangeNode(idAllocator.getNextId(),plan.getId(),plan.getRoot().getOutputSymbols());
-  AggregationNode merged=new AggregationNode(idAllocator.getNextId(),source,groupBy,finalCalls,functions,FINAL);
-  return newSubPlan(merged).addChild(plan.build());
+  AggregationNode finalAggregation=new AggregationNode(idAllocator.getNextId(),source,groupBy,finalCalls,functions,FINAL);
+  if (groupBy.isEmpty()) {
+    plan=unpartitionedSubPlan(finalAggregation).addChild(plan.build());
+  }
+ else {
+    plan=hashPartitionedSubPlan(finalAggregation).addChild(plan.build());
+  }
+  return plan;
 }
