@@ -1,0 +1,30 @@
+{
+  if (cursor.isNull(field)) {
+    return;
+  }
+  Slice otherVariance=cursor.getSlice(field);
+  long otherCount=APPROX_AVG_CONTEXT_INFO.getLong(otherVariance,0);
+  double otherMean=APPROX_AVG_CONTEXT_INFO.getDouble(otherVariance,1);
+  double otherM2=APPROX_AVG_CONTEXT_INFO.getDouble(otherVariance,2);
+  long totalCount;
+  double totalMean;
+  double totalM2;
+  if (APPROX_AVG_CONTEXT_INFO.isNull(valueSlice,valueOffset,0)) {
+    totalCount=otherCount;
+    totalMean=otherMean;
+    totalM2=otherM2;
+  }
+ else {
+    long count=APPROX_AVG_CONTEXT_INFO.getLong(valueSlice,valueOffset,0);
+    double mean=APPROX_AVG_CONTEXT_INFO.getDouble(valueSlice,valueOffset,1);
+    double m2=APPROX_AVG_CONTEXT_INFO.getDouble(valueSlice,valueOffset,2);
+    double delta=otherMean - mean;
+    totalCount=count + otherCount;
+    totalMean=((count * mean) + (otherCount * otherMean)) / totalCount;
+    totalM2=m2 + otherM2 + ((delta * delta) * (count * otherCount)) / totalCount;
+  }
+  APPROX_AVG_CONTEXT_INFO.setNotNull(valueSlice,valueOffset,0);
+  APPROX_AVG_CONTEXT_INFO.setLong(valueSlice,valueOffset,0,totalCount);
+  APPROX_AVG_CONTEXT_INFO.setDouble(valueSlice,valueOffset,1,totalMean);
+  APPROX_AVG_CONTEXT_INFO.setDouble(valueSlice,valueOffset,2,totalM2);
+}
