@@ -1,3 +1,9 @@
 {
-  throw new UnsupportedOperationException("TABLESAMPLE not yet implemented");
+  if (node.getType() == SampledRelation.Type.SYSTEM) {
+    throw new UnsupportedOperationException("TABLESAMPLE SYSTEM not yet implemented");
+  }
+  RelationPlan subPlan=process(node.getRelation(),context);
+  TupleDescriptor outputDescriptor=analysis.getOutputDescriptor(node);
+  double ratio=analysis.getSampleRatio(node);
+  return new RelationPlan(new SampleNode(idAllocator.getNextId(),subPlan.getRoot(),ratio),outputDescriptor,subPlan.getOutputSymbols());
 }
