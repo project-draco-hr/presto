@@ -1,4 +1,11 @@
 {
   executor=MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(threadsNamed("task-processor-%d")));
-  taskExecutor=createTaskExecutor(executor,16);
+  taskExecutor=createTaskExecutor(executor,24,new Ticker(){
+    private final long start=System.nanoTime();
+    @Override public long read(){
+      long now=System.nanoTime();
+      return (now - start) * 100;
+    }
+  }
+);
 }

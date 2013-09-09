@@ -1,0 +1,17 @@
+{
+  try {
+    long start=ticker.read();
+    ListenableFuture<?> blocked=split.process();
+    long endTime=ticker.read();
+    long durationNanos=endTime - start;
+    long threadUsageNanos=taskHandle.addThreadUsageNanos(durationNanos);
+    this.threadUsageNanos.set(threadUsageNanos);
+    priorityLevel.set(calculatePriorityLevel(threadUsageNanos));
+    lastRun.set(endTime);
+    return blocked;
+  }
+ catch (  Throwable e) {
+    finishedFuture.setException(e);
+    throw e;
+  }
+}

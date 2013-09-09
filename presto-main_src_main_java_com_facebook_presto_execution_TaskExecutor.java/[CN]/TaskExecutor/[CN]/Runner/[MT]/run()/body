@@ -1,11 +1,11 @@
 {
   try (SetThreadName runnerName=new SetThreadName("SplitRunner-%s",runnerId)){
     while (!closed && !Thread.currentThread().isInterrupted()) {
-      final SplitWorker split;
+      final PrioritizedSplitRunner split;
       try {
-        split=preemptedSplits.take();
+        split=pendingSplits.take();
         if (split.updatePriorityLevel()) {
-          preemptedSplits.put(split);
+          pendingSplits.put(split);
           continue;
         }
       }
@@ -30,7 +30,7 @@
         }
  else {
           if (blocked.isDone()) {
-            preemptedSplits.put(split);
+            pendingSplits.put(split);
           }
  else {
             blockedSplits.add(split);
@@ -38,7 +38,7 @@
               @Override public void run(){
                 blockedSplits.remove(split);
                 split.updatePriorityLevel();
-                preemptedSplits.put(split);
+                pendingSplits.put(split);
               }
             }
 ,executor);

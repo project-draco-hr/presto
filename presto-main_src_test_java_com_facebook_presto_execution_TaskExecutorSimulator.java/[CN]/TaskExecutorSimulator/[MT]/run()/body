@@ -3,16 +3,16 @@
   Set<ListenableFuture<?>> finishFutures=Sets.newSetFromMap(new ConcurrentHashMap<ListenableFuture<?>,Boolean>());
   AtomicBoolean done=new AtomicBoolean();
   long start=System.nanoTime();
-  for (int userId=0; userId < 3; userId++) {
-    ListenableFuture<?> future=createUser("Large-" + userId,100,taskExecutor,done,tasks);
+  for (int userId=0; userId < 2; userId++) {
+    ListenableFuture<?> future=createUser("large_" + userId,100,taskExecutor,done,tasks);
     finishFutures.add(future);
   }
   for (int userId=0; userId < 4; userId++) {
-    ListenableFuture<?> future=createUser("Small-" + userId,5,taskExecutor,done,tasks);
+    ListenableFuture<?> future=createUser("small_" + userId,5,taskExecutor,done,tasks);
     finishFutures.add(future);
   }
   for (int userId=0; userId < 1; userId++) {
-    ListenableFuture<?> future=createUser("Tiny-" + userId,1,taskExecutor,done,tasks);
+    ListenableFuture<?> future=createUser("tiny_" + userId,1,taskExecutor,done,tasks);
     finishFutures.add(future);
   }
   for (int i=0; i < 30; i++) {
@@ -27,7 +27,7 @@
       System.out.println("    " + Joiner.on("\n    ").join(taskExecutor.getRunningSplits()));
     }
     if (PRINT_PREEMPTED_SPLITS) {
-      System.out.println("        " + Joiner.on("\n        ").join(taskExecutor.getPreemptedSplits()));
+      System.out.println("        " + Joiner.on("\n        ").join(taskExecutor.getPendingSplits()));
     }
   }
   Map<Integer,Collection<SimulationTask>> middleTasks;

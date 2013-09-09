@@ -1,7 +1,7 @@
 {
   if (!finishing) {
     int i=0;
-    for (; i < 16384; i++) {
+    for (; i < ROWS_PER_REQUEST; i++) {
       if (pageBuilder.isFull()) {
         break;
       }
@@ -15,7 +15,8 @@
           output.appendNull();
         }
  else {
-switch (getTupleInfos().get(column).getTypes().get(0)) {
+          Type type=getTupleInfos().get(column).getTypes().get(0);
+switch (type) {
 case BOOLEAN:
             output.append(cursor.getBoolean(column));
           break;
@@ -28,6 +29,8 @@ case DOUBLE:
 case VARIABLE_BINARY:
 output.append(cursor.getString(column));
 break;
+default :
+throw new AssertionError("unimplemented type: " + type);
 }
 }
 }
