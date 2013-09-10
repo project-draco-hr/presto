@@ -1,6 +1,11 @@
 {
   if (sourceId.equals(partitionedSourceId)) {
-    addPartitionDriver(split);
+    enqueueDriver(new DriverSplitRunner(partitionedPipelineContext.addDriverContext(),new Function<DriverContext,Driver>(){
+      @Override public Driver apply(      DriverContext driverContext){
+        return createDriver(partitionedDriverFactory,driverContext,split);
+      }
+    }
+));
   }
  else {
     if (!unpartitionedSources.put(sourceId,split)) {

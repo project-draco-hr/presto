@@ -1,11 +1,14 @@
 {
-  Driver driver=partitionedDriverFactory.createDriver(partitionedPipelineContext.addDriverContext());
-  driver.addSplit(partitionedSourceId,partitionedSplit);
+  Driver driver=driverFactory.createDriver(driverContext);
+  if (partitionedSplit != null) {
+    driver.addSplit(partitionedSourceId,partitionedSplit);
+  }
   for (  Entry<PlanNodeId,Split> entry : unpartitionedSources.entries()) {
     driver.addSplit(entry.getKey(),entry.getValue());
   }
   for (  PlanNodeId completedUnpartitionedSource : completedUnpartitionedSources) {
     driver.noMoreSplits(completedUnpartitionedSource);
   }
-  enqueueDriver(driver);
+  drivers.add(new WeakReference<>(driver));
+  return driver;
 }

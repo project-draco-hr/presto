@@ -1,0 +1,25 @@
+{
+  ListenableFuture<?> finishedFuture=taskExecutor.addSplit(taskHandle,splitRunner);
+  remainingDriverCount.incrementAndGet();
+  Futures.addCallback(finishedFuture,new FutureCallback<Object>(){
+    @Override public void onSuccess(    Object result){
+      try (SetThreadName setThreadName=new SetThreadName("Task-%s",taskId)){
+        int runningCount=remainingDriverCount.decrementAndGet();
+        if (runningCount <= 0) {
+          checkNoMorePartitionedSplits();
+        }
+        checkTaskCompletion();
+        queryMonitor.splitCompletionEvent(taskId,splitRunner.getDriverContext().getDriverStats());
+      }
+     }
+    @Override public void onFailure(    Throwable cause){
+      try (SetThreadName setThreadName=new SetThreadName("Task-%s",taskId)){
+        taskStateMachine.failed(cause);
+        remainingDriverCount.decrementAndGet();
+        checkNoMorePartitionedSplits();
+        queryMonitor.splitCompletionEvent(taskId,splitRunner.getDriverContext().getDriverStats());
+      }
+     }
+  }
+);
+}

@@ -31,7 +31,8 @@
       }
     }
     this.unpartitionedDrivers=ImmutableList.copyOf(unpartitionedDrivers);
-    if (fragment.isPartitioned()) {
+    checkArgument(!fragment.isPartitioned() || partitionedDriverFactory != null,"Fragment is partitioned, but no partitioned driver found");
+    if (partitionedDriverFactory != null) {
       this.partitionedSourceId=fragment.getPartitionedSource();
       this.partitionedDriverFactory=partitionedDriverFactory;
       this.partitionedPipelineContext=taskContext.addPipelineContext(partitionedDriverFactory.isInputDriver(),partitionedDriverFactory.isOutputDriver());
