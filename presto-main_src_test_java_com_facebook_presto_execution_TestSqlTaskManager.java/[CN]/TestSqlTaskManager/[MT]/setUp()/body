@@ -11,7 +11,9 @@
   DualSplitManager dualSplitManager=new DualSplitManager(new InMemoryNodeManager());
   split=Iterables.getOnlyElement(dualSplitManager.getPartitionSplits(tableHandle,dualSplitManager.getPartitions(tableHandle,ImmutableMap.<ColumnHandle,Object>of())));
   planner=new NewLocalExecutionPlanner(new NodeInfo("test"),metadata,new DataStreamManager(new DualDataStreamProvider()),new MockLocalStorageManager(new File("target/temp")),new MockExchangeClientSupplier(),new NewExpressionCompiler(metadata));
-  sqlTaskManager=new SqlTaskManager(planner,new MockLocationFactory(),new QueryMonitor(new ObjectMapperProvider().get(),new NullEventClient(),new NodeInfo("test")),new QueryManagerConfig());
+  taskExecutor=new TaskExecutor(8);
+  taskExecutor.start();
+  sqlTaskManager=new SqlTaskManager(planner,new MockLocationFactory(),taskExecutor,new QueryMonitor(new ObjectMapperProvider().get(),new NullEventClient(),new NodeInfo("test")),new QueryManagerConfig());
   tableScanNodeId=new PlanNodeId("tableScan");
   testFragment=new PlanFragment(new PlanFragmentId("fragment"),tableScanNodeId,ImmutableMap.<Symbol,Type>of(symbol,Type.STRING),new TableScanNode(tableScanNodeId,tableHandle,ImmutableList.of(symbol),ImmutableMap.of(symbol,columnHandle),TRUE_LITERAL,TRUE_LITERAL));
   taskId=new TaskId("query","stage","task");

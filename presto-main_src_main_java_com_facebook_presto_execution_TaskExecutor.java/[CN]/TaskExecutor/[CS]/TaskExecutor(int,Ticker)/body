@@ -1,0 +1,10 @@
+{
+  checkArgument(runnerThreads > 0,"runnerThreads must be at least 1");
+  this.executor=Executors.newCachedThreadPool(threadsNamed("task-processor-%d"));
+  this.executorMBean=new ThreadPoolExecutorMBean((ThreadPoolExecutor)executor);
+  this.runnerThreads=runnerThreads;
+  this.ticker=checkNotNull(ticker,"ticker is null");
+  this.minimumNumberOfTasks=2 * this.runnerThreads;
+  this.pendingSplits=new PriorityBlockingQueue<>(Runtime.getRuntime().availableProcessors() * 10);
+  this.tasks=new LinkedList<>();
+}
