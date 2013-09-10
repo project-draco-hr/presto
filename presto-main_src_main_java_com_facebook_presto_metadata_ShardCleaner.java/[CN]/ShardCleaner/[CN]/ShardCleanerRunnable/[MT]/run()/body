@@ -1,8 +1,5 @@
 {
   try {
-    if (!sitevars.isShardCleaningEnabled()) {
-      return;
-    }
     Map<String,Node> activeNodes=Maps.uniqueIndex(nodeManager.getAllNodes().getActiveNodes(),getIdentifierFunction());
     Iterable<String> shardNodes=shardManager.getAllNodesInUse();
     ImmutableList.Builder<ListenableFuture<Void>> builder=ImmutableList.builder();
@@ -14,9 +11,6 @@
       Iterable<Long> orphanedShards=shardManager.getOrphanedShardIds(Optional.of(nodeIdentifier));
       Node node=activeNodes.get(nodeIdentifier);
       for (      Long shardId : orphanedShards) {
-        if (!sitevars.isShardCleaningEnabled()) {
-          break;
-        }
         ListenableFutureTask<Void> task=ListenableFutureTask.create(new ShardDropJob(shardId,node),null);
         nodeBoundedExecutor.execute(nodeIdentifier,task);
         builder.add(task);

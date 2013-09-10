@@ -1,0 +1,10 @@
+{
+  this.nodeManager=checkNotNull(nodeManager,"nodeManager is null");
+  this.shardManager=checkNotNull(shardManager,"shardManager is null");
+  this.httpClient=checkNotNull(httpClient,"httpClient is null");
+  checkNotNull(config,"config is null");
+  this.interval=config.getCleanerInterval();
+  ExecutorService nodeExecutor=newScheduledThreadPool(config.getMaxThreads(),daemonThreadsNamed("shard-cleaner-worker-%s"));
+  this.nodeBoundedExecutor=new KeyBoundedExecutor<>(nodeExecutor,config.getMaxThreads());
+  this.enabled=config.isEnabled();
+}
