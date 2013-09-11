@@ -11,6 +11,11 @@
     UncompressedBlock probeJoinBlock=(UncompressedBlock)page.getBlock(probeJoinChannel);
     hash.setProbeSlice(probeJoinBlock.getSlice());
   }
-  joinPosition=hash.getJoinPosition(cursors[probeJoinChannel]);
+  if (tupleContainsNull(cursors[probeJoinChannel])) {
+    joinPosition=-1;
+  }
+ else {
+    joinPosition=hash.getJoinPosition(cursors[probeJoinChannel]);
+  }
   return true;
 }
