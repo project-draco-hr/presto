@@ -1,5 +1,12 @@
 {
   QueryState state=queryState.get();
+  Duration elapsedTime;
+  if (endTime != null) {
+    elapsedTime=new Duration(endTime.getMillis() - createTime.getMillis(),MILLISECONDS);
+  }
+ else {
+    elapsedTime=Duration.nanosSince(createNanos);
+  }
   FailureInfo failureInfo=null;
   if (state != FINISHED) {
     failureInfo=toFailure(failureCause);
@@ -50,6 +57,6 @@
     outputDataSize+=outputStageStats.getOutputDataSize().toBytes();
     outputPositions+=outputStageStats.getOutputPositions();
   }
-  QueryStats queryStats=new QueryStats(createTime,executionStartTime,lastHeartbeat,endTime,queuedTime,analysisTime,distributedPlanningTime,totalTasks,runningTasks,completedTasks,totalDrivers,queuedDrivers,startedDrivers,runningDrivers,completedDrivers,new DataSize(totalMemoryReservation,BYTE).convertToMostSuccinctDataSize(),new Duration(totalScheduledTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalCpuTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalUserTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalBlockedTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new DataSize(rawInputDataSize,BYTE).convertToMostSuccinctDataSize(),rawInputPositions,new DataSize(processedInputDataSize,BYTE).convertToMostSuccinctDataSize(),processedInputPositions,new DataSize(outputDataSize,BYTE).convertToMostSuccinctDataSize(),outputPositions);
+  QueryStats queryStats=new QueryStats(createTime,executionStartTime,lastHeartbeat,endTime,elapsedTime.convertToMostSuccinctTimeUnit(),queuedTime,analysisTime,distributedPlanningTime,totalTasks,runningTasks,completedTasks,totalDrivers,queuedDrivers,startedDrivers,runningDrivers,completedDrivers,new DataSize(totalMemoryReservation,BYTE).convertToMostSuccinctDataSize(),new Duration(totalScheduledTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalCpuTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalUserTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalBlockedTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new DataSize(rawInputDataSize,BYTE).convertToMostSuccinctDataSize(),rawInputPositions,new DataSize(processedInputDataSize,BYTE).convertToMostSuccinctDataSize(),processedInputPositions,new DataSize(outputDataSize,BYTE).convertToMostSuccinctDataSize(),outputPositions);
   return new QueryInfo(queryId,session,state,self,outputFieldNames,query,queryStats,rootStage,failureInfo);
 }
