@@ -1,0 +1,13 @@
+{
+  checkNotNull(duration,"duration is null");
+  long maxRuntime=duration.roundTo(TimeUnit.NANOSECONDS);
+  long start=System.nanoTime();
+  do {
+    ListenableFuture<?> future=process();
+    if (!future.isDone()) {
+      return future;
+    }
+  }
+ while (System.nanoTime() - start < maxRuntime && !isFinished());
+  return NOT_BLOCKED;
+}
