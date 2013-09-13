@@ -1,0 +1,28 @@
+{
+  List<TupleInfo> tupleInfos=getSourceOperatorTupleInfos(node,context.getTypes());
+  InMemoryExchange inMemoryExchange=new InMemoryExchange(tupleInfos);
+  for (int i=0; i < node.getSources().size(); i++) {
+    PlanNode subplan=node.getSources().get(i);
+    List<Symbol> expectedLayout=node.sourceOutputLayout(i);
+    LocalExecutionPlanContext subContext=context.createSubContext();
+    PhysicalOperation source=subplan.accept(this,subContext);
+    List<OperatorFactory> operatorFactories=new ArrayList<>(source.getOperatorFactories());
+    boolean projectionMatchesOutput=IterableTransformer.on(source.getLayout().entries()).orderBy(inputOrdering().onResultOf(MoreFunctions.<Symbol,Input>valueGetter())).transform(MoreFunctions.<Symbol,Input>keyGetter()).list().equals(expectedLayout);
+    if (!projectionMatchesOutput) {
+      IdentityProjectionInfo mappings=computeIdentityMapping(expectedLayout,source.getLayout(),context.getTypes());
+      operatorFactories.add(new FilterAndProjectOperatorFactory(subContext.getNextOperatorId(),FilterFunctions.TRUE_FUNCTION,mappings.getProjections()));
+    }
+    operatorFactories.add(inMemoryExchange.createSinkFactory(subContext.getNextOperatorId()));
+    DriverFactory driverFactory=new DriverFactory(subContext.isInputDriver(),false,operatorFactories);
+    context.addDriverFactory(driverFactory);
+  }
+  inMemoryExchange.noMoreSinkFactories();
+  context.setInputDriver(false);
+  ImmutableMultimap.Builder<Symbol,Input> outputMappings=ImmutableMultimap.builder();
+  int channel=0;
+  for (  Symbol symbol : node.getOutputSymbols()) {
+    outputMappings.put(symbol,new Input(channel,0));
+    channel++;
+  }
+  return new PhysicalOperation(new InMemoryExchangeSourceOperatorFactory(context.getNextOperatorId(),inMemoryExchange),outputMappings.build());
+}

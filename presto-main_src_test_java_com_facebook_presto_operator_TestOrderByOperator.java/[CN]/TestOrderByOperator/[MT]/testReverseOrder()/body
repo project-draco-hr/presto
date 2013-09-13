@@ -1,0 +1,7 @@
+{
+  List<Page> input=rowPagesBuilder(SINGLE_LONG,SINGLE_DOUBLE).row(1,0.1).row(2,0.2).pageBreak().row(-1,-0.1).row(4,0.4).build();
+  InMemoryOrderByOperatorFactory operatorFactory=new InMemoryOrderByOperatorFactory(0,ImmutableList.of(SINGLE_LONG,SINGLE_DOUBLE),0,new int[]{0},10,new int[]{0},new boolean[]{false});
+  Operator operator=operatorFactory.createOperator(driverContext);
+  MaterializedResult expected=resultBuilder(FIXED_INT_64).row(4).row(2).row(1).row(-1).build();
+  assertOperatorEquals(operator,input,expected);
+}

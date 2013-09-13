@@ -1,0 +1,28 @@
+{
+  InfiniteRecordSet records=new InfiniteRecordSet(ImmutableList.of(STRING,LONG),ImmutableList.of("abc",1L));
+  OperatorContext operatorContext=driverContext.addOperatorContext(0,RecordProjectOperator.class.getSimpleName());
+  Operator operator=new RecordProjectOperator(operatorContext,records);
+  assertEquals(operator.isFinished(),false);
+  assertEquals(operator.needsInput(),false);
+  assertNull(operator.getOutput());
+  Page page=null;
+  for (int i=0; i < 100; i++) {
+    page=operator.getOutput();
+    if (page != null) {
+      break;
+    }
+  }
+  assertNotNull(page);
+  assertEquals(operator.isFinished(),false);
+  assertEquals(operator.needsInput(),false);
+  assertNull(operator.getOutput());
+  assertEquals(operator.isFinished(),false);
+  assertEquals(operator.needsInput(),false);
+  operator.finish();
+  assertEquals(operator.isFinished(),false);
+  assertEquals(operator.needsInput(),false);
+  assertNotNull(operator.getOutput());
+  assertEquals(operator.isFinished(),true);
+  assertEquals(operator.needsInput(),false);
+  assertEquals(operator.getOutput(),null);
+}

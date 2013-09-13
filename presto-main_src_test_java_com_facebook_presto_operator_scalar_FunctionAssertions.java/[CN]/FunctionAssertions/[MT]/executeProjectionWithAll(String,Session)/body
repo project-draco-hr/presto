@@ -2,13 +2,13 @@
   checkNotNull(projection,"projection is null");
   Expression projectionExpression=createExpression(projection);
   List<Object> results=new ArrayList<>();
-  NewOperatorFactory operatorFactory=compileFilterProject(TRUE_LITERAL,projectionExpression);
+  OperatorFactory operatorFactory=compileFilterProject(TRUE_LITERAL,projectionExpression);
   Type expressionType=Type.fromRaw(operatorFactory.getTupleInfos().get(0).getTypes().get(0));
   Object directOperatorValue=selectSingleValue(operatorFactory,session);
   results.add(directOperatorValue);
   Object interpretedValue=selectSingleValue(interpretedFilterProject(TRUE_LITERAL,projectionExpression,expressionType,session));
   results.add(interpretedValue);
-  NewSourceOperatorFactory scanProjectOperatorFactory=compileScanFilterProject(TRUE_LITERAL,projectionExpression);
+  SourceOperatorFactory scanProjectOperatorFactory=compileScanFilterProject(TRUE_LITERAL,projectionExpression);
   Object scanOperatorValue=selectSingleValue(scanProjectOperatorFactory,createNormalSplit(),session);
   results.add(scanOperatorValue);
   Object recordValue=selectSingleValue(scanProjectOperatorFactory,createRecordSetSplit(),session);

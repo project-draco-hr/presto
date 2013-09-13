@@ -1,0 +1,16 @@
+{
+  PhysicalOperation source=node.getSource().accept(this,context);
+  List<Symbol> orderBySymbols=node.getOrderBy();
+  source=packIfNecessary(orderBySymbols,source,context.getTypes(),context);
+  int orderByChannel=Iterables.getOnlyElement(getChannelSetForSymbols(orderBySymbols,source.getLayout()));
+  List<Integer> sortFields=new ArrayList<>();
+  List<SortItem.Ordering> sortOrders=new ArrayList<>();
+  for (  Symbol symbol : orderBySymbols) {
+    sortFields.add(getFirst(source.getLayout().get(symbol)).getField());
+    sortOrders.add(node.getOrderings().get(symbol));
+  }
+  Ordering<TupleReadable> ordering=Ordering.from(new FieldOrderedTupleComparator(sortFields,sortOrders));
+  IdentityProjectionInfo mappings=computeIdentityMapping(node.getOutputSymbols(),source.getLayout(),context.getTypes());
+  OperatorFactory operator=new TopNOperatorFactory(context.getNextOperatorId(),(int)node.getCount(),orderByChannel,mappings.getProjections(),ordering,node.isPartial());
+  return new PhysicalOperation(operator,mappings.getOutputLayout(),source);
+}

@@ -1,0 +1,15 @@
+{
+  checkNotNull(split,"split is null");
+  checkState(cursor == null && operator == null,"split already set");
+  Operator dataStream=dataStreamProvider.createNewDataStream(operatorContext,split,columns);
+  if (dataStream instanceof RecordProjectOperator) {
+    cursor=((RecordProjectOperator)dataStream).getCursor();
+  }
+ else {
+    operator=dataStream;
+  }
+  Object splitInfo=split.getInfo();
+  if (splitInfo != null) {
+    operatorContext.setInfoSupplier(Suppliers.ofInstance(splitInfo));
+  }
+}

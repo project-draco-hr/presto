@@ -1,0 +1,13 @@
+{
+  ExchangeOperatorFactory operatorFactory=new ExchangeOperatorFactory(0,new PlanNodeId("test"),exchangeClientSupplier,TUPLE_INFOS);
+  SourceOperator operator=operatorFactory.createOperator(driverContext);
+  operator.addSplit(new RemoteSplit(URI.create("http://localhost/" + TASK_1_ID),TUPLE_INFOS));
+  operator.addSplit(new RemoteSplit(URI.create("http://localhost/" + TASK_2_ID),TUPLE_INFOS));
+  operator.addSplit(new RemoteSplit(URI.create("http://localhost/" + TASK_3_ID),TUPLE_INFOS));
+  operator.noMoreSplits();
+  taskBuffers.getUnchecked(TASK_1_ID).addPages(10,true);
+  taskBuffers.getUnchecked(TASK_2_ID).addPages(10,true);
+  taskBuffers.getUnchecked(TASK_3_ID).addPages(10,true);
+  waitForPages(operator,30);
+  waitForFinished(operator);
+}

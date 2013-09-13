@@ -1,0 +1,11 @@
+{
+  List<TupleInfo> tupleInfos=getSourceOperatorTupleInfos(node,context.getTypes());
+  OperatorFactory operatorFactory=new ExchangeOperatorFactory(context.getNextOperatorId(),node.getId(),exchangeClientSupplier,tupleInfos);
+  ImmutableMultimap.Builder<Symbol,Input> outputMappings=ImmutableMultimap.builder();
+  int channel=0;
+  for (  Symbol symbol : node.getOutputSymbols()) {
+    outputMappings.put(symbol,new Input(channel,0));
+    channel++;
+  }
+  return new PhysicalOperation(operatorFactory,outputMappings.build());
+}
