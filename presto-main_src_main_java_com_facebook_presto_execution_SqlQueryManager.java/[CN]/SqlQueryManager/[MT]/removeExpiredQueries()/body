@@ -1,11 +1,13 @@
 {
+  List<QueryExecution> sortedQueries=IterableTransformer.on(queries.values()).select(compose(not(isNull()),endTimeGetter())).orderBy(Ordering.natural().onResultOf(endTimeGetter())).list();
+  int toRemove=Math.max(sortedQueries.size() - maxQueryHistory,0);
   DateTime oldestAllowedQuery=DateTime.now().minus(maxQueryAge.toMillis());
-  for (  QueryExecution queryExecution : queries.values()) {
+  for (  QueryExecution queryExecution : sortedQueries) {
     try {
-      QueryInfo queryInfo=queryExecution.getQueryInfo();
-      DateTime endTime=queryInfo.getQueryStats().getEndTime();
-      if (endTime != null && endTime.isBefore(oldestAllowedQuery)) {
+      DateTime endTime=queryExecution.getQueryInfo().getQueryStats().getEndTime();
+      if ((endTime.isBefore(oldestAllowedQuery) || toRemove > 0) && isAbandoned(queryExecution)) {
         removeQuery(queryExecution.getQueryInfo().getQueryId());
+        --toRemove;
       }
     }
  catch (    Exception e) {
