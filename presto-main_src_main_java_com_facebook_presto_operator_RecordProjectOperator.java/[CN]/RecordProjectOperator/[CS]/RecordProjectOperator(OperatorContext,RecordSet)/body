@@ -1,3 +1,10 @@
 {
-  this(operatorContext,recordSet.getColumnTypes(),recordSet.cursor());
+  this.operatorContext=checkNotNull(operatorContext,"operatorContext is null");
+  this.recordSet=checkNotNull(recordSet,"recordSet is null");
+  ImmutableList.Builder<TupleInfo> tupleInfos=ImmutableList.builder();
+  for (  ColumnType columnType : recordSet.getColumnTypes()) {
+    tupleInfos.add(new TupleInfo(Type.fromColumnType(columnType)));
+  }
+  this.tupleInfos=tupleInfos.build();
+  pageBuilder=new PageBuilder(getTupleInfos());
 }
