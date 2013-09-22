@@ -1,5 +1,11 @@
 {
-  ListenableFuture<?> finishedFuture=taskExecutor.addSplit(taskHandle,splitRunner);
+  ListenableFuture<?> finishedFuture;
+  if (forceRunSplit) {
+    finishedFuture=taskExecutor.forceRunSplit(taskHandle,splitRunner);
+  }
+ else {
+    finishedFuture=taskExecutor.enqueueSplit(taskHandle,splitRunner);
+  }
   remainingDriverCount.incrementAndGet();
   Futures.addCallback(finishedFuture,new FutureCallback<Object>(){
     @Override public void onSuccess(    Object result){
