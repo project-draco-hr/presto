@@ -1,8 +1,8 @@
 {
-  List<DriverContext> runningDrivers=ImmutableList.copyOf(this.runningDrivers);
-  int totalDriers=completedDrivers.get() + runningDrivers.size();
+  List<DriverContext> driverContexts=ImmutableList.copyOf(this.drivers);
+  int totalDriers=completedDrivers.get() + driverContexts.size();
   int queuedDrivers=0;
-  int startedDrivers=0;
+  int runningDrivers=0;
   int completedDrivers=this.completedDrivers.get();
   Distribution queuedTime=new Distribution(this.queuedTime);
   Distribution elapsedTime=new Distribution(this.elapsedTime);
@@ -18,14 +18,14 @@
   long outputPositions=this.outputPositions.get();
   List<DriverStats> drivers=new ArrayList<>();
   Multimap<Integer,OperatorStats> runningOperators=ArrayListMultimap.create();
-  for (  DriverContext driverContext : runningDrivers) {
+  for (  DriverContext driverContext : driverContexts) {
     DriverStats driverStats=driverContext.getDriverStats();
     drivers.add(driverStats);
     if (driverStats.getStartTime() == null) {
       queuedDrivers++;
     }
  else {
-      startedDrivers++;
+      runningDrivers++;
     }
     queuedTime.add(driverStats.getQueuedTime().roundTo(NANOSECONDS));
     elapsedTime.add(driverStats.getElapsedTime().roundTo(NANOSECONDS));
@@ -50,5 +50,5 @@
     operator.add(runningOperators.get(entry.getKey()));
     operatorSummaries.put(entry.getKey(),operator);
   }
-  return new PipelineStats(inputPipeline,outputPipeline,totalDriers,queuedDrivers,startedDrivers,completedDrivers,new DataSize(memoryReservation.get(),BYTE).convertToMostSuccinctDataSize(),queuedTime.snapshot(),elapsedTime.snapshot(),new Duration(totalScheduledTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalCpuTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalUserTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalBlockedTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new DataSize(rawInputDataSize,BYTE).convertToMostSuccinctDataSize(),rawInputPositions,new DataSize(processedInputDataSize,BYTE).convertToMostSuccinctDataSize(),processedInputPositions,new DataSize(outputDataSize,BYTE).convertToMostSuccinctDataSize(),outputPositions,ImmutableList.copyOf(operatorSummaries.values()),drivers);
+  return new PipelineStats(inputPipeline,outputPipeline,totalDriers,queuedDrivers,runningDrivers,completedDrivers,new DataSize(memoryReservation.get(),BYTE).convertToMostSuccinctDataSize(),queuedTime.snapshot(),elapsedTime.snapshot(),new Duration(totalScheduledTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalCpuTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalUserTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalBlockedTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new DataSize(rawInputDataSize,BYTE).convertToMostSuccinctDataSize(),rawInputPositions,new DataSize(processedInputDataSize,BYTE).convertToMostSuccinctDataSize(),processedInputPositions,new DataSize(outputDataSize,BYTE).convertToMostSuccinctDataSize(),outputPositions,ImmutableList.copyOf(operatorSummaries.values()),drivers);
 }

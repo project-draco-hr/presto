@@ -7,7 +7,6 @@
   List<PipelineStats> pipelineStats=ImmutableList.copyOf(transform(pipelineContexts,pipelineStatsGetter()));
   int totalDrivers=0;
   int queuedDrivers=0;
-  int startedDrivers=0;
   int runningDrivers=0;
   int completedDrivers=0;
   long totalScheduledTime=0;
@@ -23,8 +22,7 @@
   for (  PipelineStats pipeline : pipelineStats) {
     totalDrivers+=pipeline.getTotalDrivers();
     queuedDrivers+=pipeline.getQueuedDrivers();
-    startedDrivers+=pipeline.getStartedDrivers();
-    runningDrivers+=pipeline.getRunningDrivers().size();
+    runningDrivers+=pipeline.getRunningDrivers();
     completedDrivers+=pipeline.getCompletedDrivers();
     totalScheduledTime+=pipeline.getTotalScheduledTime().roundTo(NANOSECONDS);
     totalCpuTime+=pipeline.getTotalCpuTime().roundTo(NANOSECONDS);
@@ -54,5 +52,5 @@
  else {
     elapsedTime=new Duration(0,NANOSECONDS);
   }
-  return new TaskStats(createdTime,executionStartTime.get(),executionEndTime.get(),elapsedTime.convertToMostSuccinctTimeUnit(),queuedTime.convertToMostSuccinctTimeUnit(),totalDrivers,queuedDrivers,startedDrivers,runningDrivers,completedDrivers,new DataSize(memoryReservation.get(),BYTE).convertToMostSuccinctDataSize(),new Duration(totalScheduledTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalCpuTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalUserTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalBlockedTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new DataSize(rawInputDataSize,BYTE).convertToMostSuccinctDataSize(),rawInputPositions,new DataSize(processedInputDataSize,BYTE).convertToMostSuccinctDataSize(),processedInputPositions,new DataSize(outputDataSize,BYTE).convertToMostSuccinctDataSize(),outputPositions,pipelineStats);
+  return new TaskStats(createdTime,executionStartTime.get(),executionEndTime.get(),elapsedTime.convertToMostSuccinctTimeUnit(),queuedTime.convertToMostSuccinctTimeUnit(),totalDrivers,queuedDrivers,runningDrivers,completedDrivers,new DataSize(memoryReservation.get(),BYTE).convertToMostSuccinctDataSize(),new Duration(totalScheduledTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalCpuTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalUserTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalBlockedTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new DataSize(rawInputDataSize,BYTE).convertToMostSuccinctDataSize(),rawInputPositions,new DataSize(processedInputDataSize,BYTE).convertToMostSuccinctDataSize(),processedInputPositions,new DataSize(outputDataSize,BYTE).convertToMostSuccinctDataSize(),outputPositions,pipelineStats);
 }
