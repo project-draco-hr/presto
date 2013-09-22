@@ -1,3 +1,12 @@
 {
-  return noMoreSplits;
+  ImmutableSet.Builder<PlanNodeId> noMoreSplits=ImmutableSet.builder();
+  if (partitionedSourceId != null && noMorePartitionedSplits.get()) {
+    noMoreSplits.add(partitionedSourceId);
+  }
+  for (  TaskSource taskSource : unpartitionedSources.values()) {
+    if (taskSource.isNoMoreSplits()) {
+      noMoreSplits.add(taskSource.getPlanNodeId());
+    }
+  }
+  return noMoreSplits.build();
 }

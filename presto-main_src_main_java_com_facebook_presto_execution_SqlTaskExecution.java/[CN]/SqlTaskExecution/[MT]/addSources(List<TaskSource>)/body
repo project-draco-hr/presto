@@ -1,19 +1,18 @@
 {
   checkNotNull(sources,"sources is null");
+  checkState(!Thread.holdsLock(this),"Can not add sources while holding a lock on the %s",getClass().getSimpleName());
   try (SetThreadName setThreadName=new SetThreadName("Task-%s",taskId)){
-    long newMaxAcknowledgedSplit=maxAcknowledgedSplit;
-    for (    TaskSource source : sources) {
-      PlanNodeId sourceId=source.getPlanNodeId();
-      for (      ScheduledSplit scheduledSplit : source.getSplits()) {
-        if (scheduledSplit.getSequenceId() > maxAcknowledgedSplit) {
-          addSplit(sourceId,scheduledSplit.getSplit());
-          newMaxAcknowledgedSplit=max(scheduledSplit.getSequenceId(),newMaxAcknowledgedSplit);
+    Map<PlanNodeId,TaskSource> updatedUnpartitionedSources=updateSources(sources);
+    for (    TaskSource source : updatedUnpartitionedSources.values()) {
+      for (      WeakReference<Driver> driverReference : drivers) {
+        Driver driver=driverReference.get();
+        if (driver != null) {
+          driver.updateSource(source);
+        }
+ else {
+          drivers.remove(driverReference);
         }
       }
-      if (source.isNoMoreSplits()) {
-        noMoreSplits(sourceId);
-      }
     }
-    maxAcknowledgedSplit=newMaxAcknowledgedSplit;
   }
  }

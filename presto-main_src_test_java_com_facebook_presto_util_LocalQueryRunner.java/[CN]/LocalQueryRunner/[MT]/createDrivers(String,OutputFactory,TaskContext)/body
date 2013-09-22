@@ -16,10 +16,16 @@
   assertTrue(subplan.getChildren().isEmpty(),"Expected subplan to have no children");
   LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(new NodeInfo(new NodeConfig().setEnvironment("test").setNodeId("test-node")),metadata,dataStreamProvider,storageManager,null,compiler);
   LocalExecutionPlan localExecutionPlan=executionPlanner.plan(session,subplan.getFragment().getRoot(),plan.getTypes(),outputFactory);
-  Multimap<PlanNodeId,Split> splits=ArrayListMultimap.create();
-  for (  PlanNode source : subplan.getFragment().getSources()) {
-    TableScanNode tableScan=(TableScanNode)source;
-    splits.putAll(source.getId(),splitManager.getSplits(session,tableScan.getTable(),tableScan.getPartitionPredicate(),tableScan.getUpstreamPredicateHint(),Predicates.<Partition>alwaysTrue(),tableScan.getAssignments()).getSplits());
+  List<TaskSource> sources=new ArrayList<>();
+  long sequenceId=0;
+  for (  PlanNode sourceNode : subplan.getFragment().getSources()) {
+    TableScanNode tableScan=(TableScanNode)sourceNode;
+    DataSource dataSource=splitManager.getSplits(session,tableScan.getTable(),tableScan.getPartitionPredicate(),tableScan.getUpstreamPredicateHint(),Predicates.<Partition>alwaysTrue(),tableScan.getAssignments());
+    ImmutableSet.Builder<ScheduledSplit> scheduledSplits=ImmutableSet.builder();
+    for (    Split split : dataSource.getSplits()) {
+      scheduledSplits.add(new ScheduledSplit(sequenceId++,split));
+    }
+    sources.add(new TaskSource(tableScan.getId(),scheduledSplits.build(),true));
   }
   List<Driver> drivers=new ArrayList<>();
   Map<PlanNodeId,Driver> driversBySource=new HashMap<>();
@@ -32,14 +38,9 @@
     }
     driverFactory.close();
   }
-  for (  Entry<PlanNodeId,Split> entry : splits.entries()) {
-    Driver driver=driversBySource.get(entry.getKey());
-    checkState(driver != null,"Unknown source %s",entry.getKey());
-    driver.addSplit(entry.getKey(),entry.getValue());
-  }
-  for (  Driver driver : drivers) {
-    for (    PlanNodeId sourceId : driver.getSourceIds()) {
-      driver.noMoreSplits(sourceId);
+  for (  TaskSource source : sources) {
+    for (    Driver driver : driversBySource.values()) {
+      driver.updateSource(source);
     }
   }
   return ImmutableList.copyOf(drivers);

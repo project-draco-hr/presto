@@ -1,0 +1,12 @@
+{
+  checkState(!Thread.holdsLock(this),"Can not crete a driver while holding a lock on the %s",getClass().getSimpleName());
+  Driver driver=driverFactory.createDriver(driverContext);
+  if (partitionedSplit != null) {
+    driver.updateSource(new TaskSource(partitionedSourceId,ImmutableSet.of(partitionedSplit),true));
+  }
+  drivers.add(new WeakReference<>(driver));
+  for (  TaskSource source : unpartitionedSources.values()) {
+    driver.updateSource(source);
+  }
+  return driver;
+}

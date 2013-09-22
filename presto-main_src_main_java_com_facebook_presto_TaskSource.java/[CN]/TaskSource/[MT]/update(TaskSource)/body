@@ -1,0 +1,11 @@
+{
+  checkArgument(planNodeId.equals(source.getPlanNodeId()),"Expected source %s, but got source %s",planNodeId,source.getPlanNodeId());
+  if (isNewer(source)) {
+    checkArgument(!noMoreSplits || source.isNoMoreSplits(),"Source %s has new splits, but no more splits already set",planNodeId);
+    Set<ScheduledSplit> newSplits=ImmutableSet.<ScheduledSplit>builder().addAll(splits).addAll(source.getSplits()).build();
+    return new TaskSource(planNodeId,newSplits,source.isNoMoreSplits());
+  }
+ else {
+    return this;
+  }
+}
