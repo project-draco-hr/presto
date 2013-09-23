@@ -1,12 +1,8 @@
 {
   try {
-    Deserializer deserializer=MetaStoreUtils.getDeserializer(null,MetaStoreUtils.getTableMetadata(table));
-    ObjectInspector inspector=deserializer.getObjectInspector();
-    checkArgument(inspector.getCategory() == ObjectInspector.Category.STRUCT,"expected STRUCT: %s",inspector.getCategory());
-    StructObjectInspector structObjectInspector=(StructObjectInspector)inspector;
     ImmutableList.Builder<HiveColumnHandle> columns=ImmutableList.builder();
     int hiveColumnIndex=0;
-    for (    StructField field : structObjectInspector.getAllStructFieldRefs()) {
+    for (    StructField field : getTableStructFields(table)) {
       HiveType hiveType=getHiveType(field.getFieldObjectInspector());
       if (hiveType != null) {
         columns.add(new HiveColumnHandle(connectorId,field.getFieldName(),hiveColumnIndex,hiveType,hiveColumnIndex,false));

@@ -1,0 +1,21 @@
+{
+  TableHandle tableHandle=getTableHandle(tableBucketedStringInt);
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(tableHandle).values());
+  Map<String,Integer> columnIndex=indexColumns(columnHandles);
+  String testString="sequencefile test";
+  Long testInt=213L;
+  Long testSmallint=212L;
+  ImmutableMap<ColumnHandle,Object> bindings=ImmutableMap.<ColumnHandle,Object>builder().put(columnHandles.get(columnIndex.get("t_int")),testInt).put(columnHandles.get(columnIndex.get("t_string")),testString).put(columnHandles.get(columnIndex.get("t_smallint")),testSmallint).build();
+  List<Partition> partitions=splitManager.getPartitions(tableHandle,bindings);
+  List<Split> splits=ImmutableList.copyOf(splitManager.getPartitionSplits(tableHandle,partitions));
+  assertEquals(splits.size(),1);
+  boolean rowFound=false;
+  try (RecordCursor cursor=recordSetProvider.getRecordSet(splits.get(0),columnHandles).cursor()){
+    while (cursor.advanceNextPosition()) {
+      if (testString.equals(new String(cursor.getString(columnIndex.get("t_string")))) && testInt == cursor.getLong(columnIndex.get("t_int")) && testSmallint == cursor.getLong(columnIndex.get("t_smallint"))) {
+        rowFound=true;
+      }
+    }
+    assertTrue(rowFound);
+  }
+ }

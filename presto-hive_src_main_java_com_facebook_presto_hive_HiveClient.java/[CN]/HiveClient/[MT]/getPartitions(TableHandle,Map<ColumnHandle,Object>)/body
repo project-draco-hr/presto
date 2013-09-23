@@ -3,6 +3,7 @@
   checkNotNull(bindings,"bindings is null");
   SchemaTableName tableName=getTableName(tableHandle);
   List<FieldSchema> partitionKeys;
+  Optional<Integer> bucket;
   try {
     Table table=metastore.getTable(tableName.getSchemaName(),tableName.getTableName());
     String protectMode=table.getParameters().get(ProtectMode.PARAMETER_NAME);
@@ -10,6 +11,7 @@
       throw new TableOfflineException(tableName);
     }
     partitionKeys=table.getPartitionKeys();
+    bucket=getBucketNumber(table,bindings);
   }
  catch (  NoSuchObjectException e) {
     throw new TableNotFoundException(tableName);
@@ -43,6 +45,6 @@
  catch (  NoSuchObjectException e) {
     throw new TableNotFoundException(tableName);
   }
-  Iterable<Partition> partitions=transform(partitionNames,toPartition(tableName,partitionKeysByName.build()));
+  Iterable<Partition> partitions=transform(partitionNames,toPartition(tableName,partitionKeysByName.build(),bucket));
   return ImmutableList.copyOf(Iterables.filter(partitions,partitionMatches(bindings)));
 }

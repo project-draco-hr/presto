@@ -1,0 +1,22 @@
+{
+  TableHandle tableHandle=getTableHandle(tableBucketedBigintBoolean);
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(tableHandle).values());
+  Map<String,Integer> columnIndex=indexColumns(columnHandles);
+  String testString="textfile test";
+  Long testBigint=405L;
+  Boolean testBoolean=true;
+  ImmutableMap<ColumnHandle,Object> bindings=ImmutableMap.<ColumnHandle,Object>builder().put(columnHandles.get(columnIndex.get("t_string")),testString).put(columnHandles.get(columnIndex.get("t_bigint")),testBigint).put(columnHandles.get(columnIndex.get("t_boolean")),testBoolean).build();
+  List<Partition> partitions=splitManager.getPartitions(tableHandle,bindings);
+  List<Split> splits=ImmutableList.copyOf(splitManager.getPartitionSplits(tableHandle,partitions));
+  assertEquals(splits.size(),1);
+  boolean rowFound=false;
+  try (RecordCursor cursor=recordSetProvider.getRecordSet(splits.get(0),columnHandles).cursor()){
+    while (cursor.advanceNextPosition()) {
+      if (testString.equals(new String(cursor.getString(columnIndex.get("t_string")))) && testBigint == cursor.getLong(columnIndex.get("t_bigint")) && testBoolean == cursor.getBoolean(columnIndex.get("t_boolean"))) {
+        rowFound=true;
+        break;
+      }
+    }
+    assertTrue(rowFound);
+  }
+ }

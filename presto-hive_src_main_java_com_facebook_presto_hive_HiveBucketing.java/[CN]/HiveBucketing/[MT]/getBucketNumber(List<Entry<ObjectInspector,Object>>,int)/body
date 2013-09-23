@@ -1,0 +1,24 @@
+{
+  try {
+    GenericUDFHash udf=new GenericUDFHash();
+    ObjectInspector[] objectInspectors=new ObjectInspector[columnBindings.size()];
+    DeferredObject[] deferredObjects=new DeferredObject[columnBindings.size()];
+    int i=0;
+    for (    Entry<ObjectInspector,Object> entry : columnBindings) {
+      objectInspectors[i]=getJavaObjectInspector(entry.getKey());
+      deferredObjects[i]=getJavaDeferredObject(entry.getValue(),entry.getKey());
+      i++;
+    }
+    ObjectInspector udfInspector=udf.initialize(objectInspectors);
+    checkArgument(udfInspector instanceof IntObjectInspector,"expected IntObjectInspector: %s",udfInspector);
+    IntObjectInspector inspector=(IntObjectInspector)udfInspector;
+    Object result=udf.evaluate(deferredObjects);
+    HiveKey hiveKey=new HiveKey();
+    hiveKey.setHashCode(inspector.get(result));
+    return Optional.of(new DefaultHivePartitioner<>().getBucket(hiveKey,null,bucketCount));
+  }
+ catch (  HiveException e) {
+    log.debug(e,"Error evaluating bucket number");
+    return Optional.absent();
+  }
+}

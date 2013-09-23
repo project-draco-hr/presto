@@ -1,0 +1,18 @@
+{
+  TableHandle tableHandle=getTableHandle(tableBucketedDoubleFloat);
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(tableHandle).values());
+  Map<String,Integer> columnIndex=indexColumns(columnHandles);
+  ImmutableMap<ColumnHandle,Object> bindings=ImmutableMap.<ColumnHandle,Object>builder().put(columnHandles.get(columnIndex.get("t_float")),406.1000061035156).put(columnHandles.get(columnIndex.get("t_double")),407.2).build();
+  List<Partition> partitions=splitManager.getPartitions(tableHandle,bindings);
+  List<Split> splits=ImmutableList.copyOf(splitManager.getPartitionSplits(tableHandle,partitions));
+  assertEquals(splits.size(),32);
+  int count=0;
+  for (  Split split : splits) {
+    try (RecordCursor cursor=recordSetProvider.getRecordSet(split,columnHandles).cursor()){
+      while (cursor.advanceNextPosition()) {
+        count++;
+      }
+    }
+   }
+  assertEquals(count,300);
+}
