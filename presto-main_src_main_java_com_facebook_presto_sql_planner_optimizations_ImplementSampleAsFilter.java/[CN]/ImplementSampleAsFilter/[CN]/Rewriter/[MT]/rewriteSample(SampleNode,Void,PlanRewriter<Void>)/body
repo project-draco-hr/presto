@@ -1,5 +1,11 @@
 {
-  PlanNode rewrittenSource=planRewriter.rewrite(node.getSource(),context);
-  ComparisonExpression expression=new ComparisonExpression(ComparisonExpression.Type.LESS_THAN,new FunctionCall(QualifiedName.of("rand"),ImmutableList.<Expression>of()),new DoubleLiteral(Double.toString(node.getSampleRatio())));
-  return new FilterNode(node.getId(),rewrittenSource,expression);
+  if (node.getSampleType() == SampleNode.Type.BERNOULLI) {
+    PlanNode rewrittenSource=planRewriter.rewrite(node.getSource(),context);
+    ComparisonExpression expression=new ComparisonExpression(ComparisonExpression.Type.LESS_THAN,new FunctionCall(QualifiedName.of("rand"),ImmutableList.<Expression>of()),new DoubleLiteral(Double.toString(node.getSampleRatio())));
+    return new FilterNode(node.getId(),rewrittenSource,expression);
+  }
+ else   if (node.getSampleType() == SampleNode.Type.SYSTEM) {
+    return rewriteNode(node,context,planRewriter);
+  }
+  throw new UnsupportedOperationException("not yet implemented");
 }
