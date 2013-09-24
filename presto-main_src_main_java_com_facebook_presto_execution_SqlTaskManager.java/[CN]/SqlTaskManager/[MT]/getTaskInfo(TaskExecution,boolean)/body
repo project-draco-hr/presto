@@ -5,6 +5,11 @@
       log.warn("Task %s is in done state %s but does not have an end time",taskInfo.getTaskId(),taskInfo.getState());
     }
     taskInfos.putIfAbsent(taskInfo.getTaskId(),taskInfo);
+    TaskContext taskContext=taskExecution.getTaskContext();
+    finishedInputDataSize.merge(taskContext.getInputDataSize());
+    finishedInputPositions.merge(taskContext.getInputPositions());
+    finishedOutputDataSize.merge(taskContext.getOutputDataSize());
+    finishedOutputPositions.merge(taskContext.getOutputPositions());
     tasks.remove(taskInfo.getTaskId());
   }
   return taskInfo;
