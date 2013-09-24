@@ -16,14 +16,11 @@
   if (systemTable.isDistributed()) {
     ImmutableList.Builder<Split> splits=ImmutableList.builder();
     for (    Node node : nodeManager.getAllNodes().getActiveNodes()) {
-      splits.add(new SystemSplit(systemPartition.tableHandle,filters.build(),ImmutableList.of(node.getHostAndPort())));
+      splits.add(new SystemSplit(systemPartition.tableHandle,filters.build(),node.getHostAndPort()));
     }
     return splits.build();
   }
- else {
-    Optional<Node> currentNode=nodeManager.getCurrentNode();
-    Preconditions.checkState(currentNode.isPresent(),"current node is not in the active set");
-    Split split=new SystemSplit(systemPartition.tableHandle,filters.build(),ImmutableList.of(currentNode.get().getHostAndPort()));
-    return ImmutableList.of(split);
-  }
+  HostAddress address=nodeManager.getCurrentNode().getHostAndPort();
+  Split split=new SystemSplit(systemPartition.tableHandle,filters.build(),address);
+  return ImmutableList.of(split);
 }
