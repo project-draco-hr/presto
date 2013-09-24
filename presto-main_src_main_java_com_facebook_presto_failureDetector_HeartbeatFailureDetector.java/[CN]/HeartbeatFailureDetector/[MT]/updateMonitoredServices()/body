@@ -1,5 +1,5 @@
 {
-  Set<ServiceDescriptor> online=ImmutableSet.copyOf(selector.selectAllServices());
+  Set<ServiceDescriptor> online=IterableTransformer.on(selector.selectAllServices()).select(not(serviceDescriptorHasNodeId(nodeInfo.getNodeId()))).set();
   Set<UUID> onlineIds=IterableTransformer.on(online).transform(idGetter()).set();
 synchronized (tasks) {
     List<UUID> expiredIds=IterableTransformer.on(tasks.values()).select(isExpiredPredicate()).transform(serviceIdGetter()).list();
@@ -9,10 +9,10 @@ synchronized (tasks) {
       task.disable();
     }
     Set<ServiceDescriptor> newServices=IterableTransformer.on(online).select(compose(not(in(tasks.keySet())),idGetter())).set();
-    for (    final ServiceDescriptor service : newServices) {
-      final URI uri=getHttpUri(service);
+    for (    ServiceDescriptor service : newServices) {
+      URI uri=getHttpUri(service);
       if (uri != null) {
-        tasks.put(service.getId(),new MonitoringTask(executor,service,uri));
+        tasks.put(service.getId(),new MonitoringTask(service,uri));
       }
     }
     Iterable<MonitoringTask> toEnable=IterableTransformer.on(tasks.values()).select(compose(in(onlineIds),serviceIdGetter())).all();
