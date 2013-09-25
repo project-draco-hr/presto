@@ -20,13 +20,13 @@
     TranslationMap outputTranslations=new TranslationMap(subPlan.getRelationPlan(),analysis);
     outputTranslations.copyMappingsFrom(subPlan.getTranslations());
     ImmutableMap.Builder<Symbol,FunctionCall> assignments=ImmutableMap.builder();
-    Map<Symbol,FunctionHandle> functionHandles=new HashMap<>();
+    Map<Symbol,Signature> signatures=new HashMap<>();
     FunctionCall rewritten=(FunctionCall)subPlan.rewrite(windowFunction);
     Symbol newSymbol=symbolAllocator.newSymbol(rewritten,analysis.getType(windowFunction));
     assignments.put(newSymbol,rewritten);
     outputTranslations.put(windowFunction,newSymbol);
-    functionHandles.put(newSymbol,analysis.getFunctionInfo(windowFunction).getHandle());
-    subPlan=new PlanBuilder(outputTranslations,new WindowNode(idAllocator.getNextId(),subPlan.getRoot(),partitionBySymbols.build(),orderBySymbols.build(),orderings,assignments.build(),functionHandles));
+    signatures.put(newSymbol,analysis.getFunctionInfo(windowFunction).getHandle());
+    subPlan=new PlanBuilder(outputTranslations,new WindowNode(idAllocator.getNextId(),subPlan.getRoot(),partitionBySymbols.build(),orderBySymbols.build(),orderings,assignments.build(),signatures));
   }
   return subPlan;
 }

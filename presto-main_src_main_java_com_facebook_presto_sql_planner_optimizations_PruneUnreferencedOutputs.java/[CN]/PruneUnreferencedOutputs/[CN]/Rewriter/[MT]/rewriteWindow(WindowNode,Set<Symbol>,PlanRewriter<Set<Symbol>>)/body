@@ -1,6 +1,6 @@
 {
   ImmutableSet.Builder<Symbol> expectedInputs=ImmutableSet.<Symbol>builder().addAll(expectedOutputs).addAll(node.getPartitionBy()).addAll(node.getOrderBy());
-  ImmutableMap.Builder<Symbol,FunctionHandle> functions=ImmutableMap.builder();
+  ImmutableMap.Builder<Symbol,Signature> functions=ImmutableMap.builder();
   ImmutableMap.Builder<Symbol,FunctionCall> functionCalls=ImmutableMap.builder();
   for (  Map.Entry<Symbol,FunctionCall> entry : node.getWindowFunctions().entrySet()) {
     Symbol symbol=entry.getKey();
@@ -8,7 +8,7 @@
       FunctionCall call=entry.getValue();
       expectedInputs.addAll(DependencyExtractor.extractUnique(call));
       functionCalls.put(symbol,call);
-      functions.put(symbol,node.getFunctionHandles().get(symbol));
+      functions.put(symbol,node.getSignatures().get(symbol));
     }
   }
   PlanNode source=planRewriter.rewrite(node.getSource(),expectedInputs.build());
