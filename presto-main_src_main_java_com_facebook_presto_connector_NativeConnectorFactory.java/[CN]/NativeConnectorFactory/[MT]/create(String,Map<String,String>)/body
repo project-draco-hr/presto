@@ -1,8 +1,13 @@
 {
-  NativeMetadata nativeMetadata=new NativeMetadata(connectorId,dbi);
   ImmutableClassToInstanceMap.Builder<Object> builder=ImmutableClassToInstanceMap.builder();
-  builder.put(ConnectorMetadata.class,nativeMetadata);
-  builder.put(ConnectorSplitManager.class,splitManager);
+  IDBI dbi=this.dbi.get();
+  if (dbi != null) {
+    builder.put(ConnectorMetadata.class,new NativeMetadata(connectorId,dbi));
+  }
+  NativeSplitManager splitManager=this.splitManager.get();
+  if (splitManager != null) {
+    builder.put(ConnectorSplitManager.class,splitManager);
+  }
   builder.put(ConnectorDataStreamProvider.class,dataStreamProvider);
   builder.put(ConnectorHandleResolver.class,HANDLE_RESOLVER);
   return new StaticConnector(builder.build());

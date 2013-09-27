@@ -1,11 +1,8 @@
 {
-  httpServerBinder(binder).bindResource("/","webapp").withWelcomeFile("index.html");
-  binder.bind(QueryResource.class).in(Scopes.SINGLETON);
-  binder.bind(StageResource.class).in(Scopes.SINGLETON);
-  binder.bind(QueryManager.class).to(SqlQueryManager.class).in(Scopes.SINGLETON);
-  newExporter(binder).export(QueryManager.class).withGeneratedName();
+  ServerConfig serverConfig=buildConfigObject(ServerConfig.class);
+  install(new CoordinatorModule());
+  bindFailureDetector(binder,serverConfig.isCoordinator());
   bindConfig(binder).to(QueryManagerConfig.class);
-  binder.bind(QueryIdGenerator.class).in(Scopes.SINGLETON);
   binder.bind(TaskResource.class).in(Scopes.SINGLETON);
   binder.bind(TaskManager.class).to(SqlTaskManager.class).in(Scopes.SINGLETON);
   newExporter(binder).export(TaskManager.class).withGeneratedName();
@@ -13,15 +10,15 @@
   newExporter(binder).export(TaskExecutor.class).withGeneratedName();
   binder.bind(LocalExecutionPlanner.class).in(Scopes.SINGLETON);
   binder.bind(ExpressionCompiler.class).in(Scopes.SINGLETON);
+  jsonCodecBinder(binder).bindJsonCodec(TaskInfo.class);
+  binder.bind(PagesMapper.class).in(Scopes.SINGLETON);
   binder.bind(new TypeLiteral<Supplier<ExchangeClient>>(){
   }
 ).to(ExchangeClientFactory.class).in(Scopes.SINGLETON);
-  jsonCodecBinder(binder).bindJsonCodec(TaskInfo.class);
-  binder.bind(PagesMapper.class).in(Scopes.SINGLETON);
+  httpClientBinder(binder).bindAsyncHttpClient("exchange",ForExchange.class).withTracing();
   binder.bind(LocationFactory.class).to(HttpLocationFactory.class).in(Scopes.SINGLETON);
   binder.bind(RemoteTaskFactory.class).to(HttpRemoteTaskFactory.class).in(Scopes.SINGLETON);
-  HttpClientBinder.httpClientBinder(binder).bindAsyncHttpClient("exchange",ForExchange.class).withTracing();
-  HttpClientBinder.httpClientBinder(binder).bindAsyncHttpClient("scheduler",ForScheduler.class).withTracing();
+  httpClientBinder(binder).bindAsyncHttpClient("scheduler",ForScheduler.class).withTracing();
   bindConfig(binder).to(DatabaseLocalStorageManagerConfig.class);
   binder.bind(LocalStorageManager.class).to(DatabaseLocalStorageManager.class).in(Scopes.SINGLETON);
   newExporter(binder).export(LocalStorageManager.class).withGeneratedName();
@@ -31,13 +28,10 @@
   bindConfig(binder).to(CatalogManagerConfig.class);
   binder.bind(MetadataManager.class).in(Scopes.SINGLETON);
   binder.bind(Metadata.class).to(MetadataManager.class).in(Scopes.SINGLETON);
-  binder.bind(SplitManager.class).in(Scopes.SINGLETON);
   binder.install(new HandleJsonModule());
   binder.bind(ConnectorManager.class).in(Scopes.SINGLETON);
-  MapBinder<String,ConnectorFactory> connectorFactoryBinder=MapBinder.newMapBinder(binder,String.class,ConnectorFactory.class);
+  MapBinder<String,ConnectorFactory> connectorFactoryBinder=newMapBinder(binder,String.class,ConnectorFactory.class);
   connectorFactoryBinder.addBinding("native").to(NativeConnectorFactory.class);
-  binder.bind(NativeSplitManager.class).in(Scopes.SINGLETON);
-  binder.bind(NativeDataStreamProvider.class).in(Scopes.SINGLETON);
   connectorFactoryBinder.addBinding("jmx").to(JmxConnectorFactory.class);
   binder.install(new DualModule());
   binder.install(new InformationSchemaModule());
@@ -51,33 +45,16 @@
   eventBinder(binder).bindEventClient(QueryCreatedEvent.class);
   eventBinder(binder).bindEventClient(QueryCompletionEvent.class);
   eventBinder(binder).bindEventClient(SplitCompletionEvent.class);
-  discoveryBinder(binder).bindSelector("presto");
-  binder.bind(NodeManager.class).to(DiscoveryNodeManager.class).in(Scopes.SINGLETON);
-  bindConfig(binder).to(NodeSchedulerConfig.class);
-  binder.bind(NodeScheduler.class).in(Scopes.SINGLETON);
-  newExporter(binder).export(NodeScheduler.class).withGeneratedName();
-  binder.bind(ShardManager.class).to(DatabaseShardManager.class).in(Scopes.SINGLETON);
-  bindConfig(binder).to(ShardCleanerConfig.class);
-  binder.bind(ShardCleaner.class).in(Scopes.SINGLETON);
-  httpClientBinder(binder).bindHttpClient("shard-cleaner",ForShardCleaner.class);
-  binder.bind(ShardResource.class).in(Scopes.SINGLETON);
-  String prestoVersion=getConfigProperty("presto.version");
+  String prestoVersion=serverConfig.getPrestoVersion();
   if (prestoVersion == null) {
-    String implementationTitle=PrestoServer.class.getPackage().getImplementationTitle();
-    String implementationVersion=PrestoServer.class.getPackage().getImplementationVersion();
-    prestoVersion=(implementationTitle == null || implementationVersion == null) ? null : implementationTitle + ":" + implementationVersion;
+    prestoVersion=detectPrestoVersion();
   }
   checkState(prestoVersion != null,"presto.version must be provided when it cannot be automatically determined");
   NodeVersion nodeVersion=new NodeVersion(prestoVersion);
   binder.bind(NodeVersion.class).toInstance(nodeVersion);
-  ServiceAnnouncementBuilder announcementBuilder=discoveryBinder(binder).bindHttpAnnouncement("presto").addProperty("node_version",nodeVersion.toString());
-  String datasources=getConfigProperty("datasources");
-  if (datasources != null) {
-    announcementBuilder.addProperty("datasources",datasources);
-  }
-  String coordinatorProperty=getConfigProperty("coordinator");
-  if (coordinatorProperty == null || Boolean.parseBoolean(coordinatorProperty)) {
-    discoveryBinder(binder).bindHttpAnnouncement("presto-coordinator");
+  ServiceAnnouncementBuilder prestoAnnouncement=discoveryBinder(binder).bindHttpAnnouncement("presto").addProperty("node_version",nodeVersion.toString());
+  if (serverConfig.getDataSources() != null) {
+    prestoAnnouncement.addProperty("datasources",serverConfig.getDataSources());
   }
   bindDataSource(binder,"presto-metastore",ForMetadata.class,ForShardManager.class);
   jsonCodecBinder(binder).bindJsonCodec(QueryInfo.class);
@@ -88,42 +65,7 @@
   httpClientBinder(binder).bindAsyncHttpClient("execute",ForExecute.class);
   binder.bind(PluginManager.class).in(Scopes.SINGLETON);
   bindConfig(binder).to(PluginManagerConfig.class);
-  bindConfig(binder).to(PeriodicImportConfig.class);
-  binder.bind(PeriodicImportJobResource.class).in(Scopes.SINGLETON);
-  binder.bind(PeriodicImportManager.class).to(DatabasePeriodicImportManager.class).in(Scopes.SINGLETON);
-  binder.bind(PeriodicImportController.class).in(Scopes.SINGLETON);
-  binder.bind(JobStateFactory.class).in(Scopes.SINGLETON);
-  binder.bind(PeriodicImportRunnable.PeriodicImportRunnableFactory.class).in(Scopes.SINGLETON);
-  newExporter(binder).export(PeriodicImportController.class).as("com.facebook.presto:name=periodic-import");
-  HttpClientBinder.httpClientBinder(binder).bindAsyncHttpClient("periodic-importer",ForPeriodicImport.class).withTracing();
-  binder.bind(SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
-  newExporter(binder).export(SqlQueryExecutionFactory.class).withGeneratedName();
-  MapBinder<Class<? extends Statement>,QueryExecutionFactory<?>> executionBinder=MapBinder.newMapBinder(binder,new TypeLiteral<Class<? extends Statement>>(){
-  }
-,new TypeLiteral<QueryExecutionFactory<?>>(){
-  }
-);
-  binder.bind(DropTableExecutionFactory.class).in(Scopes.SINGLETON);
-  executionBinder.addBinding(DropTable.class).to(DropTableExecutionFactory.class).in(Scopes.SINGLETON);
-  newExporter(binder).export(DropTableExecutionFactory.class).withGeneratedName();
-  binder.bind(CreateAliasExecutionFactory.class).in(Scopes.SINGLETON);
-  executionBinder.addBinding(CreateAlias.class).to(CreateAliasExecutionFactory.class).in(Scopes.SINGLETON);
-  newExporter(binder).export(CreateAliasExecutionFactory.class).withGeneratedName();
-  binder.bind(DropAliasExecutionFactory.class).in(Scopes.SINGLETON);
-  executionBinder.addBinding(DropAlias.class).to(DropAliasExecutionFactory.class).in(Scopes.SINGLETON);
-  newExporter(binder).export(DropAliasExecutionFactory.class).withGeneratedName();
-  executionBinder.addBinding(Query.class).to(SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
-  executionBinder.addBinding(Explain.class).to(SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
-  executionBinder.addBinding(ShowColumns.class).to(SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
-  executionBinder.addBinding(ShowPartitions.class).to(SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
-  executionBinder.addBinding(ShowFunctions.class).to(SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
-  executionBinder.addBinding(ShowTables.class).to(SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
-  executionBinder.addBinding(ShowSchemas.class).to(SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
-  executionBinder.addBinding(CreateMaterializedView.class).to(SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
-  executionBinder.addBinding(RefreshMaterializedView.class).to(SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
   binder.bind(new TypeLiteral<List<PlanOptimizer>>(){
   }
 ).toProvider(PlanOptimizersFactory.class).in(Scopes.SINGLETON);
-  binder.bind(NodeResource.class).in(Scopes.SINGLETON);
-  binder.bind(StorageManager.class).to(DatabaseStorageManager.class).in(Scopes.SINGLETON);
 }
