@@ -5,13 +5,7 @@
   this.sharedBuffer=new SharedBuffer(checkNotNull(maxBufferSize,"maxBufferSize is null"));
   List<String> data=ImmutableList.of("apple","banana","cherry","date");
   for (int i=0; i < initialPages; i++) {
-    try {
-      sharedBuffer.add(new Page(createStringsBlock(Iterables.concat(Collections.nCopies(i + 1,data)))));
-    }
- catch (    InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw Throwables.propagate(e);
-    }
+    checkState(sharedBuffer.enqueue(new Page(createStringsBlock(Iterables.concat(Collections.nCopies(i + 1,data))))).isDone(),"Unable to add page to buffer");
   }
   sharedBuffer.finish();
 }

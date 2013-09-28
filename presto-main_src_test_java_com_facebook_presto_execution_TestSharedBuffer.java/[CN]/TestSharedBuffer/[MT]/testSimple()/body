@@ -1,7 +1,7 @@
 {
   SharedBuffer sharedBuffer=new SharedBuffer(sizeOfPages(10));
   for (int i=0; i < 3; i++) {
-    assertTrue(sharedBuffer.offer(createPage(i)));
+    addPage(sharedBuffer,createPage(i));
   }
   sharedBuffer.addQueue("first");
   assertQueueState(sharedBuffer,"first",3,0);
@@ -10,13 +10,13 @@
   assertBufferResultEquals(sharedBuffer.get("first",3,sizeOfPages(10),NO_WAIT),emptyResults(3,false));
   assertQueueState(sharedBuffer,"first",0,3);
   for (int i=3; i < 10; i++) {
-    assertTrue(sharedBuffer.offer(createPage(i)));
+    addPage(sharedBuffer,createPage(i));
   }
   assertQueueState(sharedBuffer,"first",7,3);
-  assertFalse(sharedBuffer.offer(createPage(99)));
+  ListenableFuture<?> future=enqueuePage(sharedBuffer,createPage(10));
   assertBufferResultEquals(sharedBuffer.get("first",3,sizeOfPages(1),NO_WAIT),bufferResult(3,createPage(3)));
   assertQueueState(sharedBuffer,"first",7,3);
-  assertFalse(sharedBuffer.offer(createPage(99)));
+  assertFalse(future.isDone());
   sharedBuffer.addQueue("second");
   assertQueueState(sharedBuffer,"second",10,0);
   assertBufferResultEquals(sharedBuffer.get("second",0,sizeOfPages(10),NO_WAIT),bufferResult(0,createPage(0),createPage(1),createPage(2),createPage(3),createPage(4),createPage(5),createPage(6),createPage(7),createPage(8),createPage(9)));
@@ -24,17 +24,14 @@
   assertBufferResultEquals(sharedBuffer.get("second",10,sizeOfPages(10),NO_WAIT),emptyResults(10,false));
   assertQueueState(sharedBuffer,"second",0,10);
   sharedBuffer.noMoreQueues();
-  for (int i=10; i < 13; i++) {
-    assertTrue(sharedBuffer.offer(createPage(i)));
-  }
-  assertFalse(sharedBuffer.offer(createPage(99)));
+  future.get(1,TimeUnit.SECONDS);
+  addPage(sharedBuffer,createPage(11));
+  addPage(sharedBuffer,createPage(12));
+  future=enqueuePage(sharedBuffer,createPage(13));
   assertQueueState(sharedBuffer,"first",10,3);
   assertQueueState(sharedBuffer,"second",3,10);
   assertBufferResultEquals(sharedBuffer.get("first",4,sizeOfPages(1),NO_WAIT),bufferResult(4,createPage(4)));
-  assertQueueState(sharedBuffer,"first",9,4);
-  assertQueueState(sharedBuffer,"second",3,10);
-  assertTrue(sharedBuffer.offer(createPage(13)));
-  assertFalse(sharedBuffer.offer(createPage(99)));
+  future.get(1,TimeUnit.SECONDS);
   assertQueueState(sharedBuffer,"first",10,4);
   assertQueueState(sharedBuffer,"second",4,10);
   assertFalse(sharedBuffer.isFinished());

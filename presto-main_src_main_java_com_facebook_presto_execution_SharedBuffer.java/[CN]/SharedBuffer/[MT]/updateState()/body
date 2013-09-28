@@ -1,7 +1,4 @@
 {
-  if (failed.get()) {
-    return;
-  }
   if (closed.get()) {
     for (Iterator<NamedQueue> iterator=openQueuesBySequenceId.iterator(); iterator.hasNext(); ) {
       NamedQueue namedQueue=iterator.next();
@@ -10,6 +7,10 @@
         iterator.remove();
       }
     }
+    for (    QueuedPage queuedPage : queuedPages) {
+      queuedPage.getFuture().set(null);
+    }
+    queuedPages.clear();
   }
   if (state == QueueState.NO_MORE_QUEUES && !openQueuesBySequenceId.isEmpty()) {
     long oldMasterSequenceId=masterSequenceId;
@@ -27,7 +28,7 @@
     }
   }
   if (state == QueueState.NO_MORE_QUEUES && closed.get() && openQueuesBySequenceId.isEmpty()) {
-    state=QueueState.FINISHED;
+    destroy();
   }
   this.notifyAll();
 }
