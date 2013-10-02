@@ -1,0 +1,17 @@
+{
+  checkReadablePosition(position);
+  int offset=offsets[position];
+  boolean thisIsNull=slice.getByte(offset) != 0;
+  boolean valueIsNull=value.isNull();
+  if (thisIsNull != valueIsNull) {
+    return false;
+  }
+  if (thisIsNull) {
+    return true;
+  }
+  Slice valueSlice=((BlockCursor)value).getRawSlice();
+  int valueOffset=((BlockCursor)value).getRawOffset();
+  int valueLength=getLength(valueSlice,valueOffset);
+  int length=getLength(slice,offset);
+  return slice.equals(offset + SIZE_OF_INT + SIZE_OF_BYTE,length,valueSlice,valueOffset + SIZE_OF_INT + SIZE_OF_BYTE,valueLength);
+}

@@ -11,11 +11,11 @@
     return Longs.hashCode(longValue);
   }
  else   if (type == Type.BOOLEAN) {
-    return slice.getByte(offset + SIZE_OF_BYTE) != 0 ? 1 : 0;
+    return Booleans.hashCode(slice.getByte(offset + SIZE_OF_BYTE) != 0);
   }
  else   if (type == Type.VARIABLE_BINARY) {
-    int sliceLength=getVariableBinaryLength(slice,offset);
-    return slice.hashCode(offset,sliceLength);
+    int sliceLength=slice.getInt(offset + SIZE_OF_BYTE) - SIZE_OF_BYTE - SIZE_OF_INT;
+    return slice.hashCode(offset + SIZE_OF_INT + SIZE_OF_BYTE,sliceLength);
   }
  else {
     throw new IllegalArgumentException("Unsupported type " + type);

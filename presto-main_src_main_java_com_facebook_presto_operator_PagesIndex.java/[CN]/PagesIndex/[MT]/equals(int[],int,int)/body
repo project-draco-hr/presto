@@ -1,0 +1,19 @@
+{
+  if (leftPosition == rightPosition) {
+    return true;
+  }
+  long leftPageAddress=valueAddresses.getLong(leftPosition);
+  RandomAccessPage leftPage=getPageForSyntheticAddress(leftPageAddress);
+  int leftBlockPosition=decodePosition(leftPageAddress);
+  long rightPageAddress=valueAddresses.getLong(rightPosition);
+  RandomAccessPage rightPage=getPageForSyntheticAddress(rightPageAddress);
+  int rightBlockPosition=decodePosition(rightPageAddress);
+  for (  int channel : channels) {
+    RandomAccessBlock leftBlock=leftPage.getBlock(channel);
+    RandomAccessBlock rightBlock=rightPage.getBlock(channel);
+    if (!leftBlock.equals(leftBlockPosition,rightBlock,rightBlockPosition)) {
+      return false;
+    }
+  }
+  return true;
+}

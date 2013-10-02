@@ -1,0 +1,18 @@
+{
+  checkReadablePosition(position);
+  int offset=offsets[position];
+  boolean leftIsNull=slice.getByte(offset) != 0;
+  boolean rightIsNull=right.isNull(rightPosition);
+  if (leftIsNull && rightIsNull) {
+    return 0;
+  }
+  if (leftIsNull) {
+    return sortOrder.isNullsFirst() ? -1 : 1;
+  }
+  if (rightIsNull) {
+    return sortOrder.isNullsFirst() ? 1 : -1;
+  }
+  int length=getLength(slice,offset);
+  int result=-right.sliceCompareTo(rightPosition,slice,offset + SIZE_OF_INT + SIZE_OF_BYTE,length);
+  return sortOrder.isAscending() ? result : -result;
+}

@@ -1,0 +1,19 @@
+{
+  long leftSliceAddress=valueAddresses.getLong(leftPosition);
+  RandomAccessPage leftPage=getPageForSyntheticAddress(leftSliceAddress);
+  int leftBlockPosition=decodePosition(leftSliceAddress);
+  long rightSliceAddress=valueAddresses.getLong(rightPosition);
+  RandomAccessPage rightPage=getPageForSyntheticAddress(rightSliceAddress);
+  int rightBlockPosition=decodePosition(rightSliceAddress);
+  for (int i=0; i < sortChannels.length; i++) {
+    int sortChannel=sortChannels[i];
+    SortOrder sortOrder=sortOrders[i];
+    RandomAccessBlock leftBlock=leftPage.getBlock(sortChannel);
+    RandomAccessBlock rightBlock=rightPage.getBlock(sortChannel);
+    int compare=leftBlock.compareTo(sortOrder,leftBlockPosition,rightBlock,rightBlockPosition);
+    if (compare != 0) {
+      return compare;
+    }
+  }
+  return 0;
+}

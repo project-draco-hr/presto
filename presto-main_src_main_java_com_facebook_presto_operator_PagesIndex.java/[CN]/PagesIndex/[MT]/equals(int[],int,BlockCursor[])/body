@@ -1,0 +1,14 @@
+{
+  long pageAddress=valueAddresses.getLong(position);
+  RandomAccessPage page=getPageForSyntheticAddress(pageAddress);
+  int blockPosition=decodePosition(pageAddress);
+  for (int i=0; i < channels.length; i++) {
+    int channel=channels[i];
+    BlockCursor cursor=cursors[i];
+    RandomAccessBlock block=page.getBlock(channel);
+    if (!block.equals(blockPosition,cursor)) {
+      return false;
+    }
+  }
+  return true;
+}
