@@ -3,7 +3,7 @@
   try (ThreadContextClassLoader ignored=new ThreadContextClassLoader(classLoader)){
     ImmutableList.Builder<ListenableFuture<Void>> futureBuilder=ImmutableList.builder();
     Iterator<String> nameIterator=partitionNames.iterator();
-    for (    org.apache.hadoop.hive.metastore.api.Partition partition : partitions) {
+    for (    Partition partition : partitions) {
       checkState(nameIterator.hasNext(),"different number of partitions and partition names!");
       semaphore.acquire();
       final String partitionName=nameIterator.next();
@@ -20,7 +20,7 @@
         FileInputFormat.setInputPaths(jobConf,partitionPath);
         InputSplit[] splits=inputFormat.getSplits(jobConf,0);
         for (        InputSplit rawSplit : splits) {
-          FileSplit split=((SymlinkTextInputSplit)rawSplit).getTargetSplit();
+          FileSplit split=((SymlinkTextInputFormat.SymlinkTextInputSplit)rawSplit).getTargetSplit();
           FileSystem targetFilesystem=split.getPath().getFileSystem(configuration);
           FileStatus fileStatus=targetFilesystem.getFileStatus(split.getPath());
           markerQueue.addToQueue(createHiveSplits(partitionName,fileStatus,targetFilesystem.getFileBlockLocations(fileStatus,split.getStart(),split.getLength()),split.getStart(),split.getLength(),schema,partitionKeys,false));
