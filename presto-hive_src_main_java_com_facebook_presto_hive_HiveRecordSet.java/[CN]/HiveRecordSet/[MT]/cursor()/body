@@ -8,11 +8,9 @@
     ColumnProjectionUtils.setReadColumnIDs(configuration,readHiveColumnIndexes);
     RecordReader<?,?> recordReader=createRecordReader(split,configuration,wrappedPath);
     if (recordReader.createValue() instanceof BytesRefArrayWritable) {
-      return new BytesHiveRecordCursor<>((RecordReader<?,BytesRefArrayWritable>)recordReader,split.getLength(),split.getSchema(),split.getPartitionKeys(),columns);
+      return new BytesHiveRecordCursor<>(bytesRecordReader(recordReader),split.getLength(),split.getSchema(),split.getPartitionKeys(),columns);
     }
- else {
-      return new GenericHiveRecordCursor<>((RecordReader<?,? extends Writable>)recordReader,split.getLength(),split.getSchema(),split.getPartitionKeys(),columns);
-    }
+    return new GenericHiveRecordCursor<>(genericRecordReader(recordReader),split.getLength(),split.getSchema(),split.getPartitionKeys(),columns);
   }
  catch (  Exception e) {
     throw Throwables.propagate(e);

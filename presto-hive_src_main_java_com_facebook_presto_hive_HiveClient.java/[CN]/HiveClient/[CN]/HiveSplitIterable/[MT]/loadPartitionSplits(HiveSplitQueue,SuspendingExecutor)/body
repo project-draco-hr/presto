@@ -1,6 +1,6 @@
 {
   final Semaphore semaphore=new Semaphore(maxPartitionBatchSize);
-  try (ThreadContextClassLoader threadContextClassLoader=new ThreadContextClassLoader(classLoader)){
+  try (ThreadContextClassLoader ignored=new ThreadContextClassLoader(classLoader)){
     ImmutableList.Builder<ListenableFuture<Void>> futureBuilder=ImmutableList.builder();
     Iterator<String> nameIterator=partitionNames.iterator();
     for (    org.apache.hadoop.hive.metastore.api.Partition partition : partitions) {
@@ -13,7 +13,7 @@
       final Configuration configuration=hdfsEnvironment.getConfiguration(path);
       final InputFormat<?,?> inputFormat=getInputFormat(configuration,schema,false);
       Path partitionPath=hdfsEnvironment.getFileSystemWrapper().wrap(path);
-      final FileSystem fs=partitionPath.getFileSystem(configuration);
+      FileSystem fs=partitionPath.getFileSystem(configuration);
       final LastSplitMarkingQueue markerQueue=new LastSplitMarkingQueue(hiveSplitQueue);
       if (inputFormat instanceof SymlinkTextInputFormat) {
         JobConf jobConf=new JobConf(configuration);
