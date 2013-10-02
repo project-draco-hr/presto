@@ -2,11 +2,8 @@
   String inputFormatName=getInputFormatName(schema);
   try {
     JobConf jobConf=new JobConf(configuration);
-    Class<? extends InputFormat> inputFormatClass=jobConf.getClassByName(inputFormatName).asSubclass(InputFormat.class);
-    if (inputFormatClass == null) {
-      inputFormatClass=TextInputFormat.class;
-    }
- else     if (symlinkTarget && (inputFormatClass == SymlinkTextInputFormat.class)) {
+    Class<? extends InputFormat<?,?>> inputFormatClass=getInputFormatClass(jobConf,inputFormatName);
+    if (symlinkTarget && (inputFormatClass == SymlinkTextInputFormat.class)) {
       inputFormatClass=TextInputFormat.class;
     }
     return ReflectionUtils.newInstance(inputFormatClass,jobConf);
