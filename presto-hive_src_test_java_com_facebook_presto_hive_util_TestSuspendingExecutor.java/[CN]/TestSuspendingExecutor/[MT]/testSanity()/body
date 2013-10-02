@@ -1,6 +1,6 @@
 {
   final AtomicInteger count=new AtomicInteger();
-  final SuspendingExecutor suspendingExecutor=new SuspendingExecutor(MoreExecutors.sameThreadExecutor());
+  SuspendingExecutor suspendingExecutor=new SuspendingExecutor(MoreExecutors.sameThreadExecutor());
   Runnable incrementTask=new Runnable(){
     @Override public void run(){
       count.incrementAndGet();
@@ -8,16 +8,16 @@
   }
 ;
   suspendingExecutor.execute(incrementTask);
-  Assert.assertEquals(count.get(),1);
+  assertEquals(count.get(),1);
   suspendingExecutor.execute(incrementTask);
-  Assert.assertEquals(count.get(),2);
+  assertEquals(count.get(),2);
   suspendingExecutor.suspend();
   suspendingExecutor.execute(incrementTask);
-  Assert.assertEquals(count.get(),2);
+  assertEquals(count.get(),2);
   suspendingExecutor.execute(incrementTask);
-  Assert.assertEquals(count.get(),2);
+  assertEquals(count.get(),2);
   suspendingExecutor.resume();
-  Assert.assertEquals(count.get(),4);
+  assertEquals(count.get(),4);
   suspendingExecutor.execute(incrementTask);
-  Assert.assertEquals(count.get(),5);
+  assertEquals(count.get(),5);
 }
