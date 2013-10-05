@@ -1,6 +1,11 @@
 {
-  if (type.isFixedSize()) {
-    return type.getSize() + SIZE_OF_BYTE;
+  if (fixedWidthTypeInfo != null) {
+    return fixedWidthTypeInfo.getSize() + SIZE_OF_BYTE;
   }
-  return slice.getInt(offset + SIZE_OF_BYTE);
+ else   if (isNull(slice,offset)) {
+    return SIZE_OF_BYTE;
+  }
+ else {
+    return variableWidthTypeInfo.getLength(slice,offset + SIZE_OF_BYTE) + SIZE_OF_BYTE;
+  }
 }

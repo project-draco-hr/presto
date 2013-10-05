@@ -4,20 +4,7 @@
   if (slice.getByte(offset) != 0) {
     builder.appendNull();
   }
- else   if (type == Type.FIXED_INT_64) {
-    builder.append(slice.getLong(offset + SIZE_OF_BYTE));
-  }
- else   if (type == Type.DOUBLE) {
-    builder.append(slice.getDouble(offset + SIZE_OF_BYTE));
-  }
- else   if (type == Type.BOOLEAN) {
-    builder.append(slice.getByte(offset + SIZE_OF_BYTE) != 0);
-  }
- else   if (type == Type.VARIABLE_BINARY) {
-    int sliceLength=getVariableBinaryLength(slice,offset);
-    builder.append(slice.slice(offset + SIZE_OF_BYTE + SIZE_OF_INT,sliceLength));
-  }
  else {
-    throw new IllegalArgumentException("Unsupported type " + type);
+    type.getTypeInfo().appendTo(slice,offset + SIZE_OF_BYTE,builder);
   }
 }

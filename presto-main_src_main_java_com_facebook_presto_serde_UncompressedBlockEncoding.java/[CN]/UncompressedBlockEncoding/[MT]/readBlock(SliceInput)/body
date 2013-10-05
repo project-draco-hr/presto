@@ -1,6 +1,12 @@
 {
   int blockSize=sliceInput.readInt();
-  int tupleCount=sliceInput.readInt();
-  Slice block=sliceInput.readSlice(blockSize);
-  return new UncompressedBlock(tupleCount,tupleInfo,block);
+  int positionCount=sliceInput.readInt();
+  Slice slice=sliceInput.readSlice(blockSize);
+  Type type=tupleInfo.getType();
+  if (type.isFixedSize()) {
+    return new FixedWidthBlock(new FixedWidthTypeInfo(type),positionCount,slice);
+  }
+ else {
+    return new VariableWidthBlock(new VariableWidthTypeInfo(type),positionCount,slice);
+  }
 }

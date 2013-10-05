@@ -1,4 +1,15 @@
 {
-  int tupleSliceSize=size(sliceInput);
-  return sliceInput.readSlice(tupleSliceSize);
+  if (type.isFixedSize()) {
+    return sliceInput.readSlice(type.getSize() + SIZE_OF_BYTE);
+  }
+ else {
+    int originalPosition=sliceInput.position();
+    boolean isNull=sliceInput.readByte() != 0;
+    if (isNull) {
+      return Slices.wrappedBuffer(new byte[]{1});
+    }
+    int size=variableWidthTypeInfo.getLength(sliceInput);
+    sliceInput.setPosition(originalPosition);
+    return sliceInput.readSlice(size + SIZE_OF_BYTE);
+  }
 }

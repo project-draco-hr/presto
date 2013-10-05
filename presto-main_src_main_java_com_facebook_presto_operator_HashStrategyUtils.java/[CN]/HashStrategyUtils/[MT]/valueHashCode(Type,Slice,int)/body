@@ -3,21 +3,5 @@
   if (isNull) {
     return 0;
   }
-  if (type == Type.FIXED_INT_64) {
-    return Longs.hashCode(slice.getLong(offset + SIZE_OF_BYTE));
-  }
- else   if (type == Type.DOUBLE) {
-    long longValue=Double.doubleToLongBits(slice.getDouble(offset + SIZE_OF_BYTE));
-    return Longs.hashCode(longValue);
-  }
- else   if (type == Type.BOOLEAN) {
-    return Booleans.hashCode(slice.getByte(offset + SIZE_OF_BYTE) != 0);
-  }
- else   if (type == Type.VARIABLE_BINARY) {
-    int sliceLength=slice.getInt(offset + SIZE_OF_BYTE) - SIZE_OF_BYTE - SIZE_OF_INT;
-    return slice.hashCode(offset + SIZE_OF_INT + SIZE_OF_BYTE,sliceLength);
-  }
- else {
-    throw new IllegalArgumentException("Unsupported type " + type);
-  }
+  return type.getTypeInfo().hashCode(slice,offset + SIZE_OF_BYTE);
 }

@@ -1,10 +1,9 @@
 {
   Type type=tupleInfo.getType();
-  if (type == Type.BOOLEAN || type == Type.FIXED_INT_64 || type == Type.DOUBLE) {
+  if (type.isFixedSize()) {
     return new FixedWidthBlockCursor(new FixedWidthTypeInfo(type),positionCount,getUncompressedSlice());
   }
- else   if (type == Type.VARIABLE_BINARY) {
-    return new UncompressedSliceBlockCursor(positionCount,getUncompressedSlice());
+ else {
+    return new VariableWidthBlockCursor(new VariableWidthTypeInfo(type),positionCount,getUncompressedSlice());
   }
-  throw new IllegalStateException("Unsupported type " + type);
 }

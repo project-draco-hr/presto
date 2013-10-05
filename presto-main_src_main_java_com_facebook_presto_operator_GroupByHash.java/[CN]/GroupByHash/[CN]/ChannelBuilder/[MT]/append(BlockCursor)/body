@@ -1,45 +1,38 @@
 {
   int writableBytes=sliceOutput.writableBytes() - SIZE_OF_BYTE;
+  if (writableBytes == 0) {
+    return false;
+  }
   boolean isNull=cursor.isNull();
-  if (type == Type.FIXED_INT_64) {
-    if (writableBytes < SIZE_OF_LONG) {
+  Slice slice=cursor.getRawSlice();
+  int offset=cursor.getRawOffset();
+  if (type.isFixedSize()) {
+    FixedWidthTypeInfo typeInfo=(FixedWidthTypeInfo)type.getTypeInfo();
+    if (writableBytes < typeInfo.getSize() + SIZE_OF_BYTE) {
       return false;
     }
     positionOffsets.add(sliceOutput.size());
-    sliceOutput.writeByte(isNull ? 1 : 0);
-    sliceOutput.appendLong(isNull ? 0 : cursor.getLong());
-  }
- else   if (type == Type.DOUBLE) {
-    if (writableBytes < SIZE_OF_DOUBLE) {
-      return false;
+    if (isNull) {
+      sliceOutput.writeByte(1);
+      sliceOutput.writeZero(typeInfo.getSize());
     }
+ else {
+      sliceOutput.writeByte(0);
+      type.getTypeInfo().appendTo(slice,offset + SIZE_OF_BYTE,sliceOutput);
+    }
+  }
+ else   if (isNull) {
     positionOffsets.add(sliceOutput.size());
-    sliceOutput.writeByte(isNull ? 1 : 0);
-    sliceOutput.appendDouble(isNull ? 0 : cursor.getDouble());
-  }
- else   if (type == Type.BOOLEAN) {
-    if (writableBytes < SIZE_OF_BYTE) {
-      return false;
-    }
-    positionOffsets.add(sliceOutput.size());
-    sliceOutput.writeByte(isNull ? 1 : 0);
-    sliceOutput.writeByte(!isNull && cursor.getBoolean() ? 1 : 0);
-  }
- else   if (type == Type.VARIABLE_BINARY) {
-    int sliceLength=isNull ? 0 : getVariableBinaryLength(cursor.getRawSlice(),cursor.getRawOffset());
-    if (writableBytes < SIZE_OF_INT + sliceLength) {
-      return false;
-    }
-    int startingOffset=sliceOutput.size();
-    positionOffsets.add(startingOffset);
-    sliceOutput.writeByte(isNull ? 1 : 0);
-    sliceOutput.appendInt(sliceLength + SIZE_OF_BYTE + SIZE_OF_INT);
-    if (!isNull) {
-      sliceOutput.writeBytes(cursor.getRawSlice(),cursor.getRawOffset() + SIZE_OF_BYTE + SIZE_OF_INT,sliceLength);
-    }
+    sliceOutput.writeByte(1);
   }
  else {
-    throw new IllegalArgumentException("Unsupported type " + type);
+    VariableWidthTypeInfo typeInfo=(VariableWidthTypeInfo)type.getTypeInfo();
+    if (writableBytes < typeInfo.getLength(slice,offset + SIZE_OF_BYTE) + SIZE_OF_BYTE) {
+      return false;
+    }
+    positionOffsets.add(sliceOutput.size());
+    sliceOutput.writeByte(0);
+    type.getTypeInfo().appendTo(slice,offset + SIZE_OF_BYTE,sliceOutput);
   }
   return true;
 }

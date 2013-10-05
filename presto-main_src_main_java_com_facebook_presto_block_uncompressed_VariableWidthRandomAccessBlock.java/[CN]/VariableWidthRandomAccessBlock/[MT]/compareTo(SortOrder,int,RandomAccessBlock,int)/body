@@ -1,0 +1,20 @@
+{
+  checkReadablePosition(position);
+  int leftOffset=offsets[position];
+  VariableWidthRandomAccessBlock rightBlock=(VariableWidthRandomAccessBlock)right;
+  rightBlock.checkReadablePosition(rightPosition);
+  int rightOffset=rightBlock.offsets[rightPosition];
+  boolean leftIsNull=slice.getByte(leftOffset) != 0;
+  boolean rightIsNull=rightBlock.slice.getByte(rightOffset) != 0;
+  if (leftIsNull && rightIsNull) {
+    return 0;
+  }
+  if (leftIsNull) {
+    return sortOrder.isNullsFirst() ? -1 : 1;
+  }
+  if (rightIsNull) {
+    return sortOrder.isNullsFirst() ? 1 : -1;
+  }
+  int result=typeInfo.compareTo(slice,leftOffset + SIZE_OF_BYTE,rightBlock.slice,rightOffset + SIZE_OF_BYTE);
+  return sortOrder.isAscending() ? result : -result;
+}
