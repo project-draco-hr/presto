@@ -2,7 +2,6 @@
   ServerConfig serverConfig=buildConfigObject(ServerConfig.class);
   install(new CoordinatorModule());
   bindFailureDetector(binder,serverConfig.isCoordinator());
-  bindConfig(binder).to(QueryManagerConfig.class);
   binder.bind(TaskResource.class).in(Scopes.SINGLETON);
   binder.bind(TaskManager.class).to(SqlTaskManager.class).in(Scopes.SINGLETON);
   newExporter(binder).export(TaskManager.class).withGeneratedName();
@@ -10,12 +9,14 @@
   newExporter(binder).export(TaskExecutor.class).withGeneratedName();
   binder.bind(LocalExecutionPlanner.class).in(Scopes.SINGLETON);
   binder.bind(ExpressionCompiler.class).in(Scopes.SINGLETON);
+  bindConfig(binder).to(TaskManagerConfig.class);
   jsonCodecBinder(binder).bindJsonCodec(TaskInfo.class);
   binder.bind(PagesMapper.class).in(Scopes.SINGLETON);
   binder.bind(new TypeLiteral<Supplier<ExchangeClient>>(){
   }
 ).to(ExchangeClientFactory.class).in(Scopes.SINGLETON);
   httpClientBinder(binder).bindAsyncHttpClient("exchange",ForExchange.class).withTracing();
+  bindConfig(binder).to(ExchangeClientConfig.class);
   binder.bind(LocationFactory.class).to(HttpLocationFactory.class).in(Scopes.SINGLETON);
   binder.bind(RemoteTaskFactory.class).to(HttpRemoteTaskFactory.class).in(Scopes.SINGLETON);
   httpClientBinder(binder).bindAsyncHttpClient("scheduler",ForScheduler.class).withTracing();
