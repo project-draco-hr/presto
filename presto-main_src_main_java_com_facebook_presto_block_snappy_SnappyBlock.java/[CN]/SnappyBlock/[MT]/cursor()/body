@@ -1,13 +1,7 @@
 {
   Type type=tupleInfo.getType();
-  if (type == Type.BOOLEAN) {
-    return new UncompressedBooleanBlockCursor(positionCount,getUncompressedSlice());
-  }
- else   if (type == Type.FIXED_INT_64) {
-    return new UncompressedLongBlockCursor(positionCount,getUncompressedSlice());
-  }
- else   if (type == Type.DOUBLE) {
-    return new UncompressedDoubleBlockCursor(positionCount,getUncompressedSlice());
+  if (type == Type.BOOLEAN || type == Type.FIXED_INT_64 || type == Type.DOUBLE) {
+    return new FixedWidthBlockCursor(new FixedWidthTypeInfo(type),positionCount,getUncompressedSlice());
   }
  else   if (type == Type.VARIABLE_BINARY) {
     return new UncompressedSliceBlockCursor(positionCount,getUncompressedSlice());
