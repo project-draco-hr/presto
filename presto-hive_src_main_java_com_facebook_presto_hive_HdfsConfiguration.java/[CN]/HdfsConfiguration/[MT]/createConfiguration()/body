@@ -9,19 +9,10 @@
   if (domainSocketPath != null) {
     config.setStrings("dfs.domain.socket.path",domainSocketPath);
   }
-  config.setBoolean("dfs.read.shortcircuit",true);
-  config.setBoolean("dfs.read.shortcircuit.fallbackwhenfail",true);
   config.setInt("dfs.socket.timeout",Ints.checkedCast(dfsTimeout.toMillis()));
   config.setInt("ipc.ping.interval",Ints.checkedCast(dfsTimeout.toMillis()));
   config.setInt("ipc.client.connect.timeout",Ints.checkedCast(dfsConnectTimeout.toMillis()));
   config.setInt("ipc.client.connect.max.retries",dfsConnectMaxRetries);
-  try {
-    ContextFactory factory=ContextFactory.getFactory();
-    factory.setAttribute("hdfsclient.class","org.apache.hadoop.metrics.jmx.JMXContext");
-    factory.setAttribute("hdfsclient.period","5");
-  }
- catch (  IOException e) {
-    throw Throwables.propagate(e);
-  }
+  updateConfiguration(config);
   return config;
 }
