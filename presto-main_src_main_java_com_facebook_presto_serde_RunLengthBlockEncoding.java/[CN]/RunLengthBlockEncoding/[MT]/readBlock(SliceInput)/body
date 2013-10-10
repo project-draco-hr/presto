@@ -1,7 +1,14 @@
 {
   int tupleLength=sliceInput.readInt();
   int tupleCount=sliceInput.readInt();
-  Slice tupleSlice=sliceInput.readSlice(tupleLength);
-  Tuple tuple=new Tuple(tupleSlice,tupleInfo);
-  return new RunLengthEncodedBlock(tuple,tupleCount);
+  Slice slice=sliceInput.readSlice(tupleLength);
+  RandomAccessBlock value;
+  TypeInfo typeInfo=tupleInfo.getTypeInfo();
+  if (typeInfo instanceof FixedWidthTypeInfo) {
+    value=new FixedWidthBlock((FixedWidthTypeInfo)typeInfo,1,slice);
+  }
+ else {
+    value=new VariableWidthRandomAccessBlock((VariableWidthTypeInfo)typeInfo,1,slice);
+  }
+  return new RunLengthEncodedBlock(value,tupleCount);
 }

@@ -7,9 +7,7 @@
     sortChannels.add(source.getLayout().get(symbol).getChannel());
     sortOrders.add(node.getOrderings().get(symbol));
   }
-  Ordering<TupleReadable[]> ordering=Ordering.from(new FieldOrderedTupleComparator(sortChannels,sortOrders));
-  IdentityProjectionInfo mappings=computeIdentityMapping(node.getOutputSymbols(),source.getLayout(),context.getTypes());
   Optional<Integer> sampleWeightChannel=node.getSampleWeight().transform(source.channelGetter());
-  OperatorFactory operator=new TopNOperatorFactory(context.getNextOperatorId(),(int)node.getCount(),mappings.getProjections(),ordering,sampleWeightChannel,node.isPartial());
-  return new PhysicalOperation(operator,mappings.getOutputLayout(),source);
+  OperatorFactory operator=new TopNOperatorFactory(context.getNextOperatorId(),source.getTupleInfos(),(int)node.getCount(),sortChannels,sortOrders,sampleWeightChannel,node.isPartial());
+  return new PhysicalOperation(operator,source.getLayout(),source);
 }

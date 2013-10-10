@@ -1,22 +1,22 @@
 {
-  Block expectedBlock=new BlockBuilder(SINGLE_VARBINARY).append("alice").append("alice").append("bob").append("bob").append("bob").append("bob").append("charlie").append("charlie").append("charlie").append("charlie").append("charlie").append("charlie").build();
+  RandomAccessBlock expectedBlock=new BlockBuilder(SINGLE_VARBINARY).append("alice").append("alice").append("bob").append("bob").append("bob").append("bob").append("charlie").append("charlie").append("charlie").append("charlie").append("charlie").append("charlie").build().toRandomAccessBlock();
   DynamicSliceOutput sliceOutput=new DynamicSliceOutput(1024);
   BlockEncoding blockEncoding=new RunLengthEncoder(sliceOutput).append(expectedBlock).finish();
   SliceInput sliceInput=sliceOutput.slice().getInput();
   Block block=blockEncoding.readBlock(sliceInput);
   assertInstanceOf(block,RunLengthEncodedBlock.class);
   RunLengthEncodedBlock rleBlock=(RunLengthEncodedBlock)block;
-  assertEquals(rleBlock.getSingleValue(),createTuple("alice"));
+  assertTrue(rleBlock.equals(0,expectedBlock,0));
   assertEquals(rleBlock.getPositionCount(),2);
   block=blockEncoding.readBlock(sliceInput);
   assertInstanceOf(block,RunLengthEncodedBlock.class);
   rleBlock=(RunLengthEncodedBlock)block;
-  assertEquals(rleBlock.getSingleValue(),createTuple("bob"));
+  assertTrue(rleBlock.equals(0,expectedBlock,2));
   assertEquals(rleBlock.getPositionCount(),4);
   block=blockEncoding.readBlock(sliceInput);
   assertInstanceOf(block,RunLengthEncodedBlock.class);
   rleBlock=(RunLengthEncodedBlock)block;
-  assertEquals(rleBlock.getSingleValue(),createTuple("charlie"));
+  assertTrue(rleBlock.equals(0,expectedBlock,6));
   assertEquals(rleBlock.getPositionCount(),6);
   assertFalse(sliceInput.isReadable());
 }

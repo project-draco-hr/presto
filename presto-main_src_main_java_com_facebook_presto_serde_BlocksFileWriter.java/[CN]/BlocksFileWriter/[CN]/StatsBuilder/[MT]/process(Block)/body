@@ -1,20 +1,20 @@
 {
   checkNotNull(block,"block is null");
+  if (dictionaryBuilder == null) {
+    dictionaryBuilder=new DictionaryBuilder(block.getTupleInfo().getType());
+  }
   BlockCursor cursor=block.cursor();
   while (cursor.advanceNextPosition()) {
-    Tuple tuple=cursor.getTuple();
-    if (lastTuple == null) {
-      lastTuple=tuple;
-      if (set.size() < MAX_UNIQUE_COUNT) {
-        set.add(lastTuple);
-      }
+    RandomAccessBlock randomAccessBlock=cursor.getSingleValueBlock();
+    if (lastValue == null) {
+      lastValue=randomAccessBlock;
     }
- else     if (!tuple.equals(lastTuple)) {
+ else     if (!randomAccessBlock.equals(0,lastValue,0)) {
       runsCount++;
-      lastTuple=tuple;
-      if (set.size() < MAX_UNIQUE_COUNT) {
-        set.add(lastTuple);
-      }
+      lastValue=randomAccessBlock;
+    }
+    if (dictionaryBuilder.size() < MAX_UNIQUE_COUNT) {
+      dictionaryBuilder.putIfAbsent(cursor);
     }
     rowCount++;
   }

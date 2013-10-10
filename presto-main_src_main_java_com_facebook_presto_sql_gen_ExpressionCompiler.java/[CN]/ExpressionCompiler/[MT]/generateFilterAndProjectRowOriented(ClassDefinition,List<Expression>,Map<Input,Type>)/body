@@ -22,7 +22,7 @@
   for (int channel=0; channel < channels; channel++) {
     condition.getVariable("cursor_" + channel);
   }
-  condition.invokeVirtual(classDefinition.getType(),"filter",type(boolean.class),nCopies(channels,type(TupleReadable.class)));
+  condition.invokeVirtual(classDefinition.getType(),"filter",type(boolean.class),nCopies(channels,type(BlockCursor.class)));
   ifStatement.condition(condition);
   Block trueBlock=new Block(compilerContext);
   if (projections.isEmpty()) {
@@ -36,7 +36,7 @@
         trueBlock.getVariable("cursor_" + channel);
       }
       trueBlock.getVariable("pageBuilder").push(projectionIndex).invokeVirtual(PageBuilder.class,"getBlockBuilder",BlockBuilder.class,int.class);
-      trueBlock.invokeVirtual(classDefinition.getType(),"project_" + projectionIndex,type(void.class),ImmutableList.<ParameterizedType>builder().addAll(nCopies(channels,type(TupleReadable.class))).add(type(BlockBuilder.class)).build());
+      trueBlock.invokeVirtual(classDefinition.getType(),"project_" + projectionIndex,type(void.class),ImmutableList.<ParameterizedType>builder().addAll(nCopies(channels,type(BlockCursor.class))).add(type(BlockBuilder.class)).build());
     }
   }
   ifStatement.ifTrue(trueBlock);

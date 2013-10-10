@@ -1,9 +1,10 @@
 {
-  RunLengthEncodedBlock expectedBlock=new RunLengthEncodedBlock(Tuples.createTuple("alice"),11);
+  RandomAccessBlock value=new BlockBuilder(SINGLE_VARBINARY).append("alice").build().toRandomAccessBlock();
+  RunLengthEncodedBlock expectedBlock=new RunLengthEncodedBlock(value,11);
   DynamicSliceOutput sliceOutput=new DynamicSliceOutput(1024);
   RunLengthBlockEncoding blockEncoding=new RunLengthBlockEncoding(SINGLE_VARBINARY);
   blockEncoding.writeBlock(sliceOutput,expectedBlock);
   RunLengthEncodedBlock actualBlock=blockEncoding.readBlock(sliceOutput.slice().getInput());
-  assertEquals(actualBlock.getSingleValue(),expectedBlock.getSingleValue());
+  assertTrue(actualBlock.equals(0,expectedBlock,0));
   BlockAssertions.assertBlockEquals(actualBlock,expectedBlock);
 }

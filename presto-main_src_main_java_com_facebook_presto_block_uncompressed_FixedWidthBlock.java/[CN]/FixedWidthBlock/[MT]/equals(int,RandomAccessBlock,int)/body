@@ -1,16 +1,13 @@
 {
-  FixedWidthBlock right=(FixedWidthBlock)rightBlock;
   checkReadablePosition(position);
   int leftEntryOffset=position * entrySize;
   boolean leftIsNull=slice.getByte(leftEntryOffset) != 0;
-  right.checkReadablePosition(rightPosition);
-  int rightEntryOffset=rightPosition * entrySize;
-  boolean rightIsNull=right.slice.getByte(rightEntryOffset) != 0;
+  boolean rightIsNull=rightBlock.isNull(rightPosition);
   if (leftIsNull != rightIsNull) {
     return false;
   }
   if (leftIsNull) {
     return true;
   }
-  return typeInfo.equals(slice,leftEntryOffset + SIZE_OF_BYTE,right.slice,rightEntryOffset + SIZE_OF_BYTE);
+  return rightBlock.equals(rightPosition,slice,leftEntryOffset + SIZE_OF_BYTE);
 }

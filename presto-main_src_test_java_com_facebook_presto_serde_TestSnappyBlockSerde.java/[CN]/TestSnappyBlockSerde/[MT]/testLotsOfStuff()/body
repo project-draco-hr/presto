@@ -1,14 +1,13 @@
 {
-  ImmutableList<Tuple> tuples=ImmutableList.of(createTuple("alice"),createTuple("bob"),createTuple("charlie"),createTuple("dave"));
+  RandomAccessBlock block=new BlockBuilder(TupleInfo.SINGLE_VARBINARY).append("alice").append("bob").append("charlie").append("dave").build().toRandomAccessBlock();
   DynamicSliceOutput encoderOutput=new DynamicSliceOutput(1024);
   Encoder encoder=BlocksFileEncoding.SNAPPY.createBlocksWriter(encoderOutput);
   BlockBuilder expectedBlockBuilder=new BlockBuilder(TupleInfo.SINGLE_VARBINARY);
   int count=1000;
   for (int i=0; i < count; i++) {
-    Tuple tuple=tuples.get(ThreadLocalRandom.current().nextInt(tuples.size()));
-    expectedBlockBuilder.append(tuple);
-    Block block=new BlockBuilder(TupleInfo.SINGLE_VARBINARY).append(tuple).build();
-    encoder.append(block);
+    int position=ThreadLocalRandom.current().nextInt(block.getPositionCount());
+    block.appendTupleTo(position,expectedBlockBuilder);
+    encoder.append(block.getSingleValueBlock(position));
   }
   Block expectedBlock=expectedBlockBuilder.build();
   BlockEncoding snappyEncoding=encoder.finish();

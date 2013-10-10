@@ -1,26 +1,25 @@
 {
   long sizeDelta=0;
-  Tuple[] row=getValues(cursors);
+  RandomAccessBlock[] row=getValues(cursors);
   long sampleWeight=1;
   if (sampleWeightChannel.isPresent()) {
-    sampleWeight=row[sampleWeightChannel.get()].getLong();
-    row[sampleWeightChannel.get()]=Tuples.createTuple(1);
+    sampleWeight=row[sampleWeightChannel.get()].getLong(0);
+    row[sampleWeightChannel.get()]=createBigintBlock(1);
   }
-  for (  Tuple tuple : row) {
-    sizeDelta+=tuple.size();
-  }
-  for (int i=0; i < sampleWeight; i++) {
-    sizeDelta+=OVERHEAD_PER_TUPLE.toBytes();
+  sizeDelta+=sizeOfRow(row);
+  globalCandidates.add(row);
+  for (int i=1; i < sampleWeight; i++) {
+    sizeDelta+=OVERHEAD_PER_VALUE.toBytes();
     globalCandidates.add(row);
   }
   while (globalCandidates.size() > n) {
-    Tuple[] previous=globalCandidates.remove();
+    RandomAccessBlock[] previous=globalCandidates.remove();
     if (previous != globalCandidates.peek()) {
-      for (      Tuple tuple : previous) {
-        sizeDelta-=tuple.size();
-      }
+      sizeDelta-=sizeOfRow(previous);
     }
-    sizeDelta-=OVERHEAD_PER_TUPLE.toBytes();
+ else {
+      sizeDelta-=OVERHEAD_PER_VALUE.toBytes();
+    }
   }
   return sizeDelta;
 }
