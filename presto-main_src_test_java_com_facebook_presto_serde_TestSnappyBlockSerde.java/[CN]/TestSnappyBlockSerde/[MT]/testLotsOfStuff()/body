@@ -1,18 +1,18 @@
 {
   ImmutableList<Tuple> tuples=ImmutableList.of(createTuple("alice"),createTuple("bob"),createTuple("charlie"),createTuple("dave"));
-  DynamicSliceOutput blockSlice=new DynamicSliceOutput(1024);
-  DynamicSliceOutput compressedOutput=new DynamicSliceOutput(1024);
-  Encoder encoder=BlocksFileEncoding.SNAPPY.createBlocksWriter(compressedOutput);
+  DynamicSliceOutput encoderOutput=new DynamicSliceOutput(1024);
+  Encoder encoder=BlocksFileEncoding.SNAPPY.createBlocksWriter(encoderOutput);
+  BlockBuilder expectedBlockBuilder=new BlockBuilder(TupleInfo.SINGLE_VARBINARY);
   int count=1000;
-  Random r=new Random();
   for (int i=0; i < count; i++) {
-    int x=r.nextInt(tuples.size());
-    tuples.get(x).writeTo(blockSlice);
-    encoder.append(ImmutableSet.of(tuples.get(x)));
+    Tuple tuple=tuples.get(ThreadLocalRandom.current().nextInt(tuples.size()));
+    expectedBlockBuilder.append(tuple);
+    Block block=new BlockBuilder(TupleInfo.SINGLE_VARBINARY).append(tuple).build();
+    encoder.append(block);
   }
-  Block expectedBlock=new VariableWidthBlock(new VariableWidthTypeInfo(VARIABLE_BINARY),count,blockSlice.slice());
+  Block expectedBlock=expectedBlockBuilder.build();
   BlockEncoding snappyEncoding=encoder.finish();
-  assertTrue(compressedOutput.size() < blockSlice.size());
-  Block actualBlock=snappyEncoding.readBlock(compressedOutput.slice().getInput());
+  assertTrue(encoderOutput.size() < expectedBlock.getDataSize().toBytes());
+  Block actualBlock=snappyEncoding.readBlock(encoderOutput.slice().getInput());
   BlockAssertions.assertBlockEquals(actualBlock,expectedBlock);
 }

@@ -1,14 +1,9 @@
 {
-  ImmutableList<Tuple> tuples=ImmutableList.of(createTuple("alice"),createTuple("bob"),createTuple("charlie"),createTuple("dave"));
-  DynamicSliceOutput blockSlice=new DynamicSliceOutput(1024);
+  Block block=new BlockBuilder(TupleInfo.SINGLE_VARBINARY).append("alice").append("bob").append("charlie").append("dave").build();
   DynamicSliceOutput compressedOutput=new DynamicSliceOutput(1024);
   Encoder encoder=BlocksFileEncoding.SNAPPY.createBlocksWriter(compressedOutput);
-  for (  Tuple tuple : tuples) {
-    tuple.writeTo(blockSlice);
-  }
-  Block expectedBlock=new VariableWidthBlock(new VariableWidthTypeInfo(VARIABLE_BINARY),tuples.size(),blockSlice.slice());
-  encoder.append(tuples);
+  encoder.append(block);
   BlockEncoding snappyEncoding=encoder.finish();
   Block actualBlock=snappyEncoding.readBlock(compressedOutput.slice().getInput());
-  BlockAssertions.assertBlockEquals(actualBlock,expectedBlock);
+  BlockAssertions.assertBlockEquals(actualBlock,block);
 }

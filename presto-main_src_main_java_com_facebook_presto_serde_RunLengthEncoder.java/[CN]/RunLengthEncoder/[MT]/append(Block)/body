@@ -1,0 +1,20 @@
+{
+  checkNotNull(block,"tuples is null");
+  checkState(!finished,"already finished");
+  if (encoding == null) {
+    encoding=new RunLengthBlockEncoding(block.getTupleInfo());
+  }
+  BlockCursor cursor=block.cursor();
+  while (cursor.advanceNextPosition()) {
+    Tuple tuple=cursor.getTuple();
+    if (lastTuple == null) {
+      lastTuple=tuple;
+    }
+ else     if (!tuple.equals(lastTuple)) {
+      writeBlock();
+      lastTuple=tuple;
+    }
+    tupleCount++;
+  }
+  return this;
+}

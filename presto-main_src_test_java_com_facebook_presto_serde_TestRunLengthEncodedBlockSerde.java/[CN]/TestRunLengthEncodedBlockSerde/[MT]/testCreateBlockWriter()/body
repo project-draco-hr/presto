@@ -1,7 +1,7 @@
 {
-  ImmutableList<Tuple> tuples=ImmutableList.of(createTuple("alice"),createTuple("alice"),createTuple("bob"),createTuple("bob"),createTuple("bob"),createTuple("bob"),createTuple("charlie"),createTuple("charlie"),createTuple("charlie"),createTuple("charlie"),createTuple("charlie"),createTuple("charlie"));
+  Block expectedBlock=new BlockBuilder(SINGLE_VARBINARY).append("alice").append("alice").append("bob").append("bob").append("bob").append("bob").append("charlie").append("charlie").append("charlie").append("charlie").append("charlie").append("charlie").build();
   DynamicSliceOutput sliceOutput=new DynamicSliceOutput(1024);
-  BlockEncoding blockEncoding=new RunLengthEncoder(sliceOutput).append(tuples).finish();
+  BlockEncoding blockEncoding=new RunLengthEncoder(sliceOutput).append(expectedBlock).finish();
   SliceInput sliceInput=sliceOutput.slice().getInput();
   Block block=blockEncoding.readBlock(sliceInput);
   assertInstanceOf(block,RunLengthEncodedBlock.class);

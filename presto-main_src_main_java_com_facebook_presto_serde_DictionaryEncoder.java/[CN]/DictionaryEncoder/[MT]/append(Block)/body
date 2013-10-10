@@ -1,0 +1,16 @@
+{
+  checkNotNull(block,"tuples is null");
+  checkState(!finished,"already finished");
+  if (tupleInfo == null) {
+    tupleInfo=block.getTupleInfo();
+    dictionaryBuilder=new DictionaryBuilder(tupleInfo.getType());
+  }
+  BlockCursor cursor=block.cursor();
+  BlockBuilder idBlockBuilder=new BlockBuilder(TupleInfo.SINGLE_LONG);
+  while (cursor.advanceNextPosition()) {
+    int key=dictionaryBuilder.putIfAbsent(cursor.getTuple());
+    idBlockBuilder.append(key);
+  }
+  idWriter.append(idBlockBuilder.build());
+  return this;
+}

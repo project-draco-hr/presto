@@ -1,0 +1,16 @@
+{
+  checkNotNull(block,"tuples is null");
+  checkState(!finished,"already finished");
+  if (encoding == null) {
+    encoding=new UncompressedBlockEncoding(block.getTupleInfo());
+    blockBuilder=new BlockBuilder(block.getTupleInfo());
+  }
+  BlockCursor cursor=block.cursor();
+  while (cursor.advanceNextPosition()) {
+    cursor.appendTupleTo(blockBuilder);
+    if (blockBuilder.isFull()) {
+      writeBlock();
+    }
+  }
+  return this;
+}
