@@ -2,10 +2,11 @@
   try {
     beforeRequest.await(1,TimeUnit.SECONDS);
   }
- catch (  Exception e) {
-    if (e instanceof InterruptedException) {
-      Thread.currentThread().interrupt();
-    }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    throw Throwables.propagate(e);
+  }
+catch (  BrokenBarrierException|TimeoutException e) {
     throw Throwables.propagate(e);
   }
   try {
@@ -15,10 +16,11 @@
     try {
       afterRequest.await(1,TimeUnit.SECONDS);
     }
- catch (    Exception e) {
-      if (e instanceof InterruptedException) {
-        Thread.currentThread().interrupt();
-      }
+ catch (    InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw Throwables.propagate(e);
+    }
+catch (    BrokenBarrierException|TimeoutException e) {
       throw Throwables.propagate(e);
     }
   }
