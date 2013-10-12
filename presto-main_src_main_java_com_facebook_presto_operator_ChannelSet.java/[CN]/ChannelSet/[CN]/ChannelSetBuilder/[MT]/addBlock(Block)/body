@@ -1,23 +1,19 @@
 {
-  operatorContext.setMemoryReservation(getEstimatedSize());
   BlockCursor sourceCursor=sourceBlock.cursor();
-  Slice sourceSlice=sourceBlock.getRawSlice();
-  strategy.setLookupSlice(sourceSlice);
-  for (int position=0; position < sourceBlock.getPositionCount(); position++) {
-    checkState(sourceCursor.advanceNextPosition());
+  strategy.setLookupValue(sourceCursor);
+  while (sourceCursor.advanceNextPosition()) {
     containsNull|=sourceCursor.isNull();
-    long sourceAddress=encodeSyntheticAddress(LOOKUP_SLICE_INDEX,sourceCursor.getRawOffset());
-    if (!addressValueSet.contains(sourceAddress)) {
-      int length=tupleInfo.size(sourceSlice,sourceCursor.getRawOffset());
-      if (blockBuilder.writableBytes() < length) {
-        Slice slice=Slices.allocate(Math.max((int)BlockBuilder.DEFAULT_MAX_BLOCK_SIZE.toBytes(),length));
-        strategy.addSlice(slice);
-        blockBuilder=createBlockBuilder(tupleInfo,slice);
+    if (!addressValueSet.contains(CURRENT_VALUE_ADDRESS)) {
+      if (openBlockBuilder.isFull()) {
+        blocksMemorySize+=openBlockBuilder.getDataSize().toBytes();
+        openBlockBuilder=createBlockBuilder(tupleInfo);
+        blocks.add(openBlockBuilder);
         currentBlockId++;
       }
-      int blockRawOffset=blockBuilder.size();
-      blockBuilder.appendTuple(sourceSlice,sourceCursor.getRawOffset(),length);
-      addressValueSet.add(encodeSyntheticAddress(currentBlockId,blockRawOffset));
+      int blockPosition=openBlockBuilder.getPositionCount();
+      sourceCursor.appendTupleTo(openBlockBuilder);
+      addressValueSet.add(encodeSyntheticAddress(currentBlockId,blockPosition));
     }
   }
+  operatorContext.setMemoryReservation(getEstimatedSize());
 }

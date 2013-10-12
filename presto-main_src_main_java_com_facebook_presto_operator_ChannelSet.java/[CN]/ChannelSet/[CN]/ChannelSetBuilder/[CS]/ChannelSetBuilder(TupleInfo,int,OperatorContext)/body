@@ -2,9 +2,9 @@
   this.tupleInfo=checkNotNull(tupleInfo,"tupleInfo is null");
   checkArgument(expectedPositions >= 0,"expectedPositions must be greater than or equal to zero");
   this.operatorContext=checkNotNull(operatorContext,"operatorContext is null");
-  strategy=new SliceHashStrategy(tupleInfo);
+  blocks=ObjectArrayList.wrap(new BlockBuilder[1024],0);
+  strategy=new BlockBuilderHashStrategy(blocks);
   addressValueSet=new AddressValueSet(expectedPositions,strategy);
-  Slice slice=Slices.allocate((int)BlockBuilder.DEFAULT_MAX_BLOCK_SIZE.toBytes());
-  strategy.addSlice(slice);
-  blockBuilder=createBlockBuilder(tupleInfo,slice);
+  openBlockBuilder=createBlockBuilder(tupleInfo);
+  blocks.add(openBlockBuilder);
 }
