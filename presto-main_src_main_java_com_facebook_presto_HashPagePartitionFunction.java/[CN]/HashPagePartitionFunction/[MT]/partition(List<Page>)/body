@@ -14,12 +14,12 @@
       for (      BlockCursor cursor : cursors) {
         cursor.advanceNextPosition();
       }
-      int partitionHashBucket=getPartitionHashBucket(tupleInfos,cursors);
+      int partitionHashBucket=getPartitionHashBucket(cursors);
       if (partitionHashBucket != partition) {
         continue;
       }
       for (int channel=0; channel < cursors.length; channel++) {
-        pageBuilder.getBlockBuilder(channel).append(cursors[channel]);
+        cursors[channel].appendTupleTo(pageBuilder.getBlockBuilder(channel));
       }
       if (pageBuilder.isFull()) {
         partitionedPages.add(pageBuilder.build());
