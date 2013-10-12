@@ -1,0 +1,17 @@
+{
+  checkReadablePosition(position);
+  int leftOffset=getPositionOffset(position);
+  boolean leftIsNull=getRawSlice().getByte(leftOffset) != 0;
+  boolean rightIsNull=rightBlock.isNull(rightPosition);
+  if (leftIsNull && rightIsNull) {
+    return 0;
+  }
+  if (leftIsNull) {
+    return sortOrder.isNullsFirst() ? -1 : 1;
+  }
+  if (rightIsNull) {
+    return sortOrder.isNullsFirst() ? 1 : -1;
+  }
+  int result=-rightBlock.compareTo(rightPosition,getRawSlice(),leftOffset + SIZE_OF_BYTE);
+  return sortOrder.isAscending() ? result : -result;
+}
