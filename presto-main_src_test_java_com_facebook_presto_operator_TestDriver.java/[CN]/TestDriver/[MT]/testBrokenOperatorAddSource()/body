@@ -2,10 +2,10 @@
   PlanNodeId sourceId=new PlanNodeId("source");
   TableScanOperator source=new TableScanOperator(driverContext.addOperatorContext(99,"values"),sourceId,new DataStreamProvider(){
     @Override public Operator createNewDataStream(    OperatorContext operatorContext,    Split split,    List<ColumnHandle> columns){
-      return new ValuesOperator(driverContext.addOperatorContext(0,"values"),rowPagesBuilder(SINGLE_VARBINARY,SINGLE_LONG,SINGLE_LONG).addSequencePage(10,20,30,40).build());
+      return new ValuesOperator(driverContext.addOperatorContext(0,"values"),rowPagesBuilder(VARCHAR,BIGINT,BIGINT).addSequencePage(10,20,30,40).build());
     }
   }
-,ImmutableList.of(SINGLE_VARBINARY,SINGLE_LONG,SINGLE_LONG),ImmutableList.<ColumnHandle>of());
+,ImmutableList.of(VARCHAR,BIGINT,BIGINT),ImmutableList.<ColumnHandle>of());
   BrokenOperator brokenOperator=new BrokenOperator(driverContext.addOperatorContext(0,"source"));
   final Driver driver=new Driver(driverContext,source,brokenOperator);
   Future<Boolean> driverProcessFor=executor.submit(new Callable<Boolean>(){

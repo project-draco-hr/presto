@@ -1,0 +1,34 @@
+{
+  return new Function<List<Object>,MaterializedRow>(){
+    @Override public MaterializedRow apply(    List<Object> data){
+      checkArgument(data.size() == types.size(),"columns size does not match types size");
+      List<Object> row=new ArrayList<>();
+      for (int i=0; i < data.size(); i++) {
+        Object value=data.get(i);
+        if (value == null) {
+          row.add(null);
+          continue;
+        }
+        Type type=types.get(i);
+switch (type.toColumnType()) {
+case BOOLEAN:
+          row.add(value);
+        break;
+case LONG:
+      row.add(((Number)value).longValue());
+    break;
+case DOUBLE:
+  row.add(((Number)value).doubleValue());
+break;
+case STRING:
+row.add(value);
+break;
+default :
+throw new AssertionError("unhandled type: " + type);
+}
+}
+return new MaterializedRow(DEFAULT_PRECISION,row);
+}
+}
+;
+}

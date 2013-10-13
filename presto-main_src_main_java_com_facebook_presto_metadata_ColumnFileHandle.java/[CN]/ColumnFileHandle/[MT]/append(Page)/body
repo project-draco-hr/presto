@@ -2,17 +2,17 @@
   checkNotNull(page,"page is null");
   checkState(!committed.get(),"already committed: %s",shardUuid);
   Block[] blocks=page.getBlocks();
-  int[] tupleCount=new int[blocks.length];
+  int[] positionCount=new int[blocks.length];
   checkState(blocks.length == writers.size(),"Block count does not match writer count (%s vs %s)!",blocks.length,writers.size());
   int i=0;
   for (  BlocksFileWriter writer : writers.values()) {
     Block block=blocks[i];
     writer.append(block);
-    tupleCount[i]=block.getPositionCount();
+    positionCount[i]=block.getPositionCount();
     if (i > 0) {
-      checkState(tupleCount[i] == tupleCount[i - 1],"different tuple count (%s vs. %s) for block!",tupleCount[i],tupleCount[i - 1]);
+      checkState(positionCount[i] == positionCount[i - 1],"different position count (%s vs. %s) for block!",positionCount[i],positionCount[i - 1]);
     }
     i++;
   }
-  return tupleCount[0];
+  return positionCount[0];
 }

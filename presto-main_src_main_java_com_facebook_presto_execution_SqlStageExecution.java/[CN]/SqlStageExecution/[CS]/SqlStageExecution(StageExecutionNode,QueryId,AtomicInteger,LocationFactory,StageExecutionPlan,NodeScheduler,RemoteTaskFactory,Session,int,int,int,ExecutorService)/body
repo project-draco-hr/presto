@@ -20,7 +20,11 @@
     this.splitBatchSize=splitBatchSize;
     this.initialHashPartitions=initialHashPartitions;
     this.executor=executor;
-    tupleInfos=fragment.getTupleInfos();
+    ImmutableList.Builder<String> types=ImmutableList.builder();
+    for (    Type type : fragment.getTypes()) {
+      types.add(type.getName());
+    }
+    this.types=types.build();
     ImmutableMap.Builder<PlanFragmentId,StageExecutionNode> subStages=ImmutableMap.builder();
     for (    StageExecutionPlan subStagePlan : plan.getSubStages()) {
       PlanFragmentId subStageFragmentId=subStagePlan.getFragment().getId();

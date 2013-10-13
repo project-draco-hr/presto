@@ -1,12 +1,12 @@
 {
-  RandomAccessBlock block=createBlockBuilder(TupleInfo.SINGLE_VARBINARY).append("alice").append("bob").append("charlie").append("dave").build().toRandomAccessBlock();
+  RandomAccessBlock block=createBlockBuilder(VARCHAR).append("alice").append("bob").append("charlie").append("dave").build().toRandomAccessBlock();
   DynamicSliceOutput encoderOutput=new DynamicSliceOutput(1024);
   Encoder encoder=BlocksFileEncoding.SNAPPY.createBlocksWriter(encoderOutput);
-  BlockBuilder expectedBlockBuilder=createBlockBuilder(TupleInfo.SINGLE_VARBINARY);
+  BlockBuilder expectedBlockBuilder=createBlockBuilder(VARCHAR);
   int count=1000;
   for (int i=0; i < count; i++) {
     int position=ThreadLocalRandom.current().nextInt(block.getPositionCount());
-    block.appendTupleTo(position,expectedBlockBuilder);
+    block.appendTo(position,expectedBlockBuilder);
     encoder.append(block.getSingleValueBlock(position));
   }
   Block expectedBlock=expectedBlockBuilder.build();

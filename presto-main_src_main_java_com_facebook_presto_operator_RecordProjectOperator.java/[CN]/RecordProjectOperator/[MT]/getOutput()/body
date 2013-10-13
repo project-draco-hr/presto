@@ -9,24 +9,24 @@
         finishing=true;
         break;
       }
-      for (int column=0; column < tupleInfos.size(); column++) {
+      for (int column=0; column < types.size(); column++) {
         BlockBuilder output=pageBuilder.getBlockBuilder(column);
         if (cursor.isNull(column)) {
           output.appendNull();
         }
  else {
-          Type type=getTupleInfos().get(column).getType();
-switch (type) {
+          Type type=getTypes().get(column);
+switch (type.toColumnType()) {
 case BOOLEAN:
             output.append(cursor.getBoolean(column));
           break;
-case FIXED_INT_64:
+case LONG:
         output.append(cursor.getLong(column));
       break;
 case DOUBLE:
     output.append(cursor.getDouble(column));
   break;
-case VARIABLE_BINARY:
+case STRING:
 output.append(cursor.getString(column));
 break;
 default :

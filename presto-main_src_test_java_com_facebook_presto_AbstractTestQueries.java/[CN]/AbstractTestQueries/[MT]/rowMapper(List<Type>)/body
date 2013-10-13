@@ -1,0 +1,54 @@
+{
+  return new ResultSetMapper<MaterializedRow>(){
+    @Override public MaterializedRow map(    int index,    ResultSet resultSet,    StatementContext ctx) throws SQLException {
+      int count=resultSet.getMetaData().getColumnCount();
+      checkArgument(types.size() == count,"type does not match result");
+      List<Object> row=new ArrayList<>(count);
+      for (int i=1; i <= count; i++) {
+        Type type=types.get(i - 1);
+switch (type.toColumnType()) {
+case BOOLEAN:
+          boolean booleanValue=resultSet.getBoolean(i);
+        if (resultSet.wasNull()) {
+          row.add(null);
+        }
+ else {
+          row.add(booleanValue);
+        }
+      break;
+case LONG:
+    long longValue=resultSet.getLong(i);
+  if (resultSet.wasNull()) {
+    row.add(null);
+  }
+ else {
+    row.add(longValue);
+  }
+break;
+case DOUBLE:
+double doubleValue=resultSet.getDouble(i);
+if (resultSet.wasNull()) {
+row.add(null);
+}
+ else {
+row.add(doubleValue);
+}
+break;
+case STRING:
+String value=resultSet.getString(i);
+if (resultSet.wasNull()) {
+row.add(null);
+}
+ else {
+row.add(value);
+}
+break;
+default :
+throw new AssertionError("unhandled type: " + type);
+}
+}
+return new MaterializedRow(MaterializedResult.DEFAULT_PRECISION,row);
+}
+}
+;
+}

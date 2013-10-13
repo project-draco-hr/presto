@@ -1,19 +1,22 @@
 {
-  BlockBuilder blockBuilder=createBlockBuilder(new TupleInfo(getValueType()));
+  BlockBuilder blockBuilder=createBlockBuilder(getValueType());
   for (  Object value : values) {
     if (value == null) {
       blockBuilder.appendNull();
     }
  else {
-switch (getValueType()) {
-case FIXED_INT_64:
-        blockBuilder.append((Long)value);
+switch (getValueType().toColumnType()) {
+case BOOLEAN:
+        blockBuilder.append((Boolean)value);
       break;
-case VARIABLE_BINARY:
-    blockBuilder.append((Slice)value);
+case LONG:
+    blockBuilder.append((Long)value);
   break;
 case DOUBLE:
 blockBuilder.append((Double)value);
+break;
+case STRING:
+blockBuilder.append((Slice)value);
 break;
 default :
 throw new UnsupportedOperationException("not yet implemented");

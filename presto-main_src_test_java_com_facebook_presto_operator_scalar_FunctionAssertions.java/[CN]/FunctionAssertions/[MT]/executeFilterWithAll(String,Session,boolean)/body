@@ -3,7 +3,7 @@
   Expression filterExpression=createExpression(filter);
   List<Boolean> results=new ArrayList<>();
   OperatorFactory operatorFactory=compileFilterProject(filterExpression,TRUE_LITERAL);
-  Type expressionType=Type.fromRaw(operatorFactory.getTupleInfos().get(0).getType());
+  Type expressionType=Type.fromRaw(operatorFactory.getTypes().get(0));
   results.add(executeFilter(operatorFactory,session));
   if (executeWithNoInputColumns) {
     operatorFactory=compileFilterWithNoInputColumns(filterExpression);
@@ -20,14 +20,14 @@
     try {
       LocalQueryRunner runner=new LocalQueryRunner(session,EXECUTOR);
       MaterializedResult result=runner.execute("SELECT TRUE FROM dual WHERE " + filter);
-      assertEquals(result.getTupleInfos().size(),1);
+      assertEquals(result.getTypes().size(),1);
       Boolean queryResult;
-      if (result.getMaterializedTuples().isEmpty()) {
+      if (result.getMaterializedRows().isEmpty()) {
         queryResult=false;
       }
  else {
-        assertEquals(result.getMaterializedTuples().size(),1);
-        queryResult=(Boolean)Iterables.getOnlyElement(result.getMaterializedTuples()).getField(0);
+        assertEquals(result.getMaterializedRows().size(),1);
+        queryResult=(Boolean)Iterables.getOnlyElement(result.getMaterializedRows()).getField(0);
       }
       results.add(queryResult);
     }

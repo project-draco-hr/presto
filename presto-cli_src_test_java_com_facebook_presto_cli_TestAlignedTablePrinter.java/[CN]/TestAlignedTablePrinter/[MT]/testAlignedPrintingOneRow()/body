@@ -1,0 +1,9 @@
+{
+  StringWriter writer=new StringWriter();
+  List<String> fieldNames=ImmutableList.of("first","last");
+  OutputPrinter printer=new AlignedTablePrinter(fieldNames,writer);
+  printer.printRows(rows(row("a long line\nwithout wrapping","text")),true);
+  printer.finish();
+  String expected="" + "      first       | last \n" + "------------------+------\n"+ " a long line      | text \n"+ " without wrapping |      \n"+ "(1 row)\n";
+  assertEquals(writer.getBuffer().toString(),expected);
+}

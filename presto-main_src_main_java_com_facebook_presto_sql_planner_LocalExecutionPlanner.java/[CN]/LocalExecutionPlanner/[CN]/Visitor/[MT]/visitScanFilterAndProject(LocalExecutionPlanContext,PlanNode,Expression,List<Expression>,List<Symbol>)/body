@@ -1,6 +1,6 @@
 {
   Map<Symbol,Input> sourceLayout;
-  Map<Input,Type> sourceTypes;
+  Map<Input,com.facebook.presto.sql.analyzer.Type> sourceTypes;
   List<ColumnHandle> columns=null;
   PhysicalOperation source=null;
   if (sourceNode instanceof TableScanNode) {
@@ -13,7 +13,7 @@
       columns.add(tableScanNode.getAssignments().get(symbol));
       Input input=new Input(channel);
       sourceLayout.put(symbol,input);
-      Type type=checkNotNull(context.getTypes().get(symbol),"No type for symbol %s",symbol);
+      com.facebook.presto.sql.analyzer.Type type=checkNotNull(context.getTypes().get(symbol),"No type for symbol %s",symbol);
       sourceTypes.put(input,type);
       channel++;
     }
@@ -21,7 +21,7 @@
  else {
     source=sourceNode.accept(this,context);
     sourceLayout=source.getLayout();
-    sourceTypes=getInputTypes(source.getLayout(),source.getTupleInfos());
+    sourceTypes=getInputTypes(source.getLayout(),source.getTypes());
   }
   ImmutableMap.Builder<Symbol,Input> outputMappingsBuilder=ImmutableMap.builder();
   for (int i=0; i < outputSymbols.size(); i++) {
@@ -33,7 +33,7 @@
     SymbolToInputRewriter symbolToInputRewriter=new SymbolToInputRewriter(sourceLayout);
     Expression rewrittenFilter=ExpressionTreeRewriter.rewriteWith(symbolToInputRewriter,filterExpression);
     List<Expression> rewrittenProjections=new ArrayList<>();
-    List<Type> outputTypes=new ArrayList<>();
+    List<com.facebook.presto.sql.analyzer.Type> outputTypes=new ArrayList<>();
     for (int i=0; i < projectionExpressions.size(); i++) {
       Expression projection=projectionExpressions.get(i);
       rewrittenProjections.add(ExpressionTreeRewriter.rewriteWith(symbolToInputRewriter,projection));

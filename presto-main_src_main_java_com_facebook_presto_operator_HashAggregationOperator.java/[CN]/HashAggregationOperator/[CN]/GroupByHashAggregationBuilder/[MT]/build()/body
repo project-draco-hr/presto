@@ -1,13 +1,9 @@
 {
-  List<Type> types=groupByHash.getTypes();
-  ImmutableList.Builder<TupleInfo> tupleInfos=ImmutableList.builder();
-  for (  Type type : types) {
-    tupleInfos.add(new TupleInfo(type));
-  }
+  List<Type> types=new ArrayList<>(groupByHash.getTypes());
   for (  Aggregator aggregator : aggregators) {
-    tupleInfos.add(aggregator.getTupleInfo());
+    types.add(aggregator.getType());
   }
-  final PageBuilder pageBuilder=new PageBuilder(tupleInfos.build());
+  final PageBuilder pageBuilder=new PageBuilder(types);
   return new AbstractIterator<Page>(){
     private final ObjectIterator<Entry> pagePositionToGroup=groupByHash.getPagePositionToGroupId().long2IntEntrySet().fastIterator();
     @Override protected Page computeNext(){

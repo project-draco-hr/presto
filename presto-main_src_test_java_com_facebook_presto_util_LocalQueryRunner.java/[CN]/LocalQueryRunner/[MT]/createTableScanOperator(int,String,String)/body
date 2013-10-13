@@ -2,19 +2,19 @@
   TableHandle tableHandle=metadata.getTableHandle(new QualifiedTableName(session.getCatalog(),session.getSchema(),tableName)).orNull();
   checkArgument(tableHandle != null,"Table %s does not exist",tableName);
   ImmutableList.Builder<ColumnHandle> columnHandlesBuilder=ImmutableList.builder();
-  ImmutableList.Builder<TupleInfo> columnTypesBuilder=ImmutableList.builder();
+  ImmutableList.Builder<Type> columnTypesBuilder=ImmutableList.builder();
   for (  String columnName : columnNames) {
     ColumnHandle columnHandle=metadata.getColumnHandle(tableHandle,columnName).orNull();
     checkArgument(columnHandle != null,"Table %s does not have a column %s",tableName,columnName);
     columnHandlesBuilder.add(columnHandle);
     ColumnMetadata columnMetadata=metadata.getColumnMetadata(tableHandle,columnHandle);
-    columnTypesBuilder.add(new TupleInfo(fromColumnType(columnMetadata.getType())));
+    columnTypesBuilder.add(fromColumnType(columnMetadata.getType()));
   }
   final List<ColumnHandle> columnHandles=columnHandlesBuilder.build();
-  final List<TupleInfo> columnTypes=columnTypesBuilder.build();
+  final List<Type> columnTypes=columnTypesBuilder.build();
   final Split split=getLocalQuerySplit(tableHandle);
   return new OperatorFactory(){
-    @Override public List<TupleInfo> getTupleInfos(){
+    @Override public List<Type> getTypes(){
       return columnTypes;
     }
     @Override public Operator createOperator(    DriverContext driverContext){

@@ -3,12 +3,12 @@
   for (  Page page : pages) {
     partialAggregation.addInput(createGroupByIdBlock(0,page.getPositionCount()),page);
   }
-  BlockBuilder partialOut=createBlockBuilder(partialAggregation.getIntermediateTupleInfo());
+  BlockBuilder partialOut=createBlockBuilder(partialAggregation.getIntermediateType());
   partialAggregation.evaluateIntermediate(0,partialOut);
   Block partialBlock=partialOut.build();
   GroupedAccumulator finalAggregation=function.createGroupedIntermediateAggregation(confidence);
   GroupedAccumulator emptyAggregation=function.createGroupedAggregation(Optional.<Integer>absent(),Optional.<Integer>absent(),confidence,args);
-  BlockBuilder emptyOut=createBlockBuilder(emptyAggregation.getIntermediateTupleInfo());
+  BlockBuilder emptyOut=createBlockBuilder(emptyAggregation.getIntermediateType());
   emptyAggregation.evaluateIntermediate(0,emptyOut);
   Block emptyBlock=emptyOut.build();
   finalAggregation.addIntermediate(createGroupByIdBlock(0,emptyBlock.getPositionCount()),emptyBlock);

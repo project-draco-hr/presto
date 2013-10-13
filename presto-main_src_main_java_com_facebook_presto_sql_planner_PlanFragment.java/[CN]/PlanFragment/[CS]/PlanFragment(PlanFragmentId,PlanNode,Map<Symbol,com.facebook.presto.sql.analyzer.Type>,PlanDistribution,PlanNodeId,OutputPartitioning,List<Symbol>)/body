@@ -1,0 +1,21 @@
+{
+  this.id=checkNotNull(id,"id is null");
+  this.root=checkNotNull(root,"root is null");
+  this.symbols=checkNotNull(symbols,"symbols is null");
+  this.distribution=checkNotNull(distribution,"distribution is null");
+  this.partitionedSource=partitionedSource;
+  this.partitionBy=ImmutableList.copyOf(checkNotNull(partitionBy,"partitionBy is null"));
+  types=ImmutableList.copyOf(IterableTransformer.on(root.getOutputSymbols()).transform(Functions.forMap(symbols)).transform(com.facebook.presto.sql.analyzer.Type.toRaw()).list());
+  ImmutableList.Builder<PlanNode> sources=ImmutableList.builder();
+  findSources(root,sources,partitionedSource);
+  this.sources=sources.build();
+  ImmutableSet.Builder<PlanNodeId> sourceIds=ImmutableSet.builder();
+  for (  PlanNode source : this.sources) {
+    sourceIds.add(source.getId());
+  }
+  if (partitionedSource != null) {
+    sourceIds.add(partitionedSource);
+  }
+  this.sourceIds=sourceIds.build();
+  this.outputPartitioning=checkNotNull(outputPartitioning,"outputPartitioning is null");
+}

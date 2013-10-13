@@ -2,6 +2,12 @@
   this.operatorId=operatorId;
   this.inputChannels=checkNotNull(inputChannels,"inputChannels is null");
   this.recordSink=checkNotNull(recordSink,"recordSink is null");
-  this.outputTypes=checkNotNull(outputTypes,"outputTypes is null");
+  checkNotNull(recordTypes,"types is null");
+  this.recordTypes=ImmutableList.copyOf(Iterables.transform(recordTypes,new Function<Type,com.facebook.presto.sql.analyzer.Type>(){
+    public com.facebook.presto.sql.analyzer.Type apply(    Type type){
+      return com.facebook.presto.sql.analyzer.Type.fromRaw(type);
+    }
+  }
+));
   this.sampleWeightChannel=checkNotNull(sampleWeightChannel,"sampleWeightChannel is null");
 }
