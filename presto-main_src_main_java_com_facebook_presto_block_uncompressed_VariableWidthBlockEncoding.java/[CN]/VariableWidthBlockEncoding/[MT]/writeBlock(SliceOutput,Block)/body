@@ -1,0 +1,16 @@
+{
+  checkArgument(block.getTupleInfo().equals(getTupleInfo()),"Invalid tuple info");
+  Slice rawSlice;
+  if (block instanceof AbstractVariableWidthRandomAccessBlock) {
+    AbstractVariableWidthRandomAccessBlock uncompressedBlock=(AbstractVariableWidthRandomAccessBlock)block;
+    rawSlice=uncompressedBlock.getRawSlice();
+  }
+ else   if (block instanceof VariableWidthBlock) {
+    VariableWidthBlock variableWidthBlock=(VariableWidthBlock)block;
+    rawSlice=variableWidthBlock.getRawSlice();
+  }
+ else {
+    throw new IllegalArgumentException("Unsupported block type " + block.getClass().getName());
+  }
+  writeUncompressedBlock(sliceOutput,block.getPositionCount(),rawSlice);
+}
