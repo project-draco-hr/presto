@@ -3,8 +3,7 @@
   checkState(!finishing,"Operator is finishing");
   checkState(channelSet != null,"Set has not been built yet");
   checkState(outputPage == null,"Operator still has pending output");
-  int blockSize=page.getPositionCount() * TupleInfo.SINGLE_BOOLEAN.getFixedSize();
-  BlockBuilder blockBuilder=createBlockBuilder(TupleInfo.SINGLE_BOOLEAN,Slices.allocate(blockSize));
+  BlockBuilder blockBuilder=createFixedSizeBlockBuilder(new FixedWidthTypeInfo(BOOLEAN),page.getPositionCount());
   Block probeJoinBlock=page.getBlock(probeJoinChannel);
   BlockCursor probeJoinCursor=probeJoinBlock.cursor();
   channelSet.setCurrentValue(probeJoinCursor);
