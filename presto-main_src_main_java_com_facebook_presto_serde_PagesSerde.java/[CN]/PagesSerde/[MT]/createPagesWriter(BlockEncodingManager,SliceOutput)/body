@@ -1,0 +1,27 @@
+{
+  checkNotNull(sliceOutput,"sliceOutput is null");
+  return new PagesWriter(){
+    private BlockEncoding[] blockEncodings;
+    @Override public PagesWriter append(    Page page){
+      Preconditions.checkNotNull(page,"page is null");
+      if (blockEncodings == null) {
+        Block[] blocks=page.getBlocks();
+        blockEncodings=new BlockEncoding[blocks.length];
+        sliceOutput.writeInt(blocks.length);
+        for (int i=0; i < blocks.length; i++) {
+          Block block=blocks[i];
+          BlockEncoding blockEncoding=block.getEncoding();
+          blockEncodings[i]=blockEncoding;
+          blockEncodingManager.writeBlockEncoding(sliceOutput,blockEncoding);
+        }
+      }
+      sliceOutput.writeInt(page.getPositionCount());
+      Block[] blocks=page.getBlocks();
+      for (int i=0; i < blocks.length; i++) {
+        blockEncodings[i].writeBlock(sliceOutput,blocks[i]);
+      }
+      return this;
+    }
+  }
+;
+}

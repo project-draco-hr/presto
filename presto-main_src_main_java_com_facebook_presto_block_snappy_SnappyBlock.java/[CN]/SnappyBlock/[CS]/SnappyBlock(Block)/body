@@ -1,7 +1,11 @@
 {
   tupleInfo=block.getTupleInfo();
   positionCount=block.getPositionCount();
-  uncompressedSlice=block.getRawSlice();
+  uncompressedBlock=block;
+  uncompressedBlockEncoding=block.getEncoding();
+  DynamicSliceOutput sliceOutput=new DynamicSliceOutput(Ints.checkedCast(uncompressedBlock.getDataSize().toBytes() + ENCODING_BUFFER_OVERHEAD.toBytes()));
+  uncompressedBlockEncoding.writeBlock(sliceOutput,uncompressedBlock);
+  Slice uncompressedSlice=sliceOutput.slice();
   byte[] compressedBytes=new byte[Snappy.maxCompressedLength(uncompressedSlice.length())];
   int actualLength=Snappy.compress(uncompressedSlice.getBytes(),0,uncompressedSlice.length(),compressedBytes,0);
   compressedSlice=Slices.wrappedBuffer(Arrays.copyOf(compressedBytes,actualLength));

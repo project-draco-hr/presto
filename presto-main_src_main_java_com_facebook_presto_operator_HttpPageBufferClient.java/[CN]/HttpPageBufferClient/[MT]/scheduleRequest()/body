@@ -8,7 +8,7 @@
     return;
   }
   final URI uri=HttpUriBuilder.uriBuilderFrom(location).appendPath(String.valueOf(token)).build();
-  future=httpClient.executeAsync(prepareGet().setHeader(PRESTO_MAX_SIZE,maxResponseSize.toString()).setUri(uri).build(),new PageResponseHandler());
+  future=httpClient.executeAsync(prepareGet().setHeader(PRESTO_MAX_SIZE,maxResponseSize.toString()).setUri(uri).build(),new PageResponseHandler(blockEncodingManager));
   Futures.addCallback(future,new FutureCallback<PagesResponse>(){
     @Override public void onSuccess(    PagesResponse result){
       if (Thread.holdsLock(HttpPageBufferClient.this)) {
