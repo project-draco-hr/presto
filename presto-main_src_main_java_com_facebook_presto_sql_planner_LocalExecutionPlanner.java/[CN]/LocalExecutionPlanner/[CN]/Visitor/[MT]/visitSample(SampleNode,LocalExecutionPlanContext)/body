@@ -2,5 +2,10 @@
   if (node.getSampleType() == SampleNode.Type.SYSTEM) {
     return node.getSource().accept(this,context);
   }
+  if (node.getSampleType() == SampleNode.Type.POISSONIZED) {
+    PhysicalOperation source=node.getSource().accept(this,context);
+    OperatorFactory operatorFactory=new SampleOperatorFactory(context.getNextOperatorId(),node.getSampleRatio(),source.getTupleInfos());
+    return new PhysicalOperation(operatorFactory,source.getLayout(),source);
+  }
   throw new UnsupportedOperationException("not yet implemented: " + node);
 }
