@@ -1,14 +1,15 @@
 {
   this.pagesIndex=pagesIndex;
-  this.hashStrategy=new PagesHashStrategy(pagesIndex,hashChannels);
-  this.addressToPositionMap=new AddressToPositionMap(pagesIndex.getPositionCount(),hashStrategy);
-  this.positionLinks=new IntArrayList(new int[pagesIndex.getPositionCount()]);
-  Arrays.fill(positionLinks.elements(),-1);
-  for (int position=0; position < pagesIndex.getPositionCount(); position++) {
-    operatorContext.setMemoryReservation(getEstimatedSize());
-    int oldPosition=addressToPositionMap.put(position,position);
-    if (oldPosition >= 0) {
-      positionLinks.set(position,oldPosition);
-    }
+  this.hashChannels=Ints.toArray(hashChannels);
+  int positionCount=pagesIndex.getPositionCount();
+  int hashSize=HashCommon.arraySize(positionCount,0.75f);
+  operatorContext.reserveMemory(sizeOfIntArray(hashSize) + sizeOfIntArray(positionCount));
+  mask=hashSize - 1;
+  key=new int[hashSize];
+  Arrays.fill(key,-1);
+  this.positionLinks=new int[positionCount];
+  Arrays.fill(positionLinks,-1);
+  for (int position=0; position < positionCount; position++) {
+    add(position);
   }
 }
