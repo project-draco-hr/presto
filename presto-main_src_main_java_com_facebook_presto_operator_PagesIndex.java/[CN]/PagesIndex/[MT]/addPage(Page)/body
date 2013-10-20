@@ -1,12 +1,15 @@
 {
   positionCount+=page.getPositionCount();
-  int pageIndex=pages.size();
+  int pageIndex=channels[0].size();
   RandomAccessPage randomAccessPage=page.toRandomAccessPage();
-  pages.add(randomAccessPage);
+  for (int i=0; i < channels.length; i++) {
+    RandomAccessBlock block=randomAccessPage.getBlock(i);
+    channels[i].add(block);
+    pagesMemorySize+=block.getDataSize().toBytes();
+  }
   for (int position=0; position < page.getPositionCount(); position++) {
     long sliceAddress=encodeSyntheticAddress(pageIndex,position);
     valueAddresses.add(sliceAddress);
   }
-  pagesMemorySize+=randomAccessPage.getDataSize().toBytes();
   estimatedSize=operatorContext.setMemoryReservation(calculateEstimatedSize());
 }

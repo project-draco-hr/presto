@@ -1,6 +1,9 @@
 {
-  this.tupleInfos=tupleInfos;
-  this.operatorContext=operatorContext;
+  this.tupleInfos=ImmutableList.copyOf(checkNotNull(tupleInfos,"tupleInfos is null"));
+  this.operatorContext=checkNotNull(operatorContext,"operatorContext is null");
   this.valueAddresses=new LongArrayList(expectedPositions);
-  this.pages=ObjectArrayList.wrap(new RandomAccessPage[1024],0);
+  channels=(ObjectArrayList<RandomAccessBlock>[])new ObjectArrayList[tupleInfos.size()];
+  for (int i=0; i < channels.length; i++) {
+    channels[i]=ObjectArrayList.wrap(new RandomAccessBlock[1024],0);
+  }
 }

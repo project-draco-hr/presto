@@ -1,9 +1,10 @@
 {
-  long sliceAddress=valueAddresses.getLong(position);
-  RandomAccessPage page=getPageForSyntheticAddress(sliceAddress);
-  int blockPosition=decodePosition(sliceAddress);
+  long pageAddress=valueAddresses.getLong(position);
+  int blockIndex=decodeSliceIndex(pageAddress);
+  int blockPosition=decodePosition(pageAddress);
   for (int i=0; i < outputChannels.length; i++) {
-    RandomAccessBlock leftBlock=page.getBlock(outputChannels[i]);
-    leftBlock.appendTupleTo(blockPosition,pageBuilder.getBlockBuilder(i));
+    int outputChannel=outputChannels[i];
+    RandomAccessBlock block=this.channels[outputChannel].get(blockIndex);
+    block.appendTupleTo(blockPosition,pageBuilder.getBlockBuilder(i));
   }
 }

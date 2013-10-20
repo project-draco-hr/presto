@@ -1,20 +1,12 @@
 {
   while (!pageBuilder.isFull() && position < positionCount) {
-    long sliceAddress=valueAddresses.getLong(position);
-    int pageIndex=decodeSliceIndex(sliceAddress);
-    RandomAccessPage page=pages.get(pageIndex);
-    int blockPosition=decodePosition(sliceAddress);
-    if (blockPosition >= page.getPositionCount()) {
-      pageIndex++;
-      if (pageIndex >= pages.size()) {
-        break;
-      }
-      page=pages.get(pageIndex);
-      blockPosition=0;
-    }
+    long pageAddress=valueAddresses.getLong(position);
+    int blockIndex=decodeSliceIndex(pageAddress);
+    int blockPosition=decodePosition(pageAddress);
     for (int i=0; i < outputChannels.length; i++) {
-      RandomAccessBlock leftBlock=page.getBlock(outputChannels[i]);
-      leftBlock.appendTupleTo(blockPosition,pageBuilder.getBlockBuilder(i));
+      int outputChannel=outputChannels[i];
+      RandomAccessBlock block=this.channels[outputChannel].get(blockIndex);
+      block.appendTupleTo(blockPosition,pageBuilder.getBlockBuilder(i));
     }
     position++;
   }
