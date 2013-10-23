@@ -1,8 +1,12 @@
 {
-  assertEquals(partitions,this.partitions);
-  ImmutableMap<String,Partition> actualPartitions=uniqueIndex(partitions,partitionIdGetter());
-  for (  HivePartition expectedPartition : this.partitions) {
-    HivePartition actualPartition=(HivePartition)actualPartitions.get(expectedPartition.getPartitionId());
+  Map<String,Partition> actualById=uniqueIndex(actualPartitions,partitionIdGetter());
+  for (  Partition expected : partitions) {
+    assertInstanceOf(expected,HivePartition.class);
+    HivePartition expectedPartition=(HivePartition)expected;
+    Partition actual=actualById.get(expectedPartition.getPartitionId());
+    assertEquals(actual,expected);
+    assertInstanceOf(actual,HivePartition.class);
+    HivePartition actualPartition=(HivePartition)actual;
     assertNotNull(actualPartition,"partition " + expectedPartition.getPartitionId());
     assertEquals(actualPartition.getPartitionId(),expectedPartition.getPartitionId());
     assertEquals(actualPartition.getKeys(),expectedPartition.getKeys());
