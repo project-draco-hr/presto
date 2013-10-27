@@ -1,0 +1,30 @@
+{
+  JoinCompiler joinCompiler=new JoinCompiler();
+  PagesHashStrategyFactory pagesHashStrategyFactory=joinCompiler.compilePagesHashStrategy(1,Ints.asList(0));
+  List<RandomAccessBlock> channel=ImmutableList.of(BlockAssertions.createStringSequenceBlock(10,20).toRandomAccessBlock(),BlockAssertions.createStringSequenceBlock(20,30).toRandomAccessBlock(),BlockAssertions.createStringSequenceBlock(15,25).toRandomAccessBlock());
+  PagesHashStrategy hashStrategy=pagesHashStrategyFactory.createPagesHashStrategy(ImmutableList.of(channel));
+  assertEquals(hashStrategy.getChannelCount(),1);
+  for (int leftBlockIndex=0; leftBlockIndex < channel.size(); leftBlockIndex++) {
+    RandomAccessBlock leftBlock=channel.get(leftBlockIndex);
+    PageBuilder pageBuilder=new PageBuilder(ImmutableList.of(VARCHAR));
+    for (int leftBlockPosition=0; leftBlockPosition < leftBlock.getPositionCount(); leftBlockPosition++) {
+      assertEquals(hashStrategy.hashPosition(leftBlockIndex,leftBlockPosition),leftBlock.hashCode(leftBlockPosition));
+      assertTrue(hashStrategy.positionEqualsPosition(leftBlockIndex,leftBlockPosition,leftBlockIndex,leftBlockPosition));
+      for (int rightBlockIndex=0; rightBlockIndex < channel.size(); rightBlockIndex++) {
+        RandomAccessBlock rightBlock=channel.get(rightBlockIndex);
+        for (int rightBlockPosition=0; rightBlockPosition < rightBlock.getPositionCount(); rightBlockPosition++) {
+          assertEquals(hashStrategy.positionEqualsPosition(leftBlockIndex,leftBlockPosition,rightBlockIndex,rightBlockPosition),leftBlock.equals(leftBlockPosition,rightBlock,rightBlockPosition));
+        }
+      }
+      for (      RandomAccessBlock rightBlock : channel) {
+        BlockCursor rightCursor=rightBlock.cursor();
+        BlockCursor[] rightCursors=new BlockCursor[]{rightCursor};
+        while (rightCursor.advanceNextPosition()) {
+          assertEquals(hashStrategy.positionEqualsCursors(leftBlockIndex,leftBlockPosition,rightCursors),leftBlock.equals(leftBlockPosition,rightCursor));
+        }
+      }
+      hashStrategy.appendTo(leftBlockIndex,leftBlockPosition,pageBuilder,0);
+    }
+    assertBlockEquals(pageBuilder.build().getBlock(0),leftBlock);
+  }
+}

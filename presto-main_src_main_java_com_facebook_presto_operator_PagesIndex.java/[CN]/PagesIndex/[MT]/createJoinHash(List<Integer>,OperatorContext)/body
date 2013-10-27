@@ -1,8 +1,12 @@
 {
-  if (hashChannels.size() == 1) {
-    return new SingleChannelJoinHash(valueAddresses,channels,hashChannels.get(0),operatorContext);
+  try {
+    JoinHashFactory joinHashFactory=joinCompiler.compileJoinHash(types,hashChannels);
+    JoinHash joinHash=joinHashFactory.createJoinHash(valueAddresses,ImmutableList.<List<RandomAccessBlock>>copyOf(channels),operatorContext);
+    return joinHash;
   }
- else {
-    return new MultiChannelJoinHash(valueAddresses,channels,Ints.toArray(hashChannels),operatorContext);
+ catch (  Exception e) {
+    log.error(e,"JoinHash compile failed for types=%s error=%s",types,e);
   }
+  PagesHashStrategy hashStrategy=new SimplePagesHashStrategy(ImmutableList.<List<RandomAccessBlock>>copyOf(channels),hashChannels);
+  return new InMemoryJoinHash(valueAddresses,hashStrategy,operatorContext);
 }

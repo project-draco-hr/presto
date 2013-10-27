@@ -1,0 +1,21 @@
+{
+  ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(bootstrapMethod),a(PUBLIC,FINAL),typeFromPathName("JoinHash_" + CLASS_ID.incrementAndGet()),type(Object.class),type(PagesHashStrategy.class));
+  List<FieldDefinition> channelFields=new ArrayList<>();
+  for (int i=0; i < channelCount; i++) {
+    FieldDefinition channelField=classDefinition.declareField(a(PRIVATE,FINAL),"channel_" + i,type(List.class,RandomAccessBlock.class));
+    channelFields.add(channelField);
+  }
+  List<FieldDefinition> hashChannelFields=new ArrayList<>();
+  for (int i=0; i < hashChannels.size(); i++) {
+    FieldDefinition channelField=classDefinition.declareField(a(PRIVATE,FINAL),"hashChannel_" + i,type(List.class,RandomAccessBlock.class));
+    hashChannelFields.add(channelField);
+  }
+  generateConstructor(classDefinition,hashChannels,channelFields,hashChannelFields);
+  generateGetChannelCountMethod(classDefinition,channelFields);
+  generateAppendToMethod(classDefinition,channelFields);
+  generateHashPositionMethod(classDefinition,hashChannelFields);
+  generatePositionEqualsCursorsMethod(classDefinition,hashChannelFields);
+  generatePositionEqualsPositionMethod(classDefinition,hashChannelFields);
+  Class<? extends PagesHashStrategy> joinHashClass=defineClass(classDefinition,PagesHashStrategy.class,classLoader);
+  return joinHashClass;
+}

@@ -1,0 +1,44 @@
+{
+  JoinCompiler joinCompiler=new JoinCompiler();
+  PagesHashStrategyFactory pagesHashStrategyFactory=joinCompiler.compilePagesHashStrategy(5,Ints.asList(1,2,3,4));
+  List<RandomAccessBlock> extraChannel=ImmutableList.of(BlockAssertions.createStringSequenceBlock(10,20).toRandomAccessBlock(),BlockAssertions.createStringSequenceBlock(20,30).toRandomAccessBlock(),BlockAssertions.createStringSequenceBlock(15,25).toRandomAccessBlock());
+  List<RandomAccessBlock> varcharChannel=ImmutableList.of(BlockAssertions.createStringSequenceBlock(10,20).toRandomAccessBlock(),BlockAssertions.createStringSequenceBlock(20,30).toRandomAccessBlock(),BlockAssertions.createStringSequenceBlock(15,25).toRandomAccessBlock());
+  List<RandomAccessBlock> longChannel=ImmutableList.of(BlockAssertions.createLongSequenceBlock(10,20).toRandomAccessBlock(),BlockAssertions.createLongSequenceBlock(20,30).toRandomAccessBlock(),BlockAssertions.createLongSequenceBlock(15,25).toRandomAccessBlock());
+  List<RandomAccessBlock> doubleChannel=ImmutableList.of(BlockAssertions.createDoubleSequenceBlock(10,20).toRandomAccessBlock(),BlockAssertions.createDoubleSequenceBlock(20,30).toRandomAccessBlock(),BlockAssertions.createDoubleSequenceBlock(15,25).toRandomAccessBlock());
+  List<RandomAccessBlock> booleanChannel=ImmutableList.of(BlockAssertions.createBooleanSequenceBlock(10,20).toRandomAccessBlock(),BlockAssertions.createBooleanSequenceBlock(20,30).toRandomAccessBlock(),BlockAssertions.createBooleanSequenceBlock(15,25).toRandomAccessBlock());
+  ImmutableList<List<RandomAccessBlock>> channels=ImmutableList.of(extraChannel,varcharChannel,longChannel,doubleChannel,booleanChannel);
+  PagesHashStrategy hashStrategy=pagesHashStrategyFactory.createPagesHashStrategy(channels);
+  assertEquals(hashStrategy.getChannelCount(),5);
+  PagesHashStrategy expectedHashStrategy=new SimplePagesHashStrategy(channels,Ints.asList(1,2,3,4));
+  for (int leftBlockIndex=0; leftBlockIndex < varcharChannel.size(); leftBlockIndex++) {
+    PageBuilder pageBuilder=new PageBuilder(ImmutableList.of(VARCHAR,VARCHAR,BIGINT,DOUBLE,BOOLEAN));
+    int leftPositionCount=varcharChannel.get(leftBlockIndex).getPositionCount();
+    for (int leftBlockPosition=0; leftBlockPosition < leftPositionCount; leftBlockPosition++) {
+      assertEquals(hashStrategy.hashPosition(leftBlockIndex,leftBlockPosition),expectedHashStrategy.hashPosition(leftBlockIndex,leftBlockPosition));
+      assertTrue(hashStrategy.positionEqualsPosition(leftBlockIndex,leftBlockPosition,leftBlockIndex,leftBlockPosition));
+      for (int rightBlockIndex=0; rightBlockIndex < varcharChannel.size(); rightBlockIndex++) {
+        RandomAccessBlock rightBlock=varcharChannel.get(rightBlockIndex);
+        for (int rightBlockPosition=0; rightBlockPosition < rightBlock.getPositionCount(); rightBlockPosition++) {
+          assertEquals(hashStrategy.positionEqualsPosition(leftBlockIndex,leftBlockPosition,rightBlockIndex,rightBlockPosition),expectedHashStrategy.positionEqualsPosition(leftBlockIndex,leftBlockPosition,rightBlockIndex,rightBlockPosition));
+        }
+      }
+      for (int rightBlockIndex=0; rightBlockIndex < varcharChannel.size(); rightBlockIndex++) {
+        BlockCursor[] rightCursors=new BlockCursor[4];
+        rightCursors[0]=varcharChannel.get(rightBlockIndex).cursor();
+        rightCursors[1]=longChannel.get(rightBlockIndex).cursor();
+        rightCursors[2]=doubleChannel.get(rightBlockIndex).cursor();
+        rightCursors[3]=booleanChannel.get(rightBlockIndex).cursor();
+        int rightPositionCount=varcharChannel.get(rightBlockIndex).getPositionCount();
+        for (int rightPosition=0; rightPosition < rightPositionCount; rightPosition++) {
+          for (          BlockCursor rightCursor : rightCursors) {
+            assertTrue(rightCursor.advanceNextPosition());
+          }
+          assertEquals(hashStrategy.positionEqualsCursors(leftBlockIndex,leftBlockPosition,rightCursors),expectedHashStrategy.positionEqualsCursors(leftBlockIndex,leftBlockPosition,rightCursors));
+        }
+      }
+      hashStrategy.appendTo(leftBlockIndex,leftBlockPosition,pageBuilder,0);
+    }
+    Page page=pageBuilder.build();
+    assertPageEquals(page,new Page(extraChannel.get(leftBlockIndex),varcharChannel.get(leftBlockIndex),longChannel.get(leftBlockIndex),doubleChannel.get(leftBlockIndex),booleanChannel.get(leftBlockIndex)));
+  }
+}

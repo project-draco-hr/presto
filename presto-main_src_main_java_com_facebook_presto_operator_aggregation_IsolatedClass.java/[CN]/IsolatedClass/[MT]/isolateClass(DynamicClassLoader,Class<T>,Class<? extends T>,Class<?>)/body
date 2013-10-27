@@ -1,0 +1,13 @@
+{
+  ImmutableMap.Builder<String,byte[]> builder=ImmutableMap.builder();
+  builder.put(implementationClass.getName(),getByteCode(implementationClass));
+  for (  Class<?> additionalClass : additionalClasses) {
+    builder.put(additionalClass.getName(),getByteCode(additionalClass));
+  }
+  Map<String,Class<?>> isolatedClasses=dynamicClassLoader.defineClasses(builder.build());
+  Class<?> isolatedClass=isolatedClasses.get(implementationClass.getName());
+  checkArgument(isolatedClass != null,"Could load class %s",implementationClass.getName());
+  checkArgument(publicBaseClass.isAssignableFrom(isolatedClass),"Error isolating class %s, newly loaded class is not a sub type of %s",implementationClass.getName(),publicBaseClass.getName());
+  checkState(isolatedClass != implementationClass,"Isolation failed");
+  return isolatedClass.asSubclass(publicBaseClass);
+}
