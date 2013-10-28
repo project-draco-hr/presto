@@ -1,6 +1,9 @@
 {
   ServerConfig serverConfig=buildConfigObject(ServerConfig.class);
   install(new CoordinatorModule());
+  if (serverConfig.isCoordinator()) {
+    discoveryBinder(binder).bindHttpAnnouncement("presto-coordinator");
+  }
   bindFailureDetector(binder,serverConfig.isCoordinator());
   binder.bind(TaskResource.class).in(Scopes.SINGLETON);
   binder.bind(TaskManager.class).to(SqlTaskManager.class).in(Scopes.SINGLETON);
