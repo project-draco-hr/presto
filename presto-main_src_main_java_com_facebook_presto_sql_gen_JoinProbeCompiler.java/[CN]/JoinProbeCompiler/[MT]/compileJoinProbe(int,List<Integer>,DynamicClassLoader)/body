@@ -1,0 +1,23 @@
+{
+  ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(bootstrapMethod),a(PUBLIC,FINAL),typeFromPathName("JoinProbe_" + CLASS_ID.incrementAndGet()),type(Object.class),type(JoinProbe.class));
+  FieldDefinition hashField=classDefinition.declareField(a(PRIVATE,FINAL),"hash",JoinHash.class);
+  List<FieldDefinition> cursorFields=new ArrayList<>();
+  for (int i=0; i < channelCount; i++) {
+    FieldDefinition channelField=classDefinition.declareField(a(PRIVATE,FINAL),"cursor_" + i,BlockCursor.class);
+    cursorFields.add(channelField);
+  }
+  List<FieldDefinition> probeCursorFields=new ArrayList<>();
+  for (int i=0; i < probeChannels.size(); i++) {
+    FieldDefinition channelField=classDefinition.declareField(a(PRIVATE,FINAL),"probeCursor_" + i,BlockCursor.class);
+    probeCursorFields.add(channelField);
+  }
+  FieldDefinition probeCursorsArrayField=classDefinition.declareField(a(PRIVATE,FINAL),"probeCursors",BlockCursor[].class);
+  generateConstructor(classDefinition,probeChannels,hashField,cursorFields,probeCursorFields,probeCursorsArrayField);
+  generateGetChannelCountMethod(classDefinition,cursorFields.size());
+  generateAppendToMethod(classDefinition,cursorFields);
+  generateAdvanceNextPosition(classDefinition,cursorFields);
+  generateGetCurrentJoinPosition(classDefinition,hashField,probeCursorsArrayField);
+  generateCurrentRowContainsNull(classDefinition,probeCursorFields);
+  Class<? extends JoinProbe> joinProbeClass=defineClass(classDefinition,JoinProbe.class,classLoader);
+  return joinProbeClass;
+}

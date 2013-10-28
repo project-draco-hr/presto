@@ -1,0 +1,10 @@
+{
+  CompilerContext compilerContext=new CompilerContext(bootstrapMethod);
+  Block advanceNextPositionBody=classDefinition.declareMethod(compilerContext,a(PUBLIC),"advanceNextPosition",type(boolean.class)).getBody();
+  LocalVariableDefinition advancedVariable=compilerContext.declareVariable(boolean.class,"advanced");
+  advanceNextPositionBody.pushThis().getField(cursorFields.get(0)).invokeInterface(BlockCursor.class,"advanceNextPosition",boolean.class).putVariable(advancedVariable);
+  for (int index=1; index < cursorFields.size(); index++) {
+    advanceNextPositionBody.pushThis().getField(cursorFields.get(index)).invokeInterface(BlockCursor.class,"advanceNextPosition",boolean.class).getVariable(advancedVariable).invokeStatic(JoinProbeCompiler.class,"checkState",void.class,boolean.class,boolean.class);
+  }
+  advanceNextPositionBody.getVariable(advancedVariable).retBoolean();
+}

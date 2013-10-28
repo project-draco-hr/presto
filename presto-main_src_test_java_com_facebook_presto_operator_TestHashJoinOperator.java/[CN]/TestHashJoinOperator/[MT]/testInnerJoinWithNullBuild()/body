@@ -9,7 +9,7 @@
     driver.process();
   }
   List<Page> probeInput=rowPagesBuilder(VARCHAR).row("a").row("b").row("c").build();
-  HashJoinOperatorFactory joinOperatorFactory=HashJoinOperator.innerJoin(0,hashBuilderOperatorFactory.getHashSupplier(),ImmutableList.of(VARCHAR),Ints.asList(0));
+  OperatorFactory joinOperatorFactory=HashJoinOperators.innerJoin(0,hashBuilderOperatorFactory.getHashSupplier(),ImmutableList.of(VARCHAR),Ints.asList(0));
   Operator joinOperator=joinOperatorFactory.createOperator(taskContext.addPipelineContext(true,true).addDriverContext());
   MaterializedResult expected=MaterializedResult.resultBuilder(VARCHAR,VARCHAR).row("a","a").row("a","a").row("b","b").build();
   assertOperatorEquals(joinOperator,probeInput,expected);
