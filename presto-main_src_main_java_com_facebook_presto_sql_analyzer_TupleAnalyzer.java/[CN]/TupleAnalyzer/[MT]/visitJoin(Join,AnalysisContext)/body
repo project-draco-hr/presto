@@ -33,7 +33,7 @@
     ExpressionAnalyzer analyzer=new ExpressionAnalyzer(analysis,session,metadata);
     analyzer.analyze(expression,output,context);
     Analyzer.verifyNoAggregatesOrWindowFunctions(metadata,expression,"JOIN");
-    Object optimizedExpression=ExpressionInterpreter.expressionOptimizer(NoOpSymbolResolver.INSTANCE,metadata,session).process(expression,null);
+    Object optimizedExpression=ExpressionInterpreter.expressionOptimizer(expression,metadata,session).optimize(NoOpSymbolResolver.INSTANCE);
     if (!(optimizedExpression instanceof Expression)) {
       throw new SemanticException(NOT_SUPPORTED,node,"Joins on constant expressions (i.e., cross joins) not supported");
     }
