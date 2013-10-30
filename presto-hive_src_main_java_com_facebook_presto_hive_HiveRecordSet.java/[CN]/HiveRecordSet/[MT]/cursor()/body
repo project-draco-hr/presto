@@ -1,7 +1,7 @@
 {
   ColumnProjectionUtils.setReadColumnIDs(configuration,readHiveColumnIndexes);
   RecordReader<?,?> recordReader=createRecordReader(split,configuration,wrappedPath);
-  if (recordReader.createValue() instanceof BytesRefArrayWritable) {
+  if (usesColumnarSerDe(split)) {
     return new BytesHiveRecordCursor<>(bytesRecordReader(recordReader),split.getLength(),split.getSchema(),split.getPartitionKeys(),columns);
   }
   return new GenericHiveRecordCursor<>(genericRecordReader(recordReader),split.getLength(),split.getSchema(),split.getPartitionKeys(),columns);
