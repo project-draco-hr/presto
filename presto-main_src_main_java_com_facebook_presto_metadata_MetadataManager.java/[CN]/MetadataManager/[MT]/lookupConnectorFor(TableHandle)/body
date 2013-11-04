@@ -1,18 +1,18 @@
 {
   checkNotNull(tableHandle,"tableHandle is null");
-  for (  ConnectorMetadata metadata : informationSchemas.values()) {
-    if (metadata.canHandle(tableHandle)) {
-      return metadata;
+  for (  Entry<String,ConnectorMetadataEntry> entry : informationSchemas.entrySet()) {
+    if (entry.getValue().getMetadata().canHandle(tableHandle)) {
+      return entry.getValue();
     }
   }
-  for (  ConnectorMetadata internalSchemaMetadata : internalSchemas) {
-    if (internalSchemaMetadata.canHandle(tableHandle)) {
-      return internalSchemaMetadata;
+  for (  ConnectorMetadataEntry entry : internalSchemas) {
+    if (entry.getMetadata().canHandle(tableHandle)) {
+      return entry;
     }
   }
-  for (  ConnectorMetadata metadata : connectors.values()) {
-    if (metadata.canHandle(tableHandle)) {
-      return metadata;
+  for (  Entry<String,ConnectorMetadataEntry> entry : connectors.entrySet()) {
+    if (entry.getValue().getMetadata().canHandle(tableHandle)) {
+      return entry.getValue();
     }
   }
   throw new IllegalArgumentException("Table %s does not exist: " + tableHandle);
