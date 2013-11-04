@@ -5,6 +5,8 @@
   PlanNodeIdAllocator idAllocator=new PlanNodeIdAllocator();
   LogicalPlanner logicalPlanner=new LogicalPlanner(stateMachine.getSession(),planOptimizers,idAllocator,metadata,periodicImportManager,storageManager);
   Plan plan=logicalPlanner.plan(analysis);
+  List<Input> inputs=new InputExtractor(metadata).extract(plan.getRoot());
+  stateMachine.setInputs(inputs);
   SubPlan subplan=new DistributedLogicalPlanner(metadata,idAllocator).createSubplans(plan,false);
   stateMachine.recordAnalysisTime(analysisStart);
   return subplan;

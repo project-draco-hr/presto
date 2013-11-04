@@ -1,0 +1,10 @@
+{
+  ImmutableSetMultimap.Builder<TableEntry,String> builder=ImmutableSetMultimap.builder();
+  root.accept(new Visitor(builder),null);
+  ImmutableList.Builder<Input> inputBuilder=ImmutableList.builder();
+  for (  Map.Entry<TableEntry,Collection<String>> entry : builder.build().asMap().entrySet()) {
+    Input input=new Input(entry.getKey().getConnectorId(),entry.getKey().getSchema(),entry.getKey().getTable(),ImmutableList.copyOf(entry.getValue()));
+    inputBuilder.add(input);
+  }
+  return inputBuilder.build();
+}
