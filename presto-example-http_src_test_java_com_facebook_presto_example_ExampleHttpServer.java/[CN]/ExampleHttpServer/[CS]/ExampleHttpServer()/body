@@ -1,0 +1,15 @@
+{
+  NodeConfig nodeConfig=new NodeConfig().setEnvironment("test").setNodeInternalIp(getV4Localhost()).setNodeBindIp(getV4Localhost());
+  NodeInfo nodeInfo=new NodeInfo(nodeConfig);
+  HttpServerConfig httpServerConfig=new HttpServerConfig();
+  Servlet httpServlet=new HttpServlet(){
+    @Override protected void doGet(    HttpServletRequest request,    HttpServletResponse response) throws IOException {
+      String pathInfo=request.getPathInfo();
+      URL dataUrl=Resources.getResource(TestExampleClient.class,pathInfo);
+      ByteStreams.copy(Resources.newInputStreamSupplier(dataUrl),response.getOutputStream());
+    }
+  }
+;
+  httpServer=new TestingHttpServer(new HttpServerInfo(httpServerConfig,nodeInfo),nodeInfo,httpServerConfig,httpServlet,ImmutableMap.<String,String>of());
+  httpServer.start();
+}

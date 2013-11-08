@@ -1,0 +1,10 @@
+{
+  RecordSet recordSet=new ExampleRecordSet(new ExampleSplit("test","schema","table",dataUrl.toURI()),ImmutableList.of(new ExampleColumnHandle("test","value",LONG,1),new ExampleColumnHandle("test","value",LONG,1),new ExampleColumnHandle("test","text",STRING,0)));
+  RecordCursor cursor=recordSet.cursor();
+  Map<String,Long> data=new LinkedHashMap<>();
+  while (cursor.advanceNextPosition()) {
+    assertEquals(cursor.getLong(0),cursor.getLong(1));
+    data.put(new String(cursor.getString(2),UTF_8),cursor.getLong(0));
+  }
+  assertEquals(data,ImmutableMap.<String,Long>builder().put("ten",10L).put("eleven",11L).put("twelve",12L).build());
+}

@@ -1,0 +1,15 @@
+{
+  checkNotNull(tableHandle,"tableHandle is null");
+  checkArgument(tableHandle instanceof ExampleTableHandle,"tableHandle is not an instance of ExampleTableHandle");
+  ExampleTableHandle exampleTableHandle=(ExampleTableHandle)tableHandle;
+  checkArgument(exampleTableHandle.getConnectorId().equals(connectorId),"tableHandle is not for this connector");
+  ExampleTable table=exampleClient.getTable(exampleTableHandle.getSchemaName(),exampleTableHandle.getTableName());
+  if (table == null) {
+    throw new TableNotFoundException(exampleTableHandle.toSchemaTableName());
+  }
+  ImmutableMap.Builder<String,ColumnHandle> columnHandles=ImmutableMap.builder();
+  for (  ColumnMetadata columnMetadata : table.getColumnsMetadata()) {
+    columnHandles.put(columnMetadata.getName(),new ExampleColumnHandle(connectorId,columnMetadata));
+  }
+  return columnHandles.build();
+}
