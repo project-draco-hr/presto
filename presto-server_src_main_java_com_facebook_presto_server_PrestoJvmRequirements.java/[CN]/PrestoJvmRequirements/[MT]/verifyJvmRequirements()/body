@@ -1,0 +1,33 @@
+{
+  String specVersion=StandardSystemProperty.JAVA_SPECIFICATION_VERSION.value();
+  if (specVersion.compareTo("1.7") < 0) {
+    failRequirement("Presto requires Java 1.7+ (found %s)",specVersion);
+  }
+  String vendor=StandardSystemProperty.JAVA_VENDOR.value();
+  if (!vendor.equals("Oracle Corporation")) {
+    failRequirement("Presto requires an Oracle or OpenJDK JVM (found %s)",vendor);
+  }
+  String version=StandardSystemProperty.JAVA_VERSION.value();
+  if (jdkVersion(version).equals("1.7.0") && (jdkUpdate(version).compareTo("06") < 0)) {
+    failRequirement("Presto requires Oracle JDK 7u6+ (found %s)",version);
+  }
+  String osName=StandardSystemProperty.OS_NAME.value();
+  String osArch=StandardSystemProperty.OS_ARCH.value();
+switch (osName) {
+case "Linux":
+    if (!osArch.equals("amd64")) {
+      failRequirement("Presto requires architecture amd64 on Linux (found %s)",osArch);
+    }
+  break;
+case "Mac OS X":
+if (!osArch.equals("x86_64")) {
+  failRequirement("Presto requires architecture x86_64 on Mac OS X (found %s)",osArch);
+}
+break;
+default :
+failRequirement("Presto requires Linux or Mac OS X (found %s)",osName);
+}
+if (!ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
+failRequirement("Presto requires a little endian platform (found %s)",ByteOrder.nativeOrder());
+}
+}
