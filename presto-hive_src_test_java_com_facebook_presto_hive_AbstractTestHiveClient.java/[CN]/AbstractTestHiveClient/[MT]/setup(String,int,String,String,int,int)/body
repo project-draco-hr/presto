@@ -1,0 +1,15 @@
+{
+  setupHive(connectorName,databaseName);
+  HiveClientConfig hiveClientConfig=new HiveClientConfig();
+  String proxy=System.getProperty("hive.metastore.thrift.client.socks-proxy");
+  if (proxy != null) {
+    hiveClientConfig.setMetastoreSocksProxy(HostAndPort.fromString(proxy));
+  }
+  FileSystemWrapper fileSystemWrapper=new FileSystemWrapperProvider(new FileSystemCache(hiveClientConfig)).get();
+  HiveCluster hiveCluster=new TestingHiveCluster(hiveClientConfig,host,port);
+  ExecutorService executor=newCachedThreadPool(daemonThreadsNamed("hive-%s"));
+  HiveClient client=new HiveClient(new HiveConnectorId(connectorName),new CachingHiveMetastore(hiveCluster,executor,Duration.valueOf("1m"),Duration.valueOf("15s")),new HdfsEnvironment(new HdfsConfiguration(hiveClientConfig),fileSystemWrapper),sameThreadExecutor(),hiveClientConfig.getMaxSplitSize(),maxOutstandingSplits,maxThreads,hiveClientConfig.getMinPartitionBatchSize(),hiveClientConfig.getMaxPartitionBatchSize());
+  metadata=client;
+  splitManager=client;
+  recordSetProvider=client;
+}
