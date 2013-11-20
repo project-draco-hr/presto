@@ -3,14 +3,12 @@
   executor.execute(new Runnable(){
     @Override public void run(){
       try {
-        RemoteIterator<LocatedFileStatus> iter=fileSystem.listLocatedStatus(path);
-        while (iter.hasNext()) {
-          LocatedFileStatus status=iter.next();
-          if (isDirectory(status)) {
-            recursiveWalk(status.getPath(),callback,taskCount,settableFuture);
+        for (        DirectoryEntry entry : listDirectory(fileSystem,path)) {
+          if (entry.isDirectory()) {
+            recursiveWalk(entry.getFileStatus().getPath(),callback,taskCount,settableFuture);
           }
  else {
-            callback.process(status,status.getBlockLocations());
+            callback.process(entry.getFileStatus(),entry.getBlockLocations());
           }
         }
       }

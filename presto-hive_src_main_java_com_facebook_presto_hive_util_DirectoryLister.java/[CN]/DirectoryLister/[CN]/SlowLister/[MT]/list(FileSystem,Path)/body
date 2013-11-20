@@ -1,0 +1,16 @@
+{
+  FileStatus[] listing=fileSystem.listStatus(path);
+  if (listing == null) {
+    return ImmutableList.of();
+  }
+  ImmutableList.Builder<DirectoryEntry> list=ImmutableList.builder();
+  for (  FileStatus status : listing) {
+    if (isDirectory(status)) {
+      list.add(entryForDirectory(status));
+    }
+ else {
+      list.add(entryForFile(status,fileSystem.getFileBlockLocations(status,0,Long.MAX_VALUE)));
+    }
+  }
+  return list.build();
+}
