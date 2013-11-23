@@ -1,0 +1,24 @@
+{
+  Builder builder=new Builder(type);
+  if (lowIndexedRanges.isEmpty()) {
+    return builder.add(Range.all(type)).build();
+  }
+  Iterator<Range> rangeIterator=lowIndexedRanges.values().iterator();
+  Range firstRange=rangeIterator.next();
+  if (!firstRange.getLow().isLowerUnbounded()) {
+    builder.add(new Range(Marker.lowerUnbounded(type),firstRange.getLow().lesserAdjacent()));
+  }
+  Range previousRange=firstRange;
+  while (rangeIterator.hasNext()) {
+    Range currentRange=rangeIterator.next();
+    Marker lowMarker=previousRange.getHigh().greaterAdjacent();
+    Marker highMarker=currentRange.getLow().lesserAdjacent();
+    builder.add(new Range(lowMarker,highMarker));
+    previousRange=currentRange;
+  }
+  Range lastRange=previousRange;
+  if (!lastRange.getHigh().isUpperUnbounded()) {
+    builder.add(new Range(lastRange.getHigh().greaterAdjacent(),Marker.upperUnbounded(type)));
+  }
+  return builder.build();
+}

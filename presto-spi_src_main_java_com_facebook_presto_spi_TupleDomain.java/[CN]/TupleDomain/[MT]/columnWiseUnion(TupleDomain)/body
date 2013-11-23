@@ -1,0 +1,16 @@
+{
+  if (this.isNone()) {
+    return other;
+  }
+ else   if (other.isNone()) {
+    return this;
+  }
+  Map<ColumnHandle,Domain> columnWiseUnioned=new HashMap<>();
+  for (  Map.Entry<ColumnHandle,Domain> entry : this.getDomains().entrySet()) {
+    Domain otherDomain=other.getDomains().get(entry.getKey());
+    if (otherDomain != null) {
+      columnWiseUnioned.put(entry.getKey(),entry.getValue().union(otherDomain));
+    }
+  }
+  return withColumnDomains(columnWiseUnioned);
+}

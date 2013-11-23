@@ -1,0 +1,39 @@
+{
+  if (!table.getSd().isSetBucketCols() || table.getSd().getBucketCols().isEmpty() || !table.getSd().isSetNumBuckets()|| table.getSd().getNumBuckets() <= 0 || bindings.isEmpty()) {
+    return Optional.absent();
+  }
+  List<String> bucketColumns=table.getSd().getBucketCols();
+  Map<String,ObjectInspector> objectInspectors=new HashMap<>();
+  try {
+    for (    StructField field : getTableStructFields(table)) {
+      objectInspectors.put(field.getFieldName(),field.getFieldObjectInspector());
+    }
+  }
+ catch (  MetaException|SerDeException e) {
+    throw Throwables.propagate(e);
+  }
+  for (  String column : bucketColumns) {
+    ObjectInspector inspector=objectInspectors.get(column);
+    if (inspector.getCategory() != Category.PRIMITIVE) {
+      return Optional.absent();
+    }
+    if (!SUPPORTED_TYPES.contains(((PrimitiveObjectInspector)inspector).getPrimitiveCategory())) {
+      return Optional.absent();
+    }
+  }
+  Map<String,Object> bucketBindings=new HashMap<>();
+  for (  Entry<ColumnHandle,?> entry : bindings.entrySet()) {
+    HiveColumnHandle colHandle=(HiveColumnHandle)entry.getKey();
+    if (bucketColumns.contains(colHandle.getName())) {
+      bucketBindings.put(colHandle.getName(),entry.getValue());
+    }
+  }
+  if (bucketBindings.size() != bucketColumns.size()) {
+    return Optional.absent();
+  }
+  ImmutableList.Builder<Entry<ObjectInspector,Object>> columnBindings=ImmutableList.builder();
+  for (  String column : bucketColumns) {
+    columnBindings.add(immutableEntry(objectInspectors.get(column),bucketBindings.get(column)));
+  }
+  return getBucketNumber(columnBindings.build(),table.getSd().getNumBuckets());
+}

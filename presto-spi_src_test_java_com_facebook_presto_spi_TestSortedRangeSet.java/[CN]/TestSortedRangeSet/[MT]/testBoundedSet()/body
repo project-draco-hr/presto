@@ -1,0 +1,20 @@
+{
+  SortedRangeSet rangeSet=SortedRangeSet.of(Range.equal(10L),Range.equal(0L),Range.range(9L,true,11L,false),Range.equal(0L),Range.range(2L,true,4L,true),Range.range(4L,false,5L,true));
+  ImmutableList<Range> normalizedResult=ImmutableList.of(Range.equal(0L),Range.range(2L,true,5L,true),Range.range(9L,true,11L,false));
+  SortedRangeSet complement=SortedRangeSet.of(Range.lessThan(0L),Range.range(0L,false,2L,false),Range.range(5L,false,9L,false),Range.greaterThanOrEqual(11L));
+  Assert.assertEquals(rangeSet.getType(),Long.class);
+  Assert.assertFalse(rangeSet.isNone());
+  Assert.assertFalse(rangeSet.isAll());
+  Assert.assertFalse(rangeSet.isSingleValue());
+  Assert.assertTrue(Iterables.elementsEqual(rangeSet,normalizedResult));
+  Assert.assertEquals(rangeSet,SortedRangeSet.copyOf(Long.class,normalizedResult));
+  Assert.assertEquals(rangeSet.getRangeCount(),3);
+  Assert.assertEquals(rangeSet.getType(),Long.class);
+  Assert.assertEquals(rangeSet.complement(),complement);
+  Assert.assertFalse(rangeSet.includesMarker(Marker.lowerUnbounded(Long.class)));
+  Assert.assertTrue(rangeSet.includesMarker(Marker.exactly(0L)));
+  Assert.assertFalse(rangeSet.includesMarker(Marker.exactly(1L)));
+  Assert.assertFalse(rangeSet.includesMarker(Marker.exactly(7L)));
+  Assert.assertTrue(rangeSet.includesMarker(Marker.exactly(9L)));
+  Assert.assertFalse(rangeSet.includesMarker(Marker.upperUnbounded(Long.class)));
+}

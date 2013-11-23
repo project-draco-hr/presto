@@ -1,0 +1,12 @@
+{
+  Preconditions.checkNotNull(expressions,"expressions is null");
+  expressions=Iterables.concat(Iterables.transform(expressions,new Function<Expression,Iterable<Expression>>(){
+    @Override public Iterable<Expression> apply(    Expression expression){
+      return extractDisjuncts(expression);
+    }
+  }
+));
+  expressions=Iterables.filter(expressions,not(Predicates.<Expression>equalTo(FALSE_LITERAL)));
+  expressions=removeDuplicates(expressions);
+  return Iterables.isEmpty(expressions) ? emptyDefault : or(expressions);
+}

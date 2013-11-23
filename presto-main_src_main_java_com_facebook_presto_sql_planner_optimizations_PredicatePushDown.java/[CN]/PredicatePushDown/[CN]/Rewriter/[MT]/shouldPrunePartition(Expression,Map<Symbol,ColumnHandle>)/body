@@ -1,0 +1,19 @@
+{
+  return new Predicate<Partition>(){
+    @Override public boolean apply(    Partition partition){
+      Map<ColumnHandle,Comparable<?>> columnFixedValueAssignments=partition.getTupleDomain().extractFixedValues();
+      Map<ColumnHandle,Comparable<?>> translatableAssignments=Maps.filterKeys(columnFixedValueAssignments,in(symbolToColumn.values()));
+      Map<Symbol,Comparable<?>> symbolFixedValueAssignments=DomainUtils.columnHandleToSymbol(translatableAssignments,symbolToColumn);
+      LookupSymbolResolver inputs=new LookupSymbolResolver(ImmutableMap.<Symbol,Object>copyOf(symbolFixedValueAssignments));
+      for (      Expression expression : extractConjuncts(predicate)) {
+        ExpressionInterpreter optimizer=ExpressionInterpreter.expressionOptimizer(expression,metadata,session);
+        Object optimized=optimizer.optimize(inputs);
+        if (Boolean.FALSE.equals(optimized) || optimized == null || optimized instanceof NullLiteral) {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+;
+}

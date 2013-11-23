@@ -1,0 +1,12 @@
+{
+  if (!(node.getValue() instanceof QualifiedNameReference) || !(node.getValueList() instanceof InListExpression)) {
+    return super.visitInPredicate(node,complement);
+  }
+  InListExpression valueList=(InListExpression)node.getValueList();
+  checkState(!valueList.getValues().isEmpty(),"InListExpression should never be empty");
+  ImmutableList.Builder<Expression> disjuncts=ImmutableList.builder();
+  for (  Expression expression : valueList.getValues()) {
+    disjuncts.add(new ComparisonExpression(EQUAL,node.getValue(),expression));
+  }
+  return process(or(disjuncts.build()),complement);
+}

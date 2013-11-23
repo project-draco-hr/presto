@@ -3,9 +3,10 @@
   assertNotNull(tableHandle);
   ColumnHandle dsColumn=metadata.getColumnHandle(tableHandle,"ds");
   assertNotNull(dsColumn);
-  List<Partition> partitions=splitManager.getPartitions(tableHandle,ImmutableMap.<ColumnHandle,Object>of(dsColumn,"2012-12-30"));
-  for (  Partition partition : partitions) {
-    if ("2012-12-30".equals(partition.getKeys().get(dsColumn))) {
+  TupleDomain tupleDomain=TupleDomain.withColumnDomains(ImmutableMap.<ColumnHandle,Domain>of(dsColumn,Domain.singleValue("2012-12-30")));
+  PartitionResult partitionResult=splitManager.getPartitions(tableHandle,tupleDomain);
+  for (  Partition partition : partitionResult.getPartitions()) {
+    if (Domain.singleValue("2012-12-30").equals(partition.getTupleDomain().getDomains().get(dsColumn))) {
       try {
         Iterables.size(splitManager.getPartitionSplits(tableHandle,ImmutableList.of(partition)));
         fail("Expected PartitionOfflineException");

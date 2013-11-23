@@ -1,5 +1,8 @@
 {
-  Expression partitionPredicate=node.getPartitionPredicate();
-  checkState(DeterminismEvaluator.isDeterministic(partitionPredicate));
+  if (!node.getGeneratedPartitions().isPresent()) {
+    return BooleanLiteral.TRUE_LITERAL;
+  }
+  TupleDomain tupleDomain=node.getPartitionsDomainSummary().intersect(node.getGeneratedPartitions().get().getTupleDomainInput());
+  Expression partitionPredicate=DomainTranslator.toPredicate(tupleDomain,ImmutableBiMap.copyOf(node.getAssignments()).inverse());
   return pullExpressionThroughSymbols(partitionPredicate,node.getOutputSymbols());
 }

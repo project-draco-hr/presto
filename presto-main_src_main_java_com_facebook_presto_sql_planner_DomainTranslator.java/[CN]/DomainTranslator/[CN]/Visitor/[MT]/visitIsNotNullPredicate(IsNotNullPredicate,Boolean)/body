@@ -1,0 +1,10 @@
+{
+  if (!(node.getValue() instanceof QualifiedNameReference)) {
+    return super.visitIsNotNullPredicate(node,complement);
+  }
+  Symbol symbol=Symbol.fromQualifiedName(((QualifiedNameReference)node.getValue()).getName());
+  ColumnType columnType=checkedTypeLookup(symbol);
+  ColumnHandle columnHandle=checkedColumnHandleLookup(symbol);
+  Domain domain=complementIfNecessary(Domain.notNull(columnType.getNativeType()),complement);
+  return new ExtractionResult(TupleDomain.withColumnDomains(ImmutableMap.<ColumnHandle,Domain>of(columnHandle,domain)),TRUE_LITERAL);
+}

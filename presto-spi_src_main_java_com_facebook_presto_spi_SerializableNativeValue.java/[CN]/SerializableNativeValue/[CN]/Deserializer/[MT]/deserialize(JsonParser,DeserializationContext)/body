@@ -1,0 +1,11 @@
+{
+  checkJson(jsonParser.nextFieldName(new SerializedString("type")));
+  String typeString=jsonParser.nextTextValue();
+  Class<?> type=extractClassType(typeString);
+  ColumnType.fromNativeType(type);
+  checkJson(jsonParser.nextFieldName(new SerializedString("value")));
+  JsonToken token=jsonParser.nextToken();
+  Comparable<?> value=(token == JsonToken.VALUE_NULL) ? null : readValue(type,jsonParser);
+  checkJson(jsonParser.nextToken() == JsonToken.END_OBJECT);
+  return new SerializableNativeValue(type,value);
+}

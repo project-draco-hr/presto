@@ -1,0 +1,22 @@
+{
+  ExtractionResult leftResult=process(node.getLeft(),complement);
+  ExtractionResult rightResult=process(node.getRight(),complement);
+  LogicalBinaryExpression.Type type=complement ? flipLogicalBinaryType(node.getType()) : node.getType();
+switch (type) {
+case AND:
+    return new ExtractionResult(leftResult.getTupleDomain().intersect(rightResult.getTupleDomain()),combineConjuncts(leftResult.getRemainingExpression(),rightResult.getRemainingExpression()));
+case OR:
+  TupleDomain columnUnionedTupleDomain=leftResult.getTupleDomain().columnWiseUnion(rightResult.getTupleDomain());
+Expression remainingExpression=complementIfNecessary(node,complement);
+if (leftResult.getRemainingExpression().equals(rightResult.getRemainingExpression()) && DeterminismEvaluator.isDeterministic(leftResult.getRemainingExpression())) {
+boolean matchingSingleSymbolDomains=!leftResult.getTupleDomain().isNone() && !rightResult.getTupleDomain().isNone() && leftResult.getTupleDomain().getDomains().size() == 1 && rightResult.getTupleDomain().getDomains().size() == 1 && leftResult.getTupleDomain().getDomains().keySet().equals(rightResult.getTupleDomain().getDomains().keySet());
+boolean oneSideIsSuperSet=leftResult.getTupleDomain().contains(rightResult.getTupleDomain()) || rightResult.getTupleDomain().contains(leftResult.getTupleDomain());
+if (matchingSingleSymbolDomains || oneSideIsSuperSet) {
+  remainingExpression=leftResult.getRemainingExpression();
+}
+}
+return new ExtractionResult(columnUnionedTupleDomain,remainingExpression);
+default :
+throw new AssertionError("Unknown type: " + node.getType());
+}
+}

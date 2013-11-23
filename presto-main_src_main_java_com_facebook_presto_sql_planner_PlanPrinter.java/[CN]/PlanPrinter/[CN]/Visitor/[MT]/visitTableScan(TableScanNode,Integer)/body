@@ -1,7 +1,10 @@
 {
-  print(indent,"- TableScan[%s, partition predicate=%s, upstream predicate=%s] => [%s]",node.getTable(),node.getPartitionPredicate(),node.getUpstreamPredicateHint(),formatOutputs(node.getOutputSymbols()));
+  TupleDomain partitionsDomainSummary=node.getPartitionsDomainSummary();
+  print(indent,"- TableScan[%s, domain=%s] => [%s]",node.getTable(),printableTupleDomainWithSymbols(partitionsDomainSummary,node.getAssignments()),formatOutputs(node.getOutputSymbols()));
   for (  Map.Entry<Symbol,ColumnHandle> entry : node.getAssignments().entrySet()) {
-    print(indent + 2,"%s := %s",entry.getKey(),entry.getValue());
+    if (node.getOutputSymbols().contains(entry.getKey()) || (!partitionsDomainSummary.isNone() && partitionsDomainSummary.getDomains().keySet().contains(entry.getValue()))) {
+      print(indent + 2,"%s := %s",entry.getKey(),entry.getValue());
+    }
   }
   return null;
 }

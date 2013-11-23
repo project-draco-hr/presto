@@ -1,0 +1,35 @@
+{
+  comparison=normalizeSimpleComparison(comparison);
+  checkArgument(comparison.getLeft() instanceof QualifiedNameReference,"Left must be a QualifiedNameReference");
+  checkArgument(comparison.getRight() instanceof DoubleLiteral,"Right must be a DoubleLiteral");
+  QualifiedNameReference reference=(QualifiedNameReference)comparison.getLeft();
+  Double value=((DoubleLiteral)comparison.getRight()).getValue();
+switch (comparison.getType()) {
+case GREATER_THAN_OR_EQUAL:
+case LESS_THAN:
+    return new ComparisonExpression(comparison.getType(),reference,toExpression(DoubleMath.roundToLong(value,RoundingMode.CEILING)));
+case GREATER_THAN:
+case LESS_THAN_OR_EQUAL:
+  return new ComparisonExpression(comparison.getType(),reference,toExpression(DoubleMath.roundToLong(value,RoundingMode.FLOOR)));
+case EQUAL:
+Long equalValue=DoubleMath.roundToLong(value,RoundingMode.FLOOR);
+if (equalValue.doubleValue() != value) {
+return and(new ComparisonExpression(EQUAL,reference,new LongLiteral("0")),new ComparisonExpression(NOT_EQUAL,reference,new LongLiteral("0")));
+}
+return new ComparisonExpression(comparison.getType(),reference,toExpression(equalValue));
+case NOT_EQUAL:
+Long notEqualValue=DoubleMath.roundToLong(value,RoundingMode.FLOOR);
+if (notEqualValue.doubleValue() != value) {
+return or(new ComparisonExpression(EQUAL,reference,new LongLiteral("0")),new ComparisonExpression(NOT_EQUAL,reference,new LongLiteral("0")));
+}
+return new ComparisonExpression(comparison.getType(),reference,toExpression(notEqualValue));
+case IS_DISTINCT_FROM:
+Long distinctValue=DoubleMath.roundToLong(value,RoundingMode.FLOOR);
+if (distinctValue.doubleValue() != value) {
+return TRUE_LITERAL;
+}
+return new ComparisonExpression(comparison.getType(),reference,toExpression(distinctValue));
+default :
+throw new AssertionError("Unhandled type: " + comparison.getType());
+}
+}

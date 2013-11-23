@@ -1,0 +1,13 @@
+{
+  if (tupleDomain.isNone()) {
+    return FALSE_LITERAL;
+  }
+  ImmutableList.Builder<Expression> conjunctBuilder=ImmutableList.builder();
+  for (  Map.Entry<ColumnHandle,Domain> entry : tupleDomain.getDomains().entrySet()) {
+    ColumnHandle columnHandle=entry.getKey();
+    checkArgument(symbolTranslationMap.containsKey(columnHandle),"Unable to convert TupleDomain to Expression b/c don't know Symbol for ColumnHandle %s",columnHandle);
+    QualifiedNameReference reference=new QualifiedNameReference(symbolTranslationMap.get(columnHandle).toQualifiedName());
+    conjunctBuilder.add(toPredicate(entry.getValue(),reference));
+  }
+  return combineConjuncts(conjunctBuilder.build());
+}

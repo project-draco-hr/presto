@@ -2,8 +2,8 @@
   TableHandle tableHandle=getTableHandle(tableUnpartitioned);
   List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(tableHandle).values());
   Map<String,Integer> columnIndex=indexColumns(columnHandles);
-  List<Partition> partitions=splitManager.getPartitions(tableHandle,ImmutableMap.<ColumnHandle,Object>of());
-  List<Split> splits=ImmutableList.copyOf(splitManager.getPartitionSplits(tableHandle,partitions));
+  PartitionResult partitionResult=splitManager.getPartitions(tableHandle,TupleDomain.all());
+  List<Split> splits=ImmutableList.copyOf(splitManager.getPartitionSplits(tableHandle,partitionResult.getPartitions()));
   assertEquals(splits.size(),1);
   for (  Split split : splits) {
     HiveSplit hiveSplit=(HiveSplit)split;

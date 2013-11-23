@@ -1,0 +1,9 @@
+{
+  checkNotNull(table,"table is null");
+  checkNotNull(tupleDomain,"tupleDomain is null");
+  checkArgument(table instanceof InformationSchemaTableHandle,"TableHandle must be an InformationSchemaTableHandle");
+  InformationSchemaTableHandle informationSchemaTableHandle=(InformationSchemaTableHandle)table;
+  Map<ColumnHandle,Comparable<?>> bindings=tupleDomain.extractFixedValues();
+  List<Partition> partitions=ImmutableList.<Partition>of(new InformationSchemaPartition(informationSchemaTableHandle,bindings));
+  return new PartitionResult(partitions,tupleDomain);
+}

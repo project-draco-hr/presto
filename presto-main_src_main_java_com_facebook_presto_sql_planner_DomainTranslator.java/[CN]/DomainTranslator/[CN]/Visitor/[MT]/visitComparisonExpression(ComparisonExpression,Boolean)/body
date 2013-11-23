@@ -1,0 +1,21 @@
+{
+  if (!isSimpleComparison(node)) {
+    return super.visitComparisonExpression(node,complement);
+  }
+  node=normalizeSimpleComparison(node);
+  Symbol symbol=Symbol.fromQualifiedName(((QualifiedNameReference)node.getLeft()).getName());
+  ColumnType columnType=checkedTypeLookup(symbol);
+  ColumnHandle columnHandle=checkedColumnHandleLookup(symbol);
+  Object value=LiteralInterpreter.evaluate(node.getRight());
+  if (value instanceof Double && columnType == ColumnType.LONG) {
+    return process(coerceDoubleToLongComparison(node),complement);
+  }
+  if (value instanceof Long && columnType == ColumnType.DOUBLE) {
+    value=((Long)value).doubleValue();
+  }
+  if (value instanceof Slice) {
+    value=((Slice)value).toStringUtf8();
+  }
+  verifyType(columnType,value);
+  return createComparisonExtractionResult(node.getType(),columnHandle,columnType,objectToComparable(value),complement);
+}

@@ -1,4 +1,5 @@
 {
-  DataSource dataSource=splitManager.getSplits(session,node.getTable(),node.getPartitionPredicate(),node.getUpstreamPredicateHint(),materializedViewPartitionPredicate,node.getAssignments());
+  List<Partition> partitions=FluentIterable.from(getPartitions(node)).filter(materializedViewPartitionPredicate).toList();
+  DataSource dataSource=splitManager.getPartitionSplits(node.getTable(),partitions);
   return new NodeSplits(node.getId(),dataSource);
 }

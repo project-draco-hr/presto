@@ -1,5 +1,5 @@
 {
-  Set<Symbol> requiredTableScanOutputs=ImmutableSet.copyOf(filter(expectedOutputs,in(node.getOutputSymbols())));
+  Set<Symbol> requiredTableScanOutputs=FluentIterable.from(expectedOutputs).filter(in(node.getOutputSymbols())).toSet();
   if (requiredTableScanOutputs.isEmpty()) {
     for (    Symbol symbol : node.getOutputSymbols()) {
       if (Type.isNumeric(types.get(symbol))) {
@@ -12,7 +12,6 @@
     }
   }
   checkState(!requiredTableScanOutputs.isEmpty());
-  Set<Symbol> requiredSymbols=Sets.union(requiredTableScanOutputs,DependencyExtractor.extractUnique(node.getPartitionPredicate()));
-  Map<Symbol,ColumnHandle> newAssignments=Maps.filterKeys(node.getAssignments(),in(requiredSymbols));
-  return new TableScanNode(node.getId(),node.getTable(),ImmutableList.copyOf(requiredTableScanOutputs),newAssignments,node.getPartitionPredicate(),node.getUpstreamPredicateHint());
+  List<Symbol> newOutputSymbols=FluentIterable.from(node.getOutputSymbols()).filter(in(requiredTableScanOutputs)).toList();
+  return new TableScanNode(node.getId(),node.getTable(),newOutputSymbols,node.getAssignments(),node.getGeneratedPartitions());
 }

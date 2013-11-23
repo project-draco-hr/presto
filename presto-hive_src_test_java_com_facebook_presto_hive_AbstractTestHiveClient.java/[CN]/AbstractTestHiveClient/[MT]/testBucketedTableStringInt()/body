@@ -5,9 +5,9 @@
   String testString="sequencefile test";
   Long testInt=413L;
   Long testSmallint=412L;
-  ImmutableMap<ColumnHandle,Object> bindings=ImmutableMap.<ColumnHandle,Object>builder().put(columnHandles.get(columnIndex.get("t_int")),testInt).put(columnHandles.get(columnIndex.get("t_string")),testString).put(columnHandles.get(columnIndex.get("t_smallint")),testSmallint).build();
-  List<Partition> partitions=splitManager.getPartitions(tableHandle,bindings);
-  List<Split> splits=ImmutableList.copyOf(splitManager.getPartitionSplits(tableHandle,partitions));
+  ImmutableMap<ColumnHandle,Comparable<?>> bindings=ImmutableMap.<ColumnHandle,Comparable<?>>builder().put(columnHandles.get(columnIndex.get("t_int")),testInt).put(columnHandles.get(columnIndex.get("t_string")),testString).put(columnHandles.get(columnIndex.get("t_smallint")),testSmallint).build();
+  PartitionResult partitionResult=splitManager.getPartitions(tableHandle,TupleDomain.withFixedValues(bindings));
+  List<Split> splits=ImmutableList.copyOf(splitManager.getPartitionSplits(tableHandle,partitionResult.getPartitions()));
   assertEquals(splits.size(),1);
   boolean rowFound=false;
   try (RecordCursor cursor=recordSetProvider.getRecordSet(splits.get(0),columnHandles).cursor()){

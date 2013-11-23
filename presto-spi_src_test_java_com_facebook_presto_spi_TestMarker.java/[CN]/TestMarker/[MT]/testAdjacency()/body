@@ -1,0 +1,50 @@
+{
+  ImmutableMap<Marker,Integer> markers=ImmutableMap.<Marker,Integer>builder().put(Marker.lowerUnbounded(Long.class),-1000).put(Marker.above(0L),-100).put(Marker.below(1L),-1).put(Marker.exactly(1L),0).put(Marker.above(1L),1).put(Marker.below(2L),100).put(Marker.upperUnbounded(Long.class),1000).build();
+  for (  Map.Entry<Marker,Integer> entry1 : markers.entrySet()) {
+    for (    Map.Entry<Marker,Integer> entry2 : markers.entrySet()) {
+      boolean adjacent=entry1.getKey().isAdjacent(entry2.getKey());
+      boolean distanceIsOne=Math.abs(entry1.getValue() - entry2.getValue()) == 1;
+      Assert.assertEquals(adjacent,distanceIsOne);
+    }
+  }
+  Assert.assertEquals(Marker.below(1L).greaterAdjacent(),Marker.exactly(1L));
+  Assert.assertEquals(Marker.exactly(1L).greaterAdjacent(),Marker.above(1L));
+  Assert.assertEquals(Marker.above(1L).lesserAdjacent(),Marker.exactly(1L));
+  Assert.assertEquals(Marker.exactly(1L).lesserAdjacent(),Marker.below(1L));
+  try {
+    Marker.below(1L).lesserAdjacent();
+    Assert.fail();
+  }
+ catch (  IllegalStateException e) {
+  }
+  try {
+    Marker.above(1L).greaterAdjacent();
+    Assert.fail();
+  }
+ catch (  IllegalStateException e) {
+  }
+  try {
+    Marker.lowerUnbounded(Long.class).lesserAdjacent();
+    Assert.fail();
+  }
+ catch (  IllegalStateException e) {
+  }
+  try {
+    Marker.lowerUnbounded(Long.class).greaterAdjacent();
+    Assert.fail();
+  }
+ catch (  IllegalStateException e) {
+  }
+  try {
+    Marker.upperUnbounded(Long.class).lesserAdjacent();
+    Assert.fail();
+  }
+ catch (  IllegalStateException e) {
+  }
+  try {
+    Marker.upperUnbounded(Long.class).greaterAdjacent();
+    Assert.fail();
+  }
+ catch (  IllegalStateException e) {
+  }
+}
