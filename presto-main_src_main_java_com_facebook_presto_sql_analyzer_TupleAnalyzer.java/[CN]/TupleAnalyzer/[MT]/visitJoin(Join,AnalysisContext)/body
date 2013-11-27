@@ -1,8 +1,8 @@
 {
-  if (!EnumSet.of(Join.Type.INNER,Join.Type.LEFT,Join.Type.RIGHT).contains(node.getType())) {
-    throw new SemanticException(NOT_SUPPORTED,node,"Only inner, left, and right joins are supported");
+  if (EnumSet.of(Join.Type.FULL).contains(node.getType())) {
+    throw new SemanticException(NOT_SUPPORTED,node,"Full outer joins are not supported");
   }
-  JoinCriteria criteria=node.getCriteria();
+  JoinCriteria criteria=node.getCriteria().orNull();
   if (criteria instanceof NaturalJoin) {
     throw new SemanticException(NOT_SUPPORTED,node,"Natural join not supported");
   }
@@ -14,6 +14,10 @@
   }
   List<Field> outputFields=ImmutableList.<Field>builder().addAll(left.getFields()).addAll(right.getFields()).build();
   TupleDescriptor output=new TupleDescriptor(outputFields);
+  if (node.getType() == Join.Type.CROSS) {
+    analysis.setOutputDescriptor(node,output);
+    return output;
+  }
   if (criteria instanceof JoinUsing) {
     List<String> columns=((JoinUsing)criteria).getColumns();
     ImmutableList.Builder<EquiJoinClause> builder=ImmutableList.builder();
@@ -22,8 +26,8 @@
       Expression rightExpression=new QualifiedNameReference(QualifiedName.of(column));
       ExpressionAnalysis leftExpressionAnalysis=Analyzer.analyzeExpression(session,metadata,left,analysis,context,leftExpression);
       ExpressionAnalysis rightExpressionAnalysis=Analyzer.analyzeExpression(session,metadata,right,analysis,context,rightExpression);
-      Preconditions.checkState(leftExpressionAnalysis.getSubqueryInPredicates().isEmpty(),"INVARIANT");
-      Preconditions.checkState(rightExpressionAnalysis.getSubqueryInPredicates().isEmpty(),"INVARIANT");
+      checkState(leftExpressionAnalysis.getSubqueryInPredicates().isEmpty(),"INVARIANT");
+      checkState(rightExpressionAnalysis.getSubqueryInPredicates().isEmpty(),"INVARIANT");
       builder.add(new EquiJoinClause(leftExpression,rightExpression));
     }
     analysis.setEquijoinCriteria(node,builder.build());
@@ -34,8 +38,16 @@
     analyzer.analyze(expression,output,context);
     Analyzer.verifyNoAggregatesOrWindowFunctions(metadata,expression,"JOIN");
     Object optimizedExpression=ExpressionInterpreter.expressionOptimizer(expression,metadata,session).optimize(NoOpSymbolResolver.INSTANCE);
+    if (!(optimizedExpression instanceof Expression) && optimizedExpression instanceof Boolean) {
+      if (optimizedExpression.equals(Boolean.TRUE)) {
+        optimizedExpression=new ComparisonExpression(ComparisonExpression.Type.EQUAL,new LongLiteral("0"),new LongLiteral("0"));
+      }
+ else {
+        optimizedExpression=new ComparisonExpression(ComparisonExpression.Type.EQUAL,new LongLiteral("0"),new LongLiteral("1"));
+      }
+    }
     if (!(optimizedExpression instanceof Expression)) {
-      throw new SemanticException(NOT_SUPPORTED,node,"Joins on constant expressions (i.e., cross joins) not supported");
+      throw new SemanticException(TYPE_MISMATCH,node,"Join clause must be a boolean expression");
     }
     ImmutableList.Builder<EquiJoinClause> clauses=ImmutableList.builder();
     for (    Expression conjunct : ExpressionUtils.extractConjuncts((Expression)optimizedExpression)) {

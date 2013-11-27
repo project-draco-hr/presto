@@ -1,4 +1,5 @@
 {
+  boolean isCrossJoin=(node.getType() == JoinNode.Type.CROSS);
   node=tryNormalizeToInnerJoin(node,inheritedPredicate);
   Expression leftEffectivePredicate=EffectivePredicateExtractor.extract(node.getLeft());
   Expression rightEffectivePredicate=EffectivePredicateExtractor.extract(node.getRight());
@@ -37,7 +38,7 @@ PlanNode rightSource=planRewriter.rewrite(node.getRight(),rightPredicate);
 PlanNode output=node;
 if (leftSource != node.getLeft() || rightSource != node.getRight() || !newJoinPredicate.equals(joinPredicate)) {
 List<JoinNode.EquiJoinClause> criteria=node.getCriteria();
-if (!newJoinPredicate.equals(joinPredicate)) {
+if (!newJoinPredicate.equals(joinPredicate) || isCrossJoin) {
 ImmutableMap.Builder<Symbol,Expression> leftProjections=ImmutableMap.builder();
 leftProjections.putAll(IterableTransformer.<Symbol>on(node.getLeft().getOutputSymbols()).toMap(symbolToQualifiedNameReference()).map());
 ImmutableMap.Builder<Symbol,Expression> rightProjections=ImmutableMap.builder();

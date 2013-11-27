@@ -1,5 +1,5 @@
 {
-  JoinCriteria criteria=node.getCriteria();
+  JoinCriteria criteria=node.getCriteria().orNull();
   String type=node.getType().toString();
   if (criteria instanceof NaturalJoin) {
     type="NATURAL " + type;
@@ -17,7 +17,7 @@
     JoinOn on=(JoinOn)criteria;
     builder.append(" ON (").append(formatExpression(on.getExpression())).append(")");
   }
- else   if (!(criteria instanceof NaturalJoin)) {
+ else   if (node.getType() != Join.Type.CROSS && !(criteria instanceof NaturalJoin)) {
     throw new UnsupportedOperationException("unknown join criteria: " + criteria);
   }
   builder.append(")");
