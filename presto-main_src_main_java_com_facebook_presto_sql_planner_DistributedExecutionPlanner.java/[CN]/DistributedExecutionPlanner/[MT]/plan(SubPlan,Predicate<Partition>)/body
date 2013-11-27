@@ -1,10 +1,10 @@
 {
   PlanFragment currentFragment=root.getFragment();
   Visitor visitor=new Visitor();
-  NodeSplits nodeSplits=currentFragment.getRoot().accept(visitor,tableWriterPartitionPredicate);
+  NodeSplits nodeSplits=currentFragment.getRoot().accept(visitor,materializedViewPartitionPredicate);
   ImmutableList.Builder<StageExecutionPlan> dependencies=ImmutableList.builder();
   for (  SubPlan childPlan : root.getChildren()) {
-    dependencies.add(plan(childPlan,tableWriterPartitionPredicate));
+    dependencies.add(plan(childPlan,materializedViewPartitionPredicate));
   }
   return new StageExecutionPlan(currentFragment,nodeSplits.dataSource,dependencies.build(),visitor.getOutputReceivers());
 }

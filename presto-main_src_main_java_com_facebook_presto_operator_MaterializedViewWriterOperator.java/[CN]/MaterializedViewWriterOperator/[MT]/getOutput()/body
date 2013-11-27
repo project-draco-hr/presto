@@ -1,0 +1,17 @@
+{
+  if (state != State.FINISHING) {
+    return null;
+  }
+  state=State.FINISHED;
+  if (columnFileHandle != null) {
+    try {
+      storageManager.commit(columnFileHandle);
+    }
+ catch (    IOException e) {
+      throw Throwables.propagate(e);
+    }
+    operatorContext.addOutputItems(sourceId,ImmutableSet.of(new MaterializedViewWriterResult(input.get().getShardId(),nodeIdentifier)));
+  }
+  Block block=new BlockBuilder(SINGLE_LONG).append(rowCount).build();
+  return new Page(block);
+}

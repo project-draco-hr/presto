@@ -1,0 +1,9 @@
+{
+  MaterializedViewWriter materializedViewWriter=new MaterializedViewWriter(node,shardManager);
+  NodeSplits nodeSplits=node.getSource().accept(this,materializedViewWriter.getPartitionPredicate());
+  checkState(nodeSplits.dataSource.isPresent(),"No splits present for import");
+  DataSource dataSource=nodeSplits.dataSource.get();
+  outputReceivers.put(node.getId(),materializedViewWriter.getOutputReceiver());
+  Iterable<Split> newSplits=materializedViewWriter.wrapSplits(nodeSplits.planNodeId,dataSource.getSplits());
+  return new NodeSplits(node.getId(),new DataSource(dataSource.getDataSourceName(),newSplits));
+}
