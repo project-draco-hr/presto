@@ -1,11 +1,11 @@
 {
   ColumnProjectionUtils.setReadColumnIDs(configuration,readHiveColumnIndexes);
   RecordReader<?,?> recordReader=createRecordReader(split,configuration,wrappedPath);
-  if (usesColumnarTextSerDe(split)) {
-    return new ColumnarTextHiveRecordCursor<>(bytesRecordReader(recordReader),split.getLength(),split.getSchema(),split.getPartitionKeys(),columns);
+  for (  HiveRecordCursorProvider provider : cursorProviders) {
+    Optional<RecordCursor> cursor=provider.createHiveRecordCursor(split,recordReader,columns);
+    if (cursor.isPresent()) {
+      return cursor.get();
+    }
   }
- else   if (usesColumnarBinarySerDe(split)) {
-    return new ColumnarBinaryHiveRecordCursor<>(bytesRecordReader(recordReader),split.getLength(),split.getSchema(),split.getPartitionKeys(),columns);
-  }
-  return new GenericHiveRecordCursor<>(genericRecordReader(recordReader),split.getLength(),split.getSchema(),split.getPartitionKeys(),columns);
+  throw new RuntimeException("Configured cursor providers did not provide a cursor");
 }
