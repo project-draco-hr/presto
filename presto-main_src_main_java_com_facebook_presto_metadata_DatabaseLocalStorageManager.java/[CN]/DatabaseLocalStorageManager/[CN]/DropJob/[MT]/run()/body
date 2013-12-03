@@ -1,8 +1,10 @@
 {
-  List<String> shardFiles=dao.getShardFiles(shardId);
+  List<String> shardFiles=dao.getShardFiles(shardUuid);
   for (  String shardFile : shardFiles) {
-    File file=new File(getShardPath(baseStorageDir,shardId),shardFile);
-    file.delete();
+    File file=new File(getShardPath(baseStorageDir,shardUuid),shardFile);
+    if (!file.delete()) {
+      log.warn("failed to delete file: %s",file.getAbsolutePath());
+    }
   }
-  dao.dropShard(shardId);
+  dao.dropShard(shardUuid);
 }

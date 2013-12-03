@@ -2,14 +2,15 @@
   if (partitionsDone.contains(partitionName)) {
     return;
   }
-  Set<Long> shardIds=partitionInfo.getShardIds();
-  if (shardsDone.keySet().containsAll(shardIds)) {
-    ImmutableMap.Builder<Long,String> builder=ImmutableMap.builder();
-    for (    Long shardId : shardIds) {
-      builder.put(shardId,shardsDone.get(shardId));
+  Set<UUID> shardUuids=partitionInfo.getShardUuids();
+  if (shardsDone.keySet().containsAll(shardUuids)) {
+    ImmutableMap.Builder<UUID,String> builder=ImmutableMap.builder();
+    for (    UUID shardUuid : shardUuids) {
+      builder.put(shardUuid,shardsDone.get(shardUuid));
     }
-    shardManager.commitPartition(writerNode.getTable(),partitionName,partitionInfo.getPartitionKeys(),builder.build());
-    checkState(shardsInFlight.addAndGet(-shardIds.size()) >= 0,"shards in flight crashed into the ground");
+    Map<UUID,String> shards=builder.build();
+    shardManager.commitPartition(writerNode.getTable(),partitionName,partitionInfo.getPartitionKeys(),shards);
+    checkState(shardsInFlight.addAndGet(-shardUuids.size()) >= 0,"shards in flight crashed into the ground");
     partitionsDone.add(partitionName);
   }
 }

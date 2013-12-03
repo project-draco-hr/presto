@@ -1,0 +1,25 @@
+{
+  checkNotNull(tableHandle,"tableHandle is null");
+  checkNotNull(partition,"partition is null");
+  checkNotNull(partitionKeys,"partitionKeys is null");
+  checkNotNull(shards,"shards is null");
+  checkState(tableHandle instanceof NativeTableHandle,"can only commit partitions for native tables");
+  final long tableId=((NativeTableHandle)tableHandle).getTableId();
+  dbi.inTransaction(new VoidTransactionCallback(){
+    @Override protected void execute(    Handle handle,    TransactionStatus status){
+      ShardManagerDao dao=handle.attach(ShardManagerDao.class);
+      long partitionId=dao.insertPartition(tableId,partition);
+      for (      PartitionKey partitionKey : partitionKeys) {
+        dao.insertPartitionKey(tableId,partition,partitionKey.getName(),partitionKey.getType().toString(),partitionKey.getValue());
+      }
+      for (      Map.Entry<UUID,String> entry : shards.entrySet()) {
+        long nodeId=getOrCreateNodeId(entry.getValue());
+        UUID shardUuid=entry.getKey();
+        long shardId=dao.insertShard(shardUuid);
+        dao.insertShardNode(shardId,nodeId);
+        dao.insertPartitionShard(shardId,tableId,partitionId);
+      }
+    }
+  }
+);
+}
