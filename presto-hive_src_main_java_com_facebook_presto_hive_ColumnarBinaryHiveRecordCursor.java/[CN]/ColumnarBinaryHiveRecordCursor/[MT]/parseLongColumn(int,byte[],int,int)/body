@@ -1,0 +1,52 @@
+{
+  if (length == 0) {
+    nulls[column]=true;
+    return;
+  }
+  nulls[column]=false;
+switch (hiveTypes[column]) {
+case SHORT:
+    checkState(length == SIZE_OF_SHORT,"Short should be 2 bytes");
+  short smallintValue=unsafe.getShort(bytes,(long)Unsafe.ARRAY_BYTE_BASE_OFFSET + start);
+longs[column]=Short.reverseBytes(smallintValue);
+break;
+case TIMESTAMP:
+checkState(length >= 1,"Timestamp should be at least 1 byte");
+longs[column]=TimestampWritable.getSeconds(bytes,start);
+break;
+case BYTE:
+checkState(length == 1,"Byte should be 1 byte");
+longs[column]=bytes[start];
+break;
+case INT:
+checkState(length >= 1,"Int should be at least 1 byte");
+if (length == 1) {
+longs[column]=bytes[start];
+}
+ else {
+int value=0;
+for (int i=1; i < length; i++) {
+value<<=8;
+value|=(bytes[start + i] & 0xFF);
+}
+longs[column]=WritableUtils.isNegativeVInt(bytes[start]) ? ~value : value;
+}
+break;
+case LONG:
+checkState(length >= 1,"Long should be at least 1 byte");
+if (length == 1) {
+longs[column]=bytes[start];
+}
+ else {
+long value=0;
+for (int i=1; i < length; i++) {
+value<<=8;
+value|=(bytes[start + i] & 0xFF);
+}
+longs[column]=WritableUtils.isNegativeVInt(bytes[start]) ? ~value : value;
+}
+break;
+default :
+throw new RuntimeException(String.format("%s is not a valid LONG type",hiveTypes[column]));
+}
+}

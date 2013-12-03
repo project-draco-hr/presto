@@ -1,0 +1,24 @@
+{
+  checkState(VALID_HIVE_STRING_TYPES.contains(hiveTypes[column]),"%s is not a valid STRING type",hiveTypes[column]);
+  if (length == 0) {
+    nulls[column]=true;
+  }
+ else {
+    nulls[column]=false;
+    if (hiveTypes[column] == HiveType.MAP || hiveTypes[column] == HiveType.LIST || hiveTypes[column] == HiveType.STRUCT) {
+      LazyBinaryObject<? extends ObjectInspector> lazyObject=LazyBinaryFactory.createLazyBinaryObject(fieldInspectors[column]);
+      ByteArrayRef byteArrayRef=new ByteArrayRef();
+      byteArrayRef.setData(bytes);
+      lazyObject.init(byteArrayRef,start,length);
+      strings[column]=SerDeUtils.getJSONString(lazyObject.getObject(),fieldInspectors[column]).getBytes(Charsets.UTF_8);
+    }
+ else {
+      if (hiveTypes[column] == HiveType.STRING && (length == 1) && bytes[start] == HIVE_EMPTY_STRING_BYTE) {
+        strings[column]=EMPTY_STRING;
+      }
+ else {
+        strings[column]=Arrays.copyOfRange(bytes,start,start + length);
+      }
+    }
+  }
+}

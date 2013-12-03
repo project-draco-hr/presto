@@ -1,0 +1,22 @@
+{
+  if (length == 0) {
+    nulls[column]=true;
+  }
+ else {
+    nulls[column]=false;
+switch (hiveTypes[column]) {
+case FLOAT:
+      checkState(length == SIZE_OF_INT,"Float should be 4 bytes");
+    int intBits=unsafe.getInt(bytes,(long)Unsafe.ARRAY_BYTE_BASE_OFFSET + start);
+  doubles[column]=Float.intBitsToFloat(Integer.reverseBytes(intBits));
+break;
+case DOUBLE:
+checkState(length == SIZE_OF_LONG,"Double should be 8 bytes");
+long longBits=unsafe.getLong(bytes,(long)Unsafe.ARRAY_BYTE_BASE_OFFSET + start);
+doubles[column]=Double.longBitsToDouble(Long.reverseBytes(longBits));
+break;
+default :
+throw new RuntimeException(String.format("%s is not a valid DOUBLE type",hiveTypes[column]));
+}
+}
+}
