@@ -1,0 +1,14 @@
+{
+  try (Connection connection=createConnection("default")){
+    try (Statement statement=connection.createStatement()){
+      try (ResultSet rs=statement.executeQuery("" + "SELECT table_catalog, table_schema " + "FROM information_schema.tables "+ "WHERE table_schema = 'sys' AND table_name = 'node'")){
+        ResultSetMetaData metadata=rs.getMetaData();
+        assertEquals(metadata.getColumnCount(),2);
+        assertEquals(metadata.getColumnLabel(1),"table_catalog");
+        assertEquals(metadata.getColumnLabel(2),"table_schema");
+        assertTrue(rs.next());
+        assertEquals(rs.getString("table_catalog"),"default");
+      }
+     }
+   }
+ }
