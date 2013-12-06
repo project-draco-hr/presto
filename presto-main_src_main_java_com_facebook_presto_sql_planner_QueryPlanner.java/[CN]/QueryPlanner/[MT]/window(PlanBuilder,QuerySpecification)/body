@@ -11,11 +11,11 @@
       partitionBySymbols.add(subPlan.translate(expression));
     }
     ImmutableList.Builder<Symbol> orderBySymbols=ImmutableList.builder();
-    Map<Symbol,SortItem.Ordering> orderings=new HashMap<>();
+    Map<Symbol,SortOrder> orderings=new HashMap<>();
     for (    SortItem item : windowFunction.getWindow().get().getOrderBy()) {
       Symbol symbol=subPlan.translate(item.getSortKey());
       orderBySymbols.add(symbol);
-      orderings.put(symbol,item.getOrdering());
+      orderings.put(symbol,toSortOrder(item));
     }
     TranslationMap outputTranslations=new TranslationMap(subPlan.getRelationPlan(),analysis);
     outputTranslations.copyMappingsFrom(subPlan.getTranslations());

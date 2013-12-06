@@ -1,8 +1,8 @@
 {
-  TupleInfo tupleInfo=new TupleInfo(VARIABLE_BINARY,FIXED_INT_64);
-  List<Page> input=rowPagesBuilder(tupleInfo).row("a",1).row("b",2).pageBreak().row("f",3).row("a",4).pageBreak().row("d",5).row("d",7).row("e",6).build();
-  TopNOperatorFactory operatorFactory=new TopNOperatorFactory(0,3,0,ImmutableList.of(ProjectionFunctions.concat(singleColumn(VARIABLE_BINARY,0,0),singleColumn(FIXED_INT_64,0,1))),Ordering.from(new FieldOrderedTupleComparator(ImmutableList.of(0,1),ImmutableList.of(SortItem.Ordering.DESCENDING,SortItem.Ordering.DESCENDING))),false);
+  List<Page> input=rowPagesBuilder(SINGLE_VARBINARY,SINGLE_LONG).row("a",1).row("b",2).pageBreak().row("f",3).row("a",4).pageBreak().row("d",5).row("d",7).row("e",6).build();
+  FieldOrderedTupleComparator comparator=new FieldOrderedTupleComparator(ImmutableList.of(0,1),ImmutableList.of(SortOrder.DESC_NULLS_LAST,SortOrder.DESC_NULLS_LAST));
+  TopNOperatorFactory operatorFactory=new TopNOperatorFactory(0,3,ImmutableList.of(singleColumn(VARIABLE_BINARY,0,0),singleColumn(FIXED_INT_64,1,0)),Ordering.from(comparator),false);
   Operator operator=operatorFactory.createOperator(driverContext);
-  MaterializedResult expected=resultBuilder(tupleInfo).row("f",3).row("e",6).row("d",7).build();
+  MaterializedResult expected=resultBuilder(SINGLE_VARBINARY,SINGLE_LONG).row("f",3).row("e",6).row("d",7).build();
   assertOperatorEquals(operator,input,expected);
 }

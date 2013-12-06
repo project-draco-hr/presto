@@ -1,0 +1,41 @@
+{
+  for (int index=0; index < sortChannels.size(); index++) {
+    int channel=sortChannels.get(index);
+    SortOrder sortOrder=sortOrders.get(index);
+    TupleReadable left=leftRow[channel];
+    TupleReadable right=rightRow[channel];
+    boolean leftIsNull=left.isNull(0);
+    boolean rightIsNull=right.isNull(0);
+    if (leftIsNull && rightIsNull) {
+      return 0;
+    }
+    if (leftIsNull) {
+      return sortOrder.isNullsFirst() ? -1 : 1;
+    }
+    if (rightIsNull) {
+      return sortOrder.isNullsFirst() ? 1 : -1;
+    }
+    Type type=left.getTupleInfo().getTypes().get(0);
+    int comparison;
+switch (type) {
+case BOOLEAN:
+      comparison=Boolean.compare(left.getBoolean(0),right.getBoolean(0));
+    break;
+case FIXED_INT_64:
+  comparison=Long.compare(left.getLong(0),right.getLong(0));
+break;
+case DOUBLE:
+comparison=Double.compare(left.getDouble(0),right.getDouble(0));
+break;
+case VARIABLE_BINARY:
+comparison=left.getSlice(0).compareTo(right.getSlice(0));
+break;
+default :
+throw new AssertionError("unimplemented type: " + type);
+}
+if (comparison != 0) {
+return sortOrder.isAscending() ? comparison : -comparison;
+}
+}
+return 0;
+}

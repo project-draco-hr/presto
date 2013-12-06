@@ -4,11 +4,11 @@
   }
   Iterator<SortItem> sortItems=orderBy.iterator();
   ImmutableList.Builder<Symbol> orderBySymbols=ImmutableList.builder();
-  ImmutableMap.Builder<Symbol,SortItem.Ordering> orderings=ImmutableMap.builder();
+  ImmutableMap.Builder<Symbol,SortOrder> orderings=ImmutableMap.builder();
   for (  FieldOrExpression fieldOrExpression : orderByExpressions) {
     Symbol symbol=subPlan.translate(fieldOrExpression);
     orderBySymbols.add(symbol);
-    orderings.put(symbol,sortItems.next().getOrdering());
+    orderings.put(symbol,toSortOrder(sortItems.next()));
   }
   PlanNode planNode;
   if (limit.isPresent()) {

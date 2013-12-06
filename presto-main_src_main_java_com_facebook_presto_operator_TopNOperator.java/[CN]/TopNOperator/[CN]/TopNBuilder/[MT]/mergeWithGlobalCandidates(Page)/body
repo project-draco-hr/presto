@@ -1,0 +1,23 @@
+{
+  long sizeDelta=0;
+  BlockCursor[] cursors=new BlockCursor[page.getChannelCount()];
+  for (int i=0; i < page.getChannelCount(); i++) {
+    cursors[i]=page.getBlock(i).cursor();
+  }
+  for (int i=0; i < page.getPositionCount(); i++) {
+    for (    BlockCursor cursor : cursors) {
+      checkState(cursor.advanceNextPosition());
+    }
+    if (globalCandidates.size() < n) {
+      sizeDelta=addRow(sizeDelta,cursors);
+    }
+ else     if (ordering.compare(cursors,globalCandidates.peek()) > 0) {
+      Tuple[] previous=globalCandidates.remove();
+      for (      Tuple tuple : previous) {
+        sizeDelta-=tuple.size();
+      }
+      sizeDelta=addRow(sizeDelta,cursors);
+    }
+  }
+  return sizeDelta;
+}

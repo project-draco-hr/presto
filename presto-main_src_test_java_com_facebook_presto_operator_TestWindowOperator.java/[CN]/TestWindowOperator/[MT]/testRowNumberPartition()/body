@@ -1,7 +1,6 @@
 {
-  TupleInfo sourceTupleInfo=new TupleInfo(VARIABLE_BINARY,FIXED_INT_64,DOUBLE,BOOLEAN);
-  List<Page> input=rowPagesBuilder(sourceTupleInfo).row("b",-1,-0.1,true).row("a",2,0.3,false).row("a",4,0.2,true).pageBreak().row("b",5,0.4,false).row("a",6,0.1,true).build();
-  InMemoryWindowOperatorFactory operatorFactory=new InMemoryWindowOperatorFactory(0,ImmutableList.of(sourceTupleInfo),0,ints(0),ROW_NUMBER,ints(0),ints(1),bools(true),10);
+  List<Page> input=rowPagesBuilder(SINGLE_VARBINARY,SINGLE_LONG,SINGLE_DOUBLE,SINGLE_BOOLEAN).row("b",-1,-0.1,true).row("a",2,0.3,false).row("a",4,0.2,true).pageBreak().row("b",5,0.4,false).row("a",6,0.1,true).build();
+  WindowOperatorFactory operatorFactory=new WindowOperatorFactory(0,ImmutableList.of(SINGLE_VARBINARY,SINGLE_LONG,SINGLE_DOUBLE,SINGLE_BOOLEAN),ints(0,1,2,3),ROW_NUMBER,ints(0),ints(1),sortOrder(SortOrder.ASC_NULLS_LAST),10);
   Operator operator=operatorFactory.createOperator(driverContext);
   MaterializedResult expected=resultBuilder(VARIABLE_BINARY,FIXED_INT_64,DOUBLE,BOOLEAN,FIXED_INT_64).row("a",2,0.3,false,1).row("a",4,0.2,true,2).row("a",6,0.1,true,3).row("b",-1,-0.1,true,1).row("b",5,0.4,false,2).build();
   assertOperatorEquals(operator,input,expected);
