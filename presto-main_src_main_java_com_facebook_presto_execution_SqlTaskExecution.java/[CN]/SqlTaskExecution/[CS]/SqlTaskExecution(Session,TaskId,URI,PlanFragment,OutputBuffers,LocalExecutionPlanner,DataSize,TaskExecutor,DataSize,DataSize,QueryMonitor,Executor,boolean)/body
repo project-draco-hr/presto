@@ -14,7 +14,15 @@
     }
 );
     this.taskContext=new TaskContext(taskStateMachine,notificationExecutor,session,checkNotNull(maxTaskMemoryUsage,"maxTaskMemoryUsage is null"),checkNotNull(operatorPreAllocatedMemory,"operatorPreAllocatedMemory is null"),cpuTimerEnabled);
-    this.sharedBuffer=new SharedBuffer(checkNotNull(maxBufferSize,"maxBufferSize is null"),outputBuffers);
+    this.sharedBuffer=new SharedBuffer(taskId,notificationExecutor,checkNotNull(maxBufferSize,"maxBufferSize is null"),outputBuffers);
+    sharedBuffer.addStateChangeListener(new StateChangeListener<QueueState>(){
+      @Override public void stateChanged(      QueueState taskState){
+        if (taskState == QueueState.FINISHED) {
+          checkTaskCompletion();
+        }
+      }
+    }
+);
     this.queryMonitor=checkNotNull(queryMonitor,"queryMonitor is null");
     taskHandle=taskExecutor.addTask(taskId);
     LocalExecutionPlan localExecutionPlan=planner.plan(session,fragment.getRoot(),fragment.getSymbols(),new TaskOutputFactory(sharedBuffer));

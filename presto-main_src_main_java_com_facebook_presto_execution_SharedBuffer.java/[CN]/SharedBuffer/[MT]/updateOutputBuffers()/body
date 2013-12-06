@@ -2,7 +2,7 @@
   for (  Entry<String,PagePartitionFunction> entry : outputBuffers.getBuffers().entrySet()) {
     String bufferId=entry.getKey();
     if (!namedQueues.containsKey(bufferId)) {
-      Preconditions.checkState(state == QueueState.OPEN,"%s is not OPEN",SharedBuffer.class.getSimpleName());
+      checkState(state.get() == QueueState.OPEN,"%s is not OPEN",SharedBuffer.class.getSimpleName());
       NamedQueue namedQueue=new NamedQueue(bufferId,entry.getValue());
       namedQueues.put(bufferId,namedQueue);
       openQueuesBySequenceId.add(namedQueue);
@@ -10,10 +10,8 @@
   }
   if (outputBuffers.isNoMoreBufferIds()) {
     namedQueues=ImmutableMap.copyOf(namedQueues);
-    if (state != QueueState.OPEN) {
-      return;
+    if (state.compareAndSet(QueueState.OPEN,QueueState.NO_MORE_QUEUES)) {
+      updateState();
     }
-    state=QueueState.NO_MORE_QUEUES;
-    updateState();
   }
 }
