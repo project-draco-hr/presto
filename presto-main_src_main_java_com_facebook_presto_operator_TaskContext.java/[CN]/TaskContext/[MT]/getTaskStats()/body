@@ -1,6 +1,8 @@
 {
   if (taskStateMachine.getState().isDone()) {
-    if (executionEndTime.compareAndSet(null,DateTime.now())) {
+    DateTime now=DateTime.now();
+    if (executionEndTime.compareAndSet(null,now)) {
+      lastExecutionStartTime.set(now);
       endNanos.set(System.nanoTime());
     }
   }
@@ -52,5 +54,5 @@
  else {
     elapsedTime=new Duration(0,NANOSECONDS);
   }
-  return new TaskStats(createdTime,executionStartTime.get(),executionEndTime.get(),elapsedTime.convertToMostSuccinctTimeUnit(),queuedTime.convertToMostSuccinctTimeUnit(),totalDrivers,queuedDrivers,runningDrivers,completedDrivers,new DataSize(memoryReservation.get(),BYTE).convertToMostSuccinctDataSize(),new Duration(totalScheduledTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalCpuTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalUserTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalBlockedTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new DataSize(rawInputDataSize,BYTE).convertToMostSuccinctDataSize(),rawInputPositions,new DataSize(processedInputDataSize,BYTE).convertToMostSuccinctDataSize(),processedInputPositions,new DataSize(outputDataSize,BYTE).convertToMostSuccinctDataSize(),outputPositions,pipelineStats);
+  return new TaskStats(createdTime,executionStartTime.get(),lastExecutionStartTime.get(),executionEndTime.get(),elapsedTime.convertToMostSuccinctTimeUnit(),queuedTime.convertToMostSuccinctTimeUnit(),totalDrivers,queuedDrivers,runningDrivers,completedDrivers,new DataSize(memoryReservation.get(),BYTE).convertToMostSuccinctDataSize(),new Duration(totalScheduledTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalCpuTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalUserTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalBlockedTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new DataSize(rawInputDataSize,BYTE).convertToMostSuccinctDataSize(),rawInputPositions,new DataSize(processedInputDataSize,BYTE).convertToMostSuccinctDataSize(),processedInputPositions,new DataSize(outputDataSize,BYTE).convertToMostSuccinctDataSize(),outputPositions,pipelineStats);
 }
