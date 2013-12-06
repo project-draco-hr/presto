@@ -1,9 +1,11 @@
 {
-  allSplits.remove(split);
-  pendingSplits.remove(split);
-  TaskHandle taskHandle=split.getTaskHandle();
-  taskHandle.splitComplete(split);
-  wallTime.add(System.nanoTime() - split.createdNanos);
-  scheduleTaskIfNecessary(taskHandle);
-  addNewEntrants();
+synchronized (this) {
+    allSplits.remove(split);
+    TaskHandle taskHandle=split.getTaskHandle();
+    taskHandle.splitComplete(split);
+    wallTime.add(System.nanoTime() - split.createdNanos);
+    scheduleTaskIfNecessary(taskHandle);
+    addNewEntrants();
+  }
+  split.destroy();
 }
