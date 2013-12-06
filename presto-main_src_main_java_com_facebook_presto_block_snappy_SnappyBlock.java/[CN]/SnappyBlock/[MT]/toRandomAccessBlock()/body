@@ -1,0 +1,16 @@
+{
+  Type type=tupleInfo.getType();
+  if (type == Type.BOOLEAN) {
+    return new UncompressedBooleanBlock(positionCount,getUncompressedSlice());
+  }
+  if (type == Type.FIXED_INT_64) {
+    return new UncompressedLongBlock(getUncompressedSlice());
+  }
+  if (type == Type.DOUBLE) {
+    return new UncompressedDoubleBlock(positionCount,getUncompressedSlice());
+  }
+  if (type == Type.VARIABLE_BINARY) {
+    return new UncompressedSliceBlock(new UncompressedBlock(positionCount,tupleInfo,getUncompressedSlice()));
+  }
+  throw new IllegalStateException("Unsupported type " + tupleInfo.getType());
+}
