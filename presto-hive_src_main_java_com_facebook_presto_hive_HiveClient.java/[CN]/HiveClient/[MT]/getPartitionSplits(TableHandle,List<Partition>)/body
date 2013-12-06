@@ -2,7 +2,7 @@
   checkNotNull(partitions,"partitions is null");
   Partition partition=Iterables.getFirst(partitions,null);
   if (partition == null) {
-    return ImmutableList.of();
+    return new FixedSplitSource(connectorId,ImmutableList.<Split>of());
   }
   checkArgument(partition instanceof HivePartition,"Partition must be a hive partition");
   SchemaTableName tableName=((HivePartition)partition).getTableName();
@@ -18,5 +18,5 @@
  catch (  NoSuchObjectException e) {
     throw new TableNotFoundException(tableName);
   }
-  return new HiveSplitIterable(connectorId,table,partitionNames,hivePartitions,bucket,maxSplitSize,maxOutstandingSplits,maxSplitIteratorThreads,hdfsEnvironment,executor,maxPartitionBatchSize);
+  return new HiveSplitSourceProvider(connectorId,table,partitionNames,hivePartitions,bucket,maxSplitSize,maxOutstandingSplits,maxSplitIteratorThreads,hdfsEnvironment,executor,maxPartitionBatchSize).get();
 }

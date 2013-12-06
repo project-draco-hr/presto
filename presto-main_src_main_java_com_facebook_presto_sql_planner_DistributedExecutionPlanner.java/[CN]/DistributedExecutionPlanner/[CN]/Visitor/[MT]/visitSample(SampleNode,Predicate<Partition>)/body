@@ -5,17 +5,9 @@ case BERNOULLI:
 case SYSTEM:
 {
     NodeSplits nodeSplits=node.getSource().accept(this,materializedViewPartitionPredicate);
-    if (nodeSplits.dataSource.isPresent()) {
-      DataSource dataSource=nodeSplits.dataSource.get();
-      final double ratio=node.getSampleRatio();
-      Iterable<Split> sampleIterable=Iterables.filter(dataSource.getSplits(),new Predicate<Split>(){
-        public boolean apply(        @Nullable Split input){
-          return ThreadLocalRandom.current().nextDouble() < ratio;
-        }
-      }
-);
-      DataSource sampledDataSource=new DataSource(dataSource.getDataSourceName(),sampleIterable);
-      return new NodeSplits(node.getId(),sampledDataSource);
+    if (nodeSplits.getDataSource().isPresent()) {
+      SplitSource sampledSplitSource=new SampledSplitSource(nodeSplits.getDataSource().get(),node.getSampleRatio());
+      return new NodeSplits(node.getId(),sampledSplitSource);
     }
  else {
       return nodeSplits;

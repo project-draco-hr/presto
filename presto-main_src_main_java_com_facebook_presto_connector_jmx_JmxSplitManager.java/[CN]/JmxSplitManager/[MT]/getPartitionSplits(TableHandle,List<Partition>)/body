@@ -1,7 +1,7 @@
 {
   checkNotNull(partitions,"partitions is null");
   if (partitions.isEmpty()) {
-    return ImmutableList.of();
+    return new FixedSplitSource(connectorId,ImmutableList.<Split>of());
   }
   Partition partition=Iterables.getOnlyElement(partitions);
   checkArgument(partition instanceof JmxPartition,"Partition must be an jmx partition");
@@ -10,5 +10,5 @@
   for (  Node node : nodeManager.getAllNodes().getActiveNodes()) {
     splits.add(new JmxSplit(jmxPartition.tableHandle,ImmutableList.of(node.getHostAndPort())));
   }
-  return splits.build();
+  return new FixedSplitSource(connectorId,splits.build());
 }

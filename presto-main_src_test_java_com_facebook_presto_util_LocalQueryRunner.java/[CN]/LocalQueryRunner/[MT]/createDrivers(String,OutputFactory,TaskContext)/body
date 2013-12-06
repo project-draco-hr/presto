@@ -20,10 +20,18 @@
   long sequenceId=0;
   for (  PlanNode sourceNode : subplan.getFragment().getSources()) {
     TableScanNode tableScan=(TableScanNode)sourceNode;
-    DataSource dataSource=splitManager.getPartitionSplits(tableScan.getTable(),getPartitions(tableScan));
+    SplitSource splitSource=splitManager.getPartitionSplits(tableScan.getTable(),getPartitions(tableScan));
     ImmutableSet.Builder<ScheduledSplit> scheduledSplits=ImmutableSet.builder();
-    for (    Split split : dataSource.getSplits()) {
-      scheduledSplits.add(new ScheduledSplit(sequenceId++,split));
+    while (!splitSource.isFinished()) {
+      try {
+        for (        Split split : splitSource.getNextBatch(1000)) {
+          scheduledSplits.add(new ScheduledSplit(sequenceId++,split));
+        }
+      }
+ catch (      InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw Throwables.propagate(e);
+      }
     }
     sources.add(new TaskSource(tableScan.getId(),scheduledSplits.build(),true));
   }

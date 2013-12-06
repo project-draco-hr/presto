@@ -3,7 +3,7 @@
   splitTimer.start();
   checkNotNull(partitions,"partitions is null");
   if (partitions.isEmpty()) {
-    return ImmutableList.of();
+    return new FixedSplitSource(getConnectorId(),ImmutableList.<Split>of());
   }
   Map<String,Node> nodesById=uniqueIndex(nodeManager.getAllNodes().getActiveNodes(),Node.getIdentifierFunction());
   List<Split> splits=new ArrayList<>();
@@ -24,5 +24,5 @@
   }
   log.debug("Split retrieval for %d partitions (%d splits): %dms",partitions.size(),splits.size(),splitTimer.elapsed(TimeUnit.MILLISECONDS));
   Collections.shuffle(splits);
-  return ImmutableList.copyOf(splits);
+  return new FixedSplitSource(getConnectorId(),splits);
 }

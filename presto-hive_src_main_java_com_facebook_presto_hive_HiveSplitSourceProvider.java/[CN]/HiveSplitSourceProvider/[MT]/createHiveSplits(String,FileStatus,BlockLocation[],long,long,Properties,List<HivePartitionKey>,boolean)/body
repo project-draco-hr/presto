@@ -1,0 +1,21 @@
+{
+  ImmutableList.Builder<HiveSplit> builder=ImmutableList.builder();
+  if (splittable) {
+    for (    BlockLocation blockLocation : blockLocations) {
+      List<HostAddress> addresses=toHostAddress(blockLocation.getHosts());
+      int chunks=Math.max(1,(int)(blockLocation.getLength() / maxSplitSize.toBytes()));
+      long targetChunkSize=(long)Math.ceil(blockLocation.getLength() * 1.0 / chunks);
+      long chunkOffset=0;
+      while (chunkOffset < blockLocation.getLength()) {
+        long chunkLength=Math.min(targetChunkSize,blockLocation.getLength() - chunkOffset);
+        builder.add(new HiveSplit(connectorId,table.getDbName(),table.getTableName(),partitionName,false,file.getPath().toString(),blockLocation.getOffset() + chunkOffset,chunkLength,schema,partitionKeys,addresses));
+        chunkOffset+=chunkLength;
+      }
+      checkState(chunkOffset == blockLocation.getLength(),"Error splitting blocks");
+    }
+  }
+ else {
+    builder.add(new HiveSplit(connectorId,table.getDbName(),table.getTableName(),partitionName,false,file.getPath().toString(),start,length,schema,partitionKeys,toHostAddress(blockLocations[0].getHosts())));
+  }
+  return builder.build();
+}

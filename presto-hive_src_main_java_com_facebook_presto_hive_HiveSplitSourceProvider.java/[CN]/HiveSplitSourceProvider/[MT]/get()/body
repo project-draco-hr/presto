@@ -1,0 +1,16 @@
+{
+  final SuspendingExecutor suspendingExecutor=new SuspendingExecutor(new BoundedExecutor(executor,maxThreads));
+  final HiveSplitSource hiveSplitSource=new HiveSplitSource(connectorId,maxOutstandingSplits,suspendingExecutor);
+  executor.execute(new Runnable(){
+    @Override public void run(){
+      try {
+        loadPartitionSplits(hiveSplitSource,suspendingExecutor);
+      }
+ catch (      InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+    }
+  }
+);
+  return hiveSplitSource;
+}
