@@ -1,14 +1,9 @@
 {
   while (joinPosition >= 0) {
-    int outputIndex=0;
-    for (    BlockCursor cursor : cursors) {
-      cursor.appendTupleTo(pageBuilder.getBlockBuilder(outputIndex));
-      outputIndex++;
+    for (int i=0; i < cursors.length; i++) {
+      cursors[i].appendTupleTo(pageBuilder.getBlockBuilder(i));
     }
-    for (int buildChannel=0; buildChannel < hash.getChannelCount(); buildChannel++) {
-      hash.appendTupleTo(buildChannel,joinPosition,pageBuilder.getBlockBuilder(outputIndex));
-      outputIndex++;
-    }
+    hash.appendTupleTo(joinPosition,pageBuilder,cursors.length);
     joinPosition=hash.getNextJoinPosition(joinPosition);
     if (pageBuilder.isFull()) {
       return false;
