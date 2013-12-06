@@ -1,4 +1,25 @@
 {
-  append(tuple,0);
-  return this;
+  checkArgument(type == tuple.getTupleInfo().getType(),"Type (%s) does not match tuple type (%s)",type,tuple.getTupleInfo().getType());
+  if (tuple.isNull()) {
+    appendNull();
+  }
+ else {
+switch (type) {
+case BOOLEAN:
+      append(tuple.getBoolean());
+    break;
+case FIXED_INT_64:
+  append(tuple.getLong());
+break;
+case DOUBLE:
+append(tuple.getDouble());
+break;
+case VARIABLE_BINARY:
+append(tuple.getSlice());
+break;
+default :
+throw new IllegalStateException("Type not yet supported: " + type);
+}
+}
+return this;
 }

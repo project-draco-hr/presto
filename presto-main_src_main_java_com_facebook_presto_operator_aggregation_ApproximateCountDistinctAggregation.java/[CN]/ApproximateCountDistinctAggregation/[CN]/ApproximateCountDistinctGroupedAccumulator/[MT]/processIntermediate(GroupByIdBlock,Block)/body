@@ -3,13 +3,13 @@
   BlockCursor intermediates=valuesBlock.cursor();
   for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
     checkState(intermediates.advanceNextPosition());
-    if (!intermediates.isNull(0)) {
+    if (!intermediates.isNull()) {
       long groupId=groupIdsBlock.getGroupId(position);
       long globalOffset=groupId * ENTRY_SIZE;
       int sliceIndex=Ints.checkedCast(globalOffset / SLICE_SIZE);
       Slice slice=slices.get(sliceIndex);
       int sliceOffset=Ints.checkedCast(globalOffset - (sliceIndex * SLICE_SIZE));
-      Slice input=intermediates.getSlice(0);
+      Slice input=intermediates.getSlice();
       ESTIMATOR.mergeInto(slice,sliceOffset + 1,input,0);
       setNotNull(slice,sliceOffset);
     }

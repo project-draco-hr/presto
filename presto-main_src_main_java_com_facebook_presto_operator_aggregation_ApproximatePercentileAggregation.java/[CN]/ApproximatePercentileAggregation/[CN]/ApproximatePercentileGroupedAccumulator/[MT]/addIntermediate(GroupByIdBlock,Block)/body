@@ -4,7 +4,7 @@
   BlockCursor intermediates=block.cursor();
   for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
     checkState(intermediates.advanceNextPosition());
-    if (!intermediates.isNull(0)) {
+    if (!intermediates.isNull()) {
       long groupId=groupIdsBlock.getGroupId(position);
       DigestAndPercentile currentValue=digests.get(groupId);
       if (currentValue == null) {
@@ -12,7 +12,7 @@
         digests.set(groupId,currentValue);
         sizeOfValues+=currentValue.getDigest().estimatedInMemorySizeInBytes();
       }
-      SliceInput input=intermediates.getSlice(0).getInput();
+      SliceInput input=intermediates.getSlice().getInput();
       sizeOfValues-=currentValue.getDigest().estimatedInMemorySizeInBytes();
       currentValue.getDigest().merge(QuantileDigest.deserialize(input));
       sizeOfValues+=currentValue.getDigest().estimatedInMemorySizeInBytes();

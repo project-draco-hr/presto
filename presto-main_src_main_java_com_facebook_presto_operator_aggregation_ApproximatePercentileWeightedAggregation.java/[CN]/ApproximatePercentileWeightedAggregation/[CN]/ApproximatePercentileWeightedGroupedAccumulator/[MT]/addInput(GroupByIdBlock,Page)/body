@@ -9,18 +9,18 @@
     checkState(weights.advanceNextPosition());
     checkState(percentiles.advanceNextPosition());
     long groupId=groupIdsBlock.getGroupId(position);
-    if (!values.isNull(0) && !weights.isNull(0)) {
+    if (!values.isNull() && !weights.isNull()) {
       DigestAndPercentile currentValue=digests.get(groupId);
       if (currentValue == null) {
         currentValue=new DigestAndPercentile(new QuantileDigest(0.01));
         digests.set(groupId,currentValue);
         sizeOfValues+=currentValue.getDigest().estimatedInMemorySizeInBytes();
       }
-      sizeOfValues-=currentValue.getDigest().estimatedInMemorySizeInBytes();
-      addValue(currentValue.getDigest(),values,weights.getLong(0),parameterType);
-      sizeOfValues+=currentValue.getDigest().estimatedInMemorySizeInBytes();
-      if (!percentiles.isNull(0)) {
-        currentValue.setPercentile(percentiles.getDouble(0));
+      sizeOfValues-=currentValue.digest.estimatedInMemorySizeInBytes();
+      addValue(currentValue.digest,values,weights.getLong(),parameterType);
+      sizeOfValues+=currentValue.digest.estimatedInMemorySizeInBytes();
+      if (!percentiles.isNull()) {
+        currentValue.setPercentile(percentiles.getDouble());
       }
     }
   }
