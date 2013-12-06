@@ -1,13 +1,16 @@
 {
   try {
-    long start=ticker.read();
+    start.compareAndSet(0,System.currentTimeMillis());
+    processCalls.incrementAndGet();
+    CpuTimer timer=new CpuTimer();
     ListenableFuture<?> blocked=split.processFor(SPLIT_RUN_QUANTA);
-    long endTime=ticker.read();
-    long durationNanos=endTime - start;
+    CpuTimer.CpuDuration elapsed=timer.elapsedTime();
+    long durationNanos=elapsed.getWall().roundTo(TimeUnit.NANOSECONDS);
     long threadUsageNanos=taskHandle.addThreadUsageNanos(durationNanos);
     this.threadUsageNanos.set(threadUsageNanos);
     priorityLevel.set(calculatePriorityLevel(threadUsageNanos));
-    lastRun.set(endTime);
+    lastRun.set(ticker.read());
+    cpuTime.addAndGet(elapsed.getCpu().roundTo(TimeUnit.NANOSECONDS));
     return blocked;
   }
  catch (  Throwable e) {
