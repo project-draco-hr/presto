@@ -1,0 +1,21 @@
+{
+  SetView<String> conflicts=Sets.intersection(pendingClasses.keySet(),newClasses.keySet());
+  Preconditions.checkArgument(conflicts.isEmpty(),"The classes %s have already been defined",conflicts);
+  pendingClasses.putAll(newClasses);
+  try {
+    Map<String,Class<?>> classes=new HashMap<>();
+    for (    String className : newClasses.keySet()) {
+      try {
+        Class<?> clazz=loadClass(className);
+        classes.put(className,clazz);
+      }
+ catch (      ClassNotFoundException e) {
+        throw Throwables.propagate(e);
+      }
+    }
+    return classes;
+  }
+  finally {
+    pendingClasses.keySet().removeAll(newClasses.keySet());
+  }
+}
