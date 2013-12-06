@@ -1,22 +1,23 @@
 {
   checkNotNull(page,"page is null");
+  checkArgument(page.getChannelCount() == tupleInfos.size(),"Expected a page with %s columns, but got %s columns",page.getChannelCount(),tupleInfos.size());
   List<BlockCursor> cursors=new ArrayList<>();
   for (  Block block : page.getBlocks()) {
     cursors.add(block.cursor());
   }
   while (true) {
-    boolean hasResults=false;
+    List<Object> values=new ArrayList<>(tupleInfos.size());
     for (    BlockCursor cursor : cursors) {
       if (cursor.advanceNextPosition()) {
-        builder.append(cursor.getTuple());
-        hasResults=true;
+        values.add(Iterables.getOnlyElement(cursor.getTuple().toValues()));
       }
  else {
-        checkState(!hasResults,"unaligned cursors");
+        checkState(values.isEmpty(),"unaligned cursors");
       }
     }
-    if (!hasResults) {
+    if (values.isEmpty()) {
       return this;
     }
+    tuples.add(new MaterializedTuple(DEFAULT_PRECISION,values));
   }
 }

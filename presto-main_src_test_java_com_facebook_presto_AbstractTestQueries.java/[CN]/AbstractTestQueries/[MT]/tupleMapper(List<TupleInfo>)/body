@@ -1,0 +1,54 @@
+{
+  return new ResultSetMapper<MaterializedTuple>(){
+    @Override public MaterializedTuple map(    int index,    ResultSet resultSet,    StatementContext ctx) throws SQLException {
+      int count=resultSet.getMetaData().getColumnCount();
+      checkArgument(tupleInfos.size() == count,"tuple info does not match result");
+      List<Object> row=new ArrayList<>(count);
+      for (int i=1; i <= count; i++) {
+        TupleInfo.Type type=tupleInfos.get(i - 1).getType();
+switch (type) {
+case BOOLEAN:
+          boolean booleanValue=resultSet.getBoolean(i);
+        if (resultSet.wasNull()) {
+          row.add(null);
+        }
+ else {
+          row.add(booleanValue);
+        }
+      break;
+case FIXED_INT_64:
+    long longValue=resultSet.getLong(i);
+  if (resultSet.wasNull()) {
+    row.add(null);
+  }
+ else {
+    row.add(longValue);
+  }
+break;
+case DOUBLE:
+double doubleValue=resultSet.getDouble(i);
+if (resultSet.wasNull()) {
+row.add(null);
+}
+ else {
+row.add(doubleValue);
+}
+break;
+case VARIABLE_BINARY:
+String value=resultSet.getString(i);
+if (resultSet.wasNull()) {
+row.add(null);
+}
+ else {
+row.add(value);
+}
+break;
+default :
+throw new AssertionError("unhandled type: " + type);
+}
+}
+return new MaterializedTuple(MaterializedResult.DEFAULT_PRECISION,row);
+}
+}
+;
+}
