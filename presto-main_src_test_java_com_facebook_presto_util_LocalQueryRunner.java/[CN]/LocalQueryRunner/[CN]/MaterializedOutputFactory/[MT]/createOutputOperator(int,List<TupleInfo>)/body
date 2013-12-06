@@ -5,10 +5,12 @@
       return ImmutableList.of();
     }
     @Override public Operator createOperator(    DriverContext driverContext){
-      checkState(materializingOperator == null,"Output already created");
       OperatorContext operatorContext=driverContext.addOperatorContext(operatorId,MaterializingOperator.class.getSimpleName());
-      materializingOperator=new MaterializingOperator(operatorContext,sourceTupleInfo);
-      return materializingOperator;
+      MaterializingOperator operator=new MaterializingOperator(operatorContext,sourceTupleInfo);
+      if (!materializingOperator.compareAndSet(null,operator)) {
+        throw new IllegalArgumentException("Output already created");
+      }
+      return operator;
     }
     @Override public void close(){
     }
