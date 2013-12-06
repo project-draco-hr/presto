@@ -1,8 +1,8 @@
 {
-  for (int i=0; i < unpartitionedDrivers.size(); i++) {
-    Driver driver=unpartitionedDrivers.get(i);
-    DriverFactory driverFactory=unpartitionedDriverFactories.get(i);
-    drivers.add(new WeakReference<>(driver));
-    enqueueUnpartitionedDriver(new DriverSplitRunner(driver),driverFactory);
+  List<DriverSplitRunner> runners=new ArrayList<>();
+  for (  DriverSplitRunnerFactory driverFactory : unpartitionedDriverFactories) {
+    runners.add(driverFactory.createDriverRunner(null));
+    driverFactory.setNoMoreSplits();
   }
+  enqueueDrivers(true,runners);
 }

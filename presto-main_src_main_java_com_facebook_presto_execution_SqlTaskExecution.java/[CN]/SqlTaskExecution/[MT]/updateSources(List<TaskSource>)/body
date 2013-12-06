@@ -4,20 +4,16 @@
   for (  TaskSource source : sources) {
     PlanNodeId sourceId=source.getPlanNodeId();
     if (sourceId.equals(partitionedSourceId)) {
-      for (      final ScheduledSplit scheduledSplit : source.getSplits()) {
+      ImmutableList.Builder<DriverSplitRunner> runners=ImmutableList.builder();
+      for (      ScheduledSplit scheduledSplit : source.getSplits()) {
         if (scheduledSplit.getSequenceId() > maxAcknowledgedSplit) {
-          enqueuePartitionedDriver(new DriverSplitRunner(partitionedPipelineContext.addDriverContext(),new Function<DriverContext,Driver>(){
-            @Override public Driver apply(            DriverContext driverContext){
-              return createDriver(partitionedDriverFactory,driverContext,scheduledSplit);
-            }
-          }
-));
+          runners.add(partitionedDriverFactory.createDriverRunner(scheduledSplit));
           newMaxAcknowledgedSplit=max(scheduledSplit.getSequenceId(),newMaxAcknowledgedSplit);
         }
       }
+      enqueueDrivers(false,runners.build());
       if (source.isNoMoreSplits()) {
-        noMorePartitionedSplits.set(true);
-        checkNoMorePartitionedSplits();
+        partitionedDriverFactory.setNoMoreSplits();
       }
     }
  else {

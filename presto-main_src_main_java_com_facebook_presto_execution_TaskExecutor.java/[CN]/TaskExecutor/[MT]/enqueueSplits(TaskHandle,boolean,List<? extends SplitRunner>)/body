@@ -1,0 +1,16 @@
+{
+  List<ListenableFuture<?>> finishedFutures=new ArrayList<>(taskSplits.size());
+  for (  SplitRunner taskSplit : taskSplits) {
+    PrioritizedSplitRunner prioritizedSplitRunner=new PrioritizedSplitRunner(taskHandle,taskSplit,ticker);
+    if (forceStart) {
+      startSplit(prioritizedSplitRunner);
+    }
+ else {
+      taskHandle.addSplit(prioritizedSplitRunner);
+      scheduleTaskIfNecessary(taskHandle);
+      addNewEntrants();
+    }
+    finishedFutures.add(prioritizedSplitRunner.getFinishedFuture());
+  }
+  return finishedFutures;
+}
