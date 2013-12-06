@@ -1,0 +1,28 @@
+{
+  checkArgument(parallelism >= 0,"parallelism is negative");
+  checkArgument(parallelism <= runners.size(),"parallelism is greater than maxParallelism");
+  checkNotNull(queries,"queries is null");
+  CountDownLatch remainingQueries=new CountDownLatch(queries.size());
+  BlockingQueue<String> queue=new ArrayBlockingQueue<>(queries.size(),false,queries);
+  List<ListenableFuture<?>> futures=new ArrayList<>(parallelism);
+  long start=System.nanoTime();
+  for (int i=0; i < parallelism; i++) {
+    QueryRunner runner=runners.get(i);
+    futures.add(runner.execute(queue,remainingQueries));
+  }
+  ListenableFuture<List<Object>> allFutures=Futures.allAsList(futures);
+  Futures.addCallback(allFutures,new FutureCallback<List<Object>>(){
+    @Override public void onSuccess(    @Nullable List<Object> result){
+    }
+    @Override public void onFailure(    Throwable t){
+      System.err.println("Run failed");
+      t.printStackTrace(System.err);
+      System.exit(1);
+    }
+  }
+,executor);
+  remainingQueries.await();
+  Duration executionTime=Duration.nanosSince(start);
+  allFutures.get();
+  return executionTime;
+}

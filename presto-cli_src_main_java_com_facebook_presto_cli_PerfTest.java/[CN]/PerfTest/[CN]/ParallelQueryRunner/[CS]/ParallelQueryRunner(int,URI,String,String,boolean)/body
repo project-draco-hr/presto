@@ -1,0 +1,9 @@
+{
+  executor=listeningDecorator(newCachedThreadPool(new ThreadFactoryBuilder().setNameFormat("query-runner-%s").setDaemon(true).build()));
+  ImmutableList.Builder<QueryRunner> runners=ImmutableList.builder();
+  for (int i=0; i < maxParallelism; i++) {
+    ClientSession session=new ClientSession(server,"test-" + i,"presto-perf",catalog,schema,debug);
+    runners.add(new QueryRunner(session,executor));
+  }
+  this.runners=runners.build();
+}

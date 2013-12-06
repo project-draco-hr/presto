@@ -1,0 +1,13 @@
+{
+  initializeLogging(debug);
+  List<String> queries=loadQueries();
+  try (ParallelQueryRunner parallelQueryRunner=new ParallelQueryRunner(16,parseServer(server),catalog,schema,debug)){
+    for (int loop=0; loop < 10; loop++) {
+      executeQueries(queries,parallelQueryRunner,1);
+      executeQueries(queries,parallelQueryRunner,2);
+      executeQueries(queries,parallelQueryRunner,4);
+      executeQueries(queries,parallelQueryRunner,8);
+      executeQueries(queries,parallelQueryRunner,16);
+    }
+  }
+ }
