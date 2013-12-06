@@ -1,0 +1,19 @@
+{
+  minValues.ensureCapacity(groupIdsBlock.getGroupCount());
+  BlockCursor values=valuesBlock.cursor();
+  for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
+    checkState(values.advanceNextPosition());
+    if (!values.isNull(0)) {
+      long groupId=groupIdsBlock.getGroupId(position);
+      if (!values.getBoolean(0)) {
+        minValues.set(groupId,FALSE_VALUE);
+      }
+ else {
+        if (minValues.get(groupId) == NULL_VALUE) {
+          minValues.set(groupId,TRUE_VALUE);
+        }
+      }
+    }
+  }
+  checkState(!values.advanceNextPosition());
+}

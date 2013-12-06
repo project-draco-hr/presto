@@ -1,0 +1,45 @@
+{
+  int writableBytes=sliceOutput.writableBytes() - SIZE_OF_BYTE;
+  boolean isNull=cursor.isNull(0);
+  if (type == Type.FIXED_INT_64) {
+    if (writableBytes < SIZE_OF_LONG) {
+      return false;
+    }
+    positionOffsets.add(sliceOutput.size());
+    sliceOutput.writeByte(isNull ? 1 : 0);
+    sliceOutput.appendLong(isNull ? 0 : cursor.getLong(0));
+  }
+ else   if (type == Type.DOUBLE) {
+    if (writableBytes < SIZE_OF_DOUBLE) {
+      return false;
+    }
+    positionOffsets.add(sliceOutput.size());
+    sliceOutput.writeByte(isNull ? 1 : 0);
+    sliceOutput.appendDouble(isNull ? 0 : cursor.getDouble(0));
+  }
+ else   if (type == Type.BOOLEAN) {
+    if (writableBytes < SIZE_OF_BYTE) {
+      return false;
+    }
+    positionOffsets.add(sliceOutput.size());
+    sliceOutput.writeByte(isNull ? 1 : 0);
+    sliceOutput.writeByte(!isNull && cursor.getBoolean(0) ? 1 : 0);
+  }
+ else   if (type == Type.VARIABLE_BINARY) {
+    int sliceLength=isNull ? 0 : getVariableBinaryLength(cursor.getRawSlice(),cursor.getRawOffset());
+    if (writableBytes < SIZE_OF_INT + sliceLength) {
+      return false;
+    }
+    int startingOffset=sliceOutput.size();
+    positionOffsets.add(startingOffset);
+    sliceOutput.writeByte(isNull ? 1 : 0);
+    sliceOutput.appendInt(sliceLength + SIZE_OF_BYTE + SIZE_OF_INT);
+    if (!isNull) {
+      sliceOutput.writeBytes(cursor.getRawSlice(),cursor.getRawOffset() + SIZE_OF_BYTE + SIZE_OF_INT,sliceLength);
+    }
+  }
+ else {
+    throw new IllegalArgumentException("Unsupported type " + type);
+  }
+  return true;
+}

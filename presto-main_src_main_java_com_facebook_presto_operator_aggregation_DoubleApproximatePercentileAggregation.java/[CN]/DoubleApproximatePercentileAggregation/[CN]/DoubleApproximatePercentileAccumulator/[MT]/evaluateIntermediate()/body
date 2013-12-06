@@ -1,0 +1,14 @@
+{
+  BlockBuilder out=new BlockBuilder(getIntermediateTupleInfo());
+  if (digest.getCount() == 0.0) {
+    out.appendNull();
+  }
+ else {
+    DynamicSliceOutput sliceOutput=new DynamicSliceOutput(digest.estimatedSerializedSizeInBytes() + SIZE_OF_DOUBLE);
+    digest.serialize(sliceOutput);
+    sliceOutput.appendDouble(percentile);
+    Slice slice=sliceOutput.slice();
+    out.append(slice);
+  }
+  return out.build();
+}

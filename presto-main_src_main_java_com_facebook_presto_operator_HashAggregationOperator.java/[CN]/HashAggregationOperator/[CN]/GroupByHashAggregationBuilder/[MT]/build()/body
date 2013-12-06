@@ -1,26 +1,39 @@
 {
-  if (!blockBuilder.isEmpty()) {
-    UncompressedBlock block=blockBuilder.build();
-    groupByBlocks.add(block);
+  List<Type> types=groupByHash.getTypes();
+  ImmutableList.Builder<TupleInfo> tupleInfos=ImmutableList.builder();
+  for (  Type type : types) {
+    tupleInfos.add(new TupleInfo(type));
   }
-  return Iterators.transform(groupByBlocks.iterator(),new Function<UncompressedBlock,Page>(){
-    private int currentPosition=0;
-    @Override public Page apply(    UncompressedBlock groupByBlock){
-      Block[] blocks=new Block[aggregates.size() + 1];
-      blocks[0]=groupByBlock;
-      int pagePositionCount=groupByBlock.getPositionCount();
-      for (int channel=1; channel < aggregates.size() + 1; channel++) {
-        Aggregator aggregator=aggregates.get(channel - 1);
-        BlockBuilder blockBuilder=new BlockBuilder(aggregator.getTupleInfo());
-        for (int position=0; position < pagePositionCount; position++) {
-          aggregator.evaluate(currentPosition + position,blockBuilder);
-        }
-        blocks[channel]=blockBuilder.build();
+  for (  Aggregator aggregator : aggregators) {
+    tupleInfos.add(aggregator.getTupleInfo());
+  }
+  final PageBuilder pageBuilder=new PageBuilder(tupleInfos.build());
+  return new AbstractIterator<Page>(){
+    private final ObjectIterator<Entry> pagePositionToGroup=groupByHash.getPagePositionToGroupId().long2IntEntrySet().fastIterator();
+    @Override protected Page computeNext(){
+      if (!pagePositionToGroup.hasNext()) {
+        return endOfData();
       }
-      Page page=new Page(blocks);
-      currentPosition+=pagePositionCount;
+      pageBuilder.reset();
+      List<Type> types=groupByHash.getTypes();
+      BlockBuilder[] groupByBlockBuilders=new BlockBuilder[types.size()];
+      for (int i=0; i < types.size(); i++) {
+        groupByBlockBuilders[i]=pageBuilder.getBlockBuilder(i);
+      }
+      while (!pageBuilder.isFull() && pagePositionToGroup.hasNext()) {
+        Entry next=pagePositionToGroup.next();
+        long pagePosition=next.getLongKey();
+        int groupId=next.getIntValue();
+        groupByHash.appendValuesTo(pagePosition,groupByBlockBuilders);
+        for (int i=0; i < aggregators.size(); i++) {
+          Aggregator aggregator=aggregators.get(i);
+          BlockBuilder output=pageBuilder.getBlockBuilder(types.size() + i);
+          aggregator.evaluate(groupId,output);
+        }
+      }
+      Page page=pageBuilder.build();
       return page;
     }
   }
-);
+;
 }

@@ -1,0 +1,28 @@
+{
+  counts.ensureCapacity(groupIdsBlock.getGroupCount());
+  means.ensureCapacity(groupIdsBlock.getGroupCount());
+  m2s.ensureCapacity(groupIdsBlock.getGroupCount());
+  BlockCursor values=valuesBlock.cursor();
+  for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
+    checkState(values.advanceNextPosition());
+    if (!values.isNull(0)) {
+      long groupId=groupIdsBlock.getGroupId(position);
+      double inputValue;
+      if (inputIsLong) {
+        inputValue=values.getLong(0);
+      }
+ else {
+        inputValue=values.getDouble(0);
+      }
+      long currentCount=counts.get(groupId);
+      double currentMean=means.get(groupId);
+      currentCount++;
+      double delta=inputValue - currentMean;
+      currentMean+=(delta / currentCount);
+      m2s.add(groupId,(delta * (inputValue - currentMean)));
+      counts.set(groupId,currentCount);
+      means.set(groupId,currentMean);
+    }
+  }
+  checkState(!values.advanceNextPosition());
+}

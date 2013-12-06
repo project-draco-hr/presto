@@ -1,0 +1,12 @@
+{
+  counts.ensureCapacity(groupIdsBlock.getGroupCount());
+  BlockCursor values=valuesBlock.cursor();
+  for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
+    checkState(values.advanceNextPosition());
+    if (!values.isNull(0)) {
+      long groupId=groupIdsBlock.getGroupId(position);
+      counts.add(groupId,values.getLong(0));
+    }
+  }
+  checkState(!values.advanceNextPosition());
+}

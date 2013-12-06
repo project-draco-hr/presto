@@ -1,0 +1,20 @@
+{
+  BlockCursor values=block.cursor();
+  for (int position=0; position < block.getPositionCount(); position++) {
+    checkState(values.advanceNextPosition());
+    if (!values.isNull(0)) {
+      Slice slice=values.getSlice(0);
+      long inputCount=VARIANCE_CONTEXT_INFO.getLong(slice,0);
+      double inputMean=VARIANCE_CONTEXT_INFO.getDouble(slice,1);
+      double inputM2=VARIANCE_CONTEXT_INFO.getDouble(slice,2);
+      long newCount=currentCount + inputCount;
+      double newMean=((currentCount * currentMean) + (inputCount * inputMean)) / newCount;
+      double delta=inputMean - currentMean;
+      double newM2=currentM2 + inputM2 + ((delta * delta) * (currentCount * inputCount)) / newCount;
+      currentCount=newCount;
+      currentMean=newMean;
+      currentM2=newM2;
+    }
+  }
+  checkState(!values.advanceNextPosition());
+}

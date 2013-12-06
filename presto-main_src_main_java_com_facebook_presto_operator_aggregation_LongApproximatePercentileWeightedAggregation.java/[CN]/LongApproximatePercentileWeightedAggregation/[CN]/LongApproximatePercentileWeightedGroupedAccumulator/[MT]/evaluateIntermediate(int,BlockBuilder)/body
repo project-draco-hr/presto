@@ -1,0 +1,12 @@
+{
+  DigestAndPercentile currentValue=digests.get((long)groupId);
+  if (currentValue == null || currentValue.getDigest().getCount() == 0.0) {
+    output.appendNull();
+  }
+ else {
+    DynamicSliceOutput sliceOutput=new DynamicSliceOutput(currentValue.getDigest().estimatedSerializedSizeInBytes());
+    currentValue.getDigest().serialize(sliceOutput);
+    sliceOutput.appendDouble(currentValue.getPercentile());
+    output.append(sliceOutput.slice());
+  }
+}

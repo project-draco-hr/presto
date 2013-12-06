@@ -1,0 +1,16 @@
+{
+  List<Type> groupByTypes=ImmutableList.copyOf(transform(groupByTupleInfos,new Function<TupleInfo,Type>(){
+    public Type apply(    TupleInfo tupleInfo){
+      checkArgument(tupleInfo.getFieldCount() == 1);
+      return tupleInfo.getTypes().get(0);
+    }
+  }
+));
+  this.groupByHash=new GroupByHash(groupByTypes,Ints.toArray(groupByChannels),expectedGroups);
+  this.memoryManager=memoryManager;
+  ImmutableList.Builder<Aggregator> builder=ImmutableList.builder();
+  for (  AggregationFunctionDefinition functionDefinition : checkNotNull(functionDefinitions,"functionDefinitions is null")) {
+    builder.add(new Aggregator(functionDefinition,step));
+  }
+  aggregators=builder.build();
+}

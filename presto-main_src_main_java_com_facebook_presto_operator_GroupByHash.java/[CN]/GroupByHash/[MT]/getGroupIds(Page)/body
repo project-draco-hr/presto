@@ -1,0 +1,22 @@
+{
+  int positionCount=page.getPositionCount();
+  int groupIdBlockSize=SINGLE_LONG.getFixedSize() * positionCount;
+  BlockBuilder blockBuilder=new BlockBuilder(SINGLE_LONG,groupIdBlockSize,Slices.allocate(groupIdBlockSize).getOutput());
+  BlockCursor[] cursors=new BlockCursor[channels.length];
+  for (int i=0; i < channels.length; i++) {
+    cursors[i]=page.getBlock(channels[i]).cursor();
+  }
+  hashStrategy.setCurrentRow(cursors);
+  for (int position=0; position < positionCount; position++) {
+    for (    BlockCursor cursor : cursors) {
+      checkState(cursor.advanceNextPosition());
+    }
+    int groupId=pagePositionToGroupId.get(CURRENT_ROW_ADDRESS);
+    if (groupId < 0) {
+      groupId=addNewGroup(cursors);
+    }
+    blockBuilder.append(groupId);
+  }
+  UncompressedBlock block=blockBuilder.build();
+  return new GroupByIdBlock(nextGroupId,block);
+}

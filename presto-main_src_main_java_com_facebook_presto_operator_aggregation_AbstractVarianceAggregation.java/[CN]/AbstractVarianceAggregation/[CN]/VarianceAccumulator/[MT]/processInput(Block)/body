@@ -1,0 +1,20 @@
+{
+  BlockCursor values=block.cursor();
+  for (int position=0; position < block.getPositionCount(); position++) {
+    checkState(values.advanceNextPosition());
+    if (!values.isNull(0)) {
+      double inputValue;
+      if (inputIsLong) {
+        inputValue=values.getLong(0);
+      }
+ else {
+        inputValue=values.getDouble(0);
+      }
+      currentCount++;
+      double delta=inputValue - currentMean;
+      currentMean+=(delta / currentCount);
+      currentM2+=(delta * (inputValue - currentMean));
+    }
+  }
+  checkState(!values.advanceNextPosition());
+}
