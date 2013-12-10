@@ -1,0 +1,37 @@
+{
+  List<IndexJoinNode.EquiJoinClause> clauses=node.getCriteria();
+  List<Symbol> probeSymbols=Lists.transform(clauses,probeGetter());
+  List<Symbol> indexSymbols=Lists.transform(clauses,indexGetter());
+  PhysicalOperation probeSource=node.getProbeSource().accept(this,context);
+  List<Integer> probeChannels=getChannelsForSymbols(probeSymbols,probeSource.getLayout());
+  Map<Symbol,Input> probeKeyLayout=new HashMap<>();
+  for (int i=0; i < probeSymbols.size(); i++) {
+    probeKeyLayout.put(probeSymbols.get(i),new Input(i));
+  }
+  SetMultimap<Symbol,Input> indexLookupToProbeInput=mapIndexSourceLookupSymbolToProbeKeyInput(node,probeKeyLayout);
+  LocalExecutionPlanContext indexContext=context.createIndexSourceSubContext(new IndexSourceContext(indexLookupToProbeInput));
+  PhysicalOperation indexSource=node.getIndexSource().accept(this,indexContext);
+  List<Integer> indexChannels=getChannelsForSymbols(indexSymbols,indexSource.getLayout());
+  PagesIndexBuilderOperatorFactory pagesIndexOutput=new PagesIndexBuilderOperatorFactory(indexContext.getNextOperatorId(),indexSource.getTypes());
+  DriverFactory indexBuildDriverFactory=new DriverFactory(indexContext.isInputDriver(),false,ImmutableList.<OperatorFactory>builder().addAll(indexSource.getOperatorFactories()).add(pagesIndexOutput).build());
+  IndexLookupSourceSupplier indexLookupSourceSupplier=new IndexLookupSourceSupplier(indexChannels,indexSource.getTypes(),indexContext.getNextOperatorId(),indexBuildDriverFactory,pagesIndexOutput);
+  ImmutableMap.Builder<Symbol,Input> outputMappings=ImmutableMap.builder();
+  outputMappings.putAll(probeSource.getLayout());
+  int offset=probeSource.getTypes().size();
+  for (  Map.Entry<Symbol,Input> entry : indexSource.getLayout().entrySet()) {
+    Input input=entry.getValue();
+    outputMappings.put(entry.getKey(),new Input(offset + input.getChannel()));
+  }
+  OperatorFactory lookupJoinOperatorFactory;
+switch (node.getType()) {
+case INNER:
+    lookupJoinOperatorFactory=LookupJoinOperators.innerJoin(context.getNextOperatorId(),indexLookupSourceSupplier,probeSource.getTypes(),probeChannels);
+  break;
+case SOURCE_OUTER:
+lookupJoinOperatorFactory=LookupJoinOperators.outerJoin(context.getNextOperatorId(),indexLookupSourceSupplier,probeSource.getTypes(),probeChannels);
+break;
+default :
+throw new AssertionError("Unknown type: " + node.getType());
+}
+return new PhysicalOperation(lookupJoinOperatorFactory,outputMappings.build(),probeSource);
+}

@@ -1,0 +1,9 @@
+{
+  if (indexSnapshotBuilder == null) {
+    TaskContext taskContext=taskContextReference.get();
+    checkState(taskContext != null,"Task context must be set before index can be built");
+    PipelineContext pipelineContext=taskContext.addPipelineContext(false,false);
+    indexSnapshotBuilder=new IndexSnapshotBuilder(driverFactory,pipelineContext,sourcePlanNodeId,pagesIndexOutput,indexChannels,snapshotOperatorId,expectedPositions);
+  }
+  indexSnapshot=indexSnapshotBuilder.batchLoadRequests(new UnloadedIndexKeyRecordSet(indexSnapshot,indexTypes,requests));
+}

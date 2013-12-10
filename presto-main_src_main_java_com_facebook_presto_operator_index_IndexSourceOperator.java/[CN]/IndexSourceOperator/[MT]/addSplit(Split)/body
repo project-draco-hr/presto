@@ -1,0 +1,10 @@
+{
+  checkNotNull(split,"split is null");
+  checkArgument(split instanceof IndexSplit,"Split must be instance of IndexSplit");
+  checkState(getSource() == null,"Index source split already set");
+  IndexSplit indexSplit=(IndexSplit)split;
+  RecordSet recordSet=new MappedRecordSet(indexSplit.getKeyRecordSet(),probeKeyRemap);
+  RecordSet result=index.lookup(recordSet);
+  source=new RecordProjectOperator(operatorContext,result);
+  operatorContext.setInfoSupplier(Suppliers.ofInstance(split.getInfo()));
+}

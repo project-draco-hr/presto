@@ -1,0 +1,16 @@
+{
+  while (positionIterator == null || !positionIterator.hasNext()) {
+    if (!pageAndPositionsIterator.hasNext()) {
+      return false;
+    }
+    PageAndPositions pageAndPositions=pageAndPositionsIterator.next();
+    cursors=pageAndPositions.getUpdateRequest().duplicateCursors();
+    checkState(types.size() == cursors.length);
+    positionIterator=pageAndPositions.getPositions().iterator();
+  }
+  int position=positionIterator.nextInt();
+  for (  BlockCursor cursor : cursors) {
+    checkState(cursor.advanceToPosition(position));
+  }
+  return true;
+}

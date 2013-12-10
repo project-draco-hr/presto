@@ -1,0 +1,24 @@
+{
+  Driver driver=driverFactory.createDriver(pipelineContext.addDriverContext());
+  driver.updateSource(new TaskSource(sourcePlanNodeId,ImmutableSet.of(new ScheduledSplit(0,new IndexSplit(unloadedKeysRecordSet))),true));
+  while (!driver.isFinished()) {
+    ListenableFuture<?> process=driver.process();
+    checkState(process.isDone(),"Driver should never block");
+  }
+  LookupSource lookupSource=pagesIndex.createLookupSource(indexChannels);
+  PageBuilder missingKeysPageBuilder=new PageBuilder(missingKeysIndex.getTypes());
+  UnloadedIndexKeyRecordCursor unloadedKeyRecordCursor=unloadedKeysRecordSet.cursor();
+  while (unloadedKeyRecordCursor.advanceNextPosition()) {
+    BlockCursor[] cursors=unloadedKeyRecordCursor.asBlockCursors();
+    if (lookupSource.getJoinPosition(cursors) < 0) {
+      for (int i=0; i < cursors.length; i++) {
+        cursors[i].appendTo(missingKeysPageBuilder.getBlockBuilder(i));
+      }
+    }
+  }
+  if (!missingKeysPageBuilder.isEmpty()) {
+    missingKeysIndex.addPage(missingKeysPageBuilder.build());
+    missingKeys=missingKeysIndex.createLookupSource(missingKeysChannels);
+  }
+  return new IndexSnapshot(lookupSource,missingKeys);
+}

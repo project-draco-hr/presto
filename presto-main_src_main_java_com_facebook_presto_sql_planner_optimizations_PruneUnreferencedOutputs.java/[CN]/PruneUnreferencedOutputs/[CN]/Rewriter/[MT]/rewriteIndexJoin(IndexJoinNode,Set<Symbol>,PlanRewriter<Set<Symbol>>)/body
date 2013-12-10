@@ -1,0 +1,7 @@
+{
+  Set<Symbol> probeInputs=ImmutableSet.<Symbol>builder().addAll(expectedOutputs).addAll(Iterables.transform(node.getCriteria(),IndexJoinNode.EquiJoinClause.probeGetter())).build();
+  Set<Symbol> indexInputs=ImmutableSet.<Symbol>builder().addAll(expectedOutputs).addAll(Iterables.transform(node.getCriteria(),IndexJoinNode.EquiJoinClause.indexGetter())).build();
+  PlanNode probeSource=planRewriter.rewrite(node.getProbeSource(),probeInputs);
+  PlanNode indexSource=planRewriter.rewrite(node.getIndexSource(),indexInputs);
+  return new IndexJoinNode(node.getId(),node.getType(),probeSource,indexSource,node.getCriteria());
+}

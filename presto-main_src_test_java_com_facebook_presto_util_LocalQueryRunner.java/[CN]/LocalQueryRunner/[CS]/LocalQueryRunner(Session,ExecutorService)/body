@@ -6,10 +6,11 @@
   this.metadata=new MetadataManager(new FeaturesConfig().setExperimentalSyntaxEnabled(true),new TypeRegistry());
   this.splitManager=new SplitManager(ImmutableSet.<ConnectorSplitManager>of());
   this.dataStreamProvider=new DataStreamManager();
+  this.indexManager=new IndexManager();
   this.recordSinkManager=new RecordSinkManager();
   this.storageManager=MockLocalStorageManager.createMockLocalStorageManager();
   this.compiler=new ExpressionCompiler(metadata);
-  this.connectorManager=new ConnectorManager(metadata,splitManager,dataStreamProvider,recordSinkManager,new HandleResolver(),new OutputTableHandleResolver(),ImmutableMap.<String,ConnectorFactory>of(),ImmutableMap.<String,Connector>of());
+  this.connectorManager=new ConnectorManager(metadata,splitManager,dataStreamProvider,indexManager,recordSinkManager,new HandleResolver(),new OutputTableHandleResolver(),ImmutableMap.<String,ConnectorFactory>of(),ImmutableMap.<String,Connector>of());
   splitManager.addConnectorSplitManager(new InformationSchemaSplitManager(nodeManager));
   dataStreamProvider.addConnectorDataStreamProvider(new InformationSchemaDataStreamProvider(metadata,splitManager));
   metadata.addInternalSchemaMetadata(MetadataManager.INTERNAL_CONNECTOR_ID,new DualMetadata());

@@ -1,0 +1,12 @@
+{
+  node.getProbeSource().accept(this,context);
+  node.getIndexSource().accept(this,context);
+  verifyUniqueId(node);
+  for (  IndexJoinNode.EquiJoinClause clause : node.getCriteria()) {
+    Preconditions.checkArgument(node.getProbeSource().getOutputSymbols().contains(clause.getProbe()),"Probe symbol from index join clause (%s) not in probe source (%s)",clause.getProbe(),node.getProbeSource().getOutputSymbols());
+    Preconditions.checkArgument(node.getIndexSource().getOutputSymbols().contains(clause.getIndex()),"Index symbol from index join clause (%s) not in index source (%s)",clause.getIndex(),node.getIndexSource().getOutputSymbols());
+  }
+  Set<Symbol> lookupSymbols=FluentIterable.from(node.getCriteria()).transform(IndexJoinNode.EquiJoinClause.indexGetter()).toSet();
+  Preconditions.checkArgument(IndexKeyTracer.trace(node.getIndexSource(),lookupSymbols).keySet().containsAll(lookupSymbols),"Index lookup symbols are not traceable to index source: %s",lookupSymbols);
+  return null;
+}

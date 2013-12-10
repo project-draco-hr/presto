@@ -5,7 +5,7 @@
   }
   PlanNodeIdAllocator idAllocator=new PlanNodeIdAllocator();
   FeaturesConfig featuresConfig=new FeaturesConfig().setExperimentalSyntaxEnabled(true);
-  PlanOptimizersFactory planOptimizersFactory=new PlanOptimizersFactory(metadata,splitManager,featuresConfig);
+  PlanOptimizersFactory planOptimizersFactory=new PlanOptimizersFactory(metadata,splitManager,indexManager,featuresConfig);
   QueryExplainer queryExplainer=new QueryExplainer(session,planOptimizersFactory.get(),metadata,featuresConfig.isExperimentalSyntaxEnabled());
   Analyzer analyzer=new Analyzer(session,metadata,Optional.of(queryExplainer),featuresConfig.isExperimentalSyntaxEnabled());
   Analysis analysis=analyzer.analyze(statement);
@@ -15,7 +15,7 @@
   }
   SubPlan subplan=new DistributedLogicalPlanner(metadata,idAllocator).createSubPlans(plan,true);
   assertTrue(subplan.getChildren().isEmpty(),"Expected subplan to have no children");
-  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(new NodeInfo(new NodeConfig().setEnvironment("test").setNodeId("test-node")),metadata,dataStreamProvider,storageManager,recordSinkManager,null,compiler);
+  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(new NodeInfo(new NodeConfig().setEnvironment("test").setNodeId("test-node")),metadata,dataStreamProvider,indexManager,storageManager,recordSinkManager,null,compiler);
   LocalExecutionPlan localExecutionPlan=executionPlanner.plan(session,subplan.getFragment().getRoot(),plan.getTypes(),outputFactory);
   List<TaskSource> sources=new ArrayList<>();
   long sequenceId=0;
