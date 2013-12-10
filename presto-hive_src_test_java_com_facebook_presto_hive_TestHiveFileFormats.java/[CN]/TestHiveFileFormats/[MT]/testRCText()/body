@@ -1,0 +1,20 @@
+{
+  JobConf jobConf=new JobConf();
+  final RCFileOutputFormat outputFormat=new RCFileOutputFormat();
+  final RCFileInputFormat inputFormat=new RCFileInputFormat();
+  final SerDe serde=new ColumnarSerDe();
+  File file=File.createTempFile("presto_test","rc-text");
+  try {
+    FileSplit split=createTestFile(file.getAbsolutePath(),outputFormat,serde,null);
+    RecordReader<?,BytesRefArrayWritable> recordReader=(RecordReader<?,BytesRefArrayWritable>)inputFormat.getRecordReader(split,jobConf,Reporter.NULL);
+    Properties splitProperties=new Properties();
+    splitProperties.setProperty("serialization.lib","org.apache.hadoop.hive.serde2.columnar.ColumnarSerDe");
+    splitProperties.setProperty("columns",COLUMN_NAMES_STRING);
+    splitProperties.setProperty("columns.types",COLUMN_TYPES);
+    RecordCursor cursor=new ColumnarTextHiveRecordCursor<>(recordReader,split.getLength(),splitProperties,new ArrayList<HivePartitionKey>(),getColumns());
+    checkCursor(cursor,true);
+  }
+  finally {
+    file.delete();
+  }
+}

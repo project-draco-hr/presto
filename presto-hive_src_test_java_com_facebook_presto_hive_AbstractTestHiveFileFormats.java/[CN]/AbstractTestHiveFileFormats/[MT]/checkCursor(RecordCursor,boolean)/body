@@ -1,0 +1,38 @@
+{
+  for (int row=0; row < NUM_ROWS; row++) {
+    assertTrue(cursor.advanceNextPosition());
+    assertTrue(cursor.isNull(0));
+    for (int i=1; i < TEST_VALUES.size(); i++) {
+      Object fieldFromCursor;
+      HiveType type=HiveType.getHiveType(FIELD_INSPECTORS.get(i));
+switch (type.getNativeType()) {
+case BOOLEAN:
+        fieldFromCursor=Boolean.valueOf(cursor.getBoolean(i));
+      break;
+case LONG:
+    fieldFromCursor=Long.valueOf(cursor.getLong(i));
+  break;
+case DOUBLE:
+fieldFromCursor=Double.valueOf(cursor.getDouble(i));
+break;
+case STRING:
+fieldFromCursor=cursor.getString(i);
+break;
+default :
+throw new RuntimeException("unknown type");
+}
+if (FIELD_INSPECTORS.get(i).getTypeName() == "float" || FIELD_INSPECTORS.get(i).getTypeName() == "double") {
+assertEquals((double)fieldFromCursor,(double)TEST_VALUES.get(i).getValue(),EPSILON);
+}
+ else if (FIELD_INSPECTORS.get(i).getCategory() == ObjectInspector.Category.PRIMITIVE) {
+assertEquals(fieldFromCursor,TEST_VALUES.get(i).getValue(),String.format("Wrong value for column %d",i));
+}
+ else if (!primitivesOnly) {
+ObjectMapper mapper=new ObjectMapper();
+JsonNode expected=mapper.readTree((String)TEST_VALUES.get(i).getValue());
+JsonNode actual=mapper.readTree((byte[])fieldFromCursor);
+assertEquals(actual,expected,String.format("Wrong value for column %s",COLUMN_NAMES.get(i)));
+}
+}
+}
+}
