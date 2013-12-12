@@ -1,3 +1,11 @@
 {
-  throw new UnsupportedOperationException("getMoreResults");
+  checkOpen();
+  if (current == CLOSE_CURRENT_RESULT) {
+    currentResult.get().close();
+    return false;
+  }
+  if (current != KEEP_CURRENT_RESULT && current != CLOSE_ALL_RESULTS) {
+    throw new SQLException("Invalid argument: " + current);
+  }
+  throw new SQLFeatureNotSupportedException("Multiple open results not supported");
 }

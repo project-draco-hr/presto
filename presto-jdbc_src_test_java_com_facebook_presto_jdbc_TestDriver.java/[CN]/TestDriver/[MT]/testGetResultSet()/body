@@ -1,0 +1,18 @@
+{
+  try (Connection connection=createConnection()){
+    try (Statement statement=connection.createStatement()){
+      assertTrue(statement.execute("SELECT 123 x, 'foo' y"));
+      ResultSet result=statement.getResultSet();
+      assertNotNull(result);
+      assertFalse(result.isClosed());
+      statement.getMoreResults();
+      assertTrue(result.isClosed());
+      assertTrue(statement.execute("SELECT 123 x, 'foo' y"));
+      result=statement.getResultSet();
+      assertNotNull(result);
+      assertFalse(result.isClosed());
+      assertTrue(statement.execute("SELECT 123 x, 'foo' y"));
+      assertFalse(statement.getMoreResults(Statement.CLOSE_CURRENT_RESULT));
+    }
+   }
+ }
