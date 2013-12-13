@@ -38,11 +38,18 @@ buffer.append(line).append("\n");
 String sql=buffer.toString();
 StatementSplitter splitter=new StatementSplitter(sql,ImmutableSet.of(";","\\G"));
 for (Statement split : splitter.getCompleteStatements()) {
-OutputFormat outputFormat=OutputFormat.ALIGNED;
-if (split.terminator().equals("\\G")) {
-  outputFormat=OutputFormat.VERTICAL;
+Optional<Object> statement=getParsedStatement(split.statement());
+if (statement.isPresent() && isSessionParameterChange(statement.get())) {
+  session=processSessionParameterChange(statement.get(),session);
+  queryRunner=QueryRunner.create(session);
 }
-process(queryRunner,split.statement(),outputFormat,true);
+ else {
+  OutputFormat outputFormat=OutputFormat.ALIGNED;
+  if (split.terminator().equals("\\G")) {
+    outputFormat=OutputFormat.VERTICAL;
+  }
+  process(queryRunner,split.statement(),outputFormat,true);
+}
 reader.getHistory().add(squeezeStatement(split.statement()) + split.terminator());
 }
 buffer=new StringBuilder();
