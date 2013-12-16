@@ -2,7 +2,13 @@
   List<FunctionCall> aggregates=extractAggregates(node);
   if (!aggregates.isEmpty() || !groupByExpressions.isEmpty()) {
     if (Iterables.any(aggregates,distinctPredicate())) {
-      throw new SemanticException(NOT_SUPPORTED,node,"DISTINCT in aggregation parameters not yet supported");
+      int uniqueArguments=IterableTransformer.on(aggregates).transform(FunctionCall.argumentsGetter()).set().size();
+      if (uniqueArguments != 1 || !Iterables.all(aggregates,distinctPredicate())) {
+        throw new SemanticException(NOT_SUPPORTED,node,"All DISTINCT argument lists used in aggregations must match");
+      }
+ else       if (!groupByExpressions.isEmpty()) {
+        throw new SemanticException(NOT_SUPPORTED,node,"DISTINCT with GROUP BY not supported");
+      }
     }
     for (    FieldOrExpression fieldOrExpression : Iterables.concat(outputExpressions,orderByExpressions)) {
       verifyAggregations(node,groupByExpressions,tupleDescriptor,fieldOrExpression);
