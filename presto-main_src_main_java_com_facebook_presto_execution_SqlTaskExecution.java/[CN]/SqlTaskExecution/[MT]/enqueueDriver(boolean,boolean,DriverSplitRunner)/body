@@ -6,13 +6,19 @@
  else {
     finishedFuture=taskExecutor.enqueueSplit(taskHandle,splitRunner);
   }
-  remainingDriverCount.incrementAndGet();
+  remainingDrivers.incrementAndGet();
+  if (partitioned) {
+    remainingPartitionedDrivers.incrementAndGet();
+  }
   Futures.addCallback(finishedFuture,new FutureCallback<Object>(){
     @Override public void onSuccess(    Object result){
       try (SetThreadName setThreadName=new SetThreadName("Task-%s",taskId)){
-        int runningCount=remainingDriverCount.decrementAndGet();
-        if (runningCount <= 0) {
-          checkNoMorePartitionedSplits();
+        remainingDrivers.decrementAndGet();
+        if (partitioned) {
+          int runningCount=remainingPartitionedDrivers.decrementAndGet();
+          if (runningCount <= 0) {
+            checkNoMorePartitionedSplits();
+          }
         }
         checkTaskCompletion();
         queryMonitor.splitCompletionEvent(taskId,splitRunner.getDriverContext().getDriverStats());
@@ -21,7 +27,10 @@
     @Override public void onFailure(    Throwable cause){
       try (SetThreadName setThreadName=new SetThreadName("Task-%s",taskId)){
         taskStateMachine.failed(cause);
-        remainingDriverCount.decrementAndGet();
+        remainingDrivers.decrementAndGet();
+        if (partitioned) {
+          remainingPartitionedDrivers.decrementAndGet();
+        }
         checkNoMorePartitionedSplits();
         queryMonitor.splitFailedEvent(taskId,splitRunner.getDriverContext().getDriverStats(),cause);
       }
