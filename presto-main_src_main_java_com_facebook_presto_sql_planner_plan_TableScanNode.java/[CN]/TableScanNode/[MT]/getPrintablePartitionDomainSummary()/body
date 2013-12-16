@@ -1,3 +1,13 @@
 {
-  return DomainUtils.printableTupleDomainWithSymbols(partitionDomainSummary,assignments);
+  StringBuilder builder=new StringBuilder().append("TupleDomain:");
+  if (partitionDomainSummary.isAll()) {
+    builder.append("ALL");
+  }
+ else   if (partitionDomainSummary.isNone()) {
+    builder.append("NONE");
+  }
+ else {
+    builder.append(Maps.transformValues(columnHandleToSymbol(partitionDomainSummary.getDomains(),assignments),simplifyDomainFunction()));
+  }
+  return builder.toString();
 }
