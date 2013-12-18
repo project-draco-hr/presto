@@ -13,5 +13,11 @@
   }
   checkState(!requiredTableScanOutputs.isEmpty());
   List<Symbol> newOutputSymbols=FluentIterable.from(node.getOutputSymbols()).filter(in(requiredTableScanOutputs)).toList();
-  return new TableScanNode(node.getId(),node.getTable(),newOutputSymbols,node.getAssignments(),node.getOriginalConstraint(),node.getGeneratedPartitions());
+  Set<Symbol> requiredAssignmentSymbols=requiredTableScanOutputs;
+  if (!node.getPartitionsDomainSummary().isNone()) {
+    Set<Symbol> requiredPartitionDomainSymbols=Maps.filterValues(node.getAssignments(),Predicates.in(node.getPartitionsDomainSummary().getDomains().keySet())).keySet();
+    requiredAssignmentSymbols=Sets.union(requiredTableScanOutputs,requiredPartitionDomainSymbols);
+  }
+  Map<Symbol,ColumnHandle> newAssignments=Maps.filterKeys(node.getAssignments(),in(requiredAssignmentSymbols));
+  return new TableScanNode(node.getId(),node.getTable(),newOutputSymbols,newAssignments,node.getOriginalConstraint(),node.getGeneratedPartitions());
 }
