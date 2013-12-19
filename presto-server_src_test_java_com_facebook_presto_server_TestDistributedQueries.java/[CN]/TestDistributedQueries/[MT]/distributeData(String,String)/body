@@ -1,18 +1,11 @@
 {
-  List<QualifiedTableName> qualifiedTableNames=coordinator.getMetadata().listTables(new QualifiedTablePrefix(catalog,schema));
-  for (  QualifiedTableName qualifiedTableName : qualifiedTableNames) {
-    if (qualifiedTableName.getTableName().equalsIgnoreCase("dual")) {
+  for (  QualifiedTableName table : coordinator.getMetadata().listTables(new QualifiedTablePrefix(catalog,schema))) {
+    if (table.getTableName().equalsIgnoreCase("dual")) {
       continue;
     }
-    log.info("Running import for %s",qualifiedTableName.getTableName());
-    MaterializedResult importResult=computeActual(format("CREATE MATERIALIZED VIEW default.default.%s AS SELECT * FROM %s",qualifiedTableName.getTableName(),qualifiedTableName));
-    Object rowsImported;
-    if (importResult.getMaterializedTuples().isEmpty()) {
-      rowsImported=0;
-    }
- else {
-      rowsImported=importResult.getMaterializedTuples().get(0).getField(0);
-    }
-    log.info("Imported %s rows for %s",rowsImported,qualifiedTableName.getTableName());
+    log.info("Running import for %s",table.getTableName());
+    @Language("SQL") String sql=format("CREATE TABLE %s AS SELECT * FROM %s",table.getTableName(),table);
+    long rows=checkType(computeActual(sql).getMaterializedTuples().get(0).getField(0),Long.class,"rows");
+    log.info("Imported %s rows for %s",rows,table.getTableName());
   }
 }
