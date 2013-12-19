@@ -1,0 +1,23 @@
+{
+  ensureCapacity(groupIdsBlock.getGroupCount());
+  BlockCursor values=valuesBlock.cursor();
+  BlockCursor masks=null;
+  if (maskBlock.isPresent()) {
+    masks=maskBlock.get().cursor();
+  }
+  for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
+    checkState(values.advanceNextPosition());
+    checkState(masks == null || masks.advanceNextPosition());
+    if (!values.isNull() && (masks == null || masks.getBoolean())) {
+      long groupId=groupIdsBlock.getGroupId(position);
+      long globalOffset=groupId * ENTRY_SIZE;
+      int sliceIndex=Ints.checkedCast(globalOffset / SLICE_SIZE);
+      Slice slice=slices.get(sliceIndex);
+      int sliceOffset=Ints.checkedCast(globalOffset - (sliceIndex * SLICE_SIZE));
+      long hash=hash(values,parameterType);
+      ESTIMATOR.update(hash,slice,sliceOffset + 1);
+      setNotNull(slice,sliceOffset);
+    }
+  }
+  checkState(!values.advanceNextPosition());
+}

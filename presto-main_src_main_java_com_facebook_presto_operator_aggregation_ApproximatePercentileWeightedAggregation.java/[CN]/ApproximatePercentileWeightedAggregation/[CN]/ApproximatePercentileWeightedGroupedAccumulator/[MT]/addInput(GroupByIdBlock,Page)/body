@@ -4,12 +4,17 @@
   BlockCursor values=page.getBlock(valueChannel).cursor();
   BlockCursor weights=page.getBlock(weightChannel).cursor();
   BlockCursor percentiles=page.getBlock(percentileChannel).cursor();
+  BlockCursor masks=null;
+  if (maskChannel.isPresent()) {
+    masks=page.getBlock(maskChannel.get()).cursor();
+  }
   for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
     checkState(values.advanceNextPosition());
     checkState(weights.advanceNextPosition());
     checkState(percentiles.advanceNextPosition());
+    checkState(masks == null || masks.advanceNextPosition());
     long groupId=groupIdsBlock.getGroupId(position);
-    if (!values.isNull() && !weights.isNull()) {
+    if (!values.isNull() && !weights.isNull() && (masks == null || masks.getBoolean())) {
       DigestAndPercentile currentValue=digests.get(groupId);
       if (currentValue == null) {
         currentValue=new DigestAndPercentile(new QuantileDigest(0.01));

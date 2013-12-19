@@ -3,11 +3,16 @@
   digests.ensureCapacity(groupIdsBlock.getGroupCount());
   BlockCursor values=page.getBlock(valueChannel).cursor();
   BlockCursor percentiles=page.getBlock(percentileChannel).cursor();
+  BlockCursor masks=null;
+  if (maskChannel.isPresent()) {
+    masks=page.getBlock(maskChannel.get()).cursor();
+  }
   for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
     checkState(values.advanceNextPosition());
     checkState(percentiles.advanceNextPosition());
+    checkState(masks == null || masks.advanceNextPosition());
     long groupId=groupIdsBlock.getGroupId(position);
-    if (!values.isNull()) {
+    if (!values.isNull() && (masks == null || masks.getBoolean())) {
       DigestAndPercentile currentValue=digests.get(groupId);
       if (currentValue == null) {
         currentValue=new DigestAndPercentile(new QuantileDigest(0.01));

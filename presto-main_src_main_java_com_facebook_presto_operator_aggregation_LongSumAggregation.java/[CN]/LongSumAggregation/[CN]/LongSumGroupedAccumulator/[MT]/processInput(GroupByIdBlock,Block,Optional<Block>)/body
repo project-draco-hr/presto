@@ -1,0 +1,20 @@
+{
+  notNull.ensureCapacity(groupIdsBlock.getGroupCount());
+  sums.ensureCapacity(groupIdsBlock.getGroupCount());
+  BlockCursor values=valuesBlock.cursor();
+  BlockCursor masks=null;
+  if (maskBlock.isPresent()) {
+    masks=maskBlock.get().cursor();
+  }
+  for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
+    checkState(values.advanceNextPosition());
+    checkState(masks == null || masks.advanceNextPosition());
+    long groupId=groupIdsBlock.getGroupId(position);
+    if (!values.isNull() && (masks == null || masks.getBoolean())) {
+      notNull.set(groupId,true);
+      long value=values.getLong();
+      sums.add(groupId,value);
+    }
+  }
+  checkState(!values.advanceNextPosition());
+}

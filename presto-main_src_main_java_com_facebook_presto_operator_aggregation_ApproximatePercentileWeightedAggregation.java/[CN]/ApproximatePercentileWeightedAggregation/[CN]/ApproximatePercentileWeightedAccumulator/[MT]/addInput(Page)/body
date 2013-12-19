@@ -3,11 +3,16 @@
   BlockCursor values=page.getBlock(valueChannel).cursor();
   BlockCursor weights=page.getBlock(weightChannel).cursor();
   BlockCursor percentiles=page.getBlock(percentileChannel).cursor();
+  BlockCursor masks=null;
+  if (maskChannel.isPresent()) {
+    masks=page.getBlock(maskChannel.get()).cursor();
+  }
   for (int position=0; position < page.getPositionCount(); position++) {
     checkState(values.advanceNextPosition());
     checkState(weights.advanceNextPosition());
     checkState(percentiles.advanceNextPosition());
-    if (!values.isNull() && !weights.isNull()) {
+    checkState(masks == null || masks.advanceNextPosition());
+    if (!values.isNull() && !weights.isNull() && (masks == null || masks.getBoolean())) {
       addValue(digest,values,weights.getLong(),parameterType);
       if (!percentiles.isNull()) {
         percentile=percentiles.getDouble();

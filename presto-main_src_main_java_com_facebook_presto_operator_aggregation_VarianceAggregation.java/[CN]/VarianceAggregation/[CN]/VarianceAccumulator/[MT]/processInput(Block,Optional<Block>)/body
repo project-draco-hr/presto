@@ -1,0 +1,25 @@
+{
+  BlockCursor values=block.cursor();
+  BlockCursor masks=null;
+  if (maskBlock.isPresent()) {
+    masks=maskBlock.get().cursor();
+  }
+  for (int position=0; position < block.getPositionCount(); position++) {
+    checkState(values.advanceNextPosition());
+    checkState(masks == null || masks.advanceNextPosition());
+    if (!values.isNull() && (masks == null || masks.getBoolean())) {
+      double inputValue;
+      if (inputIsLong) {
+        inputValue=values.getLong();
+      }
+ else {
+        inputValue=values.getDouble();
+      }
+      currentCount++;
+      double delta=inputValue - currentMean;
+      currentMean+=(delta / currentCount);
+      currentM2+=(delta * (inputValue - currentMean));
+    }
+  }
+  checkState(!values.advanceNextPosition());
+}

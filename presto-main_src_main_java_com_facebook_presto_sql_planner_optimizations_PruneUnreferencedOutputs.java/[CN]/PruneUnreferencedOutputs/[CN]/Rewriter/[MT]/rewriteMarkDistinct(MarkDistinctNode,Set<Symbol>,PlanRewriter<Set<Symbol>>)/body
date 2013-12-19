@@ -1,0 +1,8 @@
+{
+  if (!expectedOutputs.contains(node.getMarkerSymbol())) {
+    return planRewriter.rewrite(node.getSource(),expectedOutputs);
+  }
+  Set<Symbol> expectedInputs=ImmutableSet.<Symbol>builder().addAll(node.getDistinctSymbols()).addAll(expectedOutputs).build();
+  PlanNode source=planRewriter.rewrite(node.getSource(),expectedInputs);
+  return new MarkDistinctNode(node.getId(),source,node.getMarkerSymbol(),node.getDistinctSymbols());
+}

@@ -1,0 +1,16 @@
+{
+  int positionCount=page.getPositionCount();
+  int blockSize=SINGLE_BOOLEAN.getFixedSize() * positionCount;
+  BlockBuilder blockBuilder=new BlockBuilder(SINGLE_BOOLEAN,blockSize,Slices.allocate(blockSize).getOutput());
+  GroupByIdBlock ids=groupByHash.getGroupIds(page);
+  for (int i=0; i < ids.getPositionCount(); i++) {
+    if (ids.getGroupId(i) == nextDistinctId) {
+      blockBuilder.append(true);
+      nextDistinctId++;
+    }
+ else {
+      blockBuilder.append(false);
+    }
+  }
+  return blockBuilder.build();
+}

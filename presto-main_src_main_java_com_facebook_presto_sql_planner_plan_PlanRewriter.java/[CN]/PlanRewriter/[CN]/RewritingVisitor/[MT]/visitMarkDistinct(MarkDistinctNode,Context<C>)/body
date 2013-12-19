@@ -1,0 +1,13 @@
+{
+  if (!context.isDefaultRewrite()) {
+    PlanNode result=nodeRewriter.rewriteMarkDistinct(node,context.get(),PlanRewriter.this);
+    if (result != null) {
+      return result;
+    }
+  }
+  PlanNode source=rewrite(node.getSource(),context.get());
+  if (source != node.getSource()) {
+    return new MarkDistinctNode(node.getId(),source,node.getMarkerSymbol(),node.getDistinctSymbols());
+  }
+  return node;
+}

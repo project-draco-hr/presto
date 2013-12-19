@@ -11,7 +11,11 @@
       argumentChannels[i]=functionDefinition.getInputs().get(i).getChannel();
     }
     intermediateChannel=-1;
-    aggregation=function.createGroupedAggregation(argumentChannels);
+    Optional<Integer> maskChannel=Optional.absent();
+    if (functionDefinition.getMask().isPresent()) {
+      maskChannel=Optional.of(functionDefinition.getMask().get().getChannel());
+    }
+    aggregation=function.createGroupedAggregation(maskChannel,argumentChannels);
   }
   this.step=step;
 }

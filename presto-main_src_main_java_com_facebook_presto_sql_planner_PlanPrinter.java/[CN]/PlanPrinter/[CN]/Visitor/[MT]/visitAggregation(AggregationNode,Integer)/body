@@ -9,7 +9,12 @@
   }
   print(indent,"- Aggregate%s%s => [%s]",type,key,formatOutputs(node.getOutputSymbols()));
   for (  Map.Entry<Symbol,FunctionCall> entry : node.getAggregations().entrySet()) {
-    print(indent + 2,"%s := %s",entry.getKey(),entry.getValue());
+    if (node.getMasks().containsKey(entry.getKey())) {
+      print(indent + 2,"%s := %s (mask = %s)",entry.getKey(),entry.getValue(),node.getMasks().get(entry.getKey()));
+    }
+ else {
+      print(indent + 2,"%s := %s",entry.getKey(),entry.getValue());
+    }
   }
   return processChildren(node,indent + 1);
 }

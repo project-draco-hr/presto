@@ -1,7 +1,19 @@
 {
   counts.ensureCapacity(groupIdsBlock.getGroupCount());
-  for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
-    long groupId=groupIdsBlock.getGroupId(position);
-    counts.increment(groupId);
+  if (!maskChannel.isPresent()) {
+    for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
+      long groupId=groupIdsBlock.getGroupId(position);
+      counts.increment(groupId);
+    }
+  }
+ else {
+    BlockCursor cursor=page.getBlock(maskChannel.get()).cursor();
+    for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
+      long groupId=groupIdsBlock.getGroupId(position);
+      cursor.advanceNextPosition();
+      if (cursor.getBoolean()) {
+        counts.increment(groupId);
+      }
+    }
   }
 }

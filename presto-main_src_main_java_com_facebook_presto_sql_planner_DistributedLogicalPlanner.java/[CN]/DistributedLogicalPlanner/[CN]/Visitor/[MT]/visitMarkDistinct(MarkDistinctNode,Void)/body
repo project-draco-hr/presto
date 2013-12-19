@@ -1,0 +1,24 @@
+{
+  SubPlanBuilder current=node.getSource().accept(this,context);
+  boolean alreadyPartitioned=false;
+  if (current.getDistribution() == PlanDistribution.FIXED) {
+    for (    SubPlan child : current.getChildren()) {
+      if (child.getFragment().getOutputPartitioning() == OutputPartitioning.HASH && ImmutableSet.copyOf(child.getFragment().getPartitionBy()).equals(ImmutableSet.copyOf(node.getDistinctSymbols()))) {
+        alreadyPartitioned=true;
+        break;
+      }
+    }
+  }
+  if (createSingleNodePlan || alreadyPartitioned || !current.isDistributed()) {
+    MarkDistinctNode markNode=new MarkDistinctNode(idAllocator.getNextId(),current.getRoot(),node.getMarkerSymbol(),node.getDistinctSymbols());
+    current.setRoot(markNode);
+    return current;
+  }
+ else {
+    PlanNode sink=new SinkNode(idAllocator.getNextId(),current.getRoot(),current.getRoot().getOutputSymbols());
+    current.setRoot(sink).setHashOutputPartitioning(node.getDistinctSymbols());
+    PlanNode exchange=new ExchangeNode(idAllocator.getNextId(),current.getId(),sink.getOutputSymbols());
+    MarkDistinctNode markNode=new MarkDistinctNode(idAllocator.getNextId(),exchange,node.getMarkerSymbol(),node.getDistinctSymbols());
+    return createFixedDistributionPlan(markNode).addChild(current.build());
+  }
+}

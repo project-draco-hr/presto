@@ -1,11 +1,12 @@
 {
   SubPlanBuilder current=node.getSource().accept(this,context);
   if (!current.isDistributed()) {
-    current.setRoot(new AggregationNode(node.getId(),current.getRoot(),node.getGroupBy(),node.getAggregations(),node.getFunctions(),SINGLE));
+    current.setRoot(new AggregationNode(node.getId(),current.getRoot(),node.getGroupBy(),node.getAggregations(),node.getFunctions(),node.getMasks(),SINGLE));
     return current;
   }
   Map<Symbol,FunctionCall> aggregations=node.getAggregations();
   Map<Symbol,FunctionHandle> functions=node.getFunctions();
+  Map<Symbol,Symbol> masks=node.getMasks();
   List<Symbol> groupBy=node.getGroupBy();
-  return addDistributedAggregation(current,aggregations,functions,groupBy);
+  return addDistributedAggregation(current,aggregations,functions,masks,groupBy);
 }
