@@ -1,0 +1,25 @@
+{
+  checkNotNull(page,"page is null");
+  checkState(state == State.RUNNING,"Operator is %s",state);
+  BlockCursor[] cursors=new BlockCursor[page.getChannelCount()];
+  Type[] types=new Type[page.getChannelCount()];
+  for (int channel=0; channel < cursors.length; channel++) {
+    cursors[channel]=page.getBlock(channel).cursor();
+    TupleInfo tupleInfo=cursors[channel].getTupleInfo();
+    checkArgument(tupleInfo.getFieldCount() == 1,"expected block to have exactly one field");
+    types[channel]=tupleInfo.getTypes().get(0);
+  }
+  int rows=page.getPositionCount();
+  for (int position=0; position < rows; position++) {
+    recordSink.beginRecord();
+    for (int i=0; i < cursors.length; i++) {
+      checkArgument(cursors[i].advanceNextPosition());
+      writeField(cursors[i],types[i]);
+    }
+    recordSink.finishRecord();
+  }
+  rowCount+=rows;
+  for (  BlockCursor cursor : cursors) {
+    checkArgument(!cursor.advanceNextPosition());
+  }
+}

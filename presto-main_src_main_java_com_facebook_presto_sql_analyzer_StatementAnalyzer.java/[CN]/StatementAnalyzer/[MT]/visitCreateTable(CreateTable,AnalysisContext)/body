@@ -1,0 +1,21 @@
+{
+  QualifiedTableName targetTable=MetadataUtil.createQualifiedTableName(session,node.getName());
+  analysis.setCreateTableDestination(targetTable);
+  Optional<TableHandle> targetTableHandle=metadata.getTableHandle(targetTable);
+  if (targetTableHandle.isPresent()) {
+    throw new SemanticException(TABLE_ALREADY_EXISTS,node,"Destination table '%s' already exists",targetTable);
+  }
+  TupleDescriptor descriptor=process(node.getQuery(),context);
+  Set<String> names=new HashSet<>();
+  for (int i=0; i < descriptor.getFields().size(); i++) {
+    Field field=descriptor.getFields().get(i);
+    Optional<String> fieldName=field.getName();
+    if (!fieldName.isPresent()) {
+      throw new SemanticException(COLUMN_NAME_NOT_SPECIFIED,node,"Column name not specified at position %s",i + 1);
+    }
+    if (!names.add(fieldName.get())) {
+      throw new SemanticException(DUPLICATE_COLUMN_NAME,node,"Column name '%s' specified more than once",fieldName.get());
+    }
+  }
+  return new TupleDescriptor(Field.newUnqualified("rows",Type.BIGINT));
+}

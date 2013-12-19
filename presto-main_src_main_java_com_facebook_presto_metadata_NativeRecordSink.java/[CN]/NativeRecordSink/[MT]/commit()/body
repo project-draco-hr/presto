@@ -1,0 +1,13 @@
+{
+  checkState(field == -1,"record not finished");
+  if (!pageBuilder.isEmpty()) {
+    fileHandle.append(pageBuilder.build());
+  }
+  try {
+    storageManager.commit(fileHandle);
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+  return Joiner.on(':').join(nodeId,fileHandle.getShardUuid());
+}

@@ -2,7 +2,8 @@
   ImmutableClassToInstanceMap.Builder<Object> builder=ImmutableClassToInstanceMap.builder();
   IDBI dbi=this.dbi.get();
   if (dbi != null) {
-    builder.put(ConnectorMetadata.class,new NativeMetadata(connectorId,dbi));
+    checkState(shardManager.get() != null,"shardManager was not set");
+    builder.put(ConnectorMetadata.class,new NativeMetadata(connectorId,dbi,shardManager.get()));
   }
   NativeSplitManager splitManager=this.splitManager.get();
   if (splitManager != null) {
@@ -10,5 +11,7 @@
   }
   builder.put(ConnectorDataStreamProvider.class,dataStreamProvider);
   builder.put(ConnectorHandleResolver.class,HANDLE_RESOLVER);
+  builder.put(ConnectorRecordSinkProvider.class,recordSinkProvider);
+  builder.put(ConnectorOutputHandleResolver.class,HANDLE_RESOLVER);
   return new StaticConnector(builder.build());
 }

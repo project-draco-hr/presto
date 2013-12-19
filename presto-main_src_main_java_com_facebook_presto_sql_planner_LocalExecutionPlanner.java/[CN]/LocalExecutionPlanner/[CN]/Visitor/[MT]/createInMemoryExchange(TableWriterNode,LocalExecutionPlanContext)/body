@@ -1,0 +1,18 @@
+{
+  LocalExecutionPlanContext subContext=context.createSubContext();
+  PhysicalOperation source=node.getSource().accept(this,subContext);
+  source=unpack(source,node.getColumns(),subContext);
+  List<TupleInfo> tupleInfos=getSourceOperatorTupleInfos(node,context.getTypes());
+  InMemoryExchange exchange=new InMemoryExchange(tupleInfos);
+  List<OperatorFactory> factories=ImmutableList.<OperatorFactory>builder().addAll(source.getOperatorFactories()).add(exchange.createSinkFactory(subContext.getNextOperatorId())).build();
+  context.addDriverFactory(new DriverFactory(subContext.isInputDriver(),false,factories));
+  exchange.noMoreSinkFactories();
+  context.setInputDriver(false);
+  List<Symbol> layout=node.getOutputSymbols();
+  ImmutableMultimap.Builder<Symbol,Input> outputMappings=ImmutableMultimap.builder();
+  for (int i=0; i < layout.size(); i++) {
+    outputMappings.put(layout.get(i),new Input(i,0));
+  }
+  OperatorFactory factory=new InMemoryExchangeSourceOperatorFactory(context.getNextOperatorId(),exchange);
+  return new PhysicalOperation(factory,outputMappings.build());
+}

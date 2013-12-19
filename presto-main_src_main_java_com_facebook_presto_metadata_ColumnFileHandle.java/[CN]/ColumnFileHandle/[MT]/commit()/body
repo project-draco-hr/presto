@@ -1,6 +1,6 @@
 {
   Throwable firstThrowable=null;
-  checkState(!committed.getAndSet(true),"already committed!");
+  checkState(!committed.getAndSet(true),"already committed: %s",shardUuid);
   for (  BlocksFileWriter writer : writers.values()) {
     try {
       writer.close();
@@ -11,5 +11,8 @@
       }
     }
   }
-  Throwables.propagateIfInstanceOf(firstThrowable,IOException.class);
+  if (firstThrowable != null) {
+    Throwables.propagateIfInstanceOf(firstThrowable,IOException.class);
+    throw Throwables.propagate(firstThrowable);
+  }
 }

@@ -1,0 +1,12 @@
+{
+  QualifiedTableName destination=analysis.getCreateTableDestination().get();
+  RelationPlanner planner=new RelationPlanner(analysis,symbolAllocator,idAllocator,metadata,session);
+  RelationPlan plan=planner.process(analysis.getQuery(),null);
+  TableMetadata tableMetadata=createTableMetadata(destination,getTableColumns(plan));
+  OutputTableHandle target=metadata.beginCreateTable(destination.getCatalogName(),tableMetadata);
+  ImmutableList<Symbol> writerOutputs=ImmutableList.of(symbolAllocator.newSymbol("partialrows",Type.BIGINT),symbolAllocator.newSymbol("fragment",Type.VARCHAR));
+  TableWriterNode writerNode=new TableWriterNode(idAllocator.getNextId(),plan.getRoot(),target,plan.getOutputSymbols(),getColumnNames(tableMetadata),writerOutputs);
+  List<Symbol> outputs=ImmutableList.of(symbolAllocator.newSymbol("rows",Type.BIGINT));
+  TableCommitNode commitNode=new TableCommitNode(idAllocator.getNextId(),writerNode,target,outputs);
+  return new RelationPlan(commitNode,analysis.getOutputDescriptor(),outputs);
+}

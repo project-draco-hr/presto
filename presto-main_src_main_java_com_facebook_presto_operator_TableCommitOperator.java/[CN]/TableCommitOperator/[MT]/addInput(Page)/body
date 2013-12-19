@@ -1,0 +1,12 @@
+{
+  checkNotNull(page,"page is null");
+  checkState(state == State.RUNNING,"Operator is %s",state);
+  BlockCursor rowCountCursor=page.getBlock(0).cursor();
+  BlockCursor fragmentCursor=page.getBlock(1).cursor();
+  for (int i=0; i < page.getPositionCount(); i++) {
+    checkArgument(rowCountCursor.advanceNextPosition());
+    checkArgument(fragmentCursor.advanceNextPosition());
+    rowCount+=rowCountCursor.getLong(0);
+    fragmentBuilder.add(fragmentCursor.getSlice(0).toStringUtf8());
+  }
+}

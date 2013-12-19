@@ -1,3 +1,10 @@
 {
-  throw new UnsupportedOperationException();
+  ImmutableList.Builder<NativeColumnHandle> columnHandles=ImmutableList.builder();
+  ImmutableList.Builder<ColumnType> columnTypes=ImmutableList.builder();
+  for (  ColumnMetadata column : tableMetadata.getColumns()) {
+    long columnId=column.getOrdinalPosition() + 1;
+    columnHandles.add(new NativeColumnHandle(column.getName(),columnId));
+    columnTypes.add(column.getType());
+  }
+  return new NativeOutputTableHandle(tableMetadata.getTable().getSchemaName(),tableMetadata.getTable().getTableName(),columnHandles.build(),columnTypes.build());
 }
