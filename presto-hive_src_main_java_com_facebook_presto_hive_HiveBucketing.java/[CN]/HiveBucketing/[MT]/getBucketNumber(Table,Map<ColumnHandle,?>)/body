@@ -1,5 +1,5 @@
 {
-  if (!table.getSd().isSetBucketCols() || table.getSd().getBucketCols().isEmpty() || !table.getSd().isSetNumBuckets()|| table.getSd().getNumBuckets() <= 0 || bindings.isEmpty()) {
+  if (!table.getSd().isSetBucketCols() || table.getSd().getBucketCols().isEmpty() || !table.getSd().isSetNumBuckets()|| (table.getSd().getNumBuckets() <= 0)|| bindings.isEmpty()) {
     return Optional.absent();
   }
   List<String> bucketColumns=table.getSd().getBucketCols();
@@ -14,7 +14,7 @@
   }
   for (  String column : bucketColumns) {
     ObjectInspector inspector=objectInspectors.get(column);
-    if (inspector.getCategory() != Category.PRIMITIVE) {
+    if ((inspector == null) || (inspector.getCategory() != Category.PRIMITIVE)) {
       return Optional.absent();
     }
     if (!SUPPORTED_TYPES.contains(((PrimitiveObjectInspector)inspector).getPrimitiveCategory())) {
