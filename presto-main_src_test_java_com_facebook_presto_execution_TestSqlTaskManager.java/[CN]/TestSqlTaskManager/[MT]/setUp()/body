@@ -2,7 +2,6 @@
   DualMetadata dualMetadata=new DualMetadata();
   tableHandle=dualMetadata.getTableHandle(new SchemaTableName("default",DualMetadata.NAME));
   assertNotNull(tableHandle,"tableHandle is null");
-  ;
   columnHandle=dualMetadata.getColumnHandle(tableHandle,DualMetadata.COLUMN_NAME);
   assertNotNull(columnHandle,"columnHandle is null");
   symbol=new Symbol(DualMetadata.COLUMN_NAME);
@@ -16,7 +15,7 @@
   taskExecutor.start();
   sqlTaskManager=new SqlTaskManager(planner,new MockLocationFactory(),taskExecutor,new QueryMonitor(new ObjectMapperProvider().get(),new NullEventClient(),new NodeInfo("test")),new TaskManagerConfig());
   tableScanNodeId=new PlanNodeId("tableScan");
-  testFragment=new PlanFragment(new PlanFragmentId("fragment"),new TableScanNode(tableScanNodeId,tableHandle,ImmutableList.of(symbol),ImmutableMap.of(symbol,columnHandle),null,Optional.<GeneratedPartitions>absent()),ImmutableMap.<Symbol,Type>of(symbol,Type.VARCHAR),Partitioning.SOURCE,tableScanNodeId);
+  testFragment=new PlanFragment(new PlanFragmentId("fragment"),new TableScanNode(tableScanNodeId,tableHandle,ImmutableList.of(symbol),ImmutableMap.of(symbol,columnHandle),null,Optional.<GeneratedPartitions>absent()),ImmutableMap.<Symbol,Type>of(symbol,Type.VARCHAR),PlanDistribution.SOURCE,tableScanNodeId,OutputPartitioning.NONE);
   taskId=new TaskId("query","stage","task");
   session=new Session("user","test","default","default","test","test");
 }

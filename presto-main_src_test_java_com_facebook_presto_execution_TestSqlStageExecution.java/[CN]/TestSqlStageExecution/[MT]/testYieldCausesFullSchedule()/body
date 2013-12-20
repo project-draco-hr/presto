@@ -7,8 +7,8 @@
     StageExecutionPlan joinPlan=createJoinPlan("A",metadata);
     InMemoryNodeManager nodeManager=new InMemoryNodeManager();
     nodeManager.addNode("foo",new Node("other",URI.create("http://127.0.0.1:11"),NodeVersion.UNKNOWN));
-    stageExecution=new SqlStageExecution(new QueryId("query"),new MockLocationFactory(),joinPlan,new NodeScheduler(nodeManager,new NodeSchedulerConfig()),new MockRemoteTaskFactory(executor),SESSION,1,8,executor);
-    stageExecution.setOutputBuffers(INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffer("out",new UnpartitionedPagePartitionFunction()).withNoMoreBufferIds());
+    OutputBuffers outputBuffers=INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffer("out",new UnpartitionedPagePartitionFunction()).withNoMoreBufferIds();
+    stageExecution=new SqlStageExecution(new QueryId("query"),new MockLocationFactory(),joinPlan,new NodeScheduler(nodeManager,new NodeSchedulerConfig()),new MockRemoteTaskFactory(executor),SESSION,1,8,executor,outputBuffers);
     Future<?> future=stageExecution.start();
     long start=System.nanoTime();
     while (true) {

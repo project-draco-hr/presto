@@ -1,7 +1,7 @@
 {
   SubPlanBuilder source=node.getSource().accept(this,context);
   SubPlanBuilder filteringSource=node.getFilteringSource().accept(this,context);
-  if (source.isPartitioned() || filteringSource.isPartitioned()) {
+  if (source.isDistributed() || filteringSource.isDistributed()) {
     filteringSource.setRoot(new SinkNode(idAllocator.getNextId(),filteringSource.getRoot(),filteringSource.getRoot().getOutputSymbols()));
     source.setRoot(new SemiJoinNode(node.getId(),source.getRoot(),new ExchangeNode(idAllocator.getNextId(),filteringSource.getId(),filteringSource.getRoot().getOutputSymbols()),node.getSourceJoinSymbol(),node.getFilteringSourceJoinSymbol(),node.getSemiJoinOutput()));
     source.addChild(filteringSource.build());
@@ -9,6 +9,6 @@
   }
  else {
     SemiJoinNode semiJoinNode=new SemiJoinNode(node.getId(),source.getRoot(),filteringSource.getRoot(),node.getSourceJoinSymbol(),node.getFilteringSourceJoinSymbol(),node.getSemiJoinOutput());
-    return unpartitionedSubPlan(semiJoinNode).setChildren(Iterables.concat(source.getChildren(),filteringSource.getChildren()));
+    return createSingleNodePlan(semiJoinNode).setChildren(Iterables.concat(source.getChildren(),filteringSource.getChildren()));
   }
 }

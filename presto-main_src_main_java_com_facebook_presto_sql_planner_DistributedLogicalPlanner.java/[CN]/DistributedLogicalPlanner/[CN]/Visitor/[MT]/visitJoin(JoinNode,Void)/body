@@ -1,7 +1,7 @@
 {
   SubPlanBuilder left=node.getLeft().accept(this,context);
   SubPlanBuilder right=node.getRight().accept(this,context);
-  if (left.isPartitioned() || right.isPartitioned()) {
+  if (left.isDistributed() || right.isDistributed()) {
 switch (node.getType()) {
 case INNER:
 case LEFT:
@@ -20,6 +20,6 @@ throw new UnsupportedOperationException("Unsupported join type: " + node.getType
 }
  else {
 JoinNode join=new JoinNode(node.getId(),node.getType(),left.getRoot(),right.getRoot(),node.getCriteria());
-return unpartitionedSubPlan(join).setChildren(Iterables.concat(left.getChildren(),right.getChildren()));
+return createSingleNodePlan(join).setChildren(Iterables.concat(left.getChildren(),right.getChildren()));
 }
 }

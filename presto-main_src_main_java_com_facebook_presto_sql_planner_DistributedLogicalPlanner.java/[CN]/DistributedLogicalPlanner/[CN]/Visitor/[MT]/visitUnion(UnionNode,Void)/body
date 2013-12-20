@@ -5,7 +5,7 @@
       sourceBuilder.add(source.accept(this,context).getRoot());
     }
     UnionNode unionNode=new UnionNode(node.getId(),sourceBuilder.build(),node.getSymbolMapping());
-    return unpartitionedSubPlan(unionNode);
+    return createSingleNodePlan(unionNode);
   }
  else {
     ImmutableList.Builder<SubPlan> sourceBuilder=ImmutableList.builder();
@@ -18,6 +18,6 @@
       sourceBuilder.add(current.build());
     }
     ExchangeNode exchangeNode=new ExchangeNode(idAllocator.getNextId(),fragmentIdBuilder.build(),node.getOutputSymbols());
-    return unpartitionedSubPlan(exchangeNode).setChildren(sourceBuilder.build());
+    return createSingleNodePlan(exchangeNode).setChildren(sourceBuilder.build());
   }
 }

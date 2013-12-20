@@ -1,23 +1,23 @@
 {
   try (SetThreadName setThreadName=new SetThreadName("Stage-%s",stageId)){
     try {
-      Preconditions.checkState(!Thread.holdsLock(this),"Can not start while holding a lock on this");
+      checkState(!Thread.holdsLock(this),"Can not start while holding a lock on this");
 synchronized (this) {
         if (!stageState.compareAndSet(StageState.PLANNED,StageState.SCHEDULING)) {
           return;
         }
       }
-      if (fragment.getPartitioning() == PlanFragment.Partitioning.NONE) {
-        scheduleNotPartitioned();
+      if (fragment.getDistribution() == PlanDistribution.NONE) {
+        scheduleFixedNodeCount(1);
       }
- else       if (fragment.getPartitioning() == PlanFragment.Partitioning.HASH) {
-        scheduleHashPartitioned();
+ else       if (fragment.getDistribution() == PlanDistribution.FIXED) {
+        scheduleFixedNodeCount(initialHashPartitions);
       }
- else       if (fragment.getPartitioning() == PlanFragment.Partitioning.SOURCE) {
-        scheduleSourcePartitioned();
+ else       if (fragment.getDistribution() == PlanDistribution.SOURCE) {
+        scheduleSourcePartitionedNodes();
       }
  else {
-        throw new IllegalStateException("Unsupported partitioning: " + fragment.getPartitioning());
+        throw new IllegalStateException("Unsupported partitioning: " + fragment.getDistribution());
       }
       stageState.set(StageState.SCHEDULED);
       updateNewExchangesAndBuffers(true);
