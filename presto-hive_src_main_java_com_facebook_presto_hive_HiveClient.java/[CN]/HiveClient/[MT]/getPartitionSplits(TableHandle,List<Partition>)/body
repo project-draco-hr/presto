@@ -6,7 +6,7 @@
   }
   checkArgument(partition instanceof HivePartition,"Partition must be a hive partition");
   SchemaTableName tableName=((HivePartition)partition).getTableName();
-  Optional<Integer> bucketNumber=((HivePartition)partition).getBucket();
+  Optional<HiveBucket> bucket=((HivePartition)partition).getBucket();
   List<String> partitionNames=new ArrayList<>(Lists.transform(partitions,HiveUtil.partitionIdGetter()));
   Collections.sort(partitionNames,Ordering.natural().reverse());
   Table table;
@@ -18,5 +18,5 @@
  catch (  NoSuchObjectException e) {
     throw new TableNotFoundException(tableName);
   }
-  return new HiveSplitIterable(connectorId,table,partitionNames,hivePartitions,bucketNumber,maxSplitSize,maxOutstandingSplits,maxSplitIteratorThreads,hdfsEnvironment,executor,maxPartitionBatchSize);
+  return new HiveSplitIterable(connectorId,table,partitionNames,hivePartitions,bucket,maxSplitSize,maxOutstandingSplits,maxSplitIteratorThreads,hdfsEnvironment,executor,maxPartitionBatchSize);
 }

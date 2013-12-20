@@ -28,11 +28,19 @@
         markerQueue.finish();
         continue;
       }
+      if (bucket.isPresent()) {
+        Optional<FileStatus> bucketFile=getBucketFile(bucket.get(),fs,path);
+        if (bucketFile.isPresent()) {
+          FileStatus file=bucketFile.get();
+          BlockLocation[] blockLocations=fs.getFileBlockLocations(file,0,file.getLen());
+          boolean splittable=isSplittable(inputFormat,fs,file.getPath());
+          markerQueue.addToQueue(createHiveSplits(partitionName,file,blockLocations,0,file.getLen(),schema,partitionKeys,splittable));
+          markerQueue.finish();
+          continue;
+        }
+      }
       ListenableFuture<Void> partitionFuture=new AsyncRecursiveWalker(fs,suspendingExecutor).beginWalk(partitionPath,new FileStatusCallback(){
         @Override public void process(        FileStatus file,        BlockLocation[] blockLocations){
-          if (bucket.isPresent() && !fileMatchesBucket(file.getPath().getName(),bucket.get())) {
-            return;
-          }
           try {
             boolean splittable=isSplittable(inputFormat,file.getPath().getFileSystem(configuration),file.getPath());
             markerQueue.addToQueue(createHiveSplits(partitionName,file,blockLocations,0,file.getLen(),schema,partitionKeys,splittable));

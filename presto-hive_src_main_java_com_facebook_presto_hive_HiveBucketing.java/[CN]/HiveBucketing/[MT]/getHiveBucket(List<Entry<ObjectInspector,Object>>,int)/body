@@ -15,7 +15,8 @@
     Object result=udf.evaluate(deferredObjects);
     HiveKey hiveKey=new HiveKey();
     hiveKey.setHashCode(inspector.get(result));
-    return Optional.of(new DefaultHivePartitioner<>().getBucket(hiveKey,null,bucketCount));
+    int bucketNumber=new DefaultHivePartitioner<>().getBucket(hiveKey,null,bucketCount);
+    return Optional.of(new HiveBucket(bucketNumber,bucketCount));
   }
  catch (  HiveException e) {
     log.debug(e,"Error evaluating bucket number");

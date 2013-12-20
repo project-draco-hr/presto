@@ -3,7 +3,7 @@
   checkNotNull(tupleDomain,"tupleDomain is null");
   SchemaTableName tableName=getTableName(tableHandle);
   List<FieldSchema> partitionKeys;
-  Optional<Integer> bucket;
+  Optional<HiveBucket> bucket;
   try {
     Table table=metastore.getTable(tableName.getSchemaName(),tableName.getTableName());
     String protectMode=table.getParameters().get(ProtectMode.PARAMETER_NAME);
@@ -11,7 +11,7 @@
       throw new TableOfflineException(tableName);
     }
     partitionKeys=table.getPartitionKeys();
-    bucket=getBucketNumber(table,tupleDomain.extractFixedValues());
+    bucket=getHiveBucket(table,tupleDomain.extractFixedValues());
   }
  catch (  NoSuchObjectException e) {
     throw new TableNotFoundException(tableName);
