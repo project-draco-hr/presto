@@ -1,3 +1,31 @@
 {
-  throw new UnsupportedOperationException();
+  ImmutableList.Builder<String> columnNames=ImmutableList.builder();
+  ImmutableList.Builder<ColumnType> columnTypes=ImmutableList.builder();
+  for (  ColumnMetadata column : tableMetadata.getColumns()) {
+    columnNames.add(column.getName());
+    columnTypes.add(column.getType());
+  }
+  SchemaTableName table=tableMetadata.getTable();
+  String schemaName=table.getSchemaName();
+  String tableName=table.getTableName();
+  String location=getDatabase(schemaName).getLocationUri();
+  if (isNullOrEmpty(location)) {
+    throw new RuntimeException(format("Database '%s' location is not set",schemaName));
+  }
+  Path databasePath=new Path(location);
+  if (!pathExists(databasePath)) {
+    throw new RuntimeException(format("Database '%s' location does not exist: %s",schemaName,databasePath));
+  }
+  if (!isDirectory(databasePath)) {
+    throw new RuntimeException(format("Database '%s' location is not a directory: %s",schemaName,databasePath));
+  }
+  Path targetPath=new Path(databasePath,tableName);
+  if (pathExists(targetPath)) {
+    throw new RuntimeException(format("Target directory for table '%s' already exists: %s",table,targetPath));
+  }
+  String temporaryPrefix="/tmp/presto-" + StandardSystemProperty.USER_NAME.value();
+  Path temporaryRoot=new Path(targetPath,temporaryPrefix);
+  Path temporaryPath=new Path(temporaryRoot,randomUUID().toString());
+  createDirectories(temporaryPath);
+  return new HiveOutputTableHandle(connectorId,schemaName,tableName,columnNames.build(),columnTypes.build(),Optional.fromNullable(tableMetadata.getOwner()),targetPath.toString(),temporaryPath.toString());
 }

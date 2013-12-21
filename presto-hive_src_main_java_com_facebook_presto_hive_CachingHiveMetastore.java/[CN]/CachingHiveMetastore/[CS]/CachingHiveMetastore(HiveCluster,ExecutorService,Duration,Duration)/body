@@ -9,6 +9,12 @@
     }
   }
 );
+  databaseCache=CacheBuilder.newBuilder().expireAfterWrite(expiresAfterWriteMillis,MILLISECONDS).refreshAfterWrite(refreshMills,MILLISECONDS).build(new BackgroundCacheLoader<String,Database>(listeningExecutor){
+    @Override public Database load(    String databaseName) throws Exception {
+      return loadDatabase(databaseName);
+    }
+  }
+);
   tableNamesCache=CacheBuilder.newBuilder().expireAfterWrite(expiresAfterWriteMillis,MILLISECONDS).refreshAfterWrite(refreshMills,MILLISECONDS).build(new BackgroundCacheLoader<String,List<String>>(listeningExecutor){
     @Override public List<String> load(    String databaseName) throws Exception {
       return loadAllTables(databaseName);

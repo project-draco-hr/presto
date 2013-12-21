@@ -1,0 +1,13 @@
+{
+  fieldCount=handle.getColumnNames().size();
+  Iterable<HiveType> hiveTypes=transform(handle.getColumnTypes(),columnTypeToHiveType());
+  Iterable<String> hiveTypeNames=transform(hiveTypes,hiveTypeNameGetter());
+  Properties properties=new Properties();
+  properties.setProperty(META_TABLE_COLUMNS,Joiner.on(',').join(handle.getColumnNames()));
+  properties.setProperty(META_TABLE_COLUMN_TYPES,Joiner.on(':').join(hiveTypeNames));
+  serializer=initializeSerializer(conf,properties,new LazyBinaryColumnarSerDe());
+  recordWriter=createRecordWriter(target,conf,properties,new RCFileOutputFormat());
+  tableInspector=getStandardStructObjectInspector(handle.getColumnNames(),getJavaObjectInspectors(hiveTypes));
+  structFields=ImmutableList.copyOf(tableInspector.getAllStructFieldRefs());
+  row=tableInspector.create();
+}
