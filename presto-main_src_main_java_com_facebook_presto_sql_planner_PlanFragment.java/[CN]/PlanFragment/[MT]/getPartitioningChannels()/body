@@ -1,0 +1,10 @@
+{
+  checkState(outputPartitioning == OutputPartitioning.HASH,"fragment is not hash partitioned");
+  checkState(root instanceof SinkNode,"root is not an instance of SinkNode");
+  return IterableTransformer.on(partitionBy).transform(new Function<Symbol,Integer>(){
+    @Override public Integer apply(    Symbol input){
+      return root.getOutputSymbols().indexOf(input);
+    }
+  }
+).list();
+}
