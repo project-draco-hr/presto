@@ -1,10 +1,14 @@
 {
   final SuspendingExecutor suspendingExecutor=new SuspendingExecutor(new BoundedExecutor(executor,maxThreads));
   final HiveSplitQueue hiveSplitQueue=new HiveSplitQueue(maxOutstandingSplits,suspendingExecutor);
-  executor.submit(new Callable<Void>(){
-    @Override public Void call() throws Exception {
-      loadPartitionSplits(hiveSplitQueue,suspendingExecutor);
-      return null;
+  executor.execute(new Runnable(){
+    @Override public void run(){
+      try {
+        loadPartitionSplits(hiveSplitQueue,suspendingExecutor);
+      }
+ catch (      InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
     }
   }
 );
