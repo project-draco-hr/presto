@@ -1,4 +1,5 @@
 {
+  checkArgument(!isNullOrEmpty(tableMetadata.getOwner()),"Table owner is null or empty");
   ImmutableList.Builder<String> columnNames=ImmutableList.builder();
   ImmutableList.Builder<ColumnType> columnTypes=ImmutableList.builder();
   for (  ColumnMetadata column : tableMetadata.getColumns()) {
@@ -27,5 +28,5 @@
   Path temporaryRoot=new Path(targetPath,temporaryPrefix);
   Path temporaryPath=new Path(temporaryRoot,randomUUID().toString());
   createDirectories(temporaryPath);
-  return new HiveOutputTableHandle(connectorId,schemaName,tableName,columnNames.build(),columnTypes.build(),Optional.fromNullable(tableMetadata.getOwner()),targetPath.toString(),temporaryPath.toString());
+  return new HiveOutputTableHandle(connectorId,schemaName,tableName,columnNames.build(),columnTypes.build(),tableMetadata.getOwner(),targetPath.toString(),temporaryPath.toString());
 }
