@@ -21,6 +21,7 @@
     List<DriverFactory> driverFactories=localExecutionPlan.getDriverFactories();
     DriverFactory partitionedDriverFactory=null;
     List<Driver> unpartitionedDrivers=new ArrayList<>();
+    List<DriverFactory> unpartitionedDriverFactories=new ArrayList<>();
     for (    DriverFactory driverFactory : driverFactories) {
       if (driverFactory.getSourceIds().contains(fragment.getPartitionedSource())) {
         partitionedDriverFactory=driverFactory;
@@ -29,9 +30,11 @@
         PipelineContext pipelineContext=taskContext.addPipelineContext(driverFactory.isInputDriver(),driverFactory.isOutputDriver());
         Driver driver=driverFactory.createDriver(pipelineContext.addDriverContext());
         unpartitionedDrivers.add(driver);
+        unpartitionedDriverFactories.add(driverFactory);
       }
     }
     this.unpartitionedDrivers=ImmutableList.copyOf(unpartitionedDrivers);
+    this.unpartitionedDriverFactories=ImmutableList.copyOf(unpartitionedDriverFactories);
     if (fragment.getDistribution() == PlanDistribution.SOURCE) {
       checkArgument(partitionedDriverFactory != null,"Fragment is partitioned, but no partitioned driver found");
       this.partitionedSourceId=fragment.getPartitionedSource();

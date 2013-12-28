@@ -15,10 +15,11 @@
       try (SetThreadName setThreadName=new SetThreadName("Task-%s",taskId)){
         remainingDrivers.decrementAndGet();
         if (partitioned) {
-          int runningCount=remainingPartitionedDrivers.decrementAndGet();
-          if (runningCount <= 0) {
-            checkNoMorePartitionedSplits();
-          }
+          remainingPartitionedDrivers.decrementAndGet();
+        }
+        checkNoMorePartitionedSplits();
+        if (driverFactory != null) {
+          driverFactory.close();
         }
         checkTaskCompletion();
         queryMonitor.splitCompletionEvent(taskId,splitRunner.getDriverContext().getDriverStats());
@@ -32,6 +33,9 @@
           remainingPartitionedDrivers.decrementAndGet();
         }
         checkNoMorePartitionedSplits();
+        if (driverFactory != null) {
+          driverFactory.close();
+        }
         queryMonitor.splitFailedEvent(taskId,splitRunner.getDriverContext().getDriverStats(),cause);
       }
      }
