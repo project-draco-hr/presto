@@ -1,0 +1,25 @@
+{
+  TableMetadata tableMeta=getTableMetadata(tableName);
+  ImmutableList.Builder<CassandraColumnHandle> columnHandles=ImmutableList.builder();
+  Set<String> primaryKeySet=new HashSet<>();
+  int index=0;
+  for (  ColumnMetadata columnMeta : tableMeta.getPartitionKey()) {
+    primaryKeySet.add(columnMeta.getName());
+    CassandraColumnHandle columnHandle=buildColumnHandle(columnMeta,true,false,index++);
+    columnHandles.add(columnHandle);
+  }
+  index=0;
+  for (  ColumnMetadata columnMeta : tableMeta.getClusteringColumns()) {
+    primaryKeySet.add(columnMeta.getName());
+    CassandraColumnHandle columnHandle=buildColumnHandle(columnMeta,false,true,index++);
+    columnHandles.add(columnHandle);
+  }
+  for (  ColumnMetadata columnMeta : tableMeta.getColumns()) {
+    if (!primaryKeySet.contains(columnMeta.getName())) {
+      CassandraColumnHandle columnHandle=buildColumnHandle(columnMeta,false,false,0);
+      columnHandles.add(columnHandle);
+    }
+  }
+  CassandraTableHandle tableHandle=new CassandraTableHandle(connectorId,tableMeta.getKeyspace().getName(),tableMeta.getName());
+  return new CassandraTable(tableHandle,columnHandles.build());
+}

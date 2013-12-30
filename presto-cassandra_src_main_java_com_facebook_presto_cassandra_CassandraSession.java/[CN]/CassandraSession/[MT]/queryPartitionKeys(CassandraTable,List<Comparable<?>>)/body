@@ -1,0 +1,27 @@
+{
+  CassandraTableHandle tableHandle=table.getTableHandle();
+  List<CassandraColumnHandle> partitionKeyColumns=table.getPartitionKeyColumns();
+  boolean fullPartitionKey=filterPrefix.size() == partitionKeyColumns.size();
+  ResultSetFuture countFuture;
+  if (!fullPartitionKey) {
+    Select countAll=CassandraCqlUtils.selectCountAllFrom(tableHandle).limit(limitForPartitionKeySelect);
+    countFuture=session.executeAsync(countAll);
+  }
+ else {
+    countFuture=null;
+  }
+  int limit=fullPartitionKey ? 1 : limitForPartitionKeySelect;
+  Select partitionKeys=CassandraCqlUtils.selectDistinctFrom(tableHandle,partitionKeyColumns);
+  partitionKeys.limit(limit);
+  partitionKeys.setFetchSize(fetchSizeForPartitionKeySelect);
+  addWhereClause(partitionKeys.where(),partitionKeyColumns,filterPrefix);
+  ResultSetFuture partitionKeyFuture=session.executeAsync(partitionKeys);
+  if (!fullPartitionKey) {
+    long count=countFuture.getUninterruptibly().one().getLong(0);
+    if (count == limitForPartitionKeySelect) {
+      partitionKeyFuture.cancel(true);
+      return null;
+    }
+  }
+  return partitionKeyFuture.getUninterruptibly();
+}

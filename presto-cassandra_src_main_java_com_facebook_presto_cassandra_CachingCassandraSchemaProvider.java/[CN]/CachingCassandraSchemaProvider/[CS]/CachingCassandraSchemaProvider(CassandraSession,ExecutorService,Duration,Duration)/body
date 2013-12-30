@@ -1,0 +1,37 @@
+{
+  this.session=checkNotNull(session,"cassandraSession is null");
+  checkNotNull(executor,"executor is null");
+  long expiresAfterWriteMillis=checkNotNull(cacheTtl,"cacheTtl is null").toMillis();
+  long refreshMills=checkNotNull(refreshInterval,"refreshInterval is null").toMillis();
+  ListeningExecutorService listeningExecutor=MoreExecutors.listeningDecorator(executor);
+  schemaNamesCache=CacheBuilder.newBuilder().expireAfterWrite(expiresAfterWriteMillis,MILLISECONDS).refreshAfterWrite(refreshMills,MILLISECONDS).build(new BackgroundCacheLoader<String,List<String>>(listeningExecutor){
+    @Override public List<String> load(    String key) throws Exception {
+      return loadAllSchemas();
+    }
+  }
+);
+  tableNamesCache=CacheBuilder.newBuilder().expireAfterWrite(expiresAfterWriteMillis,MILLISECONDS).refreshAfterWrite(refreshMills,MILLISECONDS).build(new BackgroundCacheLoader<String,List<String>>(listeningExecutor){
+    @Override public List<String> load(    String databaseName) throws Exception {
+      return loadAllTables(databaseName);
+    }
+  }
+);
+  tableCache=CacheBuilder.newBuilder().expireAfterWrite(expiresAfterWriteMillis,MILLISECONDS).refreshAfterWrite(refreshMills,MILLISECONDS).build(new BackgroundCacheLoader<SchemaTableName,CassandraTable>(listeningExecutor){
+    @Override public CassandraTable load(    SchemaTableName tableName) throws Exception {
+      return loadTable(tableName);
+    }
+  }
+);
+  partitionsCache=CacheBuilder.newBuilder().expireAfterWrite(expiresAfterWriteMillis,MILLISECONDS).refreshAfterWrite(refreshMills,MILLISECONDS).build(new BackgroundCacheLoader<PartitionListKey,List<CassandraPartition>>(listeningExecutor){
+    @Override public List<CassandraPartition> load(    PartitionListKey key) throws Exception {
+      return loadPartitions(key);
+    }
+  }
+);
+  partitionsCacheFull=CacheBuilder.newBuilder().expireAfterWrite(expiresAfterWriteMillis,MILLISECONDS).build(new BackgroundCacheLoader<PartitionListKey,List<CassandraPartition>>(listeningExecutor){
+    @Override public List<CassandraPartition> load(    PartitionListKey key) throws Exception {
+      return loadPartitions(key);
+    }
+  }
+);
+}

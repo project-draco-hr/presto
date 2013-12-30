@@ -1,0 +1,12 @@
+{
+  return retry().stopOn(SchemaNotFoundException.class).stopOnIllegalExceptions().run("getAllTables",new Callable<List<String>>(){
+    @Override public List<String> call() throws SchemaNotFoundException {
+      List<String> tables=session.getAllTables(databaseName);
+      if (tables.isEmpty()) {
+        session.getSchema(databaseName);
+      }
+      return tables;
+    }
+  }
+);
+}

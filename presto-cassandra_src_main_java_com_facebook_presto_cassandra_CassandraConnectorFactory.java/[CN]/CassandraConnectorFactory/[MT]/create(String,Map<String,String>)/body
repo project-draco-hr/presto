@@ -1,0 +1,23 @@
+{
+  checkNotNull(config,"config is null");
+  try (ThreadContextClassLoader ignored=new ThreadContextClassLoader(classLoader)){
+    Bootstrap app=new Bootstrap(new NodeModule(),new MBeanModule(),new JsonModule(),new CassandraClientModule(connectorId),new Module(){
+      @Override public void configure(      Binder binder){
+        MBeanServer platformMBeanServer=ManagementFactory.getPlatformMBeanServer();
+        binder.bind(MBeanServer.class).toInstance(new RebindSafeMBeanServer(platformMBeanServer));
+      }
+    }
+);
+    Injector injector=app.strictConfig().doNotInitializeLogging().setRequiredConfigurationProperties(config).setOptionalConfigurationProperties(optionalConfig).initialize();
+    CassandraClient cassandraClient=injector.getInstance(CassandraClient.class);
+    ImmutableClassToInstanceMap.Builder<Object> builder=ImmutableClassToInstanceMap.builder();
+    builder.put(ConnectorMetadata.class,new ClassLoaderSafeConnectorMetadata(cassandraClient,classLoader));
+    builder.put(ConnectorSplitManager.class,new ClassLoaderSafeConnectorSplitManager(cassandraClient,classLoader));
+    builder.put(ConnectorRecordSetProvider.class,new ClassLoaderSafeConnectorRecordSetProvider(cassandraClient,classLoader));
+    builder.put(ConnectorHandleResolver.class,new ClassLoaderSafeConnectorHandleResolver(cassandraClient,classLoader));
+    return new CassandraConnector(builder.build());
+  }
+ catch (  Exception e) {
+    throw Throwables.propagate(e);
+  }
+}

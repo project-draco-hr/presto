@@ -1,0 +1,22 @@
+{
+  if (connectorId.toString().endsWith("-simulate")) {
+    try {
+      Class<?> cls=Class.forName("com.facebook.presto.cassandra.MockCassandraSession");
+      return (CassandraSession)cls.getConstructor(String.class).newInstance(connectorId.toString());
+    }
+ catch (    Exception e) {
+      throw new IllegalStateException(e);
+    }
+  }
+ else {
+    Cluster.Builder clusterBuilder=Cluster.builder();
+    clusterBuilder.addContactPoints(contactPoints.toArray(new String[contactPoints.size()]));
+    QueryOptions options=new QueryOptions();
+    options.setFetchSize(fetchSize);
+    options.setConsistencyLevel(consistencyLevel);
+    clusterBuilder.withQueryOptions(options);
+    Cluster cluster=clusterBuilder.build();
+    Session session=cluster.connect();
+    return new CassandraSession(connectorId.toString(),session,fetchSizeForPartitionKeySelect,limitForPartitionKeySelect);
+  }
+}

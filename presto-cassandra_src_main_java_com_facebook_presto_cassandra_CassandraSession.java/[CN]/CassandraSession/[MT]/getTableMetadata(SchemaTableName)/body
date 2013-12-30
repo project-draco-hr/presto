@@ -1,0 +1,15 @@
+{
+  String schemaName=schemaTableName.getSchemaName();
+  String tableName=schemaTableName.getTableName();
+  KeyspaceMetadata keyspaceMetadata=getCheckedKeyspaceMetadata(schemaName);
+  TableMetadata tableMetadata=keyspaceMetadata.getTable(tableName);
+  if (tableMetadata != null) {
+    return tableMetadata;
+  }
+  for (  TableMetadata table : keyspaceMetadata.getTables()) {
+    if (table.getName().equalsIgnoreCase(tableName)) {
+      return table;
+    }
+  }
+  throw new TableNotFoundException(schemaTableName);
+}
