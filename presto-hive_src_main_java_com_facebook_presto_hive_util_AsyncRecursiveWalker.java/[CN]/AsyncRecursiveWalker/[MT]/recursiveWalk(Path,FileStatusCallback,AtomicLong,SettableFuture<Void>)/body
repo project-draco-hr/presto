@@ -1,29 +1,14 @@
 {
   taskCount.incrementAndGet();
-  executor.execute(new Runnable(){
-    @Override public void run(){
-      try {
-        for (        DirectoryEntry entry : listDirectory(fileSystem,path)) {
-          if (entry.isDirectory()) {
-            recursiveWalk(entry.getFileStatus().getPath(),callback,taskCount,settableFuture);
-          }
- else {
-            callback.process(entry.getFileStatus(),entry.getBlockLocations());
-          }
-        }
-      }
- catch (      FileNotFoundException e) {
-        settableFuture.setException(new FileNotFoundException("Partition location does not exist: " + path));
-      }
-catch (      IOException|RuntimeException e) {
-        settableFuture.setException(e);
-      }
- finally {
-        if (taskCount.decrementAndGet() == 0) {
-          settableFuture.set(null);
-        }
+  try {
+    executor.execute(new Runnable(){
+      @Override public void run(){
+        doWalk(path,callback,taskCount,future);
       }
     }
-  }
 );
+  }
+ catch (  Throwable t) {
+    future.setException(t);
+  }
 }

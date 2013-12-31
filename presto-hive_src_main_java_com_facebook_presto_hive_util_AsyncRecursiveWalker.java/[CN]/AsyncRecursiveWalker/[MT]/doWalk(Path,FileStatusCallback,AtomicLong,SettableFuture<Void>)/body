@@ -1,0 +1,26 @@
+{
+  try {
+    for (    DirectoryEntry entry : listDirectory(fileSystem,path)) {
+      if (entry.isDirectory()) {
+        recursiveWalk(entry.getFileStatus().getPath(),callback,taskCount,future);
+      }
+ else {
+        callback.process(entry.getFileStatus(),entry.getBlockLocations());
+      }
+      if (future.isCancelled()) {
+        return;
+      }
+    }
+  }
+ catch (  FileNotFoundException e) {
+    future.setException(new FileNotFoundException("Partition location does not exist: " + path));
+  }
+catch (  Throwable t) {
+    future.setException(t);
+  }
+ finally {
+    if (taskCount.decrementAndGet() == 0) {
+      future.set(null);
+    }
+  }
+}
