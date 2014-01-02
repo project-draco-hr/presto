@@ -12,12 +12,11 @@
       Path path=new Path(getPartitionLocation(table,partition));
       final Configuration configuration=hdfsEnvironment.getConfiguration(path);
       final InputFormat<?,?> inputFormat=getInputFormat(configuration,schema,false);
-      Path partitionPath=hdfsEnvironment.getFileSystemWrapper().wrap(path);
-      FileSystem fs=partitionPath.getFileSystem(configuration);
+      FileSystem fs=path.getFileSystem(configuration);
       final LastSplitMarkingQueue markerQueue=new LastSplitMarkingQueue(hiveSplitSource);
       if (inputFormat instanceof SymlinkTextInputFormat) {
         JobConf jobConf=new JobConf(configuration);
-        FileInputFormat.setInputPaths(jobConf,partitionPath);
+        FileInputFormat.setInputPaths(jobConf,path);
         InputSplit[] splits=inputFormat.getSplits(jobConf,0);
         for (        InputSplit rawSplit : splits) {
           FileSplit split=((SymlinkTextInputFormat.SymlinkTextInputSplit)rawSplit).getTargetSplit();
@@ -39,7 +38,7 @@
           continue;
         }
       }
-      ListenableFuture<Void> partitionFuture=new AsyncRecursiveWalker(fs,suspendingExecutor).beginWalk(partitionPath,new FileStatusCallback(){
+      ListenableFuture<Void> partitionFuture=new AsyncRecursiveWalker(fs,suspendingExecutor).beginWalk(path,new FileStatusCallback(){
         @Override public void process(        FileStatus file,        BlockLocation[] blockLocations){
           try {
             boolean splittable=isSplittable(inputFormat,file.getPath().getFileSystem(configuration),file.getPath());

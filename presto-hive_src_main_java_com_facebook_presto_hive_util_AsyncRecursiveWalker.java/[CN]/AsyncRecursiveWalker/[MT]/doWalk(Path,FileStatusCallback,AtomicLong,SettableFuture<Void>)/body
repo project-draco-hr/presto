@@ -1,11 +1,13 @@
 {
   try {
-    for (    DirectoryEntry entry : listDirectory(fileSystem,path)) {
-      if (entry.isDirectory()) {
-        recursiveWalk(entry.getFileStatus().getPath(),callback,taskCount,future);
+    RemoteIterator<LocatedFileStatus> iterator=listLocatedStatus(fileSystem,path);
+    while (iterator.hasNext()) {
+      LocatedFileStatus status=iterator.next();
+      if (isDirectory(status)) {
+        recursiveWalk(status.getPath(),callback,taskCount,future);
       }
  else {
-        callback.process(entry.getFileStatus(),entry.getBlockLocations());
+        callback.process(status,status.getBlockLocations());
       }
       if (future.isDone()) {
         return;
