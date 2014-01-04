@@ -1,0 +1,25 @@
+{
+  try {
+    discoveryServer=new TestingDiscoveryServer(ENVIRONMENT);
+    coordinator=createTestingPrestoServer(discoveryServer.getBaseUrl(),true);
+    servers=ImmutableList.<TestingPrestoServer>builder().add(coordinator).add(createTestingPrestoServer(discoveryServer.getBaseUrl(),false)).add(createTestingPrestoServer(discoveryServer.getBaseUrl(),false)).build();
+  }
+ catch (  Exception e) {
+    tearDownQueryFramework();
+    throw e;
+  }
+  this.httpClient=new StandaloneNettyAsyncHttpClient("test",new HttpClientConfig().setConnectTimeout(new Duration(1,TimeUnit.DAYS)).setReadTimeout(new Duration(10,TimeUnit.DAYS)));
+  long start=System.nanoTime();
+  while (!allNodesGloballyVisible()) {
+    assertLessThan(nanosSince(start),new Duration(10,SECONDS));
+    MILLISECONDS.sleep(10);
+  }
+  for (  TestingPrestoServer server : servers) {
+    server.getMetadata().addFunctions(CUSTOM_FUNCTIONS);
+  }
+  log.info("Loading data...");
+  long startTime=System.nanoTime();
+  distributeData("tpch",TpchMetadata.TINY_SCHEMA_NAME);
+  log.info("Loading complete in %s",nanosSince(startTime).toString(SECONDS));
+  return SESSION;
+}

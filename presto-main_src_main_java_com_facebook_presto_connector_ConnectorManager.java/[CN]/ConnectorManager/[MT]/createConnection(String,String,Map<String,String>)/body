@@ -2,11 +2,7 @@
   checkNotNull(catalogName,"catalogName is null");
   checkNotNull(connectorName,"connectorName is null");
   checkNotNull(properties,"properties is null");
-  String connectorId=catalogName;
-  checkState(!connectors.containsKey(connectorId),"A connector %s already exists",connectorId);
   ConnectorFactory connectorFactory=connectorFactories.get(connectorName);
-  Preconditions.checkArgument(connectorFactory != null,"No factory for connector %s",connectorName);
-  Connector connector=connectorFactory.create(connectorId,properties);
-  connectors.put(connectorId,connector);
-  addConnector(catalogName,connectorId,connector);
+  checkArgument(connectorFactory != null,"No factory for connector %s",connectorName);
+  createConnection(catalogName,connectorFactory,properties);
 }

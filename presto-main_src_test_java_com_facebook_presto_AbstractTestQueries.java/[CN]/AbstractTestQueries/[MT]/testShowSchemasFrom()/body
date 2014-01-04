@@ -1,5 +1,5 @@
 {
-  MaterializedResult result=computeActual(String.format("SHOW SCHEMAS FROM %s",TpchMetadata.TPCH_CATALOG_NAME));
+  MaterializedResult result=computeActual(format("SHOW SCHEMAS FROM %s",session.getCatalog()));
   ImmutableSet<String> schemaNames=ImmutableSet.copyOf(transform(result.getMaterializedTuples(),onlyColumnGetter()));
-  assertEquals(schemaNames,ImmutableSet.of(TPCH_SCHEMA_NAME,INFORMATION_SCHEMA,"sys"));
+  assertTrue(schemaNames.containsAll(ImmutableSet.of(session.getSchema(),INFORMATION_SCHEMA,"sys")));
 }

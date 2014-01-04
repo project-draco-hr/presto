@@ -4,7 +4,7 @@
   if (coordinator) {
     serverProperties.put("failure-detector.enabled","false");
   }
-  ImmutableList.Builder<Module> modules=ImmutableList.<Module>builder().add(new TestingNodeModule(Optional.fromNullable(environment))).add(new TestingHttpServerModule()).add(new JsonModule()).add(new JaxrsModule()).add(new MBeanModule()).add(new TestingJmxModule()).add(new InMemoryEventModule()).add(new TraceTokenModule()).add(new ServerMainModule()).add(new TpchModule()).add(new InMemoryTpchModule());
+  ImmutableList.Builder<Module> modules=ImmutableList.<Module>builder().add(new TestingNodeModule(Optional.fromNullable(environment))).add(new TestingHttpServerModule()).add(new JsonModule()).add(new JaxrsModule()).add(new MBeanModule()).add(new TestingJmxModule()).add(new InMemoryEventModule()).add(new TraceTokenModule()).add(new ServerMainModule());
   if (discoveryUri != null) {
     checkNotNull(environment,"environment required when discoveryUri is present");
     serverProperties.put("discovery.uri",discoveryUri.toString());
@@ -17,6 +17,8 @@
   Injector injector=app.strictConfig().doNotInitializeLogging().setRequiredConfigurationProperties(serverProperties.build()).initialize();
   injector.getInstance(Announcer.class).start();
   lifeCycleManager=injector.getInstance(LifeCycleManager.class);
+  PluginManager pluginManager=injector.getInstance(PluginManager.class);
+  pluginManager.installPlugin(new TpchPlugin());
   ConnectorManager connectorManager=injector.getInstance(ConnectorManager.class);
   connectorManager.createConnection("default","native",ImmutableMap.<String,String>of());
   connectorManager.createConnection("tpch","tpch",ImmutableMap.<String,String>of());

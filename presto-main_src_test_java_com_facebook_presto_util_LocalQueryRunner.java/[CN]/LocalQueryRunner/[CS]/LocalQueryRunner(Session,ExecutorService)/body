@@ -1,0 +1,26 @@
+{
+  this.session=checkNotNull(session,"session is null");
+  this.executor=checkNotNull(executor,"executor is null");
+  this.nodeManager=new InMemoryNodeManager();
+  this.metadata=new MetadataManager();
+  this.splitManager=new SplitManager(ImmutableSet.<ConnectorSplitManager>of());
+  this.dataStreamProvider=new DataStreamManager();
+  this.recordSinkManager=new RecordSinkManager();
+  this.storageManager=MockLocalStorageManager.createMockLocalStorageManager();
+  this.compiler=new ExpressionCompiler(metadata);
+  this.connectorManager=new ConnectorManager(metadata,splitManager,dataStreamProvider,recordSinkManager,new HandleResolver(),new OutputTableHandleResolver(),ImmutableMap.<String,ConnectorFactory>of(),ImmutableMap.<String,Connector>of());
+  splitManager.addConnectorSplitManager(new InformationSchemaSplitManager(nodeManager));
+  dataStreamProvider.addConnectorDataStreamProvider(new InformationSchemaDataStreamProvider(metadata,splitManager));
+  metadata.addInternalSchemaMetadata(MetadataManager.INTERNAL_CONNECTOR_ID,new DualMetadata());
+  splitManager.addConnectorSplitManager(new DualSplitManager(nodeManager));
+  dataStreamProvider.addConnectorDataStreamProvider(new DualDataStreamProvider());
+  SystemTablesMetadata systemTablesMetadata=new SystemTablesMetadata();
+  metadata.addInternalSchemaMetadata(MetadataManager.INTERNAL_CONNECTOR_ID,systemTablesMetadata);
+  SystemSplitManager systemSplitManager=new SystemSplitManager(nodeManager);
+  splitManager.addConnectorSplitManager(systemSplitManager);
+  SystemDataStreamProvider systemDataStreamProvider=new SystemDataStreamProvider();
+  dataStreamProvider.addConnectorDataStreamProvider(systemDataStreamProvider);
+  SystemTablesManager systemTablesManager=new SystemTablesManager(systemTablesMetadata,systemSplitManager,systemDataStreamProvider,ImmutableSet.<SystemTable>of());
+  systemTablesManager.addTable(new NodesSystemTable(nodeManager));
+  systemTablesManager.addTable(new CatalogSystemTable(metadata));
+}

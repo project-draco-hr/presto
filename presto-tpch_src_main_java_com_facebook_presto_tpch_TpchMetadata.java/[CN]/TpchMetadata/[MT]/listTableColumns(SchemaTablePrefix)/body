@@ -1,0 +1,12 @@
+{
+  ImmutableMap.Builder<SchemaTableName,List<ColumnMetadata>> tableColumns=ImmutableMap.builder();
+  for (  String schemaName : getSchemaNames(prefix.getSchemaName())) {
+    for (    TpchTable<?> tpchTable : TpchTable.getTables()) {
+      if (prefix.getTableName() == null || tpchTable.getTableName().equals(prefix.getTableName())) {
+        ConnectorTableMetadata tableMetadata=getTableMetadata(schemaName,tpchTable);
+        tableColumns.put(new SchemaTableName(schemaName,tpchTable.getTableName()),tableMetadata.getColumns());
+      }
+    }
+  }
+  return tableColumns.build();
+}

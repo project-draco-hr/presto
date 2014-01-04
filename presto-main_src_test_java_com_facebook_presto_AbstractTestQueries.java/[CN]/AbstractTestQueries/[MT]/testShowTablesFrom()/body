@@ -1,10 +1,11 @@
 {
-  MaterializedResult result=computeActual("SHOW TABLES FROM DEFAULT");
-  ImmutableSet<String> tableNames=ImmutableSet.copyOf(transform(result.getMaterializedTuples(),onlyColumnGetter()));
-  assertEquals(tableNames,ImmutableSet.of(TPCH_ORDERS_NAME,TPCH_LINEITEM_NAME));
-  result=computeActual("SHOW TABLES FROM TPCH.DEFAULT");
+  Set<String> expectedTables=ImmutableSet.copyOf(transform(TpchTable.getTables(),tableNameGetter()));
+  MaterializedResult result=computeActual("SHOW TABLES FROM " + session.getSchema());
+  Set<String> tableNames=ImmutableSet.copyOf(transform(result.getMaterializedTuples(),onlyColumnGetter()));
+  assertEquals(tableNames,expectedTables);
+  result=computeActual("SHOW TABLES FROM " + session.getCatalog() + "."+ session.getSchema());
   tableNames=ImmutableSet.copyOf(transform(result.getMaterializedTuples(),onlyColumnGetter()));
-  assertEquals(tableNames,ImmutableSet.of(TPCH_ORDERS_NAME,TPCH_LINEITEM_NAME));
+  assertEquals(tableNames,expectedTables);
   result=computeActual("SHOW TABLES FROM UNKNOWN");
   tableNames=ImmutableSet.copyOf(transform(result.getMaterializedTuples(),onlyColumnGetter()));
   assertEquals(tableNames,ImmutableSet.of());
