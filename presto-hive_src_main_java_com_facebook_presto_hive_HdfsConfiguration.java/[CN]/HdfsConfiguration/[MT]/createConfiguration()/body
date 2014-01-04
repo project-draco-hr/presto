@@ -10,9 +10,11 @@
     config.setClass("hadoop.rpc.socket.factory.class.default",SocksSocketFactory.class,SocketFactory.class);
     config.set("hadoop.socks.server",socksProxy.toString());
   }
-  config.setBoolean("dfs.client.read.shortcircuit",true);
   if (domainSocketPath != null) {
     config.setStrings("dfs.domain.socket.path",domainSocketPath);
+  }
+  if (!config.get("dfs.domain.socket.path","").trim().isEmpty()) {
+    config.setBooleanIfUnset("dfs.client.read.shortcircuit",true);
   }
   config.setInt("dfs.socket.timeout",Ints.checkedCast(dfsTimeout.toMillis()));
   config.setInt("ipc.ping.interval",Ints.checkedCast(dfsTimeout.toMillis()));
