@@ -1,0 +1,13 @@
+{
+  try {
+    List<Partition> partitions=splitManager.getPartitions(tableHandle,Optional.<TupleDomain>absent()).getPartitions();
+    SplitSource splitSource=splitManager.getPartitionSplits(tableHandle,partitions);
+    Split split=Iterables.getOnlyElement(splitSource.getNextBatch(1000));
+    checkState(splitSource.isFinished(),"Expected only one split for a local query");
+    return split;
+  }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    throw Throwables.propagate(e);
+  }
+}

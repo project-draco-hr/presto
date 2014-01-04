@@ -1,8 +1,6 @@
 {
-  BlockIterable totalPrice=getBlockIterable("orders","totalprice",BlocksFileEncoding.RAW);
-  BlockIterable clerk=getBlockIterable("orders","clerk",BlocksFileEncoding.RAW);
-  AlignmentOperatorFactory alignmentOperator=new AlignmentOperatorFactory(0,concat(nCopies(100,totalPrice)),concat(nCopies(100,clerk)));
-  LimitOperatorFactory limitOperator=new LimitOperatorFactory(1,alignmentOperator.getTupleInfos(),ROWS);
+  OperatorFactory tableScanOperator=createTableScanOperator(0,"orders","totalprice","clerk");
+  LimitOperatorFactory limitOperator=new LimitOperatorFactory(1,tableScanOperator.getTupleInfos(),ROWS);
   OrderByOperatorFactory orderByOperator=new OrderByOperatorFactory(2,limitOperator.getTupleInfos(),new int[]{0},new int[]{1},ROWS);
-  return ImmutableList.of(alignmentOperator,limitOperator,orderByOperator);
+  return ImmutableList.of(tableScanOperator,limitOperator,orderByOperator);
 }
