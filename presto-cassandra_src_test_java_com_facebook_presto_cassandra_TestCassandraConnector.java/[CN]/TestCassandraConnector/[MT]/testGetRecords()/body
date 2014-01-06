@@ -1,0 +1,38 @@
+{
+  TableHandle tableHandle=getTableHandle(table);
+  ConnectorTableMetadata tableMetadata=metadata.getTableMetadata(tableHandle);
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(tableHandle).values());
+  Map<String,Integer> columnIndex=indexColumns(columnHandles);
+  PartitionResult partitionResult=splitManager.getPartitions(tableHandle,TupleDomain.all());
+  List<Split> splits=getAllSplits(splitManager.getPartitionSplits(tableHandle,partitionResult.getPartitions()));
+  long rowNumber=0;
+  for (  Split split : splits) {
+    CassandraSplit cassandraSplit=(CassandraSplit)split;
+    long completedBytes=0;
+    try (RecordCursor cursor=recordSetProvider.getRecordSet(cassandraSplit,columnHandles).cursor()){
+      while (cursor.advanceNextPosition()) {
+        try {
+          assertReadFields(cursor,tableMetadata.getColumns());
+        }
+ catch (        RuntimeException e) {
+          throw new RuntimeException("row " + rowNumber,e);
+        }
+        rowNumber++;
+        String keyValue=toUtf8String(cursor.getString(columnIndex.get("key")));
+        assertTrue(keyValue.startsWith("key "));
+        int rowId=Integer.parseInt(keyValue.substring(4));
+        assertEquals(keyValue,String.format("key %04d",rowId));
+        assertEquals(toUtf8String(cursor.getString(columnIndex.get("t_utf8"))),"utf8 " + rowId);
+        assertEquals(toUtf8String(cursor.getString(columnIndex.get("t_bytes"))),String.format("0x%08X",rowId));
+        assertEquals(toUtf8String(cursor.getString(columnIndex.get("t_integer"))),String.valueOf(rowId));
+        assertEquals(cursor.getLong(columnIndex.get("t_long")),1000 + rowId);
+        assertEquals(toUtf8String(cursor.getString(columnIndex.get("t_uuid"))),String.format("00000000-0000-0000-0000-%012d",rowId));
+        assertEquals(toUtf8String(cursor.getString(columnIndex.get("t_lexical_uuid"))),String.format("0x%032X",rowId));
+        long newCompletedBytes=cursor.getCompletedBytes();
+        assertTrue(newCompletedBytes >= completedBytes);
+        completedBytes=newCompletedBytes;
+      }
+    }
+   }
+  assertEquals(rowNumber,9);
+}
