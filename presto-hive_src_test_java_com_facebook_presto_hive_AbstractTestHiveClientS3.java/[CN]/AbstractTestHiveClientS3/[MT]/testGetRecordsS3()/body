@@ -1,0 +1,17 @@
+{
+  TableHandle table=getTableHandle(tableS3);
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(client.getColumnHandles(table).values());
+  Map<String,Integer> columnIndex=indexColumns(columnHandles);
+  PartitionResult partitionResult=client.getPartitions(table,TupleDomain.all());
+  assertEquals(partitionResult.getPartitions().size(),1);
+  SplitSource splitSource=client.getPartitionSplits(table,partitionResult.getPartitions());
+  long sum=0;
+  for (  Split split : getAllSplits(splitSource)) {
+    try (RecordCursor cursor=client.getRecordSet(split,columnHandles).cursor()){
+      while (cursor.advanceNextPosition()) {
+        sum+=cursor.getLong(columnIndex.get("t_bigint"));
+      }
+    }
+   }
+  assertEquals(sum,78300);
+}

@@ -1,0 +1,11 @@
+{
+  setupHive(databaseName);
+  HiveClientConfig hiveClientConfig=new HiveClientConfig().setS3AwsAccessKey(awsAccessKey).setS3AwsSecretKey(awsSecretKey);
+  String proxy=System.getProperty("hive.metastore.thrift.client.socks-proxy");
+  if (proxy != null) {
+    hiveClientConfig.setMetastoreSocksProxy(HostAndPort.fromString(proxy));
+  }
+  HiveCluster hiveCluster=new TestingHiveCluster(hiveClientConfig,host,port);
+  ExecutorService executor=newCachedThreadPool(daemonThreadsNamed("hive-s3-%s"));
+  client=new HiveClient(new HiveConnectorId("hive-test"),hiveClientConfig,new CachingHiveMetastore(hiveCluster,executor,hiveClientConfig),new HdfsEnvironment(new HdfsConfiguration(hiveClientConfig)),sameThreadExecutor());
+}
