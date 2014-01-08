@@ -1,0 +1,34 @@
+{
+  PlanNode leftSource=planRewriter.rewrite(node.getLeft(),null);
+  PlanNode rightSource=planRewriter.rewrite(node.getRight(),null);
+  if (leftSource instanceof MaterializeSampleNode || rightSource instanceof MaterializeSampleNode) {
+    Symbol leftSampleWeight=null;
+    Symbol rightSampleWeight=null;
+    if (leftSource instanceof MaterializeSampleNode) {
+      leftSampleWeight=((MaterializeSampleNode)leftSource).getSampleWeightSymbol();
+      leftSource=((MaterializeSampleNode)leftSource).getSource();
+    }
+    if (rightSource instanceof MaterializeSampleNode) {
+      rightSampleWeight=((MaterializeSampleNode)rightSource).getSampleWeightSymbol();
+      rightSource=((MaterializeSampleNode)rightSource).getSource();
+    }
+    PlanNode joinNode=new JoinNode(node.getId(),node.getType(),leftSource,rightSource,node.getCriteria());
+    Symbol outputSampleWeight;
+    if (leftSampleWeight != null && rightSampleWeight != null) {
+      ImmutableMap.Builder<Symbol,Expression> projections=ImmutableMap.builder();
+      Expression sampleWeightExpr=new ArithmeticExpression(ArithmeticExpression.Type.MULTIPLY,new QualifiedNameReference(leftSampleWeight.toQualifiedName()),new QualifiedNameReference(rightSampleWeight.toQualifiedName()));
+      outputSampleWeight=symbolAllocator.newSymbol(sampleWeightExpr,Type.BIGINT);
+      projections.put(outputSampleWeight,sampleWeightExpr);
+      for (      Symbol symbol : Iterables.filter(node.getOutputSymbols(),Predicates.not(Predicates.in(ImmutableSet.of(leftSampleWeight,rightSampleWeight))))) {
+        Expression expression=new QualifiedNameReference(symbol.toQualifiedName());
+        projections.put(symbol,expression);
+      }
+      joinNode=new ProjectNode(idAllocator.getNextId(),joinNode,projections.build());
+    }
+ else {
+      outputSampleWeight=leftSampleWeight == null ? rightSampleWeight : leftSampleWeight;
+    }
+    return new MaterializeSampleNode(idAllocator.getNextId(),joinNode,outputSampleWeight);
+  }
+  return planRewriter.defaultRewrite(node,null);
+}

@@ -1,0 +1,12 @@
+{
+  PlanNode source=planRewriter.rewrite(node.getSource(),null);
+  if (source instanceof MaterializeSampleNode) {
+    if (node.getFunctions().isEmpty()) {
+      return new AggregationNode(node.getId(),((MaterializeSampleNode)source).getSource(),node.getGroupBy(),node.getAggregations(),node.getFunctions(),node.getMasks(),Optional.<Symbol>absent());
+    }
+ else {
+      return new AggregationNode(node.getId(),((MaterializeSampleNode)source).getSource(),node.getGroupBy(),node.getAggregations(),node.getFunctions(),node.getMasks(),Optional.of(((MaterializeSampleNode)source).getSampleWeightSymbol()));
+    }
+  }
+  return planRewriter.defaultRewrite(node,null);
+}

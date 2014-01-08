@@ -7,13 +7,19 @@
   if (maskChannel.isPresent()) {
     masks=page.getBlock(maskChannel.get()).cursor();
   }
+  BlockCursor sampleWeights=null;
+  if (sampleWeightChannel.isPresent()) {
+    sampleWeights=page.getBlock(sampleWeightChannel.get()).cursor();
+  }
   for (int position=0; position < page.getPositionCount(); position++) {
     checkState(values.advanceNextPosition());
     checkState(weights.advanceNextPosition());
     checkState(percentiles.advanceNextPosition());
     checkState(masks == null || masks.advanceNextPosition());
-    if (!values.isNull() && !weights.isNull() && (masks == null || masks.getBoolean())) {
-      addValue(digest,values,weights.getLong(),parameterType);
+    checkState(sampleWeights == null || sampleWeights.advanceNextPosition());
+    long sampleWeight=SimpleAggregationFunction.computeSampleWeight(masks,sampleWeights);
+    if (!values.isNull() && !weights.isNull() && sampleWeight > 0) {
+      addValue(digest,values,sampleWeight * weights.getLong(),parameterType);
       if (!percentiles.isNull()) {
         percentile=percentiles.getDouble();
       }

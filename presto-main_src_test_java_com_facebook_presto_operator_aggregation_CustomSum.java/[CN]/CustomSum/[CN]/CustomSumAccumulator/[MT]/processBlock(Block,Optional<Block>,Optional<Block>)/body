@@ -1,0 +1,21 @@
+{
+  BlockCursor values=block.cursor();
+  BlockCursor masks=null;
+  BlockCursor sampleWeights=null;
+  if (maskBlock.isPresent()) {
+    masks=maskBlock.get().cursor();
+  }
+  if (sampleWeightBlock.isPresent()) {
+    sampleWeights=sampleWeightBlock.get().cursor();
+  }
+  for (int position=0; position < block.getPositionCount(); position++) {
+    checkState(values.advanceNextPosition());
+    checkState(masks == null || masks.advanceNextPosition());
+    checkState(sampleWeights == null || sampleWeights.advanceNextPosition());
+    long sampleWeight=computeSampleWeight(masks,sampleWeights);
+    if (!values.isNull() && sampleWeight > 0) {
+      notNull=true;
+      sum+=sampleWeight * values.getLong();
+    }
+  }
+}

@@ -1,19 +1,11 @@
 {
   counts.ensureCapacity(groupIdsBlock.getGroupCount());
-  if (!maskChannel.isPresent()) {
-    for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
-      long groupId=groupIdsBlock.getGroupId(position);
-      counts.increment(groupId);
-    }
-  }
- else {
-    BlockCursor cursor=page.getBlock(maskChannel.get()).cursor();
-    for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
-      long groupId=groupIdsBlock.getGroupId(position);
-      cursor.advanceNextPosition();
-      if (cursor.getBoolean()) {
-        counts.increment(groupId);
-      }
-    }
+  BlockCursor masks=maskChannel.isPresent() ? page.getBlock(maskChannel.get()).cursor() : null;
+  BlockCursor sampleWeights=sampleWeightChannel.isPresent() ? page.getBlock(sampleWeightChannel.get()).cursor() : null;
+  for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
+    long groupId=groupIdsBlock.getGroupId(position);
+    checkState(masks == null || masks.advanceNextPosition());
+    checkState(sampleWeights == null || sampleWeights.advanceNextPosition());
+    counts.add(groupId,SimpleAggregationFunction.computeSampleWeight(masks,sampleWeights));
   }
 }

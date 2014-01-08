@@ -1,13 +1,20 @@
 {
-  if (!maskChannel.isPresent()) {
+  if (!maskChannel.isPresent() && !sampleWeightChannel.isPresent()) {
     count+=page.getPositionCount();
   }
  else {
-    BlockCursor masks=page.getBlock(maskChannel.get()).cursor();
-    while (masks.advanceNextPosition()) {
-      if (masks.getBoolean()) {
-        count++;
-      }
+    BlockCursor masks=null;
+    if (maskChannel.isPresent()) {
+      masks=page.getBlock(maskChannel.get()).cursor();
+    }
+    BlockCursor sampleWeights=null;
+    if (sampleWeightChannel.isPresent()) {
+      sampleWeights=page.getBlock(sampleWeightChannel.get()).cursor();
+    }
+    for (int i=0; i < page.getPositionCount(); i++) {
+      checkState(masks == null || masks.advanceNextPosition());
+      checkState(sampleWeights == null || sampleWeights.advanceNextPosition());
+      count+=SimpleAggregationFunction.computeSampleWeight(masks,sampleWeights);
     }
   }
 }

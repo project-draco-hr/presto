@@ -6,11 +6,7 @@
       argumentChannels[i]=functionDefinition.getInputs().get(i).getChannel();
     }
     intermediateChannel=-1;
-    Optional<Integer> maskChannel=Optional.absent();
-    if (functionDefinition.getMask().isPresent()) {
-      maskChannel=Optional.of(functionDefinition.getMask().get().getChannel());
-    }
-    aggregation=function.createAggregation(maskChannel,argumentChannels);
+    aggregation=function.createAggregation(functionDefinition.getMask().transform(Input.channelGetter()),functionDefinition.getSampleWeight().transform(Input.channelGetter()),argumentChannels);
   }
  else {
     checkArgument(functionDefinition.getInputs().size() == 1,"Expected a single input for an intermediate aggregation");
