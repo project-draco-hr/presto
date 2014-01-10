@@ -7,7 +7,7 @@
     LocalExecutionPlanContext subContext=context.createSubContext();
     PhysicalOperation source=subplan.accept(this,subContext);
     List<OperatorFactory> operatorFactories=new ArrayList<>(source.getOperatorFactories());
-    boolean projectionMatchesOutput=IterableTransformer.on(source.getLayout().entries()).orderBy(inputOrdering().onResultOf(MoreFunctions.<Symbol,Input>valueGetter())).transform(MoreFunctions.<Symbol,Input>keyGetter()).list().equals(expectedLayout);
+    boolean projectionMatchesOutput=IterableTransformer.on(source.getLayout().entrySet()).orderBy(inputOrdering().onResultOf(MoreFunctions.<Symbol,Input>valueGetter())).transform(MoreFunctions.<Symbol,Input>keyGetter()).list().equals(expectedLayout);
     if (!projectionMatchesOutput) {
       IdentityProjectionInfo mappings=computeIdentityMapping(expectedLayout,source.getLayout(),context.getTypes());
       operatorFactories.add(new FilterAndProjectOperatorFactory(subContext.getNextOperatorId(),FilterFunctions.TRUE_FUNCTION,mappings.getProjections()));
@@ -18,7 +18,7 @@
   }
   inMemoryExchange.noMoreSinkFactories();
   context.setInputDriver(false);
-  ImmutableMultimap.Builder<Symbol,Input> outputMappings=ImmutableMultimap.builder();
+  ImmutableMap.Builder<Symbol,Input> outputMappings=ImmutableMap.builder();
   int channel=0;
   for (  Symbol symbol : node.getOutputSymbols()) {
     outputMappings.put(symbol,new Input(channel));
