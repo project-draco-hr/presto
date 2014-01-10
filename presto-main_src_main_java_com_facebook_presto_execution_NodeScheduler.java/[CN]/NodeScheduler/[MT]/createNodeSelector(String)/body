@@ -1,0 +1,29 @@
+{
+  Supplier<NodeMap> nodeMap=Suppliers.memoizeWithExpiration(new Supplier<NodeMap>(){
+    @Override public NodeMap get(){
+      ImmutableSetMultimap.Builder<HostAddress,Node> byHostAndPort=ImmutableSetMultimap.builder();
+      ImmutableSetMultimap.Builder<InetAddress,Node> byHost=ImmutableSetMultimap.builder();
+      ImmutableSetMultimap.Builder<Rack,Node> byRack=ImmutableSetMultimap.builder();
+      Set<Node> nodes;
+      if (dataSourceName != null) {
+        nodes=nodeManager.getActiveDatasourceNodes(dataSourceName);
+      }
+ else {
+        nodes=nodeManager.getActiveNodes();
+      }
+      for (      Node node : nodes) {
+        try {
+          byHostAndPort.put(node.getHostAndPort(),node);
+          InetAddress host=InetAddress.getByName(node.getHttpUri().getHost());
+          byHost.put(host,node);
+          byRack.put(Rack.of(host),node);
+        }
+ catch (        UnknownHostException e) {
+        }
+      }
+      return new NodeMap(byHostAndPort.build(),byHost.build(),byRack.build());
+    }
+  }
+,5,TimeUnit.SECONDS);
+  return new NodeSelector(nodeMap,nodeTaskMap,maxSplitsPerNode);
+}

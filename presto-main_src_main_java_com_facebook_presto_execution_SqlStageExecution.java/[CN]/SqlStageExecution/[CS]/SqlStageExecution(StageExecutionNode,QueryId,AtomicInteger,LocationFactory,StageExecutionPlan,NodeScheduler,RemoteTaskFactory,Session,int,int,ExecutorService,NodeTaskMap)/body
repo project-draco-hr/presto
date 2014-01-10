@@ -1,0 +1,47 @@
+{
+  checkNotNull(queryId,"queryId is null");
+  checkNotNull(nextStageId,"nextStageId is null");
+  checkNotNull(locationFactory,"locationFactory is null");
+  checkNotNull(plan,"plan is null");
+  checkNotNull(nodeScheduler,"nodeScheduler is null");
+  checkNotNull(remoteTaskFactory,"remoteTaskFactory is null");
+  checkNotNull(session,"session is null");
+  checkArgument(initialHashPartitions > 0,"initialHashPartitions must be greater than 0");
+  checkNotNull(executor,"executor is null");
+  this.stageId=new StageId(queryId,String.valueOf(nextStageId.getAndIncrement()));
+  try (SetThreadName setThreadName=new SetThreadName("Stage-%s",stageId)){
+    this.parent=parent;
+    this.location=locationFactory.createStageLocation(stageId);
+    this.fragment=plan.getFragment();
+    this.dataSource=plan.getDataSource();
+    this.remoteTaskFactory=remoteTaskFactory;
+    this.session=session;
+    this.splitBatchSize=splitBatchSize;
+    this.initialHashPartitions=initialHashPartitions;
+    this.executor=executor;
+    this.nodeTaskMap=nodeTaskMap;
+    tupleInfos=fragment.getTupleInfos();
+    ImmutableMap.Builder<PlanFragmentId,StageExecutionNode> subStages=ImmutableMap.builder();
+    for (    StageExecutionPlan subStagePlan : plan.getSubStages()) {
+      PlanFragmentId subStageFragmentId=subStagePlan.getFragment().getId();
+      StageExecutionNode subStage=new SqlStageExecution(this,queryId,nextStageId,locationFactory,subStagePlan,nodeScheduler,remoteTaskFactory,session,splitBatchSize,initialHashPartitions,executor,nodeTaskMap);
+      subStage.addStateChangeListener(new StateChangeListener<StageInfo>(){
+        @Override public void stateChanged(        StageInfo stageInfo){
+          doUpdateState();
+        }
+      }
+);
+      subStages.put(subStageFragmentId,subStage);
+    }
+    this.subStages=subStages.build();
+    String dataSourceName=dataSource.isPresent() ? dataSource.get().getDataSourceName() : null;
+    this.nodeSelector=nodeScheduler.createNodeSelector(dataSourceName);
+    stageState=new StateMachine<>("stage " + stageId,this.executor,StageState.PLANNED);
+    stageState.addStateChangeListener(new StateChangeListener<StageState>(){
+      @Override public void stateChanged(      StageState newValue){
+        log.debug("Stage %s is %s",stageId,newValue);
+      }
+    }
+);
+  }
+ }

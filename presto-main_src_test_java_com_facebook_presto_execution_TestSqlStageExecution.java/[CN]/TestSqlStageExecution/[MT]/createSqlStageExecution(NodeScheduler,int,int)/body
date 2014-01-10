@@ -1,9 +1,8 @@
 {
-  int splitCount=20;
   ExecutorService remoteTaskExecutor=Executors.newCachedThreadPool(Threads.daemonThreadsNamed("remoteTaskExecutor"));
   MockRemoteTaskFactory remoteTaskFactory=new MockRemoteTaskFactory(remoteTaskExecutor);
   ExecutorService executor=Executors.newCachedThreadPool(Threads.daemonThreadsNamed("stageExecutor"));
   OutputBuffers outputBuffers=INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffer("out",new UnpartitionedPagePartitionFunction()).withNoMoreBufferIds();
-  StageExecutionPlan tableScanPlan=createTableScanPlan("test",metadata,splitCount);
-  return new SqlStageExecution(new QueryId("query"),locationFactory,tableScanPlan,nodeScheduler,remoteTaskFactory,SESSION,splitBatchSize,maxPendingSplitsPerNode,8,executor,outputBuffers);
+  StageExecutionPlan tableScanPlan=createTableScanPlan("test",datasourceName,metadata,splitCount);
+  return new SqlStageExecution(new QueryId("query"),locationFactory,tableScanPlan,nodeScheduler,remoteTaskFactory,SESSION,splitBatchSize,8,executor,nodeTaskMap,outputBuffers);
 }

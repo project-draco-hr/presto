@@ -1,0 +1,24 @@
+{
+  ExecutorService remoteTaskExecutor=Executors.newCachedThreadPool(Threads.daemonThreadsNamed("remoteTaskExecutor"));
+  MockRemoteTaskFactory taskFactory=new MockRemoteTaskFactory(remoteTaskExecutor);
+  Multimap<Node,RemoteTask> nodeToTask=HashMultimap.create();
+  Node additionalNode=new PrestoNode("other4",URI.create("http://127.0.0.1:14"),NodeVersion.UNKNOWN);
+  nodeManager.addNode(datasource,additionalNode);
+  for (  Node node : nodeManager.getActiveNodes()) {
+    String queryId="query_1";
+    StageExecutionPlan tableScanPlan=TestSqlStageExecution.createTableScanPlan("test",datasource,metadata,0);
+    RemoteTask task;
+    if (node == additionalNode) {
+      task=createRemoteTask(taskFactory,tableScanPlan,queryId,node,5);
+    }
+ else {
+      task=createRemoteTask(taskFactory,tableScanPlan,queryId,node,10);
+    }
+    nodeTaskMap.addTask(node,task);
+    nodeToTask.put(node,task);
+  }
+  assertEquals(nodeTaskMap.getPartitionedSplitsOnNode(additionalNode),5);
+  NodeScheduler.NodeSelector nodeSelector=nodeScheduler.createNodeSelector(datasource);
+  Multimap<Node,Split> splitAssignment=nodeSelector.computeAssignments(ImmutableSet.copyOf(getSplits(1)));
+  assertEquals(splitAssignment.get(additionalNode).size(),1);
+}
