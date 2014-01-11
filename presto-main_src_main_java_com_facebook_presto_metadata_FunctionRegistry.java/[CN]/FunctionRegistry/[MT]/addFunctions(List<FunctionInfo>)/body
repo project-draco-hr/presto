@@ -1,0 +1,8 @@
+{
+  functionsByName.putAll(Multimaps.index(functions,FunctionInfo.nameGetter()));
+  functionsByHandle.putAll(Maps.uniqueIndex(functions,FunctionInfo.handleGetter()));
+  for (  Map.Entry<QualifiedName,Collection<FunctionInfo>> entry : functionsByName.asMap().entrySet()) {
+    Collection<FunctionInfo> infos=entry.getValue();
+    Preconditions.checkState(Iterables.all(infos,isAggregationPredicate()) || !Iterables.any(infos,isAggregationPredicate()),"'%s' is both an aggregation and a scalar function",entry.getKey());
+  }
+}
