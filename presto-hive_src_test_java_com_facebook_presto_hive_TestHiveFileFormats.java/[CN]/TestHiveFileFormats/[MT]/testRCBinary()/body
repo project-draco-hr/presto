@@ -1,12 +1,12 @@
 {
   JobConf jobConf=new JobConf();
-  final RCFileOutputFormat outputFormat=new RCFileOutputFormat();
-  final RCFileInputFormat inputFormat=new RCFileInputFormat();
-  final SerDe serde=new LazyBinaryColumnarSerDe();
+  RCFileOutputFormat outputFormat=new RCFileOutputFormat();
+  @SuppressWarnings("rawtypes") RCFileInputFormat inputFormat=new RCFileInputFormat();
+  @SuppressWarnings("deprecation") SerDe serde=new LazyBinaryColumnarSerDe();
   File file=File.createTempFile("presto_test","rc-binary");
   try {
     FileSplit split=createTestFile(file.getAbsolutePath(),outputFormat,serde,null);
-    RecordReader<?,BytesRefArrayWritable> recordReader=(RecordReader<?,BytesRefArrayWritable>)inputFormat.getRecordReader(split,jobConf,Reporter.NULL);
+    @SuppressWarnings("unchecked") RecordReader<?,BytesRefArrayWritable> recordReader=(RecordReader<?,BytesRefArrayWritable>)inputFormat.getRecordReader(split,jobConf,Reporter.NULL);
     Properties splitProperties=new Properties();
     splitProperties.setProperty("serialization.lib","org.apache.hadoop.hive.serde2.columnar.LazyBinaryColumnarSerDe");
     splitProperties.setProperty("columns",COLUMN_NAMES_STRING);
