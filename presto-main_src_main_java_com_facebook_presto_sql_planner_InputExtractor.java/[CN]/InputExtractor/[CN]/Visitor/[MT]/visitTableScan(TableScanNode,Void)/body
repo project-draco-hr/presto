@@ -3,9 +3,15 @@
   TableMetadata table=metadata.getTableMetadata(tableHandle);
   SchemaTableName schemaTable=table.getTable();
   TableEntry entry=new TableEntry(table.getConnectorId(),schemaTable.getSchemaName(),schemaTable.getTableName());
+  Optional<ColumnHandle> sampleWeightColumn=metadata.getSampleWeightColumnHandle(tableHandle);
   for (  ColumnHandle columnHandle : node.getAssignments().values()) {
-    ColumnMetadata columnMetadata=metadata.getColumnMetadata(tableHandle,columnHandle);
-    builder.put(entry,columnMetadata.getName());
+    if (sampleWeightColumn.isPresent() && sampleWeightColumn.get().equals(columnHandle)) {
+      builder.put(entry,"$sampleWeight");
+    }
+ else {
+      ColumnMetadata columnMetadata=metadata.getColumnMetadata(tableHandle,columnHandle);
+      builder.put(entry,columnMetadata.getName());
+    }
   }
   return null;
 }

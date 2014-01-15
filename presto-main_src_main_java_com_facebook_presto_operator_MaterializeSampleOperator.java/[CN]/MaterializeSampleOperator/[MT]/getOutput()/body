@@ -1,0 +1,14 @@
+{
+  while (!pageBuilder.isFull() && advance()) {
+    pageBuilder.declarePosition();
+    for (int i=0; i < cursors.length; i++) {
+      pageBuilder.getBlockBuilder(i).append(cursors[i]);
+    }
+  }
+  if (pageBuilder.isFull() || (finishing && !pageBuilder.isEmpty() && sampleWeightCursor == null)) {
+    Page page=pageBuilder.build();
+    pageBuilder.reset();
+    return page;
+  }
+  return null;
+}

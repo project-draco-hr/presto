@@ -1,0 +1,23 @@
+{
+  if (remainingWeight > 0) {
+    remainingWeight--;
+    return true;
+  }
+  if (sampleWeightCursor == null) {
+    return false;
+  }
+  boolean advanced=sampleWeightCursor.advanceNextPosition();
+  for (  BlockCursor cursor : cursors) {
+    checkState(advanced == cursor.advanceNextPosition());
+  }
+  if (!advanced) {
+    sampleWeightCursor=null;
+    for (int i=0; i < cursors.length; i++) {
+      cursors[i]=null;
+    }
+  }
+ else {
+    remainingWeight=sampleWeightCursor.getLong() - 1;
+  }
+  return advanced;
+}
