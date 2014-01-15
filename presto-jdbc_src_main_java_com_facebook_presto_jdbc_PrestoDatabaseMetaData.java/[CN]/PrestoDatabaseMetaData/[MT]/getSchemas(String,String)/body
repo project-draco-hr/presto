@@ -1,3 +1,22 @@
 {
-  throw new UnsupportedOperationException("getSchemas");
+  StringBuilder query=new StringBuilder(512);
+  query.append("SELECT DISTINCT schema_name TABLE_SCHEM, catalog_name TABLE_CATALOG ");
+  query.append(" FROM information_schema.schemata");
+  List<String> filters=new ArrayList<>(4);
+  if (catalog != null) {
+    if (catalog.length() == 0) {
+      filters.add("catalog_name IS NULL");
+    }
+ else {
+      filters.add(stringColumnEquals("catalog_name",catalog));
+    }
+  }
+  if (schemaPattern != null) {
+    filters.add(stringColumnEquals("schema_name",schemaPattern));
+  }
+  if (filters.size() > 0) {
+    query.append(" WHERE ");
+    Joiner.on(" AND ").appendTo(query,filters);
+  }
+  return select(query.toString());
 }
