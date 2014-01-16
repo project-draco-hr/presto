@@ -5,12 +5,9 @@
   TableEntry entry=new TableEntry(table.getConnectorId(),schemaTable.getSchemaName(),schemaTable.getTableName());
   Optional<ColumnHandle> sampleWeightColumn=metadata.getSampleWeightColumnHandle(tableHandle);
   for (  ColumnHandle columnHandle : node.getAssignments().values()) {
-    if (sampleWeightColumn.isPresent() && sampleWeightColumn.get().equals(columnHandle)) {
-      builder.put(entry,"$sampleWeight");
-    }
- else {
+    if (!columnHandle.equals(sampleWeightColumn.orNull())) {
       ColumnMetadata columnMetadata=metadata.getColumnMetadata(tableHandle,columnHandle);
-      builder.put(entry,columnMetadata.getName());
+      builder.put(entry,new Column(columnMetadata.getName(),columnMetadata.getType().toString(),Optional.<SimpleDomain>absent()));
     }
   }
   return null;
