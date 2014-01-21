@@ -1,7 +1,21 @@
 {
   ImmutableList.Builder<TupleReadable[]> minSortedGlobalCandidates=ImmutableList.builder();
+  long sampleWeight=1;
   while (!globalCandidates.isEmpty()) {
-    minSortedGlobalCandidates.add(globalCandidates.remove());
+    Tuple[] row=globalCandidates.remove();
+    if (sampleWeightChannel.isPresent()) {
+      if (globalCandidates.peek() != null && ordering.compare(row,globalCandidates.peek()) == 0) {
+        sampleWeight++;
+      }
+ else {
+        row[sampleWeightChannel.get()]=Tuples.createTuple(sampleWeight);
+        minSortedGlobalCandidates.add(row);
+        sampleWeight=1;
+      }
+    }
+ else {
+      minSortedGlobalCandidates.add(row);
+    }
   }
   return minSortedGlobalCandidates.build().reverse().iterator();
 }

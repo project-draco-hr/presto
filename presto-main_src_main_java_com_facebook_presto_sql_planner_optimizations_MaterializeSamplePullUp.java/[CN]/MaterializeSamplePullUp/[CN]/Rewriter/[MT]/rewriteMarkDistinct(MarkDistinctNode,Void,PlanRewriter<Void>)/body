@@ -1,0 +1,10 @@
+{
+  PlanNode source=planRewriter.rewrite(node.getSource(),null);
+  if (source instanceof MaterializeSampleNode) {
+    node=new MarkDistinctNode(node.getId(),((MaterializeSampleNode)source).getSource(),node.getMarkerSymbol(),node.getDistinctSymbols(),Optional.of(((MaterializeSampleNode)source).getSampleWeightSymbol()));
+    return new MaterializeSampleNode(source.getId(),node,((MaterializeSampleNode)source).getSampleWeightSymbol());
+  }
+ else {
+    return planRewriter.defaultRewrite(node,null);
+  }
+}

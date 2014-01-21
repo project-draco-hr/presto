@@ -1,5 +1,10 @@
 {
   checkState(!closed,"Factory is already closed");
   OperatorContext operatorContext=driverContext.addOperatorContext(operatorId,MarkDistinctOperator.class.getSimpleName());
-  return new MarkDistinctOperator(operatorContext,tupleInfos,markDistinctChannels);
+  if (sampleWeightChannel.isPresent()) {
+    return new MarkDistinctSampledOperator(operatorContext,tupleInfos,markDistinctChannels,sampleWeightChannel.get());
+  }
+ else {
+    return new MarkDistinctOperator(operatorContext,tupleInfos,markDistinctChannels);
+  }
 }

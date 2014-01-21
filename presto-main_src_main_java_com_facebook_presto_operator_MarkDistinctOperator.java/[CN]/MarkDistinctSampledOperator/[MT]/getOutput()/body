@@ -1,0 +1,25 @@
+{
+  while (!pageBuilder.isFull() && advance()) {
+    for (int i=0; i < cursors.length; i++) {
+      BlockBuilder builder=pageBuilder.getBlockBuilder(i);
+      if (i == sampleWeightChannel) {
+        if (distinct) {
+          builder.append(1);
+        }
+ else {
+          builder.append(sampleWeight);
+        }
+      }
+ else {
+        builder.append(cursors[i]);
+      }
+    }
+    pageBuilder.getBlockBuilder(markerChannel).append(distinct);
+  }
+  if (pageBuilder.isFull() || (finishing && !pageBuilder.isEmpty() && markerCursor == null)) {
+    Page page=pageBuilder.build();
+    pageBuilder.reset();
+    return page;
+  }
+  return null;
+}

@@ -1,0 +1,10 @@
+{
+  PlanNode source=planRewriter.rewrite(node.getSource(),null);
+  if (source instanceof MaterializeSampleNode && DeterminismEvaluator.isDeterministic(node.getPredicate())) {
+    FilterNode filterNode=new FilterNode(node.getId(),((MaterializeSampleNode)source).getSource(),node.getPredicate());
+    return new MaterializeSampleNode(source.getId(),filterNode,((MaterializeSampleNode)source).getSampleWeightSymbol());
+  }
+ else {
+    return planRewriter.defaultRewrite(node,null);
+  }
+}

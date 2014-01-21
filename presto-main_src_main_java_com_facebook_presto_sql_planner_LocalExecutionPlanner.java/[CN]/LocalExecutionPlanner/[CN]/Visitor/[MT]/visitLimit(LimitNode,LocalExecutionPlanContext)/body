@@ -1,5 +1,6 @@
 {
   PhysicalOperation source=node.getSource().accept(this,context);
-  OperatorFactory operatorFactory=new LimitOperatorFactory(context.getNextOperatorId(),source.getTupleInfos(),node.getCount());
+  Optional<Integer> sampleWeightChannel=node.getSampleWeight().transform(source.channelGetter());
+  OperatorFactory operatorFactory=new LimitOperatorFactory(context.getNextOperatorId(),source.getTupleInfos(),node.getCount(),sampleWeightChannel);
   return new PhysicalOperation(operatorFactory,source.getLayout(),source);
 }

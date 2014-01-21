@@ -1,18 +1,6 @@
 {
   List<Page> input=rowPagesBuilder(SINGLE_VARBINARY,SINGLE_LONG,SINGLE_VARBINARY,SINGLE_LONG,SINGLE_DOUBLE,SINGLE_VARBINARY).addSequencePage(100,0,0,300,500,500,500).build();
-  input=IterableTransformer.on(input).transform(new Function<Page,Page>(){
-    @Override public Page apply(    Page page){
-      BlockBuilder builder=new BlockBuilder(SINGLE_LONG);
-      for (int i=0; i < 100; i++) {
-        builder.append(2);
-      }
-      Block[] blocks=new Block[page.getChannelCount() + 1];
-      System.arraycopy(page.getBlocks(),0,blocks,0,page.getChannelCount());
-      blocks[blocks.length - 1]=builder.build();
-      return new Page(blocks);
-    }
-  }
-).list();
+  input=appendSampleWeight(input,2);
   Optional<Input> sampleWeightInput=Optional.of(new Input(input.get(0).getChannelCount() - 1));
   OperatorFactory operatorFactory=new AggregationOperatorFactory(0,Step.SINGLE,ImmutableList.of(aggregation(COUNT,ImmutableList.of(new Input(0)),Optional.<Input>absent(),sampleWeightInput),aggregation(LONG_SUM,ImmutableList.of(new Input(1)),Optional.<Input>absent(),sampleWeightInput),aggregation(LONG_AVERAGE,ImmutableList.of(new Input(1)),Optional.<Input>absent(),sampleWeightInput),aggregation(VAR_BINARY_MAX,ImmutableList.of(new Input(2)),Optional.<Input>absent(),sampleWeightInput),aggregation(COUNT_STRING_COLUMN,ImmutableList.of(new Input(0)),Optional.<Input>absent(),sampleWeightInput),aggregation(LONG_SUM,ImmutableList.of(new Input(3)),Optional.<Input>absent(),sampleWeightInput),aggregation(DOUBLE_SUM,ImmutableList.of(new Input(4)),Optional.<Input>absent(),sampleWeightInput),aggregation(VAR_BINARY_MAX,ImmutableList.of(new Input(5)),Optional.<Input>absent(),sampleWeightInput)));
   Operator operator=operatorFactory.createOperator(driverContext);

@@ -1,0 +1,8 @@
+{
+  List<Page> input=rowPagesBuilder(SINGLE_LONG).addSequencePage(2,1).addSequencePage(2,4).addSequencePage(2,6).build();
+  input=appendSampleWeight(input,2);
+  OperatorFactory operatorFactory=new LimitOperatorFactory(0,ImmutableList.of(SINGLE_LONG),5,Optional.of(input.get(0).getChannelCount() - 1));
+  Operator operator=operatorFactory.createOperator(driverContext);
+  List<Page> expected=rowPagesBuilder(SINGLE_LONG,SINGLE_LONG).row(1,2).row(2,2).pageBreak().row(4,1).build();
+  OperatorAssertion.assertOperatorEquals(operator,input,expected);
+}

@@ -9,6 +9,7 @@
   }
   Ordering<TupleReadable[]> ordering=Ordering.from(new FieldOrderedTupleComparator(sortChannels,sortOrders));
   IdentityProjectionInfo mappings=computeIdentityMapping(node.getOutputSymbols(),source.getLayout(),context.getTypes());
-  OperatorFactory operator=new TopNOperatorFactory(context.getNextOperatorId(),(int)node.getCount(),mappings.getProjections(),ordering,node.isPartial());
+  Optional<Integer> sampleWeightChannel=node.getSampleWeight().transform(source.channelGetter());
+  OperatorFactory operator=new TopNOperatorFactory(context.getNextOperatorId(),(int)node.getCount(),mappings.getProjections(),ordering,sampleWeightChannel,node.isPartial());
   return new PhysicalOperation(operator,mappings.getOutputLayout(),source);
 }

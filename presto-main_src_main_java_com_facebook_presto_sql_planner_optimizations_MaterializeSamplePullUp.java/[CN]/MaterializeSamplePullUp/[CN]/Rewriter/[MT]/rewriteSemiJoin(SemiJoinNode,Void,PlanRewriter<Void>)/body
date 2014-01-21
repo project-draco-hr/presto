@@ -1,0 +1,14 @@
+{
+  PlanNode filteringSource=planRewriter.rewrite(node.getFilteringSource(),null);
+  PlanNode source=planRewriter.rewrite(node.getSource(),null);
+  if (filteringSource instanceof MaterializeSampleNode) {
+    filteringSource=((MaterializeSampleNode)filteringSource).getSource();
+  }
+  if (source instanceof MaterializeSampleNode) {
+    node=new SemiJoinNode(node.getId(),((MaterializeSampleNode)source).getSource(),filteringSource,node.getSourceJoinSymbol(),node.getFilteringSourceJoinSymbol(),node.getSemiJoinOutput());
+    return new MaterializeSampleNode(source.getId(),node,((MaterializeSampleNode)source).getSampleWeightSymbol());
+  }
+ else {
+    return new SemiJoinNode(node.getId(),source,filteringSource,node.getSourceJoinSymbol(),node.getFilteringSourceJoinSymbol(),node.getSemiJoinOutput());
+  }
+}

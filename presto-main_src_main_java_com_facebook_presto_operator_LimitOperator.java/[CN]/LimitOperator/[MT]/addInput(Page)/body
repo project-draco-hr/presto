@@ -1,16 +1,9 @@
 {
   checkState(needsInput());
-  if (page.getPositionCount() <= remainingLimit) {
-    remainingLimit-=page.getPositionCount();
-    nextPage=page;
+  if (sampleWeightChannel.isPresent()) {
+    addInputWithSampling(page,sampleWeightChannel.get());
   }
  else {
-    Block[] blocks=new Block[page.getChannelCount()];
-    for (int channel=0; channel < page.getChannelCount(); channel++) {
-      Block block=page.getBlock(channel);
-      blocks[channel]=block.getRegion(0,(int)remainingLimit);
-    }
-    remainingLimit=0;
-    nextPage=new Page(blocks);
+    addInputWithoutSampling(page);
   }
 }

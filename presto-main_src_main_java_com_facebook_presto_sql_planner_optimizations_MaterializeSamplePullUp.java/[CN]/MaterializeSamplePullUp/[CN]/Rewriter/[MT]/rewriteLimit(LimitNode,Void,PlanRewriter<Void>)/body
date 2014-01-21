@@ -1,0 +1,10 @@
+{
+  PlanNode source=planRewriter.rewrite(node.getSource(),null);
+  if (source instanceof MaterializeSampleNode) {
+    node=new LimitNode(node.getId(),((MaterializeSampleNode)source).getSource(),node.getCount(),Optional.of(((MaterializeSampleNode)source).getSampleWeightSymbol()));
+    return new MaterializeSampleNode(source.getId(),node,((MaterializeSampleNode)source).getSampleWeightSymbol());
+  }
+ else {
+    return planRewriter.defaultRewrite(node,null);
+  }
+}
