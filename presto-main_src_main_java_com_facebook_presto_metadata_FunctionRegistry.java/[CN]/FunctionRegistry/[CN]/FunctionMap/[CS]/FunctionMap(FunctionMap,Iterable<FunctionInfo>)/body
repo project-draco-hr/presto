@@ -1,0 +1,10 @@
+{
+  Multimap<QualifiedName,FunctionInfo> byName=ImmutableListMultimap.<QualifiedName,FunctionInfo>builder().putAll(map.byName).putAll(Multimaps.index(functions,FunctionInfo.nameGetter())).build();
+  Map<Signature,FunctionInfo> bySignature=ImmutableMap.<Signature,FunctionInfo>builder().putAll(map.bySignature).putAll(Maps.uniqueIndex(functions,FunctionInfo.handleGetter())).build();
+  for (  Map.Entry<QualifiedName,Collection<FunctionInfo>> entry : byName.asMap().entrySet()) {
+    Collection<FunctionInfo> infos=entry.getValue();
+    checkState(Iterables.all(infos,isAggregationPredicate()) || !Iterables.any(infos,isAggregationPredicate()),"'%s' is both an aggregation and a scalar function",entry.getKey());
+  }
+  this.byName=byName;
+  this.bySignature=bySignature;
+}
