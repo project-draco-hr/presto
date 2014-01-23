@@ -15,7 +15,11 @@
     }
   }
  else {
-    builder.add(new HiveSplit(connectorId,table.getDbName(),table.getTableName(),partitionName,false,file.getPath().toString(),start,length,schema,partitionKeys,toHostAddress(blockLocations[0].getHosts())));
+    List<HostAddress> addresses=ImmutableList.of();
+    if (blockLocations.length > 0) {
+      addresses=toHostAddress(blockLocations[0].getHosts());
+    }
+    builder.add(new HiveSplit(connectorId,table.getDbName(),table.getTableName(),partitionName,false,file.getPath().toString(),start,length,schema,partitionKeys,addresses));
   }
   return builder.build();
 }
