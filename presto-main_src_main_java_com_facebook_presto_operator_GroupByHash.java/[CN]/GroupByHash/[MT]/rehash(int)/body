@@ -1,0 +1,25 @@
+{
+  int newSize=arraySize(size + 1,FILL_RATIO);
+  int newMask=newSize - 1;
+  long[] newKey=new long[newSize];
+  Arrays.fill(newKey,-1);
+  int[] newValue=new int[newSize];
+  int oldIndex=0;
+  for (int groupId=0; groupId < nextGroupId; groupId++) {
+    while (key[oldIndex] == -1) {
+      oldIndex++;
+    }
+    long address=key[oldIndex];
+    int pos=(murmurHash3(hashPosition(address) ^ newMask)) & newMask;
+    while (newKey[pos] != -1) {
+      pos=(pos + 1) & newMask;
+    }
+    newKey[pos]=address;
+    newValue[pos]=value[oldIndex];
+    oldIndex++;
+  }
+  this.mask=newMask;
+  this.maxFill=maxFill(newSize,FILL_RATIO);
+  this.key=newKey;
+  this.value=newValue;
+}

@@ -4,7 +4,11 @@
   checkArgument(types.size() == channels.length,"types and channels have different sizes");
   this.pages=ObjectArrayList.wrap(new PageBuilder[1024],0);
   this.pages.add(new PageBuilder(types));
-  this.hashStrategy=new PageBuilderHashStrategy();
-  this.pagePositionToGroupId=new PagePositionToGroupId(expectedSize,hashStrategy);
-  this.pagePositionToGroupId.defaultReturnValue(-1);
+  int hashSize=arraySize(expectedSize,FILL_RATIO);
+  maxFill=maxFill(hashSize,FILL_RATIO);
+  mask=hashSize - 1;
+  key=new long[hashSize];
+  Arrays.fill(key,-1);
+  value=new int[hashSize];
+  groupAddress=new LongBigArray();
 }

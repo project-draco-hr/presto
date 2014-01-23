@@ -1,0 +1,16 @@
+{
+  int pageIndex=pages.size() - 1;
+  PageBuilder pageBuilder=pages.get(pageIndex);
+  pageBuilder.append(cursors);
+  int groupId=nextGroupId++;
+  long address=encodeSyntheticAddress(pageIndex,pageBuilder.getPositionCount() - 1);
+  key[hashPosition]=address;
+  value[hashPosition]=groupId;
+  groupAddress.set(groupId,address);
+  if (pageBuilder.isFull()) {
+    completedPagesMemorySize+=pageBuilder.getMemorySize();
+    pageBuilder=new PageBuilder(types);
+    pages.add(pageBuilder);
+  }
+  return groupId;
+}
