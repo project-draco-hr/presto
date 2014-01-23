@@ -5,7 +5,6 @@
     Iterator<String> nameIterator=partitionNames.iterator();
     for (    Partition partition : partitions) {
       checkState(nameIterator.hasNext(),"different number of partitions and partition names!");
-      semaphore.acquire();
       final String partitionName=nameIterator.next();
       final Properties schema=getPartitionSchema(table,partition);
       final List<HivePartitionKey> partitionKeys=getPartitionKeys(table,partition);
@@ -38,6 +37,7 @@
           continue;
         }
       }
+      semaphore.acquire();
       ListenableFuture<Void> partitionFuture=new AsyncRecursiveWalker(fs,suspendingExecutor).beginWalk(path,new FileStatusCallback(){
         @Override public void process(        FileStatus file,        BlockLocation[] blockLocations){
           try {
