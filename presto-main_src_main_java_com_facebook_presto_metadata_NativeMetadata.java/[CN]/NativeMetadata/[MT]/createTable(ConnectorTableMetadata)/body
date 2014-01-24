@@ -11,6 +11,9 @@
             dao.insertColumn(tableId,columnId,column.getName(),ordinalPosition,fromColumnType(column.getType()).getName());
             ordinalPosition++;
           }
+          if (tableMetadata.isSampled()) {
+            dao.insertColumn(tableId,ordinalPosition + 1,NativeColumnHandle.SAMPLE_WEIGHT_COLUMN_NAME,ordinalPosition,TupleInfo.Type.FIXED_INT_64.getName());
+          }
           return tableId;
         }
       }
@@ -19,5 +22,9 @@
   }
 );
   checkState(tableId != null,"table %s already exists",tableMetadata.getTable());
-  return new NativeTableHandle(tableMetadata.getTable().getSchemaName(),tableMetadata.getTable().getTableName(),tableId);
+  NativeColumnHandle sampleWeightColumnHandle=null;
+  if (tableMetadata.isSampled()) {
+    sampleWeightColumnHandle=new NativeColumnHandle(NativeColumnHandle.SAMPLE_WEIGHT_COLUMN_NAME,tableMetadata.getColumns().size() + 1);
+  }
+  return new NativeTableHandle(tableMetadata.getTable().getSchemaName(),tableMetadata.getTable().getTableName(),tableId,sampleWeightColumnHandle);
 }

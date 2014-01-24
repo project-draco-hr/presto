@@ -1,4 +1,8 @@
 {
-  PlanNode source=planRewriter.rewrite(node.getSource(),expectedOutputs);
+  ImmutableSet.Builder<Symbol> expectedInputs=ImmutableSet.<Symbol>builder().addAll(expectedOutputs);
+  if (node.getSampleWeight().isPresent()) {
+    expectedInputs.add(node.getSampleWeight().get());
+  }
+  PlanNode source=planRewriter.rewrite(node.getSource(),expectedInputs.build());
   return new LimitNode(node.getId(),source,node.getCount(),node.getSampleWeight());
 }

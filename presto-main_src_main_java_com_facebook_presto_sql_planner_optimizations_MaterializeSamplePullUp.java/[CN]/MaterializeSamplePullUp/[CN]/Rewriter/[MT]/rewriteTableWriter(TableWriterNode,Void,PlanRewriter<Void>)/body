@@ -1,0 +1,12 @@
+{
+  PlanNode source=planRewriter.rewrite(node.getSource(),null);
+  if (source instanceof MaterializeSampleNode) {
+    checkArgument(node.isSampleWeightSupported(),"Cannot write sampled data to a store that doesn't support sampling");
+    ConnectorTableMetadata connectorTableMetadata=node.getTableMetadata().getMetadata();
+    connectorTableMetadata=new ConnectorTableMetadata(connectorTableMetadata.getTable(),connectorTableMetadata.getColumns(),connectorTableMetadata.getOwner(),true);
+    return new TableWriterNode(node.getId(),((MaterializeSampleNode)source).getSource(),node.getTarget(),node.getColumns(),node.getColumnNames(),node.getOutputSymbols(),Optional.of(((MaterializeSampleNode)source).getSampleWeightSymbol()),node.getCatalog(),new TableMetadata(node.getTableMetadata().getConnectorId(),connectorTableMetadata),node.isSampleWeightSupported());
+  }
+ else {
+    return planRewriter.defaultRewrite(node,null);
+  }
+}

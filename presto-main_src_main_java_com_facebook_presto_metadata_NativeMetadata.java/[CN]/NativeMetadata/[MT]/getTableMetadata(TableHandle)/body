@@ -5,6 +5,12 @@
   SchemaTableName tableName=getTableName(tableHandle);
   checkArgument(tableName != null,"Table %s does not exist",tableName);
   List<ColumnMetadata> columns=dao.getTableColumnMetaData(nativeTableHandle.getTableId());
+  columns=ImmutableList.copyOf(Iterables.filter(columns,new Predicate<ColumnMetadata>(){
+    @Override public boolean apply(    ColumnMetadata input){
+      return !input.getName().equals(NativeColumnHandle.SAMPLE_WEIGHT_COLUMN_NAME);
+    }
+  }
+));
   checkArgument(!columns.isEmpty(),"Table %s does not have any columns",tableName);
   if (columns.isEmpty()) {
     return null;
