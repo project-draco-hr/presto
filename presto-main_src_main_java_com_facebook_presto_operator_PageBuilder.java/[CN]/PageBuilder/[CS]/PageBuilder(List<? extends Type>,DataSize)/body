@@ -1,13 +1,14 @@
 {
+  DataSize maxBlockSize;
   if (!types.isEmpty()) {
-    maxBlockSize=new DataSize((int)(maxSize.toBytes() / types.size()),BYTE);
+    maxBlockSize=new DataSize((int)(maxPageSize.toBytes() / types.size()),BYTE);
   }
  else {
     maxBlockSize=new DataSize(0,BYTE);
   }
+  blockBuilderStatus=new BlockBuilderStatus(maxPageSize,maxBlockSize);
   blockBuilders=new BlockBuilder[types.size()];
   for (int i=0; i < blockBuilders.length; i++) {
-    blockBuilders[i]=types.get(i).createBlockBuilder(maxBlockSize);
+    blockBuilders[i]=types.get(i).createBlockBuilder(blockBuilderStatus);
   }
-  this.maxSizeInBytes=checkNotNull(maxSize,"maxSize is null").toBytes();
 }

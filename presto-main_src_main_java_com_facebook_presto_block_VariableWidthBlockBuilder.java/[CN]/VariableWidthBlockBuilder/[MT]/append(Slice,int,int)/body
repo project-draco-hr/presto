@@ -1,6 +1,10 @@
 {
   offsets.add(sliceOutput.size());
   sliceOutput.writeByte(0);
-  type.setSlice(sliceOutput,value,offset,length);
+  int bytesWritten=type.setSlice(sliceOutput,value,offset,length);
+  blockBuilderStatus.addBytes(SIZE_OF_BYTE + bytesWritten);
+  if (sliceOutput.size() > blockBuilderStatus.getMaxBlockSizeInBytes()) {
+    blockBuilderStatus.setFull();
+  }
   return this;
 }
