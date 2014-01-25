@@ -2,16 +2,16 @@
   if (state != State.HAS_OUTPUT) {
     return null;
   }
-  if (currentPosition >= pageIndex.getPositionCount()) {
+  if (currentPosition >= pagesIndex.getPositionCount()) {
     state=State.FINISHED;
     return null;
   }
   pageBuilder.reset();
-  while (!pageBuilder.isFull() && currentPosition < pageIndex.getPositionCount()) {
+  while (!pageBuilder.isFull() && currentPosition < pagesIndex.getPositionCount()) {
     boolean newPartition=(currentPosition == 0) || (currentPosition == partitionEnd);
     if (newPartition) {
       partitionEnd++;
-      while ((partitionEnd < pageIndex.getPositionCount()) && (partitionComparator.compare(partitionEnd - 1,partitionEnd) == 0)) {
+      while ((partitionEnd < pagesIndex.getPositionCount()) && (partitionComparator.compare(partitionEnd - 1,partitionEnd) == 0)) {
         partitionEnd++;
       }
       for (      WindowFunction function : windowFunctions) {
@@ -20,7 +20,7 @@
     }
     int channel=0;
     while (channel < outputChannels.length) {
-      pageIndex.appendTo(outputChannels[channel],currentPosition,pageBuilder.getBlockBuilder(channel));
+      pagesIndex.appendTo(outputChannels[channel],currentPosition,pageBuilder.getBlockBuilder(channel));
       channel++;
     }
     boolean newPeerGroup=newPartition || (currentPosition == peerGroupEnd);

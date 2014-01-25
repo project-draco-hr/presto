@@ -1,0 +1,15 @@
+{
+  checkNotNull(sortChannels,"sortChannels is null");
+  checkNotNull(sortOrders,"sortOrders is null");
+  PagesIndexComparator comparator;
+  try {
+    DynamicClassLoader classLoader=new DynamicClassLoader(getClass().getClassLoader());
+    Class<? extends PagesIndexComparator> pagesHashStrategyClass=compilePagesIndexComparator(sortChannels,sortOrders,classLoader);
+    comparator=pagesHashStrategyClass.newInstance();
+  }
+ catch (  Throwable e) {
+    log.error(e,"Error compiling comparator for channels %s with order %s",sortChannels,sortChannels);
+    comparator=new SimplePagesIndexComparator(sortChannels,sortOrders);
+  }
+  return new PagesIndexOrdering(comparator);
+}

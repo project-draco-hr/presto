@@ -1,0 +1,76 @@
+{
+  int len=to - from;
+  if (len < SMALL) {
+    for (int i=from; i < to; i++) {
+      for (int j=i; j > from && (comparator.compareTo(pagesIndex,j - 1,j) > 0); j--) {
+        pagesIndex.swap(j,j - 1);
+      }
+    }
+    return;
+  }
+  int m=from + len / 2;
+  if (len > SMALL) {
+    int l=from;
+    int n=to - 1;
+    if (len > MEDIUM) {
+      int s=len / 8;
+      l=median3(pagesIndex,l,l + s,l + 2 * s);
+      m=median3(pagesIndex,m - s,m,m + s);
+      n=median3(pagesIndex,n - 2 * s,n - s,n);
+    }
+    m=median3(pagesIndex,l,m,n);
+  }
+  int a=from;
+  int b=a;
+  int c=to - 1;
+  int d=c;
+  while (true) {
+    int comparison;
+    while (b <= c && ((comparison=comparator.compareTo(pagesIndex,b,m)) <= 0)) {
+      if (comparison == 0) {
+        if (a == m) {
+          m=b;
+        }
+ else         if (b == m) {
+          m=a;
+        }
+        pagesIndex.swap(a++,b);
+      }
+      b++;
+    }
+    while (c >= b && ((comparison=comparator.compareTo(pagesIndex,c,m)) >= 0)) {
+      if (comparison == 0) {
+        if (c == m) {
+          m=d;
+        }
+ else         if (d == m) {
+          m=c;
+        }
+        pagesIndex.swap(c,d--);
+      }
+      c--;
+    }
+    if (b > c) {
+      break;
+    }
+    if (b == m) {
+      m=d;
+    }
+ else     if (c == m) {
+      m=c;
+    }
+    pagesIndex.swap(b++,c--);
+  }
+  int s;
+  int n=to;
+  s=Math.min(a - from,b - a);
+  vectorSwap(pagesIndex,from,b - s,s);
+  s=Math.min(d - c,n - d - 1);
+  vectorSwap(pagesIndex,b,n - s,s);
+  if ((s=b - a) > 1) {
+    quickSort(pagesIndex,from,from + s);
+  }
+  if ((s=d - c) > 1) {
+    quickSort(pagesIndex,n - s,n);
+  }
+}
