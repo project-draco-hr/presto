@@ -1,0 +1,17 @@
+{
+  String key=keyFromPath(path);
+  if (!key.isEmpty()) {
+    key+="/";
+  }
+  ListObjectsRequest request=new ListObjectsRequest().withBucketName(uri.getHost()).withPrefix(key).withDelimiter("/");
+  Iterator<ObjectListing> listings=new AbstractSequentialIterator<ObjectListing>(s3.listObjects(request)){
+    @Override protected ObjectListing computeNext(    ObjectListing previous){
+      if (!previous.isTruncated()) {
+        return null;
+      }
+      return s3.listNextBatchOfObjects(previous);
+    }
+  }
+;
+  return Iterators.concat(Iterators.transform(listings,statusFromListing()));
+}
