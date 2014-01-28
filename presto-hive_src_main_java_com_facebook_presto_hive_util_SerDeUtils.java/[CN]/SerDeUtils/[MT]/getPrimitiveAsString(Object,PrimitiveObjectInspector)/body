@@ -1,0 +1,29 @@
+{
+  if (object == null) {
+    return null;
+  }
+switch (objectInspector.getPrimitiveCategory()) {
+case BOOLEAN:
+    return Boolean.toString(((BooleanObjectInspector)objectInspector).get(object));
+case BYTE:
+  return Byte.toString(((ByteObjectInspector)objectInspector).get(object));
+case SHORT:
+return Short.toString(((ShortObjectInspector)objectInspector).get(object));
+case INT:
+return Integer.toString(((IntObjectInspector)objectInspector).get(object));
+case LONG:
+return Long.toString(((LongObjectInspector)objectInspector).get(object));
+case FLOAT:
+return Float.toString(((FloatObjectInspector)objectInspector).get(object));
+case DOUBLE:
+return Double.toString(((DoubleObjectInspector)objectInspector).get(object));
+case STRING:
+return ((StringObjectInspector)objectInspector).getPrimitiveJavaObject(object);
+case TIMESTAMP:
+return ((TimestampObjectInspector)objectInspector).getPrimitiveWritableObject(object).toString();
+case BINARY:
+return Base64Variants.getDefaultVariant().encode(((BinaryObjectInspector)objectInspector).getPrimitiveWritableObject(object).getBytes());
+default :
+throw new RuntimeException("Unknown primitive type: " + objectInspector.getPrimitiveCategory());
+}
+}
