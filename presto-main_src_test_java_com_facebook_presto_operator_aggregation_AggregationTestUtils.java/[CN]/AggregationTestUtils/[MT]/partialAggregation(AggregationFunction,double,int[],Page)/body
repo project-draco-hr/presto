@@ -1,0 +1,13 @@
+{
+  Accumulator partialAggregation=function.createAggregation(Optional.<Integer>absent(),Optional.<Integer>absent(),confidence,args);
+  for (  Page page : pages) {
+    if (page.getPositionCount() > 0) {
+      partialAggregation.addInput(page);
+    }
+  }
+  Block partialBlock=partialAggregation.evaluateIntermediate();
+  Accumulator finalAggregation=function.createIntermediateAggregation(confidence);
+  finalAggregation.addIntermediate(partialBlock);
+  Block finalBlock=finalAggregation.evaluateFinal();
+  return BlockAssertions.getOnlyValue(finalBlock);
+}

@@ -21,7 +21,7 @@
         throw new AssertionError("Can only handle longs and doubles");
       }
     }
-    Accumulator accumulator=getFunction().createAggregation(Optional.<Integer>absent(),Optional.<Integer>absent(),0);
+    Accumulator accumulator=getFunction().createAggregation(Optional.<Integer>absent(),Optional.<Integer>absent(),getConfidence(),0);
     accumulator.addInput(new Page(builder.build()));
     Block result=accumulator.evaluateFinal();
     String approxValue=BlockAssertions.toValues(result).get(0).toString();
@@ -31,6 +31,5 @@
       inRange++;
     }
   }
-  double confidence=0.99;
-  assertTrue(inRange >= confidence * numberOfRuns);
+  assertTrue(inRange >= getConfidence() * numberOfRuns);
 }

@@ -1,0 +1,12 @@
+{
+  ExpressionAnalyzer analyzer=new ExpressionAnalyzer(analysis,session,metadata,approximateQueriesEnabled);
+  Type type=analyzer.analyze(expression,tupleDescriptor,context);
+  analysis.addFunctionInfos(analyzer.getResolvedFunctions());
+  IdentityHashMap<Expression,Type> subExpressions=analyzer.getSubExpressionTypes();
+  analysis.addTypes(subExpressions);
+  for (  Expression subExpression : subExpressions.keySet()) {
+    analysis.addResolvedNames(subExpression,analyzer.getResolvedNames());
+  }
+  Set<InPredicate> subqueryInPredicates=analyzer.getSubqueryInPredicates();
+  return new ExpressionAnalysis(type,subqueryInPredicates);
+}

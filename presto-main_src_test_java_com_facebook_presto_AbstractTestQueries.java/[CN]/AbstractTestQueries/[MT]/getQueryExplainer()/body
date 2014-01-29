@@ -2,6 +2,7 @@
   MetadataManager metadata=new MetadataManager();
   metadata.addInternalSchemaMetadata(MetadataManager.INTERNAL_CONNECTOR_ID,new DualMetadata());
   SplitManager splitManager=new SplitManager(ImmutableSet.<ConnectorSplitManager>of(new DualSplitManager(new InMemoryNodeManager())));
-  List<PlanOptimizer> optimizers=new PlanOptimizersFactory(metadata,splitManager).get();
-  return new QueryExplainer(session,optimizers,metadata,new MockPeriodicImportManager(),new MockStorageManager());
+  AnalyzerConfig analyzerConfig=new AnalyzerConfig().setApproximateQueriesEnabled(true);
+  List<PlanOptimizer> optimizers=new PlanOptimizersFactory(metadata,splitManager,analyzerConfig).get();
+  return new QueryExplainer(session,optimizers,metadata,new MockPeriodicImportManager(),new MockStorageManager(),analyzerConfig.isApproximateQueriesEnabled());
 }

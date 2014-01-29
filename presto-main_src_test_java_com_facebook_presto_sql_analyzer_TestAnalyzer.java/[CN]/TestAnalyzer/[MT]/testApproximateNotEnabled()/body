@@ -1,0 +1,12 @@
+{
+  try {
+    Statement statement=SqlParser.createStatement("SELECT AVG(a) FROM t1 APPROXIMATE AT 99.0 CONFIDENCE");
+    approximateDisabledAnalyzer.analyze(statement);
+    fail(format("Expected error %s, but analysis succeeded",NOT_SUPPORTED));
+  }
+ catch (  SemanticException e) {
+    if (e.getCode() != NOT_SUPPORTED) {
+      fail(format("Expected error %s, but found %s: %s",NOT_SUPPORTED,e.getCode(),e.getMessage()),e);
+    }
+  }
+}

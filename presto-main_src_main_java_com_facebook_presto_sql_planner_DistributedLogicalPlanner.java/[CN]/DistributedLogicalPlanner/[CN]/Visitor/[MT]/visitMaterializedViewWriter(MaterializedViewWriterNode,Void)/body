@@ -5,12 +5,12 @@
   }
  else {
     subPlanBuilder=createSubPlan(subPlanBuilder.getRoot(),subPlanBuilder.getDistribution(),node.getId());
-    FunctionInfo sum=metadata.getFunction(QualifiedName.of("sum"),ImmutableList.of(Type.BIGINT));
+    FunctionInfo sum=metadata.getFunction(QualifiedName.of("sum"),ImmutableList.of(Type.BIGINT),false);
     Symbol intermediateOutput=allocator.newSymbol(node.getOutput().toString(),sum.getReturnType());
     MaterializedViewWriterNode writer=new MaterializedViewWriterNode(node.getId(),subPlanBuilder.getRoot(),node.getTable(),node.getColumns(),intermediateOutput);
     subPlanBuilder.setRoot(writer);
     FunctionCall aggregate=new FunctionCall(sum.getName(),ImmutableList.<Expression>of(new QualifiedNameReference(intermediateOutput.toQualifiedName())));
-    return addDistributedAggregation(subPlanBuilder,ImmutableMap.of(node.getOutput(),aggregate),ImmutableMap.of(node.getOutput(),sum.getHandle()),ImmutableMap.<Symbol,Symbol>of(),ImmutableList.<Symbol>of(),Optional.<Symbol>absent());
+    return addDistributedAggregation(subPlanBuilder,ImmutableMap.of(node.getOutput(),aggregate),ImmutableMap.of(node.getOutput(),sum.getHandle()),ImmutableMap.<Symbol,Symbol>of(),ImmutableList.<Symbol>of(),Optional.<Symbol>absent(),1.0);
   }
   return subPlanBuilder;
 }
