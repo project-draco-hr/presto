@@ -1,22 +1,17 @@
 {
-  try {
-    List<Split> splits=new ArrayList<>(maxSize);
-    splits.add(queue.take());
-    queue.drainTo(splits,maxSize - 1);
-    if (splits.get(splits.size() - 1) == FINISHED_MARKER) {
-      queue.add(FINISHED_MARKER);
-      splits.remove(splits.size() - 1);
-      if (throwable.get() != null) {
-        throw Throwables.propagate(throwable.get());
-      }
-    }
-    if (outstandingSplitCount.getAndDecrement() == maxOutstandingSplits) {
-      suspendingExecutor.resume();
-    }
-    return splits;
+  List<Split> splits=new ArrayList<>(maxSize);
+  splits.add(queue.take());
+  queue.drainTo(splits,maxSize - 1);
+  int finishedIndex=splits.indexOf(FINISHED_MARKER);
+  if (finishedIndex >= 0) {
+    queue.add(FINISHED_MARKER);
+    splits=splits.subList(0,finishedIndex);
   }
- catch (  InterruptedException e) {
-    Thread.currentThread().interrupt();
-    throw Throwables.propagate(e);
+  if (throwable.get() != null) {
+    throw Throwables.propagate(throwable.get());
   }
+  if (outstandingSplitCount.addAndGet(-splits.size()) < maxOutstandingSplits) {
+    suspendingExecutor.resume();
+  }
+  return splits;
 }

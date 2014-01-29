@@ -1,0 +1,22 @@
+{
+  SuspendingExecutor suspendingExecutor=createSuspendingExecutor();
+  HiveSplitSource hiveSplitSource=new HiveSplitSource("test",10,suspendingExecutor);
+  for (int i=0; i < 9; i++) {
+    hiveSplitSource.addToQueue(new TestSplit(i));
+    assertEquals(hiveSplitSource.getOutstandingSplitCount(),i + 1);
+    assertFalse(suspendingExecutor.isSuspended());
+  }
+  hiveSplitSource.addToQueue(new TestSplit(10));
+  assertEquals(hiveSplitSource.getOutstandingSplitCount(),10);
+  assertTrue(suspendingExecutor.isSuspended());
+  assertEquals(hiveSplitSource.getNextBatch(1).size(),1);
+  assertEquals(hiveSplitSource.getOutstandingSplitCount(),9);
+  assertFalse(suspendingExecutor.isSuspended());
+  hiveSplitSource.addToQueue(new TestSplit(11));
+  hiveSplitSource.addToQueue(new TestSplit(12));
+  assertEquals(hiveSplitSource.getOutstandingSplitCount(),11);
+  assertTrue(suspendingExecutor.isSuspended());
+  assertEquals(hiveSplitSource.getNextBatch(2).size(),2);
+  assertEquals(hiveSplitSource.getOutstandingSplitCount(),9);
+  assertFalse(suspendingExecutor.isSuspended());
+}

@@ -1,0 +1,32 @@
+{
+  SuspendingExecutor suspendingExecutor=createSuspendingExecutor();
+  final HiveSplitSource hiveSplitSource=new HiveSplitSource("test",10,suspendingExecutor);
+  final SettableFuture<Split> splits=SettableFuture.create();
+  final CountDownLatch started=new CountDownLatch(1);
+  Thread getterThread=new Thread(new Runnable(){
+    @Override public void run(){
+      try {
+        started.countDown();
+        List<Split> batch=hiveSplitSource.getNextBatch(1);
+        assertEquals(batch.size(),1);
+        splits.set(batch.get(0));
+      }
+ catch (      Throwable e) {
+        splits.setException(e);
+      }
+    }
+  }
+);
+  getterThread.start();
+  try {
+    assertTrue(started.await(1,TimeUnit.SECONDS));
+    TimeUnit.MILLISECONDS.sleep(200);
+    assertTrue(!splits.isDone());
+    hiveSplitSource.addToQueue(new TestSplit(33));
+    Split split=splits.get(200,TimeUnit.MILLISECONDS);
+    assertSame(split.getInfo(),33);
+  }
+  finally {
+    getterThread.interrupt();
+  }
+}
