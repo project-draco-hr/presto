@@ -3,6 +3,10 @@
     RemoteIterator<LocatedFileStatus> iterator=listLocatedStatus(fileSystem,path);
     while (iterator.hasNext()) {
       LocatedFileStatus status=iterator.next();
+      String fileName=status.getPath().getName();
+      if (fileName.startsWith("_") || fileName.startsWith(".")) {
+        continue;
+      }
       if (isDirectory(status)) {
         recursiveWalk(status.getPath(),callback,taskCount,future);
       }
