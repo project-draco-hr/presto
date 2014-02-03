@@ -1,0 +1,11 @@
+{
+  List<Page> input=rowPagesBuilder(SINGLE_LONG).addSequencePage(100,0).addSequencePage(100,0).build();
+  OperatorFactory operatorFactory=new MarkDistinctOperatorFactory(0,ImmutableList.of(SINGLE_LONG),ImmutableList.of(0),Optional.<Integer>absent());
+  Operator operator=operatorFactory.createOperator(driverContext);
+  MaterializedResult.Builder expected=resultBuilder(SINGLE_LONG,SINGLE_BOOLEAN);
+  for (int i=0; i < 100; i++) {
+    expected.row(i,true);
+    expected.row(i,false);
+  }
+  OperatorAssertion.assertOperatorEqualsIgnoreOrder(operator,input,expected.build());
+}
