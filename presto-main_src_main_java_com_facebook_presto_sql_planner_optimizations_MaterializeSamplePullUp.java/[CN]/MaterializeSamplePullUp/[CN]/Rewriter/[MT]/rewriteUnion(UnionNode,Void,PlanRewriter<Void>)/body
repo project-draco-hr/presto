@@ -5,12 +5,12 @@
     }
   }
 ).list();
-  if (!Iterables.any(rewrittenSources,Predicates.instanceOf(MaterializeSampleNode.class))) {
-    return planRewriter.defaultRewrite(node,null);
+  if (Iterables.all(rewrittenSources,not(instanceOf(MaterializeSampleNode.class)))) {
+    return new UnionNode(node.getId(),rewrittenSources,node.getSymbolMapping());
   }
   ImmutableListMultimap.Builder<Symbol,Symbol> symbolMapping=ImmutableListMultimap.<Symbol,Symbol>builder().putAll(node.getSymbolMapping());
   ImmutableList.Builder<PlanNode> sources=ImmutableList.builder();
-  Symbol outputSymbol=symbolAllocator.newSymbol(((MaterializeSampleNode)Iterables.getFirst(Iterables.filter(rewrittenSources,Predicates.instanceOf(MaterializeSampleNode.class)),null)).getSampleWeightSymbol().getName(),Type.BIGINT);
+  Symbol outputSymbol=symbolAllocator.newSymbol("$sampleWeight",Type.BIGINT);
   for (  PlanNode source : rewrittenSources) {
     if (source instanceof MaterializeSampleNode) {
       symbolMapping.put(outputSymbol,((MaterializeSampleNode)source).getSampleWeightSymbol());

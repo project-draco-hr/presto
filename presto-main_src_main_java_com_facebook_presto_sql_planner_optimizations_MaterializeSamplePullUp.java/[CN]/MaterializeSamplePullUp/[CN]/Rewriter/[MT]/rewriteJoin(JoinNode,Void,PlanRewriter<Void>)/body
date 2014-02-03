@@ -16,19 +16,44 @@
     Symbol outputSampleWeight;
     if (leftSampleWeight != null && rightSampleWeight != null) {
       ImmutableMap.Builder<Symbol,Expression> projections=ImmutableMap.builder();
-      Expression sampleWeightExpr=new ArithmeticExpression(ArithmeticExpression.Type.MULTIPLY,new QualifiedNameReference(leftSampleWeight.toQualifiedName()),new QualifiedNameReference(rightSampleWeight.toQualifiedName()));
-      outputSampleWeight=symbolAllocator.newSymbol(sampleWeightExpr,Type.BIGINT);
-      projections.put(outputSampleWeight,sampleWeightExpr);
-      for (      Symbol symbol : Iterables.filter(node.getOutputSymbols(),Predicates.not(Predicates.in(ImmutableSet.of(leftSampleWeight,rightSampleWeight))))) {
-        Expression expression=new QualifiedNameReference(symbol.toQualifiedName());
-        projections.put(symbol,expression);
-      }
-      joinNode=new ProjectNode(idAllocator.getNextId(),joinNode,projections.build());
-    }
+      Expression sampleWeightExpr;
+switch (node.getType()) {
+case INNER:
+case CROSS:
+        sampleWeightExpr=new ArithmeticExpression(ArithmeticExpression.Type.MULTIPLY,new QualifiedNameReference(leftSampleWeight.toQualifiedName()),new QualifiedNameReference(rightSampleWeight.toQualifiedName()));
+      break;
+case LEFT:
+    sampleWeightExpr=new ArithmeticExpression(ArithmeticExpression.Type.MULTIPLY,new QualifiedNameReference(leftSampleWeight.toQualifiedName()),oneIfNull(rightSampleWeight));
+  break;
+case RIGHT:
+sampleWeightExpr=new ArithmeticExpression(ArithmeticExpression.Type.MULTIPLY,oneIfNull(leftSampleWeight),new QualifiedNameReference(rightSampleWeight.toQualifiedName()));
+break;
+default :
+throw new AssertionError(String.format("Unknown join type: %s",node.getType()));
+}
+outputSampleWeight=symbolAllocator.newSymbol(sampleWeightExpr,Type.BIGINT);
+projections.put(outputSampleWeight,sampleWeightExpr);
+for (Symbol symbol : Iterables.filter(node.getOutputSymbols(),not(in(ImmutableSet.of(leftSampleWeight,rightSampleWeight))))) {
+Expression expression=new QualifiedNameReference(symbol.toQualifiedName());
+projections.put(symbol,expression);
+}
+joinNode=new ProjectNode(idAllocator.getNextId(),joinNode,projections.build());
+}
  else {
-      outputSampleWeight=leftSampleWeight == null ? rightSampleWeight : leftSampleWeight;
-    }
-    return new MaterializeSampleNode(idAllocator.getNextId(),joinNode,outputSampleWeight);
-  }
-  return planRewriter.defaultRewrite(node,null);
+outputSampleWeight=leftSampleWeight == null ? rightSampleWeight : leftSampleWeight;
+if ((node.getType() == JoinNode.Type.LEFT && leftSampleWeight == null) || (node.getType() == JoinNode.Type.RIGHT && rightSampleWeight == null)) {
+ImmutableMap.Builder<Symbol,Expression> projections=ImmutableMap.builder();
+for (Symbol symbol : Iterables.filter(node.getOutputSymbols(),not(equalTo(outputSampleWeight)))) {
+Expression expression=new QualifiedNameReference(symbol.toQualifiedName());
+projections.put(symbol,expression);
+}
+Expression sampleWeightExpr=oneIfNull(outputSampleWeight);
+outputSampleWeight=symbolAllocator.newSymbol(sampleWeightExpr,Type.BIGINT);
+projections.put(outputSampleWeight,sampleWeightExpr);
+joinNode=new ProjectNode(idAllocator.getNextId(),joinNode,projections.build());
+}
+}
+return new MaterializeSampleNode(idAllocator.getNextId(),joinNode,outputSampleWeight);
+}
+return new JoinNode(node.getId(),node.getType(),leftSource,rightSource,node.getCriteria());
 }
