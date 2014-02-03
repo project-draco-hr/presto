@@ -1,0 +1,15 @@
+{
+  PlanNode source=planRewriter.rewrite(node.getSource(),null);
+  if (source instanceof MaterializeSampleNode) {
+    ImmutableMap.Builder<Symbol,Expression> projections=ImmutableMap.builder();
+    for (    Symbol symbol : Iterables.filter(source.getOutputSymbols(),not(equalTo(((MaterializeSampleNode)source).getSampleWeightSymbol())))) {
+      Expression expression=new QualifiedNameReference(symbol.toQualifiedName());
+      projections.put(symbol,expression);
+    }
+    source=new ProjectNode(idAllocator.getNextId(),((MaterializeSampleNode)source).getSource(),projections.build());
+    return new DistinctLimitNode(node.getId(),source,node.getLimit());
+  }
+ else {
+    return planRewriter.defaultRewrite(node,null);
+  }
+}

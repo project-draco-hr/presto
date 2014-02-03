@@ -1,12 +1,18 @@
 {
   PlanNode source=planRewriter.rewrite(node.getSource(),null);
   if (source instanceof MaterializeSampleNode) {
-    if (node.getFunctions().isEmpty()) {
-      return new AggregationNode(node.getId(),((MaterializeSampleNode)source).getSource(),node.getGroupBy(),node.getAggregations(),node.getFunctions(),node.getMasks(),Optional.<Symbol>absent());
+    if (node.getAggregations().isEmpty() && node.getOutputSymbols().size() == node.getGroupBy().size() && node.getOutputSymbols().containsAll(node.getGroupBy())) {
+      ImmutableMap.Builder<Symbol,Expression> projections=ImmutableMap.builder();
+      for (      Symbol symbol : source.getOutputSymbols()) {
+        Expression expression=new QualifiedNameReference(symbol.toQualifiedName());
+        projections.put(symbol,expression);
+      }
+      source=new ProjectNode(idAllocator.getNextId(),((MaterializeSampleNode)source).getSource(),projections.build());
+      return new AggregationNode(node.getId(),source,node.getGroupBy(),node.getAggregations(),node.getFunctions(),node.getMasks(),Optional.<Symbol>absent());
     }
  else {
       return new AggregationNode(node.getId(),((MaterializeSampleNode)source).getSource(),node.getGroupBy(),node.getAggregations(),node.getFunctions(),node.getMasks(),Optional.of(((MaterializeSampleNode)source).getSampleWeightSymbol()));
     }
   }
-  return planRewriter.defaultRewrite(node,null);
+  return new AggregationNode(node.getId(),source,node.getGroupBy(),node.getAggregations(),node.getFunctions(),node.getMasks(),node.getSampleWeight());
 }
