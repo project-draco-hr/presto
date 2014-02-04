@@ -6,15 +6,14 @@
   InMemoryNodeManager nodeManager=new InMemoryNodeManager();
   String nodeName=UUID.randomUUID().toString();
   nodeManager.addNode("native",new PrestoNode(nodeName,new URI("http://127.0.0.1/"),NodeVersion.UNKNOWN));
-  MetadataManager metadataManager=new MetadataManager();
-  metadataManager.addConnectorMetadata("local","local",new NativeMetadata("native",dbi,shardManager));
-  tableHandle=metadataManager.createTable("local",new TableMetadata("local",TEST_TABLE));
-  dsColumnHandle=metadataManager.getColumnHandle(tableHandle,"ds").get();
+  NativeMetadata metadata=new NativeMetadata(new NativeConnectorId("native"),dbi,shardManager);
+  tableHandle=metadata.createTable(TEST_TABLE);
+  dsColumnHandle=metadata.getColumnHandle(tableHandle,"ds");
   UUID shardUuid1=UUID.randomUUID();
   UUID shardUuid2=UUID.randomUUID();
   UUID shardUuid3=UUID.randomUUID();
   UUID shardUuid4=UUID.randomUUID();
   shardManager.commitPartition(tableHandle,"ds=1",ImmutableList.<PartitionKey>of(new NativePartitionKey("ds=1","ds",STRING,"1")),ImmutableMap.<UUID,String>builder().put(shardUuid1,nodeName).put(shardUuid2,nodeName).put(shardUuid3,nodeName).build());
   shardManager.commitPartition(tableHandle,"ds=2",ImmutableList.<PartitionKey>of(new NativePartitionKey("ds=2","ds",STRING,"2")),ImmutableMap.<UUID,String>builder().put(shardUuid4,nodeName).build());
-  nativeSplitManager=new NativeSplitManager(nodeManager,shardManager,metadataManager);
+  nativeSplitManager=new NativeSplitManager(nodeManager,shardManager,metadata);
 }

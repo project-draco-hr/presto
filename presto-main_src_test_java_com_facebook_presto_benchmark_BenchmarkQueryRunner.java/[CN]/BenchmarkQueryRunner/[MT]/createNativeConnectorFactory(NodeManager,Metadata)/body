@@ -8,11 +8,10 @@
     NativeDataStreamProvider nativeDataStreamProvider=new NativeDataStreamProvider(localStorageManager);
     NativeRecordSinkProvider nativeRecordSinkProvider=new NativeRecordSinkProvider(localStorageManager,nodeManager.getCurrentNode().getNodeIdentifier());
     IDBI metadataDbi=createDataSource(databaseDir,"Metastore");
-    NativeConnectorFactory nativeConnectorFactory=new NativeConnectorFactory(nativeDataStreamProvider,nativeRecordSinkProvider);
-    nativeConnectorFactory.setDbi(metadataDbi);
     DatabaseShardManager shardManager=new DatabaseShardManager(metadataDbi);
-    nativeConnectorFactory.setShardManager(shardManager);
-    nativeConnectorFactory.setSplitManager(new NativeSplitManager(nodeManager,shardManager,metadata));
+    NativeMetadata nativeMetadata=new NativeMetadata(new NativeConnectorId("default"),metadataDbi,shardManager);
+    NativeSplitManager nativeSplitManager=new NativeSplitManager(nodeManager,shardManager,nativeMetadata);
+    NativeConnectorFactory nativeConnectorFactory=new NativeConnectorFactory(nativeMetadata,nativeSplitManager,nativeDataStreamProvider,nativeRecordSinkProvider);
     return nativeConnectorFactory;
   }
  catch (  InterruptedException e) {
