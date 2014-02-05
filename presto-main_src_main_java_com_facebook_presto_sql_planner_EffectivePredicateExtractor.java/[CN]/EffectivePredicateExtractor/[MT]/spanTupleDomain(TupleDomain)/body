@@ -1,0 +1,12 @@
+{
+  if (tupleDomain.isNone()) {
+    return tupleDomain;
+  }
+  Map<ColumnHandle,Domain> spannedDomains=Maps.transformValues(tupleDomain.getDomains(),new Function<Domain,Domain>(){
+    @Override public Domain apply(    Domain domain){
+      return Domain.create(SortedRangeSet.of(domain.getRanges().getSpan()),domain.isNullAllowed());
+    }
+  }
+);
+  return TupleDomain.withColumnDomains(spannedDomains);
+}
