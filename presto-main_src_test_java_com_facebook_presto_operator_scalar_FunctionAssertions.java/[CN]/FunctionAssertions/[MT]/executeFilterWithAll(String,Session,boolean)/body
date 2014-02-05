@@ -5,6 +5,10 @@
   OperatorFactory operatorFactory=compileFilterProject(filterExpression,TRUE_LITERAL);
   Type expressionType=Type.fromRaw(operatorFactory.getTupleInfos().get(0).getType());
   results.add(executeFilter(operatorFactory,session));
+  if (executeWithNoInputColumns) {
+    operatorFactory=compileFilterWithNoInputColumns(filterExpression);
+    results.add(executeFilterWithNoInputColumns(operatorFactory,session));
+  }
   boolean interpretedValue=executeFilter(interpretedFilterProject(filterExpression,TRUE_LITERAL,expressionType,session));
   results.add(interpretedValue);
   SourceOperatorFactory scanProjectOperatorFactory=compileScanFilterProject(filterExpression,TRUE_LITERAL);
