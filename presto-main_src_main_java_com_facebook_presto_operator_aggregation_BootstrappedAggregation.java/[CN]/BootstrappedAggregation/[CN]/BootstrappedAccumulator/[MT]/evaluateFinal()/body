@@ -1,0 +1,11 @@
+{
+  DescriptiveStatistics statistics=new DescriptiveStatistics();
+  for (int i=0; i < accumulators.size(); i++) {
+    BlockCursor cursor=accumulators.get(i).evaluateFinal().cursor();
+    checkArgument(cursor.advanceNextPosition(),"accumulator returned no results");
+    statistics.addValue(getNumeric(cursor));
+  }
+  BlockBuilder builder=new BlockBuilder(SINGLE_VARBINARY);
+  builder.append(formatApproximateOutput(statistics,confidence));
+  return builder.build();
+}

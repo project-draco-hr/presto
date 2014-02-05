@@ -1,0 +1,13 @@
+{
+  Block[] blocks=new Block[accumulators.size()];
+  int sizeEstimate=64 * accumulators.size();
+  for (int i=0; i < accumulators.size(); i++) {
+    blocks[i]=accumulators.get(i).evaluateIntermediate();
+    sizeEstimate+=blocks[i].getDataSize().toBytes();
+  }
+  SliceOutput output=new DynamicSliceOutput(sizeEstimate);
+  PagesSerde.writePages(output,new Page(blocks));
+  BlockBuilder builder=new BlockBuilder(SINGLE_VARBINARY);
+  builder.append(output.slice());
+  return builder.build();
+}
