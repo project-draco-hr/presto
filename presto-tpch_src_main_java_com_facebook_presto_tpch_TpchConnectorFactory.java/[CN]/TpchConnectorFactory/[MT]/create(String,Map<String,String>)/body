@@ -1,10 +1,24 @@
 {
-  checkNotNull(properties,"properties is null");
-  int splitsPerNode=getSplitsPerNode(properties);
-  ImmutableClassToInstanceMap.Builder<Object> builder=ImmutableClassToInstanceMap.builder();
-  builder.put(ConnectorMetadata.class,new TpchMetadata());
-  builder.put(ConnectorSplitManager.class,new TpchSplitManager(connectorId,nodeManager,splitsPerNode));
-  builder.put(ConnectorRecordSetProvider.class,new TpchRecordSetProvider());
-  builder.put(ConnectorHandleResolver.class,HANDLE_RESOLVER);
-  return new TpchConnector(builder.build());
+  final int splitsPerNode=getSplitsPerNode(properties);
+  return new Connector(){
+    @Override public ConnectorMetadata getMetadata(){
+      return new TpchMetadata();
+    }
+    @Override public ConnectorSplitManager getSplitManager(){
+      return new TpchSplitManager(connectorId,nodeManager,splitsPerNode);
+    }
+    @Override public ConnectorHandleResolver getHandleResolver(){
+      return new TpchHandleResolver();
+    }
+    @Override public ConnectorRecordSetProvider getRecordSetProvider(){
+      return new TpchRecordSetProvider();
+    }
+    @Override public ConnectorRecordSinkProvider getRecordSinkProvider(){
+      throw new UnsupportedOperationException();
+    }
+    @Override public ConnectorOutputHandleResolver getOutputHandleResolver(){
+      throw new UnsupportedOperationException();
+    }
+  }
+;
 }

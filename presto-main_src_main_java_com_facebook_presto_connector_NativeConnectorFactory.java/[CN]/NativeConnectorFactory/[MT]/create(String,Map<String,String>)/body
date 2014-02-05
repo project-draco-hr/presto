@@ -1,10 +1,26 @@
 {
-  ImmutableClassToInstanceMap.Builder<Object> builder=ImmutableClassToInstanceMap.builder();
-  builder.put(ConnectorMetadata.class,metadata);
-  builder.put(ConnectorSplitManager.class,splitManager);
-  builder.put(ConnectorDataStreamProvider.class,dataStreamProvider);
-  builder.put(ConnectorHandleResolver.class,HANDLE_RESOLVER);
-  builder.put(ConnectorRecordSinkProvider.class,recordSinkProvider);
-  builder.put(ConnectorOutputHandleResolver.class,HANDLE_RESOLVER);
-  return new StaticConnector(builder.build());
+  return new InternalConnector(){
+    @Override public ConnectorDataStreamProvider getDataStreamProvider(){
+      return dataStreamProvider;
+    }
+    @Override public ConnectorHandleResolver getHandleResolver(){
+      return new NativeHandleResolver();
+    }
+    @Override public ConnectorMetadata getMetadata(){
+      return metadata;
+    }
+    @Override public ConnectorSplitManager getSplitManager(){
+      return splitManager;
+    }
+    @Override public ConnectorRecordSinkProvider getRecordSinkProvider(){
+      return recordSinkProvider;
+    }
+    @Override public ConnectorOutputHandleResolver getOutputHandleResolver(){
+      return new NativeHandleResolver();
+    }
+    @Override public ConnectorRecordSetProvider getRecordSetProvider(){
+      throw new UnsupportedOperationException();
+    }
+  }
+;
 }

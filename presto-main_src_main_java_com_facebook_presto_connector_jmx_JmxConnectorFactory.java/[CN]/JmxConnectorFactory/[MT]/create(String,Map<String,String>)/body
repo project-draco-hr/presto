@@ -1,9 +1,26 @@
 {
-  JmxConnectorId jmxConnectorId=new JmxConnectorId(connectorId);
-  ImmutableClassToInstanceMap.Builder<Object> builder=ImmutableClassToInstanceMap.builder();
-  builder.put(ConnectorMetadata.class,new JmxMetadata(jmxConnectorId,mbeanServer));
-  builder.put(ConnectorSplitManager.class,new JmxSplitManager(jmxConnectorId,nodeManager));
-  builder.put(ConnectorDataStreamProvider.class,new JmxDataStreamProvider(jmxConnectorId,mbeanServer,nodeInfo));
-  builder.put(ConnectorHandleResolver.class,HANDLE_RESOLVER);
-  return new StaticConnector(builder.build());
+  return new InternalConnector(){
+    @Override public ConnectorHandleResolver getHandleResolver(){
+      return new JmxHandleResolver();
+    }
+    @Override public ConnectorMetadata getMetadata(){
+      return new JmxMetadata(new JmxConnectorId(connectorId),mbeanServer);
+    }
+    @Override public ConnectorSplitManager getSplitManager(){
+      return new JmxSplitManager(new JmxConnectorId(connectorId),nodeManager);
+    }
+    @Override public ConnectorDataStreamProvider getDataStreamProvider(){
+      return new JmxDataStreamProvider(new JmxConnectorId(connectorId),mbeanServer,nodeInfo);
+    }
+    @Override public ConnectorRecordSetProvider getRecordSetProvider(){
+      throw new UnsupportedOperationException();
+    }
+    @Override public ConnectorRecordSinkProvider getRecordSinkProvider(){
+      throw new UnsupportedOperationException();
+    }
+    @Override public ConnectorOutputHandleResolver getOutputHandleResolver(){
+      throw new UnsupportedOperationException();
+    }
+  }
+;
 }
