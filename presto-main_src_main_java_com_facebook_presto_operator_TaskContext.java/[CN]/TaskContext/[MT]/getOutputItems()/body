@@ -1,3 +1,10 @@
 {
-  return (Map<PlanNodeId,Set<?>>)(Object)outputItems.asMap();
+synchronized (outputItems) {
+    return ImmutableMap.copyOf(Maps.transformValues(outputItems.asMap(),new Function<Iterable<?>,Set<?>>(){
+      @Override public Set<?> apply(      Iterable<?> values){
+        return ImmutableSet.copyOf(values);
+      }
+    }
+));
+  }
 }
