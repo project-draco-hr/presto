@@ -17,7 +17,15 @@
         try (SetThreadName setThreadName=new SetThreadName("Task-%s",taskId)){
           taskStateMachine.failed(cause);
           remainingDrivers.decrementAndGet();
-          queryMonitor.splitFailedEvent(taskId,splitRunner.getDriverContext().getDriverStats(),cause);
+          DriverContext driverContext=splitRunner.getDriverContext();
+          DriverStats driverStats;
+          if (driverContext != null) {
+            driverStats=driverContext.getDriverStats();
+          }
+ else {
+            driverStats=new DriverStats();
+          }
+          queryMonitor.splitFailedEvent(taskId,driverStats,cause);
         }
        }
     }
