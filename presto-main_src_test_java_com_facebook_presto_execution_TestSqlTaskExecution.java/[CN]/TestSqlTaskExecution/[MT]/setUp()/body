@@ -1,0 +1,25 @@
+{
+  DualMetadata dualMetadata=new DualMetadata();
+  TableHandle tableHandle=dualMetadata.getTableHandle(new SchemaTableName("default",DualMetadata.NAME));
+  assertNotNull(tableHandle,"tableHandle is null");
+  ColumnHandle columnHandle=dualMetadata.getColumnHandle(tableHandle,DualMetadata.COLUMN_NAME);
+  assertNotNull(columnHandle,"columnHandle is null");
+  Symbol symbol=new Symbol(DualMetadata.COLUMN_NAME);
+  MetadataManager metadata=new MetadataManager();
+  metadata.addInternalSchemaMetadata(MetadataManager.INTERNAL_CONNECTOR_ID,dualMetadata);
+  DualSplitManager dualSplitManager=new DualSplitManager(new InMemoryNodeManager());
+  PartitionResult partitionResult=dualSplitManager.getPartitions(tableHandle,TupleDomain.all());
+  SplitSource splitSource=dualSplitManager.getPartitionSplits(tableHandle,partitionResult.getPartitions());
+  split=Iterables.getOnlyElement(splitSource.getNextBatch(1));
+  assertTrue(splitSource.isFinished());
+  LocalExecutionPlanner planner=new LocalExecutionPlanner(new NodeInfo("test"),metadata,new DataStreamManager(new DualDataStreamProvider()),new MockLocalStorageManager(new File("target/temp")),new RecordSinkManager(),new MockExchangeClientSupplier(),new ExpressionCompiler(metadata));
+  taskExecutor=new TaskExecutor(8);
+  taskExecutor.start();
+  tableScanNodeId=new PlanNodeId("tableScan");
+  PlanFragment testFragment=new PlanFragment(new PlanFragmentId("fragment"),new TableScanNode(tableScanNodeId,tableHandle,ImmutableList.of(symbol),ImmutableMap.of(symbol,columnHandle),null,Optional.<GeneratedPartitions>absent()),ImmutableMap.of(symbol,Type.VARCHAR),PlanDistribution.SOURCE,tableScanNodeId,OutputPartitioning.NONE,ImmutableList.<Symbol>of());
+  TaskId taskId=new TaskId("query","stage","task");
+  Session session=new Session("user","test","default","default","test","test");
+  taskNotificationExecutor=Executors.newCachedThreadPool(threadsNamed("task-notification-%d"));
+  outputBuffers=OutputBuffers.INITIAL_EMPTY_OUTPUT_BUFFERS;
+  taskExecution=SqlTaskExecution.createSqlTaskExecution(session,taskId,URI.create("fake://task/" + taskId),testFragment,ImmutableList.<TaskSource>of(),outputBuffers,planner,new DataSize(32,Unit.MEGABYTE),taskExecutor,taskNotificationExecutor,new DataSize(256,Unit.MEGABYTE),new DataSize(8,Unit.MEGABYTE),new QueryMonitor(new ObjectMapperProvider().get(),new NullEventClient(),new NodeInfo("test")),false);
+}

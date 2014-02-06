@@ -1,0 +1,14 @@
+{
+  outputBuffers=outputBuffers.withBuffer("out",new UnpartitionedPagePartitionFunction()).withNoMoreBufferIds();
+  taskExecution.addResultQueue(outputBuffers);
+  BufferResult bufferResult=taskExecution.getResults("out",0,new DataSize(1,Unit.MEGABYTE),new Duration(0,TimeUnit.MILLISECONDS));
+  assertFalse(bufferResult.isBufferClosed());
+  bufferResult=taskExecution.getResults("out",0,new DataSize(1,Unit.MEGABYTE),new Duration(0,TimeUnit.MILLISECONDS));
+  assertFalse(bufferResult.isBufferClosed());
+  taskExecution.fail(new Exception("test"));
+  assertEquals(taskExecution.getTaskInfo(false).getState(),TaskState.FAILED);
+  bufferResult=taskExecution.getResults("out",0,new DataSize(1,Unit.MEGABYTE),new Duration(500,TimeUnit.MILLISECONDS));
+  assertFalse(bufferResult.isBufferClosed());
+  bufferResult=taskExecution.getResults("out",0,new DataSize(1,Unit.MEGABYTE),new Duration(500,TimeUnit.MILLISECONDS));
+  assertFalse(bufferResult.isBufferClosed());
+}

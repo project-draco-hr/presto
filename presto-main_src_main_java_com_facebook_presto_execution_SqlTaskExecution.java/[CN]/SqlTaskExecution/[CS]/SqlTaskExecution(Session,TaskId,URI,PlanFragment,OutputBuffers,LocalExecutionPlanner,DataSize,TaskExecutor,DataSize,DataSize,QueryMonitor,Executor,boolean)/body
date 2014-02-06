@@ -9,7 +9,9 @@
       @Override public void stateChanged(      TaskState taskState){
         if (taskState.isDone()) {
           SqlTaskExecution.this.taskExecutor.removeTask(taskHandle);
-          sharedBuffer.destroy();
+          if (taskState != TaskState.FAILED) {
+            sharedBuffer.destroy();
+          }
         }
       }
     }
