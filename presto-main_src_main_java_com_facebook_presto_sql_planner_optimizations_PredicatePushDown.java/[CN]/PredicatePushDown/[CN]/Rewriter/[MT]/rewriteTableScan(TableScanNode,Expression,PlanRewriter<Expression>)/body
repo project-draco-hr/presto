@@ -1,13 +1,13 @@
 {
   DomainTranslator.ExtractionResult extractionResult=DomainTranslator.fromPredicate(metadata,session,inheritedPredicate,symbolAllocator.getTypes(),node.getAssignments());
   Expression extractionRemainingExpression=extractionResult.getRemainingExpression();
-  TupleDomain tupleDomain=extractionResult.getTupleDomain();
+  TupleDomain<ColumnHandle> tupleDomain=extractionResult.getTupleDomain();
   if (node.getGeneratedPartitions().isPresent()) {
     tupleDomain=tupleDomain.intersect(node.getGeneratedPartitions().get().getTupleDomainInput()).intersect(node.getPartitionsDomainSummary());
   }
   PartitionResult matchingPartitions=splitManager.getPartitions(node.getTable(),Optional.of(tupleDomain));
   List<Partition> partitions=matchingPartitions.getPartitions();
-  TupleDomain undeterminedTupleDomain=matchingPartitions.getUndeterminedTupleDomain();
+  TupleDomain<ColumnHandle> undeterminedTupleDomain=matchingPartitions.getUndeterminedTupleDomain();
   Expression unevaluatedDomainPredicate=DomainTranslator.toPredicate(undeterminedTupleDomain,ImmutableBiMap.copyOf(node.getAssignments()).inverse(),symbolAllocator.getTypes());
   Expression postScanPredicate=combineConjuncts(unevaluatedDomainPredicate,extractionRemainingExpression);
   partitions=ImmutableList.copyOf(filter(partitions,not(shouldPrunePartition(postScanPredicate,node.getAssignments()))));
