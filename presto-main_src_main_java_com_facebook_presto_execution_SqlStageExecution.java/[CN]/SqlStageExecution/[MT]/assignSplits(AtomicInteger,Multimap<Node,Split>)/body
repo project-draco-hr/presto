@@ -1,0 +1,16 @@
+{
+  for (  Entry<Node,Collection<Split>> taskSplits : splitAssignment.asMap().entrySet()) {
+    long scheduleSplitStart=System.nanoTime();
+    Node node=taskSplits.getKey();
+    RemoteTask task=tasks.get(node);
+    if (task == null) {
+      scheduleTask(nextTaskId.getAndIncrement(),node,fragment.getPartitionedSource(),taskSplits.getValue());
+      addStageNode(node);
+      scheduleTaskDistribution.add(System.nanoTime() - scheduleSplitStart);
+    }
+ else {
+      task.addSplits(fragment.getPartitionedSource(),taskSplits.getValue());
+      addSplitDistribution.add(System.nanoTime() - scheduleSplitStart);
+    }
+  }
+}

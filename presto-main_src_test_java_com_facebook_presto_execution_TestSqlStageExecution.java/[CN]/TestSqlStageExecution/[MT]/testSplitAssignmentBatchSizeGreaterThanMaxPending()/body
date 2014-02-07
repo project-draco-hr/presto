@@ -1,0 +1,21 @@
+{
+  final InMemoryNodeManager nodeManager=new InMemoryNodeManager();
+  ImmutableList.Builder<Node> nodeBuilder=ImmutableList.builder();
+  nodeBuilder.add(new PrestoNode("other1",URI.create("http://127.0.0.1:11"),NodeVersion.UNKNOWN));
+  nodeBuilder.add(new PrestoNode("other2",URI.create("http://127.0.0.1:12"),NodeVersion.UNKNOWN));
+  nodeBuilder.add(new PrestoNode("other3",URI.create("http://127.0.0.1:13"),NodeVersion.UNKNOWN));
+  ImmutableList<Node> nodes=nodeBuilder.build();
+  nodeManager.addNode("foo",nodes);
+  NodeScheduler nodeScheduler=new NodeScheduler(nodeManager,new NodeSchedulerConfig());
+  SqlStageExecution sqlStageExecution1=createSqlStageExecution(nodeScheduler,10,2);
+  Future future1=sqlStageExecution1.start();
+  try {
+    future1.get(2,TimeUnit.SECONDS);
+  }
+ catch (  TimeoutException e) {
+  }
+  Map<Node,RemoteTask> tasks1=sqlStageExecution1.getTasks();
+  for (  Map.Entry<Node,RemoteTask> entry : tasks1.entrySet()) {
+    assertEquals(entry.getValue().getQueuedSplits(),2);
+  }
+}

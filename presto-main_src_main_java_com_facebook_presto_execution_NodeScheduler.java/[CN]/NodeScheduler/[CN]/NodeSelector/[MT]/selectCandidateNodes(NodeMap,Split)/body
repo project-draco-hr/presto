@@ -1,5 +1,5 @@
 {
-  Set<Node> chosen=new LinkedHashSet<>(minCount);
+  Set<Node> chosen=new LinkedHashSet<>(minCandidates);
   for (  HostAddress hint : split.getAddresses()) {
     for (    Node node : nodeMap.getNodesByHostAndPort().get(hint)) {
       if (chosen.add(node)) {
@@ -21,7 +21,7 @@
       }
     }
   }
-  if (split.isRemotelyAccessible() && chosen.size() < minCount) {
+  if (split.isRemotelyAccessible() && chosen.size() < minCandidates) {
     for (    HostAddress hint : split.getAddresses()) {
       InetAddress address;
       try {
@@ -34,22 +34,22 @@
         if (chosen.add(node)) {
           scheduleRack.incrementAndGet();
         }
-        if (chosen.size() == minCount) {
+        if (chosen.size() == minCandidates) {
           break;
         }
       }
-      if (chosen.size() == minCount) {
+      if (chosen.size() == minCandidates) {
         break;
       }
     }
   }
   if (split.isRemotelyAccessible()) {
-    if (chosen.size() < minCount) {
+    if (chosen.size() < minCandidates) {
       for (      Node node : lazyShuffle(nodeMap.getNodesByHost().values())) {
         if (chosen.add(node)) {
           scheduleRandom.incrementAndGet();
         }
-        if (chosen.size() == minCount) {
+        if (chosen.size() == minCandidates) {
           break;
         }
       }
