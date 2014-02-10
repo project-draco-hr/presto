@@ -4,13 +4,6 @@
   final Optional<TableHandle> tableHandle=metadataManager.getTableHandle(tableName);
   checkState(tableHandle.isPresent(),"Table %s does not exist",tableName);
   checkState(tableHandle.get() instanceof NativeTableHandle,"Can drop only native tables");
-  storageManager.dropTableSource((NativeTableHandle)tableHandle.get());
-  periodicImportManager.dropJobs(new Predicate<PersistentPeriodicImportJob>(){
-    @Override public boolean apply(    PersistentPeriodicImportJob job){
-      return job.getDstTable().equals(tableHandle.get());
-    }
-  }
-);
   Set<TablePartition> partitions=shardManager.getPartitions(tableHandle.get());
   for (  TablePartition partition : partitions) {
     shardManager.dropPartition(tableHandle.get(),partition.getPartitionName());

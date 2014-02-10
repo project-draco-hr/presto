@@ -12,7 +12,6 @@
       final Configuration configuration=hdfsEnvironment.getConfiguration(path);
       final InputFormat<?,?> inputFormat=getInputFormat(configuration,schema,false);
       FileSystem fs=path.getFileSystem(configuration);
-      final LastSplitMarkingQueue markerQueue=new LastSplitMarkingQueue(hiveSplitSource);
       if (inputFormat instanceof SymlinkTextInputFormat) {
         JobConf jobConf=new JobConf(configuration);
         FileInputFormat.setInputPaths(jobConf,path);
@@ -21,9 +20,8 @@
           FileSplit split=((SymlinkTextInputFormat.SymlinkTextInputSplit)rawSplit).getTargetSplit();
           FileSystem targetFilesystem=split.getPath().getFileSystem(configuration);
           FileStatus fileStatus=targetFilesystem.getFileStatus(split.getPath());
-          markerQueue.addToQueue(createHiveSplits(partitionName,fileStatus,targetFilesystem.getFileBlockLocations(fileStatus,split.getStart(),split.getLength()),split.getStart(),split.getLength(),schema,partitionKeys,false));
+          hiveSplitSource.addToQueue(createHiveSplits(partitionName,fileStatus,targetFilesystem.getFileBlockLocations(fileStatus,split.getStart(),split.getLength()),split.getStart(),split.getLength(),schema,partitionKeys,false));
         }
-        markerQueue.finish();
         continue;
       }
       if (bucket.isPresent()) {
@@ -32,8 +30,7 @@
           FileStatus file=bucketFile.get();
           BlockLocation[] blockLocations=fs.getFileBlockLocations(file,0,file.getLen());
           boolean splittable=isSplittable(inputFormat,fs,file.getPath());
-          markerQueue.addToQueue(createHiveSplits(partitionName,file,blockLocations,0,file.getLen(),schema,partitionKeys,splittable));
-          markerQueue.finish();
+          hiveSplitSource.addToQueue(createHiveSplits(partitionName,file,blockLocations,0,file.getLen(),schema,partitionKeys,splittable));
           continue;
         }
       }
@@ -42,7 +39,7 @@
         @Override public void process(        FileStatus file,        BlockLocation[] blockLocations){
           try {
             boolean splittable=isSplittable(inputFormat,file.getPath().getFileSystem(configuration),file.getPath());
-            markerQueue.addToQueue(createHiveSplits(partitionName,file,blockLocations,0,file.getLen(),schema,partitionKeys,splittable));
+            hiveSplitSource.addToQueue(createHiveSplits(partitionName,file,blockLocations,0,file.getLen(),schema,partitionKeys,splittable));
           }
  catch (          IOException e) {
             hiveSplitSource.fail(e);
@@ -53,11 +50,9 @@
       Futures.addCallback(partitionFuture,new FutureCallback<Void>(){
         @Override public void onSuccess(        Void result){
           semaphore.release();
-          markerQueue.finish();
         }
         @Override public void onFailure(        Throwable t){
           semaphore.release();
-          markerQueue.finish();
         }
       }
 );

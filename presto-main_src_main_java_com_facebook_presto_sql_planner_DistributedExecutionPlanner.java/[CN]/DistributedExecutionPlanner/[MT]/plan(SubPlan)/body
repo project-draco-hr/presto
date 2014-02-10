@@ -1,3 +1,10 @@
 {
-  return plan(root,Predicates.<Partition>alwaysTrue());
+  PlanFragment currentFragment=root.getFragment();
+  Visitor visitor=new Visitor();
+  Optional<SplitSource> splits=currentFragment.getRoot().accept(visitor,null);
+  ImmutableList.Builder<StageExecutionPlan> dependencies=ImmutableList.builder();
+  for (  SubPlan childPlan : root.getChildren()) {
+    dependencies.add(plan(childPlan));
+  }
+  return new StageExecutionPlan(currentFragment,splits,dependencies.build());
 }

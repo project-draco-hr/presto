@@ -1,0 +1,8 @@
+{
+  Optional<SplitSource> sourceSplits=node.getSource().accept(this,context);
+  Optional<SplitSource> filteringSourceSplits=node.getFilteringSource().accept(this,context);
+  if (sourceSplits.isPresent() && filteringSourceSplits.isPresent()) {
+    throw new IllegalArgumentException("Both source and filteringSource semi join nodes are partitioned");
+  }
+  return sourceSplits.isPresent() ? sourceSplits : filteringSourceSplits;
+}

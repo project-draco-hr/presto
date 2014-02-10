@@ -1,0 +1,15 @@
+{
+switch (node.getSampleType()) {
+case BERNOULLI:
+    return node.getSource().accept(this,context);
+case SYSTEM:
+  Optional<SplitSource> nodeSplits=node.getSource().accept(this,context);
+if (nodeSplits.isPresent()) {
+  SplitSource sampledSplitSource=new SampledSplitSource(nodeSplits.get(),node.getSampleRatio());
+  return Optional.of(sampledSplitSource);
+}
+return nodeSplits;
+default :
+throw new UnsupportedOperationException("Sampling is not supported for type " + node.getSampleType());
+}
+}

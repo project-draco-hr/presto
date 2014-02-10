@@ -24,15 +24,6 @@
   binder.bind(ShardCleaner.class).in(Scopes.SINGLETON);
   httpClientBinder(binder).bindHttpClient("shard-cleaner",ForShardCleaner.class);
   binder.bind(ShardResource.class).in(Scopes.SINGLETON);
-  binder.bind(StorageManager.class).to(DatabaseStorageManager.class).in(Scopes.SINGLETON);
-  bindConfig(binder).to(PeriodicImportConfig.class);
-  binder.bind(PeriodicImportJobResource.class).in(Scopes.SINGLETON);
-  binder.bind(PeriodicImportManager.class).to(DatabasePeriodicImportManager.class).in(Scopes.SINGLETON);
-  binder.bind(PeriodicImportController.class).in(Scopes.SINGLETON);
-  binder.bind(JobStateFactory.class).in(Scopes.SINGLETON);
-  binder.bind(PeriodicImportRunnable.PeriodicImportRunnableFactory.class).in(Scopes.SINGLETON);
-  newExporter(binder).export(PeriodicImportController.class).as("com.facebook.presto:name=periodic-import");
-  httpClientBinder(binder).bindAsyncHttpClient("periodic-importer",ForPeriodicImport.class).withTracing();
   binder.bind(SqlQueryExecution.SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
   newExporter(binder).export(SqlQueryExecution.SqlQueryExecutionFactory.class).withGeneratedName();
   MapBinder<Class<? extends Statement>,QueryExecution.QueryExecutionFactory<?>> executionBinder=newMapBinder(binder,new TypeLiteral<Class<? extends Statement>>(){
@@ -58,7 +49,5 @@
   executionBinder.addBinding(ShowSchemas.class).to(SqlQueryExecution.SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
   executionBinder.addBinding(ShowCatalogs.class).to(SqlQueryExecution.SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
   executionBinder.addBinding(UseCollection.class).to(SqlQueryExecution.SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
-  executionBinder.addBinding(CreateMaterializedView.class).to(SqlQueryExecution.SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
-  executionBinder.addBinding(RefreshMaterializedView.class).to(SqlQueryExecution.SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
   executionBinder.addBinding(CreateTable.class).to(SqlQueryExecution.SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
 }
