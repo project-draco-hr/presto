@@ -1,12 +1,12 @@
 {
-  TableHandle tableHandle=getTableHandle(table);
+  ConnectorTableHandle tableHandle=getTableHandle(table);
   ConnectorTableMetadata tableMetadata=metadata.getTableMetadata(tableHandle);
-  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(tableHandle).values());
+  List<ConnectorColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(tableHandle).values());
   Map<String,Integer> columnIndex=indexColumns(columnHandles);
-  PartitionResult partitionResult=splitManager.getPartitions(tableHandle,TupleDomain.<ColumnHandle>all());
-  List<Split> splits=getAllSplits(splitManager.getPartitionSplits(tableHandle,partitionResult.getPartitions()));
+  ConnectorPartitionResult partitionResult=splitManager.getPartitions(tableHandle,TupleDomain.<ConnectorColumnHandle>all());
+  List<ConnectorSplit> splits=getAllSplits(splitManager.getPartitionSplits(tableHandle,partitionResult.getPartitions()));
   assertEquals(splits.size(),this.partitions.size());
-  for (  Split split : splits) {
+  for (  ConnectorSplit split : splits) {
     HiveSplit hiveSplit=(HiveSplit)split;
     List<HivePartitionKey> partitionKeys=hiveSplit.getPartitionKeys();
     String ds=partitionKeys.get(0).getValue();

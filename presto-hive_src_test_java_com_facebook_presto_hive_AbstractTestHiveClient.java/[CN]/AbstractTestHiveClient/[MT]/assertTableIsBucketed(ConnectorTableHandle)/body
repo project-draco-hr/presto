@@ -1,0 +1,9 @@
+{
+  ConnectorPartitionResult partitionResult=splitManager.getPartitions(tableHandle,TupleDomain.<ConnectorColumnHandle>all());
+  List<ConnectorSplit> splits=getAllSplits(splitManager.getPartitionSplits(tableHandle,partitionResult.getPartitions()));
+  assertEquals(splits.size(),32);
+  Set<String> paths=new HashSet<>();
+  for (  ConnectorSplit split : splits) {
+    assertTrue(paths.add(((HiveSplit)split).getPath()));
+  }
+}

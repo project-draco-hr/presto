@@ -1,0 +1,14 @@
+{
+  SchemaTableName tableName=getTableName(tableHandle);
+  try {
+    Table table=metastore.getTable(tableName.getSchemaName(),tableName.getTableName());
+    ImmutableMap.Builder<String,ConnectorColumnHandle> columnHandles=ImmutableMap.builder();
+    for (    HiveColumnHandle columnHandle : getColumnHandles(table,false)) {
+      columnHandles.put(columnHandle.getName(),columnHandle);
+    }
+    return columnHandles.build();
+  }
+ catch (  NoSuchObjectException e) {
+    throw new TableNotFoundException(tableName);
+  }
+}

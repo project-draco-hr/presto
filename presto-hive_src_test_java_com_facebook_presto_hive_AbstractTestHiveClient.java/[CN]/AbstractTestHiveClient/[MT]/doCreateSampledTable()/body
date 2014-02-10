@@ -1,7 +1,7 @@
 {
   List<ColumnMetadata> columns=ImmutableList.<ColumnMetadata>builder().add(new ColumnMetadata("sales",BIGINT,1,false)).build();
   ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(temporaryCreateSampledTable,columns,tableOwner,true);
-  OutputTableHandle outputHandle=metadata.beginCreateTable(tableMetadata);
+  ConnectorOutputTableHandle outputHandle=metadata.beginCreateTable(tableMetadata);
   RecordSink sink=recordSinkProvider.getRecordSink(outputHandle);
   sink.beginRecord(8);
   sink.appendLong(2);
@@ -14,18 +14,18 @@
   sink.finishRecord();
   String fragment=sink.commit();
   metadata.commitCreateTable(outputHandle,ImmutableList.of(fragment));
-  TableHandle tableHandle=getTableHandle(temporaryCreateSampledTable);
-  List<ColumnHandle> columnHandles=ImmutableList.<ColumnHandle>builder().addAll(metadata.getColumnHandles(tableHandle).values()).add(metadata.getSampleWeightColumnHandle(tableHandle)).build();
+  ConnectorTableHandle tableHandle=getTableHandle(temporaryCreateSampledTable);
+  List<ConnectorColumnHandle> columnHandles=ImmutableList.<ConnectorColumnHandle>builder().addAll(metadata.getColumnHandles(tableHandle).values()).add(metadata.getSampleWeightColumnHandle(tableHandle)).build();
   assertEquals(columnHandles.size(),2);
   tableMetadata=metadata.getTableMetadata(getTableHandle(temporaryCreateSampledTable));
   assertEquals(tableMetadata.getOwner(),tableOwner);
   Map<String,ColumnMetadata> columnMap=uniqueIndex(tableMetadata.getColumns(),columnNameGetter());
   assertEquals(columnMap.size(),1);
   assertPrimitiveField(columnMap,0,"sales",BIGINT,false);
-  PartitionResult partitionResult=splitManager.getPartitions(tableHandle,TupleDomain.<ColumnHandle>all());
+  ConnectorPartitionResult partitionResult=splitManager.getPartitions(tableHandle,TupleDomain.<ConnectorColumnHandle>all());
   assertEquals(partitionResult.getPartitions().size(),1);
-  SplitSource splitSource=splitManager.getPartitionSplits(tableHandle,partitionResult.getPartitions());
-  Split split=getOnlyElement(getAllSplits(splitSource));
+  ConnectorSplitSource splitSource=splitManager.getPartitionSplits(tableHandle,partitionResult.getPartitions());
+  ConnectorSplit split=getOnlyElement(getAllSplits(splitSource));
   try (RecordCursor cursor=recordSetProvider.getRecordSet(split,columnHandles).cursor()){
     assertRecordCursorType(cursor,"rcfile-binary");
     assertTrue(cursor.advanceNextPosition());

@@ -3,10 +3,13 @@
   log.debug("Dropping %s",tableName);
   final Optional<TableHandle> tableHandle=metadataManager.getTableHandle(tableName);
   checkState(tableHandle.isPresent(),"Table %s does not exist",tableName);
-  checkCondition(tableHandle.get() instanceof NativeTableHandle,CANNOT_DROP_TABLE,"Can only drop native tables");
-  Set<TablePartition> partitions=shardManager.getPartitions(tableHandle.get());
+  final ConnectorTableHandle connectorHandle=tableHandle.get().getConnectorHandle();
+  if (!(connectorHandle instanceof NativeTableHandle)) {
+    throw new PrestoException(CANNOT_DROP_TABLE.toErrorCode(),"Can only drop native tables");
+  }
+  Set<TablePartition> partitions=shardManager.getPartitions(tableHandle.get().getConnectorHandle());
   for (  TablePartition partition : partitions) {
-    shardManager.dropPartition(tableHandle.get(),partition.getPartitionName());
+    shardManager.dropPartition(connectorHandle,partition.getPartitionName());
   }
   metadataManager.dropTable(tableHandle.get());
   stateMachine.finished();

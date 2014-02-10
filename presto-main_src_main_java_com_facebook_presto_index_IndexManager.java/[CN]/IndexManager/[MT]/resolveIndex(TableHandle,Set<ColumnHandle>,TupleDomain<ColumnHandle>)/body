@@ -1,7 +1,12 @@
 {
-  Optional<ConnectorIndexResolver> connectorIndexResolver=getConnectorIndexResolver(tableHandle);
-  if (!connectorIndexResolver.isPresent()) {
+  Optional<ConnectorIndexResolver> resolver=getConnectorIndexResolver(tableHandle);
+  if (!resolver.isPresent()) {
     return Optional.absent();
   }
-  return Optional.fromNullable(connectorIndexResolver.get().resolveIndex(tableHandle,indexableColumns,tupleDomain));
+  Set<ConnectorColumnHandle> columns=ImmutableSet.copyOf(Iterables.transform(indexableColumns,ColumnHandle.connectorHandleGetter()));
+  ConnectorResolvedIndex resolved=resolver.get().resolveIndex(tableHandle.getConnectorHandle(),columns,toConnectorDomain(tupleDomain));
+  if (resolved == null) {
+    return Optional.absent();
+  }
+  return Optional.of(new ResolvedIndex(tableHandle.getConnectorId(),resolved));
 }

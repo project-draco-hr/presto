@@ -1,0 +1,14 @@
+{
+  if (domains == null) {
+    return new TupleDomain<>(null);
+  }
+  HashMap<U,Domain> result=new HashMap<>(domains.size());
+  for (  Map.Entry<T,Domain> entry : domains.entrySet()) {
+    U key=function.apply(entry.getKey());
+    Domain previous=result.put(key,entry.getValue());
+    if (previous != null) {
+      throw new IllegalArgumentException(String.format("Every argument must have a unique mapping. %s maps to %s and %s",entry.getKey(),entry.getValue(),previous));
+    }
+  }
+  return new TupleDomain<>(result);
+}

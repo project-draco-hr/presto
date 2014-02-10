@@ -1,0 +1,17 @@
+{
+  checkNotNull(partitions,"partitions is null");
+  if (partitions.isEmpty()) {
+    return new FixedSplitSource(null,ImmutableList.<ConnectorSplit>of());
+  }
+  ConnectorPartition partition=Iterables.getOnlyElement(partitions);
+  checkArgument(partition instanceof InformationSchemaPartition,"Partition must be an informationSchema partition");
+  InformationSchemaPartition informationSchemaPartition=(InformationSchemaPartition)partition;
+  List<HostAddress> localAddress=ImmutableList.of(nodeManager.getCurrentNode().getHostAndPort());
+  ImmutableMap.Builder<String,Object> filters=ImmutableMap.builder();
+  for (  Entry<ConnectorColumnHandle,Comparable<?>> entry : informationSchemaPartition.getFilters().entrySet()) {
+    InformationSchemaColumnHandle informationSchemaColumnHandle=(InformationSchemaColumnHandle)entry.getKey();
+    filters.put(informationSchemaColumnHandle.getColumnName(),entry.getValue());
+  }
+  ConnectorSplit split=new InformationSchemaSplit(informationSchemaPartition.table,filters.build(),localAddress);
+  return new FixedSplitSource(null,ImmutableList.of(split));
+}

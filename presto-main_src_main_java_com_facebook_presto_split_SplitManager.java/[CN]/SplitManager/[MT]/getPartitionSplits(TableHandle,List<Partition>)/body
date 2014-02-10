@@ -1,4 +1,5 @@
 {
-  ConnectorSplitManager connectorSplitManager=getConnectorSplitManager(handle);
-  return connectorSplitManager.getPartitionSplits(handle,partitions);
+  ConnectorTableHandle table=handle.getConnectorHandle();
+  ConnectorSplitSource source=getConnectorSplitManager(table).getPartitionSplits(table,Lists.transform(partitions,connectorPartitionGetter()));
+  return new ConnectorAwareSplitSource(handle.getConnectorId(),source);
 }

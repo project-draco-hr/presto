@@ -1,11 +1,11 @@
 {
-  PartitionResult partitionResult=nativeSplitManager.getPartitions(tableHandle,TupleDomain.<ColumnHandle>all());
+  ConnectorPartitionResult partitionResult=nativeSplitManager.getPartitions(tableHandle,TupleDomain.<ConnectorColumnHandle>all());
   assertEquals(partitionResult.getPartitions().size(),2);
   assertTrue(partitionResult.getUndeterminedTupleDomain().isAll());
-  List<Partition> partitions=partitionResult.getPartitions();
-  TupleDomain<ColumnHandle> columnUnionedTupleDomain=TupleDomain.columnWiseUnion(partitions.get(0).getTupleDomain(),partitions.get(1).getTupleDomain());
+  List<ConnectorPartition> partitions=partitionResult.getPartitions();
+  TupleDomain<ConnectorColumnHandle> columnUnionedTupleDomain=TupleDomain.columnWiseUnion(partitions.get(0).getTupleDomain(),partitions.get(1).getTupleDomain());
   assertEquals(columnUnionedTupleDomain,TupleDomain.withColumnDomains(ImmutableMap.of(dsColumnHandle,Domain.create(SortedRangeSet.of(Range.equal(utf8Slice("1")),Range.equal(utf8Slice("2"))),false))));
-  SplitSource splitSource=nativeSplitManager.getPartitionSplits(tableHandle,partitions);
+  ConnectorSplitSource splitSource=nativeSplitManager.getPartitionSplits(tableHandle,partitions);
   int splitCount=0;
   while (!splitSource.isFinished()) {
     splitCount+=splitSource.getNextBatch(1000).size();

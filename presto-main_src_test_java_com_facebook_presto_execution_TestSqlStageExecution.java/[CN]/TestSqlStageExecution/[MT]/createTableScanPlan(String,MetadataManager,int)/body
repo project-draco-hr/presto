@@ -2,13 +2,12 @@
   TableHandle tableHandle=metadata.getTableHandle(new QualifiedTableName("default","default",DualMetadata.NAME)).get();
   ColumnHandle columnHandle=metadata.getColumnHandle(tableHandle,DualMetadata.COLUMN_NAME).get();
   Symbol symbol=new Symbol(DualMetadata.COLUMN_NAME);
-  Split split=new DualSplit(HostAddress.fromString("127.0.0.1"));
   PlanNodeId tableScanNodeId=new PlanNodeId(planId);
   PlanFragment testFragment=new PlanFragment(new PlanFragmentId(planId),new TableScanNode(tableScanNodeId,tableHandle,ImmutableList.of(symbol),ImmutableMap.of(symbol,columnHandle),null,Optional.<GeneratedPartitions>absent()),ImmutableMap.<Symbol,Type>of(symbol,VARCHAR),PlanDistribution.SOURCE,tableScanNodeId,OutputPartitioning.NONE,ImmutableList.<Symbol>of());
-  ImmutableList.Builder<Split> splits=ImmutableList.builder();
+  ImmutableList.Builder<ConnectorSplit> splits=ImmutableList.builder();
   for (int i=0; i < splitCount; i++) {
     splits.add(new DualSplit(HostAddress.fromString("127.0.0.1")));
   }
-  SplitSource splitSource=new FixedSplitSource(null,splits.build());
+  SplitSource splitSource=new ConnectorAwareSplitSource(DualConnector.CONNECTOR_ID,new FixedSplitSource(null,splits.build()));
   return new StageExecutionPlan(testFragment,Optional.of(splitSource),ImmutableList.<StageExecutionPlan>of());
 }

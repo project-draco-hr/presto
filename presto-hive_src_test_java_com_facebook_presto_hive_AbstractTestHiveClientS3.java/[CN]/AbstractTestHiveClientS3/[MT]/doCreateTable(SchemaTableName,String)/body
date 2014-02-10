@@ -15,12 +15,12 @@
   String fragment=sink.commit();
   client.commitCreateTable(outputHandle,ImmutableList.of(fragment));
   metastoreClient.updateTableLocation(database,tableName.getTableName(),outputHandle.getTargetPath());
-  TableHandle tableHandle=getTableHandle(tableName);
-  List<ColumnHandle> columnHandles=ImmutableList.copyOf(client.getColumnHandles(tableHandle).values());
-  PartitionResult partitionResult=client.getPartitions(tableHandle,TupleDomain.<ColumnHandle>all());
+  ConnectorTableHandle tableHandle=getTableHandle(tableName);
+  List<ConnectorColumnHandle> columnHandles=ImmutableList.copyOf(client.getColumnHandles(tableHandle).values());
+  ConnectorPartitionResult partitionResult=client.getPartitions(tableHandle,TupleDomain.<ConnectorColumnHandle>all());
   assertEquals(partitionResult.getPartitions().size(),1);
-  SplitSource splitSource=client.getPartitionSplits(tableHandle,partitionResult.getPartitions());
-  Split split=getOnlyElement(getAllSplits(splitSource));
+  ConnectorSplitSource splitSource=client.getPartitionSplits(tableHandle,partitionResult.getPartitions());
+  ConnectorSplit split=getOnlyElement(getAllSplits(splitSource));
   try (RecordCursor cursor=client.getRecordSet(split,columnHandles).cursor()){
     assertTrue(cursor.advanceNextPosition());
     assertEquals(cursor.getLong(0),1);

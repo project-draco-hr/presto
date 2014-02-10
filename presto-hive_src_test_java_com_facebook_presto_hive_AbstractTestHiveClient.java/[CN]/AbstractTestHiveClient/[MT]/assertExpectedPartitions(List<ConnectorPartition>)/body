@@ -1,0 +1,17 @@
+{
+  Map<String,ConnectorPartition> actualById=uniqueIndex(actualPartitions,partitionIdGetter());
+  for (  ConnectorPartition expected : partitions) {
+    assertInstanceOf(expected,HivePartition.class);
+    HivePartition expectedPartition=(HivePartition)expected;
+    ConnectorPartition actual=actualById.get(expectedPartition.getPartitionId());
+    assertEquals(actual,expected);
+    assertInstanceOf(actual,HivePartition.class);
+    HivePartition actualPartition=(HivePartition)actual;
+    assertNotNull(actualPartition,"partition " + expectedPartition.getPartitionId());
+    assertEquals(actualPartition.getPartitionId(),expectedPartition.getPartitionId());
+    assertEquals(actualPartition.getKeys(),expectedPartition.getKeys());
+    assertEquals(actualPartition.getTableName(),expectedPartition.getTableName());
+    assertEquals(actualPartition.getBucket(),expectedPartition.getBucket());
+    assertEquals(actualPartition.getTupleDomain(),expectedPartition.getTupleDomain());
+  }
+}

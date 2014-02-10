@@ -1,12 +1,12 @@
 {
-  TableHandle table=getTableHandle(tableS3);
-  List<ColumnHandle> columnHandles=ImmutableList.copyOf(client.getColumnHandles(table).values());
+  ConnectorTableHandle table=getTableHandle(tableS3);
+  List<ConnectorColumnHandle> columnHandles=ImmutableList.copyOf(client.getColumnHandles(table).values());
   Map<String,Integer> columnIndex=indexColumns(columnHandles);
-  PartitionResult partitionResult=client.getPartitions(table,TupleDomain.<ColumnHandle>all());
+  ConnectorPartitionResult partitionResult=client.getPartitions(table,TupleDomain.<ConnectorColumnHandle>all());
   assertEquals(partitionResult.getPartitions().size(),1);
-  SplitSource splitSource=client.getPartitionSplits(table,partitionResult.getPartitions());
+  ConnectorSplitSource splitSource=client.getPartitionSplits(table,partitionResult.getPartitions());
   long sum=0;
-  for (  Split split : getAllSplits(splitSource)) {
+  for (  ConnectorSplit split : getAllSplits(splitSource)) {
     try (RecordCursor cursor=client.getRecordSet(split,columnHandles).cursor()){
       while (cursor.advanceNextPosition()) {
         sum+=cursor.getLong(columnIndex.get("t_bigint"));
