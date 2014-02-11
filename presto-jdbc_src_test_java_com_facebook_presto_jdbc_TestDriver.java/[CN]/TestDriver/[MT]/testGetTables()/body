@@ -70,12 +70,12 @@
    try (Connection connection=createConnection()){
     try (ResultSet rs=connection.getMetaData().getTables(null,null,"tables",null)){
       assertTableMetadata(rs);
-      readRows(rs);
-      fail("Expected SQLException");
+      Set<List<Object>> rows=ImmutableSet.copyOf(readRows(rs));
+      assertTrue(rows.contains(getTablesRow("information_schema","tables")));
+      assertFalse(rows.contains(getTablesRow("information_schema","schemata")));
+      assertFalse(rows.contains(getTablesRow("sys","node")));
     }
- catch (    SQLException expected) {
-    }
-  }
+   }
    try (Connection connection=createConnection()){
     try (ResultSet rs=connection.getMetaData().getTables(null,null,null,new String[]{"BASE TABLE"})){
       assertTableMetadata(rs);
