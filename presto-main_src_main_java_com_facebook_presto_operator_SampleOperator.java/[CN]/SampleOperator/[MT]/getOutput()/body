@@ -4,11 +4,11 @@
       checkState(cursor.advanceNextPosition());
     }
     int repeats=poisson.sample();
-    for (int i=0; i < repeats; i++) {
-      pageBuilder.declarePosition();
-      for (int j=0; j < cursors.length; j++) {
-        cursors[j].appendTupleTo(pageBuilder.getBlockBuilder(j));
+    if (repeats > 0) {
+      for (int i=0; i < cursors.length; i++) {
+        cursors[i].appendTupleTo(pageBuilder.getBlockBuilder(i));
       }
+      pageBuilder.getBlockBuilder(sampleWeightChannel).append(repeats);
     }
   }
   if (pageBuilder.isFull() || (finishing && !pageBuilder.isEmpty())) {
