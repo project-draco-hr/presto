@@ -9,11 +9,18 @@
   }
   rename(new Path(handle.getTemporaryPath()),targetPath);
   List<String> types=FluentIterable.from(handle.getColumnTypes()).transform(columnTypeToHiveType()).transform(hiveTypeNameGetter()).toList();
+  boolean sampled=false;
   ImmutableList.Builder<FieldSchema> columns=ImmutableList.builder();
   for (int i=0; i < handle.getColumnNames().size(); i++) {
     String name=handle.getColumnNames().get(i);
     String type=types.get(i);
-    columns.add(new FieldSchema(name,type,null));
+    if (name.equals(SAMPLE_WEIGHT_COLUMN_NAME)) {
+      columns.add(new FieldSchema(name,type,"Presto sample weight column"));
+      sampled=true;
+    }
+ else {
+      columns.add(new FieldSchema(name,type,null));
+    }
   }
   SerDeInfo serdeInfo=new SerDeInfo();
   serdeInfo.setName(handle.getTableName());
@@ -29,7 +36,11 @@
   table.setTableName(handle.getTableName());
   table.setOwner(handle.getTableOwner());
   table.setTableType(TableType.MANAGED_TABLE.toString());
-  table.setParameters(ImmutableMap.of("comment","Created by Presto"));
+  String tableComment="Created by Presto";
+  if (sampled) {
+    tableComment="Sampled table created by Presto. Only query this table from Hive if you understand how Presto implements sampling.";
+  }
+  table.setParameters(ImmutableMap.of("comment",tableComment));
   table.setSd(sd);
   metastore.createTable(table);
 }

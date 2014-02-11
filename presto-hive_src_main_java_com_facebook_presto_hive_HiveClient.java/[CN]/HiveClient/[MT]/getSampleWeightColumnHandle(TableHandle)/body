@@ -1,3 +1,15 @@
 {
-  return null;
+  SchemaTableName tableName=getTableName(tableHandle);
+  try {
+    Table table=metastore.getTable(tableName.getSchemaName(),tableName.getTableName());
+    for (    HiveColumnHandle columnHandle : getColumnHandles(table,true)) {
+      if (columnHandle.getName().equals(HiveColumnHandle.SAMPLE_WEIGHT_COLUMN_NAME)) {
+        return columnHandle;
+      }
+    }
+    return null;
+  }
+ catch (  NoSuchObjectException e) {
+    throw new TableNotFoundException(tableName);
+  }
 }
