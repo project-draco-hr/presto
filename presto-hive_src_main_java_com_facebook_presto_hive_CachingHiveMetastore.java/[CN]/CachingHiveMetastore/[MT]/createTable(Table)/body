@@ -1,6 +1,6 @@
 {
   try {
-    retry().stopOn(AlreadyExistsException.class,InvalidObjectException.class,MetaException.class,NoSuchObjectException.class).stopOnIllegalExceptions().run("createTable",new Callable<Void>(){
+    retry().stopOn(AlreadyExistsException.class,InvalidObjectException.class,MetaException.class,NoSuchObjectException.class).stopOnIllegalExceptions().run("createTable",stats.getCreateTable().wrap(new Callable<Void>(){
       @Override public Void call() throws Exception {
         try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
           client.create_table(table);
@@ -8,7 +8,7 @@
          return null;
       }
     }
-);
+));
   }
  catch (  AlreadyExistsException e) {
     throw new TableAlreadyExistsException(new SchemaTableName(table.getDbName(),table.getTableName()));

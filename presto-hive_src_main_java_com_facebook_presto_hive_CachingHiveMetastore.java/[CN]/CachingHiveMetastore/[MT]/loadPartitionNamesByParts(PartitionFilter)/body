@@ -1,10 +1,10 @@
 {
-  return retry().stopOn(NoSuchObjectException.class).stopOnIllegalExceptions().run("getPartitionNamesByParts",new Callable<List<String>>(){
+  return retry().stopOn(NoSuchObjectException.class).stopOnIllegalExceptions().run("getPartitionNamesByParts",stats.getGetPartitionNamesPs().wrap(new Callable<List<String>>(){
     @Override public List<String> call() throws Exception {
       try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
         return client.get_partition_names_ps(partitionFilter.getHiveTableName().getDatabaseName(),partitionFilter.getHiveTableName().getTableName(),partitionFilter.getParts(),(short)-1);
       }
      }
   }
-);
+));
 }

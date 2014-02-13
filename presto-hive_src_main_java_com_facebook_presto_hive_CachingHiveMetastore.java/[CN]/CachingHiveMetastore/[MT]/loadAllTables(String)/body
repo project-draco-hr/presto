@@ -1,14 +1,29 @@
 {
-  return retry().stopOn(NoSuchObjectException.class).stopOnIllegalExceptions().run("getAllTables",new Callable<List<String>>(){
+  final Callable<List<String>> getAllTables=stats.getGetAllTables().wrap(new Callable<List<String>>(){
     @Override public List<String> call() throws Exception {
       try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
-        List<String> tables=client.get_all_tables(databaseName);
-        if (tables.isEmpty()) {
-          client.get_database(databaseName);
-        }
-        return tables;
+        return client.get_all_tables(databaseName);
       }
      }
+  }
+);
+  final Callable<Void> getDatabase=stats.getGetDatabase().wrap(new Callable<Void>(){
+    @Override public Void call() throws Exception {
+      try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
+        client.get_database(databaseName);
+        return null;
+      }
+     }
+  }
+);
+  return retry().stopOn(NoSuchObjectException.class).stopOnIllegalExceptions().run("getAllTables",new Callable<List<String>>(){
+    @Override public List<String> call() throws Exception {
+      List<String> tables=getAllTables.call();
+      if (tables.isEmpty()) {
+        getDatabase.call();
+      }
+      return tables;
+    }
   }
 );
 }

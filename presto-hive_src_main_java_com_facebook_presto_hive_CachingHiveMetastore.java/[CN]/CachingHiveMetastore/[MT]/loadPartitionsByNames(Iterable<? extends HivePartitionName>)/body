@@ -11,7 +11,7 @@
     partitionsToFetch.add(partitionName.getPartitionName());
   }
   final List<String> partitionColumnNames=ImmutableList.copyOf(Warehouse.makeSpecFromName(firstPartition.getPartitionName()).keySet());
-  return retry().stopOn(NoSuchObjectException.class).stopOnIllegalExceptions().run("getPartitionsByNames",new Callable<Map<HivePartitionName,Partition>>(){
+  return retry().stopOn(NoSuchObjectException.class).stopOnIllegalExceptions().run("getPartitionsByNames",stats.getGetPartitionsByNames().wrap(new Callable<Map<HivePartitionName,Partition>>(){
     @Override public Map<HivePartitionName,Partition> call() throws Exception {
       try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
         ImmutableMap.Builder<HivePartitionName,Partition> partitions=ImmutableMap.builder();
@@ -23,5 +23,5 @@
       }
      }
   }
-);
+));
 }
