@@ -10,19 +10,13 @@
   this.recordSinkManager=new RecordSinkManager();
   this.storageManager=MockLocalStorageManager.createMockLocalStorageManager();
   this.compiler=new ExpressionCompiler(metadata);
-  this.connectorManager=new ConnectorManager(metadata,splitManager,dataStreamProvider,indexManager,recordSinkManager,new HandleResolver(),new OutputTableHandleResolver(),ImmutableMap.<String,ConnectorFactory>of(),ImmutableMap.<String,Connector>of());
-  splitManager.addConnectorSplitManager(new InformationSchemaSplitManager(nodeManager));
-  dataStreamProvider.addConnectorDataStreamProvider(new InformationSchemaDataStreamProvider(metadata,splitManager));
-  metadata.addInternalSchemaMetadata(DualConnector.CONNECTOR_ID,new DualMetadata());
-  splitManager.addConnectorSplitManager(new DualSplitManager(nodeManager));
-  dataStreamProvider.addConnectorDataStreamProvider(new DualDataStreamProvider());
   SystemTablesMetadata systemTablesMetadata=new SystemTablesMetadata();
-  metadata.addInternalSchemaMetadata(SystemConnector.CONNECTOR_ID,systemTablesMetadata);
   SystemSplitManager systemSplitManager=new SystemSplitManager(nodeManager);
-  splitManager.addConnectorSplitManager(systemSplitManager);
   SystemDataStreamProvider systemDataStreamProvider=new SystemDataStreamProvider();
-  dataStreamProvider.addConnectorDataStreamProvider(systemDataStreamProvider);
   SystemTablesManager systemTablesManager=new SystemTablesManager(systemTablesMetadata,systemSplitManager,systemDataStreamProvider,ImmutableSet.<SystemTable>of());
   systemTablesManager.addTable(new NodesSystemTable(nodeManager));
   systemTablesManager.addTable(new CatalogSystemTable(metadata));
+  this.connectorManager=new ConnectorManager(metadata,splitManager,dataStreamProvider,indexManager,recordSinkManager,new HandleResolver(),new OutputTableHandleResolver(),ImmutableMap.<String,ConnectorFactory>of(),ImmutableMap.<String,Connector>of(DualConnector.CONNECTOR_ID,new DualConnector(nodeManager),SystemConnector.CONNECTOR_ID,new SystemConnector(systemTablesMetadata,systemSplitManager,systemDataStreamProvider)));
+  splitManager.addConnectorSplitManager(new InformationSchemaSplitManager(nodeManager));
+  dataStreamProvider.addConnectorDataStreamProvider(new InformationSchemaDataStreamProvider(metadata,splitManager));
 }
