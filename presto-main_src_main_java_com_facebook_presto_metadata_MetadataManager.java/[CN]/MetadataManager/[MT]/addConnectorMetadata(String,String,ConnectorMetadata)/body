@@ -1,4 +1,9 @@
 {
   ConnectorMetadataEntry entry=new ConnectorMetadataEntry(connectorId,connectorMetadata);
-  checkState(connectors.putIfAbsent(catalogName,entry) == null,"Catalog '%s' is already registered",catalogName);
+synchronized (this) {
+    checkArgument(!connectorsByCatalog.containsKey(catalogName),"Catalog '%s' is already registered",catalogName);
+    checkArgument(!connectorsById.containsKey(connectorId),"Connector '%s' is already registered",connectorId);
+    connectorsByCatalog.put(catalogName,entry);
+    connectorsById.put(connectorId,connectorMetadata);
+  }
 }

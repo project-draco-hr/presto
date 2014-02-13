@@ -1,14 +1,11 @@
 {
   checkNotNull(tableHandle,"tableHandle is null");
-  for (  ConnectorMetadataEntry entry : internalSchemas) {
-    if (entry.getMetadata().canHandle(tableHandle.getConnectorHandle())) {
-      return entry.getMetadata();
-    }
+  String connectorId=tableHandle.getConnectorId();
+  ConnectorMetadata result=internalSchemas.get(connectorId);
+  if (result != null) {
+    return result;
   }
-  for (  Entry<String,ConnectorMetadataEntry> entry : connectors.entrySet()) {
-    if (entry.getValue().getMetadata().canHandle(tableHandle.getConnectorHandle())) {
-      return entry.getValue().getMetadata();
-    }
-  }
-  throw new IllegalArgumentException("Table %s does not exist: " + tableHandle);
+  result=connectorsById.get(connectorId);
+  checkArgument(result != null,"No connector for table handle: %s",tableHandle.getConnectorId());
+  return result;
 }
