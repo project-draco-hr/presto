@@ -1,5 +1,19 @@
 {
-  int n=in.read(b,off,len);
-  position+=n;
-  return n;
+  IOException exception=null;
+  for (int i=0; i <= maxClientRetry; i++) {
+    try {
+      openStream();
+      int n=in.read(b,off,len);
+      if (n != -1) {
+        position+=n;
+      }
+      return n;
+    }
+ catch (    IOException e) {
+      log.debug("Failed reading from S3 on attempt %s: %s",i + 1,e.getMessage());
+      exception=e;
+      closeStream();
+    }
+  }
+  throw exception;
 }

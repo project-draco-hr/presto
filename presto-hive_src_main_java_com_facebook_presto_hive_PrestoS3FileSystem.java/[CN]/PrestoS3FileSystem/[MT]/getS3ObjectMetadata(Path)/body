@@ -2,7 +2,13 @@
   try {
     return s3.getObjectMetadata(uri.getHost(),keyFromPath(path));
   }
- catch (  AmazonClientException e) {
+ catch (  AmazonS3Exception e) {
+    if (e.getStatusCode() == 404) {
+      return null;
+    }
+    throw new IOException(e);
+  }
+catch (  AmazonClientException e) {
     throw new IOException(e);
   }
 }

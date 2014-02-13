@@ -28,6 +28,9 @@
   if (pathExists(targetPath)) {
     throw new RuntimeException(format("Target directory for table '%s' already exists: %s",table,targetPath));
   }
+  if (!useTemporaryDirectory(targetPath)) {
+    return new HiveOutputTableHandle(connectorId,schemaName,tableName,columnNames.build(),columnTypes.build(),tableMetadata.getOwner(),targetPath.toString(),targetPath.toString());
+  }
   String temporaryPrefix="/tmp/presto-" + StandardSystemProperty.USER_NAME.value();
   Path temporaryRoot=new Path(targetPath,temporaryPrefix);
   Path temporaryPath=new Path(temporaryRoot,randomUUID().toString());

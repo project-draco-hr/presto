@@ -3,11 +3,13 @@
   checkArgument(tableHandle instanceof HiveOutputTableHandle,"tableHandle is not an instance of HiveOutputTableHandle");
   HiveOutputTableHandle handle=(HiveOutputTableHandle)tableHandle;
   Path targetPath=new Path(handle.getTargetPath());
-  if (pathExists(targetPath)) {
-    SchemaTableName table=new SchemaTableName(handle.getSchemaName(),handle.getTableName());
-    throw new RuntimeException(format("Unable to commit creation of table '%s': target directory already exists: %s",table,targetPath));
+  if (handle.hasTemporaryPath()) {
+    if (pathExists(targetPath)) {
+      SchemaTableName table=new SchemaTableName(handle.getSchemaName(),handle.getTableName());
+      throw new RuntimeException(format("Unable to commit creation of table '%s': target directory already exists: %s",table,targetPath));
+    }
+    rename(new Path(handle.getTemporaryPath()),targetPath);
   }
-  rename(new Path(handle.getTemporaryPath()),targetPath);
   List<String> types=FluentIterable.from(handle.getColumnTypes()).transform(columnTypeToHiveType()).transform(hiveTypeNameGetter()).toList();
   boolean sampled=false;
   ImmutableList.Builder<FieldSchema> columns=ImmutableList.builder();

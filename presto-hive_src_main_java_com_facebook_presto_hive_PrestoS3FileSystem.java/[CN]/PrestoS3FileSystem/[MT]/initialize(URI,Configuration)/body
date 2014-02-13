@@ -3,5 +3,15 @@
   checkNotNull(conf,"conf is null");
   this.uri=URI.create(uri.getScheme() + "://" + uri.getAuthority());
   this.workingDirectory=new Path("/").makeQualified(this.uri,new Path("/"));
-  this.s3=new AmazonS3Client(getAwsCredentials(uri,conf));
+  HiveClientConfig defaults=new HiveClientConfig();
+  this.stagingDirectory=new File(conf.get(S3_STAGING_DIRECTORY,defaults.getS3StagingDirectory().toString()));
+  this.maxClientRetries=conf.getInt(S3_MAX_CLIENT_RETRIES,defaults.getS3MaxClientRetries());
+  int maxErrorRetries=conf.getInt(S3_MAX_ERROR_RETRIES,defaults.getS3MaxErrorRetries());
+  boolean sslEnabled=conf.getBoolean(S3_SSL_ENABLED,defaults.isS3SslEnabled());
+  Duration connectTimeout=Duration.valueOf(conf.get(S3_CONNECT_TIMEOUT,defaults.getS3ConnectTimeout().toString()));
+  ClientConfiguration configuration=new ClientConfiguration();
+  configuration.setMaxErrorRetry(maxErrorRetries);
+  configuration.setProtocol(sslEnabled ? Protocol.HTTPS : Protocol.HTTP);
+  configuration.setConnectionTimeout(Ints.checkedCast(connectTimeout.toMillis()));
+  this.s3=new AmazonS3Client(getAwsCredentials(uri,conf),configuration);
 }

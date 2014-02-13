@@ -1,3 +1,9 @@
 {
-  throw new UnsupportedOperationException("create");
+  if ((!overwrite) && exists(path)) {
+    throw new IOException("File already exists:" + path);
+  }
+  createDirectories(stagingDirectory.toPath());
+  File tempFile=createTempFile(stagingDirectory.toPath(),"presto-s3-",".tmp").toFile();
+  String key=keyFromPath(qualifiedPath(path));
+  return new FSDataOutputStream(new PrestoS3OutputStream(s3,uri.getHost(),key,tempFile),statistics);
 }

@@ -1,4 +1,17 @@
 {
+  if (path.getName().isEmpty()) {
+    if (getS3ObjectMetadata(path) != null) {
+      return new FileStatus(0,true,1,0,0,qualifiedPath(path));
+    }
+    throw new FileNotFoundException("File does not exist: " + path);
+  }
   ObjectMetadata metadata=getS3ObjectMetadata(path);
-  return new FileStatus(metadata.getContentLength(),false,1,BLOCK_SIZE.toBytes(),metadata.getLastModified().getTime(),qualifiedPath(path));
+  if (metadata == null) {
+    Iterator<LocatedFileStatus> iterator=listPrefix(path);
+    if ((iterator != null) && iterator.hasNext()) {
+      return new FileStatus(0,true,1,0,0,qualifiedPath(path));
+    }
+    throw new FileNotFoundException("File does not exist: " + path);
+  }
+  return new FileStatus(metadata.getContentLength(),false,1,BLOCK_SIZE.toBytes(),lastModifiedTime(metadata),qualifiedPath(path));
 }
