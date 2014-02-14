@@ -1,7 +1,8 @@
 {
   MetadataManager metadata=new MetadataManager(new FeaturesConfig().setExperimentalSyntaxEnabled(true),new TypeRegistry());
   metadata.addInternalSchemaMetadata(DualConnector.CONNECTOR_ID,new DualMetadata());
-  SplitManager splitManager=new SplitManager(ImmutableSet.<ConnectorSplitManager>of(new DualSplitManager(new InMemoryNodeManager())));
+  SplitManager splitManager=new SplitManager();
+  splitManager.addConnectorSplitManager(DualConnector.CONNECTOR_ID,new DualSplitManager(new InMemoryNodeManager()));
   IndexManager indexManager=new IndexManager();
   FeaturesConfig featuresConfig=new FeaturesConfig().setExperimentalSyntaxEnabled(true);
   List<PlanOptimizer> optimizers=new PlanOptimizersFactory(metadata,splitManager,indexManager,featuresConfig).get();

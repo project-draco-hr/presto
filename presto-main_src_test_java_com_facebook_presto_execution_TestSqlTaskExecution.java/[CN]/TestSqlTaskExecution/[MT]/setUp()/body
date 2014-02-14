@@ -12,7 +12,9 @@
   ConnectorSplitSource splitSource=dualSplitManager.getPartitionSplits(tableHandle.getConnectorHandle(),partitionResult.getPartitions());
   split=Iterables.getOnlyElement(splitSource.getNextBatch(1));
   assertTrue(splitSource.isFinished());
-  LocalExecutionPlanner planner=new LocalExecutionPlanner(new NodeInfo("test"),metadata,new DataStreamManager(new DualDataStreamProvider()),new IndexManager(),new MockLocalStorageManager(new File("target/temp")),new RecordSinkManager(),new MockExchangeClientSupplier(),new ExpressionCompiler(metadata));
+  DataStreamManager dataStreamProvider=new DataStreamManager();
+  dataStreamProvider.addConnectorDataStreamProvider(DualConnector.CONNECTOR_ID,new DualDataStreamProvider());
+  LocalExecutionPlanner planner=new LocalExecutionPlanner(new NodeInfo("test"),metadata,dataStreamProvider,new IndexManager(),new MockLocalStorageManager(new File("target/temp")),new RecordSinkManager(),new MockExchangeClientSupplier(),new ExpressionCompiler(metadata));
   taskExecutor=new TaskExecutor(8);
   taskExecutor.start();
   tableScanNodeId=new PlanNodeId("tableScan");

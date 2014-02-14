@@ -47,13 +47,15 @@
   if (catalogName != null) {
     metadataManager.addConnectorMetadata(connectorId,catalogName,connectorMetadata);
     metadataManager.addInternalSchemaMetadata(makeInformationSchemaConnectorId(connectorId),new InformationSchemaMetadata(catalogName));
+    splitManager.addConnectorSplitManager(makeInformationSchemaConnectorId(connectorId),new InformationSchemaSplitManager(nodeManager));
+    dataStreamManager.addConnectorDataStreamProvider(makeInformationSchemaConnectorId(connectorId),new InformationSchemaDataStreamProvider(metadataManager,splitManager));
   }
  else {
     metadataManager.addInternalSchemaMetadata(connectorId,connectorMetadata);
   }
+  splitManager.addConnectorSplitManager(connectorId,connectorSplitManager);
   handleResolver.addHandleResolver(connectorId,connectorHandleResolver);
-  splitManager.addConnectorSplitManager(connectorSplitManager);
-  dataStreamManager.addConnectorDataStreamProvider(connectorDataStreamProvider);
+  dataStreamManager.addConnectorDataStreamProvider(connectorId,connectorDataStreamProvider);
   if (connectorRecordSinkProvider != null) {
     recordSinkManager.addConnectorRecordSinkProvider(connectorRecordSinkProvider);
   }

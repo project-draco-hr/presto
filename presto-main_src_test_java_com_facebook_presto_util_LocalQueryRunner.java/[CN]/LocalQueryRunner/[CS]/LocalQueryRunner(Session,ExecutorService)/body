@@ -3,8 +3,8 @@
   this.executor=checkNotNull(executor,"executor is null");
   this.nodeManager=new InMemoryNodeManager();
   this.typeRegistry=new TypeRegistry();
-  this.metadata=new MetadataManager(new FeaturesConfig().setExperimentalSyntaxEnabled(true),new TypeRegistry());
-  this.splitManager=new SplitManager(ImmutableSet.<ConnectorSplitManager>of());
+  this.metadata=new MetadataManager(new FeaturesConfig().setExperimentalSyntaxEnabled(true),typeRegistry);
+  this.splitManager=new SplitManager();
   this.dataStreamProvider=new DataStreamManager();
   this.indexManager=new IndexManager();
   this.recordSinkManager=new RecordSinkManager();
@@ -16,7 +16,5 @@
   SystemTablesManager systemTablesManager=new SystemTablesManager(systemTablesMetadata,systemSplitManager,systemDataStreamProvider,ImmutableSet.<SystemTable>of());
   systemTablesManager.addTable(new NodesSystemTable(nodeManager));
   systemTablesManager.addTable(new CatalogSystemTable(metadata));
-  this.connectorManager=new ConnectorManager(metadata,splitManager,dataStreamProvider,indexManager,recordSinkManager,new HandleResolver(),new OutputTableHandleResolver(),ImmutableMap.<String,ConnectorFactory>of(),ImmutableMap.<String,Connector>of(DualConnector.CONNECTOR_ID,new DualConnector(nodeManager),SystemConnector.CONNECTOR_ID,new SystemConnector(systemTablesMetadata,systemSplitManager,systemDataStreamProvider)));
-  splitManager.addConnectorSplitManager(new InformationSchemaSplitManager(nodeManager));
-  dataStreamProvider.addConnectorDataStreamProvider(new InformationSchemaDataStreamProvider(metadata,splitManager));
+  this.connectorManager=new ConnectorManager(metadata,splitManager,dataStreamProvider,indexManager,recordSinkManager,new HandleResolver(),new OutputTableHandleResolver(),ImmutableMap.<String,ConnectorFactory>of(),ImmutableMap.<String,Connector>of(DualConnector.CONNECTOR_ID,new DualConnector(nodeManager),SystemConnector.CONNECTOR_ID,new SystemConnector(systemTablesMetadata,systemSplitManager,systemDataStreamProvider)),nodeManager);
 }
