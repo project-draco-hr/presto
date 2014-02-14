@@ -1,8 +1,5 @@
 {
-  for (  ConnectorRecordSinkProvider provider : recordSinkProviders) {
-    if (provider.canHandle(tableHandle.getConnectorHandle())) {
-      return provider.getRecordSink(tableHandle.getConnectorHandle());
-    }
-  }
-  throw new IllegalArgumentException("No record sink for " + tableHandle);
+  ConnectorRecordSinkProvider provider=recordSinkProviders.get(tableHandle.getConnectorId());
+  checkArgument(provider != null,"No record sink for '%s'",tableHandle.getConnectorId());
+  return provider.getRecordSink(tableHandle.getConnectorHandle());
 }
