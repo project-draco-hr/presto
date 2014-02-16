@@ -1,0 +1,19 @@
+{
+  TupleDescriptor descriptor=analysis.getOutputDescriptor(node);
+  ImmutableList.Builder<Symbol> outputSymbolsBuilder=ImmutableList.builder();
+  for (int i=0; i < descriptor.getFields().size(); i++) {
+    Field field=descriptor.getFields().get(i);
+    Symbol symbol=symbolAllocator.newSymbol(field);
+    outputSymbolsBuilder.add(symbol);
+  }
+  ImmutableList.Builder<List<Expression>> rows=ImmutableList.builder();
+  for (  Row row : node.getRows()) {
+    ImmutableList.Builder<Expression> values=ImmutableList.builder();
+    for (    Expression expression : row.getItems()) {
+      values.add(evaluateConstantExpression(expression));
+    }
+    rows.add(values.build());
+  }
+  ValuesNode valuesNode=new ValuesNode(idAllocator.getNextId(),outputSymbolsBuilder.build(),rows.build());
+  return new RelationPlan(valuesNode,descriptor,outputSymbolsBuilder.build());
+}

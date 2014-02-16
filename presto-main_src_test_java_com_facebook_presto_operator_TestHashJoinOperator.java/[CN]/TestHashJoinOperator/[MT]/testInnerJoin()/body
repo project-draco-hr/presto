@@ -1,7 +1,7 @@
 {
   DriverContext driverContext=taskContext.addPipelineContext(true,true).addDriverContext();
-  OperatorContext operatorContext=driverContext.addOperatorContext(0,StaticOperator.class.getSimpleName());
-  Operator buildOperator=new StaticOperator(operatorContext,rowPagesBuilder(SINGLE_VARBINARY,SINGLE_LONG,SINGLE_LONG).addSequencePage(10,20,30,40).build());
+  OperatorContext operatorContext=driverContext.addOperatorContext(0,ValuesOperator.class.getSimpleName());
+  Operator buildOperator=new ValuesOperator(operatorContext,rowPagesBuilder(SINGLE_VARBINARY,SINGLE_LONG,SINGLE_LONG).addSequencePage(10,20,30,40).build());
   HashBuilderOperatorFactory hashBuilderOperatorFactory=new HashBuilderOperatorFactory(1,buildOperator.getTupleInfos(),Ints.asList(0),100);
   Operator sourceHashProvider=hashBuilderOperatorFactory.createOperator(driverContext);
   Driver driver=new Driver(driverContext,buildOperator,sourceHashProvider);

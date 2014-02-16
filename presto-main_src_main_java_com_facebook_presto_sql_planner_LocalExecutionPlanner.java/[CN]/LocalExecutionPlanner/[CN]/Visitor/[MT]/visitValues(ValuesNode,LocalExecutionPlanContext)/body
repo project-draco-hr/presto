@@ -1,0 +1,21 @@
+{
+  Map<Symbol,Input> outputMappings=new LinkedHashMap<>();
+  List<TupleInfo> outputTypes=new ArrayList<>();
+  int channel=0;
+  for (  Symbol symbol : node.getOutputSymbols()) {
+    Input input=new Input(channel);
+    outputMappings.put(symbol,input);
+    Type type=checkNotNull(context.getTypes().get(symbol),"No type for symbol %s",symbol);
+    outputTypes.add(new TupleInfo(type.getRawType()));
+    channel++;
+  }
+  PageBuilder pageBuilder=new PageBuilder(outputTypes);
+  for (  List<Expression> row : node.getRows()) {
+    for (int i=0; i < row.size(); i++) {
+      Object result=ExpressionInterpreter.expressionInterpreter(row.get(i),metadata,context.getSession()).evaluate(new TupleReadable[0]);
+      pageBuilder.getBlockBuilder(i).appendObject(result);
+    }
+  }
+  OperatorFactory operatorFactory=new ValuesOperatorFactory(context.getNextOperatorId(),ImmutableList.of(pageBuilder.build()));
+  return new PhysicalOperation(operatorFactory,outputMappings);
+}
