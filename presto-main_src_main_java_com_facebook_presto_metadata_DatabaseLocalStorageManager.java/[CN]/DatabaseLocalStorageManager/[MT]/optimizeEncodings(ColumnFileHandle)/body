@@ -2,14 +2,14 @@
   UUID shardUuid=columnFileHandle.getShardUuid();
   File shardPath=getShardPath(baseStorageDir,shardUuid);
   ImmutableList.Builder<BlockIterable> sourcesBuilder=ImmutableList.builder();
-  ColumnFileHandle.Builder builder=ColumnFileHandle.builder(shardUuid,blockEncodingManager);
+  ColumnFileHandle.Builder builder=ColumnFileHandle.builder(shardUuid,blockEncodingSerde);
   for (  Map.Entry<ColumnHandle,File> entry : columnFileHandle.getFiles().entrySet()) {
     File file=entry.getValue();
     ColumnHandle columnHandle=entry.getKey();
     if (file.length() > 0) {
       Slice slice=mappedFileCache.getUnchecked(file.getAbsoluteFile());
       checkState(file.length() == slice.length(),"File %s, length %s was mapped to Slice length %s",file.getAbsolutePath(),file.length(),slice.length());
-      BlocksFileReader blocks=BlocksFileReader.readBlocks(blockEncodingManager,slice);
+      BlocksFileReader blocks=BlocksFileReader.readBlocks(blockEncodingSerde,slice);
       BlocksFileStats stats=blocks.getStats();
       boolean rleEncode=stats.getAvgRunLength() > RUN_LENGTH_AVERAGE_CUTOFF;
       boolean dicEncode=stats.getUniqueCount() < DICTIONARY_CARDINALITY_CUTOFF;
