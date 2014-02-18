@@ -1,6 +1,8 @@
 {
   checkState(!closed,"Cursor is closed");
-  validateType(fieldId,BIGINT);
+  if (!types[fieldId].equals(BIGINT) && !types[fieldId].equals(TIMESTAMP)) {
+    throw new IllegalArgumentException(String.format("Expected field to be %s or %s , actual %s (field %s)",BIGINT,TIMESTAMP,types[fieldId],fieldId));
+  }
   if (!loaded[fieldId]) {
     parseLongColumn(fieldId);
   }

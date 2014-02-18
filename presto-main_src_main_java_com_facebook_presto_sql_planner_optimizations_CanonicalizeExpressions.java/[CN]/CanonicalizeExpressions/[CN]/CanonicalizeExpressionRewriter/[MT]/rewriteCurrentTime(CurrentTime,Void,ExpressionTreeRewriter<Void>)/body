@@ -1,9 +1,19 @@
 {
-  if (node.getType() != CurrentTime.Type.TIMESTAMP) {
-    throw new UnsupportedOperationException("not yet implemented: " + node.getType());
-  }
- else   if (node.getPrecision() != null) {
+  if (node.getPrecision() != null) {
     throw new UnsupportedOperationException("not yet implemented: non-default precision");
   }
-  return new FunctionCall(new QualifiedName("now"),ImmutableList.<Expression>of());
+switch (node.getType()) {
+case DATE:
+    return new FunctionCall(new QualifiedName("current_date"),ImmutableList.<Expression>of());
+case TIME:
+  return new FunctionCall(new QualifiedName("current_time"),ImmutableList.<Expression>of());
+case LOCALTIME:
+return new FunctionCall(new QualifiedName("localtime"),ImmutableList.<Expression>of());
+case TIMESTAMP:
+return new FunctionCall(new QualifiedName("now"),ImmutableList.<Expression>of());
+case LOCALTIMESTAMP:
+return new FunctionCall(new QualifiedName("localtimestamp"),ImmutableList.<Expression>of());
+default :
+throw new UnsupportedOperationException("not yet implemented: " + node.getType());
+}
 }

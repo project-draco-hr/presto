@@ -1,11 +1,13 @@
 {
-  for (  Long left : longLefts) {
+  for (  DateTime left : dateTimeValues) {
     for (    Field field : Field.values()) {
       Long expected=null;
+      Long millis=null;
       if (left != null) {
-        expected=callExtractFunction(left,field);
+        millis=left.getMillis();
+        expected=callExtractFunction(SESSION,millis,field);
       }
-      assertExecute(generateExpression("extract(" + field.toString() + " from %s)",left),expected);
+      assertExecute(generateExpression("extract(" + field.toString() + " from from_unixtime(%s / 1000.0, 0, 0))",millis),expected);
     }
   }
   Futures.allAsList(futures).get();

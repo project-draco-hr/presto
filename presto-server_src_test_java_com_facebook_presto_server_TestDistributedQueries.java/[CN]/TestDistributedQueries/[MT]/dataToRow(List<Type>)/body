@@ -9,15 +9,27 @@
           row.add(null);
           continue;
         }
-        Class<?> javaType=types.get(i).getJavaType();
-        if (javaType == long.class) {
+        Type type=types.get(i);
+        if (BOOLEAN.equals(type)) {
+          row.add(value);
+        }
+ else         if (BIGINT.equals(type)) {
           row.add(((Number)value).longValue());
         }
- else         if (javaType == double.class) {
+ else         if (DOUBLE.equals(type)) {
           row.add(((Number)value).doubleValue());
         }
- else {
+ else         if (VARCHAR.equals(type)) {
           row.add(value);
+        }
+ else         if (DATE.equals(type)) {
+          row.add(new Date(ISODateTimeFormat.dateParser().withZoneUTC().parseMillis((String)value)));
+        }
+ else         if (TIME.equals(type)) {
+          row.add(new Time(ISODateTimeFormat.timeParser().withZoneUTC().parseMillis((String)value)));
+        }
+ else         if (TIMESTAMP.equals(type)) {
+          row.add(new Timestamp(ISODateTimeFormat.dateTimeParser().withZoneUTC().parseMillis((String)value)));
         }
       }
       return new MaterializedRow(DEFAULT_PRECISION,row);

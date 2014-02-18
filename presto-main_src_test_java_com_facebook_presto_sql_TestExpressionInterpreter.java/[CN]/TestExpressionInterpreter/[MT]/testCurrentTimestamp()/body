@@ -1,5 +1,6 @@
 {
-  long current=MILLISECONDS.toSeconds(SESSION.getStartTime());
-  assertOptimizedEquals("current_timestamp = " + current,"true");
-  assertOptimizedEquals("current_timestamp > " + current + TimeUnit.MINUTES.toSeconds(1),"false");
+  double current=SESSION.getStartTime() / 1000.0;
+  assertOptimizedEquals("current_timestamp = from_unixtime(" + current + ")","true");
+  double future=current + TimeUnit.MINUTES.toSeconds(1);
+  assertOptimizedEquals("current_timestamp > from_unixtime(" + future + ")","false");
 }

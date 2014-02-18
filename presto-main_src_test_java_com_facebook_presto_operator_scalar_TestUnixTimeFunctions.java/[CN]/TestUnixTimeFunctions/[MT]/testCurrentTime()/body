@@ -1,6 +1,4 @@
 {
-  long millis=new DateTime(2001,1,22,3,4,5,321,UTC).getMillis();
-  Session session=new Session("user","test",DEFAULT_CATALOG,DEFAULT_SCHEMA,TimeZone.getTimeZone("UTC"),Locale.ENGLISH,null,null,millis);
-  assertEquals((long)functionAssertions.selectSingleValue("current_timestamp",session),fromMillis(millis));
-  assertEquals((long)functionAssertions.selectSingleValue("now()",session),fromMillis(millis));
+  long millis=new LocalTime(session.getStartTime(),DATE_TIME_ZONE).getMillisOfDay();
+  functionAssertions.assertFunction("CURRENT_TIME",new TimeWithTimeZone(millis,session.getTimeZoneKey()));
 }

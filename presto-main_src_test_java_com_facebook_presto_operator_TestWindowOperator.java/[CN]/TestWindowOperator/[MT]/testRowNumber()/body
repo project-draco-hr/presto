@@ -2,6 +2,6 @@
   List<Page> input=rowPagesBuilder(BIGINT,DOUBLE).row(2,0.3).row(4,0.2).row(6,0.1).pageBreak().row(-1,-0.1).row(5,0.4).build();
   WindowOperatorFactory operatorFactory=new WindowOperatorFactory(0,ImmutableList.of(BIGINT,DOUBLE),Ints.asList(1,0),ROW_NUMBER,Ints.asList(),Ints.asList(0),ImmutableList.copyOf(new SortOrder[]{SortOrder.ASC_NULLS_LAST}),10);
   Operator operator=operatorFactory.createOperator(driverContext);
-  MaterializedResult expected=resultBuilder(DOUBLE,BIGINT,BIGINT).row(-0.1,-1,1).row(0.3,2,2).row(0.2,4,3).row(0.4,5,4).row(0.1,6,5).build();
+  MaterializedResult expected=resultBuilder(driverContext.getSession(),DOUBLE,BIGINT,BIGINT).row(-0.1,-1,1).row(0.3,2,2).row(0.2,4,3).row(0.4,5,4).row(0.1,6,5).build();
   assertOperatorEquals(operator,input,expected);
 }

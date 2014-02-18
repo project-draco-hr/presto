@@ -3,15 +3,17 @@
   assertRequest(!isNullOrEmpty(user),"User (%s) is empty",PRESTO_USER);
   assertRequest(!isNullOrEmpty(catalog),"Catalog (%s) is empty",PRESTO_CATALOG);
   assertRequest(!isNullOrEmpty(schema),"Schema (%s) is empty",PRESTO_SCHEMA);
+  if (timeZoneId == null) {
+    timeZoneId=TimeZone.getDefault().getID();
+  }
   String remoteUserAddress=requestContext.getRemoteAddr();
-  TimeZone timeZone;
-  if (timeZoneString == null) {
-    timeZone=TimeZone.getDefault();
+  Session session;
+  try {
+    session=new Session(user,source,catalog,schema,TimeZoneKey.getTimeZoneKey(timeZoneId),requestContext.getLocale(),remoteUserAddress,userAgent);
   }
- else {
-    timeZone=TimeZone.getTimeZone(timeZoneString);
+ catch (  TimeZoneNotSupported e) {
+    return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
   }
-  Session session=new Session(user,source,catalog,schema,timeZone,requestContext.getLocale(),remoteUserAddress,userAgent);
   ExchangeClient exchangeClient=exchangeClientSupplier.get();
   Query query=new Query(session,statement,queryManager,exchangeClient);
   queries.put(query.getQueryId(),query);

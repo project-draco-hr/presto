@@ -1,0 +1,48 @@
+{
+  if (endField == null) {
+    endField=startField;
+  }
+  List<PeriodParser> parsers=new ArrayList<>();
+  PeriodFormatterBuilder builder=new PeriodFormatterBuilder();
+switch (startField) {
+case YEAR:
+    builder.appendYears();
+  parsers.add(builder.toParser());
+if (endField == IntervalField.YEAR) {
+  break;
+}
+builder.appendLiteral("-");
+case MONTH:
+builder.appendMonths();
+parsers.add(builder.toParser());
+if (endField != IntervalField.MONTH) {
+throw new IllegalArgumentException("Invalid interval qualifier: " + startField + " to "+ endField);
+}
+break;
+case DAY:
+builder.appendDays();
+parsers.add(builder.toParser());
+if (endField == IntervalField.DAY) {
+break;
+}
+builder.appendLiteral(" ");
+case HOUR:
+builder.appendHours();
+parsers.add(builder.toParser());
+if (endField == IntervalField.HOUR) {
+break;
+}
+builder.appendLiteral(":");
+case MINUTE:
+builder.appendMinutes();
+parsers.add(builder.toParser());
+if (endField == IntervalField.MINUTE) {
+break;
+}
+builder.appendLiteral(":");
+case SECOND:
+builder.appendSecondsWithOptionalMillis();
+parsers.add(builder.toParser());
+}
+return new PeriodFormatter(builder.toPrinter(),new OrderedPeriodParser(parsers));
+}

@@ -3,14 +3,10 @@
   assertRequest(!isNullOrEmpty(user),"User (%s) is empty",PRESTO_USER);
   assertRequest(!isNullOrEmpty(catalog),"Catalog (%s) is empty",PRESTO_CATALOG);
   assertRequest(!isNullOrEmpty(schema),"Schema (%s) is empty",PRESTO_SCHEMA);
-  TimeZone timeZone;
-  if (timeZoneString == null) {
-    timeZone=TimeZone.getDefault();
+  if (timeZoneId == null) {
+    timeZoneId=TimeZone.getDefault().getID();
   }
- else {
-    timeZone=TimeZone.getTimeZone(timeZoneString);
-  }
-  ClientSession session=new ClientSession(serverUri(),user,source,catalog,schema,timeZone,requestContext.getLocale(),false);
+  ClientSession session=new ClientSession(serverUri(),user,source,catalog,schema,timeZoneId,requestContext.getLocale(),false);
   StatementClient client=new StatementClient(httpClient,queryResultsCodec,session,query);
   List<Column> columns=getColumns(client);
   Iterator<List<Object>> iterator=flatten(new ResultsPageIterator(client));

@@ -1,5 +1,12 @@
 {
-  coerceType(context,node.getExpression(),BIGINT,"Type of argument to extract");
+  Type type=process(node.getExpression(),context);
+  if (!isDateTimeType(type)) {
+    throw new SemanticException(TYPE_MISMATCH,node.getExpression(),"Type of argument to extract must be DATE, TIME, TIMESTAMP, or INTERVAL (actual %s)",type);
+  }
+  Extract.Field field=node.getField();
+  if ((field == TIMEZONE_HOUR || field == TIMEZONE_MINUTE) && !(type == TIME_WITH_TIME_ZONE || type == TIMESTAMP_WITH_TIME_ZONE)) {
+    throw new SemanticException(TYPE_MISMATCH,node.getExpression(),"Type of argument to extract time zone field must have a time zone (actual %s)",type);
+  }
   expressionTypes.put(node,BIGINT);
   return BIGINT;
 }

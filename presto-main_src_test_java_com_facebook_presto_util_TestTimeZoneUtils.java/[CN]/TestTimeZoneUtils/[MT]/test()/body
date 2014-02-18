@@ -1,0 +1,19 @@
+{
+  TreeSet<String> jodaZones=new TreeSet<>(DateTimeZone.getAvailableIDs());
+  TreeSet<String> jdkZones=new TreeSet<>(Arrays.asList(TimeZone.getAvailableIDs()));
+  for (  String zoneId : new TreeSet<>(Sets.intersection(jodaZones,jdkZones))) {
+    if (zoneId.startsWith("Etc/") || zoneId.startsWith("GMT")) {
+      continue;
+    }
+    DateTimeZone dateTimeZone=DateTimeZone.forID(zoneId);
+    DateTimeZone indexedZone=getDateTimeZone(TimeZoneKey.getTimeZoneKey(zoneId));
+    assertDateTimeZoneEquals(zoneId,indexedZone);
+    assertTimeZone(zoneId,dateTimeZone);
+  }
+  for (int offsetHours=-13; offsetHours < 14; offsetHours++) {
+    for (int offsetMinutes=0; offsetMinutes < 60; offsetMinutes++) {
+      DateTimeZone dateTimeZone=DateTimeZone.forOffsetHoursMinutes(offsetHours,offsetMinutes);
+      assertTimeZone(dateTimeZone.getID(),dateTimeZone);
+    }
+  }
+}

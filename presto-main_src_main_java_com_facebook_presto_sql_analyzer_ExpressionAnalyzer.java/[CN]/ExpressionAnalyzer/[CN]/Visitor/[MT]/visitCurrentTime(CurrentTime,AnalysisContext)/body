@@ -1,10 +1,27 @@
 {
-  if (node.getType() != CurrentTime.Type.TIMESTAMP) {
-    throw new SemanticException(NOT_SUPPORTED,node,"%s not yet supported",node.getType().getName());
-  }
   if (node.getPrecision() != null) {
     throw new SemanticException(NOT_SUPPORTED,node,"non-default precision not yet supported");
   }
-  expressionTypes.put(node,BIGINT);
-  return BIGINT;
+  Type type;
+switch (node.getType()) {
+case DATE:
+    type=DATE;
+  break;
+case TIME:
+type=TIME_WITH_TIME_ZONE;
+break;
+case LOCALTIME:
+type=TIME;
+break;
+case TIMESTAMP:
+type=TIMESTAMP_WITH_TIME_ZONE;
+break;
+case LOCALTIMESTAMP:
+type=TIMESTAMP;
+break;
+default :
+throw new SemanticException(NOT_SUPPORTED,node,"%s not yet supported",node.getType().getName());
+}
+expressionTypes.put(node,type);
+return type;
 }

@@ -1,0 +1,31 @@
+{
+  int bestValidPos=position;
+  ReadWritablePeriod bestValidPeriod=null;
+  int bestInvalidPos=position;
+  for (  PeriodParser parser : parsers) {
+    ReadWritablePeriod parsedPeriod=new MutablePeriod();
+    int parsePos=parser.parseInto(parsedPeriod,text,position,locale);
+    if (parsePos >= position) {
+      if (parsePos > bestValidPos) {
+        bestValidPos=parsePos;
+        bestValidPeriod=parsedPeriod;
+        if (parsePos >= text.length()) {
+          break;
+        }
+      }
+    }
+ else     if (parsePos < 0) {
+      parsePos=~parsePos;
+      if (parsePos > bestInvalidPos) {
+        bestInvalidPos=parsePos;
+      }
+    }
+  }
+  if (bestValidPos > position || (bestValidPos == position)) {
+    if (bestValidPeriod != null) {
+      period.setPeriod(bestValidPeriod);
+    }
+    return bestValidPos;
+  }
+  return ~bestInvalidPos;
+}

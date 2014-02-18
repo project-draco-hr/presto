@@ -2,6 +2,18 @@
   checkNotNull(projection,"projection is null");
   Expression projectionExpression=createExpression(projection,metadataManager,SYMBOL_TYPES);
   List<Object> results=new ArrayList<>();
+  if (!needsBoundValue(projectionExpression)) {
+    try {
+      LocalQueryRunner runner=new LocalQueryRunner(session,EXECUTOR);
+      MaterializedResult result=runner.execute("SELECT " + projection + " FROM dual");
+      assertEquals(result.getTypes().size(),1);
+      assertEquals(result.getMaterializedRows().size(),1);
+      Object queryResult=Iterables.getOnlyElement(result.getMaterializedRows()).getField(0);
+      results.add(queryResult);
+    }
+ catch (    RuntimeException e) {
+    }
+  }
   OperatorFactory operatorFactory=compileFilterProject(TRUE_LITERAL,projectionExpression);
   Object directOperatorValue=selectSingleValue(operatorFactory,session);
   results.add(directOperatorValue);

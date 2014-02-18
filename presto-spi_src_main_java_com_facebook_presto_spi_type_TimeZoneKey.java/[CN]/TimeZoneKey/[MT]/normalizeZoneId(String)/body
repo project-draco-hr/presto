@@ -1,0 +1,38 @@
+{
+  if (zoneId.startsWith("Etc/")) {
+    zoneId=zoneId.substring(4);
+  }
+  if (isUtcZoneId(zoneId)) {
+    return "UTC";
+  }
+  int length=zoneId.length();
+  if (length > 3 && (zoneId.startsWith("UTC") || zoneId.startsWith("GMT"))) {
+    zoneId=zoneId.substring(3);
+  }
+  if (length > 2 && zoneId.startsWith("UT")) {
+    zoneId=zoneId.substring(2);
+  }
+  if (length == 2 || length == 3) {
+    char signChar=zoneId.charAt(0);
+    if (signChar != '+' && signChar != '-') {
+      return zoneId;
+    }
+    char hourTens;
+    char hourOnes;
+    if (length == 2) {
+      hourTens='0';
+      hourOnes=zoneId.charAt(1);
+    }
+ else {
+      hourTens=zoneId.charAt(1);
+      hourOnes=zoneId.charAt(2);
+    }
+    if ((hourTens == '0' || hourTens == '1') && (hourOnes >= '0' || '9' >= hourOnes)) {
+      zoneId="" + signChar + hourTens+ hourOnes+ ":00";
+    }
+  }
+  if (zoneId.equals("+00:00") | zoneId.equals("-00:00")) {
+    return "UTC";
+  }
+  return zoneId;
+}
