@@ -12,11 +12,12 @@
       if (name.isEmpty()) {
         name=camelToSnake(method.getName());
       }
-      String description=getDescription(method);
+      Type returnType=type(method.getAnnotation(SqlType.class),method.getReturnType());
+      Signature signature=new Signature(name.toLowerCase(),returnType,parameterTypes(method),false);
       FunctionBinder functionBinder=createFunctionBinder(method,scalarFunction);
-      scalar(name,methodHandle,scalarFunction.deterministic(),functionBinder,description);
+      scalar(signature,methodHandle,scalarFunction.deterministic(),functionBinder,getDescription(method));
       for (      String alias : scalarFunction.alias()) {
-        scalar(alias,methodHandle,scalarFunction.deterministic(),functionBinder,description);
+        scalar(signature.withAlias(alias.toLowerCase()),methodHandle,scalarFunction.deterministic(),functionBinder,getDescription(method));
       }
       foundOne=true;
     }

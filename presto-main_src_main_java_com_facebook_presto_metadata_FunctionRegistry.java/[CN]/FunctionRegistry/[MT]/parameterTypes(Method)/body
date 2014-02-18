@@ -1,0 +1,19 @@
+{
+  Annotation[][] parameterAnnotations=method.getParameterAnnotations();
+  ImmutableList.Builder<Type> types=ImmutableList.builder();
+  for (int i=0; i < method.getParameterTypes().length; i++) {
+    Class<?> clazz=method.getParameterTypes()[i];
+    if (clazz == Session.class) {
+      continue;
+    }
+    SqlType explicitType=null;
+    for (    Annotation annotation : parameterAnnotations[i]) {
+      if (annotation instanceof SqlType) {
+        explicitType=(SqlType)annotation;
+        break;
+      }
+    }
+    types.add(type(explicitType,clazz));
+  }
+  return types.build();
+}
