@@ -4,7 +4,7 @@
     Analyzer.verifyNoAggregatesOrWindowFunctions(metadata,predicate,"WHERE");
     ExpressionAnalysis expressionAnalysis=Analyzer.analyzeExpression(session,metadata,tupleDescriptor,analysis,experimentalSyntaxEnabled,context,predicate);
     analysis.addInPredicates(node,expressionAnalysis.getSubqueryInPredicates());
-    if (expressionAnalysis.getType() != Type.BOOLEAN && expressionAnalysis.getType() != Type.NULL) {
+    if (!expressionAnalysis.getType().equals(BOOLEAN) && !expressionAnalysis.getType().equals(NullType.NULL)) {
       throw new SemanticException(TYPE_MISMATCH,predicate,"WHERE clause must evaluate to a boolean: actual type %s",expressionAnalysis.getType());
     }
     analysis.setWhere(node,predicate);

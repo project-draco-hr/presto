@@ -3,9 +3,9 @@
   RelationPlanner planner=new RelationPlanner(analysis,symbolAllocator,idAllocator,metadata,session);
   RelationPlan plan=planner.process(analysis.getQuery(),null);
   TableMetadata tableMetadata=createTableMetadata(destination,getTableColumns(plan));
-  ImmutableList<Symbol> writerOutputs=ImmutableList.of(symbolAllocator.newSymbol("partialrows",Type.BIGINT),symbolAllocator.newSymbol("fragment",Type.VARCHAR));
+  ImmutableList<Symbol> writerOutputs=ImmutableList.of(symbolAllocator.newSymbol("partialrows",BIGINT),symbolAllocator.newSymbol("fragment",VARCHAR));
   TableWriterNode writerNode=new TableWriterNode(idAllocator.getNextId(),plan.getRoot(),null,plan.getOutputSymbols(),getColumnNames(tableMetadata),writerOutputs,Optional.<Symbol>absent(),destination.getCatalogName(),tableMetadata,metadata.canCreateSampledTables(destination.getCatalogName()));
-  List<Symbol> outputs=ImmutableList.of(symbolAllocator.newSymbol("rows",Type.BIGINT));
+  List<Symbol> outputs=ImmutableList.of(symbolAllocator.newSymbol("rows",BIGINT));
   TableCommitNode commitNode=new TableCommitNode(idAllocator.getNextId(),writerNode,null,outputs);
   return new RelationPlan(commitNode,analysis.getOutputDescriptor(),outputs);
 }

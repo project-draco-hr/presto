@@ -10,14 +10,14 @@
   }
   ImmutableListMultimap.Builder<Symbol,Symbol> symbolMapping=ImmutableListMultimap.<Symbol,Symbol>builder().putAll(node.getSymbolMapping());
   ImmutableList.Builder<PlanNode> sources=ImmutableList.builder();
-  Symbol outputSymbol=symbolAllocator.newSymbol("$sampleWeight",Type.BIGINT);
+  Symbol outputSymbol=symbolAllocator.newSymbol("$sampleWeight",BIGINT);
   for (  PlanNode source : rewrittenSources) {
     if (source instanceof MaterializeSampleNode) {
       symbolMapping.put(outputSymbol,((MaterializeSampleNode)source).getSampleWeightSymbol());
       sources.add(((MaterializeSampleNode)source).getSource());
     }
  else {
-      Symbol symbol=symbolAllocator.newSymbol("$sampleWeight",Type.BIGINT);
+      Symbol symbol=symbolAllocator.newSymbol("$sampleWeight",BIGINT);
       symbolMapping.put(outputSymbol,symbol);
       sources.add(addSampleWeight(source,symbol));
     }
