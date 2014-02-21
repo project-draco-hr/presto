@@ -2,20 +2,21 @@
   Expression parsedExpression=createExpression(expression);
   Expression roundtrip=createExpression(ExpressionFormatter.formatExpression(parsedExpression));
   assertEquals(parsedExpression,roundtrip);
-  ExpressionInterpreter interpreter=ExpressionInterpreter.expressionOptimizer(parsedExpression,DUAL_METADATA_MANAGER,new Session("user","test",DEFAULT_CATALOG,DEFAULT_SCHEMA,null,null));
+  IdentityHashMap<Expression,Type> expressionTypes=getExpressionTypes(SESSION,DUAL_METADATA_MANAGER,SYMBOL_TYPES,parsedExpression);
+  ExpressionInterpreter interpreter=expressionOptimizer(parsedExpression,DUAL_METADATA_MANAGER,SESSION,expressionTypes);
   return interpreter.optimize(new SymbolResolver(){
     @Override public Object getValue(    Symbol symbol){
 switch (symbol.getName().toLowerCase()) {
-case "boundlong":
+case "bound_long":
         return 1234L;
-case "boundstring":
+case "bound_string":
       return Slices.wrappedBuffer("hello".getBytes(UTF_8));
-case "bounddouble":
+case "bound_double":
     return 12.34;
-case "boundtimestamp":
+case "bound_timestamp":
   DateTime dateTime=new DateTime(2001,8,22,3,4,5,321,DateTimeZone.UTC);
 return MILLISECONDS.toSeconds(dateTime.getMillis());
-case "boundpattern":
+case "bound_pattern":
 return Slices.wrappedBuffer("%el%".getBytes(UTF_8));
 }
 return new QualifiedNameReference(symbol.toQualifiedName());

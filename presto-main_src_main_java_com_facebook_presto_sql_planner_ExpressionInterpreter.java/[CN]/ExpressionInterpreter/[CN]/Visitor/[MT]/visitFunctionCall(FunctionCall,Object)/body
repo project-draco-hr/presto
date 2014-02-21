@@ -6,31 +6,16 @@
     if (value == null) {
       return null;
     }
-    Type type;
-    if (value instanceof Double) {
-      type=DOUBLE;
-    }
- else     if (value instanceof Long) {
-      type=BIGINT;
-    }
- else     if (value instanceof Slice) {
-      type=VARCHAR;
-    }
- else     if (value instanceof Boolean) {
-      type=BOOLEAN;
-    }
- else     if (value instanceof Expression) {
+    Type type=expressionTypes.get(expression);
+    if (value instanceof Expression) {
       return node;
-    }
- else {
-      throw new UnsupportedOperationException("Unhandled value type: " + value.getClass().getName());
     }
     argumentValues.add(value);
     argumentTypes.add(type);
   }
   FunctionInfo function=metadata.getFunction(node.getName(),argumentTypes,false);
   if (optimize && !function.isDeterministic()) {
-    return new FunctionCall(node.getName(),node.getWindow().orNull(),node.isDistinct(),toExpressions(argumentValues));
+    return new FunctionCall(node.getName(),node.getWindow().orNull(),node.isDistinct(),toExpressions(argumentValues,argumentTypes));
   }
   MethodHandle handle=function.getScalarFunction();
   if (handle.type().parameterCount() > 0 && handle.type().parameterType(0) == Session.class) {

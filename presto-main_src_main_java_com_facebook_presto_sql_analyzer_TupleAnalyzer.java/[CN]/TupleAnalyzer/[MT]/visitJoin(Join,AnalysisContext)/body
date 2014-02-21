@@ -37,7 +37,7 @@
     ExpressionAnalyzer analyzer=new ExpressionAnalyzer(analysis,session,metadata,experimentalSyntaxEnabled);
     analyzer.analyze(expression,output,context);
     Analyzer.verifyNoAggregatesOrWindowFunctions(metadata,expression,"JOIN");
-    Object optimizedExpression=ExpressionInterpreter.expressionOptimizer(expression,metadata,session).optimize(NoOpSymbolResolver.INSTANCE);
+    Object optimizedExpression=expressionOptimizer(expression,metadata,session,analyzer.getSubExpressionTypes()).optimize(NoOpSymbolResolver.INSTANCE);
     if (!(optimizedExpression instanceof Expression) && optimizedExpression instanceof Boolean) {
       if (optimizedExpression.equals(Boolean.TRUE)) {
         optimizedExpression=new ComparisonExpression(ComparisonExpression.Type.EQUAL,new LongLiteral("0"),new LongLiteral("0"));

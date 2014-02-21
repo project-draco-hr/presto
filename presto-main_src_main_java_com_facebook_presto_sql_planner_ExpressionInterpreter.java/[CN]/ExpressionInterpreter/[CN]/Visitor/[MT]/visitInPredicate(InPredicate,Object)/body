@@ -31,11 +31,13 @@
   boolean hasNullValue=false;
   boolean found=false;
   List<Object> values=new ArrayList<>(valueList.getValues().size());
+  List<Type> types=new ArrayList<>(valueList.getValues().size());
   for (  Expression expression : valueList.getValues()) {
     Object inValue=process(expression,context);
     if (value instanceof Expression || inValue instanceof Expression) {
       hasUnresolvedValue=true;
       values.add(inValue);
+      types.add(expressionTypes.get(expression));
       continue;
     }
     if (inValue == null) {
@@ -49,7 +51,8 @@
     return true;
   }
   if (hasUnresolvedValue) {
-    return new InPredicate(toExpression(value),new InListExpression(toExpressions(values)));
+    Type type=expressionTypes.get(node.getValue());
+    return new InPredicate(toExpression(value,type),new InListExpression(toExpressions(values,types)));
   }
   if (hasNullValue) {
     return null;

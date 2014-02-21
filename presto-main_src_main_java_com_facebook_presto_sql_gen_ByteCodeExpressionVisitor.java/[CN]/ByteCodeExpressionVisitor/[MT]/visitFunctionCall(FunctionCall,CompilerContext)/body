@@ -1,12 +1,14 @@
 {
   List<TypedByteCodeNode> arguments=new ArrayList<>();
+  List<Type> argumentTypes=new ArrayList<>();
   for (  Expression argument : node.getArguments()) {
     TypedByteCodeNode typedByteCodeNode=process(argument,context);
     if (typedByteCodeNode.getType() == void.class) {
       return typedByteCodeNode;
     }
     arguments.add(typedByteCodeNode);
+    argumentTypes.add(expressionTypes.get(argument));
   }
-  FunctionBinding functionBinding=bootstrapFunctionBinder.bindFunction(node.getName(),getSessionByteCode,arguments);
+  FunctionBinding functionBinding=bootstrapFunctionBinder.bindFunction(node.getName(),getSessionByteCode,arguments,argumentTypes);
   return visitFunctionBinding(context,functionBinding,node.toString());
 }

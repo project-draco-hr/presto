@@ -8,6 +8,6 @@
   Map<Symbol,ColumnHandle> rightAssignments=Maps.filterKeys(scanAssignments,Predicates.in(ImmutableList.of(D,E,F)));
   TableScanNode rightScan=new TableScanNode(newId(),new DualTableHandle("default"),ImmutableList.copyOf(rightAssignments.keySet()),rightAssignments,null,Optional.<GeneratedPartitions>absent());
   PlanNode node=new JoinNode(newId(),JoinNode.Type.INNER,filter(leftScan,and(lessThan(BE,AE),lessThan(CE,number(10)))),filter(rightScan,and(equals(DE,EE),lessThan(FE,number(100)))),criteria);
-  Expression effectivePredicate=EffectivePredicateExtractor.extract(node);
+  Expression effectivePredicate=EffectivePredicateExtractor.extract(node,TYPES);
   Assert.assertEquals(normalizeConjuncts(effectivePredicate),normalizeConjuncts(lessThan(BE,AE),lessThan(CE,number(10)),equals(DE,EE),lessThan(FE,number(100)),equals(AE,DE),equals(BE,EE)));
 }

@@ -1,9 +1,9 @@
 {
-  Type projectionType=getExpressionType(projection);
   filter=ExpressionTreeRewriter.rewriteWith(new SymbolToInputRewriter(INPUT_MAPPING),filter);
   projection=ExpressionTreeRewriter.rewriteWith(new SymbolToInputRewriter(INPUT_MAPPING),projection);
+  IdentityHashMap<Expression,Type> expressionTypes=getExpressionTypesFromInput(SESSION,metadataManager,INPUT_TYPES,ImmutableList.of(filter,projection));
   try {
-    return compiler.compileFilterAndProjectOperator(0,filter,ImmutableList.of(projection),INPUT_TYPES,ImmutableList.of(projectionType));
+    return compiler.compileFilterAndProjectOperator(0,filter,ImmutableList.of(projection),expressionTypes);
   }
  catch (  Throwable e) {
     if (e instanceof UncheckedExecutionException) {

@@ -6,7 +6,8 @@
       Map<Symbol,Comparable<?>> symbolFixedValueAssignments=DomainUtils.columnHandleToSymbol(translatableAssignments,symbolToColumn);
       LookupSymbolResolver inputs=new LookupSymbolResolver(ImmutableMap.<Symbol,Object>copyOf(symbolFixedValueAssignments));
       for (      Expression expression : extractConjuncts(predicate)) {
-        ExpressionInterpreter optimizer=ExpressionInterpreter.expressionOptimizer(expression,metadata,session);
+        IdentityHashMap<Expression,Type> expressionTypes=getExpressionTypes(session,metadata,symbolAllocator.getTypes(),expression);
+        ExpressionInterpreter optimizer=ExpressionInterpreter.expressionOptimizer(expression,metadata,session,expressionTypes);
         Object optimized=optimizer.optimize(inputs);
         if (Boolean.FALSE.equals(optimized) || optimized == null || optimized instanceof NullLiteral) {
           return true;

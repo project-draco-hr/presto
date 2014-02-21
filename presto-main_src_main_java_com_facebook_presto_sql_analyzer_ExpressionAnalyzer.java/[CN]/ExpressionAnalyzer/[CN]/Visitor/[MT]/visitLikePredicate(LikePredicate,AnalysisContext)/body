@@ -1,15 +1,15 @@
 {
   Type value=process(node.getValue(),context);
-  if (!value.equals(VARCHAR) && !value.equals(NULL)) {
+  if (!isStringTypeOrNull(value)) {
     throw new SemanticException(TYPE_MISMATCH,node.getValue(),"Left side of LIKE expression must be a STRING (actual: %s)",value);
   }
   Type pattern=process(node.getPattern(),context);
-  if (!pattern.equals(VARCHAR) && !pattern.equals(NULL)) {
+  if (!isStringTypeOrNull(pattern)) {
     throw new SemanticException(TYPE_MISMATCH,node.getValue(),"Pattern for LIKE expression must be a STRING (actual: %s)",pattern);
   }
   if (node.getEscape() != null) {
     Type escape=process(node.getEscape(),context);
-    if (!escape.equals(VARCHAR) && !escape.equals(NULL)) {
+    if (!isStringTypeOrNull(escape)) {
       throw new SemanticException(TYPE_MISMATCH,node.getValue(),"Escape for LIKE expression must be a STRING (actual: %s)",escape);
     }
   }

@@ -11,8 +11,9 @@
   }
   PageBuilder pageBuilder=new PageBuilder(outputTypes);
   for (  List<Expression> row : node.getRows()) {
+    IdentityHashMap<Expression,Type> expressionTypes=getExpressionTypes(context.getSession(),metadata,ImmutableMap.<Symbol,Type>of(),ImmutableList.copyOf(row));
     for (int i=0; i < row.size(); i++) {
-      Object result=ExpressionInterpreter.expressionInterpreter(row.get(i),metadata,context.getSession()).evaluate(new BlockCursor[0]);
+      Object result=ExpressionInterpreter.expressionInterpreter(row.get(i),metadata,context.getSession(),expressionTypes).evaluate(new BlockCursor[0]);
       pageBuilder.getBlockBuilder(i).appendObject(result);
     }
   }

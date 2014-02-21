@@ -1,5 +1,6 @@
 {
-  return ExpressionInterpreter.expressionOptimizer(expression,metadata,session).optimize(new SymbolResolver(){
+  IdentityHashMap<Expression,Type> expressionTypes=getExpressionTypes(session,metadata,symbolAllocator.getTypes(),expression);
+  return ExpressionInterpreter.expressionOptimizer(expression,metadata,session,expressionTypes).optimize(new SymbolResolver(){
     @Override public Object getValue(    Symbol symbol){
       return nullSymbols.contains(symbol) ? null : new QualifiedNameReference(symbol.toQualifiedName());
     }

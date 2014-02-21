@@ -1,0 +1,13 @@
+{
+  DynamicClassLoader classLoader=createClassLoader();
+  TypedOperatorClass typedOperatorClass=compileScanFilterAndProjectOperator(filter,projections,expressionTypes,classLoader);
+  Constructor<? extends SourceOperator> constructor;
+  try {
+    constructor=typedOperatorClass.getOperatorClass().asSubclass(SourceOperator.class).getConstructor(OperatorContext.class,PlanNodeId.class,DataStreamProvider.class,Iterable.class,Iterable.class);
+  }
+ catch (  NoSuchMethodException e) {
+    throw Throwables.propagate(e);
+  }
+  ScanFilterAndProjectOperatorFactoryFactory operatorFactoryFactory=new ScanFilterAndProjectOperatorFactoryFactory(constructor,sourceId,typedOperatorClass.getTypes());
+  return operatorFactoryFactory;
+}

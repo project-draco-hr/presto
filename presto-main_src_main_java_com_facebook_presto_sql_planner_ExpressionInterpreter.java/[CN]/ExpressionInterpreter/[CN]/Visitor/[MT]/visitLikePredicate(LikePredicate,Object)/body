@@ -24,12 +24,12 @@
   if (pattern instanceof Slice && escape == null) {
     String stringPattern=((Slice)pattern).toString(Charsets.UTF_8);
     if (!stringPattern.contains("%") && !stringPattern.contains("_")) {
-      return new ComparisonExpression(ComparisonExpression.Type.EQUAL,toExpression(value),toExpression(pattern));
+      return new ComparisonExpression(ComparisonExpression.Type.EQUAL,toExpression(value,expressionTypes.get(node.getValue())),toExpression(pattern,expressionTypes.get(node.getPattern())));
     }
   }
   Expression optimizedEscape=null;
   if (node.getEscape() != null) {
-    optimizedEscape=toExpression(escape);
+    optimizedEscape=toExpression(escape,expressionTypes.get(node.getEscape()));
   }
-  return new LikePredicate(toExpression(value),toExpression(pattern),optimizedEscape);
+  return new LikePredicate(toExpression(value,expressionTypes.get(node.getValue())),toExpression(pattern,expressionTypes.get(node.getPattern())),optimizedEscape);
 }

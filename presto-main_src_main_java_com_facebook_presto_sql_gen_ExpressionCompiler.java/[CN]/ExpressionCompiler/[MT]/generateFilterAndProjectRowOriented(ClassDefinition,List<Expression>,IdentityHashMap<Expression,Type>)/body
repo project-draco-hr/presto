@@ -1,0 +1,49 @@
+{
+  MethodDefinition filterAndProjectMethod=classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),"filterAndProjectRowOriented",type(void.class),arg("page",com.facebook.presto.operator.Page.class),arg("pageBuilder",PageBuilder.class));
+  CompilerContext compilerContext=filterAndProjectMethod.getCompilerContext();
+  LocalVariableDefinition positionVariable=compilerContext.declareVariable(int.class,"position");
+  LocalVariableDefinition rowsVariable=compilerContext.declareVariable(int.class,"rows");
+  filterAndProjectMethod.getBody().comment("int rows = page.getPositionCount();").getVariable("page").invokeVirtual(com.facebook.presto.operator.Page.class,"getPositionCount",int.class).putVariable(rowsVariable);
+  List<LocalVariableDefinition> cursorVariables=new ArrayList<>();
+  int channels=getMaxInputChannel(expressionTypes) + 1;
+  for (int i=0; i < channels; i++) {
+    LocalVariableDefinition cursorVariable=compilerContext.declareVariable(BlockCursor.class,"cursor_" + i);
+    cursorVariables.add(cursorVariable);
+    filterAndProjectMethod.getBody().comment("BlockCursor %s = page.getBlock(%s).cursor();",cursorVariable.getName(),i).getVariable("page").push(i).invokeVirtual(com.facebook.presto.operator.Page.class,"getBlock",com.facebook.presto.block.Block.class,int.class).invokeInterface(com.facebook.presto.block.Block.class,"cursor",BlockCursor.class).putVariable(cursorVariable);
+  }
+  ForLoopBuilder forLoop=forLoopBuilder(compilerContext).comment("for (position = 0; position < rows; position++)").initialize(new Block(compilerContext).putVariable(positionVariable,0)).condition(new Block(compilerContext).getVariable(positionVariable).getVariable(rowsVariable).invokeStatic(Operations.class,"lessThan",boolean.class,int.class,int.class)).update(new Block(compilerContext).incrementVariable(positionVariable,(byte)1));
+  Block forLoopBody=new Block(compilerContext);
+  for (  LocalVariableDefinition cursorVariable : cursorVariables) {
+    forLoopBody.comment("checkState(%s.advanceNextPosition());",cursorVariable.getName()).getVariable(cursorVariable).invokeInterface(BlockCursor.class,"advanceNextPosition",boolean.class).invokeStatic(Preconditions.class,"checkState",void.class,boolean.class);
+  }
+  IfStatementBuilder ifStatement=new IfStatementBuilder(compilerContext).comment("if (filter(cursors...)");
+  Block condition=new Block(compilerContext);
+  condition.pushThis();
+  for (int channel=0; channel < channels; channel++) {
+    condition.getVariable("cursor_" + channel);
+  }
+  condition.invokeVirtual(classDefinition.getType(),"filter",type(boolean.class),nCopies(channels,type(BlockCursor.class)));
+  ifStatement.condition(condition);
+  Block trueBlock=new Block(compilerContext);
+  if (projections.isEmpty()) {
+    trueBlock.comment("pageBuilder.declarePosition()").getVariable("pageBuilder").invokeVirtual(PageBuilder.class,"declarePosition",void.class);
+  }
+ else {
+    for (int projectionIndex=0; projectionIndex < projections.size(); projectionIndex++) {
+      trueBlock.comment("project_%s(cursors..., pageBuilder.getBlockBuilder(%s))",projectionIndex,projectionIndex);
+      trueBlock.pushThis();
+      for (int channel=0; channel < channels; channel++) {
+        trueBlock.getVariable("cursor_" + channel);
+      }
+      trueBlock.getVariable("pageBuilder").push(projectionIndex).invokeVirtual(PageBuilder.class,"getBlockBuilder",BlockBuilder.class,int.class);
+      trueBlock.invokeVirtual(classDefinition.getType(),"project_" + projectionIndex,type(void.class),ImmutableList.<ParameterizedType>builder().addAll(nCopies(channels,type(BlockCursor.class))).add(type(BlockBuilder.class)).build());
+    }
+  }
+  ifStatement.ifTrue(trueBlock);
+  forLoopBody.append(ifStatement.build());
+  filterAndProjectMethod.getBody().append(forLoop.body(forLoopBody).build());
+  for (  LocalVariableDefinition cursorVariable : cursorVariables) {
+    filterAndProjectMethod.getBody().comment("checkState(not(%s.advanceNextPosition))",cursorVariable.getName()).getVariable(cursorVariable).invokeInterface(BlockCursor.class,"advanceNextPosition",boolean.class).invokeStatic(Operations.class,"not",boolean.class,boolean.class).invokeStatic(Preconditions.class,"checkState",void.class,boolean.class);
+  }
+  filterAndProjectMethod.getBody().ret();
+}
