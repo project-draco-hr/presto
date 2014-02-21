@@ -1,0 +1,27 @@
+{
+  BlockCursor labelCursor=page.getBlock(labelChannel).cursor();
+  BlockCursor predictionCursor=page.getBlock(predictionChannel).cursor();
+  while (labelCursor.advanceNextPosition()) {
+    checkState(predictionCursor.advanceNextPosition());
+    long predicted=predictionCursor.getLong();
+    long label=labelCursor.getLong();
+    checkArgument(predicted == 1 || predicted == 0,"evaluate_predictions only supports binary classifiers");
+    checkArgument(label == 1 || label == 0,"evaluate_predictions only supports binary classifiers");
+    if (label == 1) {
+      if (predicted == 1) {
+        truePositives++;
+      }
+ else {
+        falseNegatives++;
+      }
+    }
+ else {
+      if (predicted == 0) {
+        trueNegatives++;
+      }
+ else {
+        falsePositives++;
+      }
+    }
+  }
+}

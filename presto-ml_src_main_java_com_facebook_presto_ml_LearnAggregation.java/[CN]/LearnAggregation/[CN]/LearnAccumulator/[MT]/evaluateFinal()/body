@@ -1,0 +1,21 @@
+{
+  Dataset dataset=new Dataset(labels,rows);
+  boolean regression=ImmutableSet.copyOf(labels).size() > 100;
+  for (  double label : labels) {
+    if (!DoubleMath.isMathematicalInteger(label)) {
+      regression=true;
+      break;
+    }
+  }
+  Model model;
+  if (regression) {
+    model=new RegressorFeatureTransformer(new SvmRegressor(),new FeatureVectorUnitNormalizer());
+  }
+ else {
+    model=new ClassifierFeatureTransformer(new SvmClassifier(),new FeatureVectorUnitNormalizer());
+  }
+  model.train(dataset);
+  BlockBuilder builder=getFinalType().createBlockBuilder(new BlockBuilderStatus());
+  builder.appendSlice(ModelUtils.serialize(model));
+  return builder.build();
+}

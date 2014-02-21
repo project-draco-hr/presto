@@ -1,0 +1,12 @@
+{
+  Slice slice=Slices.wrappedBuffer(bytes);
+  int numModels=slice.getInt(0);
+  int offset=SIZE_OF_INT + SIZE_OF_INT * numModels;
+  ImmutableList.Builder<Model> models=ImmutableList.builder();
+  for (int i=0; i < numModels; i++) {
+    int length=slice.getInt(SIZE_OF_INT * (i + 1));
+    models.add(deserialize(slice.getBytes(offset,length)));
+    offset+=length;
+  }
+  return models.build();
+}

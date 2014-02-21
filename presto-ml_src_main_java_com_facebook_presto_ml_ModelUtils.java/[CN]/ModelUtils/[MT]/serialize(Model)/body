@@ -1,0 +1,24 @@
+{
+  checkNotNull(model,"model is null");
+  Integer id=MODEL_SERIALIZATION_IDS.get(model.getClass());
+  checkNotNull(id,"id is null");
+  int size=HYPERPARAMETERS_OFFSET;
+  byte[] hyperparameters=new byte[0];
+  size+=hyperparameters.length;
+  int dataLengthOffset=size;
+  size+=SIZE_OF_LONG;
+  int dataOffset=size;
+  byte[] data=model.getSerializedData();
+  size+=data.length;
+  Slice slice=Slices.allocate(size);
+  slice.setInt(VERSION_OFFSET,CURRENT_FORMAT_VERSION);
+  slice.setInt(ALGORITHM_OFFSET,id);
+  slice.setInt(HYPERPARAMETER_LENGTH_OFFSET,hyperparameters.length);
+  slice.setBytes(HYPERPARAMETERS_OFFSET,hyperparameters);
+  slice.setLong(dataLengthOffset,data.length);
+  slice.setBytes(dataOffset,data);
+  byte[] modelHash=Hashing.sha256().hashBytes(slice.getBytes(ALGORITHM_OFFSET,slice.length() - ALGORITHM_OFFSET)).asBytes();
+  checkState(modelHash.length == 32,"sha256 hash code expected to be 32 bytes");
+  slice.setBytes(HASH_OFFSET,modelHash);
+  return slice;
+}

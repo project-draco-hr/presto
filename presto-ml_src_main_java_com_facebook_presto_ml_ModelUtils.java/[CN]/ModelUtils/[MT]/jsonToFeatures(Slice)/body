@@ -1,0 +1,27 @@
+{
+  Map<Integer,Double> features=new HashMap<>();
+  try (JsonParser parser=JSON_FACTORY.createJsonParser(json.getInput())){
+    if (parser.nextToken() != JsonToken.START_OBJECT) {
+      throw new RuntimeException("Bad row. Expected a json object");
+    }
+    while (true) {
+      JsonToken token=parser.nextValue();
+      if (token == null) {
+        throw new RuntimeException("Bad row. Expected a json object");
+      }
+      if (token == JsonToken.END_OBJECT) {
+        break;
+      }
+      int key=Integer.parseInt(parser.getCurrentName());
+      double value=parser.getDoubleValue();
+      features.put(key,value);
+    }
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+catch (  RuntimeException e) {
+    throw new RuntimeException(format("Bad features: %s",json.toStringUtf8()),e);
+  }
+  return new FeatureVector(features);
+}

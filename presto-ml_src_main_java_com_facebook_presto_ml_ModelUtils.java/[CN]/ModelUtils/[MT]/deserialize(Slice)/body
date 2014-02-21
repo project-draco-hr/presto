@@ -1,0 +1,24 @@
+{
+  int version=slice.getInt(VERSION_OFFSET);
+  checkArgument(version == CURRENT_FORMAT_VERSION,format("Unsupported version: %d",version));
+  byte[] modelHashBytes=slice.getBytes(HASH_OFFSET,32);
+  HashCode expectedHash=HashCode.fromBytes(modelHashBytes);
+  HashCode actualHash=Hashing.sha256().hashBytes(slice.getBytes(ALGORITHM_OFFSET,slice.length() - ALGORITHM_OFFSET));
+  checkArgument(actualHash.equals(expectedHash),"model hash does not match data");
+  int id=slice.getInt(ALGORITHM_OFFSET);
+  Class<? extends Model> algorithm=MODEL_SERIALIZATION_IDS.inverse().get(id);
+  checkNotNull(algorithm,"Unsupported algorith %d",id);
+  int hyperparameterLength=slice.getInt(HYPERPARAMETER_LENGTH_OFFSET);
+  byte[] hyperparameterBytes=slice.getBytes(HYPERPARAMETERS_OFFSET,hyperparameterLength);
+  int dataLengthOffset=HYPERPARAMETERS_OFFSET + hyperparameterLength;
+  long dataLength=slice.getLong(dataLengthOffset);
+  int dataOffset=dataLengthOffset + SIZE_OF_LONG;
+  byte[] data=slice.getBytes(dataOffset,(int)dataLength);
+  try {
+    Method deserialize=algorithm.getMethod("deserialize",byte[].class);
+    return (Model)deserialize.invoke(null,new Object[]{data});
+  }
+ catch (  NoSuchMethodException|InvocationTargetException|IllegalAccessException e) {
+    throw Throwables.propagate(e);
+  }
+}

@@ -1,0 +1,33 @@
+{
+  truePositives.ensureCapacity(groupIdsBlock.getGroupCount());
+  falsePositives.ensureCapacity(groupIdsBlock.getGroupCount());
+  trueNegatives.ensureCapacity(groupIdsBlock.getGroupCount());
+  falseNegatives.ensureCapacity(groupIdsBlock.getGroupCount());
+  BlockCursor labelCursor=page.getBlock(labelChannel).cursor();
+  BlockCursor predictionCursor=page.getBlock(predictionChannel).cursor();
+  for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
+    long groupId=groupIdsBlock.getGroupId(position);
+    checkState(labelCursor.advanceNextPosition());
+    checkState(predictionCursor.advanceNextPosition());
+    long predicted=predictionCursor.getLong();
+    long label=labelCursor.getLong();
+    checkArgument(predicted == 1 || predicted == 0,"evaluate_predictions only supports binary classifiers");
+    checkArgument(label == 1 || label == 0,"evaluate_predictions only supports binary classifiers");
+    if (label == 1) {
+      if (predicted == 1) {
+        truePositives.increment(groupId);
+      }
+ else {
+        falseNegatives.increment(groupId);
+      }
+    }
+ else {
+      if (predicted == 0) {
+        trueNegatives.increment(groupId);
+      }
+ else {
+        falsePositives.increment(groupId);
+      }
+    }
+  }
+}
