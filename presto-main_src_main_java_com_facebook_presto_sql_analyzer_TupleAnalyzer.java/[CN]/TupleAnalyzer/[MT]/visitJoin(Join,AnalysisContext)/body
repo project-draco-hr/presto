@@ -24,8 +24,8 @@
     for (    String column : columns) {
       Expression leftExpression=new QualifiedNameReference(QualifiedName.of(column));
       Expression rightExpression=new QualifiedNameReference(QualifiedName.of(column));
-      ExpressionAnalysis leftExpressionAnalysis=Analyzer.analyzeExpression(session,metadata,left,analysis,approximateQueriesEnabled,context,leftExpression);
-      ExpressionAnalysis rightExpressionAnalysis=Analyzer.analyzeExpression(session,metadata,right,analysis,approximateQueriesEnabled,context,rightExpression);
+      ExpressionAnalysis leftExpressionAnalysis=Analyzer.analyzeExpression(session,metadata,left,analysis,experimentalSyntaxEnabled,context,leftExpression);
+      ExpressionAnalysis rightExpressionAnalysis=Analyzer.analyzeExpression(session,metadata,right,analysis,experimentalSyntaxEnabled,context,rightExpression);
       checkState(leftExpressionAnalysis.getSubqueryInPredicates().isEmpty(),"INVARIANT");
       checkState(rightExpressionAnalysis.getSubqueryInPredicates().isEmpty(),"INVARIANT");
       builder.add(new EquiJoinClause(leftExpression,rightExpression));
@@ -34,7 +34,7 @@
   }
  else   if (criteria instanceof JoinOn) {
     Expression expression=((JoinOn)criteria).getExpression();
-    ExpressionAnalyzer analyzer=new ExpressionAnalyzer(analysis,session,metadata,approximateQueriesEnabled);
+    ExpressionAnalyzer analyzer=new ExpressionAnalyzer(analysis,session,metadata,experimentalSyntaxEnabled);
     analyzer.analyze(expression,output,context);
     Analyzer.verifyNoAggregatesOrWindowFunctions(metadata,expression,"JOIN");
     Object optimizedExpression=ExpressionInterpreter.expressionOptimizer(expression,metadata,session).optimize(NoOpSymbolResolver.INSTANCE);
@@ -73,8 +73,8 @@
  else {
         throw new SemanticException(NOT_SUPPORTED,node,"Non-equi joins not supported: %s",conjunct);
       }
-      ExpressionAnalysis leftExpressionAnalysis=Analyzer.analyzeExpression(session,metadata,left,analysis,approximateQueriesEnabled,context,leftExpression);
-      ExpressionAnalysis rightExpressionAnalysis=Analyzer.analyzeExpression(session,metadata,right,analysis,approximateQueriesEnabled,context,rightExpression);
+      ExpressionAnalysis leftExpressionAnalysis=Analyzer.analyzeExpression(session,metadata,left,analysis,experimentalSyntaxEnabled,context,leftExpression);
+      ExpressionAnalysis rightExpressionAnalysis=Analyzer.analyzeExpression(session,metadata,right,analysis,experimentalSyntaxEnabled,context,rightExpression);
       analysis.addJoinInPredicates(node,new Analysis.JoinInPredicates(leftExpressionAnalysis.getSubqueryInPredicates(),rightExpressionAnalysis.getSubqueryInPredicates()));
       clauses.add(new EquiJoinClause(leftExpression,rightExpression));
     }
