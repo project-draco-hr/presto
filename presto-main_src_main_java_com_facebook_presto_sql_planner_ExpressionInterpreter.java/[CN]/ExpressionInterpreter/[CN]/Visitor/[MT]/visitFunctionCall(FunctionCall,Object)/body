@@ -7,14 +7,11 @@
       return null;
     }
     Type type=expressionTypes.get(expression);
-    if (value instanceof Expression) {
-      return node;
-    }
     argumentValues.add(value);
     argumentTypes.add(type);
   }
   FunctionInfo function=metadata.getFunction(node.getName(),argumentTypes,false);
-  if (optimize && !function.isDeterministic()) {
+  if (optimize && (!function.isDeterministic() || any(argumentValues,instanceOf(Expression.class)))) {
     return new FunctionCall(node.getName(),node.getWindow().orNull(),node.isDistinct(),toExpressions(argumentValues,argumentTypes));
   }
   MethodHandle handle=function.getScalarFunction();
