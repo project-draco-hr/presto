@@ -1,25 +1,7 @@
 {
-  TypedByteCodeNode value=process(node.getValue(),context);
-  if (value.getType() == void.class) {
-    return value;
-  }
-  TypedByteCodeNode min=process(node.getMin(),context);
-  if (min.getType() == void.class) {
-    return min;
-  }
-  TypedByteCodeNode max=process(node.getMax(),context);
-  if (max.getType() == void.class) {
-    return max;
-  }
-  Class<?> type=getType(value,min,max);
-  LabelNode end=new LabelNode("end");
-  Block block=new Block(context).comment(node.toString());
-  block.append(value.getNode());
-  block.append(ifWasNullPopAndGoto(context,end,boolean.class,type));
-  block.append(min.getNode());
-  block.append(ifWasNullPopAndGoto(context,end,boolean.class,type,type));
-  block.append(max.getNode());
-  block.append(ifWasNullPopAndGoto(context,end,boolean.class,type,type,type));
-  block.invokeStatic(Operations.class,"between",boolean.class,type,type,type);
-  return typedByteCodeNode(block.visitLabel(end),boolean.class);
+  ByteCodeNode value=process(node.getValue(),context);
+  ByteCodeNode min=process(node.getMin(),context);
+  ByteCodeNode max=process(node.getMax(),context);
+  FunctionBinding functionBinding=bootstrapFunctionBinder.bindOperator(OperatorType.BETWEEN,getSessionByteCode,ImmutableList.of(value,min,max),types(node.getValue(),node.getMin(),node.getMax()));
+  return visitFunctionBinding(context,functionBinding,node.toString());
 }

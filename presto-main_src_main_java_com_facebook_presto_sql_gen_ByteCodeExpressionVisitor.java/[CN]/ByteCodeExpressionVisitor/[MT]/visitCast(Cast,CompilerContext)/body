@@ -1,43 +1,12 @@
 {
-  TypedByteCodeNode value=process(node.getExpression(),context);
-  Block block=new Block(context).comment(node.toString());
-  block.append(value.getNode());
-  if (value.getType() == void.class) {
-switch (node.getType()) {
-case "BOOLEAN":
-      block.pushJavaDefault(boolean.class);
-    return typedByteCodeNode(block,boolean.class);
-case "BIGINT":
-  block.pushJavaDefault(long.class);
-return typedByteCodeNode(block,long.class);
-case "DOUBLE":
-block.pushJavaDefault(double.class);
-return typedByteCodeNode(block,double.class);
-case "VARCHAR":
-block.pushJavaDefault(Slice.class);
-return typedByteCodeNode(block,Slice.class);
-}
-}
- else {
-LabelNode end=new LabelNode("end");
-switch (node.getType()) {
-case "BOOLEAN":
-block.append(ifWasNullPopAndGoto(context,end,boolean.class,value.getType()));
-block.invokeStatic(Operations.class,"castToBoolean",boolean.class,value.getType());
-return typedByteCodeNode(block.visitLabel(end),boolean.class);
-case "BIGINT":
-block.append(ifWasNullPopAndGoto(context,end,long.class,value.getType()));
-block.invokeStatic(Operations.class,"castToLong",long.class,value.getType());
-return typedByteCodeNode(block.visitLabel(end),long.class);
-case "DOUBLE":
-block.append(ifWasNullPopAndGoto(context,end,double.class,value.getType()));
-block.invokeStatic(Operations.class,"castToDouble",double.class,value.getType());
-return typedByteCodeNode(block.visitLabel(end),double.class);
-case "VARCHAR":
-block.append(ifWasNullPopAndGoto(context,end,Slice.class,value.getType()));
-block.invokeStatic(Operations.class,"castToSlice",Slice.class,value.getType());
-return typedByteCodeNode(block.visitLabel(end),Slice.class);
-}
-}
-throw new UnsupportedOperationException("Unsupported type: " + node.getType());
+  Type type=Types.fromName(node.getType());
+  if (type == null) {
+    throw new IllegalArgumentException("Unsupported type: " + node.getType());
+  }
+  if (expressionTypes.get(node.getExpression()).equals(NULL)) {
+    return new Block(context).putVariable("wasNull",true).pushJavaDefault(type.getJavaType());
+  }
+  ByteCodeNode value=process(node.getExpression(),context);
+  FunctionBinding functionBinding=bootstrapFunctionBinder.bindCastOperator(getSessionByteCode,value,expressionTypes.get(node.getExpression()),type);
+  return visitFunctionBinding(context,functionBinding,node.toString());
 }

@@ -1,6 +1,6 @@
 {
   Type type=expressionTypes.get(node);
-  TypedByteCodeNode elseValue;
+  ByteCodeNode elseValue;
   if (node.getDefaultValue() != null) {
     elseValue=process(node.getDefaultValue(),context);
   }
@@ -14,12 +14,8 @@
   }
 ));
   for (  TypedWhenClause whenClause : Lists.reverse(new ArrayList<>(whenClauses))) {
-    if (whenClause.condition.getType() == void.class) {
-      continue;
-    }
-    checkState(whenClause.condition.getType() == boolean.class);
-    Block condition=new Block(context).append(whenClause.condition.getNode()).comment("... and condition value was not null").getVariable("wasNull").invokeStatic(Operations.class,"not",boolean.class,boolean.class).invokeStatic(Operations.class,"and",boolean.class,boolean.class,boolean.class).putVariable("wasNull",false);
-    elseValue=typedByteCodeNode(new IfStatement(context,condition,whenClause.value.getNode(),elseValue.getNode()),type);
+    Block condition=new Block(context).append(whenClause.operandBlock).comment("... and condition value was not null").getVariable("wasNull").invokeStatic(CompilerOperations.class,"not",boolean.class,boolean.class).invokeStatic(CompilerOperations.class,"and",boolean.class,boolean.class,boolean.class).putVariable("wasNull",false);
+    elseValue=new IfStatement(context,condition,whenClause.valueBlock,elseValue);
   }
   return elseValue;
 }

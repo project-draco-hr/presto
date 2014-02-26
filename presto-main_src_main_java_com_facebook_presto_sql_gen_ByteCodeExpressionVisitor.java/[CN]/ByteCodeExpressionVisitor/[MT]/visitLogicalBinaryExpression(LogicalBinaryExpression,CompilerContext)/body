@@ -1,13 +1,13 @@
 {
-  TypedByteCodeNode left=process(node.getLeft(),context);
-  checkState(left.getType() == boolean.class,"Expected logical binary expression left value to be a boolean but is a %s: %s",left.getType().getName(),node);
-  TypedByteCodeNode right=process(node.getRight(),context);
-  checkState(right.getType() == boolean.class,"Expected logical binary expression right value to be a boolean but is a %s: %s",right.getType().getName(),node);
+  ByteCodeNode left=process(node.getLeft(),context);
+  Type leftType=expressionTypes.get(node.getLeft());
+  ByteCodeNode right=process(node.getRight(),context);
+  Type rightType=expressionTypes.get(node.getRight());
 switch (node.getType()) {
 case AND:
-    return visitAnd(context,left,right,node.toString());
+    return visitAnd(context,left,leftType,right,rightType,node.toString());
 case OR:
-  return visitOr(context,left,right,node.toString());
+  return visitOr(context,left,leftType,right,rightType,node.toString());
 }
-throw new UnsupportedOperationException(format("not yet implemented: %s(%s, %s)",node.getType(),left.getType(),right.getType()));
+throw new UnsupportedOperationException(format("not yet implemented: %s(%s, %s)",node.getType(),leftType,rightType));
 }

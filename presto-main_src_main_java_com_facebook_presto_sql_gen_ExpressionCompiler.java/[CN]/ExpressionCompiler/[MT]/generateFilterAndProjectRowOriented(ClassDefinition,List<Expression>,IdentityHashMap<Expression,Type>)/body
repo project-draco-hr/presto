@@ -11,7 +11,7 @@
     cursorVariables.add(cursorVariable);
     filterAndProjectMethod.getBody().comment("BlockCursor %s = page.getBlock(%s).cursor();",cursorVariable.getName(),i).getVariable("page").push(i).invokeVirtual(com.facebook.presto.operator.Page.class,"getBlock",com.facebook.presto.block.Block.class,int.class).invokeInterface(com.facebook.presto.block.Block.class,"cursor",BlockCursor.class).putVariable(cursorVariable);
   }
-  ForLoopBuilder forLoop=forLoopBuilder(compilerContext).comment("for (position = 0; position < rows; position++)").initialize(new Block(compilerContext).putVariable(positionVariable,0)).condition(new Block(compilerContext).getVariable(positionVariable).getVariable(rowsVariable).invokeStatic(Operations.class,"lessThan",boolean.class,int.class,int.class)).update(new Block(compilerContext).incrementVariable(positionVariable,(byte)1));
+  ForLoopBuilder forLoop=forLoopBuilder(compilerContext).comment("for (position = 0; position < rows; position++)").initialize(new Block(compilerContext).putVariable(positionVariable,0)).condition(new Block(compilerContext).getVariable(positionVariable).getVariable(rowsVariable).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new Block(compilerContext).incrementVariable(positionVariable,(byte)1));
   Block forLoopBody=new Block(compilerContext);
   for (  LocalVariableDefinition cursorVariable : cursorVariables) {
     forLoopBody.comment("checkState(%s.advanceNextPosition());",cursorVariable.getName()).getVariable(cursorVariable).invokeInterface(BlockCursor.class,"advanceNextPosition",boolean.class).invokeStatic(Preconditions.class,"checkState",void.class,boolean.class);
@@ -43,7 +43,7 @@
   forLoopBody.append(ifStatement.build());
   filterAndProjectMethod.getBody().append(forLoop.body(forLoopBody).build());
   for (  LocalVariableDefinition cursorVariable : cursorVariables) {
-    filterAndProjectMethod.getBody().comment("checkState(not(%s.advanceNextPosition))",cursorVariable.getName()).getVariable(cursorVariable).invokeInterface(BlockCursor.class,"advanceNextPosition",boolean.class).invokeStatic(Operations.class,"not",boolean.class,boolean.class).invokeStatic(Preconditions.class,"checkState",void.class,boolean.class);
+    filterAndProjectMethod.getBody().comment("checkState(not(%s.advanceNextPosition))",cursorVariable.getName()).getVariable(cursorVariable).invokeInterface(BlockCursor.class,"advanceNextPosition",boolean.class).invokeStatic(CompilerOperations.class,"not",boolean.class,boolean.class).invokeStatic(Preconditions.class,"checkState",void.class,boolean.class);
   }
   filterAndProjectMethod.getBody().ret();
 }

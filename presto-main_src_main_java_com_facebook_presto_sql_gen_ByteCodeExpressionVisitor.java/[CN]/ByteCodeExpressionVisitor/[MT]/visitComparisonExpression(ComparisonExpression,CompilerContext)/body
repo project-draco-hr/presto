@@ -2,48 +2,8 @@
   if (node.getType() == ComparisonExpression.Type.IS_DISTINCT_FROM) {
     return visitIsDistinctFrom(node,context);
   }
-  TypedByteCodeNode left=process(node.getLeft(),context);
-  if (left.getType() == void.class) {
-    return left;
-  }
-  TypedByteCodeNode right=process(node.getRight(),context);
-  if (right.getType() == void.class) {
-    return right;
-  }
-  Class<?> type=getType(left,right);
-  String function;
-switch (node.getType()) {
-case EQUAL:
-    function="equal";
-  break;
-case NOT_EQUAL:
-function="notEqual";
-break;
-case LESS_THAN:
-checkArgument(type != boolean.class,"not yet implemented: %s(%s, %s)",node.getType(),left.getType(),right.getType());
-function="lessThan";
-break;
-case LESS_THAN_OR_EQUAL:
-checkArgument(type != boolean.class,"not yet implemented: %s(%s, %s)",node.getType(),left.getType(),right.getType());
-function="lessThanOrEqual";
-break;
-case GREATER_THAN:
-checkArgument(type != boolean.class,"not yet implemented: %s(%s, %s)",node.getType(),left.getType(),right.getType());
-function="greaterThan";
-break;
-case GREATER_THAN_OR_EQUAL:
-checkArgument(type != boolean.class,"not yet implemented: %s(%s, %s)",node.getType(),left.getType(),right.getType());
-function="greaterThanOrEqual";
-break;
-default :
-throw new UnsupportedOperationException(format("not yet implemented: %s(%s, %s)",node.getType(),left.getType(),right.getType()));
-}
-LabelNode end=new LabelNode("end");
-Block block=new Block(context).comment(node.toString());
-block.append(left.getNode());
-block.append(ifWasNullPopAndGoto(context,end,boolean.class,left.getType()));
-block.append(right.getNode());
-block.append(ifWasNullPopAndGoto(context,end,boolean.class,type,right.getType()));
-block.invokeStatic(Operations.class,function,boolean.class,type,type);
-return typedByteCodeNode(block.visitLabel(end),boolean.class);
+  ByteCodeNode left=process(node.getLeft(),context);
+  ByteCodeNode right=process(node.getRight(),context);
+  FunctionBinding functionBinding=bootstrapFunctionBinder.bindOperator(OperatorType.valueOf(node.getType().name()),getSessionByteCode,ImmutableList.of(left,right),types(node.getLeft(),node.getRight()));
+  return visitFunctionBinding(context,functionBinding,node.toString());
 }

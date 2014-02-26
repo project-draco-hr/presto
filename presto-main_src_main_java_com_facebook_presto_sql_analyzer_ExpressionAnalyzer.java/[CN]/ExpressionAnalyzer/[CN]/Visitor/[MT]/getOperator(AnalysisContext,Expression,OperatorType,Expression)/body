@@ -1,0 +1,21 @@
+{
+  ImmutableList.Builder<Type> argumentTypes=ImmutableList.builder();
+  for (  Expression expression : arguments) {
+    argumentTypes.add(process(expression,context));
+  }
+  OperatorInfo operatorInfo;
+  try {
+    operatorInfo=metadata.resolveOperator(operatorType,argumentTypes.build());
+  }
+ catch (  OperatorNotFoundException e) {
+    throw new SemanticException(TYPE_MISMATCH,node,e.getMessage());
+  }
+  for (int i=0; i < arguments.length; i++) {
+    Expression expression=arguments[i];
+    Type type=operatorInfo.getArgumentTypes().get(i);
+    coerceType(context,expression,type,String.format("Operator %s argument %d",operatorInfo,i));
+  }
+  resolvedOperators.put(node,operatorInfo);
+  expressionTypes.put(node,operatorInfo.getReturnType());
+  return operatorInfo.getReturnType();
+}

@@ -1,0 +1,20 @@
+{
+  ScalarFunction scalarFunction=method.getAnnotation(ScalarFunction.class);
+  if (scalarFunction == null) {
+    return false;
+  }
+  checkValidMethod(method);
+  MethodHandle methodHandle=lookup().unreflect(method);
+  String name=scalarFunction.value();
+  if (name.isEmpty()) {
+    name=camelToSnake(method.getName());
+  }
+  Type returnType=type(method.getAnnotation(SqlType.class),method.getReturnType());
+  Signature signature=new Signature(name.toLowerCase(),returnType,parameterTypes(method),false);
+  FunctionBinder functionBinder=createFunctionBinder(method,scalarFunction.functionBinder());
+  scalar(signature,methodHandle,scalarFunction.deterministic(),functionBinder,getDescription(method));
+  for (  String alias : scalarFunction.alias()) {
+    scalar(signature.withAlias(alias.toLowerCase()),methodHandle,scalarFunction.deterministic(),functionBinder,getDescription(method));
+  }
+  return true;
+}

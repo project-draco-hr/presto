@@ -7,22 +7,13 @@
   if (operand != null) {
     for (    WhenClause whenClause : node.getWhenClauses()) {
       Object value=process(whenClause.getOperand(),context);
+      if (value == null) {
+        continue;
+      }
       if (value instanceof Expression) {
         return node;
       }
-      if (operand instanceof Long && value instanceof Long) {
-        if (((Long)operand).longValue() == ((Long)value).longValue()) {
-          resultClause=whenClause.getResult();
-          break;
-        }
-      }
- else       if (operand instanceof Double && value instanceof Double) {
-        if (((Double)operand).doubleValue() == ((Double)value).doubleValue()) {
-          resultClause=whenClause.getResult();
-          break;
-        }
-      }
- else       if (operand.equals(value)) {
+      if ((Boolean)invokeOperator(OperatorType.EQUAL,types(node.getOperand(),whenClause.getOperand()),ImmutableList.of(operand,value))) {
         resultClause=whenClause.getResult();
         break;
       }

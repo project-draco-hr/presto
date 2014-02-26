@@ -2,24 +2,8 @@
   try {
     boolean foundOne=false;
     for (    Method method : clazz.getMethods()) {
-      ScalarFunction scalarFunction=method.getAnnotation(ScalarFunction.class);
-      if (scalarFunction == null) {
-        continue;
-      }
-      checkValidMethod(method);
-      MethodHandle methodHandle=lookup().unreflect(method);
-      String name=scalarFunction.value();
-      if (name.isEmpty()) {
-        name=camelToSnake(method.getName());
-      }
-      Type returnType=type(method.getAnnotation(SqlType.class),method.getReturnType());
-      Signature signature=new Signature(name.toLowerCase(),returnType,parameterTypes(method),false);
-      FunctionBinder functionBinder=createFunctionBinder(method,scalarFunction);
-      scalar(signature,methodHandle,scalarFunction.deterministic(),functionBinder,getDescription(method));
-      for (      String alias : scalarFunction.alias()) {
-        scalar(signature.withAlias(alias.toLowerCase()),methodHandle,scalarFunction.deterministic(),functionBinder,getDescription(method));
-      }
-      foundOne=true;
+      foundOne=processScalarFunction(method) || foundOne;
+      foundOne=processScalarOperator(method) || foundOne;
     }
     checkArgument(foundOne,"Expected class %s to contain at least one method annotated with @%s",clazz.getName(),ScalarFunction.class.getSimpleName());
   }

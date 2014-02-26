@@ -1,8 +1,17 @@
 {
-  process(node.getExpression(),context);
   Type type=Types.fromName(node.getType());
   if (type == null) {
     throw new SemanticException(TYPE_MISMATCH,node,"Cannot cast to type: " + node.getType());
+  }
+  Type value=process(node.getExpression(),context);
+  if (value != NULL) {
+    try {
+      OperatorInfo operator=metadata.getExactOperator(OperatorType.CAST,type,ImmutableList.of(value));
+      resolvedOperators.put(node,operator);
+    }
+ catch (    OperatorNotFoundException e) {
+      throw new SemanticException(TYPE_MISMATCH,node,"Cannot cast %s to %s",value,type);
+    }
   }
   expressionTypes.put(node,type);
   return type;

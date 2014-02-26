@@ -6,15 +6,10 @@
   if (value == null) {
     return null;
   }
-switch (node.getType()) {
-case "BOOLEAN":
-    return Casts.toBoolean(value);
-case "VARCHAR":
-  return Casts.toSlice(value);
-case "DOUBLE":
-return Casts.toDouble(value);
-case "BIGINT":
-return Casts.toLong(value);
-}
-throw new UnsupportedOperationException("Unsupported type: " + node.getType());
+  Type type=Types.fromName(node.getType());
+  if (type == null) {
+    throw new IllegalArgumentException("Unsupported type: " + node.getType());
+  }
+  OperatorInfo operatorInfo=metadata.getExactOperator(OperatorType.CAST,type,types(node.getExpression()));
+  return invoke(operatorInfo.getMethodHandle(),ImmutableList.of(value));
 }

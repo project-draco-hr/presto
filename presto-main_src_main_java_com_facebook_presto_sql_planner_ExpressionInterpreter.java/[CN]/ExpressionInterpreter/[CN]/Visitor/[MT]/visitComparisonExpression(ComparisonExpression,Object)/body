@@ -1,94 +1,26 @@
 {
-  if (node.getType() == ComparisonExpression.Type.IS_DISTINCT_FROM) {
-    Object left=process(node.getLeft(),context);
-    Object right=process(node.getRight(),context);
+  ComparisonExpression.Type type=node.getType();
+  Object left=process(node.getLeft(),context);
+  if (left == null && !(type == ComparisonExpression.Type.IS_DISTINCT_FROM)) {
+    return null;
+  }
+  Object right=process(node.getRight(),context);
+  if (type == ComparisonExpression.Type.IS_DISTINCT_FROM) {
     if (left == null && right == null) {
       return false;
     }
  else     if (left == null || right == null) {
       return true;
     }
- else     if (left instanceof Long && right instanceof Long) {
-      return ((Long)left).longValue() != ((Long)right).longValue();
-    }
- else     if (left instanceof Double && right instanceof Double) {
-      return ((Double)left).doubleValue() != ((Double)right).doubleValue();
-    }
- else     if (left instanceof Boolean && right instanceof Boolean) {
-      return !left.equals(right);
-    }
- else     if (left instanceof Slice && right instanceof Slice) {
-      return !left.equals(right);
-    }
-    return new ComparisonExpression(node.getType(),toExpression(left,expressionTypes.get(node.getLeft())),toExpression(right,expressionTypes.get(node.getRight())));
   }
-  Object left=process(node.getLeft(),context);
-  if (left == null) {
+ else   if (right == null) {
     return null;
   }
-  Object right=process(node.getRight(),context);
-  if (right == null) {
-    return null;
+  if (hasUnresolvedValue(left,right)) {
+    return new ComparisonExpression(type,toExpression(left,expressionTypes.get(node.getLeft())),toExpression(right,expressionTypes.get(node.getRight())));
   }
-  if (left instanceof Long && right instanceof Long) {
-switch (node.getType()) {
-case EQUAL:
-      return ((Long)left).longValue() == ((Long)right).longValue();
-case NOT_EQUAL:
-    return ((Long)left).longValue() != ((Long)right).longValue();
-case LESS_THAN:
-  return ((Long)left) < ((Long)right);
-case LESS_THAN_OR_EQUAL:
-return ((Long)left) <= ((Long)right);
-case GREATER_THAN:
-return ((Long)left) > ((Long)right);
-case GREATER_THAN_OR_EQUAL:
-return ((Long)left) >= ((Long)right);
-}
-throw new UnsupportedOperationException("unhandled type: " + node.getType());
-}
-if (left instanceof Double && right instanceof Double) {
-switch (node.getType()) {
-case EQUAL:
-return ((Double)left).doubleValue() == ((Double)right).doubleValue();
-case NOT_EQUAL:
-return ((Double)left).doubleValue() != ((Double)right).doubleValue();
-case LESS_THAN:
-return ((Double)left) < ((Double)right);
-case LESS_THAN_OR_EQUAL:
-return ((Double)left) <= ((Double)right);
-case GREATER_THAN:
-return ((Double)left) > ((Double)right);
-case GREATER_THAN_OR_EQUAL:
-return ((Double)left) >= ((Double)right);
-}
-throw new UnsupportedOperationException("unhandled type: " + node.getType());
-}
-if (left instanceof Slice && right instanceof Slice) {
-switch (node.getType()) {
-case EQUAL:
-return left.equals(right);
-case NOT_EQUAL:
-return !left.equals(right);
-case LESS_THAN:
-return ((Slice)left).compareTo((Slice)right) < 0;
-case LESS_THAN_OR_EQUAL:
-return ((Slice)left).compareTo((Slice)right) <= 0;
-case GREATER_THAN:
-return ((Slice)left).compareTo((Slice)right) > 0;
-case GREATER_THAN_OR_EQUAL:
-return ((Slice)left).compareTo((Slice)right) >= 0;
-}
-throw new UnsupportedOperationException("unhandled type: " + node.getType());
-}
-if (left instanceof Boolean && right instanceof Boolean) {
-switch (node.getType()) {
-case EQUAL:
-return left.equals(right);
-case NOT_EQUAL:
-return !left.equals(right);
-}
-throw new UnsupportedOperationException("unhandled type: " + node.getType());
-}
-return new ComparisonExpression(node.getType(),toExpression(left,expressionTypes.get(node.getLeft())),toExpression(right,expressionTypes.get(node.getRight())));
+  if (type == ComparisonExpression.Type.IS_DISTINCT_FROM) {
+    type=ComparisonExpression.Type.NOT_EQUAL;
+  }
+  return invokeOperator(OperatorType.valueOf(type.name()),types(node.getLeft(),node.getRight()),ImmutableList.of(left,right));
 }

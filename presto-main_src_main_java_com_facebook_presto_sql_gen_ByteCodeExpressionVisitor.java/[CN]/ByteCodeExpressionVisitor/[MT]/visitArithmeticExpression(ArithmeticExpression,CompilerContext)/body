@@ -1,40 +1,6 @@
 {
-  TypedByteCodeNode left=process(node.getLeft(),context);
-  if (left.getType() == void.class) {
-    return left;
-  }
-  TypedByteCodeNode right=process(node.getRight(),context);
-  if (right.getType() == void.class) {
-    return right;
-  }
-  Class<?> type=getType(left,right);
-  if (!isNumber(type)) {
-    throw new UnsupportedOperationException(format("not yet implemented: %s(%s, %s)",node.getType(),left.getType(),right.getType()));
-  }
-  Block block=new Block(context).comment(node.toString());
-  LabelNode end=new LabelNode("end");
-  block.append(left.getNode());
-  block.append(ifWasNullPopAndGoto(context,end,type,left.getType()));
-  block.append(right.getNode());
-  block.append(ifWasNullPopAndGoto(context,end,type,type,right.getType()));
-switch (node.getType()) {
-case ADD:
-    block.invokeStatic(Operations.class,"add",type,type,type);
-  break;
-case SUBTRACT:
-block.invokeStatic(Operations.class,"subtract",type,type,type);
-break;
-case MULTIPLY:
-block.invokeStatic(Operations.class,"multiply",type,type,type);
-break;
-case DIVIDE:
-block.invokeStatic(Operations.class,"divide",type,type,type);
-break;
-case MODULUS:
-block.invokeStatic(Operations.class,"modulus",type,type,type);
-break;
-default :
-throw new UnsupportedOperationException(format("not yet implemented: %s(%s, %s)",node.getType(),left.getType(),right.getType()));
-}
-return typedByteCodeNode(block.visitLabel(end),type);
+  ByteCodeNode left=process(node.getLeft(),context);
+  ByteCodeNode right=process(node.getRight(),context);
+  FunctionBinding functionBinding=bootstrapFunctionBinder.bindOperator(OperatorType.valueOf(node.getType().name()),getSessionByteCode,ImmutableList.of(left,right),types(node.getLeft(),node.getRight()));
+  return visitFunctionBinding(context,functionBinding,node.toString());
 }

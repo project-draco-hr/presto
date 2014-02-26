@@ -13,30 +13,26 @@
   CompilerContext context=projectionMethod.getCompilerContext();
   context.declareVariable(type(boolean.class),"wasNull");
   Block getSessionByteCode=new Block(context).pushThis().getField(classDefinition.getType(),"session",type(Session.class));
-  TypedByteCodeNode body=new ByteCodeExpressionVisitor(bootstrapFunctionBinder,expressionTypes,getSessionByteCode,sourceIsCursor).process(projection,context);
-  if (body.getType() != void.class) {
-    projectionMethod.getBody().comment("boolean wasNull = false;").putVariable("wasNull",false).getVariable("output").append(body.getNode());
-    Block notNullBlock=new Block(context);
-    if (body.getType() == boolean.class) {
-      notNullBlock.comment("output.append(<booleanStackValue>);").invokeInterface(BlockBuilder.class,"append",BlockBuilder.class,boolean.class).pop();
-    }
- else     if (body.getType() == long.class) {
-      notNullBlock.comment("output.append(<longStackValue>);").invokeInterface(BlockBuilder.class,"append",BlockBuilder.class,long.class).pop();
-    }
- else     if (body.getType() == double.class) {
-      notNullBlock.comment("output.append(<doubleStackValue>);").invokeInterface(BlockBuilder.class,"append",BlockBuilder.class,double.class).pop();
-    }
- else     if (body.getType() == Slice.class) {
-      notNullBlock.comment("output.append(<sliceStackValue>);").invokeInterface(BlockBuilder.class,"append",BlockBuilder.class,Slice.class).pop();
-    }
- else {
-      throw new UnsupportedOperationException("Type " + body.getType() + " can not be output yet");
-    }
-    Block nullBlock=new Block(context).comment("output.appendNull();").pop(body.getType()).invokeInterface(BlockBuilder.class,"appendNull",BlockBuilder.class).pop();
-    projectionMethod.getBody().comment("if the result was null, appendNull; otherwise append the value").append(new IfStatement(context,new Block(context).getVariable("wasNull"),nullBlock,notNullBlock)).ret();
+  ByteCodeNode body=new ByteCodeExpressionVisitor(bootstrapFunctionBinder,expressionTypes,getSessionByteCode,sourceIsCursor).process(projection,context);
+  projectionMethod.getBody().comment("boolean wasNull = false;").putVariable("wasNull",false).getVariable("output").append(body);
+  Type projectionType=expressionTypes.get(projection);
+  Block notNullBlock=new Block(context);
+  if (projectionType.getJavaType() == boolean.class) {
+    notNullBlock.comment("output.append(<booleanStackValue>);").invokeInterface(BlockBuilder.class,"append",BlockBuilder.class,boolean.class).pop();
+  }
+ else   if (projectionType.getJavaType() == long.class) {
+    notNullBlock.comment("output.append(<longStackValue>);").invokeInterface(BlockBuilder.class,"append",BlockBuilder.class,long.class).pop();
+  }
+ else   if (projectionType.getJavaType() == double.class) {
+    notNullBlock.comment("output.append(<doubleStackValue>);").invokeInterface(BlockBuilder.class,"append",BlockBuilder.class,double.class).pop();
+  }
+ else   if (projectionType.getJavaType() == Slice.class) {
+    notNullBlock.comment("output.append(<sliceStackValue>);").invokeInterface(BlockBuilder.class,"append",BlockBuilder.class,Slice.class).pop();
   }
  else {
-    projectionMethod.getBody().comment("output.appendNull();").getVariable("output").invokeInterface(BlockBuilder.class,"appendNull",BlockBuilder.class).pop().ret();
+    throw new UnsupportedOperationException("Type " + projectionType + " can not be output yet");
   }
-  return body.getType();
+  Block nullBlock=new Block(context).comment("output.appendNull();").pop(projectionType.getJavaType()).invokeInterface(BlockBuilder.class,"appendNull",BlockBuilder.class).pop();
+  projectionMethod.getBody().comment("if the result was null, appendNull; otherwise append the value").append(new IfStatement(context,new Block(context).getVariable("wasNull"),nullBlock,notNullBlock)).ret();
+  return projectionType.getJavaType();
 }

@@ -1,9 +1,10 @@
 {
-  TypedByteCodeNode value=process(node.getValue(),context);
-  if (value.getType() == void.class) {
-    return typedByteCodeNode(loadBoolean(true),boolean.class);
+  Type valueType=expressionTypes.get(node.getValue());
+  if (valueType.equals(NULL)) {
+    return loadBoolean(true);
   }
-  Block block=new Block(context).comment(node.toString()).append(value.getNode()).pop(value.getType()).getVariable("wasNull");
+  ByteCodeNode value=process(node.getValue(),context);
+  Block block=new Block(context).comment(node.toString()).append(value).pop(valueType.getJavaType()).getVariable("wasNull");
   block.putVariable("wasNull",false);
-  return typedByteCodeNode(block,boolean.class);
+  return block;
 }

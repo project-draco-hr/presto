@@ -1,0 +1,19 @@
+{
+  ScalarOperator scalarOperator=method.getAnnotation(ScalarOperator.class);
+  if (scalarOperator == null) {
+    return false;
+  }
+  checkValidMethod(method);
+  MethodHandle methodHandle=lookup().unreflect(method);
+  OperatorType operatorType=scalarOperator.value();
+  Type returnType;
+  if (operatorType == OperatorType.HASH_CODE) {
+    returnType=BIGINT;
+  }
+ else {
+    returnType=type(method.getAnnotation(SqlType.class),method.getReturnType());
+  }
+  FunctionBinder functionBinder=createFunctionBinder(method,scalarOperator.functionBinder());
+  operator(operatorType,returnType,parameterTypes(method),methodHandle,functionBinder);
+  return true;
+}

@@ -10,20 +10,9 @@
     argumentValues.add(value);
     argumentTypes.add(type);
   }
-  FunctionInfo function=metadata.getFunction(node.getName(),argumentTypes,false);
-  if (optimize && (!function.isDeterministic() || any(argumentValues,instanceOf(Expression.class)))) {
+  FunctionInfo function=metadata.resolveFunction(node.getName(),argumentTypes,false);
+  if (optimize && (!function.isDeterministic() || hasUnresolvedValue(argumentValues))) {
     return new FunctionCall(node.getName(),node.getWindow().orNull(),node.isDistinct(),toExpressions(argumentValues,argumentTypes));
   }
-  MethodHandle handle=function.getScalarFunction();
-  if (handle.type().parameterCount() > 0 && handle.type().parameterType(0) == Session.class) {
-    handle=handle.bindTo(session);
-  }
-  try {
-    return handle.invokeWithArguments(argumentValues);
-  }
- catch (  Throwable throwable) {
-    Throwables.propagateIfInstanceOf(throwable,RuntimeException.class);
-    Throwables.propagateIfInstanceOf(throwable,Error.class);
-    throw new RuntimeException(throwable.getMessage(),throwable);
-  }
+  return invoke(function.getScalarFunction(),argumentValues);
 }

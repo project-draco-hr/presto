@@ -3,40 +3,33 @@
   if (!(valueListExpression instanceof InListExpression)) {
     throw new UnsupportedOperationException("Compilation of IN subquery is not supported yet");
   }
-  TypedByteCodeNode value=process(node.getValue(),context);
-  if (value.getType() == void.class) {
-    return value;
-  }
-  ImmutableList.Builder<TypedByteCodeNode> values=ImmutableList.builder();
+  ByteCodeNode value=process(node.getValue(),context);
+  ImmutableList.Builder<ByteCodeNode> values=ImmutableList.builder();
   InListExpression valueList=(InListExpression)valueListExpression;
   for (  Expression test : valueList.getValues()) {
-    TypedByteCodeNode testNode=process(test,context);
+    ByteCodeNode testNode=process(test,context);
     values.add(testNode);
   }
-  Class<?> type=getType(ImmutableList.<TypedByteCodeNode>builder().add(value).addAll(values.build()).build());
-  ImmutableListMultimap.Builder<Integer,TypedByteCodeNode> hashBucketsBuilder=ImmutableListMultimap.builder();
-  ImmutableList.Builder<TypedByteCodeNode> defaultBucket=ImmutableList.builder();
+  Type type=expressionTypes.get(node.getValue());
+  Class<?> javaType=type.getJavaType();
+  FunctionBinding hashCodeFunction=bootstrapFunctionBinder.bindOperator(OperatorType.HASH_CODE,getSessionByteCode,ImmutableList.<ByteCodeNode>of(NOP),ImmutableList.of(type));
+  ImmutableListMultimap.Builder<Integer,ByteCodeNode> hashBucketsBuilder=ImmutableListMultimap.builder();
+  ImmutableList.Builder<ByteCodeNode> defaultBucket=ImmutableList.builder();
   ImmutableSet.Builder<Object> constantValuesBuilder=ImmutableSet.builder();
-  for (  TypedByteCodeNode testNode : values.build()) {
-    if (testNode.getNode() instanceof Constant) {
-      Constant constant=(Constant)testNode.getNode();
+  for (  ByteCodeNode testNode : values.build()) {
+    if (testNode instanceof Constant) {
+      Constant constant=(Constant)testNode;
       Object testValue=constant.getValue();
       constantValuesBuilder.add(testValue);
+      if (javaType == boolean.class) {
+        testValue=((Number)testValue).intValue() != 0;
+      }
       int hashCode;
-      if (type == boolean.class) {
-        hashCode=Operations.hashCode(((Number)testValue).intValue() != 0);
+      try {
+        hashCode=(int)hashCodeFunction.getCallSite().dynamicInvoker().invoke(testValue);
       }
- else       if (type == long.class) {
-        hashCode=Operations.hashCode((long)testValue);
-      }
- else       if (type == double.class) {
-        hashCode=Operations.hashCode(((Number)testValue).doubleValue());
-      }
- else       if (type == Slice.class) {
-        hashCode=Operations.hashCode((Slice)testValue);
-      }
- else {
-        throw new IllegalStateException("Error processing in statement: unsupported type " + testValue.getClass().getSimpleName());
+ catch (      Throwable throwable) {
+        throw new IllegalArgumentException("Error processing IN statement: error calculating hash code for " + testValue,throwable);
       }
       hashBucketsBuilder.put(hashCode,testNode);
     }
@@ -44,7 +37,7 @@
       defaultBucket.add(testNode);
     }
   }
-  ImmutableListMultimap<Integer,TypedByteCodeNode> hashBuckets=hashBucketsBuilder.build();
+  ImmutableListMultimap<Integer,ByteCodeNode> hashBuckets=hashBucketsBuilder.build();
   ImmutableSet<Object> constantValues=constantValuesBuilder.build();
   LabelNode end=new LabelNode("end");
   LabelNode match=new LabelNode("match");
@@ -54,26 +47,26 @@
   if (constantValues.size() < 1000) {
     Block switchCaseBlocks=new Block(context);
     LookupSwitchBuilder switchBuilder=lookupSwitchBuilder();
-    for (    Entry<Integer,Collection<TypedByteCodeNode>> bucket : hashBuckets.asMap().entrySet()) {
+    for (    Entry<Integer,Collection<ByteCodeNode>> bucket : hashBuckets.asMap().entrySet()) {
       LabelNode label=new LabelNode("inHash" + bucket.getKey());
       switchBuilder.addCase(bucket.getKey(),label);
-      Collection<TypedByteCodeNode> testValues=bucket.getValue();
+      Collection<ByteCodeNode> testValues=bucket.getValue();
       Block caseBlock=buildInCase(context,type,label,match,defaultLabel,testValues,false);
       switchCaseBlocks.append(caseBlock.setDescription("case " + bucket.getKey()));
     }
     switchBuilder.defaultCase(defaultLabel);
-    switchBlock=new Block(context).comment("lookupSwitch(hashCode(<stackValue>))").dup(type).invokeStatic(Operations.class,"hashCode",int.class,type).append(switchBuilder.build()).append(switchCaseBlocks);
+    switchBlock=new Block(context).comment("lookupSwitch(hashCode(<stackValue>))").dup(javaType).invokeDynamic(hashCodeFunction.getName(),hashCodeFunction.getCallSite().type(),hashCodeFunction.getBindingId()).append(switchBuilder.build()).append(switchCaseBlocks);
   }
  else {
-    FunctionBinding functionBinding=bootstrapFunctionBinder.bindFunction("in",getSessionByteCode,ImmutableList.<TypedByteCodeNode>of(),new InFunctionBinder(type,constantValues));
-    switchBlock=new Block(context).comment("inListSet.contains(<stackValue>)").append(new IfStatement(context,new Block(context).dup(type).invokeDynamic(functionBinding.getName(),functionBinding.getCallSite().type(),functionBinding.getBindingId()),jump(match),NOP));
+    FunctionBinding functionBinding=bootstrapFunctionBinder.bindFunction("in",getSessionByteCode,ImmutableList.<ByteCodeNode>of(),new InFunctionBinder(javaType,constantValues));
+    switchBlock=new Block(context).comment("inListSet.contains(<stackValue>)").append(new IfStatement(context,new Block(context).dup(javaType).invokeDynamic(functionBinding.getName(),functionBinding.getCallSite().type(),functionBinding.getBindingId()),jump(match),NOP));
   }
   Block defaultCaseBlock=buildInCase(context,type,defaultLabel,match,noMatch,defaultBucket.build(),true).setDescription("default");
-  Block block=new Block(context).comment(node.toString()).append(value.getNode()).append(ifWasNullPopAndGoto(context,end,boolean.class,type)).append(switchBlock).append(defaultCaseBlock);
-  Block matchBlock=new Block(context).setDescription("match").visitLabel(match).pop(type).putVariable("wasNull",false).push(true).gotoLabel(end);
+  Block block=new Block(context).comment(node.toString()).append(value).append(ifWasNullPopAndGoto(context,end,boolean.class,javaType)).append(switchBlock).append(defaultCaseBlock);
+  Block matchBlock=new Block(context).setDescription("match").visitLabel(match).pop(javaType).putVariable("wasNull",false).push(true).gotoLabel(end);
   block.append(matchBlock);
-  Block noMatchBlock=new Block(context).setDescription("noMatch").visitLabel(noMatch).pop(type).push(false).gotoLabel(end);
+  Block noMatchBlock=new Block(context).setDescription("noMatch").visitLabel(noMatch).pop(javaType).push(false).gotoLabel(end);
   block.append(noMatchBlock);
   block.visitLabel(end);
-  return typedByteCodeNode(block,boolean.class);
+  return block;
 }

@@ -11,14 +11,8 @@
   if (max == null) {
     return null;
   }
-  if (value instanceof Long && min instanceof Long && max instanceof Long) {
-    return ((Long)min) <= ((Long)value) && ((Long)value) <= ((Long)max);
+  if (hasUnresolvedValue(value,min,max)) {
+    return new BetweenPredicate(toExpression(value,expressionTypes.get(node.getValue())),toExpression(min,expressionTypes.get(node.getMin())),toExpression(max,expressionTypes.get(node.getMax())));
   }
- else   if (value instanceof Double && min instanceof Double && max instanceof Double) {
-    return ((Double)min) <= ((Double)value) && ((Double)value) <= ((Double)max);
-  }
- else   if (value instanceof Slice && min instanceof Slice && max instanceof Slice) {
-    return ((Slice)min).compareTo((Slice)value) <= 0 && ((Slice)value).compareTo((Slice)max) <= 0;
-  }
-  return new BetweenPredicate(toExpression(value,expressionTypes.get(node.getValue())),toExpression(min,expressionTypes.get(node.getMin())),toExpression(max,expressionTypes.get(node.getMax())));
+  return invokeOperator(OperatorType.BETWEEN,types(node.getValue(),node.getMin(),node.getMax()),ImmutableList.of(value,min,max));
 }
