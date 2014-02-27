@@ -1,11 +1,16 @@
 {
-  return retry().stopOn(NotFoundException.class).stopOnIllegalExceptions().run("getAllTables",new Callable<List<String>>(){
-    @Override public List<String> call() throws SchemaNotFoundException {
-      List<String> tables=session.getAllTables(databaseName);
+  return retry().stopOn(NotFoundException.class).stopOnIllegalExceptions().run("getAllTables",new Callable<Map<String,String>>(){
+    @Override public Map<String,String> call() throws SchemaNotFoundException {
+      String caseSensitiveDatabaseName=getCaseSensitiveSchemaName(databaseName);
+      if (caseSensitiveDatabaseName == null) {
+        caseSensitiveDatabaseName=databaseName;
+      }
+      List<String> tables=session.getAllTables(caseSensitiveDatabaseName);
+      Map<String,String> nameMap=Maps.uniqueIndex(tables,toLowerCase());
       if (tables.isEmpty()) {
         session.getSchema(databaseName);
       }
-      return tables;
+      return nameMap;
     }
   }
 );
