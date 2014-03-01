@@ -3,9 +3,15 @@
   if (!activePage.append(row)) {
     completedPagesMemorySize+=activePage.getMemorySize();
     activePage=new GroupByPageBuilder(types);
+    if (!activePage.append(row)) {
+      if (memoryManager.canUse(getEstimatedSize() + GroupByPageBuilder.memoryRequiredFor(row))) {
+        throw new PrestoException(StandardErrorCode.EXCEEDED_MEMORY_LIMIT.toErrorCode(),"Not enough memory to build group by hash");
+      }
+      activePage=new GroupByPageBuilder(types,row);
+      checkState(activePage.append(row),"Could not add row to empty page builder");
+    }
     allPages.add(activePage);
     pageIndex++;
-    checkState(activePage.append(row),"Could not add row to empty page builder");
   }
   int groupId=nextGroupId++;
   long address=encodeSyntheticAddress(pageIndex,activePage.getPositionCount() - 1);

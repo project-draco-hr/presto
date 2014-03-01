@@ -1,0 +1,16 @@
+{
+  boolean isNull=cursor.isNull();
+  if (isNull) {
+    return SIZE_OF_BYTE;
+  }
+  if (cursor.getTupleInfo().getType().isFixedSize()) {
+    return cursor.getTupleInfo().getType().getSize() + SIZE_OF_BYTE;
+  }
+ else   if (cursor.getTupleInfo().equals(SINGLE_VARBINARY)) {
+    int sliceLength=getVariableBinaryLength(cursor.getRawSlice(),cursor.getRawOffset());
+    return SIZE_OF_INT + sliceLength + SIZE_OF_BYTE;
+  }
+ else {
+    throw new IllegalArgumentException("Unsupported type " + cursor.getTupleInfo());
+  }
+}
