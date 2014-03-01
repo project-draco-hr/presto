@@ -1,15 +1,15 @@
 {
-  Type valueType=process(node.getValue(),context);
-  Type listType=process(node.getValueList(),context);
-  if (node.getValueList() instanceof SubqueryExpression) {
+  Expression value=node.getValue();
+  process(value,context);
+  Expression valueList=node.getValueList();
+  process(valueList,context);
+  if (valueList instanceof InListExpression) {
+    InListExpression inListExpression=(InListExpression)valueList;
+    checkSameType(context,"IN value and list items must be the same type: %s",ImmutableList.<Expression>builder().add(value).addAll(inListExpression.getValues()).build());
+  }
+ else   if (valueList instanceof SubqueryExpression) {
     subqueryInPredicates.add(node);
   }
-  if (valueType.equals(NULL)) {
-    subExpressionTypes.put(node,NULL);
-  }
- else   if (!sameType(valueType,listType)) {
-    throw new SemanticException(TYPE_MISMATCH,node,"Types are not comparable for 'IN': %s vs %s",valueType,listType);
-  }
-  subExpressionTypes.put(node,BOOLEAN);
+  expressionTypes.put(node,BOOLEAN);
   return BOOLEAN;
 }

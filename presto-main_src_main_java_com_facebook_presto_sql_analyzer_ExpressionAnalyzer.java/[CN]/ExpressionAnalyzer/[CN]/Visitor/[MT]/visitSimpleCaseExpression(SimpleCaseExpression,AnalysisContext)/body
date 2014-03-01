@@ -1,19 +1,8 @@
 {
-  Type operand=process(node.getOperand(),context);
   for (  WhenClause whenClause : node.getWhenClauses()) {
-    Type whenOperand=process(whenClause.getOperand(),context);
-    if (!sameType(operand,whenOperand)) {
-      throw new SemanticException(TYPE_MISMATCH,node,"CASE operand type does not match WHEN clause operand type: %s vs %s",operand,whenOperand);
-    }
+    checkSameType(context,node,"CASE operand type does not match WHEN clause operand type: %s vs %s",node.getOperand(),whenClause.getOperand());
   }
-  List<Type> types=new ArrayList<>();
-  for (  WhenClause whenClause : node.getWhenClauses()) {
-    types.add(process(whenClause.getResult(),context));
-  }
-  if (node.getDefaultValue() != null) {
-    types.add(process(node.getDefaultValue(),context));
-  }
-  Type type=getSingleType(node,"clauses",types);
-  subExpressionTypes.put(node,type);
+  Type type=checkSameType(context,"All CASE results must be the same type: %s",getCaseResultExpressions(node.getWhenClauses(),node.getDefaultValue()));
+  expressionTypes.put(node,type);
   return type;
 }

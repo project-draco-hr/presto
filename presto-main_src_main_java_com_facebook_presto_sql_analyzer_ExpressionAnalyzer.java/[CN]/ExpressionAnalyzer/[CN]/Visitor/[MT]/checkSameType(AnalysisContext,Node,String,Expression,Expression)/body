@@ -1,0 +1,28 @@
+{
+  Type firstType=null;
+  if (first != null) {
+    firstType=process(first,context);
+  }
+  Type secondType=null;
+  if (second != null) {
+    secondType=process(second,context);
+  }
+  if (first == null) {
+    return secondType;
+  }
+  if (second == null) {
+    return firstType;
+  }
+  if (firstType.equals(secondType)) {
+    return firstType;
+  }
+  if (firstType.equals(NULL) || (firstType.equals(BIGINT) && secondType.equals(DOUBLE))) {
+    expressionCoercions.put(first,secondType);
+    return secondType;
+  }
+  if (secondType.equals(NULL) || (firstType.equals(DOUBLE) && secondType.equals(BIGINT))) {
+    expressionCoercions.put(second,firstType);
+    return firstType;
+  }
+  throw new SemanticException(TYPE_MISMATCH,node,message,firstType,secondType);
+}

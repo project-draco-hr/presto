@@ -1,10 +1,11 @@
 {
   if (node.getHaving().isPresent()) {
     Expression predicate=node.getHaving().get();
-    ExpressionAnalysis expressionAnalysis=Analyzer.analyzeExpression(session,metadata,tupleDescriptor,analysis,experimentalSyntaxEnabled,context,predicate);
+    ExpressionAnalysis expressionAnalysis=ExpressionAnalyzer.analyzeExpression(session,metadata,tupleDescriptor,analysis,experimentalSyntaxEnabled,context,predicate);
     analysis.addInPredicates(node,expressionAnalysis.getSubqueryInPredicates());
-    if (!expressionAnalysis.getType().equals(BOOLEAN) && !expressionAnalysis.getType().equals(NullType.NULL)) {
-      throw new SemanticException(TYPE_MISMATCH,predicate,"HAVING clause must evaluate to a boolean: actual type %s",expressionAnalysis.getType());
+    Type predicateType=expressionAnalysis.getType(predicate);
+    if (!predicateType.equals(BOOLEAN) && !predicateType.equals(NullType.NULL)) {
+      throw new SemanticException(TYPE_MISMATCH,predicate,"HAVING clause must evaluate to a boolean: actual type %s",predicateType);
     }
     analysis.setHaving(node,predicate);
   }

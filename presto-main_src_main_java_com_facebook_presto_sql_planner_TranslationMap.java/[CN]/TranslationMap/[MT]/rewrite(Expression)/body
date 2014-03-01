@@ -2,11 +2,15 @@
   Expression mapped=translateNamesToSymbols(expression);
   return ExpressionTreeRewriter.rewriteWith(new ExpressionRewriter<Void>(){
     @Override public Expression rewriteExpression(    Expression node,    Void context,    ExpressionTreeRewriter<Void> treeRewriter){
+      Expression rewrittenExpression;
       Symbol symbol=expressionMappings.get(node);
       if (symbol != null) {
-        return new QualifiedNameReference(symbol.toQualifiedName());
+        rewrittenExpression=new QualifiedNameReference(symbol.toQualifiedName());
       }
-      return treeRewriter.defaultRewrite(node,context);
+ else {
+        rewrittenExpression=treeRewriter.defaultRewrite(node,context);
+      }
+      return rewrittenExpression;
     }
   }
 ,mapped);

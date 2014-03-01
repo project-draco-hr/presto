@@ -1,18 +1,12 @@
 {
-  Type condition=process(node.getCondition(),context);
-  if (!isBooleanOrNull(condition)) {
-    throw new SemanticException(TYPE_MISMATCH,node,"IF condition must be a boolean type: %s",condition);
+  checkType(context,node.getCondition(),BOOLEAN,"IF condition");
+  Type type;
+  if (node.getFalseValue().isPresent()) {
+    type=checkSameType(context,node,"Result types for IF must be the same: %s vs %s",node.getTrueValue(),node.getFalseValue().get());
   }
-  Type first=process(node.getTrueValue(),context);
-  if (!node.getFalseValue().isPresent()) {
-    subExpressionTypes.put(node,first);
-    return first;
+ else {
+    type=process(node.getTrueValue(),context);
   }
-  Type second=process(node.getFalseValue().get(),context);
-  if (!sameType(first,second)) {
-    throw new SemanticException(TYPE_MISMATCH,node,"Result types for IF must be the same: %s vs %s",first,second);
-  }
-  Type type=(!first.equals(NULL)) ? first : second;
-  subExpressionTypes.put(node,type);
+  expressionTypes.put(node,type);
   return type;
 }

@@ -2,10 +2,14 @@
   if (node.getWhere().isPresent()) {
     Expression predicate=node.getWhere().get();
     Analyzer.verifyNoAggregatesOrWindowFunctions(metadata,predicate,"WHERE");
-    ExpressionAnalysis expressionAnalysis=Analyzer.analyzeExpression(session,metadata,tupleDescriptor,analysis,experimentalSyntaxEnabled,context,predicate);
+    ExpressionAnalysis expressionAnalysis=ExpressionAnalyzer.analyzeExpression(session,metadata,tupleDescriptor,analysis,experimentalSyntaxEnabled,context,predicate);
     analysis.addInPredicates(node,expressionAnalysis.getSubqueryInPredicates());
-    if (!expressionAnalysis.getType().equals(BOOLEAN) && !expressionAnalysis.getType().equals(NullType.NULL)) {
-      throw new SemanticException(TYPE_MISMATCH,predicate,"WHERE clause must evaluate to a boolean: actual type %s",expressionAnalysis.getType());
+    Type predicateType=expressionAnalysis.getType(predicate);
+    if (!predicateType.equals(BOOLEAN)) {
+      if (!predicateType.equals(NullType.NULL)) {
+        throw new SemanticException(TYPE_MISMATCH,predicate,"WHERE clause must evaluate to a boolean: actual type %s",predicateType);
+      }
+      analysis.addCoercion(predicate,BOOLEAN);
     }
     analysis.setWhere(node,predicate);
   }

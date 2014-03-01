@@ -1,18 +1,9 @@
 {
-  Type value=process(node.getValue(),context);
-  if (!isStringTypeOrNull(value)) {
-    throw new SemanticException(TYPE_MISMATCH,node.getValue(),"Left side of LIKE expression must be a STRING (actual: %s)",value);
-  }
-  Type pattern=process(node.getPattern(),context);
-  if (!isStringTypeOrNull(pattern)) {
-    throw new SemanticException(TYPE_MISMATCH,node.getValue(),"Pattern for LIKE expression must be a STRING (actual: %s)",pattern);
-  }
+  checkType(context,node.getValue(),VARCHAR,"Left side of LIKE expression");
+  checkType(context,node.getPattern(),VARCHAR,"Pattern for LIKE expression");
   if (node.getEscape() != null) {
-    Type escape=process(node.getEscape(),context);
-    if (!isStringTypeOrNull(escape)) {
-      throw new SemanticException(TYPE_MISMATCH,node.getValue(),"Escape for LIKE expression must be a STRING (actual: %s)",escape);
-    }
+    checkType(context,node.getEscape(),VARCHAR,"Escape for LIKE expression");
   }
-  subExpressionTypes.put(node,BOOLEAN);
+  expressionTypes.put(node,BOOLEAN);
   return BOOLEAN;
 }

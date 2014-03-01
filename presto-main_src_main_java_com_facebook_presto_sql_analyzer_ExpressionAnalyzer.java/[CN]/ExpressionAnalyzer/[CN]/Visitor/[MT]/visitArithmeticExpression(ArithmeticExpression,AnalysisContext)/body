@@ -1,16 +1,5 @@
 {
-  Type left=process(node.getLeft(),context);
-  Type right=process(node.getRight(),context);
-  if (!isNumericOrNull(left)) {
-    throw new SemanticException(TYPE_MISMATCH,node.getLeft(),"Left side of '%s' must be numeric (actual: %s)",node.getType().getValue(),left);
-  }
-  if (!isNumericOrNull(right)) {
-    throw new SemanticException(TYPE_MISMATCH,node.getRight(),"Right side of '%s' must be numeric (actual: %s)",node.getType().getValue(),right);
-  }
-  if (left.equals(BIGINT) && right.equals(BIGINT)) {
-    subExpressionTypes.put(node,BIGINT);
-    return BIGINT;
-  }
-  subExpressionTypes.put(node,DOUBLE);
-  return DOUBLE;
+  Type type=checkSameType(context,node,"Operator %s '" + node.getType().getValue() + "' %s does not exist",node.getLeft(),node.getRight());
+  expressionTypes.put(node,type);
+  return type;
 }

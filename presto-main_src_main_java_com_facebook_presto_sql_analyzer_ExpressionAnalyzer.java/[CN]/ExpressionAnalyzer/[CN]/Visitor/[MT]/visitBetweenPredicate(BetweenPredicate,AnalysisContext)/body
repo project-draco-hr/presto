@@ -1,14 +1,5 @@
 {
-  Type value=process(node.getValue(),context);
-  Type min=process(node.getMin(),context);
-  Type max=process(node.getMax(),context);
-  if (isStringTypeOrNull(value) && isStringTypeOrNull(min) && isStringTypeOrNull(max)) {
-    subExpressionTypes.put(node,BOOLEAN);
-    return BOOLEAN;
-  }
-  if (isNumericOrNull(value) && isNumericOrNull(min) && isNumericOrNull(max)) {
-    subExpressionTypes.put(node,BOOLEAN);
-    return BOOLEAN;
-  }
-  throw new SemanticException(TYPE_MISMATCH,node.getValue(),"Between value, min and max must be the same type (value: %s, min: %s, max: %s)",value,min,max);
+  checkSameType(context,"BETWEEN operands must be the same type: %s",ImmutableList.of(node.getValue(),node.getMin(),node.getMax()));
+  expressionTypes.put(node,BOOLEAN);
+  return BOOLEAN;
 }

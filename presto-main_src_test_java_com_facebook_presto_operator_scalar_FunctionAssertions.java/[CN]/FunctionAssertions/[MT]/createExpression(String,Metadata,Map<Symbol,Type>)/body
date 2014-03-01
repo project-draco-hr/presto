@@ -1,0 +1,16 @@
+{
+  Expression parsedExpression=SqlParser.createExpression(expression);
+  final ExpressionAnalysis analysis=analyzeExpressionsWithSymbols(SESSION,metadata,symbolTypes,ImmutableList.of(parsedExpression));
+  Expression rewrittenExpression=ExpressionTreeRewriter.rewriteWith(new ExpressionRewriter<Void>(){
+    @Override public Expression rewriteExpression(    Expression node,    Void context,    ExpressionTreeRewriter<Void> treeRewriter){
+      Expression rewrittenExpression=treeRewriter.defaultRewrite(node,context);
+      Type coercion=analysis.getCoercion(node);
+      if (coercion != null) {
+        rewrittenExpression=new Cast(rewrittenExpression,coercion.getName());
+      }
+      return rewrittenExpression;
+    }
+  }
+,parsedExpression);
+  return rewrittenExpression;
+}
