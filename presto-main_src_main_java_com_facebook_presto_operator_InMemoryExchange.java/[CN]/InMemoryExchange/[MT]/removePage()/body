@@ -1,3 +1,10 @@
 {
-  return buffer.poll();
+  Page page=buffer.poll();
+  if (page != null) {
+    bufferBytes-=page.getDataSize().toBytes();
+  }
+  if (bufferBytes < maxBufferedBytes) {
+    notifyBlockedWriters();
+  }
+  return page;
 }
