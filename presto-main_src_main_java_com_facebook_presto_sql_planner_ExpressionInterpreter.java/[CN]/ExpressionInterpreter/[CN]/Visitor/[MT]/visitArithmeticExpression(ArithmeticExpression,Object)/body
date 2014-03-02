@@ -10,55 +10,52 @@
   if (left instanceof Expression || right instanceof Expression) {
     return new ArithmeticExpression(node.getType(),toExpression(left,expressionTypes.get(node.getLeft())),toExpression(right,expressionTypes.get(node.getRight())));
   }
-  Number leftNumber=(Number)left;
-  Number rightNumber=(Number)right;
 switch (node.getType()) {
 case ADD:
-    if (leftNumber instanceof Long && rightNumber instanceof Long) {
-      return leftNumber.longValue() + rightNumber.longValue();
+    if (left instanceof Long && right instanceof Long) {
+      return ((Long)left) + ((Long)right);
     }
- else {
-      return leftNumber.doubleValue() + rightNumber.doubleValue();
+ else     if (left instanceof Double && right instanceof Double) {
+      return ((Double)left) + ((Double)right);
     }
 case SUBTRACT:
-  if (leftNumber instanceof Long && rightNumber instanceof Long) {
-    return leftNumber.longValue() - rightNumber.longValue();
+  if (left instanceof Long && right instanceof Long) {
+    return ((Long)left) - ((Long)right);
   }
- else {
-    return leftNumber.doubleValue() - rightNumber.doubleValue();
+ else   if (left instanceof Double && right instanceof Double) {
+    return ((Double)left) - ((Double)right);
   }
 case DIVIDE:
-if (leftNumber instanceof Long && rightNumber instanceof Long) {
+if (left instanceof Long && right instanceof Long) {
   try {
-    return leftNumber.longValue() / rightNumber.longValue();
+    return ((Long)left) / ((Long)right);
   }
  catch (  ArithmeticException e) {
     throw new PrestoException(StandardErrorCode.DIVISION_BY_ZERO.toErrorCode(),e);
   }
 }
- else {
-  return leftNumber.doubleValue() / rightNumber.doubleValue();
+ else if (left instanceof Double && right instanceof Double) {
+  return ((Double)left) / ((Double)right);
 }
 case MULTIPLY:
-if (leftNumber instanceof Long && rightNumber instanceof Long) {
-return leftNumber.longValue() * rightNumber.longValue();
+if (left instanceof Long && right instanceof Long) {
+return ((Long)left) * ((Long)right);
 }
- else {
-return leftNumber.doubleValue() * rightNumber.doubleValue();
+ else if (left instanceof Double && right instanceof Double) {
+return ((Double)left) * ((Double)right);
 }
 case MODULUS:
-if (leftNumber instanceof Long && rightNumber instanceof Long) {
+if (left instanceof Long && right instanceof Long) {
 try {
-return leftNumber.longValue() % rightNumber.longValue();
+return ((Long)left) % ((Long)right);
 }
  catch (ArithmeticException e) {
 throw new PrestoException(StandardErrorCode.DIVISION_BY_ZERO.toErrorCode(),e);
 }
 }
- else {
-return leftNumber.doubleValue() % rightNumber.doubleValue();
+ else if (left instanceof Double && right instanceof Double) {
+return (Double)left % ((Double)right);
 }
-default :
+}
 throw new UnsupportedOperationException("not yet implemented: " + node.getType());
-}
 }
