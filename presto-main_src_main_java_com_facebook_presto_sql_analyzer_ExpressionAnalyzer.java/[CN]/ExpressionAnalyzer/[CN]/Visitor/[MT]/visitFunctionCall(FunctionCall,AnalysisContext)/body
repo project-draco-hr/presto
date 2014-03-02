@@ -12,6 +12,11 @@
     argumentTypes.add(process(expression,context));
   }
   FunctionInfo function=metadata.getFunction(node.getName(),argumentTypes.build(),context.isApproximate());
+  for (int i=0; i < node.getArguments().size(); i++) {
+    Expression expression=node.getArguments().get(i);
+    Type type=function.getArgumentTypes().get(i);
+    checkType(context,expression,type,String.format("Function %s argument %d",function.getHandle(),i));
+  }
   resolvedFunctions.put(node,function);
   expressionTypes.put(node,function.getReturnType());
   return function.getReturnType();
