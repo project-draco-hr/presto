@@ -1,0 +1,34 @@
+{
+  Expression value=treeRewriter.rewrite(node.getExpression(),context);
+switch (node.getField()) {
+case CENTURY:
+    return new FunctionCall(new QualifiedName("century"),ImmutableList.of(value));
+case YEAR:
+  return new FunctionCall(new QualifiedName("year"),ImmutableList.of(value));
+case QUARTER:
+return new FunctionCall(new QualifiedName("quarter"),ImmutableList.of(value));
+case MONTH:
+return new FunctionCall(new QualifiedName("month"),ImmutableList.of(value));
+case WEEK:
+return new FunctionCall(new QualifiedName("week"),ImmutableList.of(value));
+case DAY:
+case DAY_OF_MONTH:
+return new FunctionCall(new QualifiedName("day"),ImmutableList.of(value));
+case DAY_OF_WEEK:
+case DOW:
+return new FunctionCall(new QualifiedName("day_of_week"),ImmutableList.of(value));
+case DAY_OF_YEAR:
+case DOY:
+return new FunctionCall(new QualifiedName("day_of_year"),ImmutableList.of(value));
+case HOUR:
+return new FunctionCall(new QualifiedName("hour"),ImmutableList.of(value));
+case MINUTE:
+return new FunctionCall(new QualifiedName("minute"),ImmutableList.of(value));
+case SECOND:
+return new FunctionCall(new QualifiedName("second"),ImmutableList.of(value));
+case TIMEZONE_HOUR:
+case TIMEZONE_MINUTE:
+return new SearchedCaseExpression(ImmutableList.of(new WhenClause(new NotExpression(new IsNullPredicate(value)),new LongLiteral("0"))),null);
+}
+throw new UnsupportedOperationException("not yet implemented: " + node.getField());
+}
