@@ -6,7 +6,7 @@
   }
   Class<?> comparisonType=getType(first,second);
   LabelNode notMatch=new LabelNode("notMatch");
-  Block block=new Block(context).comment(node.toString()).append(first.getNode()).append(ifWasNullPopAndGoto(context,notMatch,void.class)).append(coerceToType(context,typedByteCodeNode(new Block(context).dup(first.getType()),first.getType()),comparisonType).getNode()).append(coerceToType(context,second,comparisonType).getNode()).append(ifWasNullClearPopAndGoto(context,notMatch,void.class,comparisonType,comparisonType));
+  Block block=new Block(context).comment(node.toString()).append(first.getNode()).append(ifWasNullPopAndGoto(context,notMatch,void.class)).append(typedByteCodeNode(new Block(context).dup(first.getType()),first.getType()).getNode()).append(second.getNode()).append(ifWasNullClearPopAndGoto(context,notMatch,void.class,comparisonType,comparisonType));
   Block conditionBlock=new Block(context).invokeStatic(Operations.class,"equal",boolean.class,comparisonType,comparisonType);
   Block trueBlock=new Block(context).putVariable("wasNull",true).pop(first.getType()).pushJavaDefault(first.getType());
   block.append(new IfStatement(context,conditionBlock,trueBlock,notMatch));

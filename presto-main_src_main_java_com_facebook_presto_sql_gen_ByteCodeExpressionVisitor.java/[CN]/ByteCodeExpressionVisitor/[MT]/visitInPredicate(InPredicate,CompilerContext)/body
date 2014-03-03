@@ -38,10 +38,10 @@
  else {
         throw new IllegalStateException("Error processing in statement: unsupported type " + testValue.getClass().getSimpleName());
       }
-      hashBucketsBuilder.put(hashCode,coerceToType(context,testNode,type));
+      hashBucketsBuilder.put(hashCode,testNode);
     }
  else {
-      defaultBucket.add(coerceToType(context,testNode,type));
+      defaultBucket.add(testNode);
     }
   }
   ImmutableListMultimap<Integer,TypedByteCodeNode> hashBuckets=hashBucketsBuilder.build();
@@ -69,7 +69,7 @@
     switchBlock=new Block(context).comment("inListSet.contains(<stackValue>)").append(new IfStatement(context,new Block(context).dup(type).invokeDynamic(functionBinding.getName(),functionBinding.getCallSite().type(),functionBinding.getBindingId()),jump(match),NOP));
   }
   Block defaultCaseBlock=buildInCase(context,type,defaultLabel,match,noMatch,defaultBucket.build(),true).setDescription("default");
-  Block block=new Block(context).comment(node.toString()).append(coerceToType(context,value,type).getNode()).append(ifWasNullPopAndGoto(context,end,boolean.class,type)).append(switchBlock).append(defaultCaseBlock);
+  Block block=new Block(context).comment(node.toString()).append(value.getNode()).append(ifWasNullPopAndGoto(context,end,boolean.class,type)).append(switchBlock).append(defaultCaseBlock);
   Block matchBlock=new Block(context).setDescription("match").visitLabel(match).pop(type).putVariable("wasNull",false).push(true).gotoLabel(end);
   block.append(matchBlock);
   Block noMatchBlock=new Block(context).setDescription("noMatch").visitLabel(noMatch).pop(type).push(false).gotoLabel(end);

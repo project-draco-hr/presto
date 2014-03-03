@@ -5,10 +5,8 @@
   LabelNode end=new LabelNode("end");
   Block block=new Block(context).setDescription("invoke").comment(comment);
   ArrayList<Class<?>> stackTypes=new ArrayList<>();
-  for (int i=0; i < arguments.size(); i++) {
-    TypedByteCodeNode argument=arguments.get(i);
-    Class<?> argumentType=methodType.parameterList().get(i);
-    block.append(coerceToType(context,argument,argumentType).getNode());
+  for (  TypedByteCodeNode argument : arguments) {
+    block.append(argument.getNode());
     stackTypes.add(argument.getType());
     block.append(ifWasNullPopAndGoto(context,end,unboxedReturnType,Lists.reverse(stackTypes)));
   }

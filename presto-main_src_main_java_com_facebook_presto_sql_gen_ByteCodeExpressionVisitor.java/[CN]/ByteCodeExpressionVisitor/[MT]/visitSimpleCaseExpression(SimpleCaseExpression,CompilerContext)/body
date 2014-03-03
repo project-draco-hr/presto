@@ -1,11 +1,12 @@
 {
   TypedByteCodeNode value=process(node.getOperand(),context);
+  Type type=expressionTypes.get(node);
   TypedByteCodeNode elseValue;
   if (node.getDefaultValue() != null) {
     elseValue=process(node.getDefaultValue(),context);
   }
  else {
-    elseValue=process(new NullLiteral(),context);
+    elseValue=typedNull(context,type.getJavaType());
   }
   List<TypedWhenClause> whenClauses=ImmutableList.copyOf(transform(node.getWhenClauses(),new Function<WhenClause,TypedWhenClause>(){
     @Override public TypedWhenClause apply(    WhenClause whenClause){
@@ -16,16 +17,16 @@
   Class<?> valueType=getType(ImmutableList.<TypedByteCodeNode>builder().addAll(transform(whenClauses,whenConditionGetter())).add(value).build());
   Class<?> resultType=getType(ImmutableList.<TypedByteCodeNode>builder().addAll(transform(whenClauses,whenValueGetter())).add(elseValue).build());
   if (value.getType() == void.class) {
-    return coerceToType(context,elseValue,resultType);
+    return elseValue;
   }
   LabelNode nullValue=new LabelNode("nullCondition");
   Variable tempVariable=context.createTempVariable(valueType);
-  Block block=new Block(context).append(coerceToType(context,value,valueType).getNode()).append(ifWasNullClearPopAndGoto(context,nullValue,void.class,valueType)).putVariable(tempVariable.getLocalVariableDefinition());
-  elseValue=typedByteCodeNode(new Block(context).visitLabel(nullValue).append(coerceToType(context,elseValue,resultType).getNode()),resultType);
+  Block block=new Block(context).append(value.getNode()).append(ifWasNullClearPopAndGoto(context,nullValue,void.class,valueType)).putVariable(tempVariable.getLocalVariableDefinition());
+  elseValue=typedByteCodeNode(new Block(context).visitLabel(nullValue).append(elseValue.getNode()),resultType);
   for (  TypedWhenClause whenClause : Lists.reverse(new ArrayList<>(whenClauses))) {
     LabelNode nullCondition=new LabelNode("nullCondition");
-    Block condition=new Block(context).append(coerceToType(context,whenClause.condition,valueType).getNode()).append(ifWasNullPopAndGoto(context,nullCondition,boolean.class,valueType)).getVariable(tempVariable.getLocalVariableDefinition()).invokeStatic(Operations.class,"equal",boolean.class,valueType,valueType).visitLabel(nullCondition).putVariable("wasNull",false);
-    elseValue=typedByteCodeNode(new IfStatement(context,format("when %s",whenClause),condition,coerceToType(context,whenClause.value,resultType).getNode(),elseValue.getNode()),resultType);
+    Block condition=new Block(context).append(whenClause.condition.getNode()).append(ifWasNullPopAndGoto(context,nullCondition,boolean.class,valueType)).getVariable(tempVariable.getLocalVariableDefinition()).invokeStatic(Operations.class,"equal",boolean.class,valueType,valueType).visitLabel(nullCondition).putVariable("wasNull",false);
+    elseValue=typedByteCodeNode(new IfStatement(context,format("when %s",whenClause),condition,whenClause.value.getNode(),elseValue.getNode()),resultType);
   }
   return typedByteCodeNode(block.append(elseValue.getNode()),resultType);
 }
