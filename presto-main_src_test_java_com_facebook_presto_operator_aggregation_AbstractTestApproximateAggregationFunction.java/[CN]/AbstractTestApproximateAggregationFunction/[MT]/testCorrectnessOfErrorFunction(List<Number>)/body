@@ -1,0 +1,33 @@
+{
+  int inRange=0;
+  int numberOfRuns=1000;
+  double sampleRatio=0.1;
+  for (int i=0; i < numberOfRuns; i++) {
+    Iterable<Number> sampledList=Iterables.limit(shuffle(inputList,i),(int)(inputList.size() * sampleRatio));
+    double actual=getExpectedValue(ImmutableList.<Number>builder().addAll(sampledList).addAll(sampledList).build());
+    BlockBuilder builder=new BlockBuilder(getTupleInfo());
+    for (    Number sample : sampledList) {
+      if (getTupleInfo() == SINGLE_LONG) {
+        builder.append(sample.longValue());
+      }
+ else       if (getTupleInfo() == SINGLE_DOUBLE) {
+        builder.append(sample.doubleValue());
+      }
+ else {
+        throw new AssertionError("Can only handle longs and doubles");
+      }
+    }
+    Page page=new Page(builder.build());
+    page=OperatorAssertion.appendSampleWeight(ImmutableList.of(page),2).get(0);
+    Accumulator accumulator=getFunction().createAggregation(Optional.<Integer>absent(),Optional.of(page.getChannelCount() - 1),getConfidence(),0);
+    accumulator.addInput(page);
+    Block result=accumulator.evaluateFinal();
+    String approxValue=BlockAssertions.toValues(result).get(0).toString();
+    double approx=Double.parseDouble(approxValue.split(" ")[0]);
+    double error=Double.parseDouble(approxValue.split(" ")[2]);
+    if (Math.abs(approx - actual) <= error) {
+      inRange++;
+    }
+  }
+  assertTrue(inRange >= getConfidence() * numberOfRuns);
+}

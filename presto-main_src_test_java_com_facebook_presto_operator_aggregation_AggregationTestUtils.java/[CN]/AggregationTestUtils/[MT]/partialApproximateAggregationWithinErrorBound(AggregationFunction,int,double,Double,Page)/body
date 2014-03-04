@@ -1,0 +1,16 @@
+{
+  Accumulator partialAccumulator=function.createAggregation(Optional.<Integer>absent(),Optional.of(sampleWeightChannel),confidence,0);
+  for (  Page page : pages) {
+    if (page.getPositionCount() > 0) {
+      partialAccumulator.addInput(page);
+    }
+  }
+  Block partialBlock=partialAccumulator.evaluateIntermediate();
+  Accumulator finalAggregation=function.createIntermediateAggregation(confidence);
+  finalAggregation.addIntermediate(partialBlock);
+  Block finalBlock=finalAggregation.evaluateFinal();
+  if (expectedValue == null) {
+    return BlockAssertions.toValues(finalBlock).get(0) == null;
+  }
+  return withinErrorBound(BlockAssertions.toValues(finalBlock).get(0).toString(),expectedValue);
+}
