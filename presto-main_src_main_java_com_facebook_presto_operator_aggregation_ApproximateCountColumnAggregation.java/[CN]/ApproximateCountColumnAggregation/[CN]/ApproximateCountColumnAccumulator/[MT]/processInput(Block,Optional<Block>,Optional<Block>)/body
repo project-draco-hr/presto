@@ -1,0 +1,18 @@
+{
+  BlockCursor values=block.cursor();
+  BlockCursor sampleWeights=sampleWeightBlock.get().cursor();
+  BlockCursor masks=null;
+  if (maskBlock.isPresent()) {
+    masks=maskBlock.get().cursor();
+  }
+  for (int i=0; i < block.getPositionCount(); i++) {
+    checkState(masks == null || masks.advanceNextPosition(),"failed to advance mask cursor");
+    checkState(sampleWeights.advanceNextPosition(),"failed to advance weight cursor");
+    checkState(values.advanceNextPosition(),"failed to advance values cursor");
+    long weight=values.isNull() ? 0 : SimpleAggregationFunction.computeSampleWeight(masks,sampleWeights);
+    count+=weight;
+    if (weight > 0) {
+      samples++;
+    }
+  }
+}

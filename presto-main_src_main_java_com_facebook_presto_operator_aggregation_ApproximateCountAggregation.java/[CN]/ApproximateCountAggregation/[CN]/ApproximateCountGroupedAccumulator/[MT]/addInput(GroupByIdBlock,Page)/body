@@ -1,0 +1,19 @@
+{
+  counts.ensureCapacity(groupIdsBlock.getGroupCount());
+  samples.ensureCapacity(groupIdsBlock.getGroupCount());
+  BlockCursor masks=null;
+  if (maskChannel.isPresent()) {
+    masks=page.getBlock(maskChannel.get()).cursor();
+  }
+  BlockCursor sampleWeights=page.getBlock(sampleWeightChannel).cursor();
+  for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
+    long groupId=groupIdsBlock.getGroupId(position);
+    checkState(masks == null || masks.advanceNextPosition(),"failed to advance mask cursor");
+    checkState(sampleWeights.advanceNextPosition(),"failed to advance weight cursor");
+    long weight=SimpleAggregationFunction.computeSampleWeight(masks,sampleWeights);
+    counts.add(groupId,weight);
+    if (weight > 0) {
+      samples.increment(groupId);
+    }
+  }
+}
