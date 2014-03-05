@@ -1,0 +1,23 @@
+{
+  counts.ensureCapacity(groupIdsBlock.getGroupCount());
+  samples.ensureCapacity(groupIdsBlock.getGroupCount());
+  sums.ensureCapacity(groupIdsBlock.getGroupCount());
+  variances.ensureCapacity(groupIdsBlock.getGroupCount());
+  BlockCursor intermediates=block.cursor();
+  for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
+    checkState(intermediates.advanceNextPosition(),"failed to advance intermediates cursor");
+    long groupId=groupIdsBlock.getGroupId(position);
+    Slice slice=intermediates.getSlice();
+    long inputCount=slice.getLong(COUNT_OFFSET);
+    long count=counts.get(groupId);
+    samples.add(groupId,slice.getLong(SAMPLES_OFFSET));
+    long inputSum=slice.getLong(SUM_OFFSET);
+    double inputVariance=slice.getDouble(VARIANCE_OFFSET);
+    if (count > 0 && inputCount > 0) {
+      double t=(inputCount / (double)count) * sums.get(groupId) - inputSum;
+      variances.set(groupId,inputVariance + t * t * count / (double)(inputCount * (count + inputCount)));
+    }
+    sums.add(groupId,inputSum);
+    counts.add(groupId,inputCount);
+  }
+}

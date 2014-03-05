@@ -1,0 +1,39 @@
+{
+  counts.ensureCapacity(groupIdsBlock.getGroupCount());
+  samples.ensureCapacity(groupIdsBlock.getGroupCount());
+  sums.ensureCapacity(groupIdsBlock.getGroupCount());
+  variances.ensureCapacity(groupIdsBlock.getGroupCount());
+  BlockCursor values=valuesBlock.cursor();
+  BlockCursor sampleWeights=sampleWeightBlock.get().cursor();
+  BlockCursor masks=null;
+  if (maskBlock.isPresent()) {
+    masks=maskBlock.get().cursor();
+  }
+  for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
+    long groupId=groupIdsBlock.getGroupId(position);
+    checkState(masks == null || masks.advanceNextPosition(),"failed to advance mask cursor");
+    checkState(sampleWeights.advanceNextPosition(),"failed to advance weight cursor");
+    checkState(values.advanceNextPosition(),"failed to advance values cursor");
+    long weight=values.isNull() ? 0 : SimpleAggregationFunction.computeSampleWeight(masks,sampleWeights);
+    if (weight > 0) {
+      samples.increment(groupId);
+    }
+    if (!values.isNull() && weight > 0) {
+      long value=values.getLong();
+      long count=counts.get(groupId);
+      long sum=sums.get(groupId);
+      double variance=variances.get(groupId);
+      for (int j=0; j < weight; j++) {
+        count++;
+        sum+=value;
+        if (count > 1) {
+          long t=count * value - sum;
+          variance+=(t * t) / ((double)count * (count - 1));
+        }
+      }
+      counts.set(groupId,count);
+      sums.set(groupId,sum);
+      variances.set(groupId,variance);
+    }
+  }
+}
