@@ -1,0 +1,18 @@
+{
+  try {
+    client.set_keyspace(keyspace);
+    try {
+      return client.describe_splits_ex(columnFamily,range.start_token,range.end_token,splitSize);
+    }
+ catch (    TApplicationException e) {
+      if (e.getType() == TApplicationException.UNKNOWN_METHOD) {
+        List<String> splitPoints=client.describe_splits(columnFamily,range.start_token,range.end_token,splitSize);
+        return tokenListToSplits(splitPoints,splitSize);
+      }
+      throw e;
+    }
+  }
+ catch (  TException e) {
+    throw new RuntimeException(e);
+  }
+}

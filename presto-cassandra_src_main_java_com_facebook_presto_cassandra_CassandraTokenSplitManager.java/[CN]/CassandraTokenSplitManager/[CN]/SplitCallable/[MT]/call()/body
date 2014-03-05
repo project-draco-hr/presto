@@ -1,0 +1,17 @@
+{
+  ArrayList<TokenSplit> splits=new ArrayList<>();
+  List<CfSplit> subSplits=getSubSplits(keyspace,columnFamily,range,splitSize,client);
+  List<String> endpoints=range.endpoints;
+  TokenFactory<T> factory=partitioner.getTokenFactory();
+  for (  CfSplit subSplit : subSplits) {
+    Token<T> left=factory.fromString(subSplit.getStart_token());
+    Token<T> right=factory.fromString(subSplit.getEnd_token());
+    Range<Token<T>> range=new Range<>(left,right,partitioner);
+    List<Range<Token<T>>> ranges=range.isWrapAround() ? range.unwrap() : ImmutableList.of(range);
+    for (    Range<Token<T>> subRange : ranges) {
+      TokenSplit split=new TokenSplit(factory.toString(subRange.left),factory.toString(subRange.right),endpoints);
+      splits.add(split);
+    }
+  }
+  return splits;
+}

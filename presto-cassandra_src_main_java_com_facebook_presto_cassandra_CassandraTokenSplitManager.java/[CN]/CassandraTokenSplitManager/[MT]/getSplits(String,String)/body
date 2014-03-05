@@ -1,0 +1,24 @@
+{
+  List<TokenRange> masterRangeNodes=getRangeMap(keyspace,client);
+  List<TokenSplit> splits=new ArrayList<>();
+  try {
+    List<Future<List<TokenSplit>>> splitFutures=new ArrayList<>();
+    for (    TokenRange range : masterRangeNodes) {
+      splitFutures.add(executor.submit(new SplitCallable<>(range,keyspace,columnFamily,splitSize,client,partitioner)));
+    }
+    for (    Future<List<TokenSplit>> futureInputSplits : splitFutures) {
+      try {
+        splits.addAll(futureInputSplits.get());
+      }
+ catch (      Exception e) {
+        throw new IOException("Could not get input splits",e);
+      }
+    }
+  }
+  finally {
+    executor.shutdownNow();
+  }
+  checkState(!splits.isEmpty(),"No splits created");
+  Collections.shuffle(splits,ThreadLocalRandom.current());
+  return splits;
+}
