@@ -26,5 +26,26 @@
     @SuppressWarnings({"rawtypes","unchecked"}) List<ConnectorColumnHandle> partitionColumns=(List)partitionKeys;
     remainingTupleDomain=TupleDomain.withColumnDomains(Maps.filterKeys(tupleDomain.getDomains(),not(in(partitionColumns))));
   }
+  if (partitions.size() == 1 && ((CassandraPartition)partitions.get(0)).isUnpartitioned()) {
+    Map<ConnectorColumnHandle,Domain> domains=tupleDomain.getDomains();
+    List<ConnectorColumnHandle> indexedColumns=Lists.newArrayList();
+    StringBuilder sb=new StringBuilder();
+    for (    Map.Entry<ConnectorColumnHandle,Domain> entry : domains.entrySet()) {
+      CassandraColumnHandle column=(CassandraColumnHandle)entry.getKey();
+      Domain domain=entry.getValue();
+      if (column.isIndexed() && domain.isSingleValue()) {
+        sb.append(CassandraCqlUtils.validColumnName(column.getName())).append(" = ").append(CassandraCqlUtils.cqlValue(entry.getValue().getSingleValue().toString(),column.getCassandraType()));
+        indexedColumns.add(column);
+        break;
+      }
+    }
+    if (sb.length() > 0) {
+      CassandraPartition partition=(CassandraPartition)partitions.get(0);
+      TupleDomain<ConnectorColumnHandle> filterIndexedColumn=TupleDomain.withColumnDomains(Maps.filterKeys(remainingTupleDomain.getDomains(),not(in(indexedColumns))));
+      partitions=Lists.newArrayList();
+      partitions.add(new CassandraPartition(partition.getKey(),sb.toString(),filterIndexedColumn,true));
+      return new ConnectorPartitionResult(partitions,filterIndexedColumn);
+    }
+  }
   return new ConnectorPartitionResult(partitions,remainingTupleDomain);
 }
