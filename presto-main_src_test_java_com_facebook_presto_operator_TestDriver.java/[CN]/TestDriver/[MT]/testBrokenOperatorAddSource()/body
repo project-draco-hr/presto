@@ -1,0 +1,35 @@
+{
+  PlanNodeId sourceId=new PlanNodeId("source");
+  TableScanOperator source=new TableScanOperator(driverContext.addOperatorContext(99,"values"),sourceId,new DataStreamProvider(){
+    @Override public Operator createNewDataStream(    OperatorContext operatorContext,    Split split,    List<ColumnHandle> columns){
+      return new ValuesOperator(driverContext.addOperatorContext(0,"values"),rowPagesBuilder(SINGLE_VARBINARY,SINGLE_LONG,SINGLE_LONG).addSequencePage(10,20,30,40).build());
+    }
+  }
+,ImmutableList.of(SINGLE_VARBINARY,SINGLE_LONG,SINGLE_LONG),ImmutableList.<ColumnHandle>of());
+  BrokenOperator brokenOperator=new BrokenOperator(driverContext.addOperatorContext(0,"source"));
+  final Driver driver=new Driver(driverContext,source,brokenOperator);
+  Future<Boolean> driverProcessFor=executor.submit(new Callable<Boolean>(){
+    @Override public Boolean call() throws Exception {
+      return driver.processFor(new Duration(1,TimeUnit.MILLISECONDS)).isDone();
+    }
+  }
+);
+  brokenOperator.waitForLocked();
+  assertSame(driver.getDriverContext(),driverContext);
+  assertFalse(driver.isFinished());
+  assertTrue(driver.processFor(new Duration(1,TimeUnit.MILLISECONDS)).isDone());
+  assertFalse(driver.isFinished());
+  driver.updateSource(new TaskSource(sourceId,ImmutableSet.of(new ScheduledSplit(0,new MockSplit())),true));
+  assertFalse(driver.isFinished());
+  assertTrue(driver.processFor(new Duration(1,TimeUnit.SECONDS)).isDone());
+  assertFalse(driver.isFinished());
+  driver.close();
+  assertTrue(driver.isFinished());
+  try {
+    driverProcessFor.get(1,TimeUnit.SECONDS);
+    fail("Expected InterruptedException");
+  }
+ catch (  ExecutionException e) {
+    checkArgument(getRootCause(e) instanceof InterruptedException,"Expected root cause exception to be an instance of InterruptedException");
+  }
+}

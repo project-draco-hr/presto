@@ -1,0 +1,17 @@
+{
+  BrokenOperator brokenOperator=new BrokenOperator(driverContext.addOperatorContext(0,"source"));
+  final Driver driver=new Driver(driverContext,brokenOperator,createSinkOperator(brokenOperator));
+  assertSame(driver.getDriverContext(),driverContext);
+  Future<Boolean> driverClose=executor.submit(new Callable<Boolean>(){
+    @Override public Boolean call() throws Exception {
+      driver.close();
+      return true;
+    }
+  }
+);
+  brokenOperator.waitForLocked();
+  assertTrue(driver.processFor(new Duration(1,TimeUnit.MILLISECONDS)).isDone());
+  assertTrue(driver.isFinished());
+  brokenOperator.unlock();
+  assertTrue(driverClose.get());
+}

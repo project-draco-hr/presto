@@ -1,0 +1,16 @@
+{
+  try {
+    assertTrue(lock.tryLock(1,TimeUnit.SECONDS));
+    try {
+      lockedLatch.countDown();
+      assertTrue(unlockLatch.await(5,TimeUnit.SECONDS));
+    }
+  finally {
+      lock.unlock();
+    }
+  }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    throw new RuntimeException("Interrupted",e);
+  }
+}

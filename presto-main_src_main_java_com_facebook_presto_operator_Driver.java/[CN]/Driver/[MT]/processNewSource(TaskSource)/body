@@ -1,0 +1,27 @@
+{
+  checkLockHeld("Lock must be held to call processNewSources");
+  Set<ScheduledSplit> newSplits;
+  TaskSource currentSource=currentSources.get(source.getPlanNodeId());
+  if (currentSource == null) {
+    newSplits=source.getSplits();
+    currentSources.put(source.getPlanNodeId(),source);
+  }
+ else {
+    TaskSource newSource=currentSource.update(source);
+    if (newSource == currentSource) {
+      return;
+    }
+    newSplits=Sets.difference(newSource.getSplits(),currentSource.getSplits());
+    currentSources.put(source.getPlanNodeId(),newSource);
+  }
+  for (  ScheduledSplit newSplit : newSplits) {
+    Split split=newSplit.getSplit();
+    SourceOperator sourceOperator=sourceOperators.get(source.getPlanNodeId());
+    if (sourceOperator != null) {
+      sourceOperator.addSplit(split);
+    }
+  }
+  if (source.isNoMoreSplits()) {
+    sourceOperators.get(source.getPlanNodeId()).noMoreSplits();
+  }
+}

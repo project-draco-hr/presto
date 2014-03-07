@@ -1,0 +1,21 @@
+{
+  BrokenOperator brokenOperator=new BrokenOperator(driverContext.addOperatorContext(0,"source"),false);
+  final Driver driver=new Driver(driverContext,brokenOperator,createSinkOperator(brokenOperator));
+  assertSame(driver.getDriverContext(),driverContext);
+  Future<Boolean> driverProcessFor=executor.submit(new Callable<Boolean>(){
+    @Override public Boolean call() throws Exception {
+      return driver.processFor(new Duration(1,TimeUnit.MILLISECONDS)).isDone();
+    }
+  }
+);
+  brokenOperator.waitForLocked();
+  driver.close();
+  assertTrue(driver.isFinished());
+  try {
+    driverProcessFor.get(1,TimeUnit.SECONDS);
+    fail("Expected InterruptedException");
+  }
+ catch (  ExecutionException e) {
+    checkArgument(getRootCause(e) instanceof InterruptedException,"Expected root cause exception to be an instance of InterruptedException");
+  }
+}
