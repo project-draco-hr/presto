@@ -7,6 +7,11 @@
   partialAggregation.evaluateIntermediate(0,partialOut);
   UncompressedBlock partialBlock=partialOut.build();
   GroupedAccumulator finalAggregation=function.createGroupedIntermediateAggregation(confidence);
+  GroupedAccumulator emptyAggregation=function.createGroupedAggregation(Optional.<Integer>absent(),Optional.<Integer>absent(),confidence,args);
+  BlockBuilder emptyOut=new BlockBuilder(emptyAggregation.getIntermediateTupleInfo());
+  emptyAggregation.evaluateIntermediate(0,emptyOut);
+  UncompressedBlock emptyBlock=emptyOut.build();
+  finalAggregation.addIntermediate(createGroupByIdBlock(0,emptyBlock.getPositionCount()),emptyBlock);
   finalAggregation.addIntermediate(createGroupByIdBlock(0,partialBlock.getPositionCount()),partialBlock);
   return getGroupValue(finalAggregation,0);
 }
