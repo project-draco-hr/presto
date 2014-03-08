@@ -1,0 +1,34 @@
+{
+  List<ColumnMetadata> columns=ImmutableList.<ColumnMetadata>builder().add(new ColumnMetadata("id",ColumnType.LONG,1,false)).build();
+  ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(tableName,columns,tableOwner);
+  HiveOutputTableHandle outputHandle=client.beginCreateTable(tableMetadata);
+  RecordSink sink=client.getRecordSink(outputHandle);
+  sink.beginRecord(1);
+  sink.appendLong(1);
+  sink.finishRecord();
+  sink.beginRecord(1);
+  sink.appendLong(3);
+  sink.finishRecord();
+  sink.beginRecord(1);
+  sink.appendLong(2);
+  sink.finishRecord();
+  String fragment=sink.commit();
+  client.commitCreateTable(outputHandle,ImmutableList.of(fragment));
+  metastoreClient.updateTableLocation(database,tableName.getTableName(),outputHandle.getTargetPath());
+  TableHandle tableHandle=getTableHandle(tableName);
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(client.getColumnHandles(tableHandle).values());
+  PartitionResult partitionResult=client.getPartitions(tableHandle,TupleDomain.all());
+  assertEquals(partitionResult.getPartitions().size(),1);
+  SplitSource splitSource=client.getPartitionSplits(tableHandle,partitionResult.getPartitions());
+  Split split=getOnlyElement(splitSource.getNextBatch(1000));
+  assertTrue(splitSource.isFinished());
+  try (RecordCursor cursor=client.getRecordSet(split,columnHandles).cursor()){
+    assertTrue(cursor.advanceNextPosition());
+    assertEquals(cursor.getLong(0),1);
+    assertTrue(cursor.advanceNextPosition());
+    assertEquals(cursor.getLong(0),3);
+    assertTrue(cursor.advanceNextPosition());
+    assertEquals(cursor.getLong(0),2);
+    assertFalse(cursor.advanceNextPosition());
+  }
+ }

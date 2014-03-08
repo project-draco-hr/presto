@@ -1,0 +1,13 @@
+{
+  try {
+    Table table=getTable(databaseName,tableName);
+    table.getSd().setLocation("/");
+    try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
+      client.alter_table(databaseName,tableName,table);
+      client.drop_table(databaseName,tableName,false);
+    }
+   }
+ catch (  TException e) {
+    throw Throwables.propagate(e);
+  }
+}
