@@ -1,4 +1,13 @@
 {
   checkState(injector != null,"injector was not set");
-  return new DBI(injector.getInstance(Key.get(DataSource.class,annotationType)));
+  DBI dbi=new DBI(injector.getInstance(Key.get(DataSource.class,annotationType)));
+  Key<Set<ResultSetMapper<?>>> mappersKey=Key.get(new TypeLiteral<Set<ResultSetMapper<?>>>(){
+  }
+,annotationType);
+  if (injector.getExistingBinding(mappersKey) != null) {
+    for (    ResultSetMapper<?> mapper : injector.getInstance(mappersKey)) {
+      dbi.registerMapper(mapper);
+    }
+  }
+  return dbi;
 }

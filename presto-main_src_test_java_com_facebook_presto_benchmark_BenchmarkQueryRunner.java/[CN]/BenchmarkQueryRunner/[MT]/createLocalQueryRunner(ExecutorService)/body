@@ -3,9 +3,9 @@
   LocalQueryRunner localQueryRunner=new LocalQueryRunner(session,executor);
   InMemoryNodeManager nodeManager=localQueryRunner.getNodeManager();
   localQueryRunner.createCatalog("tpch",new TpchConnectorFactory(nodeManager,1),ImmutableMap.<String,String>of());
-  MetadataManager metadata=localQueryRunner.getMetadata();
-  NativeConnectorFactory nativeConnectorFactory=createNativeConnectorFactory(nodeManager,metadata,System.getProperty("tpchSampledCacheDir","/tmp/presto_tpch/data_cache"));
+  NativeConnectorFactory nativeConnectorFactory=createNativeConnectorFactory(nodeManager,localQueryRunner.getTypeManager(),System.getProperty("tpchCacheDir","/tmp/presto_tpch/data_cache"));
   localQueryRunner.createCatalog("default",nativeConnectorFactory,ImmutableMap.<String,String>of());
+  MetadataManager metadata=localQueryRunner.getMetadata();
   if (!metadata.getTableHandle(new QualifiedTableName("default","default","orders")).isPresent()) {
     localQueryRunner.execute("CREATE TABLE orders AS SELECT * FROM tpch.sf1.orders");
   }

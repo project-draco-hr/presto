@@ -37,6 +37,10 @@
   bindConfig(binder).to(CatalogManagerConfig.class);
   binder.bind(MetadataManager.class).in(Scopes.SINGLETON);
   binder.bind(Metadata.class).to(MetadataManager.class).in(Scopes.SINGLETON);
+  binder.bind(TypeRegistry.class).in(Scopes.SINGLETON);
+  binder.bind(TypeManager.class).to(TypeRegistry.class).in(Scopes.SINGLETON);
+  jsonBinder(binder).addDeserializerBinding(Type.class).to(TypeDeserializer.class);
+  newSetBinder(binder,Type.class);
   binder.install(new HandleJsonModule());
   binder.bind(ConnectorManager.class).in(Scopes.SINGLETON);
   MapBinder<String,ConnectorFactory> connectorFactoryBinder=newMapBinder(binder,String.class,ConnectorFactory.class);
@@ -66,6 +70,11 @@
     prestoAnnouncement.addProperty("datasources",serverConfig.getDataSources());
   }
   bindDataSource(binder,"presto-metastore",ForMetadata.class,ForShardManager.class);
+  Multibinder<ResultSetMapper<?>> resultSetMapperBinder=newSetBinder(binder,new TypeLiteral<ResultSetMapper<?>>(){
+  }
+,ForMetadata.class);
+  resultSetMapperBinder.addBinding().to(TableColumnMapper.class).in(Scopes.SINGLETON);
+  resultSetMapperBinder.addBinding().to(ColumnMetadataMapper.class).in(Scopes.SINGLETON);
   jsonCodecBinder(binder).bindJsonCodec(QueryInfo.class);
   jsonCodecBinder(binder).bindJsonCodec(TaskInfo.class);
   jsonCodecBinder(binder).bindJsonCodec(QueryResults.class);
