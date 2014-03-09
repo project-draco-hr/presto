@@ -9,7 +9,7 @@
   for (int i=0; i < channels; i++) {
     LocalVariableDefinition cursorVariable=compilerContext.declareVariable(BlockCursor.class,"cursor_" + i);
     cursorVariables.add(cursorVariable);
-    filterAndProjectMethod.getBody().comment("BlockCursor %s = page.getBlock(%s).cursor();",cursorVariable.getName(),i).getVariable("page").push(i).invokeVirtual(com.facebook.presto.operator.Page.class,"getBlock",com.facebook.presto.block.Block.class,int.class).invokeInterface(com.facebook.presto.block.Block.class,"cursor",BlockCursor.class).putVariable(cursorVariable);
+    filterAndProjectMethod.getBody().comment("BlockCursor %s = page.getBlock(%s).cursor();",cursorVariable.getName(),i).getVariable("page").push(i).invokeVirtual(com.facebook.presto.operator.Page.class,"getBlock",com.facebook.presto.spi.block.Block.class,int.class).invokeInterface(com.facebook.presto.spi.block.Block.class,"cursor",BlockCursor.class).putVariable(cursorVariable);
   }
   ForLoopBuilder forLoop=forLoopBuilder(compilerContext).comment("for (position = 0; position < rows; position++)").initialize(new Block(compilerContext).putVariable(positionVariable,0)).condition(new Block(compilerContext).getVariable(positionVariable).getVariable(rowsVariable).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new Block(compilerContext).incrementVariable(positionVariable,(byte)1));
   Block forLoopBody=new Block(compilerContext);
