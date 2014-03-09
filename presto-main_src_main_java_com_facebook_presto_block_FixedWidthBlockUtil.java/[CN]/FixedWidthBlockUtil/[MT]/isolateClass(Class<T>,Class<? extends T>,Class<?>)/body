@@ -1,0 +1,20 @@
+{
+  Map<String,byte[]> classByteCode=new HashMap<>();
+  classByteCode.put(implementationClass.getName(),getByteCode(implementationClass));
+  for (  Class<?> additionalClass : additionalClasses) {
+    classByteCode.put(additionalClass.getName(),getByteCode(additionalClass));
+  }
+  DynamicClassLoader dynamicClassLoader=new DynamicClassLoader(publicBaseClass.getClassLoader());
+  Map<String,Class<?>> isolatedClasses=dynamicClassLoader.defineClasses(classByteCode);
+  Class<?> isolatedClass=isolatedClasses.get(implementationClass.getName());
+  if (isolatedClass == null) {
+    throw new IllegalArgumentException(String.valueOf("Could load class " + implementationClass.getName()));
+  }
+  if (!publicBaseClass.isAssignableFrom(isolatedClass)) {
+    throw new IllegalArgumentException(String.valueOf(String.format("Error isolating class %s, newly loaded class is not a sub type of %s",implementationClass.getName(),publicBaseClass.getName())));
+  }
+  if (isolatedClass == implementationClass) {
+    throw new IllegalStateException(String.valueOf("Isolation failed"));
+  }
+  return isolatedClass.asSubclass(publicBaseClass);
+}
