@@ -20,7 +20,7 @@
   }
   int size=columns.size();
   String[] names=new String[size];
-  this.types=new ColumnType[size];
+  this.types=new Type[size];
   this.hiveTypes=new HiveType[size];
   this.structFields=new StructField[size];
   this.fieldInspectors=new ObjectInspector[size];
@@ -50,8 +50,8 @@
       HivePartitionKey partitionKey=partitionKeysByName.get(column.getName());
       checkArgument(partitionKey != null,"Unknown partition key %s",column.getName());
       byte[] bytes=partitionKey.getValue().getBytes(Charsets.UTF_8);
-switch (types[columnIndex]) {
-case BOOLEAN:
+      Type type=types[columnIndex];
+      if (BOOLEAN.equals(type)) {
         if (isTrue(bytes,0,bytes.length)) {
           booleans[columnIndex]=true;
         }
@@ -62,25 +62,25 @@ case BOOLEAN:
           String valueString=new String(bytes,Charsets.UTF_8);
           throw new IllegalArgumentException(String.format("Invalid partition value '%s' for BOOLEAN partition key %s",valueString,names[columnIndex]));
         }
-      break;
-case LONG:
-    if (bytes.length == 0) {
-      throw new IllegalArgumentException(String.format("Invalid partition value '' for BIGINT partition key %s",names[columnIndex]));
+      }
+ else       if (BIGINT.equals(type)) {
+        if (bytes.length == 0) {
+          throw new IllegalArgumentException(String.format("Invalid partition value '' for BIGINT partition key %s",names[columnIndex]));
+        }
+        longs[columnIndex]=parseLong(bytes,0,bytes.length);
+      }
+ else       if (DOUBLE.equals(type)) {
+        if (bytes.length == 0) {
+          throw new IllegalArgumentException(String.format("Invalid partition value '' for DOUBLE partition key %s",names[columnIndex]));
+        }
+        doubles[columnIndex]=parseDouble(bytes,0,bytes.length);
+      }
+ else       if (VARCHAR.equals(type)) {
+        strings[columnIndex]=Arrays.copyOf(bytes,bytes.length);
+      }
+ else {
+        throw new UnsupportedOperationException("Unsupported column type: " + type);
+      }
     }
-  longs[columnIndex]=parseLong(bytes,0,bytes.length);
-break;
-case DOUBLE:
-if (bytes.length == 0) {
-throw new IllegalArgumentException(String.format("Invalid partition value '' for DOUBLE partition key %s",names[columnIndex]));
-}
-doubles[columnIndex]=parseDouble(bytes,0,bytes.length);
-break;
-case STRING:
-strings[columnIndex]=Arrays.copyOf(bytes,bytes.length);
-break;
-default :
-throw new UnsupportedOperationException("Unsupported column type: " + types[columnIndex]);
-}
-}
-}
+  }
 }

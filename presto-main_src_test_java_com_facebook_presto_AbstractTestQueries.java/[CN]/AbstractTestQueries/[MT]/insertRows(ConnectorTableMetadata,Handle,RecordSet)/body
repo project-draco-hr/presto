@@ -11,23 +11,21 @@
       }
       PreparedBatchPart part=batch.add();
       for (int column=0; column < tableMetadata.getColumns().size(); column++) {
-        ColumnMetadata columnMetadata=tableMetadata.getColumns().get(column);
-switch (columnMetadata.getType()) {
-case BOOLEAN:
+        Type type=tableMetadata.getColumns().get(column).getType();
+        if (BOOLEAN.equals(type)) {
           part.bind(column,cursor.getBoolean(column));
-        break;
-case LONG:
-      part.bind(column,cursor.getLong(column));
-    break;
-case DOUBLE:
-  part.bind(column,cursor.getDouble(column));
-break;
-case STRING:
-part.bind(column,new String(cursor.getString(column),UTF_8));
-break;
-}
-}
-}
-batch.execute();
-}
+        }
+ else         if (BIGINT.equals(type)) {
+          part.bind(column,cursor.getLong(column));
+        }
+ else         if (DOUBLE.equals(type)) {
+          part.bind(column,cursor.getDouble(column));
+        }
+ else         if (VARCHAR.equals(type)) {
+          part.bind(column,new String(cursor.getString(column),UTF_8));
+        }
+      }
+    }
+    batch.execute();
+  }
 }

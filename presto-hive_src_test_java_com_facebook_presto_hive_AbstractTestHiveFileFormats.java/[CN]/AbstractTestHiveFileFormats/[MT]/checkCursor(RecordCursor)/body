@@ -4,35 +4,34 @@
     assertTrue(cursor.isNull(0));
     for (int i=1; i < TEST_VALUES.size(); i++) {
       Object fieldFromCursor;
-      HiveType type=HiveType.getHiveType(FIELD_INSPECTORS.get(i));
-switch (type.getNativeType()) {
-case BOOLEAN:
+      Type type=HiveType.getHiveType(FIELD_INSPECTORS.get(i)).getNativeType();
+      if (BOOLEAN.equals(type)) {
         fieldFromCursor=cursor.getBoolean(i);
-      break;
-case LONG:
-    fieldFromCursor=cursor.getLong(i);
-  break;
-case DOUBLE:
-fieldFromCursor=cursor.getDouble(i);
-break;
-case STRING:
-fieldFromCursor=cursor.getString(i);
-break;
-default :
-throw new RuntimeException("unknown type");
-}
-if (FIELD_INSPECTORS.get(i).getTypeName().equals("float") || FIELD_INSPECTORS.get(i).getTypeName().equals("double")) {
-assertEquals((double)fieldFromCursor,(double)TEST_VALUES.get(i).getValue(),EPSILON);
-}
- else if (FIELD_INSPECTORS.get(i).getCategory() == ObjectInspector.Category.PRIMITIVE) {
-assertEquals(fieldFromCursor,TEST_VALUES.get(i).getValue(),String.format("Wrong value for column %d",i));
-}
+      }
+ else       if (BIGINT.equals(type)) {
+        fieldFromCursor=cursor.getLong(i);
+      }
+ else       if (DOUBLE.equals(type)) {
+        fieldFromCursor=cursor.getDouble(i);
+      }
+ else       if (VARCHAR.equals(type)) {
+        fieldFromCursor=cursor.getString(i);
+      }
  else {
-ObjectMapper mapper=new ObjectMapper();
-JsonNode expected=mapper.readTree((String)TEST_VALUES.get(i).getValue());
-JsonNode actual=mapper.readTree((byte[])fieldFromCursor);
-assertEquals(actual,expected,String.format("Wrong value for column %s",COLUMN_NAMES.get(i)));
-}
-}
-}
+        throw new RuntimeException("unknown type");
+      }
+      if (FIELD_INSPECTORS.get(i).getTypeName().equals("float") || FIELD_INSPECTORS.get(i).getTypeName().equals("double")) {
+        assertEquals((double)fieldFromCursor,(double)TEST_VALUES.get(i).getValue(),EPSILON);
+      }
+ else       if (FIELD_INSPECTORS.get(i).getCategory() == ObjectInspector.Category.PRIMITIVE) {
+        assertEquals(fieldFromCursor,TEST_VALUES.get(i).getValue(),String.format("Wrong value for column %d",i));
+      }
+ else {
+        ObjectMapper mapper=new ObjectMapper();
+        JsonNode expected=mapper.readTree((String)TEST_VALUES.get(i).getValue());
+        JsonNode actual=mapper.readTree((byte[])fieldFromCursor);
+        assertEquals(actual,expected,String.format("Wrong value for column %s",COLUMN_NAMES.get(i)));
+      }
+    }
+  }
 }

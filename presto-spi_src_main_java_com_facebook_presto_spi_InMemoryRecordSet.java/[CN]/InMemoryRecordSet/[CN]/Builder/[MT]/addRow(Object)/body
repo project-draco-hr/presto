@@ -6,23 +6,23 @@
     if (value == null) {
       continue;
     }
-switch (types.get(i)) {
-case BOOLEAN:
+    Type type=types.get(i);
+    if (BOOLEAN.equals(type)) {
       checkArgument(value instanceof Boolean,"Expected value %d to be an instance of Boolean, but is a %s",i,value.getClass().getSimpleName());
-    break;
-case LONG:
-  checkArgument(value instanceof Long,"Expected value %d to be an instance of Long, but is a %s",i,value.getClass().getSimpleName());
-break;
-case DOUBLE:
-checkArgument(value instanceof Double,"Expected value %d to be an instance of Double, but is a %s",i,value.getClass().getSimpleName());
-break;
-case STRING:
-checkArgument(value instanceof String || value instanceof byte[],"Expected value %d to be an instance of String or byte[], but is a %s",i,value.getClass().getSimpleName());
-break;
-default :
-throw new IllegalStateException("Unsupported column type " + types.get(i));
-}
-}
-records.add(Collections.unmodifiableList(new ArrayList<>(Arrays.asList(values))));
-return this;
+    }
+ else     if (BIGINT.equals(type)) {
+      checkArgument(value instanceof Long,"Expected value %d to be an instance of Long, but is a %s",i,value.getClass().getSimpleName());
+    }
+ else     if (DOUBLE.equals(type)) {
+      checkArgument(value instanceof Double,"Expected value %d to be an instance of Double, but is a %s",i,value.getClass().getSimpleName());
+    }
+ else     if (VARCHAR.equals(type)) {
+      checkArgument(value instanceof String || value instanceof byte[],"Expected value %d to be an instance of String or byte[], but is a %s",i,value.getClass().getSimpleName());
+    }
+ else {
+      throw new IllegalStateException("Unsupported column type " + types.get(i));
+    }
+  }
+  records.add(Collections.unmodifiableList(new ArrayList<>(Arrays.asList(values))));
+  return this;
 }

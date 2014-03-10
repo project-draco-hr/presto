@@ -13,45 +13,44 @@
           checkArgument(columnHandle instanceof HiveColumnHandle,"columnHandle is not an instance of HiveColumnHandle");
           HiveColumnHandle hiveColumnHandle=(HiveColumnHandle)columnHandle;
           String value=entry.getValue();
-switch (hiveColumnHandle.getType()) {
-case BOOLEAN:
+          Type type=hiveColumnHandle.getType();
+          if (BOOLEAN.equals(type)) {
             if (value.isEmpty()) {
               builder.put(columnHandle,false);
             }
  else {
               builder.put(columnHandle,parseBoolean(value));
             }
-          break;
-case LONG:
-        if (value.isEmpty()) {
-          builder.put(columnHandle,0L);
-        }
- else         if (hiveColumnHandle.getHiveType() == HiveType.TIMESTAMP) {
-          builder.put(columnHandle,parseHiveTimestamp(value,timeZone));
-        }
+          }
+ else           if (BIGINT.equals(type)) {
+            if (value.isEmpty()) {
+              builder.put(columnHandle,0L);
+            }
+ else             if (hiveColumnHandle.getHiveType() == HiveType.TIMESTAMP) {
+              builder.put(columnHandle,parseHiveTimestamp(value,timeZone));
+            }
  else {
-          builder.put(columnHandle,parseLong(value));
-        }
-      break;
-case DOUBLE:
-    if (value.isEmpty()) {
-      builder.put(columnHandle,0.0);
-    }
+              builder.put(columnHandle,parseLong(value));
+            }
+          }
+ else           if (DOUBLE.equals(type)) {
+            if (value.isEmpty()) {
+              builder.put(columnHandle,0.0);
+            }
  else {
-      builder.put(columnHandle,parseDouble(value));
+              builder.put(columnHandle,parseDouble(value));
+            }
+          }
+ else           if (VARCHAR.equals(type)) {
+            builder.put(columnHandle,value);
+          }
+        }
+        return new HivePartition(tableName,partitionId,builder.build(),bucket);
+      }
+ catch (      MetaException e) {
+        throw Throwables.propagate(e);
+      }
     }
-  break;
-case STRING:
-builder.put(columnHandle,value);
-break;
-}
-}
-return new HivePartition(tableName,partitionId,builder.build(),bucket);
-}
- catch (MetaException e) {
-throw Throwables.propagate(e);
-}
-}
-}
+  }
 ;
 }

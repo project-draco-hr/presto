@@ -3,19 +3,18 @@
     output.appendNull();
   }
  else {
-switch (columnType.toColumnType()) {
-case BOOLEAN:
+    Class<?> javaType=columnType.getJavaType();
+    if (javaType == boolean.class) {
       output.append(cursor.getBoolean(channelIndex));
-    break;
-case LONG:
-  output.append(cursor.getLong(channelIndex));
-break;
-case STRING:
-output.append(cursor.getString(channelIndex));
-break;
-case DOUBLE:
-output.append(cursor.getDouble(channelIndex));
-break;
-}
-}
+    }
+ else     if (javaType == long.class) {
+      output.append(cursor.getLong(channelIndex));
+    }
+ else     if (javaType == double.class) {
+      output.append(cursor.getDouble(channelIndex));
+    }
+ else     if (javaType == Slice.class) {
+      output.append(cursor.getString(channelIndex));
+    }
+  }
 }

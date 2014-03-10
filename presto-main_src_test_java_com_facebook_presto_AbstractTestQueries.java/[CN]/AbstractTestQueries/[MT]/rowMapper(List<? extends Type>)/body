@@ -6,54 +6,53 @@
       List<Object> row=new ArrayList<>(count);
       for (int i=1; i <= count; i++) {
         Type type=types.get(i - 1);
-switch (type.toColumnType()) {
-case BOOLEAN:
+        if (BOOLEAN.equals(type)) {
           boolean booleanValue=resultSet.getBoolean(i);
-        if (resultSet.wasNull()) {
+          if (resultSet.wasNull()) {
+            row.add(null);
+          }
+ else {
+            row.add(booleanValue);
+          }
+        }
+ else         if (BIGINT.equals(type)) {
+          long longValue=resultSet.getLong(i);
+          if (resultSet.wasNull()) {
+            row.add(null);
+          }
+ else {
+            row.add(longValue);
+          }
+        }
+ else         if (DOUBLE.equals(type)) {
+          double doubleValue=resultSet.getDouble(i);
+          if (resultSet.wasNull()) {
+            row.add(null);
+          }
+ else {
+            row.add(doubleValue);
+          }
+        }
+ else         if (VARCHAR.equals(type)) {
+          String stringValue=resultSet.getString(i);
+          if (resultSet.wasNull()) {
+            row.add(null);
+          }
+ else {
+            row.add(stringValue);
+          }
+        }
+ else         if (NULL.equals(type)) {
+          Object objectValue=resultSet.getObject(i);
+          checkState(resultSet.wasNull(),"Expected a null value, but got %s",objectValue);
           row.add(null);
         }
  else {
-          row.add(booleanValue);
+          throw new AssertionError("unhandled type: " + type);
         }
-      break;
-case LONG:
-    long longValue=resultSet.getLong(i);
-  if (resultSet.wasNull()) {
-    row.add(null);
+      }
+      return new MaterializedRow(MaterializedResult.DEFAULT_PRECISION,row);
+    }
   }
- else {
-    row.add(longValue);
-  }
-break;
-case DOUBLE:
-double doubleValue=resultSet.getDouble(i);
-if (resultSet.wasNull()) {
-row.add(null);
-}
- else {
-row.add(doubleValue);
-}
-break;
-case STRING:
-String stringValue=resultSet.getString(i);
-if (resultSet.wasNull()) {
-row.add(null);
-}
- else {
-row.add(stringValue);
-}
-break;
-case NULL:
-Object objectValue=resultSet.getObject(i);
-checkState(resultSet.wasNull(),"Expected a null value, but got %s",objectValue);
-row.add(null);
-break;
-default :
-throw new AssertionError("unhandled type: " + type);
-}
-}
-return new MaterializedRow(MaterializedResult.DEFAULT_PRECISION,row);
-}
-}
 ;
 }

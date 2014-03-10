@@ -16,36 +16,36 @@
         }
  else {
           Type type=getTypes().get(column);
-switch (type.toColumnType()) {
-case BOOLEAN:
+          Class<?> javaType=type.getJavaType();
+          if (javaType == boolean.class) {
             output.append(cursor.getBoolean(column));
-          break;
-case LONG:
-        output.append(cursor.getLong(column));
-      break;
-case DOUBLE:
-    output.append(cursor.getDouble(column));
-  break;
-case STRING:
-output.append(cursor.getString(column));
-break;
-default :
-throw new AssertionError("unimplemented type: " + type);
-}
-}
-}
-}
-long bytesProcessed=cursor.getCompletedBytes() - completedBytes;
-long endReadTimeNanos=cursor.getReadTimeNanos();
-operatorContext.recordGeneratedInput(new DataSize(bytesProcessed,BYTE),i,endReadTimeNanos - readTimeNanos);
-completedBytes+=bytesProcessed;
-readTimeNanos=endReadTimeNanos;
-}
-if (pageBuilder.isEmpty() || (!finishing && !pageBuilder.isFull())) {
-return null;
-}
-Page page=pageBuilder.build();
-pageBuilder.reset();
-operatorContext.recordGeneratedInput(page.getDataSize(),page.getPositionCount());
-return page;
+          }
+ else           if (javaType == long.class) {
+            output.append(cursor.getLong(column));
+          }
+ else           if (javaType == double.class) {
+            output.append(cursor.getDouble(column));
+          }
+ else           if (javaType == Slice.class) {
+            output.append(cursor.getString(column));
+          }
+ else {
+            throw new AssertionError("Unimplemented type: " + javaType.getName());
+          }
+        }
+      }
+    }
+    long bytesProcessed=cursor.getCompletedBytes() - completedBytes;
+    long endReadTimeNanos=cursor.getReadTimeNanos();
+    operatorContext.recordGeneratedInput(new DataSize(bytesProcessed,BYTE),i,endReadTimeNanos - readTimeNanos);
+    completedBytes+=bytesProcessed;
+    readTimeNanos=endReadTimeNanos;
+  }
+  if (pageBuilder.isEmpty() || (!finishing && !pageBuilder.isFull())) {
+    return null;
+  }
+  Page page=pageBuilder.build();
+  pageBuilder.reset();
+  operatorContext.recordGeneratedInput(page.getDataSize(),page.getPositionCount());
+  return page;
 }

@@ -4,18 +4,18 @@
   JmxTableHandle tableHandle=((JmxSplit)split).getTableHandle();
   checkNotNull(columns,"columns is null");
   checkArgument(!columns.isEmpty(),"must provide at least one column");
-  ImmutableMap.Builder<String,ColumnType> builder=ImmutableMap.builder();
+  ImmutableMap.Builder<String,Type> builder=ImmutableMap.builder();
   for (  ColumnHandle column : columns) {
     checkArgument(column instanceof JmxColumnHandle,"column must be of type %s, not %s",JmxColumnHandle.class.getName(),column.getClass().getName());
     JmxColumnHandle jmxColumnHandle=(JmxColumnHandle)column;
     builder.put(jmxColumnHandle.getColumnName(),jmxColumnHandle.getColumnType());
   }
-  ImmutableMap<String,ColumnType> columnTypes=builder.build();
+  ImmutableMap<String,Type> columnTypes=builder.build();
   List<List<Object>> rows;
   try {
     Map<String,Object> attributes=getAttributes(columnTypes.keySet(),tableHandle);
     List<Object> row=new ArrayList<>();
-    for (    Entry<String,ColumnType> entry : columnTypes.entrySet()) {
+    for (    Entry<String,Type> entry : columnTypes.entrySet()) {
       if (entry.getKey().equals("node")) {
         row.add(nodeId);
       }
@@ -25,42 +25,41 @@
           row.add(null);
         }
  else {
-switch (entry.getValue()) {
-case BOOLEAN:
+          Class<?> javaType=entry.getValue().getJavaType();
+          if (javaType == boolean.class) {
             if (value instanceof Boolean) {
               row.add(value);
             }
  else {
               row.add(null);
             }
-          break;
-case LONG:
-        if (value instanceof Number) {
-          row.add(((Number)value).longValue());
-        }
+          }
+ else           if (javaType == long.class) {
+            if (value instanceof Number) {
+              row.add(((Number)value).longValue());
+            }
  else {
-          row.add(null);
-        }
-      break;
-case DOUBLE:
-    if (value instanceof Number) {
-      row.add(((Number)value).doubleValue());
-    }
+              row.add(null);
+            }
+          }
+ else           if (javaType == double.class) {
+            if (value instanceof Number) {
+              row.add(((Number)value).doubleValue());
+            }
  else {
-      row.add(null);
+              row.add(null);
+            }
+          }
+ else           if (javaType == Slice.class) {
+            row.add(value.toString());
+          }
+        }
+      }
     }
-  break;
-case STRING:
-row.add(value.toString());
-break;
-}
-}
-}
-}
-rows=ImmutableList.of(row);
-}
- catch (JMException e) {
-rows=ImmutableList.of();
-}
-return new InMemoryRecordSet(columnTypes.values(),rows);
+    rows=ImmutableList.of(row);
+  }
+ catch (  JMException e) {
+    rows=ImmutableList.of();
+  }
+  return new InMemoryRecordSet(columnTypes.values(),rows);
 }

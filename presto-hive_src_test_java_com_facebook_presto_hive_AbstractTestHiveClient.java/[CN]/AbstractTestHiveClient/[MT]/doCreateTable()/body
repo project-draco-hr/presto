@@ -1,5 +1,5 @@
 {
-  List<ColumnMetadata> columns=ImmutableList.<ColumnMetadata>builder().add(new ColumnMetadata("id",ColumnType.LONG,1,false)).add(new ColumnMetadata("t_string",ColumnType.STRING,2,false)).add(new ColumnMetadata("t_bigint",ColumnType.LONG,3,false)).add(new ColumnMetadata("t_double",ColumnType.DOUBLE,4,false)).add(new ColumnMetadata("t_boolean",ColumnType.BOOLEAN,5,false)).build();
+  List<ColumnMetadata> columns=ImmutableList.<ColumnMetadata>builder().add(new ColumnMetadata("id",BIGINT,1,false)).add(new ColumnMetadata("t_string",VARCHAR,2,false)).add(new ColumnMetadata("t_bigint",BIGINT,3,false)).add(new ColumnMetadata("t_double",DOUBLE,4,false)).add(new ColumnMetadata("t_boolean",BOOLEAN,5,false)).build();
   ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(temporaryCreateTable,columns,tableOwner);
   OutputTableHandle outputHandle=metadata.beginCreateTable(tableMetadata);
   RecordSink sink=recordSinkProvider.getRecordSink(outputHandle);
@@ -31,11 +31,11 @@
   tableMetadata=metadata.getTableMetadata(getTableHandle(temporaryCreateTable));
   assertEquals(tableMetadata.getOwner(),tableOwner);
   Map<String,ColumnMetadata> columnMap=uniqueIndex(tableMetadata.getColumns(),columnNameGetter());
-  assertPrimitiveField(columnMap,0,"id",ColumnType.LONG,false);
-  assertPrimitiveField(columnMap,1,"t_string",ColumnType.STRING,false);
-  assertPrimitiveField(columnMap,2,"t_bigint",ColumnType.LONG,false);
-  assertPrimitiveField(columnMap,3,"t_double",ColumnType.DOUBLE,false);
-  assertPrimitiveField(columnMap,4,"t_boolean",ColumnType.BOOLEAN,false);
+  assertPrimitiveField(columnMap,0,"id",BIGINT,false);
+  assertPrimitiveField(columnMap,1,"t_string",VARCHAR,false);
+  assertPrimitiveField(columnMap,2,"t_bigint",BIGINT,false);
+  assertPrimitiveField(columnMap,3,"t_double",DOUBLE,false);
+  assertPrimitiveField(columnMap,4,"t_boolean",BOOLEAN,false);
   PartitionResult partitionResult=splitManager.getPartitions(tableHandle,TupleDomain.all());
   assertEquals(partitionResult.getPartitions().size(),1);
   SplitSource splitSource=splitManager.getPartitionSplits(tableHandle,partitionResult.getPartitions());

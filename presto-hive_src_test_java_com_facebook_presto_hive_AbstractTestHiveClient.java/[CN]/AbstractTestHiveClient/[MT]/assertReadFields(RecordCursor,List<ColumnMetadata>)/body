@@ -2,27 +2,26 @@
   for (int columnIndex=0; columnIndex < schema.size(); columnIndex++) {
     ColumnMetadata column=schema.get(columnIndex);
     if (!cursor.isNull(columnIndex)) {
-switch (column.getType()) {
-case BOOLEAN:
+      if (BOOLEAN.equals(column.getType())) {
         cursor.getBoolean(columnIndex);
-      break;
-case LONG:
-    cursor.getLong(columnIndex);
-  break;
-case DOUBLE:
-cursor.getDouble(columnIndex);
-break;
-case STRING:
-try {
-cursor.getString(columnIndex);
-}
- catch (RuntimeException e) {
-throw new RuntimeException("column " + column,e);
-}
-break;
-default :
-fail("Unknown primitive type " + columnIndex);
-}
-}
-}
+      }
+ else       if (BIGINT.equals(column.getType())) {
+        cursor.getLong(columnIndex);
+      }
+ else       if (DOUBLE.equals(column.getType())) {
+        cursor.getDouble(columnIndex);
+      }
+ else       if (VARCHAR.equals(column.getType())) {
+        try {
+          cursor.getString(columnIndex);
+        }
+ catch (        RuntimeException e) {
+          throw new RuntimeException("column " + column,e);
+        }
+      }
+ else {
+        fail("Unknown primitive type " + columnIndex);
+      }
+    }
+  }
 }

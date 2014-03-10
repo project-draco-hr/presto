@@ -1,5 +1,5 @@
 {
-  List<ColumnMetadata> columns=ImmutableList.<ColumnMetadata>builder().add(new ColumnMetadata("sales",ColumnType.LONG,1,false)).build();
+  List<ColumnMetadata> columns=ImmutableList.<ColumnMetadata>builder().add(new ColumnMetadata("sales",BIGINT,1,false)).build();
   ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(temporaryCreateSampledTable,columns,tableOwner,true);
   OutputTableHandle outputHandle=metadata.beginCreateTable(tableMetadata);
   RecordSink sink=recordSinkProvider.getRecordSink(outputHandle);
@@ -21,7 +21,7 @@
   assertEquals(tableMetadata.getOwner(),tableOwner);
   Map<String,ColumnMetadata> columnMap=uniqueIndex(tableMetadata.getColumns(),columnNameGetter());
   assertEquals(columnMap.size(),1);
-  assertPrimitiveField(columnMap,0,"sales",ColumnType.LONG,false);
+  assertPrimitiveField(columnMap,0,"sales",BIGINT,false);
   PartitionResult partitionResult=splitManager.getPartitions(tableHandle,TupleDomain.all());
   assertEquals(partitionResult.getPartitions().size(),1);
   SplitSource splitSource=splitManager.getPartitionSplits(tableHandle,partitionResult.getPartitions());
