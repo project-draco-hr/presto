@@ -8,8 +8,10 @@
     elapsedTime=Duration.nanosSince(createNanos);
   }
   FailureInfo failureInfo=null;
+  ErrorCode errorCode=null;
   if (state != FINISHED) {
     failureInfo=toFailure(failureCause);
+    errorCode=ErrorCodes.toErrorCode(failureCause);
   }
   int totalTasks=0;
   int runningTasks=0;
@@ -56,5 +58,5 @@
     outputPositions+=outputStageStats.getOutputPositions();
   }
   QueryStats queryStats=new QueryStats(createTime,executionStartTime,lastHeartbeat,endTime,elapsedTime.convertToMostSuccinctTimeUnit(),queuedTime,analysisTime,distributedPlanningTime,totalPlanningTime,totalTasks,runningTasks,completedTasks,totalDrivers,queuedDrivers,runningDrivers,completedDrivers,new DataSize(totalMemoryReservation,BYTE).convertToMostSuccinctDataSize(),new Duration(totalScheduledTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalCpuTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalUserTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalBlockedTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new DataSize(rawInputDataSize,BYTE).convertToMostSuccinctDataSize(),rawInputPositions,new DataSize(processedInputDataSize,BYTE).convertToMostSuccinctDataSize(),processedInputPositions,new DataSize(outputDataSize,BYTE).convertToMostSuccinctDataSize(),outputPositions);
-  return new QueryInfo(queryId,session,state,self,outputFieldNames,query,queryStats,rootStage,failureInfo,inputs);
+  return new QueryInfo(queryId,session,state,self,outputFieldNames,query,queryStats,rootStage,failureInfo,errorCode,inputs);
 }

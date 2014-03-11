@@ -6,7 +6,9 @@
     if (!finishing && !aggregationBuilder.isFull()) {
       return null;
     }
-    checkState(finishing || step == Step.PARTIAL,"Task exceeded max memory size of %s",memoryManager.getMaxMemorySize());
+    if (!finishing && step != Step.PARTIAL) {
+      throw new ExceededMemoryLimitException(memoryManager.getMaxMemorySize());
+    }
     outputIterator=aggregationBuilder.build();
     aggregationBuilder=null;
     if (!outputIterator.hasNext()) {
