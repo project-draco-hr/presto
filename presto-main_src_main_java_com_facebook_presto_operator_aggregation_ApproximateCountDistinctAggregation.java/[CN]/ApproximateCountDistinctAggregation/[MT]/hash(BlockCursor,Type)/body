@@ -1,15 +1,14 @@
 {
   if (parameterType == Type.FIXED_INT_64) {
     long value=values.getLong();
-    return HASH.hashLong(value).asLong();
+    return Murmur3.hash64(value);
   }
  else   if (parameterType == Type.DOUBLE) {
     double value=values.getDouble();
-    return HASH.hashLong(Double.doubleToLongBits(value)).asLong();
+    return Murmur3.hash64(Double.doubleToLongBits(value));
   }
  else   if (parameterType == Type.VARIABLE_BINARY) {
-    Slice value=values.getSlice();
-    return HASH.hashBytes(value.getBytes()).asLong();
+    return Murmur3.hash64(values.getSlice());
   }
  else {
     throw new IllegalArgumentException("Expected parameter type to be FIXED_INT_64, DOUBLE, or VARIABLE_BINARY");
