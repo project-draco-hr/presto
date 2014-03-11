@@ -1,14 +1,22 @@
 {
-  return retry().stopOn(NoSuchObjectException.class,HiveViewNotSupportedException.class).stopOnIllegalExceptions().run("getTable",stats.getGetTable().wrap(new Callable<Table>(){
-    @Override public Table call() throws Exception {
-      try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
-        Table table=client.get_table(hiveTableName.getDatabaseName(),hiveTableName.getTableName());
-        if (table.getTableType().equals(TableType.VIRTUAL_VIEW.toString())) {
-          throw new HiveViewNotSupportedException(new SchemaTableName(hiveTableName.getDatabaseName(),hiveTableName.getTableName()));
+  try {
+    return retry().stopOn(NoSuchObjectException.class,HiveViewNotSupportedException.class).stopOnIllegalExceptions().run("getTable",stats.getGetTable().wrap(new Callable<Table>(){
+      @Override public Table call() throws Exception {
+        try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
+          Table table=client.get_table(hiveTableName.getDatabaseName(),hiveTableName.getTableName());
+          if (table.getTableType().equals(TableType.VIRTUAL_VIEW.toString())) {
+            throw new HiveViewNotSupportedException(new SchemaTableName(hiveTableName.getDatabaseName(),hiveTableName.getTableName()));
+          }
+          return table;
         }
-        return table;
-      }
-     }
-  }
+       }
+    }
 ));
+  }
+ catch (  NoSuchObjectException|HiveViewNotSupportedException e) {
+    throw e;
+  }
+catch (  TException e) {
+    throw new PrestoException(HiveErrorCode.HIVE_METASTORE_ERROR,e);
+  }
 }

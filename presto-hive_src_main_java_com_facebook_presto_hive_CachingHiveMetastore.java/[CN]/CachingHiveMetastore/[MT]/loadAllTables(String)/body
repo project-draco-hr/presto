@@ -16,14 +16,22 @@
      }
   }
 );
-  return retry().stopOn(NoSuchObjectException.class).stopOnIllegalExceptions().run("getAllTables",new Callable<List<String>>(){
-    @Override public List<String> call() throws Exception {
-      List<String> tables=getAllTables.call();
-      if (tables.isEmpty()) {
-        getDatabase.call();
+  try {
+    return retry().stopOn(NoSuchObjectException.class).stopOnIllegalExceptions().run("getAllTables",new Callable<List<String>>(){
+      @Override public List<String> call() throws Exception {
+        List<String> tables=getAllTables.call();
+        if (tables.isEmpty()) {
+          getDatabase.call();
+        }
+        return tables;
       }
-      return tables;
     }
-  }
 );
+  }
+ catch (  NoSuchObjectException e) {
+    throw e;
+  }
+catch (  TException e) {
+    throw new PrestoException(HiveErrorCode.HIVE_METASTORE_ERROR,e);
+  }
 }

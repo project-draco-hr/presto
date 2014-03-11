@@ -13,6 +13,12 @@
  catch (  AlreadyExistsException e) {
     throw new TableAlreadyExistsException(new SchemaTableName(table.getDbName(),table.getTableName()));
   }
+catch (  InvalidObjectException|NoSuchObjectException|MetaException e) {
+    throw Throwables.propagate(e);
+  }
+catch (  TException e) {
+    throw new PrestoException(HiveErrorCode.HIVE_METASTORE_ERROR,e);
+  }
 catch (  Exception e) {
     if (e instanceof InterruptedException) {
       Thread.currentThread().interrupt();
