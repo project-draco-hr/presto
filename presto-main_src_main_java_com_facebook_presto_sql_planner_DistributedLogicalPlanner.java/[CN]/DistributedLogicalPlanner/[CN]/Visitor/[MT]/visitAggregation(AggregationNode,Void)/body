@@ -8,5 +8,15 @@
   Map<Symbol,Signature> functions=node.getFunctions();
   Map<Symbol,Symbol> masks=node.getMasks();
   List<Symbol> groupBy=node.getGroupBy();
-  return addDistributedAggregation(current,aggregations,functions,masks,groupBy,node.getSampleWeight(),node.getConfidence());
+  boolean decomposable=true;
+  for (  Signature function : functions.values()) {
+    if (!metadata.getFunction(function).getAggregationFunction().isDecomposable()) {
+      decomposable=false;
+      break;
+    }
+  }
+  if (decomposable) {
+    return addDistributedAggregation(current,aggregations,functions,masks,groupBy,node.getSampleWeight(),node.getConfidence());
+  }
+  return addSingleNodeAggregation(current,aggregations,functions,masks,groupBy,node.getSampleWeight(),node.getConfidence());
 }
