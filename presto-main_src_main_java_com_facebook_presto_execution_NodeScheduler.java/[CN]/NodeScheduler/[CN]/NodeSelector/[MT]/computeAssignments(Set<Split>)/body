@@ -3,17 +3,13 @@
   for (  Split split : splits) {
     List<Node> candidateNodes=selectCandidateNodes(nodeMap.get().get(),split);
     checkState(!candidateNodes.isEmpty(),"No nodes available to run query");
-    Map<Node,Integer> splitsByNode=new HashMap<>();
     Node chosen=null;
     int min=Integer.MAX_VALUE;
     for (    Node node : candidateNodes) {
-      Integer partitionedSplitCount=splitsByNode.get(node);
-      if (partitionedSplitCount == null) {
-        partitionedSplitCount=nodeTaskMap.getPartitionedSplitsOnNode(node);
-        splitsByNode.put(node,partitionedSplitCount);
-      }
-      int assignedSplits=partitionedSplitCount + assignment.get(node).size();
-      if (assignedSplits < min && assignedSplits < maxSplitsPerNode) {
+      RemoteTask task=taskMap.get(node);
+      int currentSplits=(task == null) ? 0 : task.getQueuedSplits();
+      int assignedSplits=currentSplits + assignment.get(node).size();
+      if (assignedSplits < min && assignedSplits < maxPendingSplitsPerTask) {
         chosen=node;
         min=assignedSplits;
       }

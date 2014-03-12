@@ -1,0 +1,25 @@
+{
+  try (SetThreadName setThreadName=new SetThreadName("Query-%s",queryId)){
+    this.statement=checkNotNull(statement,"statement is null");
+    this.metadata=checkNotNull(metadata,"metadata is null");
+    this.splitManager=checkNotNull(splitManager,"splitManager is null");
+    this.nodeScheduler=checkNotNull(nodeScheduler,"nodeScheduler is null");
+    this.planOptimizers=checkNotNull(planOptimizers,"planOptimizers is null");
+    this.remoteTaskFactory=checkNotNull(remoteTaskFactory,"remoteTaskFactory is null");
+    this.locationFactory=checkNotNull(locationFactory,"locationFactory is null");
+    this.queryExecutor=checkNotNull(queryExecutor,"queryExecutor is null");
+    this.experimentalSyntaxEnabled=experimentalSyntaxEnabled;
+    checkArgument(maxPendingSplitsPerNode > 0,"scheduleSplitBatchSize must be greater than 0");
+    this.scheduleSplitBatchSize=scheduleSplitBatchSize;
+    checkArgument(maxPendingSplitsPerNode > 0,"maxPendingSplitsPerNode must be greater than 0");
+    this.maxPendingSplitsPerNode=maxPendingSplitsPerNode;
+    checkArgument(initialHashPartitions > 0,"initialHashPartitions must be greater than 0");
+    this.initialHashPartitions=initialHashPartitions;
+    checkNotNull(queryId,"queryId is null");
+    checkNotNull(query,"query is null");
+    checkNotNull(session,"session is null");
+    checkNotNull(self,"self is null");
+    this.stateMachine=new QueryStateMachine(queryId,query,session,self,queryExecutor);
+    this.queryExplainer=new QueryExplainer(session,planOptimizers,metadata,experimentalSyntaxEnabled);
+  }
+ }

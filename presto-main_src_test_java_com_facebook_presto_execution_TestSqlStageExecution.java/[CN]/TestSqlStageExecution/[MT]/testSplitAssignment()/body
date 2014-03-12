@@ -1,31 +1,28 @@
 {
-  SqlStageExecution sqlStageExecution;
-  Future future;
-  Map<Node,RemoteTask> tasks;
-  sqlStageExecution=createSqlStageExecution(nodeScheduler,20,20);
-  future=sqlStageExecution.start();
-  future.get(1,TimeUnit.SECONDS);
-  tasks=sqlStageExecution.getTasks();
-  assertEquals(tasks.size(),4);
-  for (  Map.Entry<Node,RemoteTask> entry : tasks.entrySet()) {
-    assertEquals(entry.getValue().getPartitionedSplitCount(),5);
+  final InMemoryNodeManager nodeManager=new InMemoryNodeManager();
+  ImmutableList.Builder<Node> nodeBuilder=ImmutableList.builder();
+  nodeBuilder.add(new PrestoNode("other1",URI.create("http://127.0.0.1:11"),NodeVersion.UNKNOWN));
+  nodeBuilder.add(new PrestoNode("other2",URI.create("http://127.0.0.1:12"),NodeVersion.UNKNOWN));
+  nodeBuilder.add(new PrestoNode("other3",URI.create("http://127.0.0.1:13"),NodeVersion.UNKNOWN));
+  ImmutableList<Node> nodes=nodeBuilder.build();
+  nodeManager.addNode("foo",nodes);
+  NodeScheduler nodeScheduler=new NodeScheduler(nodeManager,new NodeSchedulerConfig());
+  SqlStageExecution sqlStageExecution1=createSqlStageExecution(nodeScheduler,2,20);
+  Future future1=sqlStageExecution1.start();
+  future1.get(1,TimeUnit.SECONDS);
+  Map<Node,RemoteTask> tasks1=sqlStageExecution1.getTasks();
+  for (  Map.Entry<Node,RemoteTask> entry : tasks1.entrySet()) {
+    assertEquals(entry.getValue().getQueuedSplits(),5);
   }
-  for (  RemoteTask task : tasks.values()) {
-    task.cancel();
+  Node additionalNode=new PrestoNode("other4",URI.create("http://127.0.0.1:14"),NodeVersion.UNKNOWN);
+  nodeManager.addNode("foo",additionalNode);
+  SqlStageExecution sqlStageExecution2=createSqlStageExecution(nodeScheduler,2,20);
+  Future future2=sqlStageExecution2.start();
+  future2.get(1,TimeUnit.SECONDS);
+  Map<Node,RemoteTask> tasks2=sqlStageExecution2.getTasks();
+  RemoteTask task=tasks2.get(additionalNode);
+  assertNotNull(task);
+  for (  Map.Entry<Node,RemoteTask> entry : tasks2.entrySet()) {
+    assertEquals(entry.getValue().getQueuedSplits(),4);
   }
-  Node additionalNode=new PrestoNode("other5",URI.create("http://127.0.0.1:15"),NodeVersion.UNKNOWN);
-  nodeManager.addNode(datasourceName,additionalNode);
-  sqlStageExecution=createSqlStageExecution(nodeScheduler,20,20);
-  future=sqlStageExecution.start();
-  future.get(1,TimeUnit.SECONDS);
-  tasks=sqlStageExecution.getTasks();
-  assertNotNull(tasks.get(additionalNode));
-  assertEquals(tasks.size(),5);
-  for (  Map.Entry<Node,RemoteTask> entry : tasks.entrySet()) {
-    assertEquals(entry.getValue().getPartitionedSplitCount(),4);
-  }
-  for (  RemoteTask task : tasks.values()) {
-    task.cancel();
-  }
-  assertEquals(nodeTaskMap.getPartitionedSplitsOnNode(additionalNode),0);
 }
