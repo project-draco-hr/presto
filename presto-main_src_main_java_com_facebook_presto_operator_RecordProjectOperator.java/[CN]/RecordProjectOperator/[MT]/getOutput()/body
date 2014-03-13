@@ -36,8 +36,10 @@ throw new AssertionError("unimplemented type: " + type);
 }
 }
 long bytesProcessed=cursor.getCompletedBytes() - completedBytes;
-operatorContext.recordGeneratedInput(new DataSize(bytesProcessed,BYTE),i);
+long endReadTimeNanos=cursor.getReadTimeNanos();
+operatorContext.recordGeneratedInput(new DataSize(bytesProcessed,BYTE),i,endReadTimeNanos - readTimeNanos);
 completedBytes+=bytesProcessed;
+readTimeNanos=endReadTimeNanos;
 }
 if (pageBuilder.isEmpty() || (!finishing && !pageBuilder.isFull())) {
 return null;
