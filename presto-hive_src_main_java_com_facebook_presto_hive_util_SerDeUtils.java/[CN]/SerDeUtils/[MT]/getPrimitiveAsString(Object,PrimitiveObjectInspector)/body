@@ -22,7 +22,8 @@ return ((StringObjectInspector)objectInspector).getPrimitiveJavaObject(object);
 case TIMESTAMP:
 return String.valueOf(((TimestampObjectInspector)objectInspector).getPrimitiveWritableObject(object).getSeconds());
 case BINARY:
-return Base64Variants.getDefaultVariant().encode(((BinaryObjectInspector)objectInspector).getPrimitiveWritableObject(object).getBytes());
+BytesWritable writable=((BinaryObjectInspector)objectInspector).getPrimitiveWritableObject(object);
+return Base64Variants.getDefaultVariant().encode(Arrays.copyOf(writable.getBytes(),writable.getLength()));
 default :
 throw new RuntimeException("Unknown primitive type: " + objectInspector.getPrimitiveCategory());
 }
