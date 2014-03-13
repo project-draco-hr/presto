@@ -1,0 +1,27 @@
+{
+  checkArgument(!isNullOrEmpty(tableMetadata.getOwner()),"Table owner is null or empty");
+  ImmutableList.Builder<String> columnNames=ImmutableList.builder();
+  ImmutableList.Builder<Type> columnTypes=ImmutableList.builder();
+  for (  ColumnMetadata column : tableMetadata.getColumns()) {
+    columnNames.add(column.getName());
+    columnTypes.add(column.getType());
+  }
+  if (tableMetadata.isSampled()) {
+    columnNames.add(SAMPLE_WEIGHT_COLUMN_NAME);
+    columnTypes.add(BIGINT);
+  }
+  SchemaTableName table=tableMetadata.getTable();
+  String schemaName=schemaProvider.getCaseSensitiveSchemaName(table.getSchemaName());
+  String tableName=table.getTableName();
+  List<String> columns=columnNames.build();
+  List<Type> types=columnTypes.build();
+  StringBuilder queryBuilder=new StringBuilder(String.format("CREATE TABLE \"%s\".\"%s\"(id uuid primary key",schemaName,tableName));
+  for (int i=0; i < columns.size(); i++) {
+    String name=columns.get(i);
+    Type type=types.get(i);
+    queryBuilder.append(", ").append(name).append(" ").append(toCassandraType(type).name().toLowerCase());
+  }
+  queryBuilder.append(")");
+  cassandraSession.executeQuery(queryBuilder.toString());
+  return new CassandraOutputTableHandle(connectorId,schemaName,tableName,columnNames.build(),columnTypes.build(),tableMetadata.getOwner());
+}
