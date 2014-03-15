@@ -1,0 +1,28 @@
+{
+  final int splitsPerNode=getSplitsPerNode(properties);
+  final TpchIndexedData indexedData=new TpchIndexedData(indexSpec);
+  return new Connector(){
+    @Override public ConnectorMetadata getMetadata(){
+      return new TpchMetadata(connectorId);
+    }
+    @Override public ConnectorSplitManager getSplitManager(){
+      return new TpchSplitManager(connectorId,nodeManager,splitsPerNode);
+    }
+    @Override public ConnectorHandleResolver getHandleResolver(){
+      return new TpchIndexHandleResolver(connectorId);
+    }
+    @Override public ConnectorRecordSetProvider getRecordSetProvider(){
+      return new TpchRecordSetProvider(connectorId);
+    }
+    @Override public ConnectorRecordSinkProvider getRecordSinkProvider(){
+      throw new UnsupportedOperationException();
+    }
+    @Override public ConnectorOutputHandleResolver getOutputHandleResolver(){
+      throw new UnsupportedOperationException();
+    }
+    @Override public ConnectorIndexResolver getIndexResolver(){
+      return new TpchIndexResolver(connectorId,indexedData);
+    }
+  }
+;
+}

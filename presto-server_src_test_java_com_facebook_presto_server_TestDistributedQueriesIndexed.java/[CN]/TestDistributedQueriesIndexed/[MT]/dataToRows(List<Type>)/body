@@ -1,0 +1,33 @@
+{
+  return new Function<List<Object>,MaterializedRow>(){
+    @Override public MaterializedRow apply(    List<Object> data){
+      checkArgument(data.size() == types.size(),"columns size does not match tuple infos");
+      List<Object> row=new ArrayList<>();
+      for (int i=0; i < data.size(); i++) {
+        Object value=data.get(i);
+        if (value == null) {
+          row.add(null);
+          continue;
+        }
+        Type type=types.get(i);
+        if (type.equals(BOOLEAN)) {
+          row.add(value);
+        }
+ else         if (type.equals(BIGINT)) {
+          row.add(((Number)value).longValue());
+        }
+ else         if (type.equals(DOUBLE)) {
+          row.add(((Number)value).doubleValue());
+        }
+ else         if (type.equals(VARCHAR)) {
+          row.add(value);
+        }
+ else {
+          throw new AssertionError("unhandled type: " + type);
+        }
+      }
+      return new MaterializedRow(DEFAULT_PRECISION,row);
+    }
+  }
+;
+}
