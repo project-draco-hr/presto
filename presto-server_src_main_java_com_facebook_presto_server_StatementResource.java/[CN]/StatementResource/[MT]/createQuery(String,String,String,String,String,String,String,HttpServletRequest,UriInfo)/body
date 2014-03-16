@@ -4,7 +4,14 @@
   assertRequest(!isNullOrEmpty(catalog),"Catalog (%s) is empty",PRESTO_CATALOG);
   assertRequest(!isNullOrEmpty(schema),"Schema (%s) is empty",PRESTO_SCHEMA);
   String remoteUserAddress=requestContext.getRemoteAddr();
-  Session session=new Session(user,source,catalog,schema,remoteUserAddress,userAgent);
+  TimeZone timeZone;
+  if (timeZoneString == null) {
+    timeZone=TimeZone.getDefault();
+  }
+ else {
+    timeZone=TimeZone.getTimeZone(timeZoneString);
+  }
+  Session session=new Session(user,source,catalog,schema,timeZone,requestContext.getLocale(),remoteUserAddress,userAgent);
   ExchangeClient exchangeClient=exchangeClientSupplier.get();
   Query query=new Query(session,statement,queryManager,exchangeClient);
   queries.put(query.getQueryId(),query);

@@ -3,8 +3,15 @@
   checkArgument(!query.isEmpty(),"query is empty");
   checkNotNull(catalog,"catalog is null");
   checkNotNull(schema,"schema is null");
+  TimeZone timeZone;
+  if (timeZoneString == null) {
+    timeZone=TimeZone.getDefault();
+  }
+ else {
+    timeZone=TimeZone.getTimeZone(timeZoneString);
+  }
   String remoteUserAddress=requestContext.getRemoteAddr();
-  QueryInfo queryInfo=queryManager.createQuery(new Session(user,source,catalog,schema,remoteUserAddress,userAgent),query);
+  QueryInfo queryInfo=queryManager.createQuery(new Session(user,source,catalog,schema,timeZone,requestContext.getLocale(),remoteUserAddress,userAgent),query);
   URI pagesUri=uriBuilderFrom(uriInfo.getRequestUri()).appendPath(queryInfo.getQueryId().toString()).build();
   return Response.created(pagesUri).entity(queryInfo).build();
 }
