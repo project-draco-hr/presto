@@ -1,0 +1,48 @@
+{
+  if (tupleDomains.isEmpty()) {
+    throw new IllegalArgumentException("tupleDomains must have at least one element");
+  }
+  if (tupleDomains.size() == 1) {
+    return tupleDomains.get(0);
+  }
+  Set<ColumnHandle> commonColumns=new HashSet<>();
+  boolean found=false;
+  Iterator<TupleDomain> domains=tupleDomains.iterator();
+  while (domains.hasNext()) {
+    TupleDomain domain=domains.next();
+    if (!domain.isNone()) {
+      found=true;
+      commonColumns.addAll(domain.getDomains().keySet());
+      break;
+    }
+  }
+  if (!found) {
+    return TupleDomain.none();
+  }
+  while (domains.hasNext()) {
+    TupleDomain domain=domains.next();
+    if (!domain.isNone()) {
+      commonColumns.retainAll(domain.getDomains().keySet());
+    }
+  }
+  Map<ColumnHandle,List<Domain>> domainsByColumn=new HashMap<>();
+  for (  TupleDomain domain : tupleDomains) {
+    if (!domain.isNone()) {
+      for (      Map.Entry<ColumnHandle,Domain> entry : domain.getDomains().entrySet()) {
+        if (commonColumns.contains(entry.getKey())) {
+          List<Domain> domainForColumn=domainsByColumn.get(entry.getKey());
+          if (domainForColumn == null) {
+            domainForColumn=new ArrayList<>();
+            domainsByColumn.put(entry.getKey(),domainForColumn);
+          }
+          domainForColumn.add(entry.getValue());
+        }
+      }
+    }
+  }
+  Map<ColumnHandle,Domain> result=new HashMap<>();
+  for (  Map.Entry<ColumnHandle,List<Domain>> entry : domainsByColumn.entrySet()) {
+    result.put(entry.getKey(),Domain.union(entry.getValue()));
+  }
+  return withColumnDomains(result);
+}

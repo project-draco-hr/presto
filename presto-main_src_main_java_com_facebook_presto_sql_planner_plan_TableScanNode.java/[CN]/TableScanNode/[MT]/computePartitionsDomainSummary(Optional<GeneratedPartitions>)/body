@@ -2,9 +2,14 @@
   if (!generatedPartitions.isPresent()) {
     return TupleDomain.all();
   }
-  TupleDomain tupleDomain=TupleDomain.none();
-  for (  Partition partition : generatedPartitions.get().getPartitions()) {
-    tupleDomain=tupleDomain.columnWiseUnion(partition.getTupleDomain());
+  if (generatedPartitions.get().getPartitions().isEmpty()) {
+    return TupleDomain.none();
   }
-  return tupleDomain;
+  List<TupleDomain> domains=Lists.transform(generatedPartitions.get().getPartitions(),new Function<Partition,TupleDomain>(){
+    @Override public TupleDomain apply(    Partition partition){
+      return partition.getTupleDomain();
+    }
+  }
+);
+  return TupleDomain.columnWiseUnion(domains);
 }
