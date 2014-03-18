@@ -1,7 +1,7 @@
 {
   TTransport transport;
   if (socksProxy == null) {
-    transport=new TSocket(host,port,(int)timeout.toMillis());
+    transport=new TTransportWrapper(new TSocket(host,port,(int)timeout.toMillis()),host);
     transport.open();
   }
  else {
@@ -12,9 +12,14 @@
       socks.setSoTimeout(Ints.checkedCast(timeout.toMillis()));
     }
  catch (    IOException e) {
-      throw new TTransportException(e);
+      throw rewriteException(new TTransportException(e),host);
     }
-    transport=new TSocket(socks);
+    try {
+      transport=new TTransportWrapper(new TSocket(socks),host);
+    }
+ catch (    TTransportException e) {
+      throw rewriteException(e,host);
+    }
   }
   return new HiveMetastoreClient(transport);
 }
