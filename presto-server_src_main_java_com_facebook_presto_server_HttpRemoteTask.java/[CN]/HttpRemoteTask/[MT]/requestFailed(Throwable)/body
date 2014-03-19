@@ -18,7 +18,7 @@
   long errorCount=this.errorCount.incrementAndGet();
   Duration timeSinceLastSuccess=Duration.nanosSince(lastSuccessfulRequest.get());
   if (errorCount > maxConsecutiveErrorCount && timeSinceLastSuccess.compareTo(minErrorDuration) > 0) {
-    PrestoException exception=new PrestoException(TOO_MANY_REQUESTS_FAILED,format("Too many requests to %s failed: %s failures: Time since last success %s",taskInfo.getSelf(),errorCount,timeSinceLastSuccess));
+    PrestoException exception=new PrestoException(TOO_MANY_REQUESTS_FAILED.toErrorCode(),format("Too many requests to %s failed: %s failures: Time since last success %s",taskInfo.getSelf(),errorCount,timeSinceLastSuccess));
     for (    Throwable error : errorsSinceLastSuccess) {
       exception.addSuppressed(error);
     }
