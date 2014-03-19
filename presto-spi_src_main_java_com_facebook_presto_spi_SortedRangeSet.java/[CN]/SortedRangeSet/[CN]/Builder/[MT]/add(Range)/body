@@ -2,23 +2,6 @@
   if (!type.equals(range.getType())) {
     throw new IllegalArgumentException(String.format("Range type %s does not match builder type %s",range.getType(),type));
   }
-  Map.Entry<Marker,Range> lowFloorEntry=lowIndexedRanges.floorEntry(range.getLow());
-  if (lowFloorEntry != null && lowFloorEntry.getValue().overlaps(range)) {
-    range=lowFloorEntry.getValue().span(range);
-  }
-  Map.Entry<Marker,Range> highFloorEntry=lowIndexedRanges.floorEntry(range.getHigh());
-  if (highFloorEntry != null && highFloorEntry.getValue().overlaps(range)) {
-    range=highFloorEntry.getValue().span(range);
-  }
-  if (lowFloorEntry != null && lowFloorEntry.getValue().getHigh().isAdjacent(range.getLow())) {
-    range=lowFloorEntry.getValue().span(range);
-  }
-  Map.Entry<Marker,Range> highHigherEntry=lowIndexedRanges.higherEntry(range.getHigh());
-  if (highHigherEntry != null && highHigherEntry.getValue().getLow().isAdjacent(range.getHigh())) {
-    range=highHigherEntry.getValue().span(range);
-  }
-  NavigableMap<Marker,Range> subMap=lowIndexedRanges.subMap(range.getLow(),true,range.getHigh(),true);
-  subMap.clear();
-  lowIndexedRanges.put(range.getLow(),range);
+  ranges.add(range);
   return this;
 }
