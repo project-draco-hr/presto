@@ -5,11 +5,9 @@
   if (node.getGeneratedPartitions().isPresent()) {
     tupleDomain=tupleDomain.intersect(node.getGeneratedPartitions().get().getTupleDomainInput()).intersect(node.getPartitionsDomainSummary());
   }
-  Stopwatch partitionTimer=Stopwatch.createStarted();
   PartitionResult matchingPartitions=splitManager.getPartitions(node.getTable(),Optional.of(tupleDomain));
   List<Partition> partitions=matchingPartitions.getPartitions();
   TupleDomain undeterminedTupleDomain=matchingPartitions.getUndeterminedTupleDomain();
-  log.debug("Partition retrieval, table %s (%d partitions): %dms",node.getTable(),partitions.size(),partitionTimer.elapsed(TimeUnit.MILLISECONDS));
   Expression unevaluatedDomainPredicate=DomainTranslator.toPredicate(undeterminedTupleDomain,ImmutableBiMap.copyOf(node.getAssignments()).inverse());
   Expression postScanPredicate=combineConjuncts(unevaluatedDomainPredicate,extractionRemainingExpression);
   partitions=ImmutableList.copyOf(filter(partitions,not(shouldPrunePartition(postScanPredicate,node.getAssignments()))));
