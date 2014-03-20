@@ -1,6 +1,13 @@
 {
-  if (driver == null) {
-    driver=driverSplitRunnerFactory.createDriver(driverContext,partitionedSplit);
+  Driver driver;
+synchronized (this) {
+    if (closed) {
+      return Futures.immediateFuture(null);
+    }
+    if (this.driver == null) {
+      this.driver=driverSplitRunnerFactory.createDriver(driverContext,partitionedSplit);
+    }
+    driver=this.driver;
   }
   return driver.processFor(duration);
 }
