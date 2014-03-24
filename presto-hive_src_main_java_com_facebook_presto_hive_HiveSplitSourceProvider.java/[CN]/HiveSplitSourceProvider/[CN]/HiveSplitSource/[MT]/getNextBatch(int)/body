@@ -8,7 +8,10 @@
     splits=splits.subList(0,finishedIndex);
   }
   if (throwable.get() != null) {
-    throw Throwables.propagate(throwable.get());
+    if (throwable.get() instanceof FileNotFoundException) {
+      throw new PrestoException(HiveErrorCode.HIVE_FILE_NOT_FOUND.toErrorCode(),throwable.get());
+    }
+    throw new PrestoException(HiveErrorCode.HIVE_UNKNOWN_ERROR.toErrorCode(),throwable.get());
   }
   if (outstandingSplitCount.addAndGet(-splits.size()) < maxOutstandingSplits) {
     suspendingExecutor.resume();
