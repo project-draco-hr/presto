@@ -37,8 +37,16 @@
   }
  catch (  UnsupportedOperationException ignored) {
   }
+  ConnectorIndexResolver indexResolver=null;
+  try {
+    indexResolver=connector.getIndexResolver();
+    checkNotNull(indexResolver,"Connector %s returned a null index resolver",connectorId);
+  }
+ catch (  UnsupportedOperationException ignored) {
+  }
   if (catalogName != null) {
     metadataManager.addConnectorMetadata(connectorId,catalogName,connectorMetadata);
+    metadataManager.addInternalSchemaMetadata(makeInformationSchemaConnectorId(connectorId),new InformationSchemaMetadata(catalogName));
   }
  else {
     metadataManager.addInternalSchemaMetadata(connectorId,connectorMetadata);
@@ -51,13 +59,6 @@
   }
   if (connectorOutputHandleResolver != null) {
     outputTableHandleResolver.addHandleResolver(connectorId,connectorOutputHandleResolver);
-  }
-  ConnectorIndexResolver indexResolver=null;
-  try {
-    indexResolver=connector.getIndexResolver();
-    checkNotNull(indexResolver,"Connector %s returned a null index resolver",connectorId);
-  }
- catch (  UnsupportedOperationException ignored) {
   }
   if (indexResolver != null) {
     indexManager.addIndexResolver(indexResolver);
