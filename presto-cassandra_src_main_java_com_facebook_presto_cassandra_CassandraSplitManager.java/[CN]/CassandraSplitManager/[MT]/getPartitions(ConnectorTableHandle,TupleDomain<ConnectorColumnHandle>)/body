@@ -23,8 +23,13 @@
   List<ConnectorPartition> partitions=FluentIterable.from(allPartitions).filter(partitionMatches(tupleDomain)).filter(ConnectorPartition.class).toList();
   TupleDomain<ConnectorColumnHandle> remainingTupleDomain=TupleDomain.none();
   if (!tupleDomain.isNone()) {
-    @SuppressWarnings({"rawtypes","unchecked"}) List<ConnectorColumnHandle> partitionColumns=(List)partitionKeys;
-    remainingTupleDomain=TupleDomain.withColumnDomains(Maps.filterKeys(tupleDomain.getDomains(),not(in(partitionColumns))));
+    if (partitions.size() == 1 && ((CassandraPartition)partitions.get(0)).isUnpartitioned()) {
+      remainingTupleDomain=tupleDomain;
+    }
+ else {
+      @SuppressWarnings({"rawtypes","unchecked"}) List<ConnectorColumnHandle> partitionColumns=(List)partitionKeys;
+      remainingTupleDomain=TupleDomain.withColumnDomains(Maps.filterKeys(tupleDomain.getDomains(),not(in(partitionColumns))));
+    }
   }
   if (partitions.size() == 1 && ((CassandraPartition)partitions.get(0)).isUnpartitioned()) {
     Map<ConnectorColumnHandle,Domain> domains=tupleDomain.getDomains();
