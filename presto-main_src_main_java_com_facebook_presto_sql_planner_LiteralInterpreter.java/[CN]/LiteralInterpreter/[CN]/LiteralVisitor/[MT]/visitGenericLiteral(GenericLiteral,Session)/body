@@ -1,0 +1,19 @@
+{
+  Type type=metadata.getType(node.getType());
+  if (type == null) {
+    throw new SemanticException(TYPE_MISMATCH,node,"Unknown type: " + node.getType());
+  }
+  OperatorInfo operator;
+  try {
+    operator=metadata.getExactOperator(OperatorType.CAST,type,ImmutableList.of(VARCHAR));
+  }
+ catch (  IllegalArgumentException e) {
+    throw new SemanticException(TYPE_MISMATCH,node,"No literal form for type %s",type);
+  }
+  try {
+    return ExpressionInterpreter.invoke(session,operator.getMethodHandle(),ImmutableList.<Object>of(Slices.utf8Slice(node.getValue())));
+  }
+ catch (  Throwable throwable) {
+    throw Throwables.propagate(throwable);
+  }
+}

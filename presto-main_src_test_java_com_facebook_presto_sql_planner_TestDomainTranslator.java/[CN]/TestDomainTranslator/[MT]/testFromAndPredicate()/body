@@ -1,14 +1,14 @@
 {
   Expression originalPredicate=and(and(greaterThan(A,longLiteral(1L)),unprocessableExpression1(A)),and(lessThan(A,longLiteral(5L)),unprocessableExpression2(A)));
-  ExtractionResult result=fromPredicate(originalPredicate,TYPES,COLUMN_HANDLES);
+  ExtractionResult result=fromPredicate(MANAGER,SESSION,originalPredicate,TYPES,COLUMN_HANDLES);
   Assert.assertEquals(result.getRemainingExpression(),and(unprocessableExpression1(A),unprocessableExpression2(A)));
   Assert.assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.<ColumnHandle,Domain>of(ACH,Domain.create(SortedRangeSet.of(Range.range(1L,false,5L,false)),false))));
   originalPredicate=not(and(and(greaterThan(A,longLiteral(1L)),unprocessableExpression1(A)),and(lessThan(A,longLiteral(5L)),unprocessableExpression2(A))));
-  result=fromPredicate(originalPredicate,TYPES,COLUMN_HANDLES);
+  result=fromPredicate(MANAGER,SESSION,originalPredicate,TYPES,COLUMN_HANDLES);
   Assert.assertEquals(result.getRemainingExpression(),originalPredicate);
   Assert.assertTrue(result.getTupleDomain().isAll());
   originalPredicate=not(and(not(and(greaterThan(A,longLiteral(1L)),unprocessableExpression1(A))),not(and(lessThan(A,longLiteral(5L)),unprocessableExpression2(A)))));
-  result=fromPredicate(originalPredicate,TYPES,COLUMN_HANDLES);
+  result=fromPredicate(MANAGER,SESSION,originalPredicate,TYPES,COLUMN_HANDLES);
   Assert.assertEquals(result.getRemainingExpression(),originalPredicate);
   Assert.assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.<ColumnHandle,Domain>of(ACH,Domain.notNull(Long.class))));
 }
