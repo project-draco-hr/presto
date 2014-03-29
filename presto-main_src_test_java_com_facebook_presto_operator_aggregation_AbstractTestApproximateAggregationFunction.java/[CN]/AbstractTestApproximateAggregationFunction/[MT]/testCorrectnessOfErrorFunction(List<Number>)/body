@@ -1,12 +1,18 @@
 {
   int inRange=0;
   int numberOfRuns=1000;
-  double sampleRatio=0.1;
+  double sampleRatio=1 / (double)WEIGHT;
+  double actual=getExpectedValue(inputList);
+  Random rand=new Random(1);
   for (int i=0; i < numberOfRuns; i++) {
-    Iterable<Number> sampledList=Iterables.limit(shuffle(inputList,i),(int)(inputList.size() * sampleRatio));
-    double actual=getExpectedValue(ImmutableList.<Number>builder().addAll(sampledList).addAll(sampledList).build());
+    ImmutableList.Builder<Number> sampledList=ImmutableList.builder();
+    for (    Number x : inputList) {
+      if (rand.nextDouble() < sampleRatio) {
+        sampledList.add(x);
+      }
+    }
     BlockBuilder builder=new BlockBuilder(getTupleInfo());
-    for (    Number sample : sampledList) {
+    for (    Number sample : sampledList.build()) {
       if (getTupleInfo() == SINGLE_LONG) {
         builder.append(sample.longValue());
       }
@@ -18,7 +24,7 @@
       }
     }
     Page page=new Page(builder.build());
-    page=OperatorAssertion.appendSampleWeight(ImmutableList.of(page),2).get(0);
+    page=OperatorAssertion.appendSampleWeight(ImmutableList.of(page),WEIGHT).get(0);
     Accumulator accumulator=getFunction().createAggregation(Optional.<Integer>absent(),Optional.of(page.getChannelCount() - 1),getConfidence(),0);
     accumulator.addInput(page);
     Block result=accumulator.evaluateFinal();
@@ -29,5 +35,8 @@
       inRange++;
     }
   }
-  assertTrue(inRange >= getConfidence() * numberOfRuns);
+  BinomialDistribution binomial=new BinomialDistribution(numberOfRuns,getConfidence());
+  int lowerBound=binomial.inverseCumulativeProbability(0.01);
+  int upperBound=binomial.inverseCumulativeProbability(0.99);
+  assertTrue(lowerBound < inRange && inRange < upperBound,String.format("%d out of %d passed. Expected [%d, %d]",inRange,numberOfRuns,lowerBound,upperBound));
 }

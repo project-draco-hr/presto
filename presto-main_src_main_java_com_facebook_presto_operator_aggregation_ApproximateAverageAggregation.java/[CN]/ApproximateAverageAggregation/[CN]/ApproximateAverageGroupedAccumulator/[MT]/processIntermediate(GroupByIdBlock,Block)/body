@@ -1,5 +1,6 @@
 {
   counts.ensureCapacity(groupIdsBlock.getGroupCount());
+  samples.ensureCapacity(groupIdsBlock.getGroupCount());
   means.ensureCapacity(groupIdsBlock.getGroupCount());
   m2s.ensureCapacity(groupIdsBlock.getGroupCount());
   BlockCursor values=valuesBlock.cursor();
@@ -9,6 +10,7 @@
       long groupId=groupIdsBlock.getGroupId(position);
       Slice slice=values.getSlice();
       long inputCount=slice.getLong(COUNT_OFFSET);
+      long inputSamples=slice.getLong(SAMPLES_OFFSET);
       double inputMean=slice.getDouble(MEAN_OFFSET);
       double inputM2=slice.getDouble(M2_OFFSET);
       long currentCount=counts.get(groupId);
@@ -20,6 +22,7 @@
         double delta=inputMean - currentMean;
         double newM2=currentM2 + inputM2 + ((delta * delta) * (currentCount * inputCount)) / newCount;
         counts.set(groupId,newCount);
+        samples.add(groupId,inputSamples);
         means.set(groupId,newMean);
         m2s.set(groupId,newM2);
       }

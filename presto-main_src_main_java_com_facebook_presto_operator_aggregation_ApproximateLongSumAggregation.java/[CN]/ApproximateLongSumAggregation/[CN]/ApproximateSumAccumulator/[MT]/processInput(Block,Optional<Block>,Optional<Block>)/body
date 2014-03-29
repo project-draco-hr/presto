@@ -10,19 +10,11 @@
     checkState(sampleWeights.advanceNextPosition(),"failed to advance weight cursor");
     checkState(values.advanceNextPosition(),"failed to advance values cursor");
     long weight=values.isNull() ? 0 : SimpleAggregationFunction.computeSampleWeight(masks,sampleWeights);
-    if (weight > 0) {
-      samples++;
-    }
     if (!values.isNull() && weight > 0) {
       long value=values.getLong();
-      for (int j=0; j < weight; j++) {
-        count++;
-        sum+=value;
-        if (count > 1) {
-          long t=count * value - sum;
-          variance+=(t * t) / ((double)count * (count - 1));
-        }
-      }
+      count+=weight;
+      sum+=value * weight;
+      calculator.add(value);
     }
   }
 }

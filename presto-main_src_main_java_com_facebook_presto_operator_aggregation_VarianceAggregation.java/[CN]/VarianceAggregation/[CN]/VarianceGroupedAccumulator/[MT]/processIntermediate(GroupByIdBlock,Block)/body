@@ -3,26 +3,17 @@
   means.ensureCapacity(groupIdsBlock.getGroupCount());
   m2s.ensureCapacity(groupIdsBlock.getGroupCount());
   BlockCursor values=valuesBlock.cursor();
+  OnlineVarianceCalculator calculator=new OnlineVarianceCalculator();
   for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
     checkState(values.advanceNextPosition());
     if (!values.isNull()) {
       long groupId=groupIdsBlock.getGroupId(position);
       Slice slice=values.getSlice();
-      long inputCount=getCount(slice);
-      double inputMean=getMean(slice);
-      double inputM2=getM2(slice);
-      long currentCount=counts.get(groupId);
-      double currentMean=means.get(groupId);
-      double currentM2=m2s.get(groupId);
-      if (inputCount > 0) {
-        long newCount=currentCount + inputCount;
-        double newMean=((currentCount * currentMean) + (inputCount * inputMean)) / newCount;
-        double delta=inputMean - currentMean;
-        double newM2=currentM2 + inputM2 + ((delta * delta) * (currentCount * inputCount)) / newCount;
-        counts.set(groupId,newCount);
-        means.set(groupId,newMean);
-        m2s.set(groupId,newM2);
-      }
+      calculator.deserializeFrom(slice,0);
+      calculator.merge(counts.get(groupId),means.get(groupId),m2s.get(groupId));
+      counts.set(groupId,calculator.getCount());
+      means.set(groupId,calculator.getMean());
+      m2s.set(groupId,calculator.getM2());
     }
   }
   checkState(!values.advanceNextPosition());

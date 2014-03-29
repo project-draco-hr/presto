@@ -2,22 +2,20 @@
   counts.ensureCapacity(groupIdsBlock.getGroupCount());
   samples.ensureCapacity(groupIdsBlock.getGroupCount());
   sums.ensureCapacity(groupIdsBlock.getGroupCount());
-  variances.ensureCapacity(groupIdsBlock.getGroupCount());
+  m2s.ensureCapacity(groupIdsBlock.getGroupCount());
+  means.ensureCapacity(groupIdsBlock.getGroupCount());
   BlockCursor intermediates=block.cursor();
+  OnlineVarianceCalculator calculator=new OnlineVarianceCalculator();
   for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
     checkState(intermediates.advanceNextPosition(),"failed to advance intermediates cursor");
     long groupId=groupIdsBlock.getGroupId(position);
     Slice slice=intermediates.getSlice();
-    long inputCount=slice.getLong(COUNT_OFFSET);
-    long count=counts.get(groupId);
-    samples.add(groupId,slice.getLong(SAMPLES_OFFSET));
-    double inputSum=slice.getDouble(SUM_OFFSET);
-    double inputVariance=slice.getDouble(VARIANCE_OFFSET);
-    if (count > 0 && inputCount > 0) {
-      double t=(inputCount / (double)count) * sums.get(groupId) - inputSum;
-      variances.set(groupId,inputVariance + t * t * count / (double)(inputCount * (count + inputCount)));
-    }
-    sums.add(groupId,inputSum);
-    counts.add(groupId,inputCount);
+    sums.add(groupId,slice.getDouble(SUM_OFFSET));
+    counts.add(groupId,slice.getLong(COUNT_OFFSET));
+    calculator.deserializeFrom(slice,VARIANCE_OFFSET);
+    calculator.merge(samples.get(groupId),means.get(groupId),m2s.get(groupId));
+    samples.set(groupId,calculator.getCount());
+    means.set(groupId,calculator.getMean());
+    m2s.set(groupId,calculator.getM2());
   }
 }

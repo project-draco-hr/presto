@@ -1,17 +1,12 @@
 {
   BlockCursor intermediates=block.cursor();
+  OnlineVarianceCalculator calculator=new OnlineVarianceCalculator();
   for (int position=0; position < block.getPositionCount(); position++) {
     checkState(intermediates.advanceNextPosition(),"failed to advance intermediates cursor");
     Slice slice=intermediates.getSlice();
-    long inputCount=slice.getLong(COUNT_OFFSET);
-    samples+=slice.getLong(SAMPLES_OFFSET);
-    long inputSum=slice.getLong(SUM_OFFSET);
-    double inputVariance=slice.getDouble(VARIANCE_OFFSET);
-    if (count > 0 && inputCount > 0) {
-      double t=(inputCount / (double)count) * sum - inputSum;
-      variance=inputVariance + t * t * count / (double)(inputCount * (count + inputCount));
-    }
-    sum+=inputSum;
-    count+=inputCount;
+    sum+=slice.getLong(SUM_OFFSET);
+    count+=slice.getLong(COUNT_OFFSET);
+    calculator.deserializeFrom(slice,VARIANCE_OFFSET);
+    this.calculator.merge(calculator);
   }
 }
