@@ -1,7 +1,33 @@
 {
-  checkCondition(EXPECTED_PATH.matcher(path).matches(),INVALID_FUNCTION_ARGUMENT,"Invalid/unsupported JSON path: '%s'",path);
-  for (  StringReplacer replacer : PATH_STRING_REPLACERS) {
-    path=replacer.replace(path);
+  checkCondition(!isNullOrEmpty(path),INVALID_FUNCTION_ARGUMENT,"Invalid JSON path: '%s'",path);
+  checkCondition(path.charAt(0) == '$',INVALID_FUNCTION_ARGUMENT,"JSON path must start with '$': '%s'",path);
+  if (path.length() == 1) {
+    return ImmutableList.of();
   }
-  return DOT_SPLITTER.split(path);
+  ImmutableList.Builder<Object> tokens=ImmutableList.builder();
+  Matcher matcher=PATH_TOKEN.matcher(path).region(1,path.length());
+  int lastMatchEnd=1;
+  while (matcher.find()) {
+    checkCondition(lastMatchEnd == matcher.start(),INVALID_FUNCTION_ARGUMENT,"Invalid JSON path: '%s'",path);
+    lastMatchEnd=matcher.end();
+    String token=matcher.group(1);
+    if (token == null) {
+      token=matcher.group(2);
+    }
+    if (token == null) {
+      token=matcher.group(3);
+    }
+    if (Character.isDigit(token.charAt(0))) {
+      tokens.add(Integer.parseInt(token));
+    }
+ else {
+      if (token.charAt(0) == '"') {
+        token=token.substring(1,token.length() - 1);
+      }
+      checkCondition(token.indexOf('"') < 0,INVALID_FUNCTION_ARGUMENT,"JSON path token contains a quote: '%s'",path);
+      tokens.add(token);
+    }
+  }
+  checkCondition(lastMatchEnd == path.length(),INVALID_FUNCTION_ARGUMENT,"Invalid JSON path: '%s'",path);
+  return tokens.build();
 }

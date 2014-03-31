@@ -1,5 +1,16 @@
 {
-  Iterator<String> iterator=tokenizePath(path).iterator();
-  checkCondition(iterator.hasNext() && iterator.next().equals("$"),INVALID_FUNCTION_ARGUMENT,"JSON path must begin with root: '$'");
-  return generateExtractor(iterator,rootExtractor);
+  ImmutableList<Object> tokens=tokenizePath(path);
+  JsonExtractor<T> jsonExtractor=rootExtractor;
+  for (  Object token : tokens.reverse()) {
+    if (token instanceof String) {
+      jsonExtractor=new ObjectFieldJsonExtractor<>((String)token,jsonExtractor);
+    }
+ else     if (token instanceof Integer) {
+      jsonExtractor=new ArrayElementJsonExtractor<>((Integer)token,jsonExtractor);
+    }
+ else {
+      throw new IllegalStateException("Unsupported JSON path token type " + token.getClass().getName());
+    }
+  }
+  return jsonExtractor;
 }
