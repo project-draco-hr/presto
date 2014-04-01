@@ -1,5 +1,7 @@
 {
   Iterator<String> iterator=tokenizePath(path).iterator();
-  checkArgument(iterator.hasNext() && iterator.next().equals("$"),"JSON path must begin with root: '$'");
+  if (!(iterator.hasNext() && iterator.next().equals("$"))) {
+    throw new PrestoException(StandardErrorCode.INVALID_FUNCTION_ARGUMENT.toErrorCode(),"JSON path must begin with root: '$'");
+  }
   return generateExtractor(iterator,scalarValue);
 }

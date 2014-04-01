@@ -1,5 +1,7 @@
 {
-  checkArgument(EXPECTED_PATH.matcher(path).matches(),"Invalid/unsupported JSON path: '%s'",path);
+  if (!EXPECTED_PATH.matcher(path).matches()) {
+    throw new PrestoException(StandardErrorCode.INVALID_FUNCTION_ARGUMENT.toErrorCode(),String.format("Invalid/unsupported JSON path: '%s'",path));
+  }
   for (  StringReplacer replacer : PATH_STRING_REPLACERS) {
     path=replacer.replace(path);
   }
