@@ -3,22 +3,7 @@
   checkNotNull(tupleDomain,"tupleDomain is null");
   CassandraTable table=schemaProvider.getTable(cassandraTableHandle);
   List<CassandraColumnHandle> partitionKeys=table.getPartitionKeyColumns();
-  List<Comparable<?>> filterPrefix=new ArrayList<>();
-  for (int i=0; i < partitionKeys.size(); i++) {
-    CassandraColumnHandle columnHandle=partitionKeys.get(i);
-    if (filterPrefix.size() == i && !tupleDomain.isNone()) {
-      Domain domain=tupleDomain.getDomains().get(columnHandle);
-      if (domain != null && domain.getRanges().getRangeCount() == 1) {
-        Range range=Iterables.getOnlyElement(domain.getRanges());
-        if (range.isSingleValue()) {
-          Comparable<?> value=range.getLow().getValue();
-          checkArgument(value instanceof Boolean || value instanceof String || value instanceof Double|| value instanceof Long,"Only Boolean, String, Double and Long partition keys are supported");
-          filterPrefix.add(value);
-        }
-      }
-    }
-  }
-  List<CassandraPartition> allPartitions=schemaProvider.getPartitions(table,filterPrefix);
+  List<CassandraPartition> allPartitions=getCassandraPartitions(table,tupleDomain);
   log.debug("%s.%s #partitions: %d",cassandraTableHandle.getSchemaName(),cassandraTableHandle.getTableName(),allPartitions.size());
   List<ConnectorPartition> partitions=FluentIterable.from(allPartitions).filter(partitionMatches(tupleDomain)).filter(ConnectorPartition.class).toList();
   TupleDomain<ConnectorColumnHandle> remainingTupleDomain=TupleDomain.none();

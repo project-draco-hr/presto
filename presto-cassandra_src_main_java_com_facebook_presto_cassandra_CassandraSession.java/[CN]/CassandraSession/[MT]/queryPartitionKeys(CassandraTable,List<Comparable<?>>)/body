@@ -14,14 +14,21 @@
   Select partitionKeys=CassandraCqlUtils.selectDistinctFrom(tableHandle,partitionKeyColumns);
   partitionKeys.limit(limit);
   partitionKeys.setFetchSize(fetchSizeForPartitionKeySelect);
-  addWhereClause(partitionKeys.where(),partitionKeyColumns,filterPrefix);
-  ResultSetFuture partitionKeyFuture=session.executeAsync(partitionKeys);
   if (!fullPartitionKey) {
+    addWhereClause(partitionKeys.where(),partitionKeyColumns,new ArrayList<Comparable<?>>());
+    ResultSetFuture partitionKeyFuture=session.executeAsync(partitionKeys);
     long count=countFuture.getUninterruptibly().one().getLong(0);
     if (count == limitForPartitionKeySelect) {
       partitionKeyFuture.cancel(true);
       return null;
     }
+ else {
+      return partitionKeyFuture.getUninterruptibly();
+    }
   }
-  return partitionKeyFuture.getUninterruptibly();
+ else {
+    addWhereClause(partitionKeys.where(),partitionKeyColumns,filterPrefix);
+    ResultSetFuture partitionKeyFuture=session.executeAsync(partitionKeys);
+    return partitionKeyFuture.getUninterruptibly();
+  }
 }

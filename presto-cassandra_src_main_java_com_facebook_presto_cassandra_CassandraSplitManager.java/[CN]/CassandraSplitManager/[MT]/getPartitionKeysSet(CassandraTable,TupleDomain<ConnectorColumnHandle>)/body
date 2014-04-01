@@ -1,0 +1,23 @@
+{
+  ImmutableList.Builder<Set<Comparable<?>>> partitionColumnValues=ImmutableList.builder();
+  for (  CassandraColumnHandle columnHandle : table.getPartitionKeyColumns()) {
+    Domain domain=tupleDomain.getDomains().get(columnHandle);
+    if (domain == null) {
+      return ImmutableSet.of();
+    }
+    if (domain.isNullAllowed()) {
+      return ImmutableSet.of();
+    }
+    ImmutableSet.Builder<Comparable<?>> columnValues=ImmutableSet.builder();
+    for (    Range range : domain.getRanges()) {
+      if (!range.isSingleValue()) {
+        return ImmutableSet.of();
+      }
+      Comparable<?> value=range.getSingleValue();
+      checkArgument(value instanceof Boolean || value instanceof String || value instanceof Double|| value instanceof Long,"Only Boolean, String, Double and Long partition keys are supported");
+      columnValues.add(value);
+    }
+    partitionColumnValues.add(columnValues.build());
+  }
+  return Sets.cartesianProduct(partitionColumnValues.build());
+}

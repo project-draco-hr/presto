@@ -1,11 +1,7 @@
 {
-  LoadingCache<PartitionListKey,List<CassandraPartition>> cache;
-  if (filterPrefix.size() == table.getPartitionKeyColumns().size()) {
-    cache=partitionsCacheFull;
-  }
- else {
-    cache=partitionsCache;
-  }
-  PartitionListKey key=new PartitionListKey(table,filterPrefix);
-  return getCacheValue(cache,key,RuntimeException.class);
+  checkNotNull(table,"table is null");
+  checkNotNull(partitionKeys,"partitionKeys is null");
+  checkArgument(partitionKeys.size() == table.getPartitionKeyColumns().size());
+  PartitionListKey key=new PartitionListKey(table,partitionKeys);
+  return getCacheValue(partitionsCacheFull,key,RuntimeException.class);
 }
