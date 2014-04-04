@@ -1,0 +1,8 @@
+{
+  ThreadMXBean mbean=ManagementFactory.getThreadMXBean();
+  ImmutableList.Builder<Info> builder=ImmutableList.builder();
+  for (  ThreadInfo info : mbean.getThreadInfo(mbean.getAllThreadIds(),Integer.MAX_VALUE)) {
+    builder.add(new Info(info.getThreadId(),info.getThreadName(),info.getThreadState().name(),info.getLockOwnerId() == -1 ? null : info.getLockOwnerId(),toStackTrace(info.getStackTrace())));
+  }
+  return Ordering.from(byName()).sortedCopy(builder.build());
+}
