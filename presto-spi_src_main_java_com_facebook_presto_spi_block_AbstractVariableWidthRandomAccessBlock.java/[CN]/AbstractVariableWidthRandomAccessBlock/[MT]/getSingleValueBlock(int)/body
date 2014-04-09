@@ -1,10 +1,10 @@
 {
   checkReadablePosition(position);
   int offset=getPositionOffset(position);
-  if (getRawSlice().getByte(offset) != 0) {
+  if (isEntryAtOffsetNull(offset)) {
     return new VariableWidthRandomAccessBlock(type,1,Slices.wrappedBuffer(new byte[]{1}));
   }
-  int entrySize=type.getLength(getRawSlice(),offset + SIZE_OF_BYTE) + SIZE_OF_BYTE;
+  int entrySize=valueOffset(type.getLength(getRawSlice(),offset + SIZE_OF_BYTE));
   Slice copy=Slices.allocate(entrySize);
   copy.setBytes(0,getRawSlice(),offset,entrySize);
   return new VariableWidthRandomAccessBlock(type,1,copy);

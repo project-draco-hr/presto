@@ -1,7 +1,7 @@
 {
   checkReadablePosition(position);
-  int leftEntryOffset=position * entrySize;
-  boolean leftIsNull=getRawSlice().getByte(leftEntryOffset) != 0;
+  int leftEntryOffset=entryOffset(position);
+  boolean leftIsNull=isEntryAtOffsetNull(leftEntryOffset);
   boolean rightIsNull=rightBlock.isNull(rightPosition);
   if (leftIsNull != rightIsNull) {
     return false;
@@ -9,5 +9,5 @@
   if (leftIsNull) {
     return true;
   }
-  return rightBlock.equals(rightPosition,getRawSlice(),leftEntryOffset + SIZE_OF_BYTE);
+  return rightBlock.equals(rightPosition,getRawSlice(),valueOffset(leftEntryOffset));
 }
