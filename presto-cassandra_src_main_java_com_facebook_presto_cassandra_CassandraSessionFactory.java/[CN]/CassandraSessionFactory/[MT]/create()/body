@@ -2,11 +2,10 @@
   Cluster.Builder clusterBuilder=Cluster.builder();
   clusterBuilder.addContactPoints(contactPoints.toArray(new String[contactPoints.size()]));
   clusterBuilder.withPort(nativeProtocolPort);
+  clusterBuilder.withReconnectionPolicy(new ExponentialReconnectionPolicy(500,10000));
   QueryOptions options=new QueryOptions();
   options.setFetchSize(fetchSize);
   options.setConsistencyLevel(consistencyLevel);
   clusterBuilder.withQueryOptions(options);
-  Cluster cluster=clusterBuilder.build();
-  Session session=cluster.connect();
-  return new CassandraSession(connectorId.toString(),session,fetchSizeForPartitionKeySelect,limitForPartitionKeySelect);
+  return new CassandraSession(connectorId.toString(),clusterBuilder,fetchSizeForPartitionKeySelect,limitForPartitionKeySelect);
 }
