@@ -2,7 +2,7 @@
   DriverContext driverContext=taskContext.addPipelineContext(true,true).addDriverContext();
   OperatorContext operatorContext=driverContext.addOperatorContext(0,ValuesOperator.class.getSimpleName());
   JoinCompiler joinCompiler=new JoinCompiler();
-  JoinHashFactory hashFactory=joinCompiler.compileJoinHash(ImmutableList.of(VARCHAR),Ints.asList(0));
+  LookupSourceFactory lookupSourceFactoryFactory=joinCompiler.compileLookupSourceFactory(ImmutableList.of(VARCHAR),Ints.asList(0));
   List<RandomAccessBlock> channel=ImmutableList.of(BlockAssertions.createStringSequenceBlock(10,20).toRandomAccessBlock(),BlockAssertions.createStringSequenceBlock(20,30).toRandomAccessBlock(),BlockAssertions.createStringSequenceBlock(15,25).toRandomAccessBlock());
   LongArrayList addresses=new LongArrayList();
   for (int blockIndex=0; blockIndex < channel.size(); blockIndex++) {
@@ -11,11 +11,11 @@
       addresses.add(encodeSyntheticAddress(blockIndex,positionIndex));
     }
   }
-  JoinHash hash=hashFactory.createJoinHash(addresses,ImmutableList.of(channel),operatorContext);
+  LookupSource lookupSource=lookupSourceFactoryFactory.createLookupSource(addresses,ImmutableList.of(channel),operatorContext);
   JoinProbeCompiler joinProbeCompiler=new JoinProbeCompiler();
   JoinProbeFactory probeFactory=joinProbeCompiler.internalCompileJoinProbe(1,Ints.asList(0));
   Page page=SequencePageBuilder.createSequencePage(ImmutableList.of(VARCHAR),10,10);
-  JoinProbe joinProbe=probeFactory.createJoinProbe(hash,page);
+  JoinProbe joinProbe=probeFactory.createJoinProbe(lookupSource,page);
   assertEquals(joinProbe.getChannelCount(),1);
   BlockCursor probeCursor=page.getBlock(0).cursor();
   PageBuilder pageBuilder=new PageBuilder(ImmutableList.of(VARCHAR));
@@ -23,7 +23,7 @@
     assertTrue(probeCursor.advanceNextPosition());
     assertTrue(joinProbe.advanceNextPosition());
     joinProbe.appendTo(pageBuilder);
-    assertEquals(joinProbe.getCurrentJoinPosition(),hash.getJoinPosition(probeCursor));
+    assertEquals(joinProbe.getCurrentJoinPosition(),lookupSource.getJoinPosition(probeCursor));
   }
   assertFalse(joinProbe.advanceNextPosition());
   assertBlockEquals(pageBuilder.build().getBlock(0),page.getBlock(0));
