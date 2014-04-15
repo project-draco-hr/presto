@@ -1,0 +1,13 @@
+{
+  HyperLogLog instance=HyperLogLog.newInstance(cursor.getSlice());
+  HyperLogLog previous=estimators.get(groupId);
+  if (previous == null) {
+    estimators.set(groupId,instance);
+    sizeOfValues+=instance.estimatedInMemorySize();
+  }
+ else {
+    sizeOfValues-=previous.estimatedInMemorySize();
+    previous.mergeWith(instance);
+    sizeOfValues+=previous.estimatedInMemorySize();
+  }
+}

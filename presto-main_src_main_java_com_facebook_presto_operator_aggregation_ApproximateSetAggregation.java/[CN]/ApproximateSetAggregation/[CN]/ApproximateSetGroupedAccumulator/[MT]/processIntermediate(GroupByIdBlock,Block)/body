@@ -1,0 +1,22 @@
+{
+  estimators.ensureCapacity(groupIdsBlock.getGroupCount());
+  BlockCursor intermediates=valuesBlock.cursor();
+  for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
+    checkState(intermediates.advanceNextPosition());
+    if (!intermediates.isNull()) {
+      long groupId=groupIdsBlock.getGroupId(position);
+      HyperLogLog input=HyperLogLog.newInstance(intermediates.getSlice());
+      HyperLogLog previous=estimators.get(groupId);
+      if (previous == null) {
+        estimators.set(groupId,input);
+        sizeOfValues+=input.estimatedInMemorySize();
+      }
+ else {
+        sizeOfValues-=previous.estimatedInMemorySize();
+        previous.mergeWith(input);
+        sizeOfValues+=previous.estimatedInMemorySize();
+      }
+    }
+  }
+  checkState(!intermediates.advanceNextPosition());
+}
