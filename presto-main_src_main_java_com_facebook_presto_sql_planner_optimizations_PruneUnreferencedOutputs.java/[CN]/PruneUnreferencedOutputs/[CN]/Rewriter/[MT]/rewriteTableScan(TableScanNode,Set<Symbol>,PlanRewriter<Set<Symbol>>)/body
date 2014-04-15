@@ -2,7 +2,8 @@
   Set<Symbol> requiredTableScanOutputs=FluentIterable.from(expectedOutputs).filter(in(node.getOutputSymbols())).toSet();
   if (requiredTableScanOutputs.isEmpty()) {
     for (    Symbol symbol : node.getOutputSymbols()) {
-      if (Types.isNumeric(types.get(symbol))) {
+      Type type=types.get(symbol);
+      if (type.equals(BIGINT) || type.equals(DOUBLE)) {
         requiredTableScanOutputs=ImmutableSet.of(symbol);
         break;
       }

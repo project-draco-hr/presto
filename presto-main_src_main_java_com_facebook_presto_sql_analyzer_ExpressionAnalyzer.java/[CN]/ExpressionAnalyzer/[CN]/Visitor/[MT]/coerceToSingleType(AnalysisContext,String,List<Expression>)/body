@@ -1,21 +1,16 @@
 {
   Type superType=NULL;
   for (  Expression expression : expressions) {
-    Type type=process(expression,context);
-    if (superType.equals(type) || type.equals(NULL)) {
-      continue;
+    Optional<Type> newSuperType=getCommonSuperType(superType,process(expression,context));
+    if (!newSuperType.isPresent()) {
+      throw new SemanticException(TYPE_MISMATCH,expression,message,superType);
     }
-    if (superType.equals(NULL)) {
-      superType=type;
-    }
- else     if (isNumeric(superType) && isNumeric(type)) {
-      superType=DOUBLE;
-    }
+    superType=newSuperType.get();
   }
   for (  Expression expression : expressions) {
     Type type=process(expression,context);
     if (!type.equals(superType)) {
-      if (!type.equals(NULL) && !(type.equals(BIGINT) && superType.equals(DOUBLE))) {
+      if (!canCoerce(type,superType)) {
         throw new SemanticException(TYPE_MISMATCH,expression,message,superType);
       }
       expressionCoercions.put(expression,superType);
