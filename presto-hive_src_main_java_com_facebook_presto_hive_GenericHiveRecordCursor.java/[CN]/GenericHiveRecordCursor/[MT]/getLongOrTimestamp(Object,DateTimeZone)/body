@@ -1,0 +1,10 @@
+{
+  if (value instanceof Timestamp) {
+    long parsedJvmMillis=((Timestamp)value).getTime();
+    DateTimeZone jvmTimeZone=DateTimeZone.getDefault();
+    long hiveMillis=jvmTimeZone.convertUTCToLocal(parsedJvmMillis);
+    long utcMillis=hiveTimeZone.convertLocalToUTC(hiveMillis,false);
+    return MILLISECONDS.toSeconds(utcMillis);
+  }
+  return ((Number)value).longValue();
+}
