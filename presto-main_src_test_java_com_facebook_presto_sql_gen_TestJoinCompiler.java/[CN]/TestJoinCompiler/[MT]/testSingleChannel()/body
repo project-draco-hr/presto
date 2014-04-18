@@ -8,19 +8,19 @@
     RandomAccessBlock leftBlock=channel.get(leftBlockIndex);
     PageBuilder pageBuilder=new PageBuilder(ImmutableList.of(VARCHAR));
     for (int leftBlockPosition=0; leftBlockPosition < leftBlock.getPositionCount(); leftBlockPosition++) {
-      assertEquals(hashStrategy.hashPosition(leftBlockIndex,leftBlockPosition),leftBlock.hashCode(leftBlockPosition));
+      assertEquals(hashStrategy.hashPosition(leftBlockIndex,leftBlockPosition),leftBlock.hash(leftBlockPosition));
       assertTrue(hashStrategy.positionEqualsPosition(leftBlockIndex,leftBlockPosition,leftBlockIndex,leftBlockPosition));
       for (int rightBlockIndex=0; rightBlockIndex < channel.size(); rightBlockIndex++) {
         RandomAccessBlock rightBlock=channel.get(rightBlockIndex);
         for (int rightBlockPosition=0; rightBlockPosition < rightBlock.getPositionCount(); rightBlockPosition++) {
-          assertEquals(hashStrategy.positionEqualsPosition(leftBlockIndex,leftBlockPosition,rightBlockIndex,rightBlockPosition),leftBlock.equals(leftBlockPosition,rightBlock,rightBlockPosition));
+          assertEquals(hashStrategy.positionEqualsPosition(leftBlockIndex,leftBlockPosition,rightBlockIndex,rightBlockPosition),leftBlock.equalTo(leftBlockPosition,rightBlock,rightBlockPosition));
         }
       }
       for (      RandomAccessBlock rightBlock : channel) {
         BlockCursor rightCursor=rightBlock.cursor();
         BlockCursor[] rightCursors=new BlockCursor[]{rightCursor};
         while (rightCursor.advanceNextPosition()) {
-          assertEquals(hashStrategy.positionEqualsCursors(leftBlockIndex,leftBlockPosition,rightCursors),leftBlock.equals(leftBlockPosition,rightCursor));
+          assertEquals(hashStrategy.positionEqualsCursors(leftBlockIndex,leftBlockPosition,rightCursors),leftBlock.equalTo(leftBlockPosition,rightCursor));
         }
       }
       hashStrategy.appendTo(leftBlockIndex,leftBlockPosition,pageBuilder,0);
