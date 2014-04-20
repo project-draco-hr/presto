@@ -1,0 +1,27 @@
+{
+  List<Object> jdbcValues=new ArrayList<>();
+  for (int field=0; field < prestoRow.getFieldCount(); field++) {
+    Object prestoValue=prestoRow.getField(field);
+    Object jdbcValue;
+    if (prestoValue instanceof SqlDate) {
+      jdbcValue=new Date(((SqlDate)prestoValue).getMillisAtMidnight());
+    }
+ else     if (prestoValue instanceof SqlTime) {
+      jdbcValue=new Time(((SqlTime)prestoValue).getMillisUtc());
+    }
+ else     if (prestoValue instanceof SqlTimeWithTimeZone) {
+      jdbcValue=new Time(((SqlTimeWithTimeZone)prestoValue).getMillisUtc());
+    }
+ else     if (prestoValue instanceof SqlTimestamp) {
+      jdbcValue=new Timestamp(((SqlTimestamp)prestoValue).getMillisUtc());
+    }
+ else     if (prestoValue instanceof SqlTimestampWithTimeZone) {
+      jdbcValue=new Timestamp(((SqlTimestampWithTimeZone)prestoValue).getMillisUtc());
+    }
+ else {
+      jdbcValue=prestoValue;
+    }
+    jdbcValues.add(jdbcValue);
+  }
+  return new MaterializedRow(prestoRow.getPrecision(),jdbcValues);
+}
