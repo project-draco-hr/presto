@@ -1,0 +1,21 @@
+{
+  Locale locale=Locale.JAPANESE;
+  session=new Session("user","test",DEFAULT_CATALOG,DEFAULT_SCHEMA,TIME_ZONE_KEY,locale,null,null);
+  functionAssertions=new FunctionAssertions(session);
+  String dateTimeLiteral="TIMESTAMP '2001-01-09 13:04:05.321'";
+  assertFunction("date_format(" + dateTimeLiteral + ", '%a')","???");
+  assertFunction("date_format(" + dateTimeLiteral + ", '%W')","?????????");
+  assertFunction("date_format(" + dateTimeLiteral + ", '%p')","??????");
+  assertFunction("date_format(" + dateTimeLiteral + ", '%r')","01:04:05 ??????");
+  assertFunction("date_format(" + dateTimeLiteral + ", '%b')","1");
+  assertFunction("date_format(" + dateTimeLiteral + ", '%M')","1???");
+  assertFunction("format_datetime(" + dateTimeLiteral + ", 'EEE')","???");
+  assertFunction("format_datetime(" + dateTimeLiteral + ", 'EEEE')","?????????");
+  assertFunction("format_datetime(" + dateTimeLiteral + ", 'a')","??????");
+  assertFunction("format_datetime(" + dateTimeLiteral + ", 'MMM')","1");
+  assertFunction("format_datetime(" + dateTimeLiteral + ", 'MMMM')","1???");
+  assertFunction("date_parse('2013-05-17 12:35:10 ??????', '%Y-%m-%d %h:%i:%s %p')",toTimestamp(new DateTime(2013,5,17,12,35,10,0,DATE_TIME_ZONE)));
+  assertFunction("date_parse('2013-05-17 12:35:10 ??????', '%Y-%m-%d %h:%i:%s %p')",toTimestamp(new DateTime(2013,5,17,0,35,10,0,DATE_TIME_ZONE)));
+  assertFunction("parse_datetime('2013-05-17 12:35:10 ??????', 'yyyy-MM-dd hh:mm:ss a')",toTimestampWithTimeZone(new DateTime(2013,5,17,12,35,10,0,DATE_TIME_ZONE)));
+  assertFunction("parse_datetime('2013-05-17 12:35:10 ??????', 'yyyy-MM-dd hh:mm:ss aaa')",toTimestampWithTimeZone(new DateTime(2013,5,17,0,35,10,0,DATE_TIME_ZONE)));
+}
