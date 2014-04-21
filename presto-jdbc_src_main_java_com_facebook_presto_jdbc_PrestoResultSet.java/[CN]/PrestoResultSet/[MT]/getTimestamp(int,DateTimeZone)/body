@@ -1,0 +1,24 @@
+{
+  Object value=column(columnIndex);
+  if (value == null) {
+    return null;
+  }
+  ColumnInfo columnInfo=columnInfoList.get(columnIndex - 1);
+  if (columnInfo.getColumnTypeName().equalsIgnoreCase("timestamp")) {
+    try {
+      return new Timestamp(TIMESTAMP_FORMATTER.withZone(localTimeZone).parseMillis(String.valueOf(value)));
+    }
+ catch (    IllegalArgumentException e) {
+      throw new SQLException("Invalid timestamp from server: " + value,e);
+    }
+  }
+  if (columnInfo.getColumnTypeName().equalsIgnoreCase("timestamp with time zone")) {
+    try {
+      return new Timestamp(TIMESTAMP_WITH_TIME_ZONE_FORMATTER.parseMillis(String.valueOf(value)));
+    }
+ catch (    IllegalArgumentException e) {
+      throw new SQLException("Invalid timestamp from server: " + value,e);
+    }
+  }
+  throw new IllegalArgumentException("Expected column to be a timestamp type but is " + columnInfo.getColumnTypeName());
+}
