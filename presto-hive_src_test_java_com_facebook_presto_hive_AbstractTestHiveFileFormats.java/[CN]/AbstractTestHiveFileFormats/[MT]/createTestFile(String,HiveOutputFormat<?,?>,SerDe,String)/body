@@ -21,7 +21,11 @@
     List<StructField> fields=ImmutableList.copyOf(objectInspector.getAllStructFieldRefs());
     for (int rowNumber=0; rowNumber < NUM_ROWS; rowNumber++) {
       for (int i=0; i < TEST_VALUES.size(); i++) {
-        objectInspector.setStructFieldData(row,fields.get(i),TEST_VALUES.get(i).getKey());
+        Object key=TEST_VALUES.get(i).getKey();
+        if (key instanceof Slice) {
+          key=((Slice)key).getBytes();
+        }
+        objectInspector.setStructFieldData(row,fields.get(i),key);
       }
       Writable record=serDe.serialize(row,objectInspector);
       recordWriter.write(record);

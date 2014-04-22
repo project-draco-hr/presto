@@ -20,7 +20,7 @@
   this.booleans=new boolean[size];
   this.longs=new long[size];
   this.doubles=new double[size];
-  this.strings=new byte[size][];
+  this.slices=new Slice[size];
   this.nulls=new boolean[size];
   try {
     StructObjectInspector rowInspector=getTableObjectInspector(splitSchema);
@@ -72,7 +72,7 @@
         doubles[columnIndex]=parseDouble(bytes,0,bytes.length);
       }
  else       if (VARCHAR.equals(type)) {
-        strings[columnIndex]=Arrays.copyOf(bytes,bytes.length);
+        slices[columnIndex]=Slices.wrappedBuffer(bytes);
       }
  else {
         throw new UnsupportedOperationException("Unsupported column type: " + type);

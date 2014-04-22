@@ -6,17 +6,17 @@
     nulls[column]=true;
   }
  else   if (hiveTypes[column] == HiveType.MAP || hiveTypes[column] == HiveType.LIST || hiveTypes[column] == HiveType.STRUCT) {
-    strings[column]=SerDeUtils.getJsonBytes(fieldData,fieldInspectors[column]);
+    slices[column]=Slices.wrappedBuffer(SerDeUtils.getJsonBytes(fieldData,fieldInspectors[column]));
     nulls[column]=false;
   }
  else {
     Object fieldValue=((PrimitiveObjectInspector)fieldInspectors[column]).getPrimitiveJavaObject(fieldData);
     checkState(fieldValue != null,"fieldValue should not be null");
     if (fieldValue instanceof String) {
-      strings[column]=((String)fieldValue).getBytes(Charsets.UTF_8);
+      slices[column]=Slices.utf8Slice((String)fieldValue);
     }
  else     if (fieldValue instanceof byte[]) {
-      strings[column]=(byte[])fieldValue;
+      slices[column]=Slices.wrappedBuffer((byte[])fieldValue);
     }
  else {
       throw new IllegalStateException("unsupported string field type: " + fieldValue.getClass().getName());
