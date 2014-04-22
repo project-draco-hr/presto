@@ -5,16 +5,27 @@
   checkNotNull(partitionKeys,"partitionKeys is null");
   checkNotNull(columns,"columns is null");
   checkArgument(!columns.isEmpty(),"columns is empty");
+  checkNotNull(hiveStorageTimeZone,"hiveStorageTimeZone is null");
+  checkNotNull(sessionTimeZone,"sessionTimeZone is null");
   this.recordReader=recordReader;
   this.totalBytes=totalBytes;
   this.key=recordReader.createKey();
   this.value=recordReader.createValue();
+  this.hiveStorageTimeZone=hiveStorageTimeZone;
+  this.sessionTimeZone=sessionTimeZone;
+  try {
+    this.deserializer=MetaStoreUtils.getDeserializer(null,splitSchema);
+    this.rowInspector=(StructObjectInspector)deserializer.getObjectInspector();
+  }
+ catch (  MetaException|SerDeException|RuntimeException e) {
+    throw Throwables.propagate(e);
+  }
   int size=columns.size();
-  this.names=new String[size];
+  String[] names=new String[size];
   this.types=new Type[size];
   this.hiveTypes=new HiveType[size];
+  this.structFields=new StructField[size];
   this.fieldInspectors=new ObjectInspector[size];
-  this.hiveColumnIndexes=new int[size];
   this.isPartitionColumn=new boolean[size];
   this.loaded=new boolean[size];
   this.booleans=new boolean[size];
@@ -22,22 +33,17 @@
   this.doubles=new double[size];
   this.slices=new Slice[size];
   this.nulls=new boolean[size];
-  try {
-    StructObjectInspector rowInspector=getTableObjectInspector(splitSchema);
-    for (int i=0; i < columns.size(); i++) {
-      HiveColumnHandle column=columns.get(i);
-      names[i]=column.getName();
-      types[i]=column.getType();
-      hiveTypes[i]=column.getHiveType();
-      if (!column.isPartitionKey()) {
-        fieldInspectors[i]=rowInspector.getStructFieldRef(column.getName()).getFieldObjectInspector();
-      }
-      hiveColumnIndexes[i]=column.getHiveColumnIndex();
-      isPartitionColumn[i]=column.isPartitionKey();
+  for (int i=0; i < columns.size(); i++) {
+    HiveColumnHandle column=columns.get(i);
+    names[i]=column.getName();
+    types[i]=column.getType();
+    hiveTypes[i]=column.getHiveType();
+    if (!column.isPartitionKey()) {
+      StructField field=rowInspector.getStructFieldRef(column.getName());
+      structFields[i]=field;
+      fieldInspectors[i]=field.getFieldObjectInspector();
     }
-  }
- catch (  MetaException|SerDeException|RuntimeException e) {
-    throw Throwables.propagate(e);
+    isPartitionColumn[i]=column.isPartitionKey();
   }
   Map<String,HivePartitionKey> partitionKeysByName=uniqueIndex(partitionKeys,HivePartitionKey.nameGetter());
   for (int columnIndex=0; columnIndex < columns.size(); columnIndex++) {
@@ -72,7 +78,7 @@
         doubles[columnIndex]=parseDouble(bytes,0,bytes.length);
       }
  else       if (VARCHAR.equals(type)) {
-        slices[columnIndex]=Slices.wrappedBuffer(bytes);
+        slices[columnIndex]=Slices.wrappedBuffer(Arrays.copyOf(bytes,bytes.length));
       }
  else {
         throw new UnsupportedOperationException("Unsupported column type: " + type);

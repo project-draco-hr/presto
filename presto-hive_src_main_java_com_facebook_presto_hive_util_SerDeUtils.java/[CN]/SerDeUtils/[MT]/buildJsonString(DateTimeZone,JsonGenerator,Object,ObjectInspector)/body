@@ -33,7 +33,7 @@ case STRING:
 generator.writeString(((StringObjectInspector)primitiveObjectInspector).getPrimitiveJavaObject(object));
 break;
 case TIMESTAMP:
-generator.writeNumber(getTimestampMillis(object,(TimestampObjectInspector)objectInspector));
+generator.writeString(formatTimestamp(sessionTimeZone,object,(TimestampObjectInspector)objectInspector));
 break;
 case BINARY:
 generator.writeBinary(((BinaryObjectInspector)objectInspector).getPrimitiveJavaObject(object));
@@ -54,7 +54,7 @@ generator.writeNull();
 generator.writeStartArray();
 ObjectInspector elementInspector=listInspector.getListElementObjectInspector();
 for (Object element : objectList) {
-buildJsonString(generator,element,elementInspector);
+buildJsonString(sessionTimeZone,generator,element,elementInspector);
 }
 generator.writeEndArray();
 }
@@ -73,8 +73,8 @@ ObjectInspector keyInspector=mapInspector.getMapKeyObjectInspector();
 checkState(keyInspector instanceof PrimitiveObjectInspector);
 ObjectInspector valueInspector=mapInspector.getMapValueObjectInspector();
 for (Map.Entry<?,?> entry : objectMap.entrySet()) {
-generator.writeFieldName(getPrimitiveAsString(entry.getKey(),(PrimitiveObjectInspector)keyInspector));
-buildJsonString(generator,entry.getValue(),valueInspector);
+generator.writeFieldName(getPrimitiveAsString(sessionTimeZone,entry.getKey(),(PrimitiveObjectInspector)keyInspector));
+buildJsonString(sessionTimeZone,generator,entry.getValue(),valueInspector);
 }
 generator.writeEndObject();
 }
@@ -89,9 +89,9 @@ generator.writeNull();
 generator.writeStartObject();
 StructObjectInspector structInspector=(StructObjectInspector)objectInspector;
 List<? extends StructField> structFields=structInspector.getAllStructFieldRefs();
-for (int i=0; i < structFields.size(); i++) {
-generator.writeFieldName(structFields.get(i).getFieldName());
-buildJsonString(generator,structInspector.getStructFieldData(object,structFields.get(i)),structFields.get(i).getFieldObjectInspector());
+for (StructField structField : structFields) {
+generator.writeFieldName(structField.getFieldName());
+buildJsonString(sessionTimeZone,generator,structInspector.getStructFieldData(object,structField),structField.getFieldObjectInspector());
 }
 generator.writeEndObject();
 }
@@ -106,7 +106,7 @@ generator.writeNull();
 generator.writeStartObject();
 UnionObjectInspector unionInspector=(UnionObjectInspector)objectInspector;
 generator.writeFieldName(Byte.toString(unionInspector.getTag(object)));
-buildJsonString(generator,unionInspector.getField(object),unionInspector.getObjectInspectors().get(unionInspector.getTag(object)));
+buildJsonString(sessionTimeZone,generator,unionInspector.getField(object),unionInspector.getObjectInspectors().get(unionInspector.getTag(object)));
 generator.writeEndObject();
 }
 break;
