@@ -8,7 +8,7 @@
       long chunkOffset=0;
       while (chunkOffset < blockLocation.getLength()) {
         long chunkLength=Math.min(targetChunkSize,blockLocation.getLength() - chunkOffset);
-        builder.add(new HiveSplit(connectorId,table.getDbName(),table.getTableName(),partitionName,file.getPath().toString(),blockLocation.getOffset() + chunkOffset,chunkLength,schema,partitionKeys,addresses));
+        builder.add(new HiveSplit(connectorId,table.getDbName(),table.getTableName(),partitionName,file.getPath().toString(),blockLocation.getOffset() + chunkOffset,chunkLength,schema,partitionKeys,addresses,session));
         chunkOffset+=chunkLength;
       }
       checkState(chunkOffset == blockLocation.getLength(),"Error splitting blocks");
@@ -19,7 +19,7 @@
     if (blockLocations.length > 0) {
       addresses=toHostAddress(blockLocations[0].getHosts());
     }
-    builder.add(new HiveSplit(connectorId,table.getDbName(),table.getTableName(),partitionName,file.getPath().toString(),start,length,schema,partitionKeys,addresses));
+    builder.add(new HiveSplit(connectorId,table.getDbName(),table.getTableName(),partitionName,file.getPath().toString(),start,length,schema,partitionKeys,addresses,session));
   }
   return builder.build();
 }

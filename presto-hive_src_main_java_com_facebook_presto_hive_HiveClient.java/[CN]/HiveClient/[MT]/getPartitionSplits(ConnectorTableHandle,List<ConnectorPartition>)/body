@@ -1,4 +1,6 @@
 {
+  checkArgument(tableHandle instanceof HiveTableHandle,"tableHandle is not an instance of HiveTableHandle");
+  HiveTableHandle hiveTableHandle=(HiveTableHandle)tableHandle;
   checkNotNull(partitions,"partitions is null");
   ConnectorPartition partition=Iterables.getFirst(partitions,null);
   if (partition == null) {
@@ -18,5 +20,5 @@
  catch (  NoSuchObjectException e) {
     throw new TableNotFoundException(tableName);
   }
-  return new HiveSplitSourceProvider(connectorId,table,partitionNames,hivePartitions,bucket,maxSplitSize,maxOutstandingSplits,maxSplitIteratorThreads,hdfsEnvironment,namenodeStats,directoryLister,executor,maxPartitionBatchSize).get();
+  return new HiveSplitSourceProvider(connectorId,table,partitionNames,hivePartitions,bucket,maxSplitSize,maxOutstandingSplits,maxSplitIteratorThreads,hdfsEnvironment,namenodeStats,directoryLister,executor,maxPartitionBatchSize,hiveTableHandle.getSession()).get();
 }

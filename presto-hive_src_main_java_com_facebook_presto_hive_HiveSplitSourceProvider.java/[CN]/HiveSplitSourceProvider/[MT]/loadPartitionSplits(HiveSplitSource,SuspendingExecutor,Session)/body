@@ -20,7 +20,7 @@
           FileSplit split=((SymlinkTextInputFormat.SymlinkTextInputSplit)rawSplit).getTargetSplit();
           FileSystem targetFilesystem=split.getPath().getFileSystem(configuration);
           FileStatus fileStatus=targetFilesystem.getFileStatus(split.getPath());
-          hiveSplitSource.addToQueue(createHiveSplits(partitionName,fileStatus,targetFilesystem.getFileBlockLocations(fileStatus,split.getStart(),split.getLength()),split.getStart(),split.getLength(),schema,partitionKeys,false));
+          hiveSplitSource.addToQueue(createHiveSplits(partitionName,fileStatus,targetFilesystem.getFileBlockLocations(fileStatus,split.getStart(),split.getLength()),split.getStart(),split.getLength(),schema,partitionKeys,false,session));
         }
         continue;
       }
@@ -30,7 +30,7 @@
           FileStatus file=bucketFile.get();
           BlockLocation[] blockLocations=fs.getFileBlockLocations(file,0,file.getLen());
           boolean splittable=isSplittable(inputFormat,fs,file.getPath());
-          hiveSplitSource.addToQueue(createHiveSplits(partitionName,file,blockLocations,0,file.getLen(),schema,partitionKeys,splittable));
+          hiveSplitSource.addToQueue(createHiveSplits(partitionName,file,blockLocations,0,file.getLen(),schema,partitionKeys,splittable,session));
           continue;
         }
       }
@@ -39,7 +39,7 @@
         @Override public void process(        FileStatus file,        BlockLocation[] blockLocations){
           try {
             boolean splittable=isSplittable(inputFormat,file.getPath().getFileSystem(configuration),file.getPath());
-            hiveSplitSource.addToQueue(createHiveSplits(partitionName,file,blockLocations,0,file.getLen(),schema,partitionKeys,splittable));
+            hiveSplitSource.addToQueue(createHiveSplits(partitionName,file,blockLocations,0,file.getLen(),schema,partitionKeys,splittable,session));
           }
  catch (          IOException e) {
             hiveSplitSource.fail(e);
