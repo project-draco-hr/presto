@@ -1,11 +1,14 @@
 {
   try {
-    Set<QueryId> queryIdsSnapshot=ImmutableSet.copyOf(queryIds);
+    Set<QueryId> queryIdsSnapshot=ImmutableSet.copyOf(queries.keySet());
     Set<QueryId> liveQueries=ImmutableSet.copyOf(transform(queryManager.getAllQueryInfo(),queryIdGetter()));
     Set<QueryId> deadQueries=Sets.difference(queryIdsSnapshot,liveQueries);
-    for (    QueryId deadQuery : deadQueries) {
-      queryIds.remove(deadQuery);
-      log.debug("Removed expired query %s",deadQuery);
+    for (    QueryId deadQueryId : deadQueries) {
+      Query query=queries.remove(deadQueryId);
+      if (query != null) {
+        query.close();
+        log.info("Removed expired query %s",deadQueryId);
+      }
     }
   }
  catch (  Throwable e) {
