@@ -21,12 +21,20 @@
     outputTranslations.copyMappingsFrom(subPlan.getTranslations());
     ImmutableMap.Builder<Symbol,FunctionCall> assignments=ImmutableMap.builder();
     Map<Symbol,Signature> signatures=new HashMap<>();
-    FunctionCall rewritten=(FunctionCall)subPlan.rewrite(windowFunction);
+    Expression rewritten=subPlan.rewrite(windowFunction);
     Symbol newSymbol=symbolAllocator.newSymbol(rewritten,analysis.getType(windowFunction));
-    assignments.put(newSymbol,rewritten);
+    boolean needCoercion=rewritten instanceof Cast;
+    if (rewritten instanceof Cast) {
+      rewritten=((Cast)rewritten).getExpression();
+    }
+    assignments.put(newSymbol,(FunctionCall)rewritten);
     outputTranslations.put(windowFunction,newSymbol);
     signatures.put(newSymbol,analysis.getFunctionInfo(windowFunction).getHandle());
+    List<Symbol> sourceSymbols=subPlan.getRoot().getOutputSymbols();
     subPlan=new PlanBuilder(outputTranslations,new WindowNode(idAllocator.getNextId(),subPlan.getRoot(),partitionBySymbols.build(),orderBySymbols.build(),orderings,assignments.build(),signatures));
+    if (needCoercion) {
+      subPlan=explicitCoercionSymbols(subPlan,sourceSymbols,ImmutableList.of(windowFunction));
+    }
   }
   return subPlan;
 }

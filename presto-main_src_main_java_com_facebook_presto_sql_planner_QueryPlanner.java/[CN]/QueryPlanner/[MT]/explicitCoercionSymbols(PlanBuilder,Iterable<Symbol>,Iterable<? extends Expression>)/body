@@ -1,0 +1,9 @@
+{
+  TranslationMap translations=new TranslationMap(subPlan.getRelationPlan(),analysis);
+  ImmutableMap.Builder<Symbol,Expression> projections=ImmutableMap.builder();
+  projections.putAll(coerce(uncoerced,subPlan,translations));
+  for (  Symbol symbol : alreadyCoerced) {
+    projections.put(symbol,new QualifiedNameReference(symbol.toQualifiedName()));
+  }
+  return new PlanBuilder(translations,new ProjectNode(idAllocator.getNextId(),subPlan.getRoot(),projections.build()));
+}

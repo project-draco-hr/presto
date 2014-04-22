@@ -10,10 +10,15 @@
   ImmutableMap.Builder<Symbol,FunctionCall> aggregationAssignments=ImmutableMap.builder();
   ImmutableMap.Builder<Symbol,Signature> functions=ImmutableMap.builder();
   TranslationMap translations=new TranslationMap(subPlan.getRelationPlan(),analysis);
+  boolean needPostProjectionCoercion=false;
   for (  FunctionCall aggregate : analysis.getAggregates(node)) {
-    FunctionCall rewritten=(FunctionCall)subPlan.rewrite(aggregate);
+    Expression rewritten=subPlan.rewrite(aggregate);
     Symbol newSymbol=symbolAllocator.newSymbol(rewritten,analysis.getType(aggregate));
-    aggregationAssignments.put(newSymbol,rewritten);
+    if (rewritten instanceof Cast) {
+      rewritten=((Cast)rewritten).getExpression();
+      needPostProjectionCoercion=true;
+    }
+    aggregationAssignments.put(newSymbol,(FunctionCall)rewritten);
     translations.put(aggregate,newSymbol);
     functions.put(newSymbol,analysis.getFunctionInfo(aggregate).getHandle());
   }
@@ -53,5 +58,9 @@
   if (analysis.getQuery().getApproximate().isPresent()) {
     confidence=Double.valueOf(analysis.getQuery().getApproximate().get().getConfidence()) / 100.0;
   }
-  return new PlanBuilder(translations,new AggregationNode(idAllocator.getNextId(),subPlan.getRoot(),ImmutableList.copyOf(groupBySymbols),aggregationAssignments.build(),functions.build(),new ImmutableMap.Builder<Symbol,Symbol>().putAll(masks).build(),Optional.<Symbol>absent(),confidence));
+  subPlan=new PlanBuilder(translations,new AggregationNode(idAllocator.getNextId(),subPlan.getRoot(),ImmutableList.copyOf(groupBySymbols),aggregationAssignments.build(),functions.build(),new ImmutableMap.Builder<Symbol,Symbol>().putAll(masks).build(),Optional.<Symbol>absent(),confidence));
+  if (needPostProjectionCoercion) {
+    return explicitCoercionFields(subPlan,analysis.getGroupByExpressions(node),analysis.getAggregates(node));
+  }
+  return subPlan;
 }
