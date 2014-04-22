@@ -5,9 +5,8 @@
         if (partitionId.equals(UNPARTITIONED_ID)) {
           return new HivePartition(tableName);
         }
-        LinkedHashMap<String,String> keys=Warehouse.makeSpecFromName(partitionId);
         ImmutableMap.Builder<ColumnHandle,Comparable<?>> builder=ImmutableMap.builder();
-        for (        Entry<String,String> entry : keys.entrySet()) {
+        for (        Entry<String,String> entry : makeSpecFromName(partitionId).entrySet()) {
           ColumnHandle columnHandle=columnsByName.get(entry.getKey());
           checkArgument(columnHandle != null,"Invalid partition key %s in partition %s",entry.getKey(),partitionId);
           checkArgument(columnHandle instanceof HiveColumnHandle,"columnHandle is not an instance of HiveColumnHandle");
