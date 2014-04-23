@@ -1,38 +1,45 @@
 {
-  if (zoneId.startsWith("Etc/")) {
+  String zoneId=originalZoneId.toLowerCase();
+  if (zoneId.startsWith("etc/")) {
     zoneId=zoneId.substring(4);
   }
-  if (isUtcZoneId(zoneId)) {
-    return "UTC";
+  if (isUtcEquivalentName(zoneId)) {
+    return "utc";
   }
   int length=zoneId.length();
-  if (length > 3 && (zoneId.startsWith("UTC") || zoneId.startsWith("GMT"))) {
+  if (length > 3 && (zoneId.startsWith("utc") || zoneId.startsWith("gmt"))) {
     zoneId=zoneId.substring(3);
+    length=zoneId.length();
   }
-  if (length > 2 && zoneId.startsWith("UT")) {
+ else   if (length > 2 && zoneId.startsWith("ut")) {
     zoneId=zoneId.substring(2);
+    length=zoneId.length();
   }
-  if (length == 2 || length == 3) {
-    char signChar=zoneId.charAt(0);
-    if (signChar != '+' && signChar != '-') {
-      return zoneId;
-    }
-    char hourTens;
-    char hourOnes;
-    if (length == 2) {
-      hourTens='0';
-      hourOnes=zoneId.charAt(1);
-    }
+  if (length == 6 && zoneId.charAt(3) == ':') {
+    return zoneId;
+  }
+  if (length != 2 && length != 3) {
+    return originalZoneId;
+  }
+  char signChar=zoneId.charAt(0);
+  if (signChar != '+' && signChar != '-') {
+    return originalZoneId;
+  }
+  char hourTens;
+  char hourOnes;
+  if (length == 2) {
+    hourTens='0';
+    hourOnes=zoneId.charAt(1);
+  }
  else {
-      hourTens=zoneId.charAt(1);
-      hourOnes=zoneId.charAt(2);
-    }
-    if ((hourTens == '0' || hourTens == '1') && (hourOnes >= '0' || '9' >= hourOnes)) {
-      zoneId="" + signChar + hourTens+ hourOnes+ ":00";
-    }
+    hourTens=zoneId.charAt(1);
+    hourOnes=zoneId.charAt(2);
   }
-  if (zoneId.equals("+00:00") || zoneId.equals("-00:00")) {
-    return "UTC";
+  if (!isDigit(hourTens) || !isDigit(hourOnes)) {
+    return originalZoneId;
   }
-  return zoneId;
+  if (hourTens == '0' && hourOnes == '0') {
+    return "utc";
+  }
+  return "" + signChar + hourTens+ hourOnes+ ":00";
 }
