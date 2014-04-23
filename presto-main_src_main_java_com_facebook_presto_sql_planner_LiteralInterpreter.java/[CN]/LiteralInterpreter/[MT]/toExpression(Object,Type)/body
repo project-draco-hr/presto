@@ -34,29 +34,7 @@
   if (type.equals(BOOLEAN)) {
     return new BooleanLiteral(object.toString());
   }
-  if (type.equals(DateType.DATE)) {
-    return new GenericLiteral("DATE",printDate((Long)object));
-  }
-  if (type.equals(TimeType.TIME)) {
-    return new FunctionCall(new QualifiedName("__to_time__"),ImmutableList.<Expression>of(new LongLiteral(object.toString())));
-  }
-  if (type.equals(TimeWithTimeZoneType.TIME_WITH_TIME_ZONE)) {
-    return new FunctionCall(new QualifiedName("__to_time_with_time_zone__"),ImmutableList.<Expression>of(new LongLiteral(object.toString())));
-  }
-  if (type.equals(TimestampType.TIMESTAMP)) {
-    return new FunctionCall(new QualifiedName("__to_timestamp__"),ImmutableList.<Expression>of(new LongLiteral(object.toString())));
-  }
-  if (type.equals(TimestampWithTimeZoneType.TIMESTAMP_WITH_TIME_ZONE)) {
-    return new FunctionCall(new QualifiedName("__to_timestamp_with_time_zone__"),ImmutableList.<Expression>of(new LongLiteral(object.toString())));
-  }
-  if (type.equals(IntervalDayTimeType.INTERVAL_DAY_TIME)) {
-    return new FunctionCall(new QualifiedName("__to_interval_day_time__"),ImmutableList.<Expression>of(new LongLiteral(object.toString())));
-  }
-  if (type.equals(IntervalYearMonthType.INTERVAL_YEAR_MONTH)) {
-    return new FunctionCall(new QualifiedName("__to_interval_year_month__"),ImmutableList.<Expression>of(new LongLiteral(object.toString())));
-  }
-  if (type.equals(ColorType.COLOR)) {
-    return new FunctionCall(new QualifiedName("__to_color__"),ImmutableList.<Expression>of(new LongLiteral(object.toString())));
-  }
-  throw new UnsupportedOperationException("not yet implemented: " + object.getClass().getName());
+  Signature signature=FunctionRegistry.getMagicLiteralFunctionSignature(type);
+  Expression rawLiteral=toExpression(object,FunctionRegistry.type(type.getJavaType()));
+  return new FunctionCall(new QualifiedName(signature.getName()),ImmutableList.of(rawLiteral));
 }

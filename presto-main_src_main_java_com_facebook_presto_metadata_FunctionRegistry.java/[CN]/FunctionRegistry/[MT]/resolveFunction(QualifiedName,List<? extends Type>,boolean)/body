@@ -25,5 +25,15 @@
     String expected=Joiner.on(", ").join(expectedParameters);
     message=format("Unexpected parameters (%s) for function %s. Expected: %s",parameters,name,expected);
   }
+  if (name.getSuffix().startsWith(MAGIC_LITERAL_FUNCTION_PREFIX)) {
+    String typeName=name.getSuffix().substring(MAGIC_LITERAL_FUNCTION_PREFIX.length());
+    Type type=typeManager.getType(typeName);
+    checkArgument(type != null,"Type %s not registered",typeName);
+    checkArgument(parameterTypes.size() == 1,"Expected one argument to literal function, but got %s",parameterTypes);
+    Type parameterType=parameterTypes.get(0);
+    checkArgument(parameterType.getJavaType() == type.getJavaType(),"Expected type %s to use Java type %s, but Java type is %s",type,parameterType.getJavaType(),type.getJavaType());
+    MethodHandle identity=MethodHandles.identity(parameterTypes.get(0).getJavaType());
+    return new FunctionInfo(new Signature(MAGIC_LITERAL_FUNCTION_PREFIX,type,ImmutableList.copyOf(parameterTypes),false),null,identity,true,new DefaultFunctionBinder(identity,false));
+  }
   throw new PrestoException(StandardErrorCode.FUNCTION_NOT_FOUND.toErrorCode(),message);
 }
