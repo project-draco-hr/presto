@@ -16,22 +16,17 @@
   boolean recordValue=executeFilter(scanProjectOperatorFactory,createRecordSetSplit(),session);
   results.add(recordValue);
   if (!needsBoundValue(filterExpression)) {
-    try {
-      LocalQueryRunner runner=new LocalQueryRunner(session,EXECUTOR);
-      MaterializedResult result=runner.execute("SELECT TRUE FROM dual WHERE " + filter);
-      assertEquals(result.getTypes().size(),1);
-      Boolean queryResult;
-      if (result.getMaterializedRows().isEmpty()) {
-        queryResult=false;
-      }
+    MaterializedResult result=runner.execute("SELECT TRUE FROM dual WHERE " + filter);
+    assertEquals(result.getTypes().size(),1);
+    Boolean queryResult;
+    if (result.getMaterializedRows().isEmpty()) {
+      queryResult=false;
+    }
  else {
-        assertEquals(result.getMaterializedRows().size(),1);
-        queryResult=(Boolean)Iterables.getOnlyElement(result.getMaterializedRows()).getField(0);
-      }
-      results.add(queryResult);
+      assertEquals(result.getMaterializedRows().size(),1);
+      queryResult=(Boolean)Iterables.getOnlyElement(result.getMaterializedRows()).getField(0);
     }
- catch (    SemanticException e) {
-    }
+    results.add(queryResult);
   }
   return results;
 }
