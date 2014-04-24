@@ -14,14 +14,18 @@
   totalBlockedTime.getAndAdd(driverStats.getTotalBlockedTime().roundTo(NANOSECONDS));
   List<OperatorStats> operators=driverStats.getOperatorStats();
   for (  OperatorStats operator : operators) {
-    OperatorStats operatorSummary=operatorSummaries.get(operator.getOperatorId());
-    if (operatorSummary != null) {
-      operatorSummary=operatorSummary.add(operator);
-    }
+    OperatorStats updated;
+    OperatorStats current;
+    do {
+      current=operatorSummaries.get(operator.getOperatorId());
+      if (current != null) {
+        updated=current.add(operator);
+      }
  else {
-      operatorSummary=operator;
+        updated=operator;
+      }
     }
-    operatorSummaries.put(operator.getOperatorId(),operatorSummary);
+ while (!compareAndSet(operatorSummaries,operator.getOperatorId(),current,updated));
   }
   rawInputDataSize.update(driverStats.getRawInputDataSize().toBytes());
   rawInputPositions.update(driverStats.getRawInputPositions());
