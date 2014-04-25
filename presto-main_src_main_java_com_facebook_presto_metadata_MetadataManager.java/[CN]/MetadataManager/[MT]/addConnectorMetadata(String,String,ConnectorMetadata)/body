@@ -1,9 +1,10 @@
 {
+  checkNotNull(connectorId,"connectorId is null");
+  checkNotNull(catalogName,"catalogName is null");
+  checkNotNull(connectorMetadata,"connectorMetadata is null");
+  checkArgument(!connectorsByCatalog.containsKey(catalogName),"Catalog '%s' is already registered",catalogName);
+  checkArgument(!connectorsById.containsKey(connectorId),"Connector '%s' is already registered",connectorId);
   ConnectorMetadataEntry entry=new ConnectorMetadataEntry(connectorId,connectorMetadata);
-synchronized (this) {
-    checkArgument(!connectorsByCatalog.containsKey(catalogName),"Catalog '%s' is already registered",catalogName);
-    checkArgument(!connectorsById.containsKey(connectorId),"Connector '%s' is already registered",connectorId);
-    connectorsByCatalog.put(catalogName,entry);
-    connectorsById.put(connectorId,connectorMetadata);
-  }
+  connectorsById.put(connectorId,connectorMetadata);
+  connectorsByCatalog.put(catalogName,entry);
 }
