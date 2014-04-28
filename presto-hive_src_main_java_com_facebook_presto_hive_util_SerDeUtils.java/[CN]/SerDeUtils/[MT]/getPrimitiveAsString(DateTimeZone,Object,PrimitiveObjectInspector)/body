@@ -2,29 +2,22 @@
   if (object == null) {
     return null;
   }
-switch (objectInspector.getPrimitiveCategory()) {
+switch (inspector.getPrimitiveCategory()) {
 case BOOLEAN:
-    return Boolean.toString(((BooleanObjectInspector)objectInspector).get(object));
 case BYTE:
-  return Byte.toString(((ByteObjectInspector)objectInspector).get(object));
 case SHORT:
-return Short.toString(((ShortObjectInspector)objectInspector).get(object));
 case INT:
-return Integer.toString(((IntObjectInspector)objectInspector).get(object));
 case LONG:
-return Long.toString(((LongObjectInspector)objectInspector).get(object));
 case FLOAT:
-return Float.toString(((FloatObjectInspector)objectInspector).get(object));
 case DOUBLE:
-return Double.toString(((DoubleObjectInspector)objectInspector).get(object));
 case STRING:
-return ((StringObjectInspector)objectInspector).getPrimitiveJavaObject(object);
+    return String.valueOf(inspector.getPrimitiveJavaObject(object));
 case TIMESTAMP:
-return String.valueOf(formatTimestamp(sessionTimeZone,object,(TimestampObjectInspector)objectInspector));
+  return String.valueOf(formatTimestamp(sessionTimeZone,object,(TimestampObjectInspector)inspector));
 case BINARY:
-BytesWritable writable=((BinaryObjectInspector)objectInspector).getPrimitiveWritableObject(object);
+BytesWritable writable=((BinaryObjectInspector)inspector).getPrimitiveWritableObject(object);
 return Base64Variants.getDefaultVariant().encode(Arrays.copyOf(writable.getBytes(),writable.getLength()));
 default :
-throw new RuntimeException("Unknown primitive type: " + objectInspector.getPrimitiveCategory());
+throw new RuntimeException("Unknown primitive type: " + inspector.getPrimitiveCategory());
 }
 }
