@@ -1,8 +1,16 @@
 {
-  int maxPossibleGroupId=nextGroupId + cursors[0].getRemainingPositions() + 1;
-  groupAddress.ensureCapacity(maxPossibleGroupId);
-  if (maxPossibleGroupId > maxFill) {
-    rehash(maxPossibleGroupId);
+  int hashPosition=((int)Murmur3.hash64(hashCursor(cursors))) & mask;
+  int groupId=-1;
+  while (key[hashPosition] != -1) {
+    long address=key[hashPosition];
+    if (positionEqualsCurrentRow(decodeSliceIndex(address),decodePosition(address),cursors)) {
+      groupId=value[hashPosition];
+      break;
+    }
+    hashPosition=(hashPosition + 1) & mask;
   }
-  return putIfAbsentInternal(cursors);
+  if (groupId < 0) {
+    groupId=addNewGroup(hashPosition,cursors);
+  }
+  return groupId;
 }
