@@ -1,8 +1,9 @@
 {
   assertRoundTrip(expression);
-  Expression parsedExpression=FunctionAssertions.createExpression(expression,DUAL_METADATA_MANAGER,SYMBOL_TYPES);
-  IdentityHashMap<Expression,Type> expressionTypes=getExpressionTypes(SESSION,DUAL_METADATA_MANAGER,SYMBOL_TYPES,parsedExpression);
-  ExpressionInterpreter interpreter=expressionOptimizer(parsedExpression,DUAL_METADATA_MANAGER,SESSION,expressionTypes);
+  MetadataManager metadata=new MetadataManager();
+  Expression parsedExpression=FunctionAssertions.createExpression(expression,metadata,SYMBOL_TYPES);
+  IdentityHashMap<Expression,Type> expressionTypes=getExpressionTypes(SESSION,metadata,SYMBOL_TYPES,parsedExpression);
+  ExpressionInterpreter interpreter=expressionOptimizer(parsedExpression,metadata,SESSION,expressionTypes);
   return interpreter.optimize(new SymbolResolver(){
     @Override public Object getValue(    Symbol symbol){
 switch (symbol.getName().toLowerCase()) {
