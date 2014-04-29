@@ -50,6 +50,10 @@ synchronized (HttpPageBufferClient.this) {
       if (Thread.holdsLock(HttpPageBufferClient.this)) {
         log.error("Can not handle callback while holding a lock on this");
       }
+      t=rewriteException(t);
+      if (t instanceof PrestoException) {
+        clientCallback.clientFailed(HttpPageBufferClient.this,t);
+      }
       requestsCompleted.incrementAndGet();
 synchronized (HttpPageBufferClient.this) {
         future=null;

@@ -13,6 +13,9 @@
   assertEquals(callback.getPages().size(),0);
   assertEquals(callback.getCompletedRequests(),1);
   assertEquals(callback.getFinishedBuffers(),0);
+  assertEquals(callback.getFailedBuffers(),1);
+  assertInstanceOf(callback.getFailure(),PageTransportErrorException.class);
+  assertContains(callback.getFailure().getMessage(),"Expected response code to be 200, but was 404 Not Found");
   assertStatus(client,location,"queued",0,1,1,"queued");
   callback.resetStats();
   processor.setResponse(new TestingResponse(HttpStatus.OK,ImmutableListMultimap.of(CONTENT_TYPE,"INVALID_TYPE"),new byte[0]));
@@ -21,6 +24,9 @@
   assertEquals(callback.getPages().size(),0);
   assertEquals(callback.getCompletedRequests(),1);
   assertEquals(callback.getFinishedBuffers(),0);
+  assertEquals(callback.getFailedBuffers(),1);
+  assertInstanceOf(callback.getFailure(),PageTransportErrorException.class);
+  assertContains(callback.getFailure().getMessage(),"Expected application/x-presto-pages response from server but got INVALID_TYPE");
   assertStatus(client,location,"queued",0,2,2,"queued");
   callback.resetStats();
   processor.setResponse(new TestingResponse(HttpStatus.OK,ImmutableListMultimap.of(CONTENT_TYPE,"text/plain"),new byte[0]));
@@ -29,6 +35,9 @@
   assertEquals(callback.getPages().size(),0);
   assertEquals(callback.getCompletedRequests(),1);
   assertEquals(callback.getFinishedBuffers(),0);
+  assertEquals(callback.getFailedBuffers(),1);
+  assertInstanceOf(callback.getFailure(),PageTransportErrorException.class);
+  assertContains(callback.getFailure().getMessage(),"Expected application/x-presto-pages response from server but got text/plain");
   assertStatus(client,location,"queued",0,3,3,"queued");
   client.close();
   assertStatus(client,location,"closed",0,3,3,"queued");

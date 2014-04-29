@@ -1,32 +1,22 @@
 {
-  String tokenHeader=response.getHeader(PRESTO_PAGE_TOKEN);
-  if (tokenHeader == null) {
-    throw new IllegalStateException("Expected " + PRESTO_PAGE_TOKEN + " header");
-  }
-  long token=Long.parseLong(tokenHeader);
-  String nextTokenHeader=response.getHeader(PRESTO_PAGE_NEXT_TOKEN);
-  if (nextTokenHeader == null) {
-    throw new IllegalStateException("Expected " + PRESTO_PAGE_NEXT_TOKEN + " header");
-  }
-  long nextToken=Long.parseLong(nextTokenHeader);
   if (response.getStatusCode() == HttpStatus.GONE.code()) {
-    return PagesResponse.createClosedResponse(token,nextToken);
+    return createClosedResponse(getToken(response));
   }
   if (response.getStatusCode() == HttpStatus.NO_CONTENT.code()) {
-    return PagesResponse.createEmptyPagesResponse(token,nextToken);
+    return createEmptyPagesResponse(getToken(response),getNextToken(response));
   }
   if (response.getStatusCode() != HttpStatus.OK.code()) {
-    log.debug("Expected response code to be 200, but was %s: request=%s, response=%s",response.getStatusCode(),request,response);
-    return PagesResponse.createEmptyPagesResponse(token,nextToken);
+    throw new PageTransportErrorException(format("Expected response code to be 200, but was %s %s: %s",response.getStatusCode(),response.getStatusMessage(),request.getUri()));
   }
   String contentType=response.getHeader(CONTENT_TYPE);
-  if (contentType == null || !MediaType.parse(contentType).is(PRESTO_PAGES_TYPE)) {
-    log.debug("Expected %s response from server but got %s: uri=%s, response=%s",PRESTO_PAGES_TYPE,contentType,request.getUri(),response);
-    return PagesResponse.createEmptyPagesResponse(token,nextToken);
+  if ((contentType == null) || !mediaTypeMatches(contentType,PRESTO_PAGES_TYPE)) {
+    throw new PageTransportErrorException(format("Expected %s response from server but got %s: %s",PRESTO_PAGES_TYPE,contentType,request.getUri()));
   }
-  try {
-    InputStreamSliceInput sliceInput=new InputStreamSliceInput(response.getInputStream());
-    return PagesResponse.createPagesResponse(token,nextToken,ImmutableList.copyOf(PagesSerde.readPages(blockEncodingSerde,sliceInput)));
+  long token=getToken(response);
+  long nextToken=getNextToken(response);
+  try (SliceInput input=new InputStreamSliceInput(response.getInputStream())){
+    List<Page> pages=ImmutableList.copyOf(readPages(blockEncodingSerde,input));
+    return createPagesResponse(token,nextToken,pages);
   }
  catch (  IOException e) {
     throw Throwables.propagate(e);
