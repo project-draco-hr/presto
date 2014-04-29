@@ -6,7 +6,11 @@
   if (timeZoneId == null) {
     timeZoneId=TimeZone.getDefault().getID();
   }
-  ClientSession session=new ClientSession(serverUri(),user,source,catalog,schema,timeZoneId,requestContext.getLocale(),false);
+  Locale locale=Locale.getDefault();
+  if (language != null) {
+    locale=Locale.forLanguageTag(language);
+  }
+  ClientSession session=new ClientSession(serverUri(),user,source,catalog,schema,timeZoneId,locale,false);
   StatementClient client=new StatementClient(httpClient,queryResultsCodec,session,query);
   List<Column> columns=getColumns(client);
   Iterator<List<Object>> iterator=flatten(new ResultsPageIterator(client));

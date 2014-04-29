@@ -6,10 +6,14 @@
   if (timeZoneId == null) {
     timeZoneId=TimeZone.getDefault().getID();
   }
+  Locale locale=Locale.getDefault();
+  if (language != null) {
+    locale=Locale.forLanguageTag(language);
+  }
   String remoteUserAddress=requestContext.getRemoteAddr();
   Session session;
   try {
-    session=new Session(user,source,catalog,schema,TimeZoneKey.getTimeZoneKey(timeZoneId),requestContext.getLocale(),remoteUserAddress,userAgent);
+    session=new Session(user,source,catalog,schema,TimeZoneKey.getTimeZoneKey(timeZoneId),locale,remoteUserAddress,userAgent);
   }
  catch (  TimeZoneNotSupportedException e) {
     return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
