@@ -4,13 +4,8 @@
   }
   List<String> bucketColumns=table.getSd().getBucketCols();
   Map<String,ObjectInspector> objectInspectors=new HashMap<>();
-  try {
-    for (    StructField field : getTableStructFields(table)) {
-      objectInspectors.put(field.getFieldName(),field.getFieldObjectInspector());
-    }
-  }
- catch (  MetaException|SerDeException e) {
-    throw Throwables.propagate(e);
+  for (  StructField field : getTableStructFields(table)) {
+    objectInspectors.put(field.getFieldName(),field.getFieldObjectInspector());
   }
   for (  String column : bucketColumns) {
     ObjectInspector inspector=objectInspectors.get(column);

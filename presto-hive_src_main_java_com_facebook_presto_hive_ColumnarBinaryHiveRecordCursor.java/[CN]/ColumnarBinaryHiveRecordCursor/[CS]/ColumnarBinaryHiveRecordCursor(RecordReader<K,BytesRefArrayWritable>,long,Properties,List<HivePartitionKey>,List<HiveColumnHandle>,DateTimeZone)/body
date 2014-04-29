@@ -24,22 +24,17 @@
   this.doubles=new double[size];
   this.slices=new Slice[size];
   this.nulls=new boolean[size];
-  try {
-    StructObjectInspector rowInspector=getTableObjectInspector(splitSchema);
-    for (int i=0; i < columns.size(); i++) {
-      HiveColumnHandle column=columns.get(i);
-      names[i]=column.getName();
-      types[i]=column.getType();
-      hiveTypes[i]=column.getHiveType();
-      if (!column.isPartitionKey()) {
-        fieldInspectors[i]=rowInspector.getStructFieldRef(column.getName()).getFieldObjectInspector();
-      }
-      hiveColumnIndexes[i]=column.getHiveColumnIndex();
-      isPartitionColumn[i]=column.isPartitionKey();
+  StructObjectInspector rowInspector=getTableObjectInspector(splitSchema);
+  for (int i=0; i < columns.size(); i++) {
+    HiveColumnHandle column=columns.get(i);
+    names[i]=column.getName();
+    types[i]=column.getType();
+    hiveTypes[i]=column.getHiveType();
+    if (!column.isPartitionKey()) {
+      fieldInspectors[i]=rowInspector.getStructFieldRef(column.getName()).getFieldObjectInspector();
     }
-  }
- catch (  MetaException|SerDeException|RuntimeException e) {
-    throw Throwables.propagate(e);
+    hiveColumnIndexes[i]=column.getHiveColumnIndex();
+    isPartitionColumn[i]=column.isPartitionKey();
   }
   Map<String,HivePartitionKey> partitionKeysByName=uniqueIndex(partitionKeys,HivePartitionKey.nameGetter());
   for (int columnIndex=0; columnIndex < columns.size(); columnIndex++) {
