@@ -11,13 +11,7 @@
     locale=Locale.forLanguageTag(language);
   }
   String remoteUserAddress=requestContext.getRemoteAddr();
-  Session session;
-  try {
-    session=new Session(user,source,catalog,schema,TimeZoneKey.getTimeZoneKey(timeZoneId),locale,remoteUserAddress,userAgent);
-  }
- catch (  TimeZoneNotSupportedException e) {
-    return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-  }
+  Session session=new Session(user,source,catalog,schema,getTimeZoneKey(timeZoneId),locale,remoteUserAddress,userAgent);
   ExchangeClient exchangeClient=exchangeClientSupplier.get();
   Query query=new Query(session,statement,queryManager,exchangeClient);
   queries.put(query.getQueryId(),query);
