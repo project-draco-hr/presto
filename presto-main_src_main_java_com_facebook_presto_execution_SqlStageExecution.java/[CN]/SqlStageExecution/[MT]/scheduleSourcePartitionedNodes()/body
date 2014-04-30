@@ -1,13 +1,13 @@
 {
   AtomicInteger nextTaskId=new AtomicInteger(0);
-  long getSplitStart=System.nanoTime();
   SplitSource splitSource=this.dataSource.get();
   while (!splitSource.isFinished()) {
-    getSplitDistribution.add(System.nanoTime() - getSplitStart);
     if (getState().isDone()) {
       break;
     }
+    long start=System.nanoTime();
     Set<Split> pendingSplits=ImmutableSet.copyOf(splitSource.getNextBatch(splitBatchSize));
+    getSplitDistribution.add(System.nanoTime() - start);
     while (!pendingSplits.isEmpty() && !getState().isDone()) {
       Multimap<Node,Split> splitAssignment=nodeSelector.computeAssignments(pendingSplits);
       pendingSplits=ImmutableSet.copyOf(Sets.difference(pendingSplits,ImmutableSet.copyOf(splitAssignment.values())));
