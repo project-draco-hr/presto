@@ -1,7 +1,7 @@
 {
   DataSize maxResponseSize=new DataSize(10,Unit.MEGABYTE);
   MockExchangeRequestProcessor processor=new MockExchangeRequestProcessor(maxResponseSize);
-  ExchangeClient exchangeClient=new ExchangeClient(createTestingBlockEncodingManager(),new DataSize(32,Unit.MEGABYTE),maxResponseSize,1,new Duration(1,TimeUnit.MINUTES),new TestingHttpClient(processor,newCachedThreadPool(daemonThreadsNamed("test-%s"))),executor);
+  @SuppressWarnings("resource") ExchangeClient exchangeClient=new ExchangeClient(createTestingBlockEncodingManager(),new DataSize(32,Unit.MEGABYTE),maxResponseSize,1,new Duration(1,TimeUnit.MINUTES),new TestingHttpClient(processor,newCachedThreadPool(daemonThreadsNamed("test-%s"))),executor);
   URI location1=URI.create("http://localhost:8081/foo");
   processor.addPage(location1,createPage(1));
   processor.addPage(location1,createPage(2));
@@ -33,6 +33,6 @@
   exchangeClient.noMoreLocations();
   assertEquals(exchangeClient.isClosed(),true);
   ImmutableMap<URI,PageBufferClientStatus> statuses=uniqueIndex(exchangeClient.getStatus().getPageBufferClientStatuses(),uriGetter());
-  assertStatus(statuses.get(location1),location1,"closed",3,2,2,"queued");
-  assertStatus(statuses.get(location2),location2,"closed",3,2,2,"queued");
+  assertStatus(statuses.get(location1),location1,"closed",3,2,2,"not scheduled");
+  assertStatus(statuses.get(location2),location2,"closed",3,2,2,"not scheduled");
 }

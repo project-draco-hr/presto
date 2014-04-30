@@ -1,7 +1,7 @@
 {
   DataSize maxResponseSize=new DataSize(1,Unit.BYTE);
   MockExchangeRequestProcessor processor=new MockExchangeRequestProcessor(maxResponseSize);
-  ExchangeClient exchangeClient=new ExchangeClient(createTestingBlockEncodingManager(),new DataSize(1,Unit.BYTE),maxResponseSize,1,new Duration(1,TimeUnit.MINUTES),new TestingHttpClient(processor,newCachedThreadPool(daemonThreadsNamed("test-%s"))),executor);
+  @SuppressWarnings("resource") ExchangeClient exchangeClient=new ExchangeClient(createTestingBlockEncodingManager(),new DataSize(1,Unit.BYTE),maxResponseSize,1,new Duration(1,TimeUnit.MINUTES),new TestingHttpClient(processor,newCachedThreadPool(daemonThreadsNamed("test-%s"))),executor);
   URI location=URI.create("http://localhost:8080");
   exchangeClient.addLocation(location);
   exchangeClient.noMoreLocations();
@@ -19,14 +19,14 @@
  while (exchangeClient.getStatus().getBufferedPages() == 0);
   assertEquals(exchangeClient.getStatus().getBufferedPages(),1);
   assertTrue(exchangeClient.getStatus().getBufferedBytes() > 0);
-  assertStatus(exchangeClient.getStatus().getPageBufferClientStatuses().get(0),location,"queued",1,1,1,"queued");
+  assertStatus(exchangeClient.getStatus().getPageBufferClientStatuses().get(0),location,"queued",1,1,1,"not scheduled");
   assertPageEquals(exchangeClient.getNextPage(new Duration(0,TimeUnit.SECONDS)),createPage(1));
   do {
     assertLessThan(Duration.nanosSince(start),new Duration(5,TimeUnit.SECONDS));
     sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
   }
  while (exchangeClient.getStatus().getBufferedPages() == 0);
-  assertStatus(exchangeClient.getStatus().getPageBufferClientStatuses().get(0),location,"queued",2,2,2,"queued");
+  assertStatus(exchangeClient.getStatus().getPageBufferClientStatuses().get(0),location,"queued",2,2,2,"not scheduled");
   assertEquals(exchangeClient.getStatus().getBufferedPages(),1);
   assertTrue(exchangeClient.getStatus().getBufferedBytes() > 0);
   assertPageEquals(exchangeClient.getNextPage(new Duration(0,TimeUnit.SECONDS)),createPage(2));
@@ -35,7 +35,7 @@
     sleepUninterruptibly(100,TimeUnit.MILLISECONDS);
   }
  while (exchangeClient.getStatus().getBufferedPages() == 0);
-  assertStatus(exchangeClient.getStatus().getPageBufferClientStatuses().get(0),location,"queued",3,3,3,"queued");
+  assertStatus(exchangeClient.getStatus().getPageBufferClientStatuses().get(0),location,"queued",3,3,3,"not scheduled");
   assertEquals(exchangeClient.getStatus().getBufferedPages(),1);
   assertTrue(exchangeClient.getStatus().getBufferedBytes() > 0);
   assertPageEquals(exchangeClient.getNextPage(new Duration(1,TimeUnit.SECONDS)),createPage(3));
@@ -43,5 +43,5 @@
   assertEquals(exchangeClient.getStatus().getBufferedPages(),0);
   assertTrue(exchangeClient.getStatus().getBufferedBytes() == 0);
   assertEquals(exchangeClient.isClosed(),true);
-  assertStatus(exchangeClient.getStatus().getPageBufferClientStatuses().get(0),location,"closed",3,4,4,"queued");
+  assertStatus(exchangeClient.getStatus().getPageBufferClientStatuses().get(0),location,"closed",3,4,4,"not scheduled");
 }

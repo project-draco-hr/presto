@@ -6,7 +6,7 @@
   processor.addPage(location,createPage(2));
   processor.addPage(location,createPage(3));
   processor.setComplete(location);
-  ExchangeClient exchangeClient=new ExchangeClient(createTestingBlockEncodingManager(),new DataSize(32,Unit.MEGABYTE),maxResponseSize,1,new Duration(1,TimeUnit.MINUTES),new TestingHttpClient(processor,executor),executor);
+  @SuppressWarnings("resource") ExchangeClient exchangeClient=new ExchangeClient(createTestingBlockEncodingManager(),new DataSize(32,Unit.MEGABYTE),maxResponseSize,1,new Duration(1,TimeUnit.MINUTES),new TestingHttpClient(processor,executor),executor);
   exchangeClient.addLocation(location);
   exchangeClient.noMoreLocations();
   assertEquals(exchangeClient.isClosed(),false);
@@ -21,5 +21,5 @@
     assertEquals(exchangeClient.getStatus().getBufferedPages(),0);
   }
   assertTrue(exchangeClient.getStatus().getBufferedBytes() == 0);
-  assertStatus(exchangeClient.getStatus().getPageBufferClientStatuses().get(0),location,"closed",3,2,2,"queued");
+  assertStatus(exchangeClient.getStatus().getPageBufferClientStatuses().get(0),location,"closed",3,2,2,"not scheduled");
 }
