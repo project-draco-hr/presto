@@ -10,8 +10,7 @@
       if (Thread.holdsLock(HttpPageBufferClient.this)) {
         log.error("Can not handle callback while holding a lock on this");
       }
-      errorStopwatch.reset();
-      errorDelayMillis=0;
+      resetErrors();
       requestsCompleted.incrementAndGet();
       List<Page> pages;
 synchronized (HttpPageBufferClient.this) {
@@ -52,15 +51,12 @@ synchronized (HttpPageBufferClient.this) {
       if (t instanceof PrestoException) {
         clientCallback.clientFailed(HttpPageBufferClient.this,t);
       }
-      Duration errorDuration=elapsedDuration(errorStopwatch);
+      Duration errorDuration=elapsedErrorDuration();
       if (errorDuration.compareTo(minErrorDuration) > 0) {
         String message=format("Requests to %s failed for %s",uri,errorDuration);
         clientCallback.clientFailed(HttpPageBufferClient.this,new PageTransportTimeoutException(message,t));
       }
-      if (!errorStopwatch.isRunning()) {
-        errorStopwatch.start();
-      }
-      errorDelayMillis=min(max(errorDelayMillis * 2,INITIAL_DELAY_MILLIS),MAX_DELAY_MILLIS);
+      increaseErrorDelay();
       requestsFailed.incrementAndGet();
       requestsCompleted.incrementAndGet();
 synchronized (HttpPageBufferClient.this) {
