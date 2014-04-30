@@ -1,7 +1,13 @@
 {
   Multimap<Node,Split> assignment=HashMultimap.create();
   for (  Split split : splits) {
-    List<Node> candidateNodes=selectCandidateNodes(nodeMap.get().get(),split);
+    List<Node> candidateNodes;
+    if (locationAwareScheduling) {
+      candidateNodes=selectCandidateNodes(nodeMap.get().get(),split);
+    }
+ else {
+      candidateNodes=selectRandomNodes(minCandidates);
+    }
     checkState(!candidateNodes.isEmpty(),"No nodes available to run query");
     Node chosen=null;
     int min=Integer.MAX_VALUE;
