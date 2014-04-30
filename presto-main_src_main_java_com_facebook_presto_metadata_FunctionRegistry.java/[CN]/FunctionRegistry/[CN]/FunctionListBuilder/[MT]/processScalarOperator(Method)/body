@@ -6,14 +6,18 @@
   checkValidMethod(method);
   MethodHandle methodHandle=lookup().unreflect(method);
   OperatorType operatorType=scalarOperator.value();
+  List<Type> parameterTypes=parameterTypes(method);
   Type returnType;
   if (operatorType == OperatorType.HASH_CODE) {
     returnType=BIGINT;
   }
  else {
-    returnType=type(method.getAnnotation(SqlType.class),method.getReturnType());
+    SqlType explicitType=method.getAnnotation(SqlType.class);
+    checkArgument(explicitType != null,"Method %s return type does not have a @SqlType annotation",method);
+    returnType=type(explicitType);
+    verifyMethodSignature(method,returnType,parameterTypes);
   }
   FunctionBinder functionBinder=createFunctionBinder(method,scalarOperator.functionBinder());
-  operator(operatorType,returnType,parameterTypes(method),methodHandle,functionBinder);
+  operator(operatorType,returnType,parameterTypes,methodHandle,functionBinder);
   return true;
 }
