@@ -1,8 +1,8 @@
 {
-  checkNotNull(query,"query is null");
-  checkArgument(!query.isEmpty(),"query is empty");
-  checkNotNull(catalog,"catalog is null");
-  checkNotNull(schema,"schema is null");
+  assertRequest(!isNullOrEmpty(statement),"SQL statement is empty");
+  assertRequest(!isNullOrEmpty(user),"User (%s) is empty",PRESTO_USER);
+  assertRequest(!isNullOrEmpty(catalog),"Catalog (%s) is empty",PRESTO_CATALOG);
+  assertRequest(!isNullOrEmpty(schema),"Schema (%s) is empty",PRESTO_SCHEMA);
   if (timeZoneId == null) {
     timeZoneId=TimeZone.getDefault().getID();
   }
@@ -11,14 +11,8 @@
     locale=Locale.forLanguageTag(language);
   }
   String remoteUserAddress=requestContext.getRemoteAddr();
-  Session session;
-  try {
-    session=new Session(user,source,catalog,schema,TimeZoneKey.getTimeZoneKey(timeZoneId),locale,remoteUserAddress,userAgent);
-  }
- catch (  TimeZoneNotSupportedException e) {
-    return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-  }
-  QueryInfo queryInfo=queryManager.createQuery(session,query);
+  Session session=new Session(user,source,catalog,schema,getTimeZoneKey(timeZoneId),locale,remoteUserAddress,userAgent);
+  QueryInfo queryInfo=queryManager.createQuery(session,statement);
   URI pagesUri=uriBuilderFrom(uriInfo.getRequestUri()).appendPath(queryInfo.getQueryId().toString()).build();
   return Response.created(pagesUri).entity(queryInfo).build();
 }
