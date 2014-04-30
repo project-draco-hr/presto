@@ -1,12 +1,13 @@
 {
   try {
-    ExpressionInterpreter.expressionOptimizer(expression,metadata,session,analysis.getTypes()).optimize(new SymbolResolver(){
+    Expression canonicalized=CanonicalizeExpressions.canonicalizeExpression(expression);
+    ExpressionInterpreter.expressionOptimizer(canonicalized,metadata,session,analysis.getTypes()).optimize(new SymbolResolver(){
       @Override public Object getValue(      Symbol symbol){
         throw new SemanticException(EXPRESSION_NOT_CONSTANT,expression,"Constant expression cannot contain column references");
       }
     }
 );
-    Object result=ExpressionInterpreter.expressionInterpreter(expression,metadata,session,analysis.getTypes()).evaluate(new BlockCursor[0]);
+    Object result=ExpressionInterpreter.expressionInterpreter(canonicalized,metadata,session,analysis.getTypes()).evaluate(new BlockCursor[0]);
     checkState(!(result instanceof Expression),"Expression interpreter returned an unresolved expression");
     return LiteralInterpreter.toExpression(result,analysis.getType(expression));
   }
