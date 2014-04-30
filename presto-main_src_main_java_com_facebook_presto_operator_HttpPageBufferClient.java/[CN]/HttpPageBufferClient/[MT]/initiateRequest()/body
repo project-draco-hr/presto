@@ -1,0 +1,75 @@
+{
+  scheduled=false;
+  if (closed || (future != null)) {
+    return;
+  }
+  final URI uri=HttpUriBuilder.uriBuilderFrom(location).appendPath(String.valueOf(token)).build();
+  future=httpClient.executeAsync(prepareGet().setHeader(PRESTO_MAX_SIZE,maxResponseSize.toString()).setUri(uri).build(),new PageResponseHandler(blockEncodingSerde));
+  Futures.addCallback(future,new FutureCallback<PagesResponse>(){
+    @Override public void onSuccess(    PagesResponse result){
+      if (Thread.holdsLock(HttpPageBufferClient.this)) {
+        log.error("Can not handle callback while holding a lock on this");
+      }
+      errorStopwatch.reset();
+      errorDelayMillis=0;
+      requestsCompleted.incrementAndGet();
+      List<Page> pages;
+synchronized (HttpPageBufferClient.this) {
+        if (result.getToken() == token) {
+          pages=result.getPages();
+          token=result.getNextToken();
+        }
+ else {
+          pages=ImmutableList.of();
+        }
+      }
+      for (      Page page : pages) {
+        pagesReceived.incrementAndGet();
+        clientCallback.addPage(HttpPageBufferClient.this,page);
+      }
+      if (result.isClientClosed()) {
+synchronized (HttpPageBufferClient.this) {
+          closed=true;
+          future=null;
+          lastUpdate=DateTime.now();
+        }
+        clientCallback.clientFinished(HttpPageBufferClient.this);
+      }
+ else {
+synchronized (HttpPageBufferClient.this) {
+          future=null;
+          lastUpdate=DateTime.now();
+        }
+        clientCallback.requestComplete(HttpPageBufferClient.this);
+      }
+    }
+    @Override public void onFailure(    Throwable t){
+      log.debug("Request to %s failed %s",uri,t);
+      if (Thread.holdsLock(HttpPageBufferClient.this)) {
+        log.error("Can not handle callback while holding a lock on this");
+      }
+      t=rewriteException(t);
+      if (t instanceof PrestoException) {
+        clientCallback.clientFailed(HttpPageBufferClient.this,t);
+      }
+      Duration errorDuration=elapsedDuration(errorStopwatch);
+      if (errorDuration.compareTo(minErrorDuration) > 0) {
+        String message=format("Requests to %s failed for %s",uri,errorDuration);
+        clientCallback.clientFailed(HttpPageBufferClient.this,new PageTransportTimeoutException(message,t));
+      }
+      if (!errorStopwatch.isRunning()) {
+        errorStopwatch.start();
+      }
+      errorDelayMillis=min(max(errorDelayMillis * 2,INITIAL_DELAY_MILLIS),MAX_DELAY_MILLIS);
+      requestsFailed.incrementAndGet();
+      requestsCompleted.incrementAndGet();
+synchronized (HttpPageBufferClient.this) {
+        future=null;
+        lastUpdate=DateTime.now();
+      }
+      clientCallback.requestComplete(HttpPageBufferClient.this);
+    }
+  }
+,executor);
+  lastUpdate=DateTime.now();
+}
