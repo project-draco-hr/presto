@@ -6,7 +6,7 @@
   TestingClientCallback callback=new TestingClientCallback(requestComplete);
   URI location=URI.create("http://localhost:8080");
   HttpPageBufferClient client=new HttpPageBufferClient(new TestingHttpClient(processor,executor),expectedMaxSize,new Duration(1,TimeUnit.MINUTES),location,callback,createTestingBlockEncodingManager(),executor,Stopwatch.createUnstarted());
-  assertStatus(client,location,"queued",0,0,0,0,"queued");
+  assertStatus(client,location,"queued",0,0,0,0,"not scheduled");
   processor.addPage(location,expectedPage);
   callback.resetStats();
   client.scheduleRequest();
@@ -15,14 +15,14 @@
   assertPageEquals(expectedPage,callback.getPages().get(0));
   assertEquals(callback.getCompletedRequests(),1);
   assertEquals(callback.getFinishedBuffers(),0);
-  assertStatus(client,location,"queued",1,1,1,0,"queued");
+  assertStatus(client,location,"queued",1,1,1,0,"not scheduled");
   callback.resetStats();
   client.scheduleRequest();
   requestComplete.await(1,TimeUnit.SECONDS);
   assertEquals(callback.getPages().size(),0);
   assertEquals(callback.getCompletedRequests(),1);
   assertEquals(callback.getFinishedBuffers(),0);
-  assertStatus(client,location,"queued",1,2,2,0,"queued");
+  assertStatus(client,location,"queued",1,2,2,0,"not scheduled");
   processor.addPage(location,expectedPage);
   processor.addPage(location,expectedPage);
   callback.resetStats();
@@ -35,7 +35,7 @@
   assertEquals(callback.getFinishedBuffers(),0);
   assertEquals(callback.getFailedBuffers(),0);
   callback.resetStats();
-  assertStatus(client,location,"queued",3,3,3,0,"queued");
+  assertStatus(client,location,"queued",3,3,3,0,"not scheduled");
   callback.resetStats();
   processor.setComplete(location);
   client.scheduleRequest();
@@ -44,5 +44,5 @@
   assertEquals(callback.getCompletedRequests(),0);
   assertEquals(callback.getFinishedBuffers(),1);
   assertEquals(callback.getFailedBuffers(),0);
-  assertStatus(client,location,"closed",3,4,4,0,"queued");
+  assertStatus(client,location,"closed",3,4,4,0,"not scheduled");
 }

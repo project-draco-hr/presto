@@ -13,14 +13,14 @@
   TestingClientCallback callback=new TestingClientCallback(requestComplete);
   URI location=URI.create("http://localhost:8080");
   HttpPageBufferClient client=new HttpPageBufferClient(new TestingHttpClient(processor,executor),new DataSize(10,Unit.MEGABYTE),new Duration(1,TimeUnit.MINUTES),location,callback,createTestingBlockEncodingManager(),executor,Stopwatch.createUnstarted(ticker));
-  assertStatus(client,location,"queued",0,0,0,0,"queued");
+  assertStatus(client,location,"queued",0,0,0,0,"not scheduled");
   client.scheduleRequest();
   requestComplete.await(1,TimeUnit.SECONDS);
   assertEquals(callback.getPages().size(),0);
   assertEquals(callback.getCompletedRequests(),1);
   assertEquals(callback.getFinishedBuffers(),0);
   assertEquals(callback.getFailedBuffers(),0);
-  assertStatus(client,location,"queued",0,1,1,1,"queued");
+  assertStatus(client,location,"queued",0,1,1,1,"not scheduled");
   tickerIncrement.set(new Duration(30,TimeUnit.SECONDS));
   client.scheduleRequest();
   requestComplete.await(1,TimeUnit.SECONDS);
@@ -28,7 +28,7 @@
   assertEquals(callback.getCompletedRequests(),2);
   assertEquals(callback.getFinishedBuffers(),0);
   assertEquals(callback.getFailedBuffers(),0);
-  assertStatus(client,location,"queued",0,2,2,2,"queued");
+  assertStatus(client,location,"queued",0,2,2,2,"not scheduled");
   tickerIncrement.set(new Duration(31,TimeUnit.SECONDS));
   client.scheduleRequest();
   requestComplete.await(1,TimeUnit.SECONDS);
@@ -39,5 +39,5 @@
   assertInstanceOf(callback.getFailure(),PageTransportTimeoutException.class);
   assertContains(callback.getFailure().getMessage(),"");
   assertContains(callback.getFailure().getMessage(),"Requests to http://localhost:8080/0 failed for 61000.00ms");
-  assertStatus(client,location,"queued",0,3,3,3,"queued");
+  assertStatus(client,location,"queued",0,3,3,3,"not scheduled");
 }
