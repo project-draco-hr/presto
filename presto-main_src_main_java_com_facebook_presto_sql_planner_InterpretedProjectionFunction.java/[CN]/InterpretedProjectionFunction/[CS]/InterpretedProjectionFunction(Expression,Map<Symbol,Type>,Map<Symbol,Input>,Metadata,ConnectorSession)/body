@@ -1,6 +1,10 @@
 {
-  IdentityHashMap<Expression,Type> expressionTypes=getExpressionTypes(session,metadata,symbolTypes,expression);
-  this.type=checkNotNull(expressionTypes.get(expression),"type is null");
-  Expression rewritten=ExpressionTreeRewriter.rewriteWith(new SymbolToInputRewriter(symbolToInputMapping),expression);
+  Expression rewritten=ExpressionTreeRewriter.rewriteWith(new SymbolToInputRewriter(symbolToInputMappings),expression);
+  ImmutableMap.Builder<Input,Type> inputTypes=ImmutableMap.builder();
+  for (  Map.Entry<Symbol,Input> entry : symbolToInputMappings.entrySet()) {
+    inputTypes.put(entry.getValue(),symbolTypes.get(entry.getKey()));
+  }
+  IdentityHashMap<Expression,Type> expressionTypes=getExpressionTypesFromInput(session,metadata,inputTypes.build(),rewritten);
+  this.type=checkNotNull(expressionTypes.get(rewritten),"type is null");
   evaluator=ExpressionInterpreter.expressionInterpreter(rewritten,metadata,session,expressionTypes);
 }

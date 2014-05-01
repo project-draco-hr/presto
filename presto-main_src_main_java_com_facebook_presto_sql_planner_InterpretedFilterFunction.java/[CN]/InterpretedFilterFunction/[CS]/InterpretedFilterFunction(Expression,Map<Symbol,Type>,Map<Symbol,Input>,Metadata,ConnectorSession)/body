@@ -1,8 +1,8 @@
 {
   Expression rewritten=ExpressionTreeRewriter.rewriteWith(new SymbolToInputRewriter(symbolToInputMappings),predicate);
   ImmutableMap.Builder<Input,Type> inputTypes=ImmutableMap.builder();
-  for (  Entry<Symbol,Type> entry : symbolTypes.entrySet()) {
-    inputTypes.put(symbolToInputMappings.get(entry.getKey()),entry.getValue());
+  for (  Map.Entry<Symbol,Input> entry : symbolToInputMappings.entrySet()) {
+    inputTypes.put(entry.getValue(),symbolTypes.get(entry.getKey()));
   }
   IdentityHashMap<Expression,Type> expressionTypes=getExpressionTypesFromInput(session,metadata,inputTypes.build(),rewritten);
   evaluator=ExpressionInterpreter.expressionInterpreter(rewritten,metadata,session,expressionTypes);
