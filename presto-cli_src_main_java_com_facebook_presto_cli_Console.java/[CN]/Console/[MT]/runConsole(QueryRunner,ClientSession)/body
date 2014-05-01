@@ -1,6 +1,6 @@
 {
-  try (TableNameCompleter tableNameCompleter=new TableNameCompleter(clientOptions.toClientSession(),queryRunner);LineReader reader=new LineReader(getHistory(),tableNameCompleter)){
-    tableNameCompleter.populateCache(session.getSchema());
+  try (TableNameCompleter tableNameCompleter=new TableNameCompleter(queryRunner);LineReader reader=new LineReader(getHistory(),tableNameCompleter)){
+    tableNameCompleter.populateCache();
     StringBuilder buffer=new StringBuilder();
     while (true) {
       String prompt=PROMPT_NAME + ":" + session.getSchema();
@@ -41,7 +41,8 @@ for (Statement split : splitter.getCompleteStatements()) {
 Optional<Object> statement=getParsedStatement(split.statement());
 if (statement.isPresent() && isSessionParameterChange(statement.get())) {
   session=processSessionParameterChange(statement.get(),session);
-  queryRunner=QueryRunner.create(session);
+  queryRunner.setSession(session);
+  tableNameCompleter.populateCache();
 }
  else {
   OutputFormat outputFormat=OutputFormat.ALIGNED;
