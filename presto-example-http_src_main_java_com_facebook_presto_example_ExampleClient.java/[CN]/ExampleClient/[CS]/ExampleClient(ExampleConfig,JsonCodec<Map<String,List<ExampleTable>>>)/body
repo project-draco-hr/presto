@@ -1,8 +1,5 @@
 {
   checkNotNull(config,"config is null");
   checkNotNull(catalogCodec,"catalogCodec is null");
-  final URI metadataUri=config.getMetadata();
-  String json=Resources.toString(metadataUri.toURL(),Charsets.UTF_8);
-  Map<String,List<ExampleTable>> catalog=catalogCodec.fromJson(json);
-  this.schemas=ImmutableMap.copyOf(transformValues(catalog,resolveAndIndexTables(metadataUri)));
+  schemas=Suppliers.memoize(schemasSupplier(catalogCodec,config.getMetadata()));
 }
