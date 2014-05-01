@@ -34,7 +34,13 @@
           continue;
         }
       }
-      semaphore.acquire();
+      try {
+        semaphore.acquire();
+      }
+ catch (      InterruptedException e) {
+        Thread.currentThread().interrupt();
+        return;
+      }
       ListenableFuture<Void> partitionFuture=createRecursiveWalker(fs,suspendingExecutor).beginWalk(path,new FileStatusCallback(){
         @Override public void process(        FileStatus file,        BlockLocation[] blockLocations){
           try {
