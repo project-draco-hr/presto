@@ -7,12 +7,11 @@
         }
         ImmutableMap.Builder<ConnectorColumnHandle,Comparable<?>> builder=ImmutableMap.builder();
         for (        Entry<String,String> entry : makeSpecFromName(partitionId).entrySet()) {
-          ConnectorColumnHandle columnHandle=columnsByName.get(entry.getKey());
-          checkArgument(columnHandle != null,"Invalid partition key %s in partition %s",entry.getKey(),partitionId);
-          checkArgument(columnHandle instanceof HiveColumnHandle,"columnHandle is not an instance of HiveColumnHandle");
-          HiveColumnHandle hiveColumnHandle=(HiveColumnHandle)columnHandle;
+          ConnectorColumnHandle handle=columnsByName.get(entry.getKey());
+          checkArgument(handle != null,"Invalid partition key %s in partition %s",entry.getKey(),partitionId);
+          HiveColumnHandle columnHandle=checkType(handle,HiveColumnHandle.class,"handle");
           String value=entry.getValue();
-          Type type=hiveColumnHandle.getType();
+          Type type=columnHandle.getType();
           if (BOOLEAN.equals(type)) {
             if (value.isEmpty()) {
               builder.put(columnHandle,false);
@@ -25,7 +24,7 @@
             if (value.isEmpty()) {
               builder.put(columnHandle,0L);
             }
- else             if (hiveColumnHandle.getHiveType() == HiveType.TIMESTAMP) {
+ else             if (columnHandle.getHiveType() == HiveType.TIMESTAMP) {
               builder.put(columnHandle,parseHiveTimestamp(value,timeZone));
             }
  else {
