@@ -1,0 +1,23 @@
+{
+  builder.append("EXPLAIN ");
+  List<String> options=new ArrayList<>();
+  for (  ExplainOption option : node.getOptions()) {
+    if (option instanceof ExplainType) {
+      options.add("TYPE " + ((ExplainType)option).getType());
+    }
+ else     if (option instanceof ExplainFormat) {
+      options.add("FORMAT " + ((ExplainFormat)option).getType());
+    }
+ else {
+      throw new UnsupportedOperationException("unhandled explain option: " + option);
+    }
+  }
+  if (!options.isEmpty()) {
+    builder.append("(");
+    Joiner.on(", ").appendTo(builder,options);
+    builder.append(")");
+  }
+  builder.append("\n");
+  process(node.getStatement(),indent);
+  return null;
+}
