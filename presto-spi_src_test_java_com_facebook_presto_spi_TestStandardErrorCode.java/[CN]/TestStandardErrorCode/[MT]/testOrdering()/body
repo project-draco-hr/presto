@@ -1,0 +1,15 @@
+{
+  Iterator<StandardErrorCode> iterator=asList(StandardErrorCode.values()).iterator();
+  assertTrue(iterator.hasNext());
+  int previous=code(iterator.next());
+  while (iterator.hasNext()) {
+    StandardErrorCode code=iterator.next();
+    int current=code(code);
+    assertGreaterThan(current,previous,"Code is out of order: " + code);
+    if ((code != INTERNAL) && (code != INSUFFICIENT_RESOURCES) && (code != EXTERNAL)) {
+      assertEquals(current,previous + 1,"Code is not sequential: " + code);
+    }
+    previous=current;
+  }
+  assertEquals(previous,code(EXTERNAL),"Last code is not EXTERNAL");
+}
