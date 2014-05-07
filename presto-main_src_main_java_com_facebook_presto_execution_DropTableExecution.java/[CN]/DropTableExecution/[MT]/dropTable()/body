@@ -1,16 +1,8 @@
 {
   QualifiedTableName tableName=createQualifiedTableName(stateMachine.getSession(),statement.getTableName());
-  log.debug("Dropping %s",tableName);
-  final Optional<TableHandle> tableHandle=metadataManager.getTableHandle(session,tableName);
-  checkState(tableHandle.isPresent(),"Table %s does not exist",tableName);
-  final ConnectorTableHandle connectorHandle=tableHandle.get().getConnectorHandle();
-  if (!(connectorHandle instanceof NativeTableHandle)) {
-    throw new PrestoException(CANNOT_DROP_TABLE.toErrorCode(),"Can only drop native tables");
-  }
-  Set<TablePartition> partitions=shardManager.getPartitions(tableHandle.get().getConnectorHandle());
-  for (  TablePartition partition : partitions) {
-    shardManager.dropPartition(connectorHandle,partition.getPartitionName());
+  Optional<TableHandle> tableHandle=metadataManager.getTableHandle(session,tableName);
+  if (!tableHandle.isPresent()) {
+    throw new SemanticException(MISSING_TABLE,statement,"Table '%s' does not exist",tableName);
   }
   metadataManager.dropTable(tableHandle.get());
-  stateMachine.finished();
 }

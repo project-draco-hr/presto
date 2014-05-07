@@ -1,13 +1,8 @@
 {
-  try {
-    assertQuery("CREATE TABLE " + table + " AS "+ query,rowCountQuery);
-    assertQuery("SELECT * FROM " + table,expectedQuery);
-  }
-  finally {
-    QualifiedTableName name=new QualifiedTableName(TEST_CATALOG,"test",table);
-    Optional<TableHandle> handle=coordinator.getMetadata().getTableHandle(SESSION,name);
-    if (handle.isPresent()) {
-      coordinator.getMetadata().dropTable(handle.get());
-    }
-  }
+  assertQuery("CREATE TABLE " + table + " AS "+ query,rowCountQuery);
+  assertQuery("SELECT * FROM " + table,expectedQuery);
+  assertQueryTrue("DROP TABLE " + table);
+  QualifiedTableName name=createQualifiedTableName(SESSION,QualifiedName.of(table));
+  Optional<TableHandle> handle=coordinator.getMetadata().getTableHandle(SESSION,name);
+  assertFalse(handle.isPresent());
 }
