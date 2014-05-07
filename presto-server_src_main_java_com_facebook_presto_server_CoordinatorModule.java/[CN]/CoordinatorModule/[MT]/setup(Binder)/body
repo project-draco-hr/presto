@@ -24,8 +24,9 @@
   binder.bind(ShardCleaner.class).in(Scopes.SINGLETON);
   httpClientBinder(binder).bindHttpClient("shard-cleaner",ForShardCleaner.class);
   binder.bind(ShardResource.class).in(Scopes.SINGLETON);
-  binder.bind(SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
-  newExporter(binder).export(SqlQueryExecutionFactory.class).withGeneratedName();
+  binder.bind(ExecutorService.class).annotatedWith(ForQueryExecution.class).toInstance(newCachedThreadPool(threadsNamed("query-execution-%d")));
+  binder.bind(QueryExecutionMBean.class).in(Scopes.SINGLETON);
+  newExporter(binder).export(QueryExecutionMBean.class).as(generatedNameOf(QueryExecution.class));
   MapBinder<Class<? extends Statement>,QueryExecutionFactory<?>> executionBinder=newMapBinder(binder,new TypeLiteral<Class<? extends Statement>>(){
   }
 ,new TypeLiteral<QueryExecutionFactory<?>>(){
@@ -33,7 +34,7 @@
 );
   binder.bind(DropTableExecutionFactory.class).in(Scopes.SINGLETON);
   executionBinder.addBinding(DropTable.class).to(DropTableExecutionFactory.class).in(Scopes.SINGLETON);
-  newExporter(binder).export(DropTableExecutionFactory.class).withGeneratedName();
+  binder.bind(SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
   executionBinder.addBinding(Query.class).to(SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
   executionBinder.addBinding(Explain.class).to(SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
   executionBinder.addBinding(ShowColumns.class).to(SqlQueryExecutionFactory.class).in(Scopes.SINGLETON);
