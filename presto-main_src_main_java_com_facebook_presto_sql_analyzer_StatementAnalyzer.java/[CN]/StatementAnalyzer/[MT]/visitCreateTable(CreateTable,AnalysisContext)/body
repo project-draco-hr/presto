@@ -7,11 +7,10 @@
   }
   TupleDescriptor descriptor=process(node.getQuery(),context);
   Set<String> names=new HashSet<>();
-  for (int i=0; i < descriptor.getFields().size(); i++) {
-    Field field=descriptor.getFields().get(i);
+  for (  Field field : descriptor.getFields()) {
     Optional<String> fieldName=field.getName();
     if (!fieldName.isPresent()) {
-      throw new SemanticException(COLUMN_NAME_NOT_SPECIFIED,node,"Column name not specified at position %s",i + 1);
+      throw new SemanticException(COLUMN_NAME_NOT_SPECIFIED,node,"Column name not specified at position %s",descriptor.indexOf(field) + 1);
     }
     if (!names.add(fieldName.get())) {
       throw new SemanticException(DUPLICATE_COLUMN_NAME,node,"Column name '%s' specified more than once",fieldName.get());

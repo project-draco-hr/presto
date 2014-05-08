@@ -3,7 +3,7 @@
   for (  SelectItem item : node.getSelect().getSelectItems()) {
     if (item instanceof AllColumns) {
       Optional<QualifiedName> starPrefix=((AllColumns)item).getPrefix();
-      List<Integer> fields=tupleDescriptor.resolveFieldIndexesWithPrefix(starPrefix);
+      List<Field> fields=tupleDescriptor.resolveFieldsWithPrefix(starPrefix);
       if (fields.isEmpty()) {
         if (starPrefix.isPresent()) {
           throw new SemanticException(MISSING_TABLE,item,"Table '%s' not found",starPrefix.get());
@@ -12,7 +12,8 @@
           throw new SemanticException(WILDCARD_WITHOUT_FROM,item,"SELECT * not allowed in queries without FROM clause");
         }
       }
-      for (      int fieldIndex : fields) {
+      for (      Field field : fields) {
+        int fieldIndex=tupleDescriptor.indexOf(field);
         outputExpressionBuilder.add(new FieldOrExpression(fieldIndex));
       }
     }

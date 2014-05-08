@@ -1,0 +1,15 @@
+{
+  if (columnAliases != null) {
+    checkArgument(columnAliases.size() == fields.size(),"Column alias list has %s entries but '%s' has %s columns available",columnAliases.size(),relationAlias,fields.size());
+  }
+  ImmutableList.Builder<Field> fieldsBuilder=ImmutableList.builder();
+  for (int i=0; i < fields.size(); i++) {
+    Field field=fields.get(i);
+    Optional<String> columnAlias=field.getName();
+    if (columnAliases != null) {
+      columnAlias=Optional.of(columnAliases.get(i));
+    }
+    fieldsBuilder.add(Field.newQualified(QualifiedName.of(relationAlias),columnAlias,field.getType()));
+  }
+  return new TupleDescriptor(fieldsBuilder.build());
+}

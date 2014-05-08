@@ -2,7 +2,7 @@
   QualifiedTableName destination=analysis.getCreateTableDestination().get();
   RelationPlanner planner=new RelationPlanner(analysis,symbolAllocator,idAllocator,metadata,session);
   RelationPlan plan=planner.process(analysis.getQuery(),null);
-  TableMetadata tableMetadata=createTableMetadata(destination,getTableColumns(plan));
+  TableMetadata tableMetadata=createTableMetadata(destination,getOutputTableColumns(plan));
   ImmutableList<Symbol> writerOutputs=ImmutableList.of(symbolAllocator.newSymbol("partialrows",BIGINT),symbolAllocator.newSymbol("fragment",VARCHAR));
   TableWriterNode writerNode=new TableWriterNode(idAllocator.getNextId(),plan.getRoot(),null,plan.getOutputSymbols(),getColumnNames(tableMetadata),writerOutputs,Optional.<Symbol>absent(),destination.getCatalogName(),tableMetadata,metadata.canCreateSampledTables(session,destination.getCatalogName()));
   List<Symbol> outputs=ImmutableList.of(symbolAllocator.newSymbol("rows",BIGINT));

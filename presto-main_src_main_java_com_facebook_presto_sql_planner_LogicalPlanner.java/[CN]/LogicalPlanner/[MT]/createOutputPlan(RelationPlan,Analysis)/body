@@ -1,11 +1,15 @@
 {
-  ImmutableList.Builder<String> names=ImmutableList.builder();
   ImmutableList.Builder<Symbol> outputs=ImmutableList.builder();
-  for (int i=0; i < analysis.getOutputDescriptor().getFields().size(); i++) {
-    Field field=analysis.getOutputDescriptor().getFields().get(i);
-    String name=field.getName().or("_col" + i);
+  ImmutableList.Builder<String> names=ImmutableList.builder();
+  int columnNumber=0;
+  TupleDescriptor outputDescriptor=analysis.getOutputDescriptor();
+  for (  Field field : outputDescriptor.getFields()) {
+    String name=field.getName().or("_col" + columnNumber);
     names.add(name);
-    outputs.add(plan.getSymbol(i));
+    int fieldIndex=outputDescriptor.indexOf(field);
+    Symbol symbol=plan.getSymbol(fieldIndex);
+    outputs.add(symbol);
+    columnNumber++;
   }
   return new OutputNode(idAllocator.getNextId(),plan.getRoot(),names.build(),outputs.build());
 }
