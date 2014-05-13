@@ -15,6 +15,14 @@
     }
   }
   QualifiedTableName name=MetadataUtil.createQualifiedTableName(session,table.getName());
+  Optional<String> view=metadata.getView(session,name);
+  if (view.isPresent()) {
+    Query query=parseView(view.get(),name);
+    analysis.registerNamedQuery(table,query);
+    TupleDescriptor descriptor=analyzeView(query,name);
+    analysis.setOutputDescriptor(table,descriptor);
+    return descriptor;
+  }
   Optional<TableHandle> tableHandle=metadata.getTableHandle(session,name);
   if (!tableHandle.isPresent()) {
     if (!metadata.getCatalogNames().containsKey(name.getCatalogName())) {

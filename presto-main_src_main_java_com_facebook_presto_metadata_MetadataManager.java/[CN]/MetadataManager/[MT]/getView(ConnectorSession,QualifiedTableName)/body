@@ -1,0 +1,11 @@
+{
+  SchemaTablePrefix prefix=viewName.asSchemaTableName().toSchemaTablePrefix();
+  for (  ConnectorMetadataEntry entry : allConnectorsFor(viewName.getCatalogName())) {
+    Map<SchemaTableName,String> views=entry.getMetadata().getViews(session,prefix);
+    String view=views.get(viewName.asSchemaTableName());
+    if (view != null) {
+      return Optional.of(view);
+    }
+  }
+  return Optional.absent();
+}
