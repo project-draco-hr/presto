@@ -9,7 +9,12 @@
         nodes=nodeManager.getActiveDatasourceNodes(dataSourceName);
       }
  else {
-        nodes=nodeManager.getActiveNodes();
+        nodes=FluentIterable.from(nodeManager.getActiveNodes()).filter(new Predicate<Node>(){
+          @Override public boolean apply(          Node node){
+            return includeCoordinator || !nodeManager.getCurrentNode().getNodeIdentifier().equals(node.getNodeIdentifier());
+          }
+        }
+).toSet();
       }
       for (      Node node : nodes) {
         try {
