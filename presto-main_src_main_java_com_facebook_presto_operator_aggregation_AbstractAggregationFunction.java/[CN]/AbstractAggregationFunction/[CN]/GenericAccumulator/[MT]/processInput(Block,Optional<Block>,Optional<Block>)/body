@@ -1,0 +1,18 @@
+{
+  checkArgument(!sampleWeightBlock.isPresent(),"Sampled data not supported");
+  BlockCursor values=block.cursor();
+  BlockCursor masks=null;
+  if (maskBlock.isPresent()) {
+    masks=maskBlock.get().cursor();
+  }
+  for (int position=0; position < block.getPositionCount(); position++) {
+    checkState(values.advanceNextPosition());
+    checkState(masks == null || masks.advanceNextPosition());
+    if (masks != null && !masks.getBoolean()) {
+      continue;
+    }
+    if (!values.isNull()) {
+      AbstractAggregationFunction.this.processInput(state,values);
+    }
+  }
+}
