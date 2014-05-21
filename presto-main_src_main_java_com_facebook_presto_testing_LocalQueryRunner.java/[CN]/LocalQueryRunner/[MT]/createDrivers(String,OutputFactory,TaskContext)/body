@@ -1,8 +1,5 @@
 {
   Statement statement=SqlParser.createStatement(sql);
-  if (printPlan) {
-    assertFormattedSql(statement);
-  }
   PlanNodeIdAllocator idAllocator=new PlanNodeIdAllocator();
   FeaturesConfig featuresConfig=new FeaturesConfig().setExperimentalSyntaxEnabled(true);
   PlanOptimizersFactory planOptimizersFactory=new PlanOptimizersFactory(metadata,splitManager,indexManager,featuresConfig);
@@ -14,7 +11,9 @@
     System.out.println(PlanPrinter.textLogicalPlan(plan.getRoot(),plan.getTypes(),metadata));
   }
   SubPlan subplan=new DistributedLogicalPlanner(session,metadata,idAllocator).createSubPlans(plan,true);
-  assertTrue(subplan.getChildren().isEmpty(),"Expected subplan to have no children");
+  if (!subplan.getChildren().isEmpty()) {
+    throw new AssertionError("Expected subplan to have no children");
+  }
   LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(new NodeInfo(new NodeConfig().setEnvironment("test").setNodeId("test-node")),metadata,dataStreamProvider,indexManager,storageManager,recordSinkManager,null,compiler);
   LocalExecutionPlan localExecutionPlan=executionPlanner.plan(session,subplan.getFragment().getRoot(),plan.getTypes(),outputFactory);
   List<TaskSource> sources=new ArrayList<>();
