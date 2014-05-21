@@ -1,0 +1,15 @@
+{
+  final long tableId=checkType(tableHandle,RaptorTableHandle.class,"tableHandle").getTableId();
+  dbi.inTransaction(new VoidTransactionCallback(){
+    @Override protected void execute(    Handle handle,    TransactionStatus status) throws Exception {
+      ShardManagerDao dao=handle.attach(ShardManagerDao.class);
+      List<Long> shardIds=dao.getAllShards(tableId,partitionName);
+      for (      Long shardId : shardIds) {
+        dao.deleteShardFromPartitionShards(shardId);
+      }
+      dao.dropPartitionKeys(tableId,partitionName);
+      dao.dropPartition(tableId,partitionName);
+    }
+  }
+);
+}

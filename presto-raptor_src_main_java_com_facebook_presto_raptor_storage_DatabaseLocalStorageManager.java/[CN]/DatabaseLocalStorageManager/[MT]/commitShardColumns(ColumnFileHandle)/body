@@ -1,0 +1,15 @@
+{
+  dbi.inTransaction(new VoidTransactionCallback(){
+    @Override protected void execute(    Handle handle,    TransactionStatus status) throws Exception {
+      StorageManagerDao dao=handle.attach(StorageManagerDao.class);
+      for (      Map.Entry<ConnectorColumnHandle,File> entry : columnFileHandle.getFiles().entrySet()) {
+        ConnectorColumnHandle columnHandle=entry.getKey();
+        File file=entry.getValue();
+        long columnId=checkType(columnHandle,RaptorColumnHandle.class,"columnHandle").getColumnId();
+        String filename=file.getName();
+        dao.insertColumn(columnFileHandle.getShardUuid(),columnId,filename);
+      }
+    }
+  }
+);
+}

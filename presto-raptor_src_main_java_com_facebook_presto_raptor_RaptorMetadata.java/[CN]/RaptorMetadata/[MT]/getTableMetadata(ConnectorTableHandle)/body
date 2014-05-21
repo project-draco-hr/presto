@@ -1,0 +1,7 @@
+{
+  RaptorTableHandle raptorTableHandle=checkType(tableHandle,RaptorTableHandle.class,"tableHandle");
+  SchemaTableName tableName=new SchemaTableName(raptorTableHandle.getSchemaName(),raptorTableHandle.getTableName());
+  List<ColumnMetadata> columns=FluentIterable.from(dao.getTableColumns(raptorTableHandle.getTableId())).transform(TableColumn.columnMetadataGetter()).filter(not(isSampleWeightColumn())).toList();
+  checkArgument(!columns.isEmpty(),"Table %s does not have any columns",tableName);
+  return new ConnectorTableMetadata(tableName,columns);
+}

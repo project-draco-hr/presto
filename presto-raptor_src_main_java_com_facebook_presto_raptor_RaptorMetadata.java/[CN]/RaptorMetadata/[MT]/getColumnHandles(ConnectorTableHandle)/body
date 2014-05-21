@@ -1,0 +1,11 @@
+{
+  RaptorTableHandle raptorTableHandle=checkType(tableHandle,RaptorTableHandle.class,"tableHandle");
+  ImmutableMap.Builder<String,ConnectorColumnHandle> builder=ImmutableMap.builder();
+  for (  TableColumn tableColumn : dao.listTableColumns(raptorTableHandle.getTableId())) {
+    if (tableColumn.getColumnName().equals(SAMPLE_WEIGHT_COLUMN_NAME)) {
+      continue;
+    }
+    builder.put(tableColumn.getColumnName(),new RaptorColumnHandle(connectorId,tableColumn.getColumnName(),tableColumn.getColumnId()));
+  }
+  return builder.build();
+}

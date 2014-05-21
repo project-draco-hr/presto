@@ -1,0 +1,13 @@
+{
+  final RaptorTableHandle raptorHandle=checkType(tableHandle,RaptorTableHandle.class,"tableHandle");
+  dbi.inTransaction(new VoidTransactionCallback(){
+    @Override protected void execute(    Handle handle,    TransactionStatus status) throws Exception {
+      Set<TablePartition> partitions=shardManager.getPartitions(raptorHandle);
+      for (      TablePartition partition : partitions) {
+        shardManager.dropPartition(raptorHandle,partition.getPartitionName());
+      }
+      MetadataDaoUtils.dropTable(dao,raptorHandle.getTableId());
+    }
+  }
+);
+}

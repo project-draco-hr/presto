@@ -1,0 +1,11 @@
+{
+  RaptorSplit raptorSplit=checkType(split,RaptorSplit.class,"split");
+  checkNotNull(columns,"columns is null");
+  checkArgument(!columns.isEmpty(),"must provide at least one column");
+  ImmutableList.Builder<BlockIterable> builder=ImmutableList.builder();
+  for (  ConnectorColumnHandle column : columns) {
+    checkType(column,RaptorColumnHandle.class,"column");
+    builder.add(storageManager.getBlocks(raptorSplit.getShardUuid(),column));
+  }
+  return builder.build();
+}

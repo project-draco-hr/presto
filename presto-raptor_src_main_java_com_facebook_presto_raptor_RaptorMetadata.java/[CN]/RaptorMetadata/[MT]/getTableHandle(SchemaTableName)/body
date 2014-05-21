@@ -1,0 +1,13 @@
+{
+  checkNotNull(tableName,"tableName is null");
+  Table table=dao.getTableInformation(connectorId,tableName.getSchemaName(),tableName.getTableName());
+  if (table == null) {
+    return null;
+  }
+  Long columnId=dao.getColumnId(table.getTableId(),SAMPLE_WEIGHT_COLUMN_NAME);
+  RaptorColumnHandle sampleWeightColumnHandle=null;
+  if (columnId != null) {
+    sampleWeightColumnHandle=new RaptorColumnHandle(connectorId,SAMPLE_WEIGHT_COLUMN_NAME,columnId);
+  }
+  return new RaptorTableHandle(connectorId,tableName.getSchemaName(),tableName.getTableName(),table.getTableId(),sampleWeightColumnHandle);
+}
