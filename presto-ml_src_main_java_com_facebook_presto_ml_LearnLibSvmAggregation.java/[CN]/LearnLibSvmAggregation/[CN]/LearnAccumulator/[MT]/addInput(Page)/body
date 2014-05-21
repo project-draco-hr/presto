@@ -1,0 +1,22 @@
+{
+  BlockCursor cursor=page.getBlock(labelChannel).cursor();
+  while (cursor.advanceNextPosition()) {
+    if (labelIsLong) {
+      labels.add((double)cursor.getLong());
+    }
+ else {
+      labels.add(cursor.getDouble());
+    }
+  }
+  cursor=page.getBlock(featuresChannel).cursor();
+  while (cursor.advanceNextPosition()) {
+    FeatureVector featureVector=ModelUtils.jsonToFeatures(cursor.getSlice());
+    rowsSize+=featureVector.getEstimatedSize();
+    rows.add(featureVector);
+  }
+  if (params == null) {
+    cursor=page.getBlock(paramsChannel).cursor();
+    cursor.advanceNextPosition();
+    params=LibSvmUtils.parseParameters(cursor.getSlice().toStringUtf8());
+  }
+}

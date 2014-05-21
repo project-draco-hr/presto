@@ -1,0 +1,14 @@
+{
+  Dataset dataset=new Dataset(labels,rows);
+  Model model;
+  if (regression) {
+    model=new RegressorFeatureTransformer(new SvmRegressor(params),new FeatureVectorUnitNormalizer());
+  }
+ else {
+    model=new ClassifierFeatureTransformer(new SvmClassifier(params),new FeatureVectorUnitNormalizer());
+  }
+  model.train(dataset);
+  BlockBuilder builder=getFinalType().createBlockBuilder(new BlockBuilderStatus());
+  builder.appendSlice(ModelUtils.serialize(model));
+  return builder.build();
+}
