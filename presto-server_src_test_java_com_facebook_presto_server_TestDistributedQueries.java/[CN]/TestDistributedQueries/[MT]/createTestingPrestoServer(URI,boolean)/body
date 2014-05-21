@@ -1,6 +1,9 @@
 {
-  Map<String,String> properties=ImmutableMap.<String,String>builder().put("query.client.timeout","10m").put("exchange.http-client.read-timeout","1h").put("datasources","default,tpch,tpch_sampled").build();
-  TestingPrestoServer server=new TestingPrestoServer(coordinator,properties,ENVIRONMENT,discoveryUri,ImmutableList.<Module>of());
+  ImmutableMap.Builder<String,String> properties=ImmutableMap.<String,String>builder().put("query.client.timeout","10m").put("exchange.http-client.read-timeout","1h").put("datasources","default,tpch,tpch_sampled");
+  if (coordinator) {
+    properties.put("node-scheduler.include-coordinator","false");
+  }
+  TestingPrestoServer server=new TestingPrestoServer(coordinator,properties.build(),ENVIRONMENT,discoveryUri,ImmutableList.<Module>of());
   server.installPlugin(new TpchPlugin());
   server.createConnection("tpch","tpch");
   server.installPlugin(new SampledTpchPlugin());

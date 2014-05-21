@@ -1,7 +1,7 @@
 {
   checkNotNull(partitions,"partitions is null");
   if (partitions.isEmpty()) {
-    return new FixedSplitSource(null,ImmutableList.<ConnectorSplit>of());
+    return new FixedSplitSource(SYSTEM_DATASOURCE,ImmutableList.<ConnectorSplit>of());
   }
   ConnectorPartition partition=Iterables.getOnlyElement(partitions);
   checkArgument(partition instanceof InformationSchemaPartition,"Partition must be an informationSchema partition");
@@ -13,5 +13,5 @@
     filters.put(informationSchemaColumnHandle.getColumnName(),entry.getValue());
   }
   ConnectorSplit split=new InformationSchemaSplit(informationSchemaPartition.table,filters.build(),localAddress);
-  return new FixedSplitSource(null,ImmutableList.of(split));
+  return new FixedSplitSource(SYSTEM_DATASOURCE,ImmutableList.of(split));
 }
