@@ -1,0 +1,27 @@
+{
+  ServiceAnnouncement announcement=getPrestoAnnouncement(announcer.getServiceAnnouncements());
+  String property=nullToEmpty(announcement.getProperties().get("datasources"));
+  List<String> values=Splitter.on(',').trimResults().omitEmptyStrings().splitToList(property);
+  Set<String> datasources=new LinkedHashSet<>(values);
+  if (datasources.isEmpty()) {
+    Set<String> catalogs=metadata.getCatalogNames().keySet();
+    if (serverConfig.isCoordinator() && !schedulerConfig.isIncludeCoordinator()) {
+      if (catalogs.contains("jmx")) {
+        datasources.add("jmx");
+      }
+    }
+ else {
+      datasources.addAll(catalogs);
+    }
+  }
+  datasources.add(SYSTEM_DATASOURCE);
+  ServiceAnnouncementBuilder builder=serviceAnnouncement(announcement.getType());
+  for (  Map.Entry<String,String> entry : announcement.getProperties().entrySet()) {
+    if (!entry.getKey().equals("datasources")) {
+      builder.addProperty(entry.getKey(),entry.getValue());
+    }
+  }
+  builder.addProperty("datasources",Joiner.on(',').join(datasources));
+  announcer.removeServiceAnnouncement(announcement.getId());
+  announcer.addServiceAnnouncement(builder.build());
+}
