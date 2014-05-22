@@ -1,0 +1,10 @@
+{
+  ServiceAnnouncement announcement=getPrestoAnnouncement(announcer.getServiceAnnouncements());
+  Map<String,String> properties=new LinkedHashMap<>(announcement.getProperties());
+  String property=nullToEmpty(properties.get("datasources"));
+  Set<String> datasources=new LinkedHashSet<>(Splitter.on(',').trimResults().omitEmptyStrings().splitToList(property));
+  datasources.add(connectorId);
+  properties.put("datasources",Joiner.on(',').join(datasources));
+  announcer.removeServiceAnnouncement(announcement.getId());
+  announcer.addServiceAnnouncement(serviceAnnouncement(announcement.getType()).addProperties(properties).build());
+}

@@ -1,18 +1,8 @@
 {
-  try {
-    discoveryServer=new TestingDiscoveryServer(ENVIRONMENT);
-    coordinator=createTestingPrestoServer(discoveryServer.getBaseUrl(),true);
-    servers=ImmutableList.<TestingPrestoServer>builder().add(coordinator).add(createTestingPrestoServer(discoveryServer.getBaseUrl(),false)).add(createTestingPrestoServer(discoveryServer.getBaseUrl(),false)).build();
-  }
- catch (  Exception e) {
-    tearDownQueryFramework();
-    throw e;
-  }
-  this.httpClient=new JettyHttpClient(new HttpClientConfig().setConnectTimeout(new Duration(1,TimeUnit.DAYS)).setReadTimeout(new Duration(10,TimeUnit.DAYS)));
-  long start=System.nanoTime();
-  while (!allNodesGloballyVisible()) {
-    assertLessThan(nanosSince(start),new Duration(10,SECONDS));
-    MILLISECONDS.sleep(10);
-  }
-  return SESSION;
+  ConnectorSession session=new ConnectorSession("user","test","tpch_indexed",TpchMetadata.TINY_SCHEMA_NAME,UTC_KEY,ENGLISH,null,null);
+  DistributedQueryRunner queryRunner=new DistributedQueryRunner(session,3);
+  queryRunner.installPlugin(new IndexedTpchPlugin(getTpchIndexSpec()));
+  queryRunner.createCatalog("tpch_indexed","tpch_indexed");
+  this.queryRunner=queryRunner;
+  return session;
 }
