@@ -1,24 +1,11 @@
 {
-  DualMetadata dualMetadata=new DualMetadata();
-  TableHandle tableHandle=new TableHandle(DualConnector.CONNECTOR_ID,dualMetadata.getTableHandle(SESSION,new SchemaTableName("default",DualMetadata.NAME)));
-  assertNotNull(tableHandle,"tableHandle is null");
-  ColumnHandle columnHandle=new ColumnHandle(DualConnector.CONNECTOR_ID,dualMetadata.getColumnHandle(tableHandle.getConnectorHandle(),DualMetadata.COLUMN_NAME));
-  assertNotNull(columnHandle,"columnHandle is null");
-  Symbol symbol=new Symbol(DualMetadata.COLUMN_NAME);
+  Symbol symbol=new Symbol("column");
   MetadataManager metadata=new MetadataManager(new FeaturesConfig(),new TypeRegistry());
-  metadata.addGlobalSchemaMetadata(DualConnector.CONNECTOR_ID,dualMetadata);
-  DualSplitManager dualSplitManager=new DualSplitManager(new InMemoryNodeManager());
-  ConnectorPartitionResult partitionResult=dualSplitManager.getPartitions(tableHandle.getConnectorHandle(),TupleDomain.<ConnectorColumnHandle>all());
-  ConnectorSplitSource splitSource=dualSplitManager.getPartitionSplits(tableHandle.getConnectorHandle(),partitionResult.getPartitions());
-  split=Iterables.getOnlyElement(splitSource.getNextBatch(1));
-  assertTrue(splitSource.isFinished());
-  DataStreamManager dataStreamProvider=new DataStreamManager();
-  dataStreamProvider.addConnectorDataStreamProvider(DualConnector.CONNECTOR_ID,new DualDataStreamProvider());
-  LocalExecutionPlanner planner=new LocalExecutionPlanner(new NodeInfo("test"),metadata,dataStreamProvider,new IndexManager(),new RecordSinkManager(),new MockExchangeClientSupplier(),new ExpressionCompiler(metadata));
+  LocalExecutionPlanner planner=new LocalExecutionPlanner(new NodeInfo("test"),metadata,new DataStreamManager(),new IndexManager(),new RecordSinkManager(),new MockExchangeClientSupplier(),new ExpressionCompiler(metadata));
   taskExecutor=new TaskExecutor(8);
   taskExecutor.start();
   tableScanNodeId=new PlanNodeId("tableScan");
-  PlanFragment testFragment=new PlanFragment(new PlanFragmentId("fragment"),new TableScanNode(tableScanNodeId,tableHandle,ImmutableList.of(symbol),ImmutableMap.of(symbol,columnHandle),null,Optional.<GeneratedPartitions>absent()),ImmutableMap.<Symbol,Type>of(symbol,VARCHAR),PlanDistribution.SOURCE,tableScanNodeId,OutputPartitioning.NONE,ImmutableList.<Symbol>of());
+  PlanFragment testFragment=new PlanFragment(new PlanFragmentId("fragment"),new TableScanNode(tableScanNodeId,new TableHandle("test",new TestingTableHandle()),ImmutableList.of(symbol),ImmutableMap.of(symbol,new ColumnHandle("test",new TestingColumnHandle("column"))),null,Optional.<GeneratedPartitions>absent()),ImmutableMap.<Symbol,Type>of(symbol,VARCHAR),PlanDistribution.SOURCE,tableScanNodeId,OutputPartitioning.NONE,ImmutableList.<Symbol>of());
   TaskId taskId=new TaskId("query","stage","task");
   ConnectorSession session=new ConnectorSession("user","test","default","default",UTC_KEY,Locale.ENGLISH,"test","test");
   taskNotificationExecutor=Executors.newCachedThreadPool(threadsNamed("task-notification-%d"));
