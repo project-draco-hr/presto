@@ -1,0 +1,8 @@
+{
+  ConnectorSession defaultSession=new ConnectorSession("user","test","tpch",TpchMetadata.TINY_SCHEMA_NAME,UTC_KEY,ENGLISH,null,null);
+  LocalQueryRunner queryRunner=new LocalQueryRunner(defaultSession,newCachedThreadPool(daemonThreadsNamed("test-sampled")));
+  queryRunner.createCatalog(defaultSession.getCatalog(),new SampledTpchConnectorFactory(queryRunner.getNodeManager(),1,1),ImmutableMap.<String,String>of());
+  queryRunner.createCatalog(TPCH_SAMPLED_SCHEMA,new SampledTpchConnectorFactory(queryRunner.getNodeManager(),1,2),ImmutableMap.<String,String>of());
+  queryRunner.getMetadata().addFunctions(CUSTOM_FUNCTIONS);
+  return queryRunner;
+}
