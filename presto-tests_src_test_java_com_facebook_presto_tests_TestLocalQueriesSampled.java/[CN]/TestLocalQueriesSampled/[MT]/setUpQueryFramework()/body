@@ -1,9 +1,12 @@
 {
   ConnectorSession session=new ConnectorSession("user","test","local",TpchMetadata.TINY_SCHEMA_NAME,UTC_KEY,Locale.ENGLISH,null,null);
-  localQueryRunner=new LocalQueryRunner(session,getExecutor());
-  localSampledQueryRunner=new LocalQueryRunner(session,getExecutor());
-  localQueryRunner.createCatalog(session.getCatalog(),new SampledTpchConnectorFactory(localQueryRunner.getNodeManager(),1,1),ImmutableMap.<String,String>of());
-  localSampledQueryRunner.createCatalog(session.getCatalog(),new SampledTpchConnectorFactory(localSampledQueryRunner.getNodeManager(),1,2),ImmutableMap.<String,String>of());
-  localQueryRunner.getMetadata().addFunctions(CUSTOM_FUNCTIONS);
+  LocalQueryRunner queryRunner=new LocalQueryRunner(session,getExecutor());
+  queryRunner.createCatalog(session.getCatalog(),new SampledTpchConnectorFactory(queryRunner.getNodeManager(),1,1),ImmutableMap.<String,String>of());
+  queryRunner.getMetadata().addFunctions(CUSTOM_FUNCTIONS);
+  this.queryRunner=queryRunner;
+  LocalQueryRunner sampledQueryRunner=new LocalQueryRunner(session,getExecutor());
+  sampledQueryRunner.createCatalog(session.getCatalog(),new SampledTpchConnectorFactory(sampledQueryRunner.getNodeManager(),1,2),ImmutableMap.<String,String>of());
+  sampledQueryRunner.getMetadata().addFunctions(CUSTOM_FUNCTIONS);
+  this.sampledQueryRunner=sampledQueryRunner;
   return session;
 }

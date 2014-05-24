@@ -1,0 +1,17 @@
+{
+  MaterializedOutputFactory outputFactory=new MaterializedOutputFactory();
+  TaskContext taskContext=new TaskContext(new TaskId("query","stage","task"),executor,session);
+  List<Driver> drivers=createDrivers(session,sql,outputFactory,taskContext);
+  boolean done=false;
+  while (!done) {
+    boolean processed=false;
+    for (    Driver driver : drivers) {
+      if (!driver.isFinished()) {
+        driver.process();
+        processed=true;
+      }
+    }
+    done=!processed;
+  }
+  return outputFactory.getMaterializingOperator().getMaterializedResult();
+}

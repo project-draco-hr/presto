@@ -1,0 +1,58 @@
+{
+  Statement statement=SqlParser.createStatement(sql);
+  PlanNodeIdAllocator idAllocator=new PlanNodeIdAllocator();
+  FeaturesConfig featuresConfig=new FeaturesConfig().setExperimentalSyntaxEnabled(true);
+  PlanOptimizersFactory planOptimizersFactory=new PlanOptimizersFactory(metadata,splitManager,indexManager,featuresConfig);
+  QueryExplainer queryExplainer=new QueryExplainer(session,planOptimizersFactory.get(),metadata,featuresConfig.isExperimentalSyntaxEnabled());
+  Analyzer analyzer=new Analyzer(session,metadata,Optional.of(queryExplainer),featuresConfig.isExperimentalSyntaxEnabled());
+  Analysis analysis=analyzer.analyze(statement);
+  Plan plan=new LogicalPlanner(session,planOptimizersFactory.get(),idAllocator,metadata).plan(analysis);
+  if (printPlan) {
+    System.out.println(PlanPrinter.textLogicalPlan(plan.getRoot(),plan.getTypes(),metadata));
+  }
+  SubPlan subplan=new DistributedLogicalPlanner(session,metadata,idAllocator).createSubPlans(plan,true);
+  if (!subplan.getChildren().isEmpty()) {
+    throw new AssertionError("Expected subplan to have no children");
+  }
+  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(new NodeInfo(new NodeConfig().setEnvironment("test").setNodeId("test-node")),metadata,dataStreamProvider,indexManager,recordSinkManager,null,compiler);
+  LocalExecutionPlan localExecutionPlan=executionPlanner.plan(session,subplan.getFragment().getRoot(),plan.getTypes(),outputFactory);
+  List<TaskSource> sources=new ArrayList<>();
+  long sequenceId=0;
+  for (  PlanNode sourceNode : subplan.getFragment().getSources()) {
+    if (sourceNode instanceof ValuesNode) {
+      continue;
+    }
+    TableScanNode tableScan=(TableScanNode)sourceNode;
+    SplitSource splitSource=splitManager.getPartitionSplits(tableScan.getTable(),getPartitions(tableScan));
+    ImmutableSet.Builder<ScheduledSplit> scheduledSplits=ImmutableSet.builder();
+    while (!splitSource.isFinished()) {
+      try {
+        for (        Split split : splitSource.getNextBatch(1000)) {
+          scheduledSplits.add(new ScheduledSplit(sequenceId++,split));
+        }
+      }
+ catch (      InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw Throwables.propagate(e);
+      }
+    }
+    sources.add(new TaskSource(tableScan.getId(),scheduledSplits.build(),true));
+  }
+  List<Driver> drivers=new ArrayList<>();
+  Map<PlanNodeId,Driver> driversBySource=new HashMap<>();
+  for (  DriverFactory driverFactory : localExecutionPlan.getDriverFactories()) {
+    DriverContext driverContext=taskContext.addPipelineContext(driverFactory.isInputDriver(),driverFactory.isOutputDriver()).addDriverContext();
+    Driver driver=driverFactory.createDriver(driverContext);
+    drivers.add(driver);
+    for (    PlanNodeId sourceId : driver.getSourceIds()) {
+      driversBySource.put(sourceId,driver);
+    }
+    driverFactory.close();
+  }
+  for (  TaskSource source : sources) {
+    for (    Driver driver : driversBySource.values()) {
+      driver.updateSource(source);
+    }
+  }
+  return ImmutableList.copyOf(drivers);
+}
