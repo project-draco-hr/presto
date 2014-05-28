@@ -19,12 +19,16 @@
       }
     }
   }
-  process(node.getQueryBody(),indent);
+  processRelation(node.getQueryBody(),indent);
   if (!node.getOrderBy().isEmpty()) {
     append(indent,"ORDER BY " + formatSortItems(node.getOrderBy())).append('\n');
   }
   if (node.getLimit().isPresent()) {
     append(indent,"LIMIT " + node.getLimit().get()).append('\n');
+  }
+  if (node.getApproximate().isPresent()) {
+    String confidence=node.getApproximate().get().getConfidence();
+    append(indent,"APPROXIMATE AT " + confidence + " CONFIDENCE").append('\n');
   }
   return null;
 }
