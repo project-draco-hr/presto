@@ -1,7 +1,6 @@
 {
-  ExecutorService executor=newCachedThreadPool(daemonThreadsNamed("test"));
-  try {
-    for (    AbstractBenchmark benchmark : BenchmarkSuite.createBenchmarks(executor)) {
+  try (LocalQueryRunner localQueryRunner=createLocalQueryRunner();LocalQueryRunner localSampledQueryRunner=createLocalSampledQueryRunner()){
+    for (    AbstractBenchmark benchmark : createBenchmarks(localQueryRunner,localSampledQueryRunner)) {
       try {
         benchmark.runOnce();
       }
@@ -10,7 +9,4 @@
       }
     }
   }
-  finally {
-    executor.shutdownNow();
-  }
-}
+ }

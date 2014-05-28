@@ -1,7 +1,6 @@
 {
-  ExecutorService executor=newCachedThreadPool(daemonThreadsNamed("test"));
-  try {
-    List<AbstractBenchmark> benchmarks=createBenchmarks(executor);
+  try (LocalQueryRunner localQueryRunner=createLocalQueryRunner();LocalQueryRunner localSampledQueryRunner=createLocalSampledQueryRunner()){
+    List<AbstractBenchmark> benchmarks=createBenchmarks(localQueryRunner,localSampledQueryRunner);
     LOGGER.info("=== Pre-running all benchmarks for JVM warmup ===");
     for (    AbstractBenchmark benchmark : benchmarks) {
       benchmark.runBenchmark();
@@ -13,7 +12,4 @@
       }
      }
   }
-  finally {
-    executor.shutdownNow();
-  }
-}
+ }
