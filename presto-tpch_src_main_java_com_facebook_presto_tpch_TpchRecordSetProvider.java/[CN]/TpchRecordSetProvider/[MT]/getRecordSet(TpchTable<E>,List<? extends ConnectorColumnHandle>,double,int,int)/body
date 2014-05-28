@@ -3,7 +3,12 @@
   for (  ConnectorColumnHandle column : columns) {
     checkArgument(column instanceof TpchColumnHandle,"column must be of type TpchColumnHandle, not %s",column.getClass().getName());
     String columnName=((TpchColumnHandle)column).getColumnName();
-    builder.add(table.getColumn(columnName));
+    if (columnName.equalsIgnoreCase(TpchMetadata.ROW_NUMBER_COLUMN_NAME)) {
+      builder.add(new RowNumberTpchColumn<E>());
+    }
+ else {
+      builder.add(table.getColumn(columnName));
+    }
   }
-  return createTpchRecordSet(table,builder.build(),tpchSplit.getTableHandle().getScaleFactor(),tpchSplit.getPartNumber() + 1,tpchSplit.getTotalParts());
+  return createTpchRecordSet(table,builder.build(),scaleFactor,partNumber + 1,totalParts);
 }
