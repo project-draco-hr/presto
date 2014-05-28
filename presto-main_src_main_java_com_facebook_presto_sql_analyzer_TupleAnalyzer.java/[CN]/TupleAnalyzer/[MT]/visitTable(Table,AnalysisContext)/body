@@ -6,8 +6,8 @@
       analysis.registerNamedQuery(table,query);
       TupleDescriptor queryDescriptor=analysis.getOutputDescriptor(query);
       ImmutableList.Builder<Field> fields=ImmutableList.builder();
-      for (      Field field : queryDescriptor.getFields()) {
-        fields.add(Field.newQualified(QualifiedName.of(name),field.getName(),field.getType()));
+      for (      Field field : queryDescriptor.getAllFields()) {
+        fields.add(Field.newQualified(QualifiedName.of(name),field.getName(),field.getType(),false));
       }
       TupleDescriptor descriptor=new TupleDescriptor(fields.build());
       analysis.setOutputDescriptor(table,descriptor);
@@ -31,7 +31,7 @@
   TableMetadata tableMetadata=metadata.getTableMetadata(tableHandle.get());
   ImmutableList.Builder<Field> fields=ImmutableList.builder();
   for (  ColumnMetadata column : tableMetadata.getColumns()) {
-    Field field=Field.newQualified(table.getName(),Optional.of(column.getName()),column.getType());
+    Field field=Field.newQualified(table.getName(),Optional.of(column.getName()),column.getType(),column.isHidden());
     fields.add(field);
     Optional<ColumnHandle> columnHandle=metadata.getColumnHandle(tableHandle.get(),column.getName());
     checkArgument(columnHandle.isPresent(),"Unknown field %s",field);

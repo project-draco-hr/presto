@@ -1,11 +1,11 @@
 {
   checkState(node.getRows().size() >= 1);
   TupleAnalyzer analyzer=new TupleAnalyzer(analysis,session,metadata,experimentalSyntaxEnabled);
-  TupleDescriptor outputDescriptor=analyzer.process(node.getRows().get(0),context);
-  Iterable<Type> types=transform(outputDescriptor.getFields(),typeGetter());
+  TupleDescriptor outputDescriptor=analyzer.process(node.getRows().get(0),context).withOnlyVisibleFields();
+  Iterable<Type> types=transform(outputDescriptor.getVisibleFields(),typeGetter());
   for (  Row row : Iterables.skip(node.getRows(),1)) {
     TupleDescriptor descriptor=analyzer.process(row,context);
-    Iterable<Type> rowTypes=transform(descriptor.getFields(),typeGetter());
+    Iterable<Type> rowTypes=transform(descriptor.getVisibleFields(),typeGetter());
     if (!elementsEqual(types,rowTypes)) {
       throw new SemanticException(MISMATCHED_SET_COLUMN_TYPES,node,"Values rows have mismatched types: " + "Expected: (" + Joiner.on(", ").join(types) + "), "+ "Actual: ("+ Joiner.on(", ").join(rowTypes)+ ")");
     }

@@ -1,5 +1,11 @@
 {
-  String vars=Joiner.on(',').join(nCopies(tableMetadata.getColumns().size(),"?"));
+  List<ColumnMetadata> columns=ImmutableList.copyOf(Iterables.filter(tableMetadata.getColumns(),new Predicate<ColumnMetadata>(){
+    @Override public boolean apply(    ColumnMetadata columnMetadata){
+      return !columnMetadata.isHidden();
+    }
+  }
+));
+  String vars=Joiner.on(',').join(nCopies(columns.size(),"?"));
   String sql=format("INSERT INTO %s VALUES (%s)",tableMetadata.getTable().getTableName(),vars);
   RecordCursor cursor=data.cursor();
   while (true) {
@@ -10,8 +16,8 @@
         return;
       }
       PreparedBatchPart part=batch.add();
-      for (int column=0; column < tableMetadata.getColumns().size(); column++) {
-        Type type=tableMetadata.getColumns().get(column).getType();
+      for (int column=0; column < columns.size(); column++) {
+        Type type=columns.get(column).getType();
         if (BOOLEAN.equals(type)) {
           part.bind(column,cursor.getBoolean(column));
         }
