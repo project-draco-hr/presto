@@ -1,9 +1,9 @@
 {
   long start=System.nanoTime();
-  MaterializedResult actualResults=computeActual(actual);
+  MaterializedResult actualResults=actualQueryRunner.execute(actualSession,actual).toJdbcTypes();
   Duration actualTime=Duration.nanosSince(start);
   long expectedStart=System.nanoTime();
-  MaterializedResult expectedResults=computeExpected(expected,actualResults.getTypes());
+  MaterializedResult expectedResults=h2QueryRunner.execute(expected,actualResults.getTypes());
   log.info("FINISHED in presto: %s, h2: %s, total: %s",actualTime,Duration.nanosSince(expectedStart),Duration.nanosSince(start));
   if (ensureOrdering) {
     assertEquals(actualResults.getMaterializedRows(),expectedResults.getMaterializedRows());
