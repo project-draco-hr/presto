@@ -4,7 +4,12 @@
     Map<SchemaTableName,String> views=entry.getMetadata().getViews(session,prefix);
     String view=views.get(viewName.asSchemaTableName());
     if (view != null) {
-      return Optional.of(view);
+      try {
+        return Optional.of(viewCodec.fromJson(view));
+      }
+ catch (      IllegalArgumentException e) {
+        throw new PrestoException(INVALID_VIEW.toErrorCode(),"Invalid view JSON: " + view,e);
+      }
     }
   }
   return Optional.absent();

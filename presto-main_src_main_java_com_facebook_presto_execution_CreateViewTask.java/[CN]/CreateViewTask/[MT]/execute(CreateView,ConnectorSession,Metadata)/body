@@ -1,5 +1,9 @@
 {
   QualifiedTableName name=createQualifiedTableName(session,statement.getName());
-  String data=formatSql(statement.getQuery());
+  String sql=getFormattedSql(statement);
+  Analysis analysis=analyzeStatement(statement,session,metadata);
+  Iterable<Field> fields=analysis.getOutputDescriptor().getVisibleFields();
+  List<ViewColumn> columns=FluentIterable.from(fields).transform(fieldToColumn()).toList();
+  String data=codec.toJson(new ViewDefinition(sql,session.getCatalog(),session.getSchema(),columns));
   metadata.createView(session,name,data,statement.isReplace());
 }

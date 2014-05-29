@@ -1,0 +1,10 @@
+{
+  try {
+    ConnectorSession viewSession=new ConnectorSession(session.getUser(),session.getSource(),catalog,schema,session.getTimeZoneKey(),session.getLocale(),session.getRemoteUserAddress(),session.getUserAgent(),session.getStartTime());
+    StatementAnalyzer analyzer=new StatementAnalyzer(analysis,metadata,viewSession,experimentalSyntaxEnabled,Optional.<QueryExplainer>absent());
+    return analyzer.process(query,new AnalysisContext());
+  }
+ catch (  RuntimeException e) {
+    throw new SemanticException(VIEW_ANALYSIS_ERROR,node,"Failed analyzing stored view '%s': %s",name,e.getMessage());
+  }
+}

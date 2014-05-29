@@ -15,11 +15,15 @@
     }
   }
   QualifiedTableName name=MetadataUtil.createQualifiedTableName(session,table.getName());
-  Optional<String> view=metadata.getView(session,name);
-  if (view.isPresent()) {
-    Query query=parseView(view.get(),name);
+  Optional<ViewDefinition> optionalView=metadata.getView(session,name);
+  if (optionalView.isPresent()) {
+    ViewDefinition view=optionalView.get();
+    Query query=parseView(view.getOriginalSql(),name,table);
     analysis.registerNamedQuery(table,query);
-    TupleDescriptor descriptor=analyzeView(query,name);
+    TupleDescriptor descriptor=analyzeView(query,name,view.getCatalog(),view.getSchema(),table);
+    if (isViewStale(view.getColumns(),descriptor.getVisibleFields())) {
+      throw new SemanticException(VIEW_IS_STALE,table,"View '%s' is stale; it must be re-created",name);
+    }
     analysis.setOutputDescriptor(table,descriptor);
     return descriptor;
   }
