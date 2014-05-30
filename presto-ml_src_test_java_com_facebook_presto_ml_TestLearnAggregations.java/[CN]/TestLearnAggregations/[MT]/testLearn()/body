@@ -1,0 +1,11 @@
+{
+  LearnAggregation aggregation=new LearnAggregation(ClassifierType.CLASSIFIER,BigintType.BIGINT);
+  Accumulator accumulator=aggregation.createAggregation(Optional.<Integer>absent(),Optional.<Integer>absent(),1.0,0,1);
+  accumulator.addInput(getPage());
+  BlockCursor cursor=accumulator.evaluateFinal().cursor();
+  cursor.advanceNextPosition();
+  Slice slice=cursor.getSlice();
+  Model deserialized=ModelUtils.deserialize(slice);
+  assertNotNull(deserialized,"deserialization failed");
+  assertTrue(deserialized instanceof Classifier,"deserialized model is not a classifier");
+}
