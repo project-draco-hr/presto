@@ -1,19 +1,23 @@
 {
-  fieldCount=handle.getColumnNames().size();
-  sampleWeightField=handle.getColumnNames().indexOf(SAMPLE_WEIGHT_COLUMN_NAME);
-  this.cassandraSession=cassandraSession;
+  this.fieldCount=checkNotNull(handle,"handle is null").getColumnNames().size();
+  this.cassandraSession=checkNotNull(cassandraSession,"cassandraSession is null");
+  this.sampled=handle.isSampled();
   StringBuilder queryBuilder=new StringBuilder(String.format("INSERT INTO \"%s\".\"%s\"(",handle.getSchemaName(),handle.getTableName()));
   queryBuilder.append("id");
+  if (sampled) {
+    queryBuilder.append("," + SAMPLE_WEIGHT_COLUMN_NAME);
+  }
   for (  String columnName : handle.getColumnNames()) {
-    if (!columnName.equals(SAMPLE_WEIGHT_COLUMN_NAME)) {
-      queryBuilder.append(",").append(columnName);
-    }
+    queryBuilder.append(",").append(columnName);
   }
   queryBuilder.append(") VALUES (?");
-  for (int i=sampleWeightField > -1 ? 1 : 0; i < handle.getColumnNames().size(); i++) {
+  if (sampled) {
+    queryBuilder.append(",?");
+  }
+  for (int i=0; i < handle.getColumnNames().size(); i++) {
     queryBuilder.append(",?");
   }
   queryBuilder.append(")");
   insertQuery=queryBuilder.toString();
-  bindedValues=Lists.newArrayList();
+  values=Lists.newArrayList();
 }
