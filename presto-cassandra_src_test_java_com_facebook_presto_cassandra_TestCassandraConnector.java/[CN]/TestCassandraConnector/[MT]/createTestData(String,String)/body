@@ -1,0 +1,10 @@
+{
+  List<ColumnFamilyDefinition> columnFamilyDefinitions=createColumnFamilyDefinitions(keyspaceName,columnFamilyName);
+  Keyspace keyspace=createOrReplaceKeyspace(keyspaceName,columnFamilyDefinitions);
+  Mutator<String> mutator=HFactory.createMutator(keyspace,StringSerializer.get());
+  long timestamp=System.currentTimeMillis();
+  for (int rowNumber=1; rowNumber < 10; rowNumber++) {
+    addRow(columnFamilyName,mutator,timestamp,rowNumber);
+  }
+  mutator.execute();
+}

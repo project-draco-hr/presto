@@ -15,7 +15,11 @@
   }
   modules.addAll(additionalModules);
   Bootstrap app=new Bootstrap(modules.build());
-  Injector injector=app.strictConfig().doNotInitializeLogging().setRequiredConfigurationProperties(serverProperties.build()).initialize();
+  Map<String,String> optionalProperties=new HashMap<>();
+  if (environment != null) {
+    optionalProperties.put("node.environment",environment);
+  }
+  Injector injector=app.strictConfig().doNotInitializeLogging().setRequiredConfigurationProperties(serverProperties.build()).setOptionalConfigurationProperties(optionalProperties).initialize();
   injector.getInstance(Announcer.class).start();
   lifeCycleManager=injector.getInstance(LifeCycleManager.class);
   pluginManager=injector.getInstance(PluginManager.class);
