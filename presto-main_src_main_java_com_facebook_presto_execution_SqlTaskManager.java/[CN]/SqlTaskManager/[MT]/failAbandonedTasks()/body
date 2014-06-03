@@ -3,7 +3,7 @@
   DateTime oldestAllowedHeartbeat=now.minus(clientTimeout.toMillis());
   for (  TaskExecution taskExecution : tasks.values()) {
     try {
-      TaskInfo taskInfo=taskExecution.getTaskInfo(false);
+      TaskInfo taskInfo=taskExecution.getTaskInfo();
       if (taskInfo.getState().isDone()) {
         continue;
       }
@@ -11,7 +11,7 @@
       if (lastHeartbeat != null && lastHeartbeat.isBefore(oldestAllowedHeartbeat)) {
         log.info("Failing abandoned task %s",taskExecution.getTaskId());
         taskExecution.fail(new AbandonedException("Task " + taskInfo.getTaskId(),lastHeartbeat,now));
-        getTaskInfo(taskExecution,false);
+        getTaskInfo(taskExecution);
       }
     }
  catch (    RuntimeException e) {
