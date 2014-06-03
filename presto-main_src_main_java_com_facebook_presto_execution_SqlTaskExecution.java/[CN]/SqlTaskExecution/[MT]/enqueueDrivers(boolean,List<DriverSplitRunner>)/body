@@ -7,14 +7,14 @@
     final DriverSplitRunner splitRunner=runners.get(i);
     Futures.addCallback(finishedFuture,new FutureCallback<Object>(){
       @Override public void onSuccess(      Object result){
-        try (SetThreadName setThreadName=new SetThreadName("Task-%s",taskId)){
+        try (SetThreadName ignored=new SetThreadName("Task-%s",taskId)){
           remainingDrivers.decrementAndGet();
           checkTaskCompletion();
           queryMonitor.splitCompletionEvent(taskId,splitRunner.getDriverContext().getDriverStats());
         }
        }
       @Override public void onFailure(      Throwable cause){
-        try (SetThreadName setThreadName=new SetThreadName("Task-%s",taskId)){
+        try (SetThreadName ignored=new SetThreadName("Task-%s",taskId)){
           taskStateMachine.failed(cause);
           remainingDrivers.decrementAndGet();
           DriverContext driverContext=splitRunner.getDriverContext();
