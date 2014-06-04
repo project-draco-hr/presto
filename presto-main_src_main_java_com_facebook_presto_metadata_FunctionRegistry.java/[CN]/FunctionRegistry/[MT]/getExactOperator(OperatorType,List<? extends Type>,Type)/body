@@ -1,13 +1,13 @@
 {
-  Iterable<OperatorInfo> candidates=functions.getOperators(operatorType);
-  for (  OperatorInfo operatorInfo : candidates) {
+  Iterable<FunctionInfo> candidates=functions.getOperators(operatorType);
+  for (  FunctionInfo operatorInfo : candidates) {
     if (operatorInfo.getReturnType().equals(returnType) && operatorInfo.getArgumentTypes().equals(argumentTypes)) {
       return operatorInfo;
     }
   }
   if ((operatorType == OperatorType.CAST) && (argumentTypes.size() == 1) && argumentTypes.get(0).equals(returnType)) {
     MethodHandle identity=MethodHandles.identity(returnType.getJavaType());
-    return new OperatorInfo(OperatorType.CAST,returnType,argumentTypes,identity,new DefaultFunctionBinder(identity,false));
+    return operatorInfo(OperatorType.CAST,returnType,argumentTypes,identity,new DefaultFunctionBinder(identity,false));
   }
   throw new OperatorNotFoundException(operatorType,argumentTypes,returnType);
 }
