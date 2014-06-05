@@ -1,0 +1,20 @@
+{
+  List<List<Object>> controlResults=controlResult.getResults();
+  List<List<Object>> testResults=testResult.getResults();
+  if (valid() || (controlResults == null) || (testResults == null)) {
+    return "";
+  }
+  Multiset<List<Object>> control=ImmutableSortedMultiset.copyOf(rowComparator(),controlResults);
+  Multiset<List<Object>> test=ImmutableSortedMultiset.copyOf(rowComparator(),testResults);
+  try {
+    Iterable<ChangedRow> diff=ImmutableSortedMultiset.<ChangedRow>naturalOrder().addAll(Iterables.transform(Multisets.difference(control,test),ChangedRow.changedRows(Changed.REMOVED))).addAll(Iterables.transform(Multisets.difference(test,control),ChangedRow.changedRows(Changed.ADDED))).build();
+    diff=Iterables.limit(diff,100);
+    StringBuilder sb=new StringBuilder();
+    sb.append(format("Control %s rows, Test %s rows%n",control.size(),test.size()));
+    Joiner.on("\n").appendTo(sb,diff);
+    return sb.toString();
+  }
+ catch (  TypesDoNotMatchException e) {
+    return e.getMessage();
+  }
+}

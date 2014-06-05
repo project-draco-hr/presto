@@ -1,0 +1,25 @@
+{
+  return new Comparator<Object>(){
+    @SuppressWarnings("unchecked") @Override public int compare(    Object a,    Object b){
+      if (a instanceof Number && b instanceof Number) {
+        Number x=(Number)a;
+        Number y=(Number)b;
+        boolean bothReal=isReal(x) && isReal(y);
+        boolean bothIntegral=isIntegral(x) && isIntegral(y);
+        if (!(bothReal || bothIntegral)) {
+          throw new TypesDoNotMatchException(format("item types do not match: %s vs %s",a.getClass().getName(),b.getClass().getName()));
+        }
+        if (isIntegral(x)) {
+          return Long.compare(x.longValue(),y.longValue());
+        }
+        return precisionCompare(x.doubleValue(),y.doubleValue());
+      }
+      if (a.getClass() != b.getClass()) {
+        throw new TypesDoNotMatchException(format("item types do not match: %s vs %s",a.getClass().getName(),b.getClass().getName()));
+      }
+      checkArgument(a instanceof Comparable,"item is not Comparable: %s",a.getClass().getName());
+      return ((Comparable<Object>)a).compareTo(b);
+    }
+  }
+;
+}

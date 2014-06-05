@@ -1,0 +1,26 @@
+{
+  int rowCount=0;
+  int columnCount=resultSet.getMetaData().getColumnCount();
+  ImmutableList.Builder<List<Object>> rows=ImmutableList.builder();
+  while (resultSet.next()) {
+    List<Object> row=new ArrayList<>();
+    for (int i=1; i <= columnCount; i++) {
+      Object object=resultSet.getObject(i);
+      if (object instanceof BigDecimal) {
+        if (((BigDecimal)object).scale() <= 0) {
+          object=((BigDecimal)object).longValueExact();
+        }
+ else {
+          object=((BigDecimal)object).doubleValue();
+        }
+      }
+      row.add(object);
+    }
+    rows.add(unmodifiableList(row));
+    rowCount++;
+    if (rowCount > maxRowCount) {
+      throw new VerifierException("More than '" + maxRowCount + "' rows, failing query");
+    }
+  }
+  return rows.build();
+}

@@ -1,0 +1,10 @@
+{
+  return IterableTransformer.on(queries).transform(new Function<QueryPair,QueryPair>(){
+    @Override public QueryPair apply(    QueryPair input){
+      Query test=new Query(Optional.fromNullable(config.getTestCatalogOverride()).or(input.getTest().getCatalog()),Optional.fromNullable(config.getTestSchemaOverride()).or(input.getTest().getSchema()),input.getTest().getQuery());
+      Query control=new Query(Optional.fromNullable(config.getControlCatalogOverride()).or(input.getControl().getCatalog()),Optional.fromNullable(config.getControlSchemaOverride()).or(input.getControl().getSchema()),input.getControl().getQuery());
+      return new QueryPair(input.getSuite(),input.getName(),test,control);
+    }
+  }
+).list();
+}
