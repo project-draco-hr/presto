@@ -1,0 +1,34 @@
+{
+  checkArgument(clazz.isInterface(),clazz.getName() + " is not an interface");
+  Set<String> setters=new HashSet<>();
+  Set<String> getters=new HashSet<>();
+  Map<String,Class<?>> fieldTypes=new HashMap<>();
+  for (  StateField field : fields) {
+    fieldTypes.put(field.getName(),field.getType());
+  }
+  for (  Method method : clazz.getMethods()) {
+    if (method.getName().equals("getEstimatedSize")) {
+      checkArgument(method.getReturnType().equals(long.class),"getEstimatedSize must return long");
+      checkArgument(method.getParameterTypes().length == 0,"getEstimatedSize may not have parameters");
+      continue;
+    }
+    if (method.getName().startsWith("get")) {
+      String name=method.getName().substring(3);
+      checkArgument(fieldTypes.get(name).equals(method.getReturnType()),"Expected %s to return type %s, but found %s",method.getName(),fieldTypes.get(name),method.getReturnType());
+      checkArgument(method.getParameterTypes().length == 0,"Expected %s to have zero parameters",method.getName());
+      getters.add(name);
+    }
+ else     if (method.getName().startsWith("set")) {
+      String name=method.getName().substring(3);
+      checkArgument(method.getParameterTypes().length == 1,"Expected setter to have one parameter");
+      checkArgument(fieldTypes.get(name).equals(method.getParameterTypes()[0]),"Expected %s to accept type %s, but found %s",method.getName(),fieldTypes.get(name),method.getParameterTypes()[0]);
+      checkArgument(getInitialValue(method) == null,"initial value annotation not allowed on setter");
+      checkArgument(method.getReturnType().equals(void.class),"%s may not return a value",method.getName());
+      setters.add(name);
+    }
+ else {
+      throw new IllegalArgumentException("Cannot generate implementation for method: " + method.getName());
+    }
+  }
+  checkArgument(getters.size() == setters.size() && setters.size() == fields.size(),"Wrong number of getters/setters");
+}
