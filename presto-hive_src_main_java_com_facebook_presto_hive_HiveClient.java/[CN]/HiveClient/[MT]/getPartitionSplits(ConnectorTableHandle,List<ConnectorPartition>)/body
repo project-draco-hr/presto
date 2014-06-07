@@ -1,22 +1,27 @@
 {
   HiveTableHandle hiveTableHandle=checkType(tableHandle,HiveTableHandle.class,"tableHandle");
-  checkNotNull(partitions,"partitions is null");
-  ConnectorPartition partition=Iterables.getFirst(partitions,null);
+  checkNotNull(connectorPartitions,"connectorPartitions is null");
+  List<HivePartition> partitions=Lists.transform(connectorPartitions,new Function<ConnectorPartition,HivePartition>(){
+    @Override public HivePartition apply(    ConnectorPartition partition){
+      return checkType(partition,HivePartition.class,"partition");
+    }
+  }
+);
+  HivePartition partition=Iterables.getFirst(partitions,null);
   if (partition == null) {
     return new FixedSplitSource(connectorId,ImmutableList.<ConnectorSplit>of());
   }
-  HivePartition hivePartition=checkType(partition,HivePartition.class,"partition");
-  SchemaTableName tableName=hivePartition.getTableName();
-  Optional<HiveBucket> bucket=hivePartition.getBucket();
-  List<String> partitionNames=Ordering.natural().reverse().sortedCopy(transform(partitions,partitionIdGetter()));
+  SchemaTableName tableName=partition.getTableName();
+  Optional<HiveBucket> bucket=partition.getBucket();
+  partitions=Ordering.natural().onResultOf(partitionIdGetter()).reverse().sortedCopy(partitions);
   Table table;
-  Iterable<Partition> hivePartitions;
+  Iterable<HivePartitionMetadata> hivePartitions;
   try {
     table=metastore.getTable(tableName.getSchemaName(),tableName.getTableName());
-    hivePartitions=getPartitions(table,tableName,partitionNames);
+    hivePartitions=getPartitionMetadata(table,tableName,partitions);
   }
  catch (  NoSuchObjectException e) {
     throw new TableNotFoundException(tableName);
   }
-  return new HiveSplitSourceProvider(connectorId,table,partitionNames,hivePartitions,bucket,maxSplitSize,maxOutstandingSplits,maxSplitIteratorThreads,hdfsEnvironment,namenodeStats,directoryLister,executor,maxPartitionBatchSize,hiveTableHandle.getSession(),maxInitialSplitSize,maxInitialSplits,recursiveDfsWalkerEnabled).get();
+  return new HiveSplitSourceProvider(connectorId,table,hivePartitions,bucket,maxSplitSize,maxOutstandingSplits,maxSplitIteratorThreads,hdfsEnvironment,namenodeStats,directoryLister,executor,maxPartitionBatchSize,hiveTableHandle.getSession(),maxInitialSplitSize,maxInitialSplits,recursiveDfsWalkerEnabled).get();
 }

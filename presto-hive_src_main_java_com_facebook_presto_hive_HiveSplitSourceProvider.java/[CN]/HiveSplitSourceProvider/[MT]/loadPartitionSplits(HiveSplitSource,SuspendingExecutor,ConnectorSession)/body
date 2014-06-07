@@ -2,14 +2,13 @@
   final Semaphore semaphore=new Semaphore(maxPartitionBatchSize);
   try (ThreadContextClassLoader ignored=new ThreadContextClassLoader(classLoader)){
     ImmutableList.Builder<ListenableFuture<Void>> futureBuilder=ImmutableList.builder();
-    Iterator<String> nameIterator=partitionNames.iterator();
-    for (    Partition partition : partitions) {
-      checkState(nameIterator.hasNext(),"different number of partitions and partition names!");
-      final String partitionName=nameIterator.next();
-      final Properties schema=getPartitionSchema(table,partition);
-      final List<HivePartitionKey> partitionKeys=getPartitionKeys(table,partition);
-      Path path=new Path(getPartitionLocation(table,partition));
-      final Configuration configuration=hdfsEnvironment.getConfiguration(path);
+    for (    HivePartitionMetadata partition : partitions) {
+      final String partitionName=partition.getHivePartition().getPartitionId();
+      final Properties schema=getPartitionSchema(table,partition.getPartition());
+      final List<HivePartitionKey> partitionKeys=getPartitionKeys(table,partition.getPartition());
+      final TupleDomain<HiveColumnHandle> tupleDomain=(TupleDomain<HiveColumnHandle>)(Object)partition.getHivePartition().getTupleDomain();
+      Path path=new Path(getPartitionLocation(table,partition.getPartition()));
+      Configuration configuration=hdfsEnvironment.getConfiguration(path);
       final InputFormat<?,?> inputFormat=getInputFormat(configuration,schema,false);
       if (inputFormat instanceof SymlinkTextInputFormat) {
         JobConf jobConf=new JobConf(configuration);
@@ -19,7 +18,7 @@
           FileSplit split=((SymlinkTextInputFormat.SymlinkTextInputSplit)rawSplit).getTargetSplit();
           FileSystem targetFilesystem=hdfsEnvironment.getFileSystem(split.getPath());
           FileStatus fileStatus=targetFilesystem.getFileStatus(split.getPath());
-          hiveSplitSource.addToQueue(createHiveSplits(partitionName,fileStatus,targetFilesystem.getFileBlockLocations(fileStatus,split.getStart(),split.getLength()),split.getStart(),split.getLength(),schema,partitionKeys,false,session));
+          hiveSplitSource.addToQueue(createHiveSplits(partitionName,fileStatus,targetFilesystem.getFileBlockLocations(fileStatus,split.getStart(),split.getLength()),split.getStart(),split.getLength(),schema,partitionKeys,false,session,tupleDomain));
         }
         continue;
       }
@@ -30,7 +29,7 @@
           FileStatus file=bucketFile.get();
           BlockLocation[] blockLocations=fs.getFileBlockLocations(file,0,file.getLen());
           boolean splittable=isSplittable(inputFormat,fs,file.getPath());
-          hiveSplitSource.addToQueue(createHiveSplits(partitionName,file,blockLocations,0,file.getLen(),schema,partitionKeys,splittable,session));
+          hiveSplitSource.addToQueue(createHiveSplits(partitionName,file,blockLocations,0,file.getLen(),schema,partitionKeys,splittable,session,tupleDomain));
           continue;
         }
       }
@@ -45,7 +44,7 @@
         @Override public void process(        FileStatus file,        BlockLocation[] blockLocations){
           try {
             boolean splittable=isSplittable(inputFormat,hdfsEnvironment.getFileSystem(file.getPath()),file.getPath());
-            hiveSplitSource.addToQueue(createHiveSplits(partitionName,file,blockLocations,0,file.getLen(),schema,partitionKeys,splittable,session));
+            hiveSplitSource.addToQueue(createHiveSplits(partitionName,file,blockLocations,0,file.getLen(),schema,partitionKeys,splittable,session,tupleDomain));
           }
  catch (          IOException e) {
             hiveSplitSource.fail(e);
