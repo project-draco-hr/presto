@@ -1,16 +1,7 @@
 {
-  ConnectorSession session=new ConnectorSession("user","test","default","default",UTC_KEY,Locale.ENGLISH,null,null);
+  ConnectorSession session=new ConnectorSession("user","test","tpch",TINY_SCHEMA_NAME,UTC_KEY,Locale.ENGLISH,null,null);
   LocalQueryRunner localQueryRunner=new LocalQueryRunner(session);
   InMemoryNodeManager nodeManager=localQueryRunner.getNodeManager();
   localQueryRunner.createCatalog("tpch",new TpchConnectorFactory(nodeManager,1),ImmutableMap.<String,String>of());
-  RaptorConnectorFactory raptorConnectorFactory=createRaptorConnectorFactory(TPCH_CACHE_DIR,nodeManager);
-  localQueryRunner.createCatalog("default",raptorConnectorFactory,ImmutableMap.<String,String>of());
-  Metadata metadata=localQueryRunner.getMetadata();
-  if (!metadata.getTableHandle(session,new QualifiedTableName("default","default","orders")).isPresent()) {
-    localQueryRunner.execute("CREATE TABLE orders AS SELECT * FROM tpch.sf1.orders");
-  }
-  if (!metadata.getTableHandle(session,new QualifiedTableName("default","default","lineitem")).isPresent()) {
-    localQueryRunner.execute("CREATE TABLE lineitem AS SELECT * FROM tpch.sf1.lineitem");
-  }
   return localQueryRunner;
 }
