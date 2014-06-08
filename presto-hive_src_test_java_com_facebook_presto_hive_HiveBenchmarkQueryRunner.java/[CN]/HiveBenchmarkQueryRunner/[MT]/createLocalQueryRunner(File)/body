@@ -1,0 +1,16 @@
+{
+  ConnectorSession session=new ConnectorSession("user","test","hive","tpch",UTC_KEY,Locale.ENGLISH,null,null);
+  LocalQueryRunner localQueryRunner=new LocalQueryRunner(session);
+  InMemoryNodeManager nodeManager=localQueryRunner.getNodeManager();
+  localQueryRunner.createCatalog("tpch",new TpchConnectorFactory(nodeManager,1),ImmutableMap.<String,String>of());
+  InMemoryHiveMetastore metastore=new InMemoryHiveMetastore();
+  File tpchDataDir=new File(tempDir,"tpch");
+  tpchDataDir.mkdir();
+  metastore.createDatabase(new Database("tpch",null,tpchDataDir.toURI().toString(),null));
+  HiveConnectorFactory hiveConnectorFactory=new HiveConnectorFactory("hive",ImmutableMap.of("node.environment","test"),HiveBenchmarkQueryRunner.class.getClassLoader(),metastore);
+  Map<String,String> hiveCatalogConfig=ImmutableMap.<String,String>builder().put("hive.metastore.uri","thrift://none.invalid").put("hive.max-split-size","10GB").build();
+  localQueryRunner.createCatalog("hive",hiveConnectorFactory,hiveCatalogConfig);
+  localQueryRunner.execute("CREATE TABLE orders AS SELECT * FROM tpch.sf1.orders");
+  localQueryRunner.execute("CREATE TABLE lineitem AS SELECT * FROM tpch.sf1.lineitem");
+  return localQueryRunner;
+}
