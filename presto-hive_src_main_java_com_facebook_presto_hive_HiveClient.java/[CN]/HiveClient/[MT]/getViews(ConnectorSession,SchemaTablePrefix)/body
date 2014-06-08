@@ -1,14 +1,21 @@
 {
-  checkArgument(prefix.getSchemaName() != null,"Cannot get views in all schemas");
-  checkArgument(prefix.getTableName() != null,"Cannot get all views");
-  SchemaTableName viewName=new SchemaTableName(prefix.getSchemaName(),prefix.getTableName());
-  try {
-    Table table=metastore.getTable(prefix.getSchemaName(),prefix.getTableName());
-    if (HiveUtil.isPrestoView(table)) {
-      return ImmutableMap.of(viewName,decodeViewData(table.getViewOriginalText()));
+  ImmutableMap.Builder<SchemaTableName,String> views=ImmutableMap.builder();
+  List<SchemaTableName> tableNames;
+  if (prefix.getTableName() != null) {
+    tableNames=ImmutableList.of(new SchemaTableName(prefix.getSchemaName(),prefix.getTableName()));
+  }
+ else {
+    tableNames=listViews(session,prefix.getSchemaName());
+  }
+  for (  SchemaTableName schemaTableName : tableNames) {
+    try {
+      Table table=metastore.getTable(schemaTableName.getSchemaName(),schemaTableName.getTableName());
+      if (HiveUtil.isPrestoView(table)) {
+        views.put(schemaTableName,decodeViewData(table.getViewOriginalText()));
+      }
+    }
+ catch (    NoSuchObjectException ignored) {
     }
   }
- catch (  NoSuchObjectException ignored) {
-  }
-  return ImmutableMap.of();
+  return views.build();
 }
