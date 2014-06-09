@@ -1,0 +1,19 @@
+{
+  this.expression=checkNotNull(expression,"expression is null");
+  checkNotNull(expressionTypes,"expressionTypes is null");
+  final ImmutableList.Builder<Type> types=ImmutableList.builder();
+  Type type=checkNotNull(expressionTypes.get(expression),"Expression types does not contain an entry for %s",expression);
+  types.add(type);
+  expression.accept(new DefaultTraversalVisitor<Void,Void>(){
+    @Override public Void process(    Node node,    @Nullable Void context){
+      Expression expression=(Expression)node;
+      Type type=expressionTypes.get(expression);
+      checkState(expressionTypes.get(expression) != null,"Expression types does not contain an entry for %s",expression);
+      types.add(type);
+      super.process(node,context);
+      return null;
+    }
+  }
+,null);
+  this.types=types.build();
+}
