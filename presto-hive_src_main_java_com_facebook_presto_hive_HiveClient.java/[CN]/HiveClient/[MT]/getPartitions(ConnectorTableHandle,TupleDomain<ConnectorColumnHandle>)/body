@@ -10,6 +10,10 @@
     if (protectMode != null && getProtectModeFromString(protectMode).offline) {
       throw new TableOfflineException(tableName);
     }
+    String prestoOffline=table.getParameters().get(PRESTO_OFFLINE);
+    if (!isNullOrEmpty(prestoOffline)) {
+      throw new TableOfflineException(tableName,format("Table '%s' is offline for Presto: %s",tableName,prestoOffline));
+    }
     partitionKeys=table.getPartitionKeys();
     bucket=getHiveBucket(table,tupleDomain.extractFixedValues());
   }
