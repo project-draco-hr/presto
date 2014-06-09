@@ -10,24 +10,27 @@
         try (SetThreadName ignored=new SetThreadName("Task-%s",taskId)){
           remainingDrivers.decrementAndGet();
           checkTaskCompletion();
-          queryMonitor.splitCompletionEvent(taskId,splitRunner.getDriverContext().getDriverStats());
+          queryMonitor.splitCompletionEvent(taskId,getDriverStats());
         }
        }
       @Override public void onFailure(      Throwable cause){
         try (SetThreadName ignored=new SetThreadName("Task-%s",taskId)){
           taskStateMachine.failed(cause);
           remainingDrivers.decrementAndGet();
-          DriverContext driverContext=splitRunner.getDriverContext();
-          DriverStats driverStats;
-          if (driverContext != null) {
-            driverStats=driverContext.getDriverStats();
-          }
- else {
-            driverStats=new DriverStats();
-          }
-          queryMonitor.splitFailedEvent(taskId,driverStats,cause);
+          queryMonitor.splitFailedEvent(taskId,getDriverStats(),cause);
         }
        }
+      private DriverStats getDriverStats(){
+        DriverContext driverContext=splitRunner.getDriverContext();
+        DriverStats driverStats;
+        if (driverContext != null) {
+          driverStats=driverContext.getDriverStats();
+        }
+ else {
+          driverStats=new DriverStats();
+        }
+        return driverStats;
+      }
     }
 ,notificationExecutor);
   }
