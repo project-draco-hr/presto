@@ -1,3 +1,17 @@
 {
-  throw new UnsupportedOperationException();
+  HiveTableHandle handle=checkType(tableHandle,HiveTableHandle.class,"tableHandle");
+  SchemaTableName tableName=getTableName(tableHandle);
+  if (!allowDropTable) {
+    throw new PrestoException(CANNOT_DROP_TABLE.toErrorCode(),"DROP TABLE is disabled in this Hive catalog");
+  }
+  try {
+    Table table=metastore.getTable(handle.getSchemaName(),handle.getTableName());
+    if (!handle.getSession().getUser().equals(table.getOwner())) {
+      throw new PrestoException(CANNOT_DROP_TABLE.toErrorCode(),format("Unable to drop table '%s': owner of the table is different from session user",table));
+    }
+    metastore.dropTable(handle.getSchemaName(),handle.getTableName());
+  }
+ catch (  NoSuchObjectException e) {
+    throw new TableNotFoundException(tableName);
+  }
 }
