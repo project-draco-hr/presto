@@ -1,0 +1,22 @@
+{
+  doCreateView(temporaryCreateView,true);
+  doCreateView(temporaryCreateView,true);
+  try {
+    doCreateView(temporaryCreateView,false);
+    fail("create existing should fail");
+  }
+ catch (  ViewAlreadyExistsException e) {
+    assertEquals(e.getViewName(),temporaryCreateView);
+  }
+  metadata.dropView(SESSION,temporaryCreateView);
+  assertEquals(metadata.getViews(SESSION,temporaryCreateView.toSchemaTablePrefix()).size(),0);
+  assertFalse(metadata.listViews(SESSION,temporaryCreateView.getSchemaName()).contains(temporaryCreateView));
+  try {
+    metadata.dropView(SESSION,temporaryCreateView);
+    fail("drop non-existing should fail");
+  }
+ catch (  ViewNotFoundException e) {
+    assertEquals(e.getViewName(),temporaryCreateView);
+  }
+  doCreateView(temporaryCreateView,false);
+}

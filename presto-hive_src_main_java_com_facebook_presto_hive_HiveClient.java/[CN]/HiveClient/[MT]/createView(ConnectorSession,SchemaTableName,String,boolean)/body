@@ -1,3 +1,29 @@
 {
-  throw new UnsupportedOperationException();
+  if (replace) {
+    try {
+      dropView(session,viewName);
+    }
+ catch (    ViewNotFoundException ignored) {
+    }
+  }
+  Map<String,String> properties=ImmutableMap.<String,String>builder().put("comment","Presto View").put(PRESTO_VIEW_FLAG,"true").build();
+  FieldSchema dummyColumn=new FieldSchema("dummy",STRING_TYPE_NAME,null);
+  StorageDescriptor sd=new StorageDescriptor();
+  sd.setCols(ImmutableList.of(dummyColumn));
+  sd.setSerdeInfo(new SerDeInfo());
+  Table table=new Table();
+  table.setDbName(viewName.getSchemaName());
+  table.setTableName(viewName.getTableName());
+  table.setOwner(session.getUser());
+  table.setTableType(TableType.VIRTUAL_VIEW.name());
+  table.setParameters(properties);
+  table.setViewOriginalText(encodeViewData(viewData));
+  table.setViewExpandedText("/* Presto View */");
+  table.setSd(sd);
+  try {
+    metastore.createTable(table);
+  }
+ catch (  TableAlreadyExistsException e) {
+    throw new ViewAlreadyExistsException(e.getTableName());
+  }
 }

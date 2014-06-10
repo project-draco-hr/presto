@@ -1,0 +1,19 @@
+{
+  try {
+    return retry().stopOn(UnknownDBException.class).stopOnIllegalExceptions().run("getAllViews",stats.getAllViews().wrap(new Callable<List<String>>(){
+      @Override public List<String> call() throws Exception {
+        try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
+          String filter=HIVE_FILTER_FIELD_PARAMS + PRESTO_VIEW_FLAG + " = \"true\"";
+          return client.get_table_names_by_filter(databaseName,filter,(short)-1);
+        }
+       }
+    }
+));
+  }
+ catch (  UnknownDBException e) {
+    throw new NoSuchObjectException(e.getMessage());
+  }
+catch (  TException e) {
+    throw new PrestoException(HiveErrorCode.HIVE_METASTORE_ERROR.toErrorCode(),e);
+  }
+}

@@ -4,7 +4,7 @@
       @Override public Table call() throws Exception {
         try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
           Table table=client.get_table(hiveTableName.getDatabaseName(),hiveTableName.getTableName());
-          if (table.getTableType().equals(TableType.VIRTUAL_VIEW.toString())) {
+          if (table.getTableType().equals(TableType.VIRTUAL_VIEW.name()) && (!isPrestoView(table))) {
             throw new HiveViewNotSupportedException(new SchemaTableName(hiveTableName.getDatabaseName(),hiveTableName.getTableName()));
           }
           return table;

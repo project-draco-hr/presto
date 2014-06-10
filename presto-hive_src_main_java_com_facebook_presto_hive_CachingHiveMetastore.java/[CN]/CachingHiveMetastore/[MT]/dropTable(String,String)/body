@@ -5,13 +5,16 @@
         try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
           client.drop_table(databaseName,tableName,true);
         }
-         return null;
+         tableCache.invalidate(new HiveTableName(databaseName,tableName));
+        tableNamesCache.invalidate(databaseName);
+        viewNamesCache.invalidate(databaseName);
+        return null;
       }
     }
 ));
   }
  catch (  NoSuchObjectException e) {
-    throw Throwables.propagate(e);
+    throw new TableNotFoundException(new SchemaTableName(databaseName,tableName));
   }
 catch (  TException e) {
     throw new PrestoException(HiveErrorCode.HIVE_METASTORE_ERROR.toErrorCode(),e);
