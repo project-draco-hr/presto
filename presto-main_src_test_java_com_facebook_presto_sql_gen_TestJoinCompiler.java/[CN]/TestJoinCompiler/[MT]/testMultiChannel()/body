@@ -1,12 +1,12 @@
 {
   JoinCompiler joinCompiler=new JoinCompiler();
   PagesHashStrategyFactory pagesHashStrategyFactory=joinCompiler.compilePagesHashStrategy(5,Ints.asList(1,2,3,4));
-  List<RandomAccessBlock> extraChannel=ImmutableList.of(BlockAssertions.createStringSequenceBlock(10,20).toRandomAccessBlock(),BlockAssertions.createStringSequenceBlock(20,30).toRandomAccessBlock(),BlockAssertions.createStringSequenceBlock(15,25).toRandomAccessBlock());
-  List<RandomAccessBlock> varcharChannel=ImmutableList.of(BlockAssertions.createStringSequenceBlock(10,20).toRandomAccessBlock(),BlockAssertions.createStringSequenceBlock(20,30).toRandomAccessBlock(),BlockAssertions.createStringSequenceBlock(15,25).toRandomAccessBlock());
-  List<RandomAccessBlock> longChannel=ImmutableList.of(BlockAssertions.createLongSequenceBlock(10,20).toRandomAccessBlock(),BlockAssertions.createLongSequenceBlock(20,30).toRandomAccessBlock(),BlockAssertions.createLongSequenceBlock(15,25).toRandomAccessBlock());
-  List<RandomAccessBlock> doubleChannel=ImmutableList.of(BlockAssertions.createDoubleSequenceBlock(10,20).toRandomAccessBlock(),BlockAssertions.createDoubleSequenceBlock(20,30).toRandomAccessBlock(),BlockAssertions.createDoubleSequenceBlock(15,25).toRandomAccessBlock());
-  List<RandomAccessBlock> booleanChannel=ImmutableList.of(BlockAssertions.createBooleanSequenceBlock(10,20).toRandomAccessBlock(),BlockAssertions.createBooleanSequenceBlock(20,30).toRandomAccessBlock(),BlockAssertions.createBooleanSequenceBlock(15,25).toRandomAccessBlock());
-  ImmutableList<List<RandomAccessBlock>> channels=ImmutableList.of(extraChannel,varcharChannel,longChannel,doubleChannel,booleanChannel);
+  List<Block> extraChannel=ImmutableList.of(BlockAssertions.createStringSequenceBlock(10,20),BlockAssertions.createStringSequenceBlock(20,30),BlockAssertions.createStringSequenceBlock(15,25));
+  List<Block> varcharChannel=ImmutableList.of(BlockAssertions.createStringSequenceBlock(10,20),BlockAssertions.createStringSequenceBlock(20,30),BlockAssertions.createStringSequenceBlock(15,25));
+  List<Block> longChannel=ImmutableList.of(BlockAssertions.createLongSequenceBlock(10,20),BlockAssertions.createLongSequenceBlock(20,30),BlockAssertions.createLongSequenceBlock(15,25));
+  List<Block> doubleChannel=ImmutableList.of(BlockAssertions.createDoubleSequenceBlock(10,20),BlockAssertions.createDoubleSequenceBlock(20,30),BlockAssertions.createDoubleSequenceBlock(15,25));
+  List<Block> booleanChannel=ImmutableList.of(BlockAssertions.createBooleanSequenceBlock(10,20),BlockAssertions.createBooleanSequenceBlock(20,30),BlockAssertions.createBooleanSequenceBlock(15,25));
+  ImmutableList<List<Block>> channels=ImmutableList.of(extraChannel,varcharChannel,longChannel,doubleChannel,booleanChannel);
   PagesHashStrategy hashStrategy=pagesHashStrategyFactory.createPagesHashStrategy(channels);
   assertEquals(hashStrategy.getChannelCount(),5);
   PagesHashStrategy expectedHashStrategy=new SimplePagesHashStrategy(channels,Ints.asList(1,2,3,4));
@@ -17,7 +17,7 @@
       assertEquals(hashStrategy.hashPosition(leftBlockIndex,leftBlockPosition),expectedHashStrategy.hashPosition(leftBlockIndex,leftBlockPosition));
       assertTrue(hashStrategy.positionEqualsPosition(leftBlockIndex,leftBlockPosition,leftBlockIndex,leftBlockPosition));
       for (int rightBlockIndex=0; rightBlockIndex < varcharChannel.size(); rightBlockIndex++) {
-        RandomAccessBlock rightBlock=varcharChannel.get(rightBlockIndex);
+        Block rightBlock=varcharChannel.get(rightBlockIndex);
         for (int rightBlockPosition=0; rightBlockPosition < rightBlock.getPositionCount(); rightBlockPosition++) {
           assertEquals(hashStrategy.positionEqualsPosition(leftBlockIndex,leftBlockPosition,rightBlockIndex,rightBlockPosition),expectedHashStrategy.positionEqualsPosition(leftBlockIndex,leftBlockPosition,rightBlockIndex,rightBlockPosition));
         }

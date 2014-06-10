@@ -19,12 +19,12 @@
     int sortChannel=sortChannels.get(i);
     SortOrder sortOrder=sortOrders.get(i);
     Block block=new Block(compilerContext).setDescription("compare channel " + sortChannel + " "+ sortOrder);
-    block.comment("push leftBlock -- pagesIndex.getChannel(sortChannel).get(leftBlockIndex)").getVariable("pagesIndex").push(sortChannel).invokeVirtual(PagesIndex.class,"getChannel",ObjectArrayList.class,int.class).getVariable(leftBlockIndex).invokeVirtual(ObjectArrayList.class,"get",Object.class,int.class).checkCast(RandomAccessBlock.class);
+    block.comment("push leftBlock -- pagesIndex.getChannel(sortChannel).get(leftBlockIndex)").getVariable("pagesIndex").push(sortChannel).invokeVirtual(PagesIndex.class,"getChannel",ObjectArrayList.class,int.class).getVariable(leftBlockIndex).invokeVirtual(ObjectArrayList.class,"get",Object.class,int.class).checkCast(com.facebook.presto.spi.block.Block.class);
     block.comment("push sortOrder").getStaticField(SortOrder.class,sortOrder.name(),SortOrder.class);
     block.comment("push leftBlockPosition").getVariable(leftBlockPosition);
-    block.comment("push rightBlock -- pagesIndex.getChannel(sortChannel).get(rightBlockIndex)").getVariable("pagesIndex").push(sortChannel).invokeVirtual(PagesIndex.class,"getChannel",ObjectArrayList.class,int.class).getVariable(rightBlockIndex).invokeVirtual(ObjectArrayList.class,"get",Object.class,int.class).checkCast(RandomAccessBlock.class);
+    block.comment("push rightBlock -- pagesIndex.getChannel(sortChannel).get(rightBlockIndex)").getVariable("pagesIndex").push(sortChannel).invokeVirtual(PagesIndex.class,"getChannel",ObjectArrayList.class,int.class).getVariable(rightBlockIndex).invokeVirtual(ObjectArrayList.class,"get",Object.class,int.class).checkCast(com.facebook.presto.spi.block.Block.class);
     block.comment("push rightBlockPosition").getVariable(rightBlockPosition);
-    block.comment("invoke compareTo").invokeInterface(RandomAccessBlock.class,"compareTo",int.class,SortOrder.class,int.class,RandomAccessBlock.class,int.class);
+    block.comment("invoke compareTo").invokeInterface(com.facebook.presto.spi.block.Block.class,"compareTo",int.class,SortOrder.class,int.class,com.facebook.presto.spi.block.Block.class,int.class);
     LabelNode equal=new LabelNode("equal");
     block.comment("if (compare != 0) return compare").dup().ifZeroGoto(equal).retInt().visitLabel(equal).pop(int.class);
     compareToMethod.getBody().append(block);
