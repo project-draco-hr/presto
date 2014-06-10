@@ -2,17 +2,12 @@
   if (!block.getType().equals(type)) {
     throw new IllegalArgumentException("Invalid block");
   }
-  Slice rawSlice;
-  if (block instanceof AbstractVariableWidthRandomAccessBlock) {
-    AbstractVariableWidthRandomAccessBlock uncompressedBlock=(AbstractVariableWidthRandomAccessBlock)block;
-    rawSlice=uncompressedBlock.getRawSlice();
+  AbstractVariableWidthRandomAccessBlock uncompressedBlock=(AbstractVariableWidthRandomAccessBlock)block;
+  Slice rawSlice=uncompressedBlock.getRawSlice();
+  int positionCount=uncompressedBlock.getPositionCount();
+  sliceOutput.appendInt(positionCount);
+  for (int position=0; position < positionCount; position++) {
+    sliceOutput.appendInt(uncompressedBlock.getPositionOffset(position));
   }
- else   if (block instanceof VariableWidthBlock) {
-    VariableWidthBlock variableWidthBlock=(VariableWidthBlock)block;
-    rawSlice=variableWidthBlock.getRawSlice();
-  }
- else {
-    throw new IllegalArgumentException("Unsupported block type " + block.getClass().getName());
-  }
-  writeUncompressedBlock(sliceOutput,block.getPositionCount(),rawSlice);
+  sliceOutput.appendInt(rawSlice.length()).writeBytes(rawSlice);
 }
