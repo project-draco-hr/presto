@@ -23,17 +23,14 @@
         }
       }
       for (int rightBlockIndex=0; rightBlockIndex < varcharChannel.size(); rightBlockIndex++) {
-        BlockCursor[] rightCursors=new BlockCursor[4];
-        rightCursors[0]=varcharChannel.get(rightBlockIndex).cursor();
-        rightCursors[1]=longChannel.get(rightBlockIndex).cursor();
-        rightCursors[2]=doubleChannel.get(rightBlockIndex).cursor();
-        rightCursors[3]=booleanChannel.get(rightBlockIndex).cursor();
+        Block[] rightBlocks=new Block[4];
+        rightBlocks[0]=varcharChannel.get(rightBlockIndex);
+        rightBlocks[1]=longChannel.get(rightBlockIndex);
+        rightBlocks[2]=doubleChannel.get(rightBlockIndex);
+        rightBlocks[3]=booleanChannel.get(rightBlockIndex);
         int rightPositionCount=varcharChannel.get(rightBlockIndex).getPositionCount();
         for (int rightPosition=0; rightPosition < rightPositionCount; rightPosition++) {
-          for (          BlockCursor rightCursor : rightCursors) {
-            assertTrue(rightCursor.advanceNextPosition());
-          }
-          assertEquals(hashStrategy.positionEqualsCursors(leftBlockIndex,leftBlockPosition,rightCursors),expectedHashStrategy.positionEqualsCursors(leftBlockIndex,leftBlockPosition,rightCursors));
+          assertEquals(hashStrategy.positionEqualsRow(leftBlockIndex,leftBlockPosition,rightPosition,rightBlocks),expectedHashStrategy.positionEqualsRow(leftBlockIndex,leftBlockPosition,rightPosition,rightBlocks));
         }
       }
       hashStrategy.appendTo(leftBlockIndex,leftBlockPosition,pageBuilder,0);

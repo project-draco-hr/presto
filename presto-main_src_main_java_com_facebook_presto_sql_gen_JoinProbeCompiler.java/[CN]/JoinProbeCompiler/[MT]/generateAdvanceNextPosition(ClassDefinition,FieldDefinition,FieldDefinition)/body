@@ -1,0 +1,8 @@
+{
+  CompilerContext compilerContext=new CompilerContext(bootstrapMethod);
+  Block advanceNextPositionBody=classDefinition.declareMethod(compilerContext,a(PUBLIC),"advanceNextPosition",type(boolean.class)).getBody();
+  advanceNextPositionBody.comment("this.position = this.position + 1;").pushThis().pushThis().getField(positionField).push(1).intAdd().putField(positionField);
+  LabelNode lessThan=new LabelNode("lessThan");
+  LabelNode end=new LabelNode("end");
+  advanceNextPositionBody.comment("return position < positionCount;").pushThis().getField(positionField).pushThis().getField(positionCountField).append(JumpInstruction.jumpIfIntLessThan(lessThan)).push(false).gotoLabel(end).visitLabel(lessThan).push(true).visitLabel(end).retBoolean();
+}

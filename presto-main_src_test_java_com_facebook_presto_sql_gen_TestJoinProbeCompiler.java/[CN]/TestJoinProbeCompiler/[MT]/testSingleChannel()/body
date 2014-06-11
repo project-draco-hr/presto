@@ -17,13 +17,12 @@
   Page page=SequencePageBuilder.createSequencePage(ImmutableList.of(VARCHAR),10,10);
   JoinProbe joinProbe=probeFactory.createJoinProbe(lookupSource,page);
   assertEquals(joinProbe.getChannelCount(),1);
-  BlockCursor probeCursor=page.getBlock(0).cursor();
+  Block probeBlock=page.getBlock(0);
   PageBuilder pageBuilder=new PageBuilder(ImmutableList.of(VARCHAR));
   for (int position=0; position < page.getPositionCount(); position++) {
-    assertTrue(probeCursor.advanceNextPosition());
     assertTrue(joinProbe.advanceNextPosition());
     joinProbe.appendTo(pageBuilder);
-    assertEquals(joinProbe.getCurrentJoinPosition(),lookupSource.getJoinPosition(probeCursor));
+    assertEquals(joinProbe.getCurrentJoinPosition(),lookupSource.getJoinPosition(position,probeBlock));
   }
   assertFalse(joinProbe.advanceNextPosition());
   assertBlockEquals(pageBuilder.build().getBlock(0),page.getBlock(0));

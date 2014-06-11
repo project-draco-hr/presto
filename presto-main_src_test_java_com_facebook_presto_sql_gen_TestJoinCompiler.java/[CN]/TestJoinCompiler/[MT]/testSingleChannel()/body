@@ -17,10 +17,8 @@
         }
       }
       for (      Block rightBlock : channel) {
-        BlockCursor rightCursor=rightBlock.cursor();
-        BlockCursor[] rightCursors=new BlockCursor[]{rightCursor};
-        while (rightCursor.advanceNextPosition()) {
-          assertEquals(hashStrategy.positionEqualsCursors(leftBlockIndex,leftBlockPosition,rightCursors),leftBlock.equalTo(leftBlockPosition,rightCursor));
+        for (int position=0; position < rightBlock.getPositionCount(); position++) {
+          assertEquals(hashStrategy.positionEqualsRow(leftBlockIndex,leftBlockPosition,position,rightBlock),leftBlock.equalTo(leftBlockPosition,rightBlock,position));
         }
       }
       hashStrategy.appendTo(leftBlockIndex,leftBlockPosition,pageBuilder,0);

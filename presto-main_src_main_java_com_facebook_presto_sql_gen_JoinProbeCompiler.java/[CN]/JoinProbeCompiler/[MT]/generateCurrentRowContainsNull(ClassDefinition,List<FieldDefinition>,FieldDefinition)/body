@@ -1,0 +1,8 @@
+{
+  Block body=classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PRIVATE),"currentRowContainsNull",type(boolean.class)).getBody();
+  for (  FieldDefinition probeBlockField : probeBlockFields) {
+    LabelNode checkNextField=new LabelNode("checkNextField");
+    body.pushThis().getField(probeBlockField).pushThis().getField(positionField).invokeInterface(com.facebook.presto.spi.block.Block.class,"isNull",boolean.class,int.class).ifFalseGoto(checkNextField).push(true).retBoolean().visitLabel(checkNextField);
+  }
+  body.push(false).retInt();
+}

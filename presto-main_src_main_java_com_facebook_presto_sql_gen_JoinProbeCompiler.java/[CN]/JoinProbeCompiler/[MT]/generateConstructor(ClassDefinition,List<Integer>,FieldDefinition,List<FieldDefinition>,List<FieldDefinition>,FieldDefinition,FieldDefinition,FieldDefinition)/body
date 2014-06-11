@@ -1,0 +1,21 @@
+{
+  Block constructor=classDefinition.declareConstructor(new CompilerContext(bootstrapMethod),a(PUBLIC),arg("lookupSource",LookupSource.class),arg("page",Page.class)).getBody().comment("super();").pushThis().invokeConstructor(Object.class);
+  constructor.comment("this.lookupSource = lookupSource;");
+  constructor.pushThis().getVariable("lookupSource").putField(lookupSourceField);
+  constructor.comment("this.positionCount = page.getPositionCount();").pushThis().pushThis().getVariable("page").invokeVirtual(Page.class,"getPositionCount",int.class).putField(positionCountField);
+  constructor.comment("Set block fields");
+  for (int index=0; index < blockFields.size(); index++) {
+    constructor.pushThis().getVariable("page").push(index).invokeVirtual(Page.class,"getBlock",com.facebook.presto.spi.block.Block.class,int.class).putField(blockFields.get(index));
+  }
+  constructor.comment("Set probe channel fields");
+  for (int index=0; index < probeChannelFields.size(); index++) {
+    constructor.pushThis().pushThis().getField(blockFields.get(probeChannels.get(index))).putField(probeChannelFields.get(index));
+  }
+  constructor.comment("this.probeBlocks = new Block[<probeChannelCount>];");
+  constructor.pushThis().push(probeChannelFields.size()).newArray(com.facebook.presto.spi.block.Block.class).putField(probeBlocksArrayField);
+  for (int index=0; index < probeChannelFields.size(); index++) {
+    constructor.pushThis().getField(probeBlocksArrayField).push(index).pushThis().getField(probeChannelFields.get(index)).putObjectArrayElement();
+  }
+  constructor.comment("this.position = -1;").pushThis().push(-1).putField(positionField);
+  constructor.ret();
+}

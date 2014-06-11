@@ -1,0 +1,15 @@
+{
+  UpdateRequest updateRequest=new UpdateRequest(position,indexBlocks);
+  updateRequests.add(updateRequest);
+synchronized (this) {
+    if (!updateRequest.isFinished()) {
+      List<UpdateRequest> requests=new ArrayList<>();
+      updateRequests.drainTo(requests);
+      batchLoadRequests(requests);
+      for (      UpdateRequest request : requests) {
+        request.finished();
+      }
+    }
+  }
+  return indexSnapshot;
+}
