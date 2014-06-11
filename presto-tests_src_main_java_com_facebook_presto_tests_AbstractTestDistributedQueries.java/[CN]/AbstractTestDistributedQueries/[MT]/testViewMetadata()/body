@@ -1,0 +1,21 @@
+{
+  @Language("SQL") String query="SELECT 123 x, 'foo' y";
+  assertQueryTrue("CREATE VIEW meta_test_view AS " + query);
+  MaterializedResult actual=computeActual(format("SELECT table_name, table_type FROM information_schema.tables WHERE table_schema = '%s'",getSession().getSchema()));
+  MaterializedResult expected=resultBuilder(getSession(),actual.getTypes()).row("customer","BASE TABLE").row("lineitem","BASE TABLE").row("meta_test_view","VIEW").row("nation","BASE TABLE").row("orders","BASE TABLE").row("part","BASE TABLE").row("partsupp","BASE TABLE").row("region","BASE TABLE").row("supplier","BASE TABLE").build();
+  assertContains(actual,expected);
+  actual=computeActual("SHOW TABLES");
+  MaterializedResult.Builder builder=resultBuilder(getSession(),actual.getTypes());
+  for (  MaterializedRow row : expected.getMaterializedRows()) {
+    builder.row(row.getField(0));
+  }
+  expected=builder.build();
+  assertContains(actual,expected);
+  actual=computeActual(format("SELECT table_name, view_definition FROM information_schema.views WHERE table_schema = '%s'",getSession().getSchema()));
+  expected=resultBuilder(getSession(),actual.getTypes()).row("meta_test_view",formatSql(createStatement(query))).build();
+  assertContains(actual,expected);
+  actual=computeActual("SHOW COLUMNS FROM meta_test_view");
+  expected=resultBuilder(getSession(),VARCHAR,VARCHAR,BOOLEAN,BOOLEAN).row("x","bigint",true,false).row("y","varchar",true,false).build();
+  assertEquals(actual,expected);
+  assertQueryTrue("DROP VIEW meta_test_view");
+}

@@ -1,7 +1,10 @@
 {
+  Set<QualifiedTableName> tables=ImmutableSet.copyOf(getTablesList(session,catalogName,filters));
+  Set<QualifiedTableName> views=ImmutableSet.copyOf(getViewsList(session,catalogName,filters));
   InternalTable.Builder table=InternalTable.builder(informationSchemaTableColumns(TABLE_TABLES));
-  for (  QualifiedTableName name : getTablesList(session,catalogName,filters)) {
-    table.add(name.getCatalogName(),name.getSchemaName(),name.getTableName(),"BASE TABLE");
+  for (  QualifiedTableName name : union(tables,views)) {
+    String type=views.contains(name) ? "VIEW" : "BASE TABLE";
+    table.add(name.getCatalogName(),name.getSchemaName(),name.getTableName(),type);
   }
   return table.build();
 }
