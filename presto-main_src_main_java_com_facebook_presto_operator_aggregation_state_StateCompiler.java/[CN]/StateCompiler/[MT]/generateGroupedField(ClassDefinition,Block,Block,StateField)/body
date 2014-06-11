@@ -3,7 +3,7 @@
   FieldDefinition field=definition.declareField(a(PRIVATE),UPPER_CAMEL.to(LOWER_CAMEL,stateField.getName()) + "Values",bigArrayType);
   definition.declareMethod(new CompilerContext(null),a(PUBLIC),stateField.getGetterName(),type(stateField.getType())).getBody().comment("return field.get(getGroupId());").pushThis().getField(field).pushThis().invokeVirtual(AbstractGroupedAccumulatorState.class,"getGroupId",long.class).invokeVirtual(bigArrayType,"get",stateField.getType(),long.class).ret(stateField.getType());
   definition.declareMethod(new CompilerContext(null),a(PUBLIC),stateField.getSetterName(),type(void.class),NamedParameterDefinition.arg("value",stateField.getType())).getBody().comment("return field.set(getGroupId(), value);").pushThis().getField(field).pushThis().invokeVirtual(AbstractGroupedAccumulatorState.class,"getGroupId",long.class).getVariable("value").invokeVirtual(bigArrayType,"set",void.class,long.class,stateField.getType()).ret();
-  generateEnsureCapacityWithDefault(ensureCapacity,stateField.getType(),field,stateField.getDefaultValue());
+  ensureCapacity.pushThis().getField(field).getVariable("size").invokeVirtual(field.getType(),"ensureCapacity",type(void.class),type(long.class));
   constructor.pushThis().newObject(field.getType()).dup();
   if (stateField.getInitialValue() != null) {
     constructor.push(stateField.getInitialValue());
