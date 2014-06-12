@@ -1,0 +1,16 @@
+{
+  long count=slice.getLong(COUNT_OFFSET);
+  double mean=slice.getDouble(MEAN_OFFSET);
+  double m2=slice.getDouble(M2_OFFSET);
+  checkArgument(count >= 0,"count is negative");
+  if (count == 0) {
+    return;
+  }
+  long newCount=count + state.getCount();
+  double newMean=((count * mean) + (state.getCount() * state.getMean())) / (double)newCount;
+  double delta=mean - state.getMean();
+  double m2Delta=m2 + delta * delta * count* state.getCount() / (double)newCount;
+  state.setM2(state.getM2() + m2Delta);
+  state.setCount(newCount);
+  state.setMean(newMean);
+}
