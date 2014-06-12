@@ -1,0 +1,22 @@
+{
+  AsyncWalker walker=new AsyncWalker(new StubFileSystem(){
+    @Override public FileStatus[] listStatus(    Path f) throws IOException {
+      throw new IOException();
+    }
+  }
+,MoreExecutors.sameThreadExecutor(),DIRECTORY_LISTER,new NamenodeStats(),true);
+  MockFileStatusCallback callback=new MockFileStatusCallback();
+  ListenableFuture<Void> listenableFuture1=walker.beginWalk(new Path("/"),callback);
+  ListenableFuture<Void> listenableFuture2=walker.beginWalk(new Path("/"),callback);
+  ListenableFuture<List<Void>> listenableFuture=Futures.allAsList(ImmutableList.of(listenableFuture1,listenableFuture2));
+  Assert.assertTrue(listenableFuture.isDone());
+  Futures.addCallback(listenableFuture,new FutureCallback<List<Void>>(){
+    @Override public void onSuccess(    List<Void> result){
+      throw new IllegalStateException();
+    }
+    @Override public void onFailure(    Throwable t){
+      Assert.assertTrue(t instanceof IOException);
+    }
+  }
+);
+}
