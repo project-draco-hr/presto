@@ -1,11 +1,11 @@
 {
-  Statement statement=SqlParser.createStatement(sql);
-  assertFormattedSql(statement);
+  Statement statement=sqlParser.createStatement(sql);
+  assertFormattedSql(sqlParser,statement);
   PlanNodeIdAllocator idAllocator=new PlanNodeIdAllocator();
   FeaturesConfig featuresConfig=new FeaturesConfig().setExperimentalSyntaxEnabled(true);
-  PlanOptimizersFactory planOptimizersFactory=new PlanOptimizersFactory(metadata,splitManager,indexManager,featuresConfig);
-  QueryExplainer queryExplainer=new QueryExplainer(session,planOptimizersFactory.get(),metadata,featuresConfig.isExperimentalSyntaxEnabled());
-  Analyzer analyzer=new Analyzer(session,metadata,Optional.of(queryExplainer),featuresConfig.isExperimentalSyntaxEnabled());
+  PlanOptimizersFactory planOptimizersFactory=new PlanOptimizersFactory(metadata,sqlParser,splitManager,indexManager,featuresConfig);
+  QueryExplainer queryExplainer=new QueryExplainer(session,planOptimizersFactory.get(),metadata,sqlParser,featuresConfig.isExperimentalSyntaxEnabled());
+  Analyzer analyzer=new Analyzer(session,metadata,sqlParser,Optional.of(queryExplainer),featuresConfig.isExperimentalSyntaxEnabled());
   Analysis analysis=analyzer.analyze(statement);
   Plan plan=new LogicalPlanner(session,planOptimizersFactory.get(),idAllocator,metadata).plan(analysis);
   if (printPlan) {
@@ -15,7 +15,7 @@
   if (!subplan.getChildren().isEmpty()) {
     throw new AssertionError("Expected subplan to have no children");
   }
-  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(new NodeInfo(new NodeConfig().setEnvironment("test").setNodeId("test-node")),metadata,dataStreamProvider,indexManager,recordSinkManager,null,compiler,new CompilerConfig().setInterpreterEnabled(false));
+  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(new NodeInfo(new NodeConfig().setEnvironment("test").setNodeId("test-node")),metadata,sqlParser,dataStreamProvider,indexManager,recordSinkManager,null,compiler,new CompilerConfig().setInterpreterEnabled(false));
   LocalExecutionPlan localExecutionPlan=executionPlanner.plan(session,subplan.getFragment().getRoot(),plan.getTypes(),outputFactory);
   List<TaskSource> sources=new ArrayList<>();
   long sequenceId=0;

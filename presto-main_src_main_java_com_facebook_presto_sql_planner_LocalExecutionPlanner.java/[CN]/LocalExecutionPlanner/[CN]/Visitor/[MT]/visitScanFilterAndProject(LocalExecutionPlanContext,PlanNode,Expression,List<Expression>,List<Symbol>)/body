@@ -39,7 +39,7 @@
       rewrittenProjections.add(ExpressionTreeRewriter.rewriteWith(symbolToInputRewriter,projection));
       outputTypes.add(context.getTypes().get(outputSymbols.get(i)));
     }
-    IdentityHashMap<Expression,Type> expressionTypes=getExpressionTypesFromInput(context.getSession(),metadata,sourceTypes,concat(singleton(rewrittenFilter),rewrittenProjections));
+    IdentityHashMap<Expression,Type> expressionTypes=getExpressionTypesFromInput(context.getSession(),metadata,sqlParser,sourceTypes,concat(singleton(rewrittenFilter),rewrittenProjections));
     if (columns != null) {
       SourceOperatorFactory operatorFactory=compiler.compileScanFilterAndProjectOperator(context.getNextOperatorId(),sourceNode.getId(),dataStreamProvider,columns,rewrittenFilter,rewrittenProjections,expressionTypes,session.getTimeZoneKey());
       return new PhysicalOperation(operatorFactory,outputMappings);
@@ -57,7 +57,7 @@
   }
   FilterFunction filterFunction;
   if (filterExpression != BooleanLiteral.TRUE_LITERAL) {
-    filterFunction=new InterpretedFilterFunction(filterExpression,context.getTypes(),sourceLayout,metadata,context.getSession());
+    filterFunction=new InterpretedFilterFunction(filterExpression,context.getTypes(),sourceLayout,metadata,sqlParser,context.getSession());
   }
  else {
     filterFunction=FilterFunctions.TRUE_FUNCTION;
@@ -70,7 +70,7 @@
       function=ProjectionFunctions.singleColumn(context.getTypes().get(reference),sourceLayout.get(reference));
     }
  else {
-      function=new InterpretedProjectionFunction(expression,context.getTypes(),sourceLayout,metadata,context.getSession());
+      function=new InterpretedProjectionFunction(expression,context.getTypes(),sourceLayout,metadata,sqlParser,context.getSession());
     }
     projectionFunctions.add(function);
   }
