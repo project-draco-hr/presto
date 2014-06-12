@@ -1,15 +1,8 @@
 {
   int positionCount=page.getPositionCount();
   BlockBuilder blockBuilder=BIGINT.createFixedSizeBlockBuilder(positionCount);
-  BlockCursor[] currentRow=new BlockCursor[channels.length];
-  for (int i=0; i < channels.length; i++) {
-    currentRow[i]=page.getBlock(channels[i]).cursor();
-  }
   for (int position=0; position < page.getPositionCount(); position++) {
-    for (    BlockCursor cursor : currentRow) {
-      checkState(cursor.advanceNextPosition());
-    }
-    int groupId=putIfAbsent(currentRow);
+    int groupId=putIfAbsent(page,position);
     blockBuilder.appendLong(groupId);
   }
   Block block=blockBuilder.build();
