@@ -1,0 +1,13 @@
+{
+  StateCompiler compiler=new StateCompiler();
+  AccumulatorStateFactory<ByteState> factory=compiler.generateStateFactory(ByteState.class);
+  AccumulatorStateSerializer<ByteState> serializer=compiler.generateStateSerializer(ByteState.class);
+  ByteState state=factory.createSingleState();
+  ByteState deserializedState=factory.createSingleState();
+  state.setByte((byte)3);
+  BlockBuilder builder=BigintType.BIGINT.createBlockBuilder(new BlockBuilderStatus());
+  serializer.serialize(state,builder);
+  Block block=builder.build();
+  serializer.deserialize(block,0,deserializedState);
+  assertEquals(deserializedState.getByte(),state.getByte());
+}

@@ -1,0 +1,19 @@
+{
+  StateCompiler compiler=new StateCompiler();
+  AccumulatorStateFactory<TestComplexState> factory=compiler.generateStateFactory(TestComplexState.class);
+  AccumulatorStateSerializer<TestComplexState> serializer=compiler.generateStateSerializer(TestComplexState.class);
+  TestComplexState singleState=factory.createSingleState();
+  TestComplexState deserializedState=factory.createSingleState();
+  singleState.setBoolean(true);
+  singleState.setLong(1);
+  singleState.setDouble(2.0);
+  singleState.setByte((byte)3);
+  BlockBuilder builder=VarcharType.VARCHAR.createBlockBuilder(new BlockBuilderStatus());
+  serializer.serialize(singleState,builder);
+  Block block=builder.build();
+  serializer.deserialize(block,0,deserializedState);
+  assertEquals(deserializedState.getBoolean(),singleState.getBoolean());
+  assertEquals(deserializedState.getLong(),singleState.getLong());
+  assertEquals(deserializedState.getDouble(),singleState.getDouble());
+  assertEquals(deserializedState.getByte(),singleState.getByte());
+}

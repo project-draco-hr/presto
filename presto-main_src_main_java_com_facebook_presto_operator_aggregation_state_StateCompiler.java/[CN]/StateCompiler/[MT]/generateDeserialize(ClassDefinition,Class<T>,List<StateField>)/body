@@ -1,0 +1,15 @@
+{
+  CompilerContext compilerContext=new CompilerContext(null);
+  Block deserializerBody=definition.declareMethod(compilerContext,a(PUBLIC),"deserialize",type(void.class),arg("block",com.facebook.presto.spi.block.Block.class),arg("index",int.class),arg("state",Object.class)).getBody();
+  if (fields.size() == 1) {
+    generatePrimitiveDeserializer(deserializerBody,getSetter(clazz,fields.get(0)));
+  }
+ else {
+    LocalVariableDefinition slice=compilerContext.declareVariable(Slice.class,"slice");
+    deserializerBody.comment("Slice slice = block.getSlice(index);").getVariable("block").getVariable("index").invokeInterface(com.facebook.presto.spi.block.Block.class,"getSlice",Slice.class,int.class).putVariable(slice);
+    for (    StateField field : fields) {
+      generateDeserializeFromSlice(deserializerBody,slice,getSetter(clazz,field),offsetOfField(field,fields));
+    }
+  }
+  deserializerBody.ret();
+}

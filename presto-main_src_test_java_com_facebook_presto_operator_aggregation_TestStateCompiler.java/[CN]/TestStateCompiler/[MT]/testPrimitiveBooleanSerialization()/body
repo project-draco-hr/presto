@@ -1,0 +1,13 @@
+{
+  StateCompiler compiler=new StateCompiler();
+  AccumulatorStateFactory<BooleanState> factory=compiler.generateStateFactory(BooleanState.class);
+  AccumulatorStateSerializer<BooleanState> serializer=compiler.generateStateSerializer(BooleanState.class);
+  BooleanState state=factory.createSingleState();
+  BooleanState deserializedState=factory.createSingleState();
+  state.setBoolean(true);
+  BlockBuilder builder=BooleanType.BOOLEAN.createBlockBuilder(new BlockBuilderStatus());
+  serializer.serialize(state,builder);
+  Block block=builder.build();
+  serializer.deserialize(block,0,deserializedState);
+  assertEquals(deserializedState.getBoolean(),state.getBoolean());
+}

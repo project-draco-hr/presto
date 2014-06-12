@@ -1,0 +1,14 @@
+{
+  StateCompiler compiler=new StateCompiler();
+  AccumulatorStateFactory<LongState> factory=compiler.generateStateFactory(LongState.class);
+  AccumulatorStateSerializer<LongState> serializer=compiler.generateStateSerializer(LongState.class);
+  LongState state=factory.createSingleState();
+  LongState deserializedState=factory.createSingleState();
+  state.setLong(2);
+  BlockBuilder builder=BigintType.BIGINT.createBlockBuilder(new BlockBuilderStatus());
+  serializer.serialize(state,builder);
+  Block block=builder.build();
+  assertEquals(block.getLong(0),state.getLong());
+  serializer.deserialize(block,0,deserializedState);
+  assertEquals(deserializedState.getLong(),state.getLong());
+}

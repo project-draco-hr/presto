@@ -1,0 +1,17 @@
+{
+  CompilerContext compilerContext=new CompilerContext(null);
+  Block serializerBody=definition.declareMethod(compilerContext,a(PUBLIC),"serialize",type(void.class),arg("state",Object.class),arg("out",BlockBuilder.class)).getBody();
+  if (fields.size() == 1) {
+    generatePrimitiveSerializer(serializerBody,getGetter(clazz,fields.get(0)));
+  }
+ else {
+    LocalVariableDefinition slice=compilerContext.declareVariable(Slice.class,"slice");
+    int size=serializedSizeOf(clazz);
+    serializerBody.comment("Slice slice = Slices.allocate(%d);",size).push(size).invokeStatic(Slices.class,"allocate",Slice.class,int.class).putVariable(slice);
+    for (    StateField field : fields) {
+      generateSerializeFieldToSlice(serializerBody,slice,getGetter(clazz,field),offsetOfField(field,fields));
+    }
+    serializerBody.comment("out.appendSlice(slice);").getVariable("out").getVariable(slice).invokeInterface(BlockBuilder.class,"appendSlice",BlockBuilder.class,Slice.class);
+  }
+  serializerBody.ret();
+}

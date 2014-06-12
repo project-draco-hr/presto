@@ -1,0 +1,17 @@
+{
+  StateCompiler compiler=new StateCompiler();
+  AccumulatorStateFactory<VarianceState> factory=compiler.generateStateFactory(VarianceState.class);
+  AccumulatorStateSerializer<VarianceState> serializer=compiler.generateStateSerializer(VarianceState.class);
+  VarianceState singleState=factory.createSingleState();
+  VarianceState deserializedState=factory.createSingleState();
+  singleState.setMean(1);
+  singleState.setCount(2);
+  singleState.setM2(3);
+  BlockBuilder builder=VarcharType.VARCHAR.createBlockBuilder(new BlockBuilderStatus());
+  serializer.serialize(singleState,builder);
+  Block block=builder.build();
+  serializer.deserialize(block,0,deserializedState);
+  assertEquals(deserializedState.getCount(),singleState.getCount());
+  assertEquals(deserializedState.getMean(),singleState.getMean());
+  assertEquals(deserializedState.getM2(),singleState.getM2());
+}

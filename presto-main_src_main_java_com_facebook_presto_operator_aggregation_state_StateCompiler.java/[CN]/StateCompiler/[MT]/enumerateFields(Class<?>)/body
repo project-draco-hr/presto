@@ -1,5 +1,6 @@
 {
   ImmutableList.Builder<StateField> builder=ImmutableList.builder();
+  final Set<Class<?>> primitiveClasses=ImmutableSet.<Class<?>>of(byte.class,boolean.class,long.class,double.class);
   Set<Class<?>> supportedClasses=ImmutableSet.<Class<?>>of(byte.class,boolean.class,long.class,double.class,Slice.class);
   for (  Method method : clazz.getMethods()) {
     if (method.getName().equals("getEstimatedSize")) {
@@ -18,7 +19,19 @@
       builder.add(new StateField(name,type,getInitialValue(method),method.getName()));
     }
   }
-  ImmutableList<StateField> fields=builder.build();
+  Ordering<StateField> ordering=new Ordering<StateField>(){
+    @Override public int compare(    StateField left,    StateField right){
+      if (primitiveClasses.contains(left.getType()) && !primitiveClasses.contains(right.getType())) {
+        return -1;
+      }
+      if (primitiveClasses.contains(right.getType()) && !primitiveClasses.contains(left.getType())) {
+        return 1;
+      }
+      return left.getName().compareTo(right.getName());
+    }
+  }
+;
+  List<StateField> fields=ordering.sortedCopy(builder.build());
   checkInterface(clazz,fields);
   return fields;
 }
