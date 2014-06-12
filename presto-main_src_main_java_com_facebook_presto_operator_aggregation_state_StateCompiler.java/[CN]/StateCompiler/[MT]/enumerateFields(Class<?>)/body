@@ -11,6 +11,12 @@
       String name=method.getName().substring(3);
       builder.add(new StateField(name,type,getInitialValue(method)));
     }
+    if (method.getName().startsWith("is")) {
+      Class<?> type=method.getReturnType();
+      checkArgument(type == boolean.class,"Only boolean is support for 'is' methods");
+      String name=method.getName().substring(2);
+      builder.add(new StateField(name,type,getInitialValue(method),method.getName()));
+    }
   }
   return builder.build();
 }

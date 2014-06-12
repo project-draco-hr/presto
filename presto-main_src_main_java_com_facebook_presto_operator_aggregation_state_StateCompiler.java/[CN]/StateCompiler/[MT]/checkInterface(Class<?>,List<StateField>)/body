@@ -2,6 +2,7 @@
   checkArgument(clazz.isInterface(),clazz.getName() + " is not an interface");
   Set<String> setters=new HashSet<>();
   Set<String> getters=new HashSet<>();
+  Set<String> isGetters=new HashSet<>();
   Map<String,Class<?>> fieldTypes=new HashMap<>();
   for (  StateField field : fields) {
     fieldTypes.put(field.getName(),field.getType());
@@ -18,6 +19,13 @@
       checkArgument(method.getParameterTypes().length == 0,"Expected %s to have zero parameters",method.getName());
       getters.add(name);
     }
+ else     if (method.getName().startsWith("is")) {
+      String name=method.getName().substring(2);
+      checkArgument(fieldTypes.get(name) == boolean.class,"Expected %s to have type boolean, but found %s",name,fieldTypes.get(name));
+      checkArgument(method.getParameterTypes().length == 0,"Expected %s to have zero parameters",method.getName());
+      checkArgument(method.getReturnType() == boolean.class,"Expected %s to return boolean",method.getName());
+      isGetters.add(name);
+    }
  else     if (method.getName().startsWith("set")) {
       String name=method.getName().substring(3);
       checkArgument(method.getParameterTypes().length == 1,"Expected setter to have one parameter");
@@ -30,5 +38,5 @@
       throw new IllegalArgumentException("Cannot generate implementation for method: " + method.getName());
     }
   }
-  checkArgument(getters.size() == setters.size() && setters.size() == fields.size(),"Wrong number of getters/setters");
+  checkArgument(getters.size() + isGetters.size() == setters.size() && setters.size() == fields.size(),"Wrong number of getters/setters");
 }
