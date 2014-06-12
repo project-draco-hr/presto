@@ -5,42 +5,45 @@
         if (partitionId.equals(UNPARTITIONED_ID)) {
           return new HivePartition(tableName);
         }
-        ImmutableMap.Builder<ConnectorColumnHandle,Comparable<?>> builder=ImmutableMap.builder();
+        ImmutableMap.Builder<ConnectorColumnHandle,SerializableNativeValue> builder=ImmutableMap.builder();
         for (        Entry<String,String> entry : makeSpecFromName(partitionId).entrySet()) {
           ConnectorColumnHandle handle=columnsByName.get(entry.getKey());
           checkArgument(handle != null,"Invalid partition key %s in partition %s",entry.getKey(),partitionId);
           HiveColumnHandle columnHandle=checkType(handle,HiveColumnHandle.class,"handle");
           String value=entry.getValue();
           Type type=typeManager.getType(columnHandle.getTypeName());
-          if (BOOLEAN.equals(type)) {
+          if (HiveUtil.isHiveNull(value.getBytes(StandardCharsets.UTF_8))) {
+            builder.put(columnHandle,new SerializableNativeValue(Primitives.wrap(type.getJavaType()),null));
+          }
+ else           if (BOOLEAN.equals(type)) {
             if (value.isEmpty()) {
-              builder.put(columnHandle,false);
+              builder.put(columnHandle,new SerializableNativeValue(Boolean.class,false));
             }
  else {
-              builder.put(columnHandle,parseBoolean(value));
+              builder.put(columnHandle,new SerializableNativeValue(Boolean.class,parseBoolean(value)));
             }
           }
  else           if (BIGINT.equals(type)) {
             if (value.isEmpty()) {
-              builder.put(columnHandle,0L);
+              builder.put(columnHandle,new SerializableNativeValue(Long.class,0L));
             }
  else             if (columnHandle.getHiveType().equals(HiveType.HIVE_TIMESTAMP)) {
-              builder.put(columnHandle,parseHiveTimestamp(value,timeZone));
+              builder.put(columnHandle,new SerializableNativeValue(Long.class,parseHiveTimestamp(value,timeZone)));
             }
  else {
-              builder.put(columnHandle,parseLong(value));
+              builder.put(columnHandle,new SerializableNativeValue(Long.class,parseLong(value)));
             }
           }
  else           if (DOUBLE.equals(type)) {
             if (value.isEmpty()) {
-              builder.put(columnHandle,0.0);
+              builder.put(columnHandle,new SerializableNativeValue(Double.class,0.0));
             }
  else {
-              builder.put(columnHandle,parseDouble(value));
+              builder.put(columnHandle,new SerializableNativeValue(Double.class,parseDouble(value)));
             }
           }
  else           if (VARCHAR.equals(type)) {
-            builder.put(columnHandle,utf8Slice(value));
+            builder.put(columnHandle,new SerializableNativeValue(Slice.class,utf8Slice(value)));
           }
  else {
             throw new IllegalArgumentException(format("Unsupported partition type [%s] for partition: %s",type,partitionId));

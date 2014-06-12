@@ -29,10 +29,12 @@
     partitionKeysByNameBuilder.put(field.getName(),columnHandle);
     if (filterPrefix.size() == i && !tupleDomain.isNone()) {
       Domain domain=tupleDomain.getDomains().get(columnHandle);
-      if (domain != null && domain.getRanges().getRangeCount() == 1) {
-        Range range=getOnlyElement(domain.getRanges());
-        if (range.isSingleValue()) {
-          Comparable<?> value=range.getLow().getValue();
+      if (domain != null && domain.isNullableSingleValue()) {
+        Comparable<?> value=domain.getNullableSingleValue();
+        if (value == null) {
+          filterPrefix.add(HivePartitionKey.HIVE_DEFAULT_DYNAMIC_PARTITION);
+        }
+ else {
           checkArgument(value instanceof Boolean || value instanceof Slice || value instanceof Double|| value instanceof Long,"Only Boolean, Slice (UTF8 String), Double and Long partition keys are supported");
           if (value instanceof Slice) {
             filterPrefix.add(((Slice)value).toStringUtf8());

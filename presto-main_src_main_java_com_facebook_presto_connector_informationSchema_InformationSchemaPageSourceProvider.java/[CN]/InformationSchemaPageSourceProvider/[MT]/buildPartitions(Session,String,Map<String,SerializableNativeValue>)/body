@@ -1,0 +1,32 @@
+{
+  QualifiedTableName tableName=extractQualifiedTableName(catalogName,filters);
+  InternalTable.Builder table=InternalTable.builder(informationSchemaTableColumns(TABLE_INTERNAL_PARTITIONS));
+  int partitionNumber=1;
+  Optional<TableHandle> tableHandle=metadata.getTableHandle(session,tableName);
+  checkArgument(tableHandle.isPresent(),"Table %s does not exist",tableName);
+  Map<ColumnHandle,String> columnHandles=ImmutableBiMap.copyOf(metadata.getColumnHandles(tableHandle.get())).inverse();
+  PartitionResult partitionResult=splitManager.getPartitions(tableHandle.get(),Optional.<TupleDomain<ColumnHandle>>absent());
+  for (  Partition partition : partitionResult.getPartitions()) {
+    for (    Entry<ColumnHandle,SerializableNativeValue> entry : partition.getTupleDomain().extractNullableFixedValues().entrySet()) {
+      ColumnHandle columnHandle=entry.getKey();
+      String columnName=columnHandles.get(columnHandle);
+      String value=null;
+      if (entry.getValue().getValue() != null) {
+        ColumnMetadata columnMetadata=metadata.getColumnMetadata(tableHandle.get(),columnHandle);
+        try {
+          FunctionInfo operator=metadata.getFunctionRegistry().getCoercion(columnMetadata.getType(),VARCHAR);
+          value=((Slice)operator.getMethodHandle().invokeWithArguments(entry.getValue().getValue())).toStringUtf8();
+        }
+ catch (        OperatorNotFoundException e) {
+          value="<UNREPRESENTABLE VALUE>";
+        }
+catch (        Throwable throwable) {
+          throw Throwables.propagate(throwable);
+        }
+      }
+      table.add(catalogName,tableName.getSchemaName(),tableName.getTableName(),partitionNumber,columnName,value);
+    }
+    partitionNumber++;
+  }
+  return table.build();
+}

@@ -6,8 +6,8 @@
   String testString="test";
   Long testBigint=89L;
   Boolean testBoolean=true;
-  ImmutableMap<ConnectorColumnHandle,Comparable<?>> bindings=ImmutableMap.<ConnectorColumnHandle,Comparable<?>>builder().put(columnHandles.get(columnIndex.get("t_string")),utf8Slice(testString)).put(columnHandles.get(columnIndex.get("t_bigint")),testBigint).put(columnHandles.get(columnIndex.get("t_boolean")),testBoolean).build();
-  ConnectorPartitionResult partitionResult=splitManager.getPartitions(tableHandle,TupleDomain.withFixedValues(bindings));
+  ImmutableMap<ConnectorColumnHandle,SerializableNativeValue> bindings=ImmutableMap.<ConnectorColumnHandle,SerializableNativeValue>builder().put(columnHandles.get(columnIndex.get("t_string")),new SerializableNativeValue(Slice.class,utf8Slice(testString))).put(columnHandles.get(columnIndex.get("t_bigint")),new SerializableNativeValue(Long.class,testBigint)).put(columnHandles.get(columnIndex.get("t_boolean")),new SerializableNativeValue(Boolean.class,testBoolean)).build();
+  ConnectorPartitionResult partitionResult=splitManager.getPartitions(tableHandle,TupleDomain.withNullableFixedValues(bindings));
   List<ConnectorSplit> splits=getAllSplits(splitManager.getPartitionSplits(tableHandle,partitionResult.getPartitions()));
   assertEquals(splits.size(),1);
   try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(splits.get(0),columnHandles)){
