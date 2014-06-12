@@ -5,12 +5,7 @@
   definition.declareMethod(new CompilerContext(null),a(PUBLIC),stateField.getSetterName(),type(void.class),NamedParameterDefinition.arg("value",stateField.getType())).getBody().comment("return field.set(getGroupId(), value);").pushThis().getField(field).pushThis().invokeVirtual(AbstractGroupedAccumulatorState.class,"getGroupId",long.class).getVariable("value").invokeVirtual(bigArrayType,"set",void.class,long.class,stateField.getType()).ret();
   ensureCapacity.pushThis().getField(field).getVariable("size").invokeVirtual(field.getType(),"ensureCapacity",type(void.class),type(long.class));
   constructor.pushThis().newObject(field.getType()).dup();
-  if (stateField.getInitialValue() != null) {
-    constructor.push(stateField.getInitialValue());
-  }
- else {
-    constructor.pushJavaDefault(stateField.getType());
-  }
+  pushInitialValue(constructor,stateField);
   constructor.invokeConstructor(field.getType(),type(stateField.getType()));
   constructor.putField(field);
   return field;
