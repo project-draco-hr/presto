@@ -1,17 +1,11 @@
 {
   checkState(needsInput());
   operatorContext.setMemoryReservation(groupByHash.getEstimatedSize());
-  for (int i=0; i < page.getChannelCount(); i++) {
-    cursors[i]=page.getBlock(i).cursor();
-  }
   pageBuilder.reset();
   GroupByIdBlock ids=groupByHash.getGroupIds(page);
-  for (int i=0; i < ids.getPositionCount(); i++) {
-    checkState(advanceNextCursorPosition());
-    if (ids.getGroupId(i) == nextDistinctId) {
-      for (int j=0; j < cursors.length; j++) {
-        cursors[j].appendTo(pageBuilder.getBlockBuilder(j));
-      }
+  for (int position=0; position < ids.getPositionCount(); position++) {
+    if (ids.getGroupId(position) == nextDistinctId) {
+      page.appendTo(position,pageBuilder);
       remainingLimit--;
       nextDistinctId++;
       if (remainingLimit == 0) {
