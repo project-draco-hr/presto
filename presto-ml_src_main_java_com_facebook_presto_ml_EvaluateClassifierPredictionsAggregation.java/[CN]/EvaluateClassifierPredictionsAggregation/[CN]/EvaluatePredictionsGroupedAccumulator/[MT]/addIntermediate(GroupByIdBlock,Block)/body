@@ -3,15 +3,12 @@
   falsePositives.ensureCapacity(groupIdsBlock.getGroupCount());
   trueNegatives.ensureCapacity(groupIdsBlock.getGroupCount());
   falseNegatives.ensureCapacity(groupIdsBlock.getGroupCount());
-  BlockCursor cursor=block.cursor();
   for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
-    checkState(cursor.advanceNextPosition());
     long groupId=groupIdsBlock.getGroupId(position);
-    Slice slice=cursor.getSlice();
+    Slice slice=block.getSlice(position);
     truePositives.add(groupId,slice.getLong(0));
     falsePositives.add(groupId,slice.getLong(SIZE_OF_LONG));
     trueNegatives.add(groupId,slice.getLong(2 * SIZE_OF_LONG));
     falseNegatives.add(groupId,slice.getLong(3 * SIZE_OF_LONG));
   }
-  checkState(!cursor.advanceNextPosition());
 }

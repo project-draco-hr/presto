@@ -1,19 +1,16 @@
 {
   checkArgument(valueChannel != -1,"Raw input is not allowed for a final aggregation");
-  BlockCursor values=page.getBlock(valueChannel).cursor();
-  BlockCursor percentiles=page.getBlock(percentileChannel).cursor();
-  BlockCursor masks=null;
+  Block values=page.getBlock(valueChannel);
+  Block percentiles=page.getBlock(percentileChannel);
+  Block masks=null;
   if (maskChannel.isPresent()) {
-    masks=page.getBlock(maskChannel.get()).cursor();
+    masks=page.getBlock(maskChannel.get());
   }
   for (int position=0; position < page.getPositionCount(); position++) {
-    checkState(values.advanceNextPosition());
-    checkState(percentiles.advanceNextPosition());
-    checkState(masks == null || masks.advanceNextPosition());
-    if (!values.isNull() && (masks == null || masks.getBoolean())) {
-      addValue(digest,values,parameterType);
-      if (!percentiles.isNull()) {
-        percentile=percentiles.getDouble();
+    if (!values.isNull(position) && (masks == null || masks.getBoolean(position))) {
+      addValue(digest,position,values,parameterType);
+      if (!percentiles.isNull(position)) {
+        percentile=percentiles.getDouble(position);
       }
     }
   }

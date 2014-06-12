@@ -1,10 +1,8 @@
 {
   checkArgument(percentileChannel == -1,"Intermediate input is only allowed for a final aggregation");
   digests.ensureCapacity(groupIdsBlock.getGroupCount());
-  BlockCursor intermediates=block.cursor();
   for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
-    checkState(intermediates.advanceNextPosition());
-    if (!intermediates.isNull()) {
+    if (!intermediates.isNull(position)) {
       long groupId=groupIdsBlock.getGroupId(position);
       DigestAndPercentile currentValue=digests.get(groupId);
       if (currentValue == null) {
@@ -12,7 +10,7 @@
         digests.set(groupId,currentValue);
         sizeOfValues+=currentValue.getDigest().estimatedInMemorySizeInBytes();
       }
-      SliceInput input=intermediates.getSlice().getInput();
+      SliceInput input=intermediates.getSlice(position).getInput();
       sizeOfValues-=currentValue.getDigest().estimatedInMemorySizeInBytes();
       currentValue.getDigest().merge(QuantileDigest.deserialize(input));
       sizeOfValues+=currentValue.getDigest().estimatedInMemorySizeInBytes();

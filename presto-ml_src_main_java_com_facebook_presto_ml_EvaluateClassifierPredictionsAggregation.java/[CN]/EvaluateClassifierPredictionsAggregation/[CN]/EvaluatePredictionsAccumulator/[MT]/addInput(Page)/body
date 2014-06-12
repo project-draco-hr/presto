@@ -1,10 +1,9 @@
 {
-  BlockCursor labelCursor=page.getBlock(labelChannel).cursor();
-  BlockCursor predictionCursor=page.getBlock(predictionChannel).cursor();
-  while (labelCursor.advanceNextPosition()) {
-    checkState(predictionCursor.advanceNextPosition());
-    long predicted=predictionCursor.getLong();
-    long label=labelCursor.getLong();
+  Block labelBlock=page.getBlock(labelChannel);
+  Block predictionBlock=page.getBlock(predictionChannel);
+  for (int position=0; position < labelBlock.getPositionCount(); position++) {
+    long predicted=predictionBlock.getLong(position);
+    long label=labelBlock.getLong(position);
     checkArgument(predicted == 1 || predicted == 0,"evaluate_predictions only supports binary classifiers");
     checkArgument(label == 1 || label == 0,"evaluate_predictions only supports binary classifiers");
     if (label == 1) {

@@ -1,11 +1,9 @@
 {
   counts.ensureCapacity(groupIdsBlock.getGroupCount());
   samples.ensureCapacity(groupIdsBlock.getGroupCount());
-  BlockCursor intermediates=block.cursor();
   for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
-    checkState(intermediates.advanceNextPosition(),"failed to advance intermediates cursor");
     long groupId=groupIdsBlock.getGroupId(position);
-    Slice slice=intermediates.getSlice();
+    Slice slice=intermediates.getSlice(position);
     counts.add(groupId,slice.getLong(COUNT_OFFSET));
     samples.add(groupId,slice.getLong(SAMPLES_OFFSET));
   }

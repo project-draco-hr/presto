@@ -1,18 +1,15 @@
 {
   checkArgument(percentileChannel != -1,"Raw input is not allowed for a final aggregation");
   digests.ensureCapacity(groupIdsBlock.getGroupCount());
-  BlockCursor values=page.getBlock(valueChannel).cursor();
-  BlockCursor percentiles=page.getBlock(percentileChannel).cursor();
-  BlockCursor masks=null;
+  Block values=page.getBlock(valueChannel);
+  Block percentiles=page.getBlock(percentileChannel);
+  Block masks=null;
   if (maskChannel.isPresent()) {
-    masks=page.getBlock(maskChannel.get()).cursor();
+    masks=page.getBlock(maskChannel.get());
   }
   for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
-    checkState(values.advanceNextPosition());
-    checkState(percentiles.advanceNextPosition());
-    checkState(masks == null || masks.advanceNextPosition());
     long groupId=groupIdsBlock.getGroupId(position);
-    if (!values.isNull() && (masks == null || masks.getBoolean())) {
+    if (!values.isNull(position) && (masks == null || masks.getBoolean(position))) {
       DigestAndPercentile currentValue=digests.get(groupId);
       if (currentValue == null) {
         currentValue=new DigestAndPercentile(new QuantileDigest(0.01));
@@ -20,13 +17,11 @@
         sizeOfValues+=currentValue.getDigest().estimatedInMemorySizeInBytes();
       }
       sizeOfValues-=currentValue.getDigest().estimatedInMemorySizeInBytes();
-      addValue(currentValue.getDigest(),values,parameterType);
+      addValue(currentValue.getDigest(),position,values,parameterType);
       sizeOfValues+=currentValue.getDigest().estimatedInMemorySizeInBytes();
-      if (!percentiles.isNull()) {
-        currentValue.setPercentile(percentiles.getDouble());
+      if (!percentiles.isNull(position)) {
+        currentValue.setPercentile(percentiles.getDouble(position));
       }
     }
   }
-  checkState(!values.advanceNextPosition());
-  checkState(!percentiles.advanceNextPosition());
 }

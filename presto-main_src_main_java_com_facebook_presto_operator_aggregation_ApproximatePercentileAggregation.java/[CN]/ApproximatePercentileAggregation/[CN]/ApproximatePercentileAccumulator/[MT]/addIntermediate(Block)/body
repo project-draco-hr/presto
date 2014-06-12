@@ -1,10 +1,8 @@
 {
   checkArgument(valueChannel == -1,"Intermediate input is only allowed for a final aggregation");
-  BlockCursor intermediates=block.cursor();
-  for (int position=0; position < block.getPositionCount(); position++) {
-    checkState(intermediates.advanceNextPosition());
-    if (!intermediates.isNull()) {
-      SliceInput input=intermediates.getSlice().getInput();
+  for (int position=0; position < intermediates.getPositionCount(); position++) {
+    if (!intermediates.isNull(position)) {
+      SliceInput input=intermediates.getSlice(position).getInput();
       digest.merge(QuantileDigest.deserialize(input));
       percentile=input.readDouble();
     }

@@ -1,16 +1,16 @@
 {
-  BlockCursor cursor=page.getBlock(labelChannel).cursor();
-  while (cursor.advanceNextPosition()) {
+  Block block=page.getBlock(labelChannel);
+  for (int position=0; position < block.getPositionCount(); position++) {
     if (labelIsLong) {
-      labels.add((double)cursor.getLong());
+      labels.add((double)block.getLong(position));
     }
  else {
-      labels.add(cursor.getDouble());
+      labels.add(block.getDouble(position));
     }
   }
-  cursor=page.getBlock(featuresChannel).cursor();
-  while (cursor.advanceNextPosition()) {
-    FeatureVector featureVector=ModelUtils.jsonToFeatures(cursor.getSlice());
+  block=page.getBlock(featuresChannel);
+  for (int position=0; position < block.getPositionCount(); position++) {
+    FeatureVector featureVector=ModelUtils.jsonToFeatures(block.getSlice(position));
     rowsSize+=featureVector.getEstimatedSize();
     rows.add(featureVector);
   }
