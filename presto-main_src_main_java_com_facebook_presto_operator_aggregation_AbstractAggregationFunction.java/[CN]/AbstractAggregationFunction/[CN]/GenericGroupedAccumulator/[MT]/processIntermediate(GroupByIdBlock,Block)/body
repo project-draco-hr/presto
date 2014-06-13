@@ -1,12 +1,10 @@
 {
   groupedState.ensureCapacity(groupIdsBlock.getGroupCount());
-  BlockCursor intermediates=intermediatesBlock.cursor();
+  T scratchState=AbstractAggregationFunction.this.createSingleState();
   for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
-    checkState(intermediates.advanceNextPosition());
-    if (!intermediates.isNull()) {
+    if (!intermediates.isNull(position)) {
       groupedState.setGroupId(groupIdsBlock.getGroupId(position));
-      AbstractAggregationFunction.this.processIntermediate(state,intermediates);
+      AbstractAggregationFunction.this.processIntermediate(state,scratchState,intermediates,position);
     }
   }
-  checkState(!intermediates.advanceNextPosition());
 }

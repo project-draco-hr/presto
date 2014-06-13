@@ -1,9 +1,8 @@
 {
-  BlockCursor intermediates=block.cursor();
+  T scratchState=AbstractAggregationFunction.this.createSingleState();
   for (int position=0; position < block.getPositionCount(); position++) {
-    checkState(intermediates.advanceNextPosition());
-    if (!intermediates.isNull()) {
-      AbstractAggregationFunction.this.processIntermediate(state,intermediates);
+    if (!block.isNull(position)) {
+      AbstractAggregationFunction.this.processIntermediate(state,scratchState,block,position);
     }
   }
 }
