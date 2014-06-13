@@ -7,7 +7,7 @@
   binder.bind(SqlParser.class).in(Scopes.SINGLETON);
   binder.bind(SqlParserOptions.class).toInstance(sqlParserOptions);
   bindFailureDetector(binder,serverConfig.isCoordinator());
-  binder.bind(TaskResource.class).in(Scopes.SINGLETON);
+  jaxrsBinder(binder).bind(TaskResource.class);
   binder.bind(TaskManager.class).to(SqlTaskManager.class).in(Scopes.SINGLETON);
   newExporter(binder).export(TaskManager.class).withGeneratedName();
   binder.bind(TaskExecutor.class).in(Scopes.SINGLETON);
@@ -18,7 +18,7 @@
   newExporter(binder).export(ExpressionCompiler.class).withGeneratedName();
   bindConfig(binder).to(TaskManagerConfig.class);
   jsonCodecBinder(binder).bindJsonCodec(TaskInfo.class);
-  binder.bind(PagesResponseWriter.class).in(Scopes.SINGLETON);
+  jaxrsBinder(binder).bind(PagesResponseWriter.class);
   binder.bind(new TypeLiteral<Supplier<ExchangeClient>>(){
   }
 ).to(ExchangeClientFactory.class).in(Scopes.SINGLETON);
@@ -70,8 +70,8 @@
   jsonCodecBinder(binder).bindJsonCodec(QueryInfo.class);
   jsonCodecBinder(binder).bindJsonCodec(TaskInfo.class);
   jsonCodecBinder(binder).bindJsonCodec(QueryResults.class);
-  binder.bind(StatementResource.class).in(Scopes.SINGLETON);
-  binder.bind(ExecuteResource.class).in(Scopes.SINGLETON);
+  jaxrsBinder(binder).bind(StatementResource.class);
+  jaxrsBinder(binder).bind(ExecuteResource.class);
   httpClientBinder(binder).bindHttpClient("execute",ForExecute.class);
   binder.bind(PluginManager.class).in(Scopes.SINGLETON);
   bindConfig(binder).to(PluginManagerConfig.class);
@@ -101,5 +101,5 @@
   blockEncodingFactoryBinder.addBinding().toInstance(SnappyBlockEncoding.FACTORY);
   blockEncodingFactoryBinder.addBinding().toInstance(HyperLogLogType.BLOCK_ENCODING_FACTORY);
   blockEncodingFactoryBinder.addBinding().toInstance(ColorType.BLOCK_ENCODING_FACTORY);
-  binder.bind(ThreadResource.class).in(Scopes.SINGLETON);
+  jaxrsBinder(binder).bind(ThreadResource.class);
 }
