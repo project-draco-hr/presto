@@ -1,4 +1,13 @@
 {
+  AccumulatorStateMetadata metadata=clazz.getAnnotation(AccumulatorStateMetadata.class);
+  if (metadata != null && metadata.stateSerializerClass() != void.class) {
+    try {
+      return (AccumulatorStateSerializer<T>)metadata.stateSerializerClass().getConstructor().newInstance();
+    }
+ catch (    InstantiationException|IllegalAccessException|NoSuchMethodException|InvocationTargetException e) {
+      throw Throwables.propagate(e);
+    }
+  }
   DynamicClassLoader classLoader=createClassLoader();
   ClassDefinition definition=new ClassDefinition(new CompilerContext(null),a(PUBLIC,FINAL),typeFromPathName(clazz.getSimpleName() + "Serializer_" + CLASS_ID.incrementAndGet()),type(Object.class),type(AccumulatorStateSerializer.class));
   definition.declareConstructor(new CompilerContext(null),a(PUBLIC)).getBody().pushThis().invokeConstructor(Object.class).ret();

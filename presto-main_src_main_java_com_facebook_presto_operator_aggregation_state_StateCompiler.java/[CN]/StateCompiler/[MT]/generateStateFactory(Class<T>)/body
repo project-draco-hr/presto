@@ -1,4 +1,13 @@
 {
+  AccumulatorStateMetadata metadata=clazz.getAnnotation(AccumulatorStateMetadata.class);
+  if (metadata != null && metadata.stateFactoryClass() != void.class) {
+    try {
+      return (AccumulatorStateFactory<T>)metadata.stateFactoryClass().getConstructor().newInstance();
+    }
+ catch (    InstantiationException|IllegalAccessException|NoSuchMethodException|InvocationTargetException e) {
+      throw Throwables.propagate(e);
+    }
+  }
   DynamicClassLoader classLoader=createClassLoader();
   Class<? extends T> singleStateClass=generateSingleStateClass(clazz,classLoader);
   Class<? extends T> groupedStateClass=generateGroupedStateClass(clazz,classLoader);
