@@ -1,0 +1,13 @@
+{
+  SchemaTableName schemaTableName=new SchemaTableName(table.getDbName(),table.getTableName());
+  Table tableCopy=table.deepCopy();
+  if (tableCopy.getSd() == null) {
+    tableCopy.setSd(new StorageDescriptor());
+  }
+  if (relations.putIfAbsent(schemaTableName,tableCopy) != null) {
+    throw new TableAlreadyExistsException(schemaTableName);
+  }
+  if (tableCopy.getTableType().equals(TableType.VIRTUAL_VIEW.name())) {
+    views.put(schemaTableName,tableCopy);
+  }
+}
