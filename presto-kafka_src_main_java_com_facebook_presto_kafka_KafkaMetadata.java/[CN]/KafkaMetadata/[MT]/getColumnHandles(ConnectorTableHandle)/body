@@ -1,0 +1,31 @@
+{
+  KafkaTableHandle kafkaTableHandle=handleResolver.convertTableHandle(tableHandle);
+  KafkaTopicDescription kafkaTopicDescription=getDefinedTables().get(kafkaTableHandle.toSchemaTableName());
+  if (kafkaTopicDescription == null) {
+    throw new TableNotFoundException(kafkaTableHandle.toSchemaTableName());
+  }
+  ImmutableMap.Builder<String,ConnectorColumnHandle> columnHandles=ImmutableMap.builder();
+  int index=0;
+  KafkaTopicFieldGroup key=kafkaTopicDescription.getKey();
+  if (key != null) {
+    List<KafkaTopicFieldDescription> fields=key.getFields();
+    if (fields != null) {
+      for (      KafkaTopicFieldDescription kafkaTopicFieldDescription : fields) {
+        columnHandles.put(kafkaTopicFieldDescription.getName(),kafkaTopicFieldDescription.getColumnHandle(connectorId,true,index++));
+      }
+    }
+  }
+  KafkaTopicFieldGroup message=kafkaTopicDescription.getMessage();
+  if (message != null) {
+    List<KafkaTopicFieldDescription> fields=message.getFields();
+    if (fields != null) {
+      for (      KafkaTopicFieldDescription kafkaTopicFieldDescription : fields) {
+        columnHandles.put(kafkaTopicFieldDescription.getName(),kafkaTopicFieldDescription.getColumnHandle(connectorId,false,index++));
+      }
+    }
+  }
+  for (  KafkaInternalFieldDescription kafkaInternalFieldDescription : internalFieldDescriptions) {
+    columnHandles.put(kafkaInternalFieldDescription.getName(),kafkaInternalFieldDescription.getColumnHandle(connectorId,index++,kafkaConnectorConfig.isHideInternalColumns()));
+  }
+  return columnHandles.build();
+}

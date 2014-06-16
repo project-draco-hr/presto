@@ -1,0 +1,19 @@
+{
+  while (true) {
+    if (cursorOffset >= split.getEnd()) {
+      return endOfData();
+    }
+    openFetchRequest();
+    while (messageAndOffsetIterator.hasNext()) {
+      MessageAndOffset currentMessageAndOffset=messageAndOffsetIterator.next();
+      long messageOffset=currentMessageAndOffset.offset();
+      if (messageOffset >= split.getEnd()) {
+        return endOfData();
+      }
+      if (messageOffset >= cursorOffset) {
+        return nextRow(currentMessageAndOffset);
+      }
+    }
+    messageAndOffsetIterator=null;
+  }
+}

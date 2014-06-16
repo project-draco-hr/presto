@@ -1,0 +1,30 @@
+{
+  KafkaTopicDescription table=getDefinedTables().get(schemaTableName);
+  if (table == null) {
+    throw new TableNotFoundException(schemaTableName);
+  }
+  ImmutableList.Builder<ColumnMetadata> builder=ImmutableList.builder();
+  int index=0;
+  KafkaTopicFieldGroup key=table.getKey();
+  if (key != null) {
+    List<KafkaTopicFieldDescription> fields=key.getFields();
+    if (fields != null) {
+      for (      KafkaTopicFieldDescription fieldDescription : fields) {
+        builder.add(fieldDescription.getColumnMetadata(index++));
+      }
+    }
+  }
+  KafkaTopicFieldGroup message=table.getMessage();
+  if (message != null) {
+    List<KafkaTopicFieldDescription> fields=message.getFields();
+    if (fields != null) {
+      for (      KafkaTopicFieldDescription fieldDescription : fields) {
+        builder.add(fieldDescription.getColumnMetadata(index++));
+      }
+    }
+  }
+  for (  KafkaInternalFieldDescription fieldDescription : internalFieldDescriptions) {
+    builder.add(fieldDescription.getColumnMetadata(index++,kafkaConnectorConfig.isHideInternalColumns()));
+  }
+  return new ConnectorTableMetadata(schemaTableName,builder.build());
+}

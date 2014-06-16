@@ -1,0 +1,39 @@
+{
+  ImmutableMap.Builder<SchemaTableName,KafkaTopicDescription> builder=ImmutableMap.builder();
+  try {
+    for (    File file : listFiles(kafkaConnectorConfig.getTableDescriptionDir())) {
+      if (file.isFile() && file.getName().endsWith(".json")) {
+        KafkaTopicDescription table=topicDescriptionCodec.fromJson(Files.toByteArray(file));
+        String schemaName=Objects.firstNonNull(table.getSchemaName(),kafkaConnectorConfig.getDefaultSchema());
+        log.debug("Kafka table %s.%s: %s",schemaName,table.getTableName(),table);
+        builder.put(new SchemaTableName(schemaName,table.getTableName()),table);
+      }
+    }
+    Map<SchemaTableName,KafkaTopicDescription> tableDefinitions=builder.build();
+    log.debug("Loaded Table definitions: %s",tableDefinitions.keySet());
+    builder=ImmutableMap.builder();
+    for (    String definedTable : kafkaConnectorConfig.getTableNames()) {
+      SchemaTableName tableName;
+      try {
+        tableName=SchemaTableName.valueOf(definedTable);
+      }
+ catch (      IllegalArgumentException iae) {
+        tableName=new SchemaTableName(kafkaConnectorConfig.getDefaultSchema(),definedTable);
+      }
+      if (tableDefinitions.containsKey(tableName)) {
+        KafkaTopicDescription kafkaTable=tableDefinitions.get(tableName);
+        log.debug("Found Table definition for %s: %s",tableName,kafkaTable);
+        builder.put(tableName,kafkaTable);
+      }
+ else {
+        log.debug("Created dummy Table definition for %s",tableName);
+        builder.put(tableName,new KafkaTopicDescription(tableName.getTableName(),tableName.getSchemaName(),definedTable,new KafkaTopicFieldGroup(DummyKafkaRowDecoder.NAME,ImmutableList.<KafkaTopicFieldDescription>of()),new KafkaTopicFieldGroup(DummyKafkaRowDecoder.NAME,ImmutableList.<KafkaTopicFieldDescription>of())));
+      }
+    }
+    return builder.build();
+  }
+ catch (  IOException e) {
+    log.warn(e,"Error: ");
+    throw Throwables.propagate(e);
+  }
+}

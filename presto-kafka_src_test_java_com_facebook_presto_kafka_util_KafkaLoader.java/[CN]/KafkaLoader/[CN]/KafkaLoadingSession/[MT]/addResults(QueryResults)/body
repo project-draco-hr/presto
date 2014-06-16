@@ -1,0 +1,20 @@
+{
+  if (types.get() == null && results.getColumns() != null) {
+    types.set(getTypes(results.getColumns()));
+  }
+  if (results.getData() != null) {
+    checkState(types.get() != null,"Data without types received!");
+    List<Column> columns=results.getColumns();
+    for (    List<Object> fields : results.getData()) {
+      ImmutableMap.Builder<String,Object> builder=ImmutableMap.builder();
+      for (int i=0; i < fields.size(); i++) {
+        Type type=types.get().get(i);
+        Object value=convertValue(fields.get(i),type);
+        if (value != null) {
+          builder.put(columns.get(i).getName(),value);
+        }
+      }
+      producer.send(new KeyedMessage<Long,Object>(topicName,count.getAndIncrement(),builder.build()));
+    }
+  }
+}

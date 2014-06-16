@@ -1,0 +1,12 @@
+{
+  String mapping=columnHandle.getMapping();
+  checkState(mapping != null,"No mapping for %s",columnHandle.getName());
+  JsonNode currentNode=tree;
+  for (  String pathElement : Splitter.on('/').omitEmptyStrings().split(mapping)) {
+    if (!currentNode.has(pathElement)) {
+      return MissingNode.getInstance();
+    }
+    currentNode=currentNode.path(pathElement);
+  }
+  return currentNode;
+}
