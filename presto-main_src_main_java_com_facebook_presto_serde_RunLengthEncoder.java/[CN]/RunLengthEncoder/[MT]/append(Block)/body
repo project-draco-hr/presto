@@ -4,14 +4,13 @@
   if (encoding == null) {
     encoding=new RunLengthBlockEncoding(block.getEncoding());
   }
-  BlockCursor cursor=block.cursor();
-  while (cursor.advanceNextPosition()) {
+  for (int position=0; position < block.getPositionCount(); position++) {
     if (lastValue == null) {
-      lastValue=cursor.getSingleValueBlock();
+      lastValue=block.getSingleValueBlock(position);
     }
- else     if (!lastValue.equalTo(0,cursor)) {
+ else     if (!lastValue.equalTo(0,block,position)) {
       writeBlock();
-      lastValue=cursor.getSingleValueBlock();
+      lastValue=block.getSingleValueBlock(position);
     }
     positionCount++;
   }
