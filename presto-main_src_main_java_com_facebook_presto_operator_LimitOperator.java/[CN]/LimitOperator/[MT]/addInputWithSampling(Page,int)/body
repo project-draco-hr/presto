@@ -1,10 +1,10 @@
 {
-  BlockCursor cursor=page.getBlock(sampleWeightChannel).cursor();
+  Block sampleWeightBlock=page.getBlock(sampleWeightChannel);
   BlockBuilder builder=BIGINT.createBlockBuilder(new BlockBuilderStatus());
   int rowsToCopy=0;
-  while (remainingLimit > 0 && cursor.advanceNextPosition()) {
+  for (int position=0; position < sampleWeightBlock.getPositionCount() && remainingLimit > 0; position++) {
     rowsToCopy++;
-    long sampleWeight=cursor.getLong();
+    long sampleWeight=sampleWeightBlock.getLong(position);
     if (sampleWeight <= remainingLimit) {
       builder.appendLong(sampleWeight);
     }
