@@ -5,9 +5,8 @@
     encoding=new SnappyBlockEncoding(block.getType(),block.getEncoding());
     blockBuilder=block.getType().createBlockBuilder(new BlockBuilderStatus());
   }
-  BlockCursor cursor=block.cursor();
-  while (cursor.advanceNextPosition()) {
-    cursor.appendTo(blockBuilder);
+  for (int position=0; position < block.getPositionCount(); position++) {
+    block.appendTo(position,blockBuilder);
     if (blockBuilder.isFull()) {
       flushBlock();
     }
