@@ -1,11 +1,10 @@
 {
   checkNotNull(block,"block is null");
   if (dictionaryBuilder == null) {
-    dictionaryBuilder=new DictionaryBuilder(block.getType());
+    dictionaryBuilder=new ChannelSetBuilder(block.getType(),MAX_UNIQUE_COUNT,null);
   }
-  BlockCursor cursor=block.cursor();
-  while (cursor.advanceNextPosition()) {
-    Block value=cursor.getSingleValueBlock();
+  for (int position=0; position < block.getPositionCount(); position++) {
+    Block value=block.getSingleValueBlock(position);
     if (lastValue == null) {
       lastValue=value;
     }
@@ -14,7 +13,7 @@
       lastValue=value;
     }
     if (dictionaryBuilder.size() < MAX_UNIQUE_COUNT) {
-      dictionaryBuilder.putIfAbsent(cursor);
+      dictionaryBuilder.add(position,block);
     }
     rowCount++;
   }

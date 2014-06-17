@@ -2,5 +2,9 @@
   checkState(type != null,"nothing appended");
   checkState(!finished,"already finished");
   finished=true;
-  return new DictionaryBlockEncoding(dictionaryBuilder.build(),idWriter.finish());
+  BlockBuilder blockBuilder=type.createBlockBuilder(new BlockBuilderStatus());
+  for (int groupId=0; groupId < dictionaryBuilder.getGroupCount(); groupId++) {
+    dictionaryBuilder.appendValuesTo(groupId,blockBuilder);
+  }
+  return new DictionaryBlockEncoding(blockBuilder.build(),idWriter.finish());
 }
