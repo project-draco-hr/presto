@@ -1,10 +1,11 @@
 {
-  this.type=checkNotNull(type,"type is null");
-  checkArgument(expectedPositions >= 0,"expectedPositions must be greater than or equal to zero");
-  this.operatorContext=checkNotNull(operatorContext,"operatorContext is null");
-  blocks=ObjectArrayList.wrap(new BlockBuilder[1024],0);
-  strategy=new BlockBuilderHashStrategy(blocks);
-  addressValueSet=new AddressValueSet(expectedPositions,strategy);
-  openBlockBuilder=type.createBlockBuilder(new BlockBuilderStatus());
-  blocks.add(openBlockBuilder);
+  this.type=type;
+  this.operatorContext=operatorContext;
+  this.blocks=ObjectArrayList.wrap(new BlockBuilder[1024],0);
+  this.blocks.add(type.createBlockBuilder(new BlockBuilderStatus()));
+  int hashSize=arraySize(expectedPositions,FILL_RATIO);
+  maxFill=maxFill(hashSize,FILL_RATIO);
+  mask=hashSize - 1;
+  key=new long[hashSize];
+  Arrays.fill(key,-1);
 }

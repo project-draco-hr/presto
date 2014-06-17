@@ -1,19 +1,6 @@
 {
-  BlockCursor sourceCursor=sourceBlock.cursor();
-  strategy.setLookupValue(sourceCursor);
-  while (sourceCursor.advanceNextPosition()) {
-    containsNull|=sourceCursor.isNull();
-    if (!addressValueSet.contains(CURRENT_VALUE_ADDRESS)) {
-      if (openBlockBuilder.isFull()) {
-        blocksMemorySize+=openBlockBuilder.getSizeInBytes();
-        openBlockBuilder=type.createBlockBuilder(new BlockBuilderStatus());
-        blocks.add(openBlockBuilder);
-        currentBlockId++;
-      }
-      int blockPosition=openBlockBuilder.getPositionCount();
-      sourceCursor.appendTo(openBlockBuilder);
-      addressValueSet.add(encodeSyntheticAddress(currentBlockId,blockPosition));
-    }
+  for (int position=0; position < block.getPositionCount(); position++) {
+    add(position,block);
   }
   operatorContext.setMemoryReservation(getEstimatedSize());
 }

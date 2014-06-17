@@ -1,0 +1,16 @@
+{
+  int pageIndex=blocks.size() - 1;
+  BlockBuilder blockBuilder=blocks.get(pageIndex);
+  block.appendTo(position,blockBuilder);
+  long address=encodeSyntheticAddress(pageIndex,blockBuilder.getPositionCount() - 1);
+  key[hashPosition]=address;
+  if (blockBuilder.isFull()) {
+    completedBlocksMemorySize+=blockBuilder.getSizeInBytes();
+    blockBuilder=type.createBlockBuilder(new BlockBuilderStatus());
+    this.blocks.add(blockBuilder);
+  }
+  positionCount++;
+  if (positionCount >= maxFill) {
+    rehash(maxFill * 2);
+  }
+}
