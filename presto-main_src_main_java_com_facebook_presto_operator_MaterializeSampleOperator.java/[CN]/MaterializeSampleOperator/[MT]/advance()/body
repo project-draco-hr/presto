@@ -3,24 +3,19 @@
     remainingWeight--;
     return true;
   }
-  if (sampleWeightCursor == null) {
+  if (sampleWeightBlock == null) {
     return false;
   }
-  boolean advanced;
-  do {
-    advanced=sampleWeightCursor.advanceNextPosition();
-    for (    BlockCursor cursor : cursors) {
-      checkState(advanced == cursor.advanceNextPosition());
+  position++;
+  while (position < sampleWeightBlock.getPositionCount()) {
+    checkState(!(sampleWeightBlock.isNull(position)),"Encountered NULL sample weight");
+    if (sampleWeightBlock.getLong(position) != 0) {
+      remainingWeight=sampleWeightBlock.getLong(position) - 1;
+      return true;
     }
-    checkState(!(advanced && sampleWeightCursor.isNull()),"Encountered NULL sample weight");
+    position++;
   }
- while (advanced && sampleWeightCursor.getLong() == 0);
-  if (!advanced) {
-    sampleWeightCursor=null;
-    Arrays.fill(cursors,null);
-  }
- else {
-    remainingWeight=sampleWeightCursor.getLong() - 1;
-  }
-  return advanced;
+  sampleWeightBlock=null;
+  Arrays.fill(blocks,null);
+  return false;
 }

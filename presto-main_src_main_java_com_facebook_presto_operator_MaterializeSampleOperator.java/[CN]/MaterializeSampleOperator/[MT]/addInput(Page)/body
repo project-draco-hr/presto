@@ -1,17 +1,14 @@
 {
   checkNotNull(page,"page is null");
   checkState(!finishing,"Operator is finishing");
-  checkState(sampleWeightCursor == null,"Current page has not been completely processed yet");
-  BlockCursor[] cursors=new BlockCursor[page.getChannelCount()];
-  for (int i=0; i < cursors.length; i++) {
-    cursors[i]=page.getBlock(i).cursor();
-  }
-  this.sampleWeightCursor=cursors[sampleWeightChannel];
-  for (int i=0, j=0; i < cursors.length; i++) {
+  checkState(sampleWeightBlock == null,"Current page has not been completely processed yet");
+  this.position=-1;
+  this.sampleWeightBlock=page.getBlock(sampleWeightChannel);
+  for (int i=0, j=0; i < page.getChannelCount(); i++) {
     if (i == sampleWeightChannel) {
       continue;
     }
-    this.cursors[j]=cursors[i];
+    this.blocks[j]=page.getBlock(i);
     j++;
   }
 }
