@@ -3,8 +3,8 @@
   checkArgument(split.getConnectorSplit() instanceof IndexSplit,"Split must be instance of IndexSplit");
   checkState(getSource() == null,"Index source split already set");
   IndexSplit indexSplit=(IndexSplit)split.getConnectorSplit();
-  RecordSet recordSet=new MappedRecordSet(indexSplit.getKeyRecordSet(),probeKeyRemap);
-  RecordSet result=index.lookup(recordSet);
+  RecordSet normalizedRecordSet=probeKeyNormalizer.apply(indexSplit.getKeyRecordSet());
+  RecordSet result=index.lookup(normalizedRecordSet);
   source=new RecordProjectOperator(operatorContext,result);
   operatorContext.setInfoSupplier(Suppliers.ofInstance(split.getInfo()));
 }
