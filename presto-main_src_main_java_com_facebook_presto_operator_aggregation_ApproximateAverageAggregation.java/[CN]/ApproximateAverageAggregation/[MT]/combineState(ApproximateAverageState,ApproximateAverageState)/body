@@ -1,0 +1,19 @@
+{
+  long inputCount=otherState.getCount();
+  long inputSamples=otherState.getSamples();
+  double inputMean=otherState.getMean();
+  double inputM2=otherState.getM2();
+  long currentCount=state.getCount();
+  double currentMean=state.getMean();
+  double currentM2=state.getM2();
+  if (inputCount > 0) {
+    long newCount=currentCount + inputCount;
+    double newMean=((currentCount * currentMean) + (inputCount * inputMean)) / newCount;
+    double delta=inputMean - currentMean;
+    double newM2=currentM2 + inputM2 + ((delta * delta) * (currentCount * inputCount)) / newCount;
+    state.setCount(newCount);
+    state.setSamples(state.getSamples() + inputSamples);
+    state.setMean(newMean);
+    state.setM2(newM2);
+  }
+}
