@@ -1,35 +1,26 @@
 {
   checkNotNull(page,"page is null");
   checkState(state == State.RUNNING,"Operator is %s",state);
-  BlockCursor[] cursors;
-  BlockCursor sampleWeightCursor=null;
+  Block sampleWeightBlock=null;
   if (sampleWeightChannel.isPresent()) {
-    cursors=new BlockCursor[page.getChannelCount() - 1];
-    sampleWeightCursor=page.getBlock(sampleWeightChannel.get()).cursor();
+    sampleWeightBlock=page.getBlock(sampleWeightChannel.get());
   }
- else {
-    cursors=new BlockCursor[recordTypes.size()];
-  }
-  for (int outputChannel=0; outputChannel < cursors.length; outputChannel++) {
-    cursors[outputChannel]=page.getBlock(inputChannels.get(outputChannel)).cursor();
+  Block[] blocks=new Block[inputChannels.size()];
+  for (int outputChannel=0; outputChannel < inputChannels.size(); outputChannel++) {
+    blocks[outputChannel]=page.getBlock(inputChannels.get(outputChannel));
   }
   int rows=0;
   for (int position=0; position < page.getPositionCount(); position++) {
     long sampleWeight=1;
-    if (sampleWeightCursor != null) {
-      checkArgument(sampleWeightCursor.advanceNextPosition());
-      sampleWeight=sampleWeightCursor.getLong();
+    if (sampleWeightBlock != null) {
+      sampleWeight=sampleWeightBlock.getLong(position);
     }
     rows+=sampleWeight;
     recordSink.beginRecord(sampleWeight);
-    for (int i=0; i < cursors.length; i++) {
-      checkArgument(cursors[i].advanceNextPosition());
-      writeField(cursors[i],recordTypes.get(i));
+    for (int i=0; i < blocks.length; i++) {
+      writeField(position,blocks[i],recordTypes.get(i));
     }
     recordSink.finishRecord();
   }
   rowCount+=rows;
-  for (  BlockCursor cursor : cursors) {
-    checkArgument(!cursor.advanceNextPosition());
-  }
 }
