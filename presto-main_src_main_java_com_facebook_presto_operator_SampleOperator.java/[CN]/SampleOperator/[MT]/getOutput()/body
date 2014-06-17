@@ -1,17 +1,18 @@
 {
-  for (; remainingPositions > 0 && !pageBuilder.isFull(); remainingPositions--) {
-    for (    BlockCursor cursor : cursors) {
-      checkState(cursor.advanceNextPosition());
-    }
-    long repeats=rand.nextPoisson(sampleRatio);
-    if (rescaled && repeats > 0) {
-      repeats*=rand.nextPoisson(1.0 / sampleRatio);
-    }
-    if (repeats > 0) {
-      for (int i=0; i < cursors.length; i++) {
-        cursors[i].appendTo(pageBuilder.getBlockBuilder(i));
+  if (page != null) {
+    while (position < page.getPositionCount() && !pageBuilder.isFull()) {
+      long repeats=rand.nextPoisson(sampleRatio);
+      if (rescaled && repeats > 0) {
+        repeats*=rand.nextPoisson(1.0 / sampleRatio);
       }
-      pageBuilder.getBlockBuilder(sampleWeightChannel).appendLong(repeats);
+      if (repeats > 0) {
+        page.appendTo(position,pageBuilder);
+        pageBuilder.getBlockBuilder(sampleWeightChannel).appendLong(repeats);
+      }
+      position++;
+    }
+    if (position >= page.getPositionCount()) {
+      page=null;
     }
   }
   if (pageBuilder.isFull() || (finishing && !pageBuilder.isEmpty())) {
