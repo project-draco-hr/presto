@@ -1,11 +1,9 @@
 {
   checkNotNull(page,"page is null");
   checkState(!finishing,"Operator is finishing");
-  checkState(markerCursor == null,"Current page has not been completely processed yet");
+  checkState(markerBlock == null,"Current page has not been completely processed yet");
   operatorContext.setMemoryReservation(markDistinctHash.getEstimatedSize());
-  markerCursor=markDistinctHash.markDistinctRows(page).cursor();
-  this.cursors=new BlockCursor[page.getChannelCount()];
-  for (int i=0; i < page.getChannelCount(); i++) {
-    this.cursors[i]=page.getBlock(i).cursor();
-  }
+  markerBlock=markDistinctHash.markDistinctRows(page);
+  position=-1;
+  blocks=page.getBlocks();
 }

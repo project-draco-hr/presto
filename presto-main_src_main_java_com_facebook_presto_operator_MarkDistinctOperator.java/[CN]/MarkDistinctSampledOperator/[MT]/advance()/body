@@ -1,5 +1,5 @@
 {
-  if (markerCursor == null) {
+  if (markerBlock == null) {
     return false;
   }
   if (distinct && sampleWeight > 1) {
@@ -7,17 +7,15 @@
     sampleWeight--;
     return true;
   }
-  boolean advanced=markerCursor.advanceNextPosition();
-  for (  BlockCursor cursor : cursors) {
-    checkState(advanced == cursor.advanceNextPosition());
-  }
-  if (!advanced) {
-    markerCursor=null;
-    Arrays.fill(cursors,null);
+  position++;
+  if (position >= markerBlock.getPositionCount()) {
+    markerBlock=null;
+    Arrays.fill(blocks,null);
+    return false;
   }
  else {
-    sampleWeight=cursors[sampleWeightChannel].getLong();
-    distinct=markerCursor.getBoolean();
+    sampleWeight=blocks[sampleWeightChannel].getLong(position);
+    distinct=markerBlock.getBoolean(position);
+    return true;
   }
-  return advanced;
 }
