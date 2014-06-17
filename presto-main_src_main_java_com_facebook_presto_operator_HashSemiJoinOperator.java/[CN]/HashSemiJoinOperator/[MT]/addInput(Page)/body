@@ -5,10 +5,8 @@
   checkState(outputPage == null,"Operator still has pending output");
   BlockBuilder blockBuilder=BOOLEAN.createFixedSizeBlockBuilder(page.getPositionCount());
   Block probeJoinBlock=page.getBlock(probeJoinChannel);
-  BlockCursor probeJoinCursor=probeJoinBlock.cursor();
   for (int position=0; position < page.getPositionCount(); position++) {
-    checkState(probeJoinCursor.advanceNextPosition());
-    if (probeJoinCursor.isNull()) {
+    if (probeJoinBlock.isNull(position)) {
       blockBuilder.appendNull();
     }
  else {
