@@ -1,0 +1,95 @@
+{
+  assertEquals(block.getType(),expectedType);
+  assertEquals(block.getObjectValue(SESSION,position),expectedValue);
+  assertEquals(block.hash(position),expectedHash);
+  Block expectedBlock=createBlock(expectedType,expectedValue);
+  assertTrue(block.equalTo(position,block,position));
+  assertTrue(block.equalTo(position,expectedBlock,0));
+  assertTrue(expectedBlock.equalTo(0,block,position));
+  assertEquals(block.isNull(position),expectedValue == null);
+  assertTrue((block.compareTo(ASC_NULLS_FIRST,position,expectedBlock,0) == 0));
+  assertTrue((block.compareTo(ASC_NULLS_LAST,position,expectedBlock,0) == 0));
+  assertTrue((block.compareTo(DESC_NULLS_FIRST,position,expectedBlock,0) == 0));
+  assertTrue((block.compareTo(DESC_NULLS_LAST,position,expectedBlock,0) == 0));
+  verifyInvalidPositionHandling(block);
+  if (block.isNull(position)) {
+    assertTrue((block.compareTo(ASC_NULLS_FIRST,position,getNonNullValue(expectedType),0) < 0));
+    assertTrue((block.compareTo(DESC_NULLS_FIRST,position,getNonNullValue(expectedType),0) < 0));
+    assertTrue((block.compareTo(ASC_NULLS_LAST,position,getNonNullValue(expectedType),0) > 0));
+    assertTrue((block.compareTo(DESC_NULLS_LAST,position,getNonNullValue(expectedType),0) > 0));
+    return;
+  }
+  if (expectedValue != Boolean.TRUE) {
+    assertTrue((block.compareTo(ASC_NULLS_FIRST,position,getGreaterValue(expectedType,expectedValue),0) < 0));
+    assertTrue((block.compareTo(ASC_NULLS_LAST,position,getGreaterValue(expectedType,expectedValue),0) < 0));
+    assertTrue((block.compareTo(DESC_NULLS_FIRST,position,getGreaterValue(expectedType,expectedValue),0) > 0));
+    assertTrue((block.compareTo(DESC_NULLS_LAST,position,getGreaterValue(expectedType,expectedValue),0) > 0));
+  }
+  Type type=block.getType();
+  if (type.getJavaType() == boolean.class) {
+    assertEquals(block.getBoolean(position),expectedValue);
+    try {
+      block.getLong(position);
+      fail("Expected IllegalStateException or UnsupportedOperationException");
+    }
+ catch (    IllegalStateException|UnsupportedOperationException expected) {
+    }
+    try {
+      block.getDouble(position);
+      fail("Expected IllegalStateException or UnsupportedOperationException");
+    }
+ catch (    IllegalStateException|UnsupportedOperationException expected) {
+    }
+  }
+ else   if (type.getJavaType() == long.class) {
+    assertEquals(block.getLong(position),expectedValue);
+    try {
+      block.getBoolean(position);
+      fail("Expected IllegalStateException or UnsupportedOperationException");
+    }
+ catch (    IllegalStateException|UnsupportedOperationException expected) {
+    }
+    try {
+      block.getDouble(position);
+      fail("Expected IllegalStateException or UnsupportedOperationException");
+    }
+ catch (    IllegalStateException|UnsupportedOperationException expected) {
+    }
+  }
+ else   if (type.getJavaType() == double.class) {
+    assertEquals(block.getDouble(position),expectedValue);
+    try {
+      block.getBoolean(position);
+      fail("Expected IllegalStateException or UnsupportedOperationException");
+    }
+ catch (    IllegalStateException|UnsupportedOperationException expected) {
+    }
+    try {
+      block.getLong(position);
+      fail("Expected IllegalStateException or UnsupportedOperationException");
+    }
+ catch (    IllegalStateException|UnsupportedOperationException expected) {
+    }
+  }
+ else   if (type.getJavaType() == Slice.class) {
+    assertEquals(block.getSlice(position).toStringUtf8(),expectedValue);
+    try {
+      block.getBoolean(position);
+      fail("Expected IllegalStateException or UnsupportedOperationException");
+    }
+ catch (    IllegalStateException|UnsupportedOperationException expected) {
+    }
+    try {
+      block.getLong(position);
+      fail("Expected IllegalStateException or UnsupportedOperationException");
+    }
+ catch (    IllegalStateException|UnsupportedOperationException expected) {
+    }
+    try {
+      block.getDouble(position);
+      fail("Expected IllegalStateException or UnsupportedOperationException");
+    }
+ catch (    IllegalStateException|UnsupportedOperationException expected) {
+    }
+  }
+}
