@@ -1,20 +1,8 @@
 {
   int rows=extendedPriceBlock.getPositionCount();
-  BlockCursor extendedPriceCursor=extendedPriceBlock.cursor();
-  BlockCursor discountCursor=discountBlock.cursor();
-  BlockCursor shipDateCursor=shipDateBlock.cursor();
-  BlockCursor quantityCursor=quantityBlock.cursor();
   for (int position=0; position < rows; position++) {
-    checkState(extendedPriceCursor.advanceNextPosition());
-    checkState(discountCursor.advanceNextPosition());
-    checkState(shipDateCursor.advanceNextPosition());
-    checkState(quantityCursor.advanceNextPosition());
-    if (filter(discountCursor,shipDateCursor,quantityCursor)) {
-      project(pageBuilder,extendedPriceCursor,discountCursor);
+    if (filter(position,discountBlock,shipDateBlock,quantityBlock)) {
+      project(position,pageBuilder,extendedPriceBlock,discountBlock);
     }
   }
-  checkState(!extendedPriceCursor.advanceNextPosition());
-  checkState(!discountCursor.advanceNextPosition());
-  checkState(!shipDateCursor.advanceNextPosition());
-  checkState(!quantityCursor.advanceNextPosition());
 }

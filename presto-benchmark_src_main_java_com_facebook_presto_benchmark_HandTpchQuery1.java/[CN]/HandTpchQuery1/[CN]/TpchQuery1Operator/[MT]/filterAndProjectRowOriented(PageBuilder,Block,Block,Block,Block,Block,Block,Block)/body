@@ -1,45 +1,31 @@
 {
   int rows=returnFlagBlock.getPositionCount();
-  BlockCursor returnFlagCursor=returnFlagBlock.cursor();
-  BlockCursor lineStatusCursor=lineStatusBlock.cursor();
-  BlockCursor quantityCursor=quantityBlock.cursor();
-  BlockCursor extendedPriceCursor=extendedPriceBlock.cursor();
-  BlockCursor discountCursor=discountBlock.cursor();
-  BlockCursor taxCursor=taxBlock.cursor();
-  BlockCursor shipDateCursor=shipDateBlock.cursor();
   for (int position=0; position < rows; position++) {
-    checkState(returnFlagCursor.advanceNextPosition());
-    checkState(lineStatusCursor.advanceNextPosition());
-    checkState(quantityCursor.advanceNextPosition());
-    checkState(extendedPriceCursor.advanceNextPosition());
-    checkState(discountCursor.advanceNextPosition());
-    checkState(taxCursor.advanceNextPosition());
-    checkState(shipDateCursor.advanceNextPosition());
-    if (shipDateCursor.isNull()) {
+    if (shipDateBlock.isNull(position)) {
       continue;
     }
-    Slice shipDate=shipDateCursor.getSlice();
+    Slice shipDate=shipDateBlock.getSlice(position);
     if (shipDate.compareTo(MAX_SHIP_DATE) <= 0) {
-      if (returnFlagCursor.isNull()) {
+      if (returnFlagBlock.isNull(position)) {
         pageBuilder.getBlockBuilder(0).appendNull();
       }
  else {
-        pageBuilder.getBlockBuilder(0).appendSlice(returnFlagCursor.getSlice());
+        pageBuilder.getBlockBuilder(0).appendSlice(returnFlagBlock.getSlice(position));
       }
-      if (lineStatusCursor.isNull()) {
+      if (lineStatusBlock.isNull(position)) {
         pageBuilder.getBlockBuilder(1).appendNull();
       }
  else {
-        pageBuilder.getBlockBuilder(1).appendSlice(lineStatusCursor.getSlice());
+        pageBuilder.getBlockBuilder(1).appendSlice(lineStatusBlock.getSlice(position));
       }
-      long quantity=quantityCursor.getLong();
-      double extendedPrice=extendedPriceCursor.getDouble();
-      double discount=discountCursor.getDouble();
-      double tax=taxCursor.getDouble();
-      boolean quantityIsNull=quantityCursor.isNull();
-      boolean extendedPriceIsNull=extendedPriceCursor.isNull();
-      boolean discountIsNull=discountCursor.isNull();
-      boolean taxIsNull=taxCursor.isNull();
+      long quantity=quantityBlock.getLong(position);
+      double extendedPrice=extendedPriceBlock.getDouble(position);
+      double discount=discountBlock.getDouble(position);
+      double tax=taxBlock.getDouble(position);
+      boolean quantityIsNull=quantityBlock.isNull(position);
+      boolean extendedPriceIsNull=extendedPriceBlock.isNull(position);
+      boolean discountIsNull=discountBlock.isNull(position);
+      boolean taxIsNull=taxBlock.isNull(position);
       if (quantityIsNull) {
         pageBuilder.getBlockBuilder(2).appendNull();
       }
@@ -72,11 +58,4 @@
       }
     }
   }
-  checkState(!returnFlagCursor.advanceNextPosition());
-  checkState(!lineStatusCursor.advanceNextPosition());
-  checkState(!quantityCursor.advanceNextPosition());
-  checkState(!extendedPriceCursor.advanceNextPosition());
-  checkState(!discountCursor.advanceNextPosition());
-  checkState(!taxCursor.advanceNextPosition());
-  checkState(!shipDateCursor.advanceNextPosition());
 }
