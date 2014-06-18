@@ -1,0 +1,13 @@
+{
+  ConnectorSession session=new ConnectorSession("user","source","catalog","schema",UTC_KEY,Locale.ENGLISH,"address","agent");
+  TaskId taskId=new TaskId(new StageId("test","1"),"1");
+  Symbol symbol=new Symbol("column");
+  PlanNodeId tableScanNodeId=new PlanNodeId("test");
+  PlanNodeId sourceId=new PlanNodeId("sourceId");
+  PlanFragment testFragment=new PlanFragment(new PlanFragmentId("test"),new TableScanNode(new PlanNodeId("test"),new TableHandle("test",new TestingTableHandle()),ImmutableList.of(symbol),ImmutableMap.of(symbol,new ColumnHandle("test",new TestingColumnHandle("column"))),null,Optional.<TableScanNode.GeneratedPartitions>absent()),ImmutableMap.<Symbol,Type>of(symbol,VARCHAR),PlanFragment.PlanDistribution.SOURCE,tableScanNodeId,PlanFragment.OutputPartitioning.NONE,ImmutableList.<Symbol>of());
+  ImmutableMultimap.Builder<PlanNodeId,Split> initialSplits=ImmutableMultimap.builder();
+  for (  Split sourceSplit : splits) {
+    initialSplits.put(sourceId,sourceSplit);
+  }
+  return createRemoteTask(session,taskId,newNode,testFragment,initialSplits.build(),OutputBuffers.INITIAL_EMPTY_OUTPUT_BUFFERS);
+}

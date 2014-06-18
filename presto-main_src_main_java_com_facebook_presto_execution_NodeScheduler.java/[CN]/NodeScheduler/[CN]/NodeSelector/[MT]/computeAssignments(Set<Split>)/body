@@ -1,5 +1,7 @@
 {
   Multimap<Node,Split> assignment=HashMultimap.create();
+  Map<Node,Integer> assignmentCount=new HashMap<>();
+  Map<Node,Integer> splitCountByNode=new HashMap<>();
   for (  Split split : splits) {
     List<Node> candidateNodes;
     if (locationAwareScheduling) {
@@ -9,19 +11,37 @@
       candidateNodes=selectRandomNodes(minCandidates);
     }
     checkCondition(!candidateNodes.isEmpty(),NO_NODES_AVAILABLE,"No nodes available to run query");
-    Node chosen=null;
-    int min=Integer.MAX_VALUE;
     for (    Node node : candidateNodes) {
-      RemoteTask task=taskMap.get(node);
-      int currentSplits=(task == null) ? 0 : task.getQueuedSplits();
-      int assignedSplits=currentSplits + assignment.get(node).size();
-      if (assignedSplits < min && assignedSplits < maxPendingSplitsPerTask) {
-        chosen=node;
-        min=assignedSplits;
+      if (!splitCountByNode.containsKey(node)) {
+        splitCountByNode.put(node,nodeTaskMap.getPartitionedSplitsOnNode(node));
       }
     }
-    if (chosen != null) {
-      assignment.put(chosen,split);
+    Node chosenNode=null;
+    int min=Integer.MAX_VALUE;
+    for (    Node node : candidateNodes) {
+      int assignedSplitCount=assignmentCount.containsKey(node) ? assignmentCount.get(node) : 0;
+      int totalSplitCount=assignedSplitCount + splitCountByNode.get(node);
+      if (totalSplitCount < min && totalSplitCount < maxSplitsPerNode) {
+        chosenNode=node;
+        min=totalSplitCount;
+      }
+    }
+    if (chosenNode == null) {
+      for (      Node node : candidateNodes) {
+        int assignedSplitCount=assignmentCount.containsKey(node) ? assignmentCount.get(node) : 0;
+        RemoteTask remoteTask=taskMap.get(node);
+        int queuedSplitCount=remoteTask == null ? 0 : remoteTask.getQueuedPartitionedSplitCount();
+        int totalSplitCount=queuedSplitCount + assignedSplitCount;
+        if (totalSplitCount < min && totalSplitCount < maxSplitsPerNodePerTaskWhenFull) {
+          chosenNode=node;
+          min=totalSplitCount;
+        }
+      }
+    }
+    if (chosenNode != null) {
+      assignment.put(chosenNode,split);
+      int count=assignmentCount.containsKey(chosenNode) ? assignmentCount.get(chosenNode) : 0;
+      assignmentCount.put(chosenNode,count + 1);
     }
   }
   return assignment;

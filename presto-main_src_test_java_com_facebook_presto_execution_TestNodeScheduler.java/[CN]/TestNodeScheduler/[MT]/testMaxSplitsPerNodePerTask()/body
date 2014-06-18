@@ -1,0 +1,22 @@
+{
+  Node newNode=new PrestoNode("other4",URI.create("http://127.0.0.1:14"),NodeVersion.UNKNOWN);
+  nodeManager.addNode("foo",newNode);
+  ImmutableList.Builder<Split> initialSplits=ImmutableList.builder();
+  for (int i=0; i < 20; i++) {
+    initialSplits.add(new Split("foo",new TestSplitRemote()));
+  }
+  MockRemoteTaskFactory remoteTaskFactory=new MockRemoteTaskFactory(remoteTaskExecutor);
+  for (  Node node : nodeManager.getActiveDatasourceNodes("foo")) {
+    RemoteTask remoteTask=remoteTaskFactory.createTableScanTask(node,initialSplits.build());
+    nodeTaskMap.addTask(node,remoteTask);
+  }
+  RemoteTask newRemoteTask=remoteTaskFactory.createTableScanTask(newNode,initialSplits.build());
+  taskMap.put(newNode,newRemoteTask);
+  Set<Split> splits=new HashSet<>();
+  for (int i=0; i < 5; i++) {
+    splits.add(new Split("foo",new TestSplitRemote()));
+  }
+  Multimap<Node,Split> assignments=nodeSelector.computeAssignments(splits);
+  assertEquals(assignments.keySet().size(),3);
+  assertFalse(assignments.keySet().contains(newNode));
+}
