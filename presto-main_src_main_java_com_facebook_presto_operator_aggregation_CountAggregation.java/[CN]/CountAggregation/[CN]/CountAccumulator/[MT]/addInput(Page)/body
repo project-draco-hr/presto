@@ -1,20 +1,14 @@
 {
-  if (!maskChannel.isPresent() && !sampleWeightChannel.isPresent()) {
+  if (!maskChannel.isPresent()) {
     count+=page.getPositionCount();
   }
  else {
-    BlockCursor masks=null;
-    if (maskChannel.isPresent()) {
-      masks=page.getBlock(maskChannel.get()).cursor();
-    }
-    BlockCursor sampleWeights=null;
-    if (sampleWeightChannel.isPresent()) {
-      sampleWeights=page.getBlock(sampleWeightChannel.get()).cursor();
-    }
+    BlockCursor masks=page.getBlock(maskChannel.get()).cursor();
     for (int i=0; i < page.getPositionCount(); i++) {
       checkState(masks == null || masks.advanceNextPosition());
-      checkState(sampleWeights == null || sampleWeights.advanceNextPosition());
-      count+=SimpleAggregationFunction.computeSampleWeight(masks,sampleWeights);
+      if (masks == null || masks.getBoolean()) {
+        count++;
+      }
     }
   }
 }
