@@ -1,21 +1,17 @@
 {
   checkArgument(!sampleWeightBlock.isPresent(),"Sampled data not supported");
   groupedState.ensureCapacity(groupIdsBlock.getGroupCount());
-  BlockCursor values=valuesBlock.cursor();
-  BlockCursor masks=null;
+  Block masks=null;
   if (maskBlock.isPresent()) {
-    masks=maskBlock.get().cursor();
+    masks=maskBlock.get();
   }
   for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
-    checkState(values.advanceNextPosition());
-    checkState(masks == null || masks.advanceNextPosition());
-    if (masks != null && !masks.getBoolean()) {
+    if (masks != null && !masks.getBoolean(position)) {
       continue;
     }
-    if (!values.isNull()) {
+    if (!values.isNull(position)) {
       groupedState.setGroupId(groupIdsBlock.getGroupId(position));
-      AbstractAggregationFunction.this.processInput(state,values);
+      AbstractAggregationFunction.this.processInput(state,values,position);
     }
   }
-  checkState(!values.advanceNextPosition());
 }
