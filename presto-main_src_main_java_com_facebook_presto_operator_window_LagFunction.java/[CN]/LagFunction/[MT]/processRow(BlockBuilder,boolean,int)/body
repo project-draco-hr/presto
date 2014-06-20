@@ -1,0 +1,17 @@
+{
+  currentPosition++;
+  int offset=offsetChannel < 0 ? 1 : Ints.checkedCast(pagesIndex.getLong(offsetChannel,currentPosition));
+  checkCondition(offset >= 0,INVALID_FUNCTION_ARGUMENT,"Offset must be at least 0");
+  int valuePosition=currentPosition - offset;
+  if (valuePosition >= partitionStartPosition) {
+    pagesIndex.appendTo(valueChannel,valuePosition,output);
+  }
+ else {
+    if (defaultChannel < 0) {
+      output.appendNull();
+    }
+ else {
+      pagesIndex.appendTo(defaultChannel,currentPosition,output);
+    }
+  }
+}
