@@ -1,8 +1,18 @@
 {
   try {
-    return s3.getObject(new GetObjectRequest(host,keyFromPath(path)).withRange(start,Long.MAX_VALUE));
+    return retry().maxAttempts(maxClientRetry).exponentialBackoff(new Duration(1,TimeUnit.SECONDS),maxBackoffTime,2.0).stopOn(InterruptedException.class).run("getS3Object",new Callable<S3Object>(){
+      @Override public S3Object call() throws Exception {
+        return s3.getObject(new GetObjectRequest(host,keyFromPath(path)).withRange(start,Long.MAX_VALUE));
+      }
+    }
+);
   }
- catch (  AmazonClientException e) {
-    throw new IOException(e);
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    throw Throwables.propagate(e);
+  }
+catch (  Exception e) {
+    Throwables.propagateIfInstanceOf(e,IOException.class);
+    throw Throwables.propagate(e);
   }
 }

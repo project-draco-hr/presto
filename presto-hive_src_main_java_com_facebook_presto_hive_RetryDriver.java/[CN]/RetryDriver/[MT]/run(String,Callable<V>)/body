@@ -18,7 +18,8 @@
         throw e;
       }
       log.debug("Failed on executing %s with attempt %d, will retry. Exception: %s",callableName,attempt,e.getMessage());
-      TimeUnit.MILLISECONDS.sleep(sleepTime.toMillis());
+      int delayInMs=(int)Math.min(minSleepTime.toMillis() * Math.pow(scaleFactor,attempt - 1),maxSleepTime.toMillis());
+      TimeUnit.MILLISECONDS.sleep(delayInMs);
     }
   }
 }

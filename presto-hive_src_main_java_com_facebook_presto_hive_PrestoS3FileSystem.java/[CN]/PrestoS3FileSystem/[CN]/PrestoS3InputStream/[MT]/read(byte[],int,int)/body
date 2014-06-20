@@ -1,19 +1,29 @@
 {
-  IOException exception=null;
-  for (int i=0; i <= maxClientRetry; i++) {
-    try {
-      openStream();
-      int n=in.read(b,off,len);
-      if (n != -1) {
-        position+=n;
+  try {
+    int bytesRead=retry().maxAttempts(maxClientRetry).exponentialBackoff(new Duration(1,TimeUnit.SECONDS),maxBackoffTime,2.0).stopOn(InterruptedException.class).run("readStream",new Callable<Integer>(){
+      @Override public Integer call() throws Exception {
+        openStream();
+        try {
+          return in.read(buffer,offset,length);
+        }
+ catch (        Exception e) {
+          closeStream();
+          throw e;
+        }
       }
-      return n;
     }
- catch (    IOException e) {
-      log.debug("Failed reading from S3 on attempt %s: %s",i + 1,e.getMessage());
-      exception=e;
-      closeStream();
+);
+    if (bytesRead != -1) {
+      position+=bytesRead;
     }
+    return bytesRead;
   }
-  throw exception;
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    throw Throwables.propagate(e);
+  }
+catch (  Exception e) {
+    Throwables.propagateIfInstanceOf(e,IOException.class);
+    throw Throwables.propagate(e);
+  }
 }

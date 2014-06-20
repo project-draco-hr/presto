@@ -1,14 +1,26 @@
 {
   try {
-    return s3.getObjectMetadata(uri.getHost(),keyFromPath(path));
-  }
- catch (  AmazonS3Exception e) {
-    if (e.getStatusCode() == 404) {
-      return null;
+    return retry().maxAttempts(maxClientRetries).exponentialBackoff(new Duration(1,TimeUnit.SECONDS),maxBackoffTime,2.0).stopOn(InterruptedException.class).run("getS3ObjectMetadata",new Callable<ObjectMetadata>(){
+      @Override public ObjectMetadata call() throws Exception {
+        try {
+          return s3.getObjectMetadata(uri.getHost(),keyFromPath(path));
+        }
+ catch (        AmazonS3Exception e) {
+          if (e.getStatusCode() == 404) {
+            return null;
+          }
+          throw Throwables.propagate(e);
+        }
+      }
     }
-    throw new IOException(e);
+);
   }
-catch (  AmazonClientException e) {
-    throw new IOException(e);
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    throw Throwables.propagate(e);
+  }
+catch (  Exception e) {
+    Throwables.propagateIfInstanceOf(e,IOException.class);
+    throw Throwables.propagate(e);
   }
 }
