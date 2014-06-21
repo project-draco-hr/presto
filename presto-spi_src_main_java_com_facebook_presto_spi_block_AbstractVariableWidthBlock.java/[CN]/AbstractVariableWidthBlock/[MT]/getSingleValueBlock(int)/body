@@ -1,10 +1,9 @@
 {
-  checkReadablePosition(position);
-  int offset=getPositionOffset(position);
-  if (isEntryAtOffsetNull(offset)) {
-    return new VariableWidthBlock(type,1,Slices.wrappedBuffer(new byte[]{1}),new int[]{0});
+  if (isNull(position)) {
+    return new VariableWidthBlock(type,1,Slices.wrappedBuffer(new byte[]{1}),new int[]{0},new boolean[]{true});
   }
-  int entrySize=valueOffset(type.getLength(getRawSlice(),valueOffset(offset)));
+  int offset=getPositionOffset(position);
+  int entrySize=type.getLength(getRawSlice(),offset);
   Slice copy=Slices.copyOf(getRawSlice(),offset,entrySize);
-  return new VariableWidthBlock(type,1,copy,new int[]{0});
+  return new VariableWidthBlock(type,1,copy,new int[]{0},new boolean[]{false});
 }
