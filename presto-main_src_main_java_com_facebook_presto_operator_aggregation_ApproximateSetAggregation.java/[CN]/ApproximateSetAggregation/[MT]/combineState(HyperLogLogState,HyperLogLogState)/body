@@ -1,0 +1,13 @@
+{
+  HyperLogLog input=otherState.getHyperLogLog();
+  HyperLogLog previous=state.getHyperLogLog();
+  if (previous == null) {
+    state.setHyperLogLog(input);
+    state.addMemoryUsage(input.estimatedInMemorySize());
+  }
+ else {
+    state.addMemoryUsage(-previous.estimatedInMemorySize());
+    previous.mergeWith(input);
+    state.addMemoryUsage(previous.estimatedInMemorySize());
+  }
+}
