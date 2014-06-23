@@ -1,9 +1,9 @@
 {
-  List<TokenRange> masterRangeNodes=getRangeMap(keyspace,client);
+  List<TokenRange> masterRangeNodes=cassandraThriftClient.getRangeMap(keyspace);
   List<TokenSplit> splits=new ArrayList<>();
   List<Future<List<TokenSplit>>> splitFutures=new ArrayList<>();
   for (  TokenRange range : masterRangeNodes) {
-    splitFutures.add(executor.submit(new SplitCallable<>(range,keyspace,columnFamily,splitSize,client,partitioner)));
+    splitFutures.add(executor.submit(new SplitCallable<>(range,keyspace,columnFamily,splitSize,cassandraThriftClient,partitioner)));
   }
   for (  Future<List<TokenSplit>> futureInputSplits : splitFutures) {
     try {
