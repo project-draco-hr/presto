@@ -1,5 +1,5 @@
 {
-  return new InternalConnector(){
+  return new Connector(){
     @Override public ConnectorHandleResolver getHandleResolver(){
       return new JmxHandleResolver();
     }
@@ -9,11 +9,8 @@
     @Override public ConnectorSplitManager getSplitManager(){
       return new JmxSplitManager(new JmxConnectorId(connectorId),nodeManager);
     }
-    @Override public ConnectorDataStreamProvider getDataStreamProvider(){
-      return new JmxDataStreamProvider(new JmxConnectorId(connectorId),mbeanServer,nodeInfo);
-    }
     @Override public ConnectorRecordSetProvider getRecordSetProvider(){
-      throw new UnsupportedOperationException();
+      return new JmxRecordSetProvider(mbeanServer,nodeInfo);
     }
     @Override public ConnectorRecordSinkProvider getRecordSinkProvider(){
       throw new UnsupportedOperationException();
