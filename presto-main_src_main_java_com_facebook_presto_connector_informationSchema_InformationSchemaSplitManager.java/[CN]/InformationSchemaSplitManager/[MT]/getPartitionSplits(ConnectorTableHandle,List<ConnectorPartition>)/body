@@ -4,8 +4,7 @@
     return new FixedSplitSource(SYSTEM_DATASOURCE,ImmutableList.<ConnectorSplit>of());
   }
   ConnectorPartition partition=Iterables.getOnlyElement(partitions);
-  checkArgument(partition instanceof InformationSchemaPartition,"Partition must be an informationSchema partition");
-  InformationSchemaPartition informationSchemaPartition=(InformationSchemaPartition)partition;
+  InformationSchemaPartition informationSchemaPartition=checkType(partition,InformationSchemaPartition.class,"partition");
   List<HostAddress> localAddress=ImmutableList.of(nodeManager.getCurrentNode().getHostAndPort());
   ImmutableMap.Builder<String,Object> filters=ImmutableMap.builder();
   for (  Entry<ConnectorColumnHandle,Comparable<?>> entry : informationSchemaPartition.getFilters().entrySet()) {

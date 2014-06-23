@@ -1,12 +1,10 @@
 {
   checkNotNull(split,"partitionChunk is null");
-  checkArgument(split instanceof ExampleSplit);
-  ExampleSplit exampleSplit=(ExampleSplit)split;
+  ExampleSplit exampleSplit=checkType(split,ExampleSplit.class,"split");
   checkArgument(exampleSplit.getConnectorId().equals(connectorId),"split is not for this connector");
   ImmutableList.Builder<ExampleColumnHandle> handles=ImmutableList.builder();
   for (  ConnectorColumnHandle handle : columns) {
-    checkArgument(handle instanceof ExampleColumnHandle);
-    handles.add((ExampleColumnHandle)handle);
+    handles.add(checkType(handle,ExampleColumnHandle.class,"handle"));
   }
   return new ExampleRecordSet(exampleSplit,handles.build());
 }

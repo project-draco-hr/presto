@@ -1,15 +1,13 @@
 {
   checkNotNull(tableHandle,"tableHandle is null");
-  checkArgument(tableHandle instanceof CassandraTableHandle,"tableHandle is not an instance of CassandraTableHandle");
-  CassandraTableHandle cassandraTableHandle=(CassandraTableHandle)tableHandle;
+  CassandraTableHandle cassandraTableHandle=checkType(tableHandle,CassandraTableHandle.class,"tableHandle");
   checkNotNull(partitions,"partitions is null");
   if (partitions.isEmpty()) {
     return new FixedSplitSource(connectorId,ImmutableList.<ConnectorSplit>of());
   }
   if (partitions.size() == 1) {
     ConnectorPartition partition=partitions.get(0);
-    checkArgument(partition instanceof CassandraPartition,"partitions are no CassandraPartitions");
-    CassandraPartition cassandraPartition=(CassandraPartition)partition;
+    CassandraPartition cassandraPartition=checkType(partition,CassandraPartition.class,"partition");
     if (cassandraPartition.isUnpartitioned()) {
       CassandraTable table=schemaProvider.getTable(cassandraTableHandle);
       List<ConnectorSplit> splits=getSplitsByTokenRange(table,cassandraPartition.getPartitionId());

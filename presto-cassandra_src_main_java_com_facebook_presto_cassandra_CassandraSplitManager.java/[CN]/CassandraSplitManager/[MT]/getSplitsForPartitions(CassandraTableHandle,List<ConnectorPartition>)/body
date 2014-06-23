@@ -4,8 +4,7 @@
   HostAddressFactory hostAddressFactory=new HostAddressFactory();
   ImmutableList.Builder<ConnectorSplit> builder=ImmutableList.builder();
   for (  ConnectorPartition partition : partitions) {
-    checkArgument(partition instanceof CassandraPartition,"partitions are no CassandraPartitions");
-    CassandraPartition cassandraPartition=(CassandraPartition)partition;
+    CassandraPartition cassandraPartition=checkType(partition,CassandraPartition.class,"partition");
     Set<Host> hosts=cassandraSession.getReplicas(schema,cassandraPartition.getKeyAsByteBuffer());
     List<HostAddress> addresses=hostAddressFactory.toHostAddressList(hosts);
     CassandraSplit split=new CassandraSplit(connectorId,schema,table,cassandraPartition.getPartitionId(),null,addresses);

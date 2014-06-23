@@ -4,11 +4,10 @@
     return new FixedSplitSource(connectorId,ImmutableList.<ConnectorSplit>of());
   }
   ConnectorPartition partition=Iterables.getOnlyElement(partitions);
-  checkArgument(partition instanceof JmxPartition,"Partition must be an jmx partition");
-  JmxPartition jmxPartition=(JmxPartition)partition;
+  JmxTableHandle tableHandle=checkType(partition,JmxPartition.class,"partition").getTableHandle();
   ImmutableList.Builder<ConnectorSplit> splits=ImmutableList.builder();
   for (  Node node : nodeManager.getActiveNodes()) {
-    splits.add(new JmxSplit(jmxPartition.tableHandle,ImmutableList.of(node.getHostAndPort())));
+    splits.add(new JmxSplit(tableHandle,ImmutableList.of(node.getHostAndPort())));
   }
   return new FixedSplitSource(connectorId,splits.build());
 }
