@@ -1,6 +1,12 @@
 {
   ImmutableList.Builder<String> builder=ImmutableList.builder();
-  for (  KeyspaceMetadata meta : session.getCluster().getMetadata().getKeyspaces()) {
+  List<KeyspaceMetadata> keyspaces=executeWithSession("",new SessionCallable<List<KeyspaceMetadata>>(){
+    @Override public List<KeyspaceMetadata> executeWithSession(    Session session){
+      return session.getCluster().getMetadata().getKeyspaces();
+    }
+  }
+);
+  for (  KeyspaceMetadata meta : keyspaces) {
     builder.add(meta.getName());
   }
   return builder.build();

@@ -1,0 +1,14 @@
+{
+  NoHostAvailableException lastException=null;
+  for (int i=0; i < 2; i++) {
+    Session session=getSession(schemaName);
+    try {
+      return sessionCallable.executeWithSession(session);
+    }
+ catch (    NoHostAvailableException e) {
+      lastException=e;
+      sessionBySchema.asMap().remove(schemaName,session);
+    }
+  }
+  throw lastException;
+}

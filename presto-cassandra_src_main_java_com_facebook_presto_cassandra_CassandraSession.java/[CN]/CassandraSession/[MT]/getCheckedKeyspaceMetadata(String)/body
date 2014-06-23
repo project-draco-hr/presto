@@ -1,7 +1,12 @@
 {
-  KeyspaceMetadata meta=session.getCluster().getMetadata().getKeyspace(schema);
-  if (meta == null) {
+  KeyspaceMetadata keyspaceMetadata=executeWithSession(schema,new SessionCallable<KeyspaceMetadata>(){
+    @Override public KeyspaceMetadata executeWithSession(    Session session){
+      return session.getCluster().getMetadata().getKeyspace(schema);
+    }
+  }
+);
+  if (keyspaceMetadata == null) {
     throw new SchemaNotFoundException(schema);
   }
-  return meta;
+  return keyspaceMetadata;
 }

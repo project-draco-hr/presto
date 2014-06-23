@@ -1,4 +1,15 @@
 {
-  CassandraSessionFactory factory=new CassandraSessionFactory(connectorId,config,extraColumnMetadataCodec);
-  return factory.create();
+  checkNotNull(config,"config is null");
+  checkNotNull(extraColumnMetadataCodec,"extraColumnMetadataCodec is null");
+  Cluster.Builder clusterBuilder=Cluster.builder();
+  List<String> contactPoints=checkNotNull(config.getContactPoints(),"contactPoints is null");
+  checkArgument(!contactPoints.isEmpty(),"empty contactPoints");
+  clusterBuilder.addContactPoints(contactPoints.toArray(new String[contactPoints.size()]));
+  clusterBuilder.withPort(config.getNativeProtocolPort());
+  clusterBuilder.withReconnectionPolicy(new ExponentialReconnectionPolicy(500,10000));
+  QueryOptions options=new QueryOptions();
+  options.setFetchSize(config.getFetchSize());
+  options.setConsistencyLevel(config.getConsistencyLevel());
+  clusterBuilder.withQueryOptions(options);
+  return new CassandraSession(connectorId.toString(),clusterBuilder,config.getFetchSizeForPartitionKeySelect(),config.getLimitForPartitionKeySelect(),extraColumnMetadataCodec);
 }

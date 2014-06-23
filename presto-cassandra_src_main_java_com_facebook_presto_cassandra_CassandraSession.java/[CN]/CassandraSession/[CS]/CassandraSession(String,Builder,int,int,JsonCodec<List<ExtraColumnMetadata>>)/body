@@ -1,10 +1,12 @@
 {
   this.connectorId=connectorId;
-  this.clusterBuilder=clusterBuilder;
   this.fetchSizeForPartitionKeySelect=fetchSizeForPartitionKeySelect;
   this.limitForPartitionKeySelect=limitForPartitionKeySelect;
   this.extraColumnMetadataCodec=extraColumnMetadataCodec;
-  if (clusterBuilder != null) {
-    this.session=clusterBuilder.build().connect();
+  sessionBySchema=CacheBuilder.newBuilder().build(new CacheLoader<String,Session>(){
+    @Override public Session load(    String key) throws Exception {
+      return clusterBuilder.build().connect();
+    }
   }
+);
 }
