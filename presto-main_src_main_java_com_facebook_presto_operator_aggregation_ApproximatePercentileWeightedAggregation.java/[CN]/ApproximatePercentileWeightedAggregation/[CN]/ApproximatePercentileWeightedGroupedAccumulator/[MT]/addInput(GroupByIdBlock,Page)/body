@@ -8,19 +8,13 @@
   if (maskChannel.isPresent()) {
     masks=page.getBlock(maskChannel.get()).cursor();
   }
-  BlockCursor sampleWeights=null;
-  if (sampleWeightChannel.isPresent()) {
-    sampleWeights=page.getBlock(sampleWeightChannel.get()).cursor();
-  }
   for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
     checkState(values.advanceNextPosition());
     checkState(weights.advanceNextPosition());
     checkState(percentiles.advanceNextPosition());
     checkState(masks == null || masks.advanceNextPosition());
-    checkState(sampleWeights == null || sampleWeights.advanceNextPosition());
-    long sampleWeight=SimpleAggregationFunction.computeSampleWeight(masks,sampleWeights);
     long groupId=groupIdsBlock.getGroupId(position);
-    if (!values.isNull() && !weights.isNull() && sampleWeight > 0) {
+    if (!values.isNull() && !weights.isNull() && (masks == null || masks.getBoolean())) {
       DigestAndPercentile currentValue=digests.get(groupId);
       if (currentValue == null) {
         currentValue=new DigestAndPercentile(new QuantileDigest(0.01));
@@ -28,7 +22,7 @@
         sizeOfValues+=currentValue.getDigest().estimatedInMemorySizeInBytes();
       }
       sizeOfValues-=currentValue.getDigest().estimatedInMemorySizeInBytes();
-      addValue(currentValue.getDigest(),values,sampleWeight * weights.getLong(),parameterType);
+      addValue(currentValue.getDigest(),values,weights.getLong(),parameterType);
       sizeOfValues+=currentValue.getDigest().estimatedInMemorySizeInBytes();
       if (!percentiles.isNull()) {
         currentValue.setPercentile(percentiles.getDouble());

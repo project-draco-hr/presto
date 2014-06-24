@@ -6,18 +6,12 @@
   if (maskChannel.isPresent()) {
     masks=page.getBlock(maskChannel.get()).cursor();
   }
-  BlockCursor sampleWeights=null;
-  if (sampleWeightChannel.isPresent()) {
-    sampleWeights=page.getBlock(sampleWeightChannel.get()).cursor();
-  }
   for (int position=0; position < page.getPositionCount(); position++) {
     checkState(values.advanceNextPosition());
     checkState(percentiles.advanceNextPosition());
     checkState(masks == null || masks.advanceNextPosition());
-    checkState(sampleWeights == null || sampleWeights.advanceNextPosition());
-    long sampleWeight=SimpleAggregationFunction.computeSampleWeight(masks,sampleWeights);
-    if (!values.isNull() && sampleWeight > 0) {
-      addValue(digest,values,parameterType,sampleWeight);
+    if (!values.isNull() && (masks == null || masks.getBoolean())) {
+      addValue(digest,values,parameterType);
       if (!percentiles.isNull()) {
         percentile=percentiles.getDouble();
       }
