@@ -1,0 +1,11 @@
+{
+  Block values=page.getBlock(valueChannel);
+  Block masks=maskChannel.transform(page.blockGetter()).orNull();
+  Block sampleWeights=sampleWeightChannel.transform(page.blockGetter()).orNull();
+  for (int position=0; position < values.getPositionCount(); position++) {
+    long sampleWeight=ApproximateUtils.computeSampleWeight(masks,sampleWeights,position);
+    if (!values.isNull(position) && sampleWeight > 0) {
+      AbstractAggregationFunction.this.processInput(state,values,position,sampleWeight);
+    }
+  }
+}
