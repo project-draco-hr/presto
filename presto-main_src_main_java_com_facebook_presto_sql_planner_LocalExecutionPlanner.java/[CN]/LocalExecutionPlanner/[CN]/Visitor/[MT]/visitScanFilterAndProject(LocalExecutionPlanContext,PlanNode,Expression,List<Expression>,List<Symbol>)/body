@@ -33,11 +33,8 @@
     SymbolToInputRewriter symbolToInputRewriter=new SymbolToInputRewriter(sourceLayout);
     Expression rewrittenFilter=ExpressionTreeRewriter.rewriteWith(symbolToInputRewriter,filterExpression);
     List<Expression> rewrittenProjections=new ArrayList<>();
-    List<Type> outputTypes=new ArrayList<>();
-    for (int i=0; i < projectionExpressions.size(); i++) {
-      Expression projection=projectionExpressions.get(i);
+    for (    Expression projection : projectionExpressions) {
       rewrittenProjections.add(ExpressionTreeRewriter.rewriteWith(symbolToInputRewriter,projection));
-      outputTypes.add(context.getTypes().get(outputSymbols.get(i)));
     }
     IdentityHashMap<Expression,Type> expressionTypes=getExpressionTypesFromInput(context.getSession(),metadata,sqlParser,sourceTypes,concat(singleton(rewrittenFilter),rewrittenProjections));
     if (columns != null) {
