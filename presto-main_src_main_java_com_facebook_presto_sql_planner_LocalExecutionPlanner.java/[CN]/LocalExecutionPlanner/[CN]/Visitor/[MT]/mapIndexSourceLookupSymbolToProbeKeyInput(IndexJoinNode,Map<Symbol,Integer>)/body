@@ -1,0 +1,15 @@
+{
+  Set<Symbol> indexJoinSymbols=FluentIterable.from(node.getCriteria()).transform(indexGetter()).toSet();
+  Map<Symbol,Symbol> indexKeyTrace=IndexJoinOptimizer.IndexKeyTracer.trace(node.getIndexSource(),indexJoinSymbols);
+  Multimap<Symbol,Integer> indexToProbeKeyInput=HashMultimap.create();
+  for (  IndexJoinNode.EquiJoinClause clause : node.getCriteria()) {
+    indexToProbeKeyInput.put(clause.getIndex(),probeKeyLayout.get(clause.getProbe()));
+  }
+  ImmutableSetMultimap.Builder<Symbol,Integer> builder=ImmutableSetMultimap.builder();
+  for (  Map.Entry<Symbol,Symbol> entry : indexKeyTrace.entrySet()) {
+    Symbol indexJoinSymbol=entry.getKey();
+    Symbol indexLookupSymbol=entry.getValue();
+    builder.putAll(indexLookupSymbol,indexToProbeKeyInput.get(indexJoinSymbol));
+  }
+  return builder.build();
+}

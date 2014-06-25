@@ -1,11 +1,11 @@
 {
   int outputChannel=0;
-  ImmutableMap.Builder<Symbol,Input> outputMappings=ImmutableMap.builder();
+  ImmutableMap.Builder<Symbol,Integer> outputMappings=ImmutableMap.builder();
   List<AggregationFunctionDefinition> functionDefinitions=new ArrayList<>();
   for (  Map.Entry<Symbol,FunctionCall> entry : node.getAggregations().entrySet()) {
     Symbol symbol=entry.getKey();
     functionDefinitions.add(buildFunctionDefinition(source,node.getFunctions().get(symbol),entry.getValue(),node.getMasks().get(entry.getKey()),node.getSampleWeight(),node.getConfidence()));
-    outputMappings.put(symbol,new Input(outputChannel));
+    outputMappings.put(symbol,outputChannel);
     outputChannel++;
   }
   OperatorFactory operatorFactory=new AggregationOperatorFactory(operatorId,node.getStep(),functionDefinitions);

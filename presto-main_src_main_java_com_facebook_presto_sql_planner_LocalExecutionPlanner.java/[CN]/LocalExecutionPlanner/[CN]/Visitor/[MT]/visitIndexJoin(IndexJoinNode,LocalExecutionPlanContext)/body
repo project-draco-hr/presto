@@ -4,23 +4,23 @@
   List<Symbol> indexSymbols=Lists.transform(clauses,indexGetter());
   PhysicalOperation probeSource=node.getProbeSource().accept(this,context);
   List<Integer> probeChannels=getChannelsForSymbols(probeSymbols,probeSource.getLayout());
-  Map<Symbol,Input> probeKeyLayout=new HashMap<>();
+  Map<Symbol,Integer> probeKeyLayout=new HashMap<>();
   for (int i=0; i < probeSymbols.size(); i++) {
-    probeKeyLayout.put(probeSymbols.get(i),new Input(i));
+    probeKeyLayout.put(probeSymbols.get(i),i);
   }
-  SetMultimap<Symbol,Input> indexLookupToProbeInput=mapIndexSourceLookupSymbolToProbeKeyInput(node,probeKeyLayout);
+  SetMultimap<Symbol,Integer> indexLookupToProbeInput=mapIndexSourceLookupSymbolToProbeKeyInput(node,probeKeyLayout);
   LocalExecutionPlanContext indexContext=context.createIndexSourceSubContext(new IndexSourceContext(indexLookupToProbeInput));
   PhysicalOperation indexSource=node.getIndexSource().accept(this,indexContext);
   List<Integer> indexChannels=getChannelsForSymbols(indexSymbols,indexSource.getLayout());
   PagesIndexBuilderOperatorFactory pagesIndexOutput=new PagesIndexBuilderOperatorFactory(indexContext.getNextOperatorId(),indexSource.getTypes());
   DriverFactory indexBuildDriverFactory=new DriverFactory(indexContext.isInputDriver(),false,ImmutableList.<OperatorFactory>builder().addAll(indexSource.getOperatorFactories()).add(pagesIndexOutput).build());
   IndexLookupSourceSupplier indexLookupSourceSupplier=new IndexLookupSourceSupplier(indexChannels,indexSource.getTypes(),indexContext.getNextOperatorId(),indexBuildDriverFactory,pagesIndexOutput);
-  ImmutableMap.Builder<Symbol,Input> outputMappings=ImmutableMap.builder();
+  ImmutableMap.Builder<Symbol,Integer> outputMappings=ImmutableMap.builder();
   outputMappings.putAll(probeSource.getLayout());
   int offset=probeSource.getTypes().size();
-  for (  Map.Entry<Symbol,Input> entry : indexSource.getLayout().entrySet()) {
-    Input input=entry.getValue();
-    outputMappings.put(entry.getKey(),new Input(offset + input.getChannel()));
+  for (  Map.Entry<Symbol,Integer> entry : indexSource.getLayout().entrySet()) {
+    Integer input=entry.getValue();
+    outputMappings.put(entry.getKey(),offset + input);
   }
   OperatorFactory lookupJoinOperatorFactory;
 switch (node.getType()) {

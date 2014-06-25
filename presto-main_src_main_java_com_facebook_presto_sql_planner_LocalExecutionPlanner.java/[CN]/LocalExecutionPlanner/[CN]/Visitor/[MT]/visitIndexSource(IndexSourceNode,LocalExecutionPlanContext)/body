@@ -1,24 +1,24 @@
 {
   checkState(context.getIndexSourceContext().isPresent(),"Must be in an index source context");
   IndexSourceContext indexSourceContext=context.getIndexSourceContext().get();
-  ImmutableMap.Builder<Symbol,Input> outputMappings=ImmutableMap.builder();
+  ImmutableMap.Builder<Symbol,Integer> outputMappings=ImmutableMap.builder();
   int channel=0;
   for (  Symbol symbol : node.getOutputSymbols()) {
-    outputMappings.put(symbol,new Input(channel));
+    outputMappings.put(symbol,channel);
     channel++;
   }
-  SetMultimap<Symbol,Input> indexLookupToProbeInput=indexSourceContext.getIndexLookupToProbeInput();
+  SetMultimap<Symbol,Integer> indexLookupToProbeInput=indexSourceContext.getIndexLookupToProbeInput();
   checkState(indexLookupToProbeInput.keySet().equals(node.getLookupSymbols()));
   List<Symbol> lookupSymbolSchema=ImmutableList.copyOf(node.getLookupSymbols());
   ImmutableList.Builder<Integer> remappedProbeKeyChannelsBuilder=ImmutableList.builder();
   ImmutableList.Builder<Set<Integer>> overlappingFieldSetsBuilder=ImmutableList.builder();
   for (  Symbol lookupSymbol : lookupSymbolSchema) {
-    Set<Input> potentialProbeInputs=indexLookupToProbeInput.get(lookupSymbol);
+    Set<Integer> potentialProbeInputs=indexLookupToProbeInput.get(lookupSymbol);
     checkState(!potentialProbeInputs.isEmpty(),"Must have at least one source from the probe input");
     if (potentialProbeInputs.size() > 1) {
-      overlappingFieldSetsBuilder.add(FluentIterable.from(potentialProbeInputs).transform(Input.channelGetter()).toSet());
+      overlappingFieldSetsBuilder.add(FluentIterable.from(potentialProbeInputs).toSet());
     }
-    remappedProbeKeyChannelsBuilder.add(Iterables.getFirst(potentialProbeInputs,null).getChannel());
+    remappedProbeKeyChannelsBuilder.add(Iterables.getFirst(potentialProbeInputs,null));
   }
   final List<Set<Integer>> overlappingFieldSets=overlappingFieldSetsBuilder.build();
   final List<Integer> remappedProbeKeyChannels=remappedProbeKeyChannelsBuilder.build();

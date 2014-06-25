@@ -1,13 +1,13 @@
 {
   PhysicalOperation source=node.getSource().accept(this,context);
   int sampleWeightChannel=Iterables.getOnlyElement(getChannelsForSymbols(ImmutableList.of(node.getSampleWeightSymbol()),source.getLayout()));
-  ImmutableMap.Builder<Symbol,Input> outputMappings=ImmutableMap.builder();
-  for (  Map.Entry<Symbol,Input> entry : source.getLayout().entrySet()) {
-    int value=entry.getValue().getChannel();
+  ImmutableMap.Builder<Symbol,Integer> outputMappings=ImmutableMap.builder();
+  for (  Map.Entry<Symbol,Integer> entry : source.getLayout().entrySet()) {
+    int value=entry.getValue();
     if (value == sampleWeightChannel) {
       continue;
     }
-    outputMappings.put(entry.getKey(),new Input(value > sampleWeightChannel ? value - 1 : value));
+    outputMappings.put(entry.getKey(),value > sampleWeightChannel ? value - 1 : value);
   }
   List<Type> types=new ArrayList<>();
   types.addAll(source.getTypes());

@@ -1,7 +1,7 @@
 {
   PhysicalOperation source=node.getSource().accept(this,context);
   List<Integer> channels=getChannelsForSymbols(node.getDistinctSymbols(),source.getLayout());
-  Map<Symbol,Input> outputMappings=ImmutableMap.<Symbol,Input>builder().putAll(source.getLayout()).put(node.getMarkerSymbol(),new Input(source.getLayout().size())).build();
+  Map<Symbol,Integer> outputMappings=ImmutableMap.<Symbol,Integer>builder().putAll(source.getLayout()).put(node.getMarkerSymbol(),source.getLayout().size()).build();
   Optional<Integer> sampleWeightChannel=node.getSampleWeightSymbol().transform(source.channelGetter());
   MarkDistinctOperatorFactory operator=new MarkDistinctOperatorFactory(context.getNextOperatorId(),source.getTypes(),channels,sampleWeightChannel);
   return new PhysicalOperation(operator,outputMappings,source);
