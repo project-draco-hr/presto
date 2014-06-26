@@ -1,0 +1,12 @@
+{
+  SubPlanBuilder current=node.getSource().accept(this,context);
+  if (current.isDistributed()) {
+    List<Symbol> partitionedBy=node.getPartitionBy();
+    current.setRoot(new SinkNode(idAllocator.getNextId(),current.getRoot(),current.getRoot().getOutputSymbols()));
+    ExchangeNode source=new ExchangeNode(idAllocator.getNextId(),current.getId(),current.getRoot().getOutputSymbols());
+    current.setHashOutputPartitioning(partitionedBy);
+    current=createFixedDistributionPlan(source).addChild(current.build());
+  }
+  current.setRoot(new TopNRowNumberNode(node.getId(),current.getRoot(),node.getPartitionBy(),node.getOrderBy(),node.getOrderings(),node.getRowNumberSymbol(),node.getMaxRowCountPerPartition()));
+  return current;
+}

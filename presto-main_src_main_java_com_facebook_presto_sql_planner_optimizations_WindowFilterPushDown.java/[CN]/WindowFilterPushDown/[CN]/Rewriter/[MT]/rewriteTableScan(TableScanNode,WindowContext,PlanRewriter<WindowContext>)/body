@@ -1,0 +1,13 @@
+{
+  if (context != null && context.getExpression() instanceof LongLiteral && context.getWindowNode().isPresent()) {
+    PlanNode rewrittenNode=planRewriter.rewrite(node,null);
+    WindowNode windowNode=context.getWindowNode().get();
+    if (windowNode.getOrderBy().isEmpty()) {
+      return new LimitNode(idAllocator.getNextId(),rewrittenNode,((LongLiteral)context.getExpression()).getValue());
+    }
+ else {
+      return new TopNNode(idAllocator.getNextId(),rewrittenNode,((LongLiteral)context.getExpression()).getValue(),windowNode.getOrderBy(),windowNode.getOrderings(),false);
+    }
+  }
+  return planRewriter.defaultRewrite(node,null);
+}

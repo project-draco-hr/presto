@@ -1,0 +1,25 @@
+{
+  long groupByHashSize=groupByHash.getEstimatedSize();
+  GroupByIdBlock partitionIds=groupByHash.getGroupIds(page);
+  memoryManager.canUseDelta(groupByHash.getEstimatedSize() - groupByHashSize);
+  long sizeDelta=0;
+  Block[] blocks=page.getBlocks();
+  for (int position=0; position < page.getPositionCount(); position++) {
+    long partitionId=partitionIds.getGroupId(position);
+    if (!partitionRows.containsKey(partitionId)) {
+      partitionRows.put(partitionId,new PartitionBuilder(sortTypes,sortChannels,sortOrders,maxRowCountPerPartition));
+    }
+    PartitionBuilder partitionBuilder=partitionRows.get(partitionId);
+    if (partitionBuilder.getRowCount() < maxRowCountPerPartition) {
+      Block[] row=page.getSingleValueBlocks(position);
+      sizeDelta+=partitionBuilder.addRow(row);
+    }
+ else     if (compare(position,blocks,partitionBuilder.peekLastRow()) < 0) {
+      Block[] row=page.getSingleValueBlocks(position);
+      sizeDelta+=partitionBuilder.replaceRow(row);
+    }
+  }
+  if (!memoryManager.canUseDelta(sizeDelta)) {
+    throw new ExceededMemoryLimitException(memoryManager.getMaxMemorySize());
+  }
+}

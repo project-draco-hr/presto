@@ -1,0 +1,6 @@
+{
+  MaterializedResult actual=computeActual("" + "SELECT orderkey, orderstatus FROM (\n" + "   SELECT row_number() OVER () rn, orderkey, orderstatus\n"+ "   FROM orders\n"+ ") WHERE rn <= 5\n");
+  MaterializedResult all=computeExpected("SELECT orderkey, orderstatus FROM ORDERS",actual.getTypes());
+  assertEquals(actual.getMaterializedRows().size(),5);
+  assertTrue(all.getMaterializedRows().containsAll(actual.getMaterializedRows()));
+}

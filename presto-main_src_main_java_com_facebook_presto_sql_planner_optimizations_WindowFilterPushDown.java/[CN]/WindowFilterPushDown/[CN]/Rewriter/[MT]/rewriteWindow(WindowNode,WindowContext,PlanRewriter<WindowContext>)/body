@@ -1,0 +1,19 @@
+{
+  if (context != null && canOptimizeWindowFunction(node,context)) {
+    int limit=extractLimitOptional(node,context.getExpression()).get();
+    if (node.getPartitionBy().isEmpty()) {
+      WindowContext windowContext=new WindowContext(Optional.of(node),new LongLiteral(String.valueOf(limit)));
+      PlanNode rewrittenSource=planRewriter.rewrite(node.getSource(),windowContext);
+      return new WindowNode(idAllocator.getNextId(),rewrittenSource,node.getPartitionBy(),node.getOrderBy(),node.getOrderings(),node.getWindowFunctions(),node.getSignatures());
+    }
+ else     if (node.getOrderBy().isEmpty()) {
+      PlanNode rewrittenSource=planRewriter.rewrite(node.getSource(),null);
+      return new RowNumberLimitNode(idAllocator.getNextId(),rewrittenSource,node.getPartitionBy(),Iterables.getOnlyElement(node.getWindowFunctions().keySet()),limit);
+    }
+ else {
+      PlanNode rewrittenSource=planRewriter.rewrite(node.getSource(),null);
+      return new TopNRowNumberNode(idAllocator.getNextId(),rewrittenSource,node.getPartitionBy(),node.getOrderBy(),node.getOrderings(),Iterables.getOnlyElement(node.getWindowFunctions().keySet()),limit);
+    }
+  }
+  return planRewriter.defaultRewrite(node,null);
+}

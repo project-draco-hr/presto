@@ -1,0 +1,29 @@
+{
+  if (!flushingPartition.isPresent()) {
+    flushingPartition=getFlushingPartition();
+  }
+  pageBuilder.reset();
+  long sizeDelta=0;
+  while (!pageBuilder.isFull() && flushingPartition.isPresent()) {
+    FlushingPartition currentFlushingPartition=flushingPartition.get();
+    while (!pageBuilder.isFull() && currentFlushingPartition.hasNext()) {
+      Block[] next=currentFlushingPartition.next();
+      sizeDelta+=sizeOfRow(next);
+      for (int i=0; i < outputChannels.length; i++) {
+        int channel=outputChannels[i];
+        Type type=types.get(channel);
+        type.appendTo(next[channel],0,pageBuilder.getBlockBuilder(i));
+      }
+      BIGINT.writeLong(pageBuilder.getBlockBuilder(outputChannels.length),currentFlushingPartition.getRowNumber());
+    }
+    if (!currentFlushingPartition.hasNext()) {
+      flushingPartition=getFlushingPartition();
+    }
+  }
+  if (pageBuilder.isEmpty()) {
+    return null;
+  }
+  Page page=pageBuilder.build();
+  memoryManager.freeMemory(-sizeDelta);
+  return page;
+}

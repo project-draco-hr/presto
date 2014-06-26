@@ -1,0 +1,21 @@
+{
+  int maxPartitionSize=0;
+  PartitionBuilder chosenPartitionBuilder=null;
+  long chosenPartitionId=-1;
+  for (  Map.Entry<Long,PartitionBuilder> entry : partitionRows.entrySet()) {
+    if (entry.getValue().getRowCount() > maxPartitionSize) {
+      chosenPartitionBuilder=entry.getValue();
+      maxPartitionSize=chosenPartitionBuilder.getRowCount();
+      chosenPartitionId=entry.getKey();
+      if (maxPartitionSize == maxRowCountPerPartition) {
+        break;
+      }
+    }
+  }
+  if (chosenPartitionBuilder == null) {
+    return Optional.absent();
+  }
+  FlushingPartition flushingPartition=new FlushingPartition(chosenPartitionBuilder.build());
+  partitionRows.remove(chosenPartitionId);
+  return Optional.of(flushingPartition);
+}
