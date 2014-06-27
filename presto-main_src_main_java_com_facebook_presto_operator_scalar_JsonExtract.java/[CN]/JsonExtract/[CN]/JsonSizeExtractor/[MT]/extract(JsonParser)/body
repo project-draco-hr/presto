@@ -1,0 +1,40 @@
+{
+  if (!jsonParser.hasCurrentToken()) {
+    throw new JsonParseException("Unexpected end of value",jsonParser.getCurrentLocation());
+  }
+  if (jsonParser.getCurrentToken() == START_ARRAY) {
+    long length=0;
+    while (true) {
+      JsonToken token=jsonParser.nextToken();
+      if (token == null) {
+        return null;
+      }
+      if (token == END_ARRAY) {
+        return length;
+      }
+      jsonParser.skipChildren();
+      length++;
+    }
+  }
+ else   if (jsonParser.getCurrentToken() == START_OBJECT) {
+    long length=0;
+    while (true) {
+      JsonToken token=jsonParser.nextToken();
+      if (token == null) {
+        return null;
+      }
+      if (token == END_OBJECT) {
+        return length;
+      }
+      if (token == FIELD_NAME) {
+        length++;
+      }
+ else {
+        jsonParser.skipChildren();
+      }
+    }
+  }
+ else {
+    return 0L;
+  }
+}

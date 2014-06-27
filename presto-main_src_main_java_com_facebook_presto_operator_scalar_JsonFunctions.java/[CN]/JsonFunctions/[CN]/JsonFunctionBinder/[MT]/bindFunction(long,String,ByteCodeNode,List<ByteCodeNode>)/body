@@ -4,35 +4,62 @@
   if (patternNode instanceof Constant) {
     Slice patternSlice=(Slice)((Constant)patternNode).getValue();
     String pattern=patternSlice.toString(Charsets.UTF_8);
-    JsonExtractor jsonExtractor;
+    JsonExtractor<?> jsonExtractor;
 switch (name) {
 case JSON_EXTRACT_SCALAR_FUNCTION_NAME:
-      jsonExtractor=generateExtractor(pattern,true);
-    break;
+      methodHandle=constantJsonExtract;
+    jsonExtractor=generateExtractor(pattern,new ScalarValueJsonExtractor());
+  break;
 case JSON_EXTRACT_FUNCTION_NAME:
-  jsonExtractor=generateExtractor(pattern,false);
+methodHandle=constantJsonExtract;
+jsonExtractor=generateExtractor(pattern,new JsonValueJsonExtractor());
+break;
+case JSON_SIZE_FUNCTION_NAME:
+methodHandle=constantJsonSize;
+jsonExtractor=generateExtractor(pattern,new JsonSizeExtractor());
 break;
 default :
 throw new IllegalArgumentException("Unsupported method " + name);
 }
-methodHandle=MethodHandles.insertArguments(constantJsonExtract,1,jsonExtractor);
+methodHandle=MethodHandles.insertArguments(methodHandle,1,jsonExtractor);
 arguments=new ArrayList<>(arguments);
 arguments.remove(1);
 arguments=ImmutableList.copyOf(arguments);
 }
  else {
-ThreadLocalCache<Slice,JsonExtractor> cache;
+JsonExtractCache<?> cache;
 switch (name) {
 case JSON_EXTRACT_SCALAR_FUNCTION_NAME:
-cache=new JsonExtractCache(20,true);
+methodHandle=dynamicJsonExtract;
+cache=new JsonExtractCache<>(20,new Supplier<JsonExtractor<Slice>>(){
+@Override public JsonExtractor<Slice> get(){
+return new ScalarValueJsonExtractor();
+}
+}
+);
 break;
 case JSON_EXTRACT_FUNCTION_NAME:
-cache=new JsonExtractCache(20,false);
+methodHandle=dynamicJsonExtract;
+cache=new JsonExtractCache<>(20,new Supplier<JsonExtractor<Slice>>(){
+@Override public JsonExtractor<Slice> get(){
+return new JsonValueJsonExtractor();
+}
+}
+);
+break;
+case JSON_SIZE_FUNCTION_NAME:
+methodHandle=dynamicJsonSize;
+cache=new JsonExtractCache<>(20,new Supplier<JsonExtractor<Long>>(){
+@Override public JsonExtractor<Long> get(){
+return new JsonSizeExtractor();
+}
+}
+);
 break;
 default :
 throw new IllegalArgumentException("Unsupported method " + name);
 }
-methodHandle=dynamicJsonExtract.bindTo(cache);
+methodHandle=methodHandle.bindTo(cache);
 }
 return DefaultFunctionBinder.bindConstantArguments(bindingId,name,getSessionByteCode,arguments,methodHandle,true);
 }
