@@ -7,9 +7,10 @@
   ConnectorSplitSource splitSource=client.getPartitionSplits(table,partitionResult.getPartitions());
   long sum=0;
   for (  ConnectorSplit split : getAllSplits(splitSource)) {
-    try (RecordCursor cursor=client.getRecordSet(split,columnHandles).cursor()){
-      while (cursor.advanceNextPosition()) {
-        sum+=cursor.getLong(columnIndex.get("t_bigint"));
+    try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(split,columnHandles)){
+      MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,getTypes(columnHandles));
+      for (      MaterializedRow row : result) {
+        sum+=(Long)row.getField(columnIndex.get("t_bigint"));
       }
     }
    }

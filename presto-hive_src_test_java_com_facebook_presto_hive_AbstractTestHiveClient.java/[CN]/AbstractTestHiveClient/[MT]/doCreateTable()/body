@@ -40,26 +40,28 @@
   assertEquals(partitionResult.getPartitions().size(),1);
   ConnectorSplitSource splitSource=splitManager.getPartitionSplits(tableHandle,partitionResult.getPartitions());
   ConnectorSplit split=getOnlyElement(getAllSplits(splitSource));
-  try (RecordCursor cursor=recordSetProvider.getRecordSet(split,columnHandles).cursor()){
-    assertRecordCursorType(cursor,"rcfile-binary");
-    assertTrue(cursor.advanceNextPosition());
-    assertEquals(cursor.getLong(0),1);
-    assertEquals(cursor.getSlice(1).toStringUtf8(),"hello");
-    assertEquals(cursor.getLong(2),123);
-    assertEquals(cursor.getDouble(3),43.5);
-    assertEquals(cursor.getBoolean(4),true);
-    assertTrue(cursor.advanceNextPosition());
-    assertEquals(cursor.getLong(0),2);
-    assertTrue(cursor.isNull(1));
-    assertTrue(cursor.isNull(2));
-    assertTrue(cursor.isNull(3));
-    assertTrue(cursor.isNull(4));
-    assertTrue(cursor.advanceNextPosition());
-    assertEquals(cursor.getLong(0),3);
-    assertEquals(cursor.getSlice(1).toStringUtf8(),"bye");
-    assertEquals(cursor.getLong(2),456);
-    assertEquals(cursor.getDouble(3),98.1);
-    assertEquals(cursor.getBoolean(4),false);
-    assertFalse(cursor.advanceNextPosition());
+  try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(split,columnHandles)){
+    assertPageSourceType(pageSource,"rcfile-binary");
+    MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,getTypes(columnHandles));
+    assertEquals(result.getRowCount(),3);
+    MaterializedRow row;
+    row=result.getMaterializedRows().get(0);
+    assertEquals(row.getField(0),1L);
+    assertEquals(row.getField(1),"hello");
+    assertEquals(row.getField(2),123L);
+    assertEquals(row.getField(3),43.5);
+    assertEquals(row.getField(4),true);
+    row=result.getMaterializedRows().get(1);
+    assertEquals(row.getField(0),2L);
+    assertNull(row.getField(1));
+    assertNull(row.getField(2));
+    assertNull(row.getField(3));
+    assertNull(row.getField(4));
+    row=result.getMaterializedRows().get(2);
+    assertEquals(row.getField(0),3L);
+    assertEquals(row.getField(1),"bye");
+    assertEquals(row.getField(2),456L);
+    assertEquals(row.getField(3),98.1);
+    assertEquals(row.getField(4),false);
   }
  }

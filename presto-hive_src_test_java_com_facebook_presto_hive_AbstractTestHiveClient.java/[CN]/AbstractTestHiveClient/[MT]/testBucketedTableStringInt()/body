@@ -10,10 +10,11 @@
   ConnectorPartitionResult partitionResult=splitManager.getPartitions(tableHandle,TupleDomain.withFixedValues(bindings));
   List<ConnectorSplit> splits=getAllSplits(splitManager.getPartitionSplits(tableHandle,partitionResult.getPartitions()));
   assertEquals(splits.size(),1);
-  boolean rowFound=false;
-  try (RecordCursor cursor=recordSetProvider.getRecordSet(splits.get(0),columnHandles).cursor()){
-    while (cursor.advanceNextPosition()) {
-      if (testString.equals(cursor.getSlice(columnIndex.get("t_string")).toStringUtf8()) && testInt == cursor.getLong(columnIndex.get("t_int")) && testSmallint == cursor.getLong(columnIndex.get("t_smallint"))) {
+  try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(splits.get(0),columnHandles)){
+    MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,getTypes(columnHandles));
+    boolean rowFound=false;
+    for (    MaterializedRow row : result) {
+      if (testString.equals(row.getField(columnIndex.get("t_string"))) && testInt.equals(row.getField(columnIndex.get("t_int"))) && testSmallint.equals(row.getField(columnIndex.get("t_smallint")))) {
         rowFound=true;
       }
     }

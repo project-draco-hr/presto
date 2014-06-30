@@ -26,17 +26,19 @@
   assertEquals(partitionResult.getPartitions().size(),1);
   ConnectorSplitSource splitSource=splitManager.getPartitionSplits(tableHandle,partitionResult.getPartitions());
   ConnectorSplit split=getOnlyElement(getAllSplits(splitSource));
-  try (RecordCursor cursor=recordSetProvider.getRecordSet(split,columnHandles).cursor()){
-    assertRecordCursorType(cursor,"rcfile-binary");
-    assertTrue(cursor.advanceNextPosition());
-    assertEquals(cursor.getLong(0),2);
-    assertEquals(cursor.getLong(1),8);
-    assertTrue(cursor.advanceNextPosition());
-    assertEquals(cursor.getLong(0),3);
-    assertEquals(cursor.getLong(1),5);
-    assertTrue(cursor.advanceNextPosition());
-    assertEquals(cursor.getLong(0),4);
-    assertEquals(cursor.getLong(1),7);
-    assertFalse(cursor.advanceNextPosition());
+  try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(split,columnHandles)){
+    assertPageSourceType(pageSource,"rcfile-binary");
+    MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,getTypes(columnHandles));
+    assertEquals(result.getRowCount(),3);
+    MaterializedRow row;
+    row=result.getMaterializedRows().get(0);
+    assertEquals(row.getField(0),2L);
+    assertEquals(row.getField(1),8L);
+    row=result.getMaterializedRows().get(1);
+    assertEquals(row.getField(0),3L);
+    assertEquals(row.getField(1),5L);
+    row=result.getMaterializedRows().get(2);
+    assertEquals(row.getField(0),4L);
+    assertEquals(row.getField(1),7L);
   }
  }

@@ -9,21 +9,22 @@
     HiveSplit hiveSplit=(HiveSplit)split;
     assertEquals(hiveSplit.getPartitionKeys(),ImmutableList.of());
     long rowNumber=0;
-    try (RecordCursor cursor=recordSetProvider.getRecordSet(split,columnHandles).cursor()){
-      assertRecordCursorType(cursor,"textfile");
-      assertEquals(cursor.getTotalBytes(),hiveSplit.getLength());
-      while (cursor.advanceNextPosition()) {
+    try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(split,columnHandles)){
+      assertPageSourceType(pageSource,"textfile");
+      MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,getTypes(columnHandles));
+      assertEquals(pageSource.getTotalBytes(),hiveSplit.getLength());
+      for (      MaterializedRow row : result) {
         rowNumber++;
         if (rowNumber % 19 == 0) {
-          assertTrue(cursor.isNull(columnIndex.get("t_string")));
+          assertNull(row.getField(columnIndex.get("t_string")));
         }
  else         if (rowNumber % 19 == 1) {
-          assertEquals(cursor.getSlice(columnIndex.get("t_string")).toStringUtf8(),"");
+          assertEquals(row.getField(columnIndex.get("t_string")),"");
         }
  else {
-          assertEquals(cursor.getSlice(columnIndex.get("t_string")).toStringUtf8(),"unpartitioned");
+          assertEquals(row.getField(columnIndex.get("t_string")),"unpartitioned");
         }
-        assertEquals(cursor.getLong(columnIndex.get("t_tinyint")),1 + rowNumber);
+        assertEquals(row.getField(columnIndex.get("t_tinyint")),1 + rowNumber);
       }
     }
      assertEquals(rowNumber,100);

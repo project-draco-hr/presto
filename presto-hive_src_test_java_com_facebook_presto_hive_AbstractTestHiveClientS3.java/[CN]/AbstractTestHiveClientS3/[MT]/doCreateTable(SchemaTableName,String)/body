@@ -21,13 +21,15 @@
   assertEquals(partitionResult.getPartitions().size(),1);
   ConnectorSplitSource splitSource=client.getPartitionSplits(tableHandle,partitionResult.getPartitions());
   ConnectorSplit split=getOnlyElement(getAllSplits(splitSource));
-  try (RecordCursor cursor=client.getRecordSet(split,columnHandles).cursor()){
-    assertTrue(cursor.advanceNextPosition());
-    assertEquals(cursor.getLong(0),1);
-    assertTrue(cursor.advanceNextPosition());
-    assertEquals(cursor.getLong(0),3);
-    assertTrue(cursor.advanceNextPosition());
-    assertEquals(cursor.getLong(0),2);
-    assertFalse(cursor.advanceNextPosition());
+  try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(split,columnHandles)){
+    MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,getTypes(columnHandles));
+    assertEquals(result.getRowCount(),3);
+    MaterializedRow row;
+    row=result.getMaterializedRows().get(0);
+    assertEquals(row.getField(0),1L);
+    row=result.getMaterializedRows().get(1);
+    assertEquals(row.getField(0),2L);
+    row=result.getMaterializedRows().get(2);
+    assertEquals(row.getField(0),3L);
   }
  }
