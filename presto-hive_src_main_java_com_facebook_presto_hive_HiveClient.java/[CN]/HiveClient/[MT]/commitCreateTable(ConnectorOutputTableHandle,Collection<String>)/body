@@ -24,14 +24,14 @@
   }
   SerDeInfo serdeInfo=new SerDeInfo();
   serdeInfo.setName(handle.getTableName());
-  serdeInfo.setSerializationLib(LazyBinaryColumnarSerDe.class.getName());
+  serdeInfo.setSerializationLib(hiveStorageFormat.getSerDe());
   serdeInfo.setParameters(ImmutableMap.<String,String>of());
   StorageDescriptor sd=new StorageDescriptor();
   sd.setLocation(targetPath.toString());
   sd.setCols(columns.build());
   sd.setSerdeInfo(serdeInfo);
-  sd.setInputFormat(RCFileInputFormat.class.getName());
-  sd.setOutputFormat(RCFileOutputFormat.class.getName());
+  sd.setInputFormat(hiveStorageFormat.getInputFormat());
+  sd.setOutputFormat(hiveStorageFormat.getOutputFormat());
   sd.setParameters(ImmutableMap.<String,String>of());
   Table table=new Table();
   table.setDbName(handle.getSchemaName());
