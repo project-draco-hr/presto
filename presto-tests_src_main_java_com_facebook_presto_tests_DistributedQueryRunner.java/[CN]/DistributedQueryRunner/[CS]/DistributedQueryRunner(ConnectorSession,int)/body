@@ -1,5 +1,5 @@
 {
-  session=checkNotNull(defaultSession,"defaultSession is null");
+  checkNotNull(defaultSession,"defaultSession is null");
   try {
     discoveryServer=new TestingDiscoveryServer(ENVIRONMENT);
     ImmutableList.Builder<TestingPrestoServer> servers=ImmutableList.builder();
@@ -14,7 +14,7 @@
     close();
     throw e;
   }
-  this.httpClient=new JettyHttpClient(new HttpClientConfig().setConnectTimeout(new Duration(1,TimeUnit.DAYS)).setReadTimeout(new Duration(10,TimeUnit.DAYS)));
+  this.prestoClient=new TestingPrestoClient(coordinator,defaultSession);
   long start=System.nanoTime();
   while (!allNodesGloballyVisible()) {
     Assertions.assertLessThan(nanosSince(start),new Duration(10,SECONDS));
