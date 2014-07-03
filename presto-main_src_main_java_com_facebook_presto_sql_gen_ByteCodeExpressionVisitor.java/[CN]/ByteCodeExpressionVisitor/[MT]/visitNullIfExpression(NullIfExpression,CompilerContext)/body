@@ -1,10 +1,14 @@
 {
   ByteCodeNode first=process(node.getFirst(),context);
-  Type firstType=expressionTypes.get(node.getFirst());
   ByteCodeNode second=process(node.getSecond(),context);
+  Type firstType=expressionTypes.get(node.getFirst());
+  Type secondType=expressionTypes.get(node.getSecond());
   LabelNode notMatch=new LabelNode("notMatch");
   Block block=new Block(context).comment(node.toString()).append(first).append(ifWasNullPopAndGoto(context,notMatch,void.class));
-  FunctionBinding functionBinding=bootstrapFunctionBinder.bindOperator(OperatorType.EQUAL,getSessionByteCode,ImmutableList.of(new Block(context).dup(firstType.getJavaType()),second),types(node.getFirst(),node.getSecond()));
+  Type commonType=FunctionRegistry.getCommonSuperType(firstType,secondType).get();
+  FunctionBinding castFirst=bootstrapFunctionBinder.bindCastOperator(getSessionByteCode,new Block(context).dup(firstType.getJavaType()),firstType,commonType);
+  FunctionBinding castSecond=bootstrapFunctionBinder.bindCastOperator(getSessionByteCode,second,secondType,commonType);
+  FunctionBinding functionBinding=bootstrapFunctionBinder.bindOperator(OperatorType.EQUAL,getSessionByteCode,ImmutableList.of(visitFunctionBinding(context,castFirst,"cast(first)"),visitFunctionBinding(context,castSecond,"cast(second)")),types(node.getFirst(),node.getSecond()));
   ByteCodeNode equalsCall=visitFunctionBinding(context,functionBinding,"equal");
   Block conditionBlock=new Block(context).append(equalsCall).append(ifWasNullClearPopAndGoto(context,notMatch,void.class,boolean.class));
   Block trueBlock=new Block(context).putVariable("wasNull",true).pop(firstType.getJavaType()).pushJavaDefault(firstType.getJavaType());
