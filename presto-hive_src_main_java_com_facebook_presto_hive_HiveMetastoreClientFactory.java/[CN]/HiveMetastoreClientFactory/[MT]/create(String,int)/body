@@ -1,15 +1,14 @@
 {
   TTransport transport;
   if (socksProxy == null) {
-    transport=new TTransportWrapper(new TSocket(host,port,(int)timeout.toMillis()),host);
+    transport=new TTransportWrapper(new TSocket(host,port,timeoutMillis),host);
     transport.open();
   }
  else {
-    SocketAddress address=InetSocketAddress.createUnresolved(socksProxy.getHostText(),socksProxy.getPort());
-    Socket socks=new Socket(new Proxy(Proxy.Type.SOCKS,address));
+    Socket socks=createSocksSocket(socksProxy);
     try {
-      socks.connect(InetSocketAddress.createUnresolved(host,port),(int)timeout.toMillis());
-      socks.setSoTimeout(Ints.checkedCast(timeout.toMillis()));
+      socks.connect(InetSocketAddress.createUnresolved(host,port),timeoutMillis);
+      socks.setSoTimeout(timeoutMillis);
     }
  catch (    IOException e) {
       throw rewriteException(new TTransportException(e),host);
