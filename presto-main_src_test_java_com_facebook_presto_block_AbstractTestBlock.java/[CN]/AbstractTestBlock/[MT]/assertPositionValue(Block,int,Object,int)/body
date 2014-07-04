@@ -7,23 +7,24 @@
   assertTrue(block.equalTo(position,expectedBlock,0));
   assertTrue(expectedBlock.equalTo(0,block,position));
   assertEquals(block.isNull(position),expectedValue == null);
-  assertTrue((block.compareTo(ASC_NULLS_FIRST,position,expectedBlock,0) == 0));
-  assertTrue((block.compareTo(ASC_NULLS_LAST,position,expectedBlock,0) == 0));
-  assertTrue((block.compareTo(DESC_NULLS_FIRST,position,expectedBlock,0) == 0));
-  assertTrue((block.compareTo(DESC_NULLS_LAST,position,expectedBlock,0) == 0));
+  int length=block.getLength(position);
+  assertEquals(length,expectedBlock.getLength(0));
   verifyInvalidPositionHandling(block);
-  if (block.isNull(position)) {
-    assertTrue((block.compareTo(ASC_NULLS_FIRST,position,getNonNullValue(expectedType),0) < 0));
-    assertTrue((block.compareTo(DESC_NULLS_FIRST,position,getNonNullValue(expectedType),0) < 0));
-    assertTrue((block.compareTo(ASC_NULLS_LAST,position,getNonNullValue(expectedType),0) > 0));
-    assertTrue((block.compareTo(DESC_NULLS_LAST,position,getNonNullValue(expectedType),0) > 0));
-    return;
+  if (expectedValue instanceof String) {
+    assertTrue(block.compareTo(position,0,length,expectedBlock,0,0,length) == 0);
+    if (length > 0) {
+      assertTrue(block.compareTo(position,1,length - 1,expectedBlock,0,1,length - 1) == 0);
+      assertTrue(block.compareTo(position,0,length - 1,expectedBlock,0,0,length - 1) == 0);
+    }
+    Block greaterValue=expectedType.createBlockBuilder(new BlockBuilderStatus()).appendSlice(Slices.utf8Slice(expectedValue + "_")).build();
+    assertTrue(block.compareTo(position,0,length,greaterValue,0,0,length + 1) < 0);
+    if (length > 0) {
+      assertTrue(block.compareTo(position,1,length - 1,greaterValue,0,1,length) < 0);
+      assertTrue(block.compareTo(position,0,length - 1,greaterValue,0,0,length) < 0);
+    }
   }
-  if (expectedValue != Boolean.TRUE) {
-    assertTrue((block.compareTo(ASC_NULLS_FIRST,position,getGreaterValue(expectedType,expectedValue),0) < 0));
-    assertTrue((block.compareTo(ASC_NULLS_LAST,position,getGreaterValue(expectedType,expectedValue),0) < 0));
-    assertTrue((block.compareTo(DESC_NULLS_FIRST,position,getGreaterValue(expectedType,expectedValue),0) > 0));
-    assertTrue((block.compareTo(DESC_NULLS_LAST,position,getGreaterValue(expectedType,expectedValue),0) > 0));
+  if (block.isNull(position)) {
+    return;
   }
   Type type=block.getType();
   if (type.getJavaType() == boolean.class) {

@@ -1,0 +1,35 @@
+{
+  CompilerContext compilerContext=new CompilerContext(bootstrapMethod);
+  MethodDefinition compareToMethod=classDefinition.declareMethod(compilerContext,a(PUBLIC),"compareTo",type(int.class),arg("pagesIndex",PagesIndex.class),arg("leftPosition",int.class),arg("rightPosition",int.class));
+  LocalVariableDefinition valueAddresses=compilerContext.declareVariable(LongArrayList.class,"valueAddresses");
+  compareToMethod.getBody().comment("LongArrayList valueAddresses = pagesIndex.valueAddresses").getVariable("pagesIndex").invokeVirtual(PagesIndex.class,"getValueAddresses",LongArrayList.class).putVariable(valueAddresses);
+  LocalVariableDefinition leftPageAddress=compilerContext.declareVariable(long.class,"leftPageAddress");
+  compareToMethod.getBody().comment("long leftPageAddress = valueAddresses.getLong(leftPosition)").getVariable(valueAddresses).getVariable("leftPosition").invokeVirtual(LongArrayList.class,"getLong",long.class,int.class).putVariable(leftPageAddress);
+  LocalVariableDefinition leftBlockIndex=compilerContext.declareVariable(int.class,"leftBlockIndex");
+  compareToMethod.getBody().comment("int leftBlockIndex = decodeSliceIndex(leftPageAddress)").getVariable(leftPageAddress).invokeStatic(SyntheticAddress.class,"decodeSliceIndex",int.class,long.class).putVariable(leftBlockIndex);
+  LocalVariableDefinition leftBlockPosition=compilerContext.declareVariable(int.class,"leftBlockPosition");
+  compareToMethod.getBody().comment("int leftBlockPosition = decodePosition(leftPageAddress)").getVariable(leftPageAddress).invokeStatic(SyntheticAddress.class,"decodePosition",int.class,long.class).putVariable(leftBlockPosition);
+  LocalVariableDefinition rightPageAddress=compilerContext.declareVariable(long.class,"rightPageAddress");
+  compareToMethod.getBody().comment("long rightPageAddress = valueAddresses.getLong(rightPosition);").getVariable(valueAddresses).getVariable("rightPosition").invokeVirtual(LongArrayList.class,"getLong",long.class,int.class).putVariable(rightPageAddress);
+  LocalVariableDefinition rightBlockIndex=compilerContext.declareVariable(int.class,"rightBlockIndex");
+  compareToMethod.getBody().comment("int rightBlockIndex = decodeSliceIndex(rightPageAddress)").getVariable(rightPageAddress).invokeStatic(SyntheticAddress.class,"decodeSliceIndex",int.class,long.class).putVariable(rightBlockIndex);
+  LocalVariableDefinition rightBlockPosition=compilerContext.declareVariable(int.class,"rightBlockPosition");
+  compareToMethod.getBody().comment("int rightBlockPosition = decodePosition(rightPageAddress)").getVariable(rightPageAddress).invokeStatic(SyntheticAddress.class,"decodePosition",int.class,long.class).putVariable(rightBlockPosition);
+  for (int i=0; i < sortChannels.size(); i++) {
+    int sortChannel=sortChannels.get(i);
+    SortOrder sortOrder=sortOrders.get(i);
+    Block block=new Block(compilerContext).setDescription("compare channel " + sortChannel + " "+ sortOrder);
+    block.comment("push sortOrder").getStaticField(SortOrder.class,sortOrder.name(),SortOrder.class);
+    Type sortType=sortTypes.get(i);
+    block.comment("push sortType").invokeStatic(sortType.getClass(),"getInstance",sortType.getClass());
+    block.comment("push leftBlock -- pagesIndex.getChannel(sortChannel).get(leftBlockIndex)").getVariable("pagesIndex").push(sortChannel).invokeVirtual(PagesIndex.class,"getChannel",ObjectArrayList.class,int.class).getVariable(leftBlockIndex).invokeVirtual(ObjectArrayList.class,"get",Object.class,int.class).checkCast(com.facebook.presto.spi.block.Block.class);
+    block.comment("push leftBlockPosition").getVariable(leftBlockPosition);
+    block.comment("push rightBlock -- pagesIndex.getChannel(sortChannel).get(rightBlockIndex)").getVariable("pagesIndex").push(sortChannel).invokeVirtual(PagesIndex.class,"getChannel",ObjectArrayList.class,int.class).getVariable(rightBlockIndex).invokeVirtual(ObjectArrayList.class,"get",Object.class,int.class).checkCast(com.facebook.presto.spi.block.Block.class);
+    block.comment("push rightBlockPosition").getVariable(rightBlockPosition);
+    block.comment("invoke compareTo").invokeVirtual(SortOrder.class,"compareBlockValue",int.class,Type.class,com.facebook.presto.spi.block.Block.class,int.class,com.facebook.presto.spi.block.Block.class,int.class);
+    LabelNode equal=new LabelNode("equal");
+    block.comment("if (compare != 0) return compare").dup().ifZeroGoto(equal).retInt().visitLabel(equal).pop(int.class);
+    compareToMethod.getBody().append(block);
+  }
+  compareToMethod.getBody().push(0).retInt();
+}
