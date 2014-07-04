@@ -1,0 +1,125 @@
+{
+  assertEquals(block.getType(),type);
+  Object objectValue=type.getObjectValue(SESSION,block,position);
+  assertEquals(objectValue,expectedObjectValue);
+  if (objectValue != null) {
+    assertInstanceOf(objectValue,objectValueType);
+  }
+  if (type.isComparable()) {
+    assertEquals(type.hash(block,position),expectedHash);
+  }
+ else {
+    try {
+      type.hash(block,position);
+      fail("Expected UnsupportedOperationException");
+    }
+ catch (    UnsupportedOperationException expected) {
+    }
+  }
+  Block expectedBlock=createBlock(type,expectedStackValue);
+  if (type.isComparable()) {
+    assertTrue(type.equalTo(block,position,block,position));
+    assertTrue(type.equalTo(block,position,expectedBlock,0));
+    assertTrue(type.equalTo(expectedBlock,0,block,position));
+  }
+  assertEquals(block.isNull(position),expectedStackValue == null);
+  if (type.isOrderable()) {
+    assertTrue(ASC_NULLS_FIRST.compareBlockValue(type,block,position,expectedBlock,0) == 0);
+    assertTrue(ASC_NULLS_LAST.compareBlockValue(type,block,position,expectedBlock,0) == 0);
+    assertTrue(DESC_NULLS_FIRST.compareBlockValue(type,block,position,expectedBlock,0) == 0);
+    assertTrue(DESC_NULLS_LAST.compareBlockValue(type,block,position,expectedBlock,0) == 0);
+  }
+ else {
+    try {
+      type.compareTo(block,position,expectedBlock,0);
+      fail("Expected UnsupportedOperationException");
+    }
+ catch (    UnsupportedOperationException expected) {
+    }
+  }
+  verifyInvalidPositionHandling(block);
+  if (block.isNull(position)) {
+    if (type.isOrderable()) {
+      Block nonNullValue=toBlock(getNonNullValue());
+      assertTrue(ASC_NULLS_FIRST.compareBlockValue(type,block,position,nonNullValue,0) < 0);
+      assertTrue(ASC_NULLS_LAST.compareBlockValue(type,block,position,nonNullValue,0) > 0);
+      assertTrue(DESC_NULLS_FIRST.compareBlockValue(type,block,position,nonNullValue,0) < 0);
+      assertTrue(DESC_NULLS_LAST.compareBlockValue(type,block,position,nonNullValue,0) > 0);
+    }
+    return;
+  }
+  if (type.isOrderable() && expectedStackValue != Boolean.TRUE) {
+    Block greaterValue=toBlock(getGreaterValue(expectedStackValue));
+    assertTrue(ASC_NULLS_FIRST.compareBlockValue(type,block,position,greaterValue,0) < 0);
+    assertTrue(ASC_NULLS_LAST.compareBlockValue(type,block,position,greaterValue,0) < 0);
+    assertTrue(DESC_NULLS_FIRST.compareBlockValue(type,block,position,greaterValue,0) > 0);
+    assertTrue(DESC_NULLS_LAST.compareBlockValue(type,block,position,greaterValue,0) > 0);
+  }
+  Type type=block.getType();
+  if (type.getJavaType() == boolean.class) {
+    assertEquals(type.getBoolean(block,position),expectedStackValue);
+    try {
+      type.getLong(block,position);
+      fail("Expected IllegalStateException or UnsupportedOperationException");
+    }
+ catch (    IllegalStateException|UnsupportedOperationException expected) {
+    }
+    try {
+      type.getDouble(block,position);
+      fail("Expected IllegalStateException or UnsupportedOperationException");
+    }
+ catch (    IllegalStateException|UnsupportedOperationException expected) {
+    }
+  }
+ else   if (type.getJavaType() == long.class) {
+    assertEquals(type.getLong(block,position),expectedStackValue);
+    try {
+      type.getBoolean(block,position);
+      fail("Expected IllegalStateException or UnsupportedOperationException");
+    }
+ catch (    IllegalStateException|UnsupportedOperationException expected) {
+    }
+    try {
+      type.getDouble(block,position);
+      fail("Expected IllegalStateException or UnsupportedOperationException");
+    }
+ catch (    IllegalStateException|UnsupportedOperationException expected) {
+    }
+  }
+ else   if (type.getJavaType() == double.class) {
+    assertEquals(type.getDouble(block,position),expectedStackValue);
+    try {
+      type.getBoolean(block,position);
+      fail("Expected IllegalStateException or UnsupportedOperationException");
+    }
+ catch (    IllegalStateException|UnsupportedOperationException expected) {
+    }
+    try {
+      type.getLong(block,position);
+      fail("Expected IllegalStateException or UnsupportedOperationException");
+    }
+ catch (    IllegalStateException|UnsupportedOperationException expected) {
+    }
+  }
+ else   if (type.getJavaType() == Slice.class) {
+    assertEquals(type.getSlice(block,position),expectedStackValue);
+    try {
+      type.getBoolean(block,position);
+      fail("Expected IllegalStateException or UnsupportedOperationException");
+    }
+ catch (    IllegalStateException|UnsupportedOperationException expected) {
+    }
+    try {
+      type.getLong(block,position);
+      fail("Expected IllegalStateException or UnsupportedOperationException");
+    }
+ catch (    IllegalStateException|UnsupportedOperationException expected) {
+    }
+    try {
+      type.getDouble(block,position);
+      fail("Expected IllegalStateException or UnsupportedOperationException");
+    }
+ catch (    IllegalStateException|UnsupportedOperationException expected) {
+    }
+  }
+}

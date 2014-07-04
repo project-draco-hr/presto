@@ -1,0 +1,25 @@
+{
+  BlockBuilder nullsBlockBuilder=type.createBlockBuilder(new BlockBuilderStatus());
+  for (int position=0; position < testBlock.getPositionCount(); position++) {
+    if (type.getJavaType() == void.class) {
+      nullsBlockBuilder.appendNull();
+    }
+ else     if (type.getJavaType() == boolean.class) {
+      nullsBlockBuilder.appendBoolean(type.getBoolean(testBlock,position));
+    }
+ else     if (type.getJavaType() == long.class) {
+      nullsBlockBuilder.appendLong(type.getLong(testBlock,position));
+    }
+ else     if (type.getJavaType() == double.class) {
+      nullsBlockBuilder.appendDouble(type.getDouble(testBlock,position));
+    }
+ else     if (type.getJavaType() == Slice.class) {
+      nullsBlockBuilder.appendSlice(type.getSlice(testBlock,position));
+    }
+ else {
+      throw new RuntimeException("Unsupported Java type " + type.getJavaType());
+    }
+    nullsBlockBuilder.appendNull();
+  }
+  return nullsBlockBuilder.build();
+}
