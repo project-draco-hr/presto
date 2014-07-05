@@ -1,14 +1,15 @@
 {
   checkNotNull(block,"block is null");
+  Type type=block.getType();
   if (dictionaryBuilder == null) {
-    dictionaryBuilder=new ChannelSetBuilder(block.getType(),MAX_UNIQUE_COUNT,null);
+    dictionaryBuilder=new ChannelSetBuilder(type,MAX_UNIQUE_COUNT,null);
   }
   for (int position=0; position < block.getPositionCount(); position++) {
     Block value=block.getSingleValueBlock(position);
     if (lastValue == null) {
       lastValue=value;
     }
- else     if (!value.equalTo(0,lastValue,0)) {
+ else     if (!type.equalTo(value,0,lastValue,0)) {
       runsCount++;
       lastValue=value;
     }

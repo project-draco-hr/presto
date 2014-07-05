@@ -1,6 +1,6 @@
 {
   JoinCompiler joinCompiler=new JoinCompiler();
-  PagesHashStrategyFactory pagesHashStrategyFactory=joinCompiler.compilePagesHashStrategy(1,Ints.asList(0));
+  PagesHashStrategyFactory pagesHashStrategyFactory=joinCompiler.compilePagesHashStrategy(ImmutableList.<Type>of(VARCHAR),Ints.asList(0));
   List<Block> channel=ImmutableList.of(BlockAssertions.createStringSequenceBlock(10,20),BlockAssertions.createStringSequenceBlock(20,30),BlockAssertions.createStringSequenceBlock(15,25));
   PagesHashStrategy hashStrategy=pagesHashStrategyFactory.createPagesHashStrategy(ImmutableList.of(channel));
   assertEquals(hashStrategy.getChannelCount(),1);
@@ -8,17 +8,17 @@
     Block leftBlock=channel.get(leftBlockIndex);
     PageBuilder pageBuilder=new PageBuilder(ImmutableList.of(VARCHAR));
     for (int leftBlockPosition=0; leftBlockPosition < leftBlock.getPositionCount(); leftBlockPosition++) {
-      assertEquals(hashStrategy.hashPosition(leftBlockIndex,leftBlockPosition),leftBlock.hash(leftBlockPosition));
+      assertEquals(hashStrategy.hashPosition(leftBlockIndex,leftBlockPosition),VARCHAR.hash(leftBlock,leftBlockPosition));
       assertTrue(hashStrategy.positionEqualsPosition(leftBlockIndex,leftBlockPosition,leftBlockIndex,leftBlockPosition));
       for (int rightBlockIndex=0; rightBlockIndex < channel.size(); rightBlockIndex++) {
         Block rightBlock=channel.get(rightBlockIndex);
         for (int rightBlockPosition=0; rightBlockPosition < rightBlock.getPositionCount(); rightBlockPosition++) {
-          assertEquals(hashStrategy.positionEqualsPosition(leftBlockIndex,leftBlockPosition,rightBlockIndex,rightBlockPosition),leftBlock.equalTo(leftBlockPosition,rightBlock,rightBlockPosition));
+          assertEquals(hashStrategy.positionEqualsPosition(leftBlockIndex,leftBlockPosition,rightBlockIndex,rightBlockPosition),VARCHAR.equalTo(leftBlock,leftBlockPosition,rightBlock,rightBlockPosition));
         }
       }
       for (      Block rightBlock : channel) {
         for (int position=0; position < rightBlock.getPositionCount(); position++) {
-          assertEquals(hashStrategy.positionEqualsRow(leftBlockIndex,leftBlockPosition,position,rightBlock),leftBlock.equalTo(leftBlockPosition,rightBlock,position));
+          assertEquals(hashStrategy.positionEqualsRow(leftBlockIndex,leftBlockPosition,position,rightBlock),VARCHAR.equalTo(leftBlock,leftBlockPosition,rightBlock,position));
         }
       }
       hashStrategy.appendTo(leftBlockIndex,leftBlockPosition,pageBuilder,0);

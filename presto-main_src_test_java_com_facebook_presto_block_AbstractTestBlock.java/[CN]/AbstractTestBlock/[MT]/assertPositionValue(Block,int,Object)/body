@@ -1,0 +1,32 @@
+{
+  assertEquals(block.getType(),expectedType);
+  Block expectedBlock=createBlock(expectedType,expectedValue);
+  assertEquals(block.isNull(position),expectedValue == null);
+  int length=block.getLength(position);
+  assertEquals(length,expectedBlock.getLength(0));
+  if (expectedValue instanceof String) {
+    assertTrue(block.compareTo(position,0,length,expectedBlock,0,0,length) == 0);
+    if (length > 0) {
+      assertTrue(block.compareTo(position,1,length - 1,expectedBlock,0,1,length - 1) == 0);
+      assertTrue(block.compareTo(position,0,length - 1,expectedBlock,0,0,length - 1) == 0);
+    }
+    Block greaterValue=expectedType.createBlockBuilder(new BlockBuilderStatus()).appendSlice(Slices.utf8Slice(expectedValue + "_")).build();
+    assertTrue(block.compareTo(position,0,length,greaterValue,0,0,length + 1) < 0);
+    if (length > 0) {
+      assertTrue(block.compareTo(position,1,length - 1,greaterValue,0,1,length) < 0);
+      assertTrue(block.compareTo(position,0,length - 1,greaterValue,0,0,length) < 0);
+    }
+  }
+  try {
+    block.isNull(-1);
+    fail("expected IllegalArgumentException");
+  }
+ catch (  IllegalArgumentException expected) {
+  }
+  try {
+    block.isNull(block.getPositionCount());
+    fail("expected IllegalArgumentException");
+  }
+ catch (  IllegalArgumentException expected) {
+  }
+}

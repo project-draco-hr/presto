@@ -1,5 +1,6 @@
 {
-  Block body=definition.declareMethod(new CompilerContext(null),a(PUBLIC),"processInput",type(void.class),arg("state",AccumulatorState.class),arg("blocks",List.class),arg("position",int.class),arg("sampleWeight",long.class)).getBody();
+  CompilerContext compilerContext=new CompilerContext(null);
+  Block body=definition.declareMethod(compilerContext,a(PUBLIC),"processInput",type(void.class),arg("state",AccumulatorState.class),arg("blocks",List.class),arg("position",int.class),arg("sampleWeight",long.class)).getBody();
   body.comment("Call input function with unpacked Block arguments").getVariable("state").checkCast(stateClass);
   Class<?>[] parameters=inputFunction.getParameterTypes();
   Annotation[][] annotations=inputFunction.getParameterAnnotations();
@@ -10,10 +11,14 @@
  else     if (annotations[i][0] instanceof SampleWeight) {
       body.getVariable("sampleWeight");
     }
- else {
-      body.getVariable("blocks").push(blockNum).invokeInterface(List.class,"get",Object.class,int.class).checkCast(com.facebook.presto.spi.block.Block.class);
-      getStackTypeIfNecessary(body,parameters[i]);
+ else     if (annotations[i][0] instanceof SqlType) {
+      Block getBlockByteCode=new Block(compilerContext).getVariable("blocks").push(blockNum).invokeInterface(List.class,"get",Object.class,int.class).checkCast(com.facebook.presto.spi.block.Block.class);
+      Class<? extends Type> sqlType=((SqlType)annotations[i][0]).value();
+      pushStackType(body,sqlType,getBlockByteCode,parameters[i]);
       blockNum++;
+    }
+ else {
+      throw new IllegalArgumentException("Parameter " + i + " must be annotated with @BlockIndex, @SampleWeight, or @SqlType");
     }
   }
   body.invokeStatic(inputFunction).ret();

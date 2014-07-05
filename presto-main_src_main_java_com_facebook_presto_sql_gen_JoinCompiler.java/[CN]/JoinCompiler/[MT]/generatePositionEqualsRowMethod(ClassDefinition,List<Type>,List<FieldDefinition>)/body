@@ -1,0 +1,9 @@
+{
+  MethodDefinition hashPositionMethod=classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),"positionEqualsRow",type(boolean.class),arg("leftBlockIndex",int.class),arg("leftBlockPosition",int.class),arg("rightPosition",int.class),arg("rightBlocks",com.facebook.presto.spi.block.Block[].class));
+  for (int index=0; index < joinChannelTypes.size(); index++) {
+    Type joinChannelType=joinChannelTypes.get(index);
+    LabelNode checkNextField=new LabelNode("checkNextField");
+    hashPositionMethod.getBody().invokeStatic(joinChannelType.getClass(),"getInstance",joinChannelType.getClass()).pushThis().getField(joinChannelFields.get(index)).getVariable("leftBlockIndex").invokeInterface(List.class,"get",Object.class,int.class).checkCast(com.facebook.presto.spi.block.Block.class).getVariable("leftBlockPosition").getVariable("rightBlocks").push(index).getObjectArrayElement().getVariable("rightPosition").invokeVirtual(joinChannelType.getClass(),"equalTo",boolean.class,com.facebook.presto.spi.block.Block.class,int.class,com.facebook.presto.spi.block.Block.class,int.class).ifTrueGoto(checkNextField).push(false).retBoolean().visitLabel(checkNextField);
+  }
+  hashPositionMethod.getBody().push(true).retInt();
+}

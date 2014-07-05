@@ -1,0 +1,11 @@
+{
+  MethodDefinition hashPositionMethod=classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),"hashPosition",type(int.class),arg("blockIndex",int.class),arg("blockPosition",int.class));
+  LocalVariableDefinition resultVariable=hashPositionMethod.getCompilerContext().declareVariable(int.class,"result");
+  hashPositionMethod.getBody().push(0).putVariable(resultVariable);
+  for (int index=0; index < joinChannelTypes.size(); index++) {
+    Type joinChannelType=joinChannelTypes.get(index);
+    FieldDefinition joinChannelField=joinChannelFields.get(index);
+    hashPositionMethod.getBody().getVariable(resultVariable).push(31).append(OpCodes.IMUL).invokeStatic(joinChannelType.getClass(),"getInstance",joinChannelType.getClass()).pushThis().getField(joinChannelField).getVariable("blockIndex").invokeInterface(List.class,"get",Object.class,int.class).checkCast(com.facebook.presto.spi.block.Block.class).getVariable("blockPosition").invokeVirtual(joinChannelType.getClass(),"hash",int.class,com.facebook.presto.spi.block.Block.class,int.class).append(OpCodes.IADD).putVariable(resultVariable);
+  }
+  hashPositionMethod.getBody().getVariable(resultVariable).retInt();
+}

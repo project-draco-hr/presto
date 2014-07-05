@@ -1,0 +1,6 @@
+{
+  DynamicClassLoader classLoader=new DynamicClassLoader(getClass().getClassLoader());
+  Class<? extends PagesHashStrategy> pagesHashStrategyClass=compilePagesHashStrategy(types,joinChannels,classLoader);
+  Class<? extends LookupSource> lookupSourceClass=IsolatedClass.isolateClass(classLoader,LookupSource.class,InMemoryJoinHash.class);
+  return new LookupSourceFactory(lookupSourceClass,new PagesHashStrategyFactory(pagesHashStrategyClass));
+}
