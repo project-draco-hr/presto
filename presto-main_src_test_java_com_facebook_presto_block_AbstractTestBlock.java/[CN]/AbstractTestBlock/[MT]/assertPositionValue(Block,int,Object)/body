@@ -10,7 +10,10 @@
       assertTrue(block.compareTo(position,1,length - 1,expectedBlock,0,1,length - 1) == 0);
       assertTrue(block.compareTo(position,0,length - 1,expectedBlock,0,0,length - 1) == 0);
     }
-    Block greaterValue=expectedType.createBlockBuilder(new BlockBuilderStatus()).appendSlice(Slices.utf8Slice(expectedValue + "_")).build();
+    Slice value=Slices.utf8Slice(expectedValue + "_");
+    BlockBuilder blockBuilder=expectedType.createBlockBuilder(new BlockBuilderStatus());
+    expectedType.writeSlice(blockBuilder,value,0,value.length());
+    Block greaterValue=blockBuilder.build();
     assertTrue(block.compareTo(position,0,length,greaterValue,0,0,length + 1) < 0);
     if (length > 0) {
       assertTrue(block.compareTo(position,1,length - 1,greaterValue,0,1,length) < 0);

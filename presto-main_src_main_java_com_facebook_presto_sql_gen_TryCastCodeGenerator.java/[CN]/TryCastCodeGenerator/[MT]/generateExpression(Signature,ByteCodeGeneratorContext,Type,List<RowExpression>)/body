@@ -1,6 +1,6 @@
 {
   ByteCodeNode castByteCode=new CastCodeGenerator().generateExpression(signature,generatorContext,returnType,arguments);
   CompilerContext context=generatorContext.getContext();
-  Block catchBlock=new Block(context).comment("propagate InterruptedException").invokeStatic(CompilerOperations.class,"propagateInterruptedException",void.class,Throwable.class).comment("wasNull = true;").putVariable("wasNull",true).comment("restore stack after exception").getVariable("output").comment("return dummy value for null").pushJavaDefault(returnType.getJavaType());
+  Block catchBlock=new Block(context).comment("propagate InterruptedException").invokeStatic(CompilerOperations.class,"propagateInterruptedException",void.class,Throwable.class).comment("wasNull = true;").putVariable("wasNull",true).comment("restore stack after exception").invokeStatic(returnType.getClass(),"getInstance",returnType.getClass()).getVariable("output").comment("return dummy value for null").pushJavaDefault(returnType.getJavaType());
   return new TryCatch(context,"TRY_CAST",castByteCode,catchBlock,type(Exception.class));
 }

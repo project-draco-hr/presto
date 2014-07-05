@@ -1,4 +1,7 @@
 {
-  String result=formatApproximateResult(count,countError(samples,count),confidence,true);
-  return getFinalType().createBlockBuilder(new BlockBuilderStatus()).appendSlice(Slices.utf8Slice(result)).build();
+  Slice value=Slices.utf8Slice(formatApproximateResult(count,countError(samples,count),confidence,true));
+  Type finalType=getFinalType();
+  BlockBuilder blockBuilder=finalType.createBlockBuilder(new BlockBuilderStatus());
+  finalType.writeSlice(blockBuilder,value,0,value.length());
+  return blockBuilder.build();
 }

@@ -1,0 +1,8 @@
+{
+  Block appendToBody=classDefinition.declareMethod(new CompilerContext(bootstrapMethod),a(PUBLIC),"appendTo",type(void.class),arg("blockIndex",int.class),arg("blockPosition",int.class),arg("pageBuilder",PageBuilder.class),arg("outputChannelOffset",int.class)).getBody();
+  for (int index=0; index < channelFields.size(); index++) {
+    Type type=types.get(index);
+    appendToBody.comment("%s.appendTo(channel_%s.get(blockIndex), blockPosition, pageBuilder.getBlockBuilder(outputChannelOffset + %s));",type.getClass(),index,index).invokeStatic(type.getClass(),"getInstance",type.getClass()).pushThis().getField(channelFields.get(index)).getVariable("blockIndex").invokeInterface(List.class,"get",Object.class,int.class).checkCast(com.facebook.presto.spi.block.Block.class).getVariable("blockPosition").getVariable("pageBuilder").getVariable("outputChannelOffset").push(index).append(OpCodes.IADD).invokeVirtual(PageBuilder.class,"getBlockBuilder",BlockBuilder.class,int.class).invokeVirtual(type.getClass(),"appendTo",void.class,com.facebook.presto.spi.block.Block.class,int.class,BlockBuilder.class);
+  }
+  appendToBody.ret();
+}

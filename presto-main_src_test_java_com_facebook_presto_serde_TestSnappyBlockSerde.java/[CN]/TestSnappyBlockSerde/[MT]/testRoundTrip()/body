@@ -1,5 +1,10 @@
 {
-  Block block=VARCHAR.createBlockBuilder(new BlockBuilderStatus()).appendSlice(Slices.utf8Slice("alice")).appendSlice(Slices.utf8Slice("bob")).appendSlice(Slices.utf8Slice("charlie")).appendSlice(Slices.utf8Slice("dave")).build();
+  BlockBuilder blockBuilder=VARCHAR.createBlockBuilder(new BlockBuilderStatus());
+  VARCHAR.writeString(blockBuilder,"alice");
+  VARCHAR.writeString(blockBuilder,"bob");
+  VARCHAR.writeString(blockBuilder,"charlie");
+  VARCHAR.writeString(blockBuilder,"dave");
+  Block block=blockBuilder.build();
   DynamicSliceOutput compressedOutput=new DynamicSliceOutput(1024);
   Encoder encoder=BlocksFileEncoding.SNAPPY.createBlocksWriter(compressedOutput);
   encoder.append(block);

@@ -15,25 +15,25 @@
   context.declareVariable(type(boolean.class),"wasNull");
   Block getSessionByteCode=new Block(context).pushThis().getField(classDefinition.getType(),"session",type(ConnectorSession.class));
   ByteCodeNode body=compileExpression(callSiteBinder,projection,sourceIsCursor,context,getSessionByteCode);
-  projectionMethod.getBody().comment("boolean wasNull = false;").putVariable("wasNull",false).getVariable("output").append(body);
   Type projectionType=projection.getType();
+  projectionMethod.getBody().comment("boolean wasNull = false;").putVariable("wasNull",false).invokeStatic(projectionType.getClass(),"getInstance",projectionType.getClass()).getVariable("output").append(body);
   Block notNullBlock=new Block(context);
   if (projectionType.getJavaType() == boolean.class) {
-    notNullBlock.comment("output.append(<booleanStackValue>);").invokeInterface(BlockBuilder.class,"appendBoolean",BlockBuilder.class,boolean.class).pop();
+    notNullBlock.comment("%s.writeBoolean(output, <booleanStackValue>);",projectionType.getName()).invokeVirtual(projectionType.getClass(),"writeBoolean",void.class,BlockBuilder.class,boolean.class);
   }
  else   if (projectionType.getJavaType() == long.class) {
-    notNullBlock.comment("output.append(<longStackValue>);").invokeInterface(BlockBuilder.class,"appendLong",BlockBuilder.class,long.class).pop();
+    notNullBlock.comment("%s.writeLong(output, <booleanStackValue>);",projectionType.getName()).invokeVirtual(projectionType.getClass(),"writeLong",void.class,BlockBuilder.class,long.class);
   }
  else   if (projectionType.getJavaType() == double.class) {
-    notNullBlock.comment("output.append(<doubleStackValue>);").invokeInterface(BlockBuilder.class,"appendDouble",BlockBuilder.class,double.class).pop();
+    notNullBlock.comment("%s.writeDouble(output, <booleanStackValue>);",projectionType.getName()).invokeVirtual(projectionType.getClass(),"writeDouble",void.class,BlockBuilder.class,double.class);
   }
  else   if (projectionType.getJavaType() == Slice.class) {
-    notNullBlock.comment("output.append(<sliceStackValue>);").invokeInterface(BlockBuilder.class,"appendSlice",BlockBuilder.class,Slice.class).pop();
+    notNullBlock.comment("%s.writeSlice(output, <booleanStackValue>);",projectionType.getName()).invokeVirtual(projectionType.getClass(),"writeSlice",void.class,BlockBuilder.class,Slice.class);
   }
  else {
     throw new UnsupportedOperationException("Type " + projectionType + " can not be output yet");
   }
-  Block nullBlock=new Block(context).comment("output.appendNull();").pop(projectionType.getJavaType()).invokeInterface(BlockBuilder.class,"appendNull",BlockBuilder.class).pop();
+  Block nullBlock=new Block(context).comment("output.appendNull();").pop(projectionType.getJavaType()).invokeInterface(BlockBuilder.class,"appendNull",BlockBuilder.class).pop().pop();
   projectionMethod.getBody().comment("if the result was null, appendNull; otherwise append the value").append(new IfStatement(context,new Block(context).getVariable("wasNull"),nullBlock,notNullBlock)).ret();
   return projectionType.getJavaType();
 }

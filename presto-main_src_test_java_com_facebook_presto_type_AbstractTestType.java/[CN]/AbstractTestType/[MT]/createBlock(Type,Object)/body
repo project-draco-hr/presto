@@ -1,19 +1,24 @@
 {
   BlockBuilder blockBuilder=type.createBlockBuilder(new BlockBuilderStatus());
+  Class<?> javaType=type.getJavaType();
   if (value == null) {
     blockBuilder.appendNull();
   }
- else   if (type.getJavaType() == boolean.class) {
-    blockBuilder.appendBoolean((Boolean)value);
+ else   if (javaType == boolean.class) {
+    type.writeBoolean(blockBuilder,(Boolean)value);
   }
- else   if (type.getJavaType() == long.class) {
-    blockBuilder.appendLong((Long)value);
+ else   if (javaType == long.class) {
+    type.writeLong(blockBuilder,(Long)value);
   }
- else   if (type.getJavaType() == double.class) {
-    blockBuilder.appendDouble((Double)value);
+ else   if (javaType == double.class) {
+    type.writeDouble(blockBuilder,(Double)value);
   }
- else   if (type.getJavaType() == Slice.class) {
-    blockBuilder.appendSlice((Slice)value);
+ else   if (javaType == Slice.class) {
+    Slice slice=(Slice)value;
+    type.writeSlice(blockBuilder,slice,0,slice.length());
+  }
+ else {
+    throw new UnsupportedOperationException("not yet implemented: " + javaType);
   }
   return blockBuilder.build();
 }
