@@ -1,5 +1,6 @@
 {
-  BlockIterable channel0=blockIterableBuilder(VARCHAR).append("alice").append("bob").append("charlie").append("dave").newBlock().append("alice").append("bob").append("charlie").append("dave").newBlock().append("alice").append("bob").append("charlie").append("dave").build();
-  BlockIterable channel1=blockIterableBuilder(BIGINT).append(0).append(1).append(2).append(3).append(4).append(5).append(6).append(7).append(8).append(9).append(10).append(11).build();
-  return new AlignmentOperatorFactory(0,channel0,channel1).createOperator(driverContext);
+  Iterable<Block> channel0=ImmutableList.of(createStringsBlock("alice","bob","charlie","dave"),createStringsBlock("alice","bob","charlie","dave"),createStringsBlock("alice","bob","charlie","dave"));
+  Iterable<Block> channel1=ImmutableList.of(createLongSequenceBlock(0,12));
+  OperatorContext operatorContext=driverContext.addOperatorContext(0,AlignmentOperator.class.getSimpleName());
+  return new AlignmentOperator(operatorContext,ImmutableList.of(VARCHAR,BIGINT),ImmutableList.of(channel0,channel1));
 }
