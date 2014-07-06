@@ -1,0 +1,12 @@
+{
+  if (!loggedUri.getAndSet(true)) {
+    log.info("Query %s: %s?pretty",results.getId(),results.getInfoUri());
+  }
+  if (types.get() == null && results.getColumns() != null) {
+    types.set(getTypes(results.getColumns()));
+  }
+  if (results.getData() != null) {
+    checkState(types.get() != null,"data received without types");
+    rows.addAll(transform(results.getData(),dataToRow(timeZoneKey,types.get())));
+  }
+}

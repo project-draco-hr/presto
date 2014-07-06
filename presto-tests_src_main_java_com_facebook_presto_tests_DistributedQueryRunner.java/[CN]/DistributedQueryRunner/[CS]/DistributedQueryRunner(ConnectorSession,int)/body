@@ -1,12 +1,13 @@
 {
   checkNotNull(defaultSession,"defaultSession is null");
   try {
-    discoveryServer=new TestingDiscoveryServer(ENVIRONMENT);
+    discoveryServer=closer.register(new TestingDiscoveryServer(ENVIRONMENT));
     ImmutableList.Builder<TestingPrestoServer> servers=ImmutableList.builder();
-    coordinator=createTestingPrestoServer(discoveryServer.getBaseUrl(),true);
+    coordinator=closer.register(createTestingPrestoServer(discoveryServer.getBaseUrl(),true));
     servers.add(coordinator);
     for (int i=1; i < workersCount; i++) {
-      servers.add(createTestingPrestoServer(discoveryServer.getBaseUrl(),false));
+      TestingPrestoServer worker=closer.register(createTestingPrestoServer(discoveryServer.getBaseUrl(),false));
+      servers.add(worker);
     }
     this.servers=servers.build();
   }
@@ -14,7 +15,7 @@
     close();
     throw e;
   }
-  this.prestoClient=new TestingPrestoClient(coordinator,defaultSession);
+  this.prestoClient=closer.register(new TestingPrestoClient(coordinator,defaultSession));
   long start=System.nanoTime();
   while (!allNodesGloballyVisible()) {
     Assertions.assertLessThan(nanosSince(start),new Duration(10,SECONDS));
