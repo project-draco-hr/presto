@@ -1,6 +1,9 @@
 {
-  Type type=getSequenceBlock(0,10).getType();
-  Block nullValueBlock=type.createBlockBuilder(new BlockBuilderStatus()).appendNull().build();
+  List<Type> parameterTypes=getFunction().getParameterTypes();
+  if (parameterTypes.isEmpty()) {
+    return;
+  }
+  Block nullValueBlock=parameterTypes.get(0).createBlockBuilder(new BlockBuilderStatus()).appendNull().build();
   Block block=new RunLengthEncodedBlock(nullValueBlock,10);
   testAggregation(getExpectedValueIncludingNulls(0,0,10),block);
 }

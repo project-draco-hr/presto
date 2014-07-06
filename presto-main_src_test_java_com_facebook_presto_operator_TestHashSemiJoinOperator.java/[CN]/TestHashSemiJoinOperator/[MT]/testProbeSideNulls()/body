@@ -1,16 +1,18 @@
 {
   DriverContext driverContext=taskContext.addPipelineContext(true,true).addDriverContext();
   OperatorContext operatorContext=driverContext.addOperatorContext(0,ValuesOperator.class.getSimpleName());
-  Operator buildOperator=new ValuesOperator(operatorContext,rowPagesBuilder(BIGINT).row(0).row(1).row(3).build());
+  List<Type> buildTypes=ImmutableList.<Type>of(BIGINT);
+  Operator buildOperator=new ValuesOperator(operatorContext,buildTypes,rowPagesBuilder(buildTypes).row(0).row(1).row(3).build());
   SetBuilderOperatorFactory setBuilderOperatorFactory=new SetBuilderOperatorFactory(1,buildOperator.getTypes(),0,10);
   Operator setBuilderOperator=setBuilderOperatorFactory.createOperator(driverContext);
   Driver driver=new Driver(driverContext,buildOperator,setBuilderOperator);
   while (!driver.isFinished()) {
     driver.process();
   }
-  List<Page> probeInput=rowPagesBuilder(BIGINT).row(0).row((Object)null).row(1).row(2).build();
-  HashSemiJoinOperatorFactory joinOperatorFactory=new HashSemiJoinOperatorFactory(2,setBuilderOperatorFactory.getSetProvider(),ImmutableList.of(BIGINT),0);
+  List<Type> probeTypes=ImmutableList.<Type>of(BIGINT);
+  List<Page> probeInput=rowPagesBuilder(probeTypes).row(0).row((Object)null).row(1).row(2).build();
+  HashSemiJoinOperatorFactory joinOperatorFactory=new HashSemiJoinOperatorFactory(2,setBuilderOperatorFactory.getSetProvider(),probeTypes,0);
   Operator joinOperator=joinOperatorFactory.createOperator(driverContext);
-  MaterializedResult expected=resultBuilder(driverContext.getSession(),BIGINT,BOOLEAN).row(0,true).row(null,null).row(1,true).row(2,false).build();
+  MaterializedResult expected=resultBuilder(driverContext.getSession(),concat(probeTypes,ImmutableList.of(BOOLEAN))).row(0,true).row(null,null).row(1,true).row(2,false).build();
   OperatorAssertion.assertOperatorEquals(joinOperator,probeInput,expected);
 }

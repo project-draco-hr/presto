@@ -1,0 +1,9 @@
+{
+  MetadataManager metadata=new MetadataManager();
+  InterpretedProjectionFunction projectionFunction=new InterpretedProjectionFunction(createExpression(expression,metadata,symbolTypes),symbolTypes,symbolToInputMappings,metadata,SQL_PARSER,new ConnectorSession("user","test","catalog","schema",UTC_KEY,Locale.ENGLISH,null,null));
+  Type type=projectionFunction.getType();
+  BlockBuilder builder=type.createBlockBuilder(new BlockBuilderStatus());
+  projectionFunction.project(position,blocks,builder);
+  Object actualValue=BlockAssertions.getOnlyValue(type,builder.build());
+  assertEquals(actualValue,expectedValue);
+}

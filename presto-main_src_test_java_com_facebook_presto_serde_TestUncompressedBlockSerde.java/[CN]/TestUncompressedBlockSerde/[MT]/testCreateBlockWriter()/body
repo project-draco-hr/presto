@@ -6,7 +6,7 @@
   VARCHAR.writeString(blockBuilder,"dave");
   Block block=blockBuilder.build();
   DynamicSliceOutput sliceOutput=new DynamicSliceOutput(1024);
-  BlockEncoding blockEncoding=new UncompressedEncoder(sliceOutput).append(block).append(block).finish();
+  BlockEncoding blockEncoding=new UncompressedEncoder(VARCHAR,sliceOutput).append(block).append(block).finish();
   Block actualBlock=blockEncoding.readBlock(sliceOutput.slice().getInput());
   BlockBuilder expectedBlockBuilder=VARCHAR.createBlockBuilder(new BlockBuilderStatus());
   VARCHAR.writeString(expectedBlockBuilder,"alice");
@@ -18,5 +18,5 @@
   VARCHAR.writeString(expectedBlockBuilder,"charlie");
   VARCHAR.writeString(expectedBlockBuilder,"dave");
   Block expectedBlock=expectedBlockBuilder.build();
-  BlockAssertions.assertBlockEquals(actualBlock,expectedBlock);
+  BlockAssertions.assertBlockEquals(VARCHAR,actualBlock,expectedBlock);
 }

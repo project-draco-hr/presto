@@ -10,6 +10,7 @@
   if (columns == null) {
     columns=createColumnsList(queryInfo);
   }
+  List<Type> types=queryInfo.getOutputStage().getTypes();
   updateExchangeClient(queryInfo.getOutputStage());
   ImmutableList.Builder<RowIterable> pages=ImmutableList.builder();
   int bytes=0;
@@ -19,7 +20,7 @@
       break;
     }
     bytes+=page.getDataSize().toBytes();
-    pages.add(new RowIterable(session,page));
+    pages.add(new RowIterable(session,types,page));
     maxWait=new Duration(0,TimeUnit.MILLISECONDS);
   }
   if (bytes == 0) {

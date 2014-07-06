@@ -2,7 +2,7 @@
   if (pages.isEmpty()) {
     return pages;
   }
-  PageBuilder pageBuilder=new PageBuilder(getTypes(pages));
+  PageBuilder pageBuilder=new PageBuilder(types);
   ImmutableList.Builder<Page> partitionedPages=ImmutableList.builder();
   for (  Page page : pages) {
     for (int position=0; position < page.getPositionCount(); position++) {
@@ -10,7 +10,10 @@
       if (partitionHashBucket != partition) {
         continue;
       }
-      page.appendTo(position,pageBuilder);
+      for (int channel=0; channel < types.size(); channel++) {
+        Type type=types.get(channel);
+        type.appendTo(page.getBlock(channel),position,pageBuilder.getBlockBuilder(channel));
+      }
       if (pageBuilder.isFull()) {
         partitionedPages.add(pageBuilder.build());
         pageBuilder.reset();

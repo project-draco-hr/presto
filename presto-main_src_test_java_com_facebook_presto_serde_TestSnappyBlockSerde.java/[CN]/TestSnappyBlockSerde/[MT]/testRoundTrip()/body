@@ -6,9 +6,9 @@
   VARCHAR.writeString(blockBuilder,"dave");
   Block block=blockBuilder.build();
   DynamicSliceOutput compressedOutput=new DynamicSliceOutput(1024);
-  Encoder encoder=BlocksFileEncoding.SNAPPY.createBlocksWriter(compressedOutput);
+  Encoder encoder=BlocksFileEncoding.SNAPPY.createBlocksWriter(VARCHAR,compressedOutput);
   encoder.append(block);
   BlockEncoding snappyEncoding=encoder.finish();
   Block actualBlock=snappyEncoding.readBlock(compressedOutput.slice().getInput());
-  BlockAssertions.assertBlockEquals(actualBlock,block);
+  BlockAssertions.assertBlockEquals(VARCHAR,actualBlock,block);
 }

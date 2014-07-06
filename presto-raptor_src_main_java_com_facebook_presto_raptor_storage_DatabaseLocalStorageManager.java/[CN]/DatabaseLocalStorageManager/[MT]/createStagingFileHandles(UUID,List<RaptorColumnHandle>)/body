@@ -1,0 +1,10 @@
+{
+  File shardPath=getShardPath(baseStagingDir,shardUuid);
+  ColumnFileHandle.Builder builder=ColumnFileHandle.builder(shardUuid,blockEncodingSerde);
+  for (  RaptorColumnHandle columnHandle : columnHandles) {
+    File file=getColumnFile(shardPath,columnHandle,defaultEncoding);
+    Files.createParentDirs(file);
+    builder.addColumn(columnHandle,file,defaultEncoding);
+  }
+  return builder.build();
+}

@@ -6,7 +6,7 @@
   VARCHAR.writeString(blockBuilder,"dave");
   Block block=blockBuilder.build();
   DynamicSliceOutput encoderOutput=new DynamicSliceOutput(1024);
-  Encoder encoder=BlocksFileEncoding.SNAPPY.createBlocksWriter(encoderOutput);
+  Encoder encoder=BlocksFileEncoding.SNAPPY.createBlocksWriter(VARCHAR,encoderOutput);
   BlockBuilder expectedBlockBuilder=VARCHAR.createBlockBuilder(new BlockBuilderStatus());
   int count=1000;
   for (int i=0; i < count; i++) {
@@ -18,5 +18,5 @@
   BlockEncoding snappyEncoding=encoder.finish();
   assertTrue(encoderOutput.size() < expectedBlock.getSizeInBytes());
   Block actualBlock=snappyEncoding.readBlock(encoderOutput.slice().getInput());
-  BlockAssertions.assertBlockEquals(actualBlock,expectedBlock);
+  BlockAssertions.assertBlockEquals(VARCHAR,actualBlock,expectedBlock);
 }
