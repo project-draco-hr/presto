@@ -1,0 +1,15 @@
+{
+  QualifiedTableName tableName=createQualifiedTableName(session,statement.getSource());
+  Optional<TableHandle> tableHandle=metadata.getTableHandle(session,tableName);
+  if (!tableHandle.isPresent()) {
+    throw new SemanticException(MISSING_TABLE,statement,"Table '%s' does not exist",tableName);
+  }
+  QualifiedTableName target=createQualifiedTableName(session,statement.getTarget());
+  if (!metadata.getCatalogNames().containsKey(target.getCatalogName())) {
+    throw new SemanticException(MISSING_CATALOG,statement,"Target catalog '%s' does not exist",target.getCatalogName());
+  }
+  if (metadata.getTableHandle(session,target).isPresent()) {
+    throw new SemanticException(TABLE_ALREADY_EXISTS,statement,"Target table '%s' already exists",target);
+  }
+  metadata.renameTable(tableHandle.get(),target);
+}

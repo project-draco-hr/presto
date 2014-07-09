@@ -1,0 +1,31 @@
+{
+  try {
+    retry().stopOn(InvalidOperationException.class,MetaException.class).stopOnIllegalExceptions().run("renameTable",stats.getRenameTable().wrap(new Callable<Void>(){
+      @Override public Void call() throws Exception {
+        try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
+          Table table=new Table(loadTable(new HiveTableName(databaseName,tableName)));
+          table.setDbName(newDatabaseName);
+          table.setTableName(newTableName);
+          client.alter_table(databaseName,tableName,table);
+        }
+         tableCache.invalidate(new HiveTableName(databaseName,tableName));
+        tableNamesCache.invalidate(databaseName);
+        viewNamesCache.invalidate(databaseName);
+        return null;
+      }
+    }
+));
+  }
+ catch (  InvalidOperationException|MetaException e) {
+    throw Throwables.propagate(e);
+  }
+catch (  TException e) {
+    throw new PrestoException(HiveErrorCode.HIVE_METASTORE_ERROR.toErrorCode(),e);
+  }
+catch (  Exception e) {
+    if (e instanceof InterruptedException) {
+      Thread.currentThread().interrupt();
+    }
+    throw Throwables.propagate(e);
+  }
+}
