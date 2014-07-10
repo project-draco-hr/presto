@@ -1,0 +1,20 @@
+{
+  FeatureTransformation transformation=new FeatureUnitNormalizer();
+  Dataset dataset=getDataset();
+  boolean valueGreaterThanOne=false;
+  for (  FeatureVector vector : dataset.getDatapoints()) {
+    for (    double value : vector.getFeatures().values()) {
+      if (value > 1) {
+        valueGreaterThanOne=true;
+        break;
+      }
+    }
+  }
+  assertTrue(valueGreaterThanOne);
+  transformation.train(dataset);
+  for (  FeatureVector vector : transformation.transform(dataset).getDatapoints()) {
+    for (    double value : vector.getFeatures().values()) {
+      assertTrue(value <= 1);
+    }
+  }
+}

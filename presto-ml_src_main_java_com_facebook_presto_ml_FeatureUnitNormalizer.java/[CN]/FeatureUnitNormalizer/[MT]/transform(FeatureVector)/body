@@ -1,0 +1,17 @@
+{
+  Map<Integer,Double> transformed=new HashMap<>();
+  for (  Map.Entry<Integer,Double> entry : features.getFeatures().entrySet()) {
+    int key=entry.getKey();
+    double value=entry.getValue();
+    if (mins.containsKey(entry.getKey())) {
+      double min=mins.get(key);
+      value=(value - min) / (maxs.get(key) - min);
+    }
+ else {
+      value=0;
+    }
+    value=Math.min(1,Math.max(0,value));
+    transformed.put(entry.getKey(),value);
+  }
+  return new FeatureVector(transformed);
+}
