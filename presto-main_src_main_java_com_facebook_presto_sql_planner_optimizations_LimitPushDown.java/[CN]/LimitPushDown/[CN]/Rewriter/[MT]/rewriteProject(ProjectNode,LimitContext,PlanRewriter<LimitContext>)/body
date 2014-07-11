@@ -1,18 +1,3 @@
 {
-  Symbol sampleWeightSymbol=context != null ? context.getSampleWeight().orNull() : null;
-  if (sampleWeightSymbol == null) {
-    return planRewriter.defaultRewrite(node,context);
-  }
-  Expression expression=node.getOutputMap().get(sampleWeightSymbol);
-  if (expression instanceof QualifiedNameReference) {
-    Symbol unaliasedSampleWeightSymbol=Symbol.fromQualifiedName(((QualifiedNameReference)expression).getName());
-    context=new LimitContext(context.getCount(),Optional.of(unaliasedSampleWeightSymbol));
-    PlanNode source=planRewriter.rewrite(node.getSource(),context);
-    return new ProjectNode(node.getId(),source,node.getOutputMap());
-  }
- else {
-    PlanNode rewrittenNode=planRewriter.defaultRewrite(node,null);
-    rewrittenNode=new LimitNode(idAllocator.getNextId(),rewrittenNode,context.getCount(),context.getSampleWeight());
-    return rewrittenNode;
-  }
+  return planRewriter.defaultRewrite(node,context);
 }

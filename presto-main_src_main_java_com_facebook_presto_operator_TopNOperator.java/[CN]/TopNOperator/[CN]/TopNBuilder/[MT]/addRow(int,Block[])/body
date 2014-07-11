@@ -1,25 +1,11 @@
 {
   long sizeDelta=0;
   Block[] row=getValues(position,blocks);
-  long sampleWeight=1;
-  if (sampleWeightChannel.isPresent()) {
-    sampleWeight=row[sampleWeightChannel.get()].getLong(0);
-    row[sampleWeightChannel.get()]=createBigintBlock(1);
-  }
   sizeDelta+=sizeOfRow(row);
   globalCandidates.add(row);
-  sizeDelta+=(sampleWeight - 1) * OVERHEAD_PER_VALUE.toBytes();
-  for (int i=1; i < sampleWeight; i++) {
-    globalCandidates.add(row);
-  }
   while (globalCandidates.size() > n) {
     Block[] previous=globalCandidates.remove();
-    if (previous != globalCandidates.peek()) {
-      sizeDelta-=sizeOfRow(previous);
-    }
- else {
-      sizeDelta-=OVERHEAD_PER_VALUE.toBytes();
-    }
+    sizeDelta-=sizeOfRow(previous);
   }
   return sizeDelta;
 }
