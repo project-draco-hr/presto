@@ -1,5 +1,10 @@
 {
   List<FunctionCall> aggregates=extractAggregates(node);
+  if (context.isApproximate()) {
+    if (Iterables.any(aggregates,FunctionCall.distinctPredicate())) {
+      throw new SemanticException(NOT_SUPPORTED,node,"DISTINCT aggregations not supported for approximate queries");
+    }
+  }
   if (!aggregates.isEmpty() || !groupByExpressions.isEmpty()) {
     for (    FieldOrExpression fieldOrExpression : Iterables.concat(outputExpressions,orderByExpressions)) {
       verifyAggregations(node,groupByExpressions,tupleDescriptor,fieldOrExpression);
