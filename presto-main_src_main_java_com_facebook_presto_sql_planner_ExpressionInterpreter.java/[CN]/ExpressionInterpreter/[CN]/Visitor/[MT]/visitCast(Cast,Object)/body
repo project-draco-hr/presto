@@ -1,7 +1,7 @@
 {
   Object value=process(node.getExpression(),context);
   if (value instanceof Expression) {
-    return new Cast((Expression)value,node.getType());
+    return new Cast((Expression)value,node.getType(),node.isSafe());
   }
   if (value == null) {
     return null;
@@ -11,5 +11,13 @@
     throw new IllegalArgumentException("Unsupported type: " + node.getType());
   }
   FunctionInfo operatorInfo=metadata.getExactOperator(OperatorType.CAST,type,types(node.getExpression()));
-  return invoke(session,operatorInfo.getMethodHandle(),ImmutableList.of(value));
+  try {
+    return invoke(session,operatorInfo.getMethodHandle(),ImmutableList.of(value));
+  }
+ catch (  RuntimeException e) {
+    if (node.isSafe()) {
+      return null;
+    }
+    throw e;
+  }
 }
