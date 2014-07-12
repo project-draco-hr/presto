@@ -2,7 +2,7 @@
   Query namedQuery=analysis.getNamedQuery(node);
   if (namedQuery != null) {
     RelationPlan subPlan=process(namedQuery,null);
-    return new RelationPlan(subPlan.getRoot(),analysis.getOutputDescriptor(node),subPlan.getOutputSymbols());
+    return new RelationPlan(subPlan.getRoot(),analysis.getOutputDescriptor(node),subPlan.getOutputSymbols(),subPlan.getSampleWeight());
   }
   TupleDescriptor descriptor=analysis.getOutputDescriptor(node);
   TableHandle handle=analysis.getTableHandle(node);
@@ -23,8 +23,5 @@
   }
   List<Symbol> nodeOutputSymbols=outputSymbolsBuilder.build();
   PlanNode root=new TableScanNode(idAllocator.getNextId(),handle,nodeOutputSymbols,columns.build(),null,Optional.<GeneratedPartitions>absent());
-  if (sampleWeightSymbol != null) {
-    root=new MaterializeSampleNode(idAllocator.getNextId(),root,sampleWeightSymbol);
-  }
-  return new RelationPlan(root,descriptor,planOutputSymbols);
+  return new RelationPlan(root,descriptor,planOutputSymbols,Optional.fromNullable(sampleWeightSymbol));
 }

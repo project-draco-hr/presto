@@ -1,0 +1,12 @@
+{
+  ImmutableMap.Builder<Symbol,Expression> projections=ImmutableMap.builder();
+  for (  Symbol symbol : subPlan.getOutputSymbols()) {
+    Expression expression=new QualifiedNameReference(symbol.toQualifiedName());
+    projections.put(symbol,expression);
+  }
+  Expression one=new LongLiteral("1");
+  Symbol sampleWeightSymbol=symbolAllocator.newSymbol("$sampleWeight",BIGINT);
+  projections.put(sampleWeightSymbol,one);
+  ProjectNode projectNode=new ProjectNode(idAllocator.getNextId(),subPlan.getRoot(),projections.build());
+  return new RelationPlan(projectNode,subPlan.getDescriptor(),projectNode.getOutputSymbols(),Optional.of(sampleWeightSymbol));
+}

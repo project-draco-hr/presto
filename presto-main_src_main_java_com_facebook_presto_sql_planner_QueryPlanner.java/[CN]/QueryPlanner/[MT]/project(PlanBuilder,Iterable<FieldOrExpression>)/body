@@ -14,5 +14,9 @@
     projections.put(symbol,subPlan.rewrite(fieldOrExpression));
     outputTranslations.put(fieldOrExpression,symbol);
   }
-  return new PlanBuilder(outputTranslations,new ProjectNode(idAllocator.getNextId(),subPlan.getRoot(),projections.build()));
+  if (subPlan.getSampleWeight().isPresent()) {
+    Symbol symbol=subPlan.getSampleWeight().get();
+    projections.put(symbol,new QualifiedNameReference(symbol.toQualifiedName()));
+  }
+  return new PlanBuilder(outputTranslations,new ProjectNode(idAllocator.getNextId(),subPlan.getRoot(),projections.build()),subPlan.getSampleWeight());
 }
