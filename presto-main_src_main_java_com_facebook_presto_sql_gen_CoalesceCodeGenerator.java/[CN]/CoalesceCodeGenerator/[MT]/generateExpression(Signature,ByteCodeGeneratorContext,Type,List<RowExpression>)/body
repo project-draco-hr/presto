@@ -1,0 +1,14 @@
+{
+  List<ByteCodeNode> operands=new ArrayList<>();
+  for (  RowExpression expression : arguments) {
+    operands.add(generatorContext.generate(expression));
+  }
+  CompilerContext context=generatorContext.getContext();
+  ByteCodeNode nullValue=new Block(context).putVariable("wasNull",true).pushJavaDefault(returnType.getJavaType());
+  for (  ByteCodeNode operand : Lists.reverse(operands)) {
+    Block condition=new Block(context).append(operand).getVariable("wasNull");
+    Block nullBlock=new Block(context).pop(returnType.getJavaType()).putVariable("wasNull",false).append(nullValue);
+    nullValue=new IfStatement(context,condition,nullBlock,NOP);
+  }
+  return nullValue;
+}

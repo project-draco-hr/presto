@@ -1,0 +1,11 @@
+{
+  if (useNewByteCodeGenerator) {
+    RowExpression translated=SqlToRowExpressionTranslator.translate(expression,types,metadata,timeZoneKey);
+    NewByteCodeExpressionVisitor visitor=new NewByteCodeExpressionVisitor(bootstrap.getFunctionBinder(),getSessionByteCode,sourceIsCursor);
+    return translated.accept(visitor,context);
+  }
+ else {
+    ByteCodeExpressionVisitor visitor=new ByteCodeExpressionVisitor(metadata,bootstrap.getFunctionBinder(),types,getSessionByteCode,sourceIsCursor,timeZoneKey);
+    return visitor.process(expression,context);
+  }
+}

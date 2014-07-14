@@ -1,0 +1,11 @@
+{
+  ImmutableList.Builder<RowExpression> arguments=ImmutableList.builder();
+  arguments.add(process(node.getCondition(),context)).add(process(node.getTrueValue(),context));
+  if (node.getFalseValue().isPresent()) {
+    arguments.add(process(node.getFalseValue().get(),context));
+  }
+ else {
+    arguments.add(constantNull(types.get(node)));
+  }
+  return call(Signatures.ifSignature(types.get(node)),arguments.build());
+}

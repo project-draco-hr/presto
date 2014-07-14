@@ -1,0 +1,66 @@
+{
+  ByteCodeNode value=generatorContext.generate(arguments.get(0));
+  List<RowExpression> values=arguments.subList(1,arguments.size());
+  ImmutableList.Builder<ByteCodeNode> valuesByteCode=ImmutableList.builder();
+  for (int i=1; i < arguments.size(); i++) {
+    ByteCodeNode testNode=generatorContext.generate(arguments.get(i));
+    valuesByteCode.add(testNode);
+  }
+  Type type=arguments.get(0).getType();
+  Class<?> javaType=type.getJavaType();
+  FunctionBinding hashCodeFunction=generatorContext.getBootstrapBinder().bindOperator(OperatorType.HASH_CODE,generatorContext.generateGetSession(),ImmutableList.<ByteCodeNode>of(NOP),ImmutableList.of(type));
+  ImmutableListMultimap.Builder<Integer,ByteCodeNode> hashBucketsBuilder=ImmutableListMultimap.builder();
+  ImmutableList.Builder<ByteCodeNode> defaultBucket=ImmutableList.builder();
+  ImmutableSet.Builder<Object> constantValuesBuilder=ImmutableSet.builder();
+  for (  RowExpression testValue : values) {
+    ByteCodeNode testByteCode=generatorContext.generate(testValue);
+    if (testValue instanceof ConstantExpression && ((ConstantExpression)testValue).getValue() != null) {
+      ConstantExpression constant=(ConstantExpression)testValue;
+      Object object=constant.getValue();
+      constantValuesBuilder.add(object);
+      try {
+        int hashCode=(int)hashCodeFunction.getCallSite().dynamicInvoker().invoke(object);
+        hashBucketsBuilder.put(hashCode,testByteCode);
+      }
+ catch (      Throwable throwable) {
+        throw new IllegalArgumentException("Error processing IN statement: error calculating hash code for " + object,throwable);
+      }
+    }
+ else {
+      defaultBucket.add(testByteCode);
+    }
+  }
+  ImmutableListMultimap<Integer,ByteCodeNode> hashBuckets=hashBucketsBuilder.build();
+  ImmutableSet<Object> constantValues=constantValuesBuilder.build();
+  LabelNode end=new LabelNode("end");
+  LabelNode match=new LabelNode("match");
+  LabelNode noMatch=new LabelNode("noMatch");
+  LabelNode defaultLabel=new LabelNode("default");
+  CompilerContext context=generatorContext.getContext();
+  ByteCodeNode switchBlock;
+  if (constantValues.size() < 1000) {
+    Block switchCaseBlocks=new Block(context);
+    LookupSwitch.LookupSwitchBuilder switchBuilder=lookupSwitchBuilder();
+    for (    Map.Entry<Integer,Collection<ByteCodeNode>> bucket : hashBuckets.asMap().entrySet()) {
+      LabelNode label=new LabelNode("inHash" + bucket.getKey());
+      switchBuilder.addCase(bucket.getKey(),label);
+      Collection<ByteCodeNode> testValues=bucket.getValue();
+      Block caseBlock=buildInCase(generatorContext,context,type,label,match,defaultLabel,testValues,false);
+      switchCaseBlocks.append(caseBlock.setDescription("case " + bucket.getKey()));
+    }
+    switchBuilder.defaultCase(defaultLabel);
+    switchBlock=new Block(context).comment("lookupSwitch(hashCode(<stackValue>))").dup(javaType).invokeDynamic(hashCodeFunction.getName(),hashCodeFunction.getCallSite().type(),hashCodeFunction.getBindingId()).append(switchBuilder.build()).append(switchCaseBlocks);
+  }
+ else {
+    FunctionBinding functionBinding=generatorContext.getBootstrapBinder().bindFunction("in",generatorContext.generateGetSession(),ImmutableList.<ByteCodeNode>of(),new InFunctionBinder(javaType,constantValues));
+    switchBlock=new Block(context).comment("inListSet.contains(<stackValue>)").append(new IfStatement(context,new Block(context).dup(javaType).invokeDynamic(functionBinding.getName(),functionBinding.getCallSite().type(),functionBinding.getBindingId()),jump(match),NOP));
+  }
+  Block defaultCaseBlock=buildInCase(generatorContext,context,type,defaultLabel,match,noMatch,defaultBucket.build(),true).setDescription("default");
+  Block block=new Block(context).comment("IN").append(value).append(ifWasNullPopAndGoto(context,end,boolean.class,javaType)).append(switchBlock).append(defaultCaseBlock);
+  Block matchBlock=new Block(context).setDescription("match").visitLabel(match).pop(javaType).putVariable("wasNull",false).push(true).gotoLabel(end);
+  block.append(matchBlock);
+  Block noMatchBlock=new Block(context).setDescription("noMatch").visitLabel(noMatch).pop(javaType).push(false).gotoLabel(end);
+  block.append(noMatchBlock);
+  block.visitLabel(end);
+  return block;
+}

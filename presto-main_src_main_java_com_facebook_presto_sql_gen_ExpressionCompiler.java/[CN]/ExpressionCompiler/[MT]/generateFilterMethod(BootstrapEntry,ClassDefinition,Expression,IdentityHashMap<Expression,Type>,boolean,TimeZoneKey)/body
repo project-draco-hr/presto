@@ -9,8 +9,7 @@
   filterMethod.comment("Filter: %s",filter.toString());
   filterMethod.getCompilerContext().declareVariable(type(boolean.class),"wasNull");
   Block getSessionByteCode=new Block(filterMethod.getCompilerContext()).pushThis().getField(classDefinition.getType(),"session",type(ConnectorSession.class));
-  ByteCodeExpressionVisitor visitor=new ByteCodeExpressionVisitor(metadata,bootstrap.getFunctionBinder(),expressionTypes,getSessionByteCode,sourceIsCursor,timeZoneKey);
-  ByteCodeNode body=visitor.process(filter,filterMethod.getCompilerContext());
+  ByteCodeNode body=compileExpression(bootstrap,filter,expressionTypes,sourceIsCursor,timeZoneKey,filterMethod.getCompilerContext(),getSessionByteCode);
   LabelNode end=new LabelNode("end");
   filterMethod.getBody().comment("boolean wasNull = false;").putVariable("wasNull",false).append(body).getVariable("wasNull").ifFalseGoto(end).pop(boolean.class).push(false).visitLabel(end).retBoolean();
 }

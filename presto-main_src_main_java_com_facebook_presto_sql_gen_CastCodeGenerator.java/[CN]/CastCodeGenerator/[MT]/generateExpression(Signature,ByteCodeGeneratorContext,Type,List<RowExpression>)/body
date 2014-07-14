@@ -1,0 +1,9 @@
+{
+  RowExpression argument=arguments.get(0);
+  CompilerContext context=generatorContext.getContext();
+  if (argument.getType().equals(UnknownType.UNKNOWN)) {
+    return new Block(context).putVariable("wasNull",true).pushJavaDefault(returnType.getJavaType());
+  }
+  FunctionBinding binding=generatorContext.getBootstrapBinder().bindCastOperator(generatorContext.generateGetSession(),generatorContext.generate(argument),argument.getType(),returnType);
+  return generateFunctionCall(signature,context,binding,"cast");
+}

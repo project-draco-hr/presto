@@ -1,0 +1,28 @@
+{
+  CompilerContext context=generatorContext.getContext();
+  RowExpression first=arguments.get(0);
+  RowExpression second=arguments.get(1);
+  LabelNode notMatch=new LabelNode("notMatch");
+  Block block=new Block(context).comment("check if first arg is null").append(generatorContext.generate(first)).append(ByteCodeUtils.ifWasNullPopAndGoto(context,notMatch,void.class));
+  Type firstType=first.getType();
+  Type secondType=second.getType();
+  Type commonType=FunctionRegistry.getCommonSuperType(firstType,secondType).get();
+  FunctionBinding castFirst=generatorContext.getBootstrapBinder().bindCastOperator(generatorContext.generateGetSession(),new Block(context).dup(firstType.getJavaType()),firstType,commonType);
+  FunctionBinding castSecond=generatorContext.getBootstrapBinder().bindCastOperator(generatorContext.generateGetSession(),generatorContext.generate(second),secondType,commonType);
+  FunctionBinding functionBinding=generatorContext.getBootstrapBinder().bindOperator(OperatorType.EQUAL,generatorContext.generateGetSession(),ImmutableList.of(invoke(context,castFirst,"cast(first)"),invoke(context,castSecond,"cast(second)")),ImmutableList.of(firstType,secondType));
+  MethodType methodType=functionBinding.getCallSite().type();
+  Class<?> unboxedReturnType=Primitives.unwrap(methodType.returnType());
+  LabelNode end=new LabelNode("end");
+  Block equalsCall=new Block(context).setDescription("invoke").comment("equal");
+  ArrayList<Class<?>> stackTypes=new ArrayList<>();
+  for (int i=0; i < functionBinding.getArguments().size(); i++) {
+    equalsCall.append(functionBinding.getArguments().get(i));
+    stackTypes.add(methodType.parameterType(i));
+    equalsCall.append(ByteCodeUtils.ifWasNullPopAndGoto(context,end,unboxedReturnType,Lists.reverse(stackTypes)));
+  }
+  equalsCall.invokeDynamic(functionBinding.getName(),functionBinding.getCallSite().type(),functionBinding.getBindingId()).visitLabel(end);
+  Block conditionBlock=new Block(context).append(equalsCall).append(ByteCodeUtils.ifWasNullClearPopAndGoto(context,notMatch,void.class,boolean.class));
+  Block trueBlock=new Block(context).putVariable("wasNull",true).pop(first.getType().getJavaType()).pushJavaDefault(first.getType().getJavaType());
+  block.append(new IfStatement(context,conditionBlock,trueBlock,notMatch));
+  return block;
+}

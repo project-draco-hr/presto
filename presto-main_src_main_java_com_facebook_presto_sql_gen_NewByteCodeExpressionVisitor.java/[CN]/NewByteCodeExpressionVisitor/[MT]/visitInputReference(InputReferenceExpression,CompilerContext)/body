@@ -1,0 +1,49 @@
+{
+  int field=node.getField();
+  Type type=node.getType();
+  Class<?> javaType=type.getJavaType();
+  if (sourceIsCursor) {
+    Block isNullCheck=new Block(context).setDescription(format("cursor.get%s(%d)",type,field)).getVariable("cursor").push(field).invokeInterface(RecordCursor.class,"isNull",boolean.class,int.class);
+    Block isNull=new Block(context).putVariable("wasNull",true).pushJavaDefault(javaType);
+    Block isNotNull=new Block(context).getVariable("cursor").push(field);
+    if (javaType == boolean.class) {
+      isNotNull.invokeInterface(RecordCursor.class,"getBoolean",boolean.class,int.class);
+    }
+ else     if (javaType == long.class) {
+      isNotNull.invokeInterface(RecordCursor.class,"getLong",long.class,int.class);
+    }
+ else     if (javaType == double.class) {
+      isNotNull.invokeInterface(RecordCursor.class,"getDouble",double.class,int.class);
+    }
+ else     if (javaType == Slice.class) {
+      isNotNull.invokeInterface(RecordCursor.class,"getSlice",Slice.class,int.class);
+    }
+ else {
+      throw new UnsupportedOperationException("not yet implemented: " + type);
+    }
+    return new IfStatement(context,isNullCheck,isNull,isNotNull);
+  }
+ else {
+    Block isNullCheck=new Block(context).setDescription(format("block_%d.get%s()",field,type)).getVariable("block_" + field).getVariable("position").invokeInterface(com.facebook.presto.spi.block.Block.class,"isNull",boolean.class,int.class);
+    Block isNull=new Block(context).putVariable("wasNull",true).pushJavaDefault(javaType);
+    if (javaType == boolean.class) {
+      Block isNotNull=new Block(context).getVariable("block_" + field).getVariable("position").invokeInterface(com.facebook.presto.spi.block.Block.class,"getBoolean",boolean.class,int.class);
+      return new IfStatement(context,isNullCheck,isNull,isNotNull);
+    }
+ else     if (javaType == long.class) {
+      Block isNotNull=new Block(context).getVariable("block_" + field).getVariable("position").invokeInterface(com.facebook.presto.spi.block.Block.class,"getLong",long.class,int.class);
+      return new IfStatement(context,isNullCheck,isNull,isNotNull);
+    }
+ else     if (javaType == double.class) {
+      Block isNotNull=new Block(context).getVariable("block_" + field).getVariable("position").invokeInterface(com.facebook.presto.spi.block.Block.class,"getDouble",double.class,int.class);
+      return new IfStatement(context,isNullCheck,isNull,isNotNull);
+    }
+ else     if (javaType == Slice.class) {
+      Block isNotNull=new Block(context).getVariable("block_" + field).getVariable("position").invokeInterface(com.facebook.presto.spi.block.Block.class,"getSlice",Slice.class,int.class);
+      return new IfStatement(context,isNullCheck,isNull,isNotNull);
+    }
+ else {
+      throw new UnsupportedOperationException("not yet implemented: " + type);
+    }
+  }
+}

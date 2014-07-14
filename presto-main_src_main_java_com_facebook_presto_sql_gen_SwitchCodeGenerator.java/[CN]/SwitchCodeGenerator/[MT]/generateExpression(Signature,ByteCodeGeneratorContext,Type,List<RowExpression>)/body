@@ -1,0 +1,43 @@
+{
+  CompilerContext context=generatorContext.getContext();
+  RowExpression value=arguments.get(0);
+  ByteCodeNode valueBytecode=generatorContext.generate(value);
+  ByteCodeNode elseValue;
+  List<RowExpression> whenClauses;
+  RowExpression last=arguments.get(arguments.size() - 1);
+  if (last instanceof CallExpression && ((CallExpression)last).getSignature().getName().equals("WHEN")) {
+    whenClauses=arguments.subList(1,arguments.size());
+    elseValue=new Block(context).putVariable("wasNull",true).pushJavaDefault(returnType.getJavaType());
+  }
+ else {
+    whenClauses=arguments.subList(1,arguments.size() - 1);
+    elseValue=generatorContext.generate(last);
+  }
+  Class<?> valueType=value.getType().getJavaType();
+  LabelNode nullValue=new LabelNode("nullCondition");
+  Variable tempVariable=context.createTempVariable(valueType);
+  Block block=new Block(context).append(valueBytecode).append(ByteCodeUtils.ifWasNullClearPopAndGoto(context,nullValue,void.class,valueType)).putVariable(tempVariable.getLocalVariableDefinition());
+  ByteCodeNode getTempVariableNode=VariableInstruction.loadVariable(tempVariable.getLocalVariableDefinition());
+  elseValue=new Block(context).visitLabel(nullValue).append(elseValue);
+  for (  RowExpression clause : Lists.reverse(whenClauses)) {
+    Preconditions.checkArgument(clause instanceof CallExpression && ((CallExpression)clause).getSignature().getName().equals("WHEN"));
+    RowExpression operand=((CallExpression)clause).getArguments().get(0);
+    RowExpression result=((CallExpression)clause).getArguments().get(1);
+    FunctionBinding functionBinding=generatorContext.getBootstrapBinder().bindOperator(OperatorType.EQUAL,generatorContext.generateGetSession(),ImmutableList.of(generatorContext.generate(operand),getTempVariableNode),ImmutableList.of(value.getType(),operand.getType()));
+    MethodType methodType=functionBinding.getCallSite().type();
+    Class<?> unboxedReturnType=Primitives.unwrap(methodType.returnType());
+    LabelNode end=new LabelNode("end");
+    Block equalsCall=new Block(context).setDescription("invoke").comment(operand.toString());
+    ArrayList<Class<?>> stackTypes=new ArrayList<>();
+    for (int i=0; i < functionBinding.getArguments().size(); i++) {
+      equalsCall.append(functionBinding.getArguments().get(i));
+      stackTypes.add(methodType.parameterType(i));
+      equalsCall.append(ByteCodeUtils.ifWasNullPopAndGoto(context,end,unboxedReturnType,Lists.reverse(stackTypes)));
+    }
+    equalsCall.invokeDynamic(functionBinding.getName(),methodType,functionBinding.getBindingId());
+    equalsCall.visitLabel(end);
+    Block condition=new Block(context).append(equalsCall).putVariable("wasNull",false);
+    elseValue=new IfStatement(context,"when",condition,generatorContext.generate(result),elseValue);
+  }
+  return block.append(elseValue);
+}

@@ -1,0 +1,25 @@
+{
+  List<ByteCodeNode> arguments=functionBinding.getArguments();
+  MethodType methodType=functionBinding.getCallSite().type();
+  Class<?> unboxedReturnType=Primitives.unwrap(methodType.returnType());
+  LabelNode end=new LabelNode("end");
+  Block block=new Block(context).setDescription("invoke " + signature).comment(comment);
+  ArrayList<Class<?>> stackTypes=new ArrayList<>();
+  for (int i=0; i < arguments.size(); i++) {
+    block.append(arguments.get(i));
+    stackTypes.add(methodType.parameterType(i));
+    block.append(ByteCodeUtils.ifWasNullPopAndGoto(context,end,unboxedReturnType,Lists.reverse(stackTypes)));
+  }
+  block.invokeDynamic(functionBinding.getName(),methodType,functionBinding.getBindingId());
+  if (functionBinding.isNullable()) {
+    if (unboxedReturnType.isPrimitive()) {
+      LabelNode notNull=new LabelNode("notNull");
+      block.dup(methodType.returnType()).ifNotNullGoto(notNull).putVariable("wasNull",true).comment("swap boxed null with unboxed default").pop(methodType.returnType()).pushJavaDefault(unboxedReturnType).gotoLabel(end).visitLabel(notNull).append(ByteCodeUtils.unboxPrimitive(context,unboxedReturnType));
+    }
+ else {
+      block.dup(methodType.returnType()).ifNotNullGoto(end).putVariable("wasNull",true);
+    }
+  }
+  block.visitLabel(end);
+  return block;
+}
