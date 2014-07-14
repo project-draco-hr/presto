@@ -9,12 +9,12 @@
     Object queryResult=Iterables.getOnlyElement(result.getMaterializedRows()).getField(0);
     results.add(queryResult);
   }
-  OperatorFactory operatorFactory=compileFilterProject(TRUE_LITERAL,projectionExpression);
+  OperatorFactory operatorFactory=compileFilterProject(TRUE_LITERAL,projectionExpression,compiler);
   Object directOperatorValue=selectSingleValue(operatorFactory,session);
   results.add(directOperatorValue);
   Object interpretedValue=selectSingleValue(interpretedFilterProject(TRUE_LITERAL,projectionExpression,session));
   results.add(interpretedValue);
-  SourceOperatorFactory scanProjectOperatorFactory=compileScanFilterProject(TRUE_LITERAL,projectionExpression);
+  SourceOperatorFactory scanProjectOperatorFactory=compileScanFilterProject(TRUE_LITERAL,projectionExpression,compiler);
   Object scanOperatorValue=selectSingleValue(scanProjectOperatorFactory,createNormalSplit(),session);
   results.add(scanOperatorValue);
   Object recordValue=selectSingleValue(scanProjectOperatorFactory,createRecordSetSplit(),session);

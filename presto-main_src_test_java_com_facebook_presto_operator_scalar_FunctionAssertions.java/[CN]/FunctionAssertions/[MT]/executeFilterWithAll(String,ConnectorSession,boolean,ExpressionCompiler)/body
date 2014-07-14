@@ -2,15 +2,15 @@
   checkNotNull(filter,"filter is null");
   Expression filterExpression=createExpression(filter,metadata,SYMBOL_TYPES);
   List<Boolean> results=new ArrayList<>();
-  OperatorFactory operatorFactory=compileFilterProject(filterExpression,TRUE_LITERAL);
+  OperatorFactory operatorFactory=compileFilterProject(filterExpression,TRUE_LITERAL,compiler);
   results.add(executeFilter(operatorFactory,session));
   if (executeWithNoInputColumns) {
-    operatorFactory=compileFilterWithNoInputColumns(filterExpression);
+    operatorFactory=compileFilterWithNoInputColumns(filterExpression,compiler);
     results.add(executeFilterWithNoInputColumns(operatorFactory,session));
   }
   boolean interpretedValue=executeFilter(interpretedFilterProject(filterExpression,TRUE_LITERAL,session));
   results.add(interpretedValue);
-  SourceOperatorFactory scanProjectOperatorFactory=compileScanFilterProject(filterExpression,TRUE_LITERAL);
+  SourceOperatorFactory scanProjectOperatorFactory=compileScanFilterProject(filterExpression,TRUE_LITERAL,compiler);
   boolean scanOperatorValue=executeFilter(scanProjectOperatorFactory,createNormalSplit(),session);
   results.add(scanOperatorValue);
   boolean recordValue=executeFilter(scanProjectOperatorFactory,createRecordSetSplit(),session);
