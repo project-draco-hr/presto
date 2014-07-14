@@ -4,7 +4,7 @@
   checkNotNull(executor,"executor is null");
   long expiresAfterWriteMillis=checkNotNull(cacheTtl,"cacheTtl is null").toMillis();
   long refreshMills=checkNotNull(refreshInterval,"refreshInterval is null").toMillis();
-  ListeningExecutorService listeningExecutor=MoreExecutors.listeningDecorator(executor);
+  ListeningExecutorService listeningExecutor=listeningDecorator(executor);
   schemaNamesCache=CacheBuilder.newBuilder().expireAfterWrite(expiresAfterWriteMillis,MILLISECONDS).refreshAfterWrite(refreshMills,MILLISECONDS).build(new BackgroundCacheLoader<String,Map<String,String>>(listeningExecutor){
     @Override public Map<String,String> load(    String key) throws Exception {
       return loadAllSchemas();
