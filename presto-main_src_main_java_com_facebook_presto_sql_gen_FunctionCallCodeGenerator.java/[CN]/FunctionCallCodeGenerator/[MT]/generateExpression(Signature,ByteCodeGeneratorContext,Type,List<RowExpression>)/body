@@ -1,8 +1,14 @@
 {
+  FunctionRegistry registry=context.getRegistry();
+  FunctionInfo function=registry.getExactFunction(signature);
+  if (function == null) {
+    function=registry.resolveFunction(QualifiedName.of(signature.getName()),signature.getArgumentTypes(),false);
+  }
+  Preconditions.checkArgument(function != null,"Function %s not found",signature);
   List<ByteCodeNode> argumentsByteCode=new ArrayList<>();
   for (  RowExpression argument : arguments) {
     argumentsByteCode.add(context.generate(argument));
   }
-  FunctionBinding binding=context.getBootstrapBinder().bindFunction(signature,context.generateGetSession(),argumentsByteCode);
+  FunctionBinding binding=context.getBootstrapBinder().bindFunction(signature.getName(),context.generateGetSession(),argumentsByteCode,function.getFunctionBinder());
   return generateFunctionCall(signature,context.getContext(),binding,signature.toString());
 }
