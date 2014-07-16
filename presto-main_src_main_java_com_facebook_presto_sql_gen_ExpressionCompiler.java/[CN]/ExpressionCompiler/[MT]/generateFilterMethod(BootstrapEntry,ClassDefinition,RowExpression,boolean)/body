@@ -1,0 +1,15 @@
+{
+  MethodDefinition filterMethod;
+  if (sourceIsCursor) {
+    filterMethod=classDefinition.declareMethod(new CompilerContext(bootstrap.getBootstrapMethod()),a(PUBLIC),"filter",type(boolean.class),arg("cursor",RecordCursor.class));
+  }
+ else {
+    filterMethod=classDefinition.declareMethod(new CompilerContext(bootstrap.getBootstrapMethod()),a(PUBLIC),"filter",type(boolean.class),ImmutableList.<NamedParameterDefinition>builder().add(arg("position",int.class)).addAll(toBlockParameters(getInputChannels(filter))).build());
+  }
+  filterMethod.comment("Filter: %s",filter.toString());
+  filterMethod.getCompilerContext().declareVariable(type(boolean.class),"wasNull");
+  Block getSessionByteCode=new Block(filterMethod.getCompilerContext()).pushThis().getField(classDefinition.getType(),"session",type(ConnectorSession.class));
+  ByteCodeNode body=compileExpression(bootstrap,filter,sourceIsCursor,filterMethod.getCompilerContext(),getSessionByteCode);
+  LabelNode end=new LabelNode("end");
+  filterMethod.getBody().comment("boolean wasNull = false;").putVariable("wasNull",false).append(body).getVariable("wasNull").ifFalseGoto(end).pop(boolean.class).push(false).visitLabel(end).retBoolean();
+}

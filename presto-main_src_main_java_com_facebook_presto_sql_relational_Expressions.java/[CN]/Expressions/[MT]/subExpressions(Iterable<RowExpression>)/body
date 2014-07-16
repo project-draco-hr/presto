@@ -1,0 +1,24 @@
+{
+  final ImmutableList.Builder<RowExpression> builder=ImmutableList.builder();
+  for (  RowExpression expression : expressions) {
+    expression.accept(new RowExpressionVisitor<Void,Void>(){
+      @Override public Void visitCall(      CallExpression call,      Void context){
+        builder.add(call);
+        for (        RowExpression argument : call.getArguments()) {
+          argument.accept(this,context);
+        }
+        return null;
+      }
+      @Override public Void visitInputReference(      InputReferenceExpression reference,      Void context){
+        builder.add(reference);
+        return null;
+      }
+      @Override public Void visitConstant(      ConstantExpression literal,      Void context){
+        builder.add(literal);
+        return null;
+      }
+    }
+,null);
+  }
+  return builder.build();
+}

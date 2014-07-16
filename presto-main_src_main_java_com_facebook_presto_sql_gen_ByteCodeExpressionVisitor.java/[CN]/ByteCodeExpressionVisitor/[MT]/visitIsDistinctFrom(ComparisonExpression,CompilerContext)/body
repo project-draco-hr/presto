@@ -1,8 +1,0 @@
-{
-  Type leftType=expressionTypes.get(node.getLeft());
-  Type rightType=expressionTypes.get(node.getRight());
-  FunctionBinding functionBinding=bootstrapFunctionBinder.bindOperator(OperatorType.EQUAL,getSessionByteCode,ImmutableList.<ByteCodeNode>of(NOP,NOP),ImmutableList.of(leftType,rightType));
-  ByteCodeNode equalsCall=new Block(context).comment("equals(%s, %s)",leftType,rightType).invokeDynamic(functionBinding.getName(),functionBinding.getCallSite().type(),functionBinding.getBindingId());
-  Block block=new Block(context).comment(node.toString()).comment("left").append(process(node.getLeft(),context)).append(new IfStatement(context,new Block(context).getVariable("wasNull"),new Block(context).pop(leftType.getJavaType()).putVariable("wasNull",false).comment("right is not null").append(process(node.getRight(),context)).pop(rightType.getJavaType()).getVariable("wasNull").invokeStatic(CompilerOperations.class,"not",boolean.class,boolean.class),new Block(context).comment("right").append(process(node.getRight(),context)).append(new IfStatement(context,new Block(context).getVariable("wasNull"),new Block(context).pop(leftType.getJavaType()).pop(rightType.getJavaType()).push(true),new Block(context).append(equalsCall).invokeStatic(CompilerOperations.class,"not",boolean.class,boolean.class))))).putVariable("wasNull",false);
-  return block;
-}

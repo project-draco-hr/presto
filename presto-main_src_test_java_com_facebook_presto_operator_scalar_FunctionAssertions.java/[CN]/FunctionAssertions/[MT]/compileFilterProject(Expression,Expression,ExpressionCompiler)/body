@@ -3,7 +3,7 @@
   projection=ExpressionTreeRewriter.rewriteWith(new SymbolToInputRewriter(INPUT_MAPPING),projection);
   IdentityHashMap<Expression,Type> expressionTypes=getExpressionTypesFromInput(SESSION,metadata,SQL_PARSER,INPUT_TYPES,ImmutableList.of(filter,projection));
   try {
-    return compiler.compileFilterAndProjectOperator(0,filter,ImmutableList.of(projection),expressionTypes,session.getTimeZoneKey());
+    return compiler.compileFilterAndProjectOperator(0,SqlToRowExpressionTranslator.translate(filter,expressionTypes,metadata,session.getTimeZoneKey()),ImmutableList.of(SqlToRowExpressionTranslator.translate(projection,expressionTypes,metadata,session.getTimeZoneKey())));
   }
  catch (  Throwable e) {
     if (e instanceof UncheckedExecutionException) {

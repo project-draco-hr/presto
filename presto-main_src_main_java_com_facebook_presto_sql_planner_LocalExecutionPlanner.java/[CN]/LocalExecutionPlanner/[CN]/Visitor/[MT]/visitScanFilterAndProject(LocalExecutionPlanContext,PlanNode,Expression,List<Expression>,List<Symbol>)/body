@@ -38,11 +38,11 @@
     }
     IdentityHashMap<Expression,Type> expressionTypes=getExpressionTypesFromInput(context.getSession(),metadata,sqlParser,sourceTypes,concat(singleton(rewrittenFilter),rewrittenProjections));
     if (columns != null) {
-      SourceOperatorFactory operatorFactory=compiler.compileScanFilterAndProjectOperator(context.getNextOperatorId(),sourceNode.getId(),dataStreamProvider,columns,rewrittenFilter,rewrittenProjections,expressionTypes,session.getTimeZoneKey());
+      SourceOperatorFactory operatorFactory=compiler.compileScanFilterAndProjectOperator(context.getNextOperatorId(),sourceNode.getId(),dataStreamProvider,columns,SqlToRowExpressionTranslator.translate(rewrittenFilter,expressionTypes,metadata,session.getTimeZoneKey()),SqlToRowExpressionTranslator.translate(rewrittenProjections,expressionTypes,metadata,session.getTimeZoneKey()));
       return new PhysicalOperation(operatorFactory,outputMappings);
     }
  else {
-      OperatorFactory operatorFactory=compiler.compileFilterAndProjectOperator(context.getNextOperatorId(),rewrittenFilter,rewrittenProjections,expressionTypes,session.getTimeZoneKey());
+      OperatorFactory operatorFactory=compiler.compileFilterAndProjectOperator(context.getNextOperatorId(),SqlToRowExpressionTranslator.translate(rewrittenFilter,expressionTypes,metadata,session.getTimeZoneKey()),SqlToRowExpressionTranslator.translate(rewrittenProjections,expressionTypes,metadata,session.getTimeZoneKey()));
       return new PhysicalOperation(operatorFactory,outputMappings,source);
     }
   }
