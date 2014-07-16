@@ -4,6 +4,7 @@
   if (argument.getType().equals(UnknownType.UNKNOWN)) {
     return new Block(context).putVariable("wasNull",true).pushJavaDefault(returnType.getJavaType());
   }
-  FunctionBinding binding=generatorContext.getBootstrapBinder().bindCastOperator(generatorContext.generateGetSession(),generatorContext.generate(argument),argument.getType(),returnType);
+  FunctionInfo function=generatorContext.getRegistry().getCoercion(argument.getType(),returnType);
+  FunctionBinding binding=generatorContext.getBootstrapBinder().bindFunction(function.getSignature().getName(),generatorContext.generateGetSession(),ImmutableList.of(generatorContext.generate(argument)),function.getFunctionBinder());
   return generateFunctionCall(signature,context,binding,"cast");
 }

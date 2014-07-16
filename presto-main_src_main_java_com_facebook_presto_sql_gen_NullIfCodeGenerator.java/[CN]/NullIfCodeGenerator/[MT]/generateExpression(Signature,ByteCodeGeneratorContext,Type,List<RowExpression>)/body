@@ -7,9 +7,7 @@
   Type firstType=first.getType();
   Type secondType=second.getType();
   Type commonType=FunctionRegistry.getCommonSuperType(firstType,secondType).get();
-  FunctionBinding castFirst=generatorContext.getBootstrapBinder().bindCastOperator(generatorContext.generateGetSession(),new Block(context).dup(firstType.getJavaType()),firstType,commonType);
-  FunctionBinding castSecond=generatorContext.getBootstrapBinder().bindCastOperator(generatorContext.generateGetSession(),generatorContext.generate(second),secondType,commonType);
-  FunctionBinding functionBinding=generatorContext.getBootstrapBinder().bindOperator(OperatorType.EQUAL,generatorContext.generateGetSession(),ImmutableList.of(invoke(context,castFirst,"cast(first)"),invoke(context,castSecond,"cast(second)")),ImmutableList.of(firstType,secondType));
+  FunctionBinding functionBinding=generatorContext.getBootstrapBinder().bindOperator(OperatorType.EQUAL,generatorContext.generateGetSession(),ImmutableList.of(cast(generatorContext,new Block(context).dup(firstType.getJavaType()),firstType,commonType),cast(generatorContext,generatorContext.generate(second),secondType,commonType)),ImmutableList.of(firstType,secondType));
   MethodType methodType=functionBinding.getCallSite().type();
   Class<?> unboxedReturnType=Primitives.unwrap(methodType.returnType());
   LabelNode end=new LabelNode("end");
