@@ -1,0 +1,30 @@
+{
+  checkState(Thread.holdsLock(SharedBuffer.this),"Thread must hold a lock on the %s",SharedBuffer.class.getSimpleName());
+  if (future.isDone()) {
+    return true;
+  }
+  try {
+    NamedBuffer namedBuffer=namedBuffers.get(outputId);
+    if (state.get() == FINISHED) {
+      future.set(emptyResults(namedBuffer == null ? 0 : namedBuffer.getSequenceId(),true));
+      return true;
+    }
+    if (namedBuffer == null) {
+      return false;
+    }
+    if (startingSequenceId < namedBuffer.getSequenceId()) {
+      future.set(emptyResults(startingSequenceId,false));
+      return true;
+    }
+    BufferResult bufferResult=namedBuffer.getPages(startingSequenceId,maxSize);
+    checkFlushComplete();
+    if (bufferResult.isEmpty() && !bufferResult.isBufferClosed()) {
+      return false;
+    }
+    future.set(bufferResult);
+  }
+ catch (  Throwable throwable) {
+    future.setException(throwable);
+  }
+  return true;
+}

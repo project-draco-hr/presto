@@ -1,0 +1,23 @@
+{
+  checkNotNull(taskId,"taskId is null");
+  if (currentState == null || maxWait == null) {
+    asyncResponse.resume(taskManager.getTaskInfo(taskId));
+    return;
+  }
+  ListenableFuture<TaskInfo> futureTaskInfo=MoreFutures.addTimeout(taskManager.getTaskInfo(taskId,currentState),new Callable<TaskInfo>(){
+    @Override public TaskInfo call(){
+      return taskManager.getTaskInfo(taskId);
+    }
+  }
+,maxWait,executor);
+  if (shouldSummarize(uriInfo)) {
+    futureTaskInfo=Futures.transform(futureTaskInfo,new Function<TaskInfo,TaskInfo>(){
+      @Override public TaskInfo apply(      TaskInfo taskInfo){
+        return taskInfo.summarize();
+      }
+    }
+);
+  }
+  Duration timeout=new Duration(maxWait.toMillis() + 5000,MILLISECONDS);
+  AsyncResponseUtils.registerAsyncResponse(asyncResponse,futureTaskInfo,timeout,executor);
+}

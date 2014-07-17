@@ -1,31 +1,10 @@
 {
-  CounterStat temp;
-  temp=new CounterStat();
-  temp.merge(finishedInputDataSize);
-  for (  TaskExecution taskExecution : tasks.values()) {
-    TaskContext taskContext=taskExecution.getTaskContext();
-    temp.merge(taskContext.getInputDataSize());
+  SqlTaskIoStats tempIoStats=new SqlTaskIoStats();
+  tempIoStats.merge(finishedTaskStats);
+  for (  SqlTask task : tasks.asMap().values()) {
+    if (!task.getTaskInfo().getState().isDone()) {
+      tempIoStats.merge(task.getIoStats());
+    }
   }
-  inputDataSize.resetTo(temp);
-  temp=new CounterStat();
-  temp.merge(finishedInputPositions);
-  for (  TaskExecution taskExecution : tasks.values()) {
-    TaskContext taskContext=taskExecution.getTaskContext();
-    temp.merge(taskContext.getInputPositions());
-  }
-  inputPositions.resetTo(temp);
-  temp=new CounterStat();
-  temp.merge(finishedOutputDataSize);
-  for (  TaskExecution taskExecution : tasks.values()) {
-    TaskContext taskContext=taskExecution.getTaskContext();
-    temp.merge(taskContext.getOutputDataSize());
-  }
-  outputDataSize.resetTo(temp);
-  temp=new CounterStat();
-  temp.merge(finishedOutputPositions);
-  for (  TaskExecution taskExecution : tasks.values()) {
-    TaskContext taskContext=taskExecution.getTaskContext();
-    temp.merge(taskContext.getOutputPositions());
-  }
-  outputPositions.resetTo(temp);
+  cachedStats.resetTo(tempIoStats);
 }

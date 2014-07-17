@@ -1,15 +1,13 @@
 {
-  closed.set(true);
-  state.set(QueueState.FINISHED);
-  for (  NamedQueue namedQueue : openQueuesBySequenceId) {
-    namedQueue.setFinished();
-  }
-  openQueuesBySequenceId.clear();
-  masterQueue.clear();
+  state.set(FINISHED);
+  masterBuffer.clear();
   bufferedBytes=0;
   for (  QueuedPage queuedPage : queuedPages) {
     queuedPage.getFuture().set(null);
   }
   queuedPages.clear();
-  this.notifyAll();
+  for (  NamedBuffer namedBuffer : namedBuffers.values()) {
+    namedBuffer.abort();
+  }
+  processPendingReads();
 }

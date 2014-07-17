@@ -1,0 +1,15 @@
+{
+  SqlTask sqlTask=createInitialTask();
+  TaskInfo taskInfo=sqlTask.updateTask(SESSION,PLAN_FRAGMENT,ImmutableList.<TaskSource>of(),INITIAL_EMPTY_OUTPUT_BUFFERS);
+  assertEquals(taskInfo.getState(),TaskState.RUNNING);
+  assertNull(taskInfo.getStats().getEndTime());
+  taskInfo=sqlTask.getTaskInfo();
+  assertEquals(taskInfo.getState(),TaskState.RUNNING);
+  assertNull(taskInfo.getStats().getEndTime());
+  taskInfo=sqlTask.cancel();
+  assertEquals(taskInfo.getState(),TaskState.CANCELED);
+  assertNotNull(taskInfo.getStats().getEndTime());
+  taskInfo=sqlTask.getTaskInfo();
+  assertEquals(taskInfo.getState(),TaskState.CANCELED);
+  assertNotNull(taskInfo.getStats().getEndTime());
+}

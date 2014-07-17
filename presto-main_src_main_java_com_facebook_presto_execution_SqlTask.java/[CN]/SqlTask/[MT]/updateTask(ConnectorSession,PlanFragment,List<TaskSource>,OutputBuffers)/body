@@ -1,0 +1,18 @@
+{
+  SqlTaskExecution taskExecution;
+synchronized (this) {
+    TaskHolder taskHolder=taskHolderReference.get();
+    if (taskHolder.isFinished()) {
+      return taskHolder.getFinalTaskInfo();
+    }
+    taskExecution=taskHolder.getTaskExecution();
+    if (taskExecution == null) {
+      taskExecution=sqlTaskExecutionFactory.create(session,taskStateMachine,sharedBuffer,fragment,sources);
+      taskHolderReference.compareAndSet(taskHolder,new TaskHolder(taskExecution));
+    }
+  }
+  lastHeartbeat.set(DateTime.now());
+  sharedBuffer.setOutputBuffers(outputBuffers);
+  taskExecution.addSources(sources);
+  return getTaskInfo();
+}

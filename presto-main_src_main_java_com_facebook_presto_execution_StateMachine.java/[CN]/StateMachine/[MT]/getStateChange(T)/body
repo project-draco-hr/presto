@@ -1,0 +1,11 @@
+{
+  checkState(!Thread.holdsLock(this),"Can not wait for state change while holding a lock on this");
+synchronized (this) {
+    if (!Objects.equals(state,currentState)) {
+      return Futures.immediateFuture(state);
+    }
+    SettableFuture<T> futureStateChange=SettableFuture.create();
+    futureStateChanges.add(futureStateChange);
+    return futureStateChange;
+  }
+}

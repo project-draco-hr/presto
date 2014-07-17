@@ -1,11 +1,25 @@
 {
   checkNotNull(newOutputBuffers,"newOutputBuffers is null");
-  if (state.get() == QueueState.FINISHED || outputBuffers.getVersion() >= newOutputBuffers.getVersion()) {
+  if (state.get() == FINISHED || outputBuffers.getVersion() >= newOutputBuffers.getVersion()) {
     return;
   }
   SetView<String> missingBuffers=Sets.difference(outputBuffers.getBuffers().keySet(),newOutputBuffers.getBuffers().keySet());
   checkArgument(missingBuffers.isEmpty(),"newOutputBuffers does not have existing buffers %s",missingBuffers);
   checkArgument(!outputBuffers.isNoMoreBufferIds() || newOutputBuffers.isNoMoreBufferIds(),"Expected newOutputBuffers to have noMoreBufferIds set");
   outputBuffers=newOutputBuffers;
-  updateOutputBuffers();
+  for (  Entry<String,PagePartitionFunction> entry : outputBuffers.getBuffers().entrySet()) {
+    String bufferId=entry.getKey();
+    if (!namedBuffers.containsKey(bufferId)) {
+      checkState(state.get().canAddBuffers(),"Cannot add buffers to %s",SharedBuffer.class.getSimpleName());
+      NamedBuffer namedBuffer=new NamedBuffer(bufferId,entry.getValue());
+      if (abortedBuffers.contains(bufferId)) {
+        namedBuffer.abort();
+      }
+      namedBuffers.put(bufferId,namedBuffer);
+    }
+  }
+  if (outputBuffers.isNoMoreBufferIds() && (state.compareAndSet(OPEN,NO_MORE_BUFFERS) || state.compareAndSet(NO_MORE_PAGES,FLUSHING))) {
+    namedBuffers=ImmutableMap.copyOf(namedBuffers);
+  }
+  updateState();
 }

@@ -1,0 +1,11 @@
+{
+  checkState(Thread.holdsLock(SharedBuffer.this),"Thread must hold a lock on the %s",SharedBuffer.class.getSimpleName());
+  if (finished) {
+    return true;
+  }
+  if (!state.get().canAddPages() && this.sequenceId >= (masterSequenceId + masterBuffer.size())) {
+    finished=true;
+    checkFlushComplete();
+  }
+  return finished;
+}

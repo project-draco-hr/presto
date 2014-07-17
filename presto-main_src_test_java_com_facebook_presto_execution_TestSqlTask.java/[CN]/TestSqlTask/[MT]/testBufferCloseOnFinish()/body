@@ -1,0 +1,14 @@
+{
+  SqlTask sqlTask=createInitialTask();
+  OutputBuffers outputBuffers=INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffer("out",new UnpartitionedPagePartitionFunction()).withNoMoreBufferIds();
+  updateTask(sqlTask,EMPTY_SOURCES,outputBuffers);
+  ListenableFuture<BufferResult> bufferResult=sqlTask.getTaskResults("out",0,new DataSize(1,MEGABYTE));
+  assertFalse(bufferResult.isDone());
+  updateTask(sqlTask,ImmutableList.of(new TaskSource(TABLE_SCAN_NODE_ID,ImmutableSet.<ScheduledSplit>of(),true)),outputBuffers);
+  assertEquals(sqlTask.getTaskInfo().getState(),TaskState.FINISHED);
+  assertTrue(bufferResult.get(200,MILLISECONDS).isBufferClosed());
+  assertEquals(sqlTask.getTaskInfo().getOutputBuffers().getState(),BufferState.FINISHED);
+  bufferResult=sqlTask.getTaskResults("out",0,new DataSize(1,MEGABYTE));
+  assertTrue(bufferResult.isDone());
+  assertTrue(bufferResult.get().isBufferClosed());
+}

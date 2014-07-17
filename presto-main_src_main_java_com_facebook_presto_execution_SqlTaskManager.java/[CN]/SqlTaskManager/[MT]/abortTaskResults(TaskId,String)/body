@@ -1,17 +1,5 @@
 {
   checkNotNull(taskId,"taskId is null");
   checkNotNull(outputId,"outputId is null");
-  TaskExecution taskExecution=tasks.get(taskId);
-  if (taskExecution == null) {
-    TaskInfo taskInfo=taskInfos.get(taskId);
-    if (taskInfo != null) {
-      return taskInfo;
-    }
- else {
-      throw new NoSuchElementException("Unknown query task " + taskId);
-    }
-  }
-  log.debug("Aborting task %s output %s",taskId,outputId);
-  taskExecution.abortResults(outputId);
-  return getTaskInfo(taskExecution);
+  return tasks.getUnchecked(taskId).abortTaskResults(outputId);
 }

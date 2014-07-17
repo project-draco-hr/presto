@@ -1,21 +1,20 @@
 {
   DateTime now=DateTime.now();
   DateTime oldestAllowedHeartbeat=now.minus(clientTimeout.toMillis());
-  for (  TaskExecution taskExecution : tasks.values()) {
+  for (  SqlTask sqlTask : tasks.asMap().values()) {
     try {
-      TaskInfo taskInfo=taskExecution.getTaskInfo();
+      TaskInfo taskInfo=sqlTask.getTaskInfo();
       if (taskInfo.getState().isDone()) {
         continue;
       }
       DateTime lastHeartbeat=taskInfo.getLastHeartbeat();
       if (lastHeartbeat != null && lastHeartbeat.isBefore(oldestAllowedHeartbeat)) {
-        log.info("Failing abandoned task %s",taskExecution.getTaskId());
-        taskExecution.fail(new AbandonedException("Task " + taskInfo.getTaskId(),lastHeartbeat,now));
-        getTaskInfo(taskExecution);
+        log.info("Failing abandoned task %s",taskInfo.getTaskId());
+        sqlTask.failed(new AbandonedException("Task " + taskInfo.getTaskId(),lastHeartbeat,now));
       }
     }
  catch (    RuntimeException e) {
-      log.warn(e,"Error while inspecting age of task %s",taskExecution.getTaskId());
+      log.warn(e,"Error while inspecting age of task %s",sqlTask.getTaskId());
     }
   }
 }

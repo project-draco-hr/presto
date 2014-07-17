@@ -1,16 +1,14 @@
 {
-  OutputBuffers outputBuffers=INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffer("queue",new UnpartitionedPagePartitionFunction());
-  SharedBuffer sharedBuffer=new SharedBuffer(TASK_ID,executor,sizeOfPages(5),outputBuffers);
+  SharedBuffer sharedBuffer=new SharedBuffer(TASK_ID,stateNotificationExecutor,sizeOfPages(5));
+  sharedBuffer.setOutputBuffers(INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffer("queue",new UnpartitionedPagePartitionFunction()));
   assertFalse(sharedBuffer.isFinished());
-  ExecutorService executor=Executors.newCachedThreadPool();
-  GetPagesJob getPagesJob=new GetPagesJob(sharedBuffer,0,2,1);
-  executor.submit(getPagesJob);
-  getPagesJob.waitForStarted();
-  getPagesJob.assertBlockedWithCount(0);
+  ListenableFuture<BufferResult> future=sharedBuffer.get("queue",0,sizeOfPages(10));
+  assertFalse(future.isDone());
   addPage(sharedBuffer,createPage(0));
-  getPagesJob.assertBlockedWithCount(1);
-  sharedBuffer.finish();
+  assertBufferResultEquals(TYPES,getFuture(future,NO_WAIT),bufferResult(0,createPage(0)));
+  future=sharedBuffer.get("queue",1,sizeOfPages(10));
+  assertFalse(future.isDone());
+  sharedBuffer.setNoMorePages();
   assertQueueClosed(sharedBuffer,"queue",1);
-  getPagesJob.waitForFinished();
-  assertEquals(getPagesJob.getElements().size(),1);
+  assertBufferResultEquals(TYPES,getFuture(future,NO_WAIT),emptyResults(1,true));
 }

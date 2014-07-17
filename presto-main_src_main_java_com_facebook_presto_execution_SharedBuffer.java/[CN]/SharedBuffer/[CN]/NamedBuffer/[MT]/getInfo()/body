@@ -1,0 +1,8 @@
+{
+  checkState(Thread.holdsLock(SharedBuffer.this),"Thread must hold a lock on the %s",SharedBuffer.class.getSimpleName());
+  if (finished) {
+    return new BufferInfo(bufferId,true,0,sequenceId);
+  }
+  int size=Math.max(Ints.checkedCast(masterSequenceId + masterBuffer.size() + queuedPages.size() - sequenceId),0);
+  return new BufferInfo(bufferId,finished,size,sequenceId);
+}

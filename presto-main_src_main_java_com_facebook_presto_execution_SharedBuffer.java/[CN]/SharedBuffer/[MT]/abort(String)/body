@@ -1,10 +1,9 @@
 {
   checkNotNull(outputId,"outputId is null");
-  NamedQueue namedQueue=namedQueues.get(outputId);
-  if (namedQueue == null || namedQueue.isFinished()) {
-    return;
+  abortedBuffers.add(outputId);
+  NamedBuffer namedBuffer=namedBuffers.get(outputId);
+  if (namedBuffer != null) {
+    namedBuffer.abort();
   }
-  namedQueue.setFinished();
-  openQueuesBySequenceId.remove(namedQueue);
   updateState();
 }

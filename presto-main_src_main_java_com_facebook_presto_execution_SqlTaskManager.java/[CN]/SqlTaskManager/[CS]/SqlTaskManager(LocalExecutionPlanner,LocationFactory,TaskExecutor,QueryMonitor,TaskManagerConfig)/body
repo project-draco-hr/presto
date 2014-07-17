@@ -1,17 +1,23 @@
 {
-  this.planner=checkNotNull(planner,"planner is null");
-  this.locationFactory=checkNotNull(locationFactory,"locationFactory is null");
-  this.taskExecutor=checkNotNull(taskExecutor,"taskExecutor is null");
-  this.queryMonitor=checkNotNull(queryMonitor,"queryMonitor is null");
   checkNotNull(config,"config is null");
-  this.maxBufferSize=config.getSinkMaxBufferSize();
-  this.maxTaskMemoryUsage=config.getMaxTaskMemoryUsage();
-  this.operatorPreAllocatedMemory=config.getOperatorPreAllocatedMemory();
-  this.infoCacheTime=config.getInfoMaxAge();
-  this.clientTimeout=config.getClientTimeout();
-  this.cpuTimerEnabled=config.isTaskCpuTimerEnabled();
+  infoCacheTime=config.getInfoMaxAge();
+  clientTimeout=config.getClientTimeout();
+  final DataSize maxBufferSize=config.getSinkMaxBufferSize();
   taskNotificationExecutor=newCachedThreadPool(threadsNamed("task-notification-%d"));
   taskNotificationExecutorMBean=new ThreadPoolExecutorMBean((ThreadPoolExecutor)taskNotificationExecutor);
   taskManagementExecutor=newScheduledThreadPool(5,threadsNamed("task-management-%d"));
   taskManagementExecutorMBean=new ThreadPoolExecutorMBean((ThreadPoolExecutor)taskManagementExecutor);
+  final SqlTaskExecutionFactory sqlTaskExecutionFactory=new SqlTaskExecutionFactory(taskNotificationExecutor,taskExecutor,planner,queryMonitor,config);
+  tasks=CacheBuilder.newBuilder().build(new CacheLoader<TaskId,SqlTask>(){
+    @Override public SqlTask load(    TaskId taskId) throws Exception {
+      return new SqlTask(taskId,locationFactory.createLocalTaskLocation(taskId),sqlTaskExecutionFactory,taskNotificationExecutor,new Function<SqlTask,Void>(){
+        @Override public Void apply(        SqlTask sqlTask){
+          finishedTaskStats.merge(sqlTask.getIoStats());
+          return null;
+        }
+      }
+,maxBufferSize);
+    }
+  }
+);
 }

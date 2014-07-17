@@ -1,34 +1,43 @@
 {
-  if (closed.get()) {
-    for (Iterator<NamedQueue> iterator=openQueuesBySequenceId.iterator(); iterator.hasNext(); ) {
-      NamedQueue namedQueue=iterator.next();
-      if (namedQueue.isEmpty()) {
-        namedQueue.setFinished();
-        iterator.remove();
+  checkState(Thread.holdsLock(this),"Thread must hold a lock on the %s",SharedBuffer.class.getSimpleName());
+  try {
+    processPendingReads();
+    BufferState state=this.state.get();
+    if (state == FINISHED) {
+      return;
+    }
+    if (!state.canAddPages()) {
+      for (      QueuedPage queuedPage : queuedPages) {
+        queuedPage.getFuture().set(null);
+      }
+      queuedPages.clear();
+    }
+    if (!state.canAddBuffers() && !namedBuffers.isEmpty()) {
+      long oldMasterSequenceId=masterSequenceId;
+      long newMasterSequenceId=Long.MAX_VALUE;
+      for (      NamedBuffer namedBuffer : namedBuffers.values()) {
+        newMasterSequenceId=Math.min(namedBuffer.getSequenceId(),newMasterSequenceId);
+      }
+      masterSequenceId=newMasterSequenceId;
+      int pagesToRemove=Ints.checkedCast(masterSequenceId - oldMasterSequenceId);
+      checkState(pagesToRemove >= 0,"Master sequence id moved backwards: oldMasterSequenceId=%s, newMasterSequenceId=%s",oldMasterSequenceId,masterSequenceId);
+      for (int i=0; i < pagesToRemove; i++) {
+        Page page=masterBuffer.removeFirst();
+        bufferedBytes-=page.getDataSize().toBytes();
+      }
+      while (!queuedPages.isEmpty() && bufferedBytes < maxBufferedBytes) {
+        QueuedPage queuedPage=queuedPages.removeFirst();
+        addInternal(queuedPage.getPage());
+        queuedPage.getFuture().set(null);
       }
     }
-    for (    QueuedPage queuedPage : queuedPages) {
-      queuedPage.getFuture().set(null);
-    }
-    queuedPages.clear();
-  }
-  if (state.get() == QueueState.NO_MORE_QUEUES && !openQueuesBySequenceId.isEmpty()) {
-    long oldMasterSequenceId=masterSequenceId;
-    masterSequenceId=openQueuesBySequenceId.iterator().next().getSequenceId();
-    int pagesToRemove=Ints.checkedCast(masterSequenceId - oldMasterSequenceId);
-    checkState(pagesToRemove >= 0,"Master sequence id moved backwards: oldMasterSequenceId=%s, newMasterSequenceId=%s",oldMasterSequenceId,masterSequenceId);
-    for (int i=0; i < pagesToRemove; i++) {
-      Page page=masterQueue.removeFirst();
-      bufferedBytes-=page.getDataSize().toBytes();
-    }
-    while (!queuedPages.isEmpty() && bufferedBytes < maxBufferedBytes) {
-      QueuedPage queuedPage=queuedPages.removeFirst();
-      addInternal(queuedPage.getPage());
-      queuedPage.getFuture().set(null);
+    if (!state.canAddPages()) {
+      for (      NamedBuffer namedBuffer : namedBuffers.values()) {
+        namedBuffer.checkCompletion();
+      }
     }
   }
-  if (state.get() == QueueState.NO_MORE_QUEUES && closed.get() && openQueuesBySequenceId.isEmpty()) {
-    destroy();
+  finally {
+    checkFlushComplete();
   }
-  this.notifyAll();
 }

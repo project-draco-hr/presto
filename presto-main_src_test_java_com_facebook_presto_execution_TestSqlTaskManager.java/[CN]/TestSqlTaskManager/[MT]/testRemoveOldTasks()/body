@@ -1,17 +1,16 @@
 {
-  sqlTaskManager=new SqlTaskManager(planner,new MockLocationFactory(),taskExecutor,new QueryMonitor(new ObjectMapperProvider().get(),new NullEventClient(),new NodeInfo("test")),new TaskManagerConfig().setInfoMaxAge(new Duration(5,TimeUnit.MILLISECONDS)));
-  TaskInfo taskInfo=sqlTaskManager.updateTask(session,taskId,testFragment,ImmutableList.<TaskSource>of(),INITIAL_EMPTY_OUTPUT_BUFFERS);
-  assertEquals(taskInfo.getState(),TaskState.RUNNING);
-  taskInfo=sqlTaskManager.cancelTask(taskId);
-  assertEquals(taskInfo.getState(),TaskState.CANCELED);
-  taskInfo=sqlTaskManager.getTaskInfo(taskInfo.getTaskId());
-  assertEquals(taskInfo.getState(),TaskState.CANCELED);
-  Thread.sleep(100);
-  sqlTaskManager.removeOldTasks();
-  try {
-    sqlTaskManager.getTaskInfo(taskInfo.getTaskId());
-    fail("Expected NoSuchElementException");
+  try (SqlTaskManager sqlTaskManager=createSqlTaskManager(new TaskManagerConfig().setInfoMaxAge(new Duration(5,TimeUnit.MILLISECONDS)))){
+    TaskId taskId=TASK_ID;
+    TaskInfo taskInfo=sqlTaskManager.updateTask(SESSION,taskId,PLAN_FRAGMENT,ImmutableList.<TaskSource>of(),INITIAL_EMPTY_OUTPUT_BUFFERS);
+    assertEquals(taskInfo.getState(),TaskState.RUNNING);
+    taskInfo=sqlTaskManager.cancelTask(taskId);
+    assertEquals(taskInfo.getState(),TaskState.CANCELED);
+    taskInfo=sqlTaskManager.getTaskInfo(taskId);
+    assertEquals(taskInfo.getState(),TaskState.CANCELED);
+    Thread.sleep(100);
+    sqlTaskManager.removeOldTasks();
+    for (    TaskInfo info : sqlTaskManager.getAllTaskInfo()) {
+      assertNotEquals(info.getTaskId(),taskId);
+    }
   }
- catch (  NoSuchElementException expected) {
-  }
-}
+ }

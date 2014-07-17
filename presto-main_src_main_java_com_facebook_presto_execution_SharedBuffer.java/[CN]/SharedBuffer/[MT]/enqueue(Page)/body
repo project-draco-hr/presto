@@ -1,13 +1,14 @@
 {
   checkNotNull(page,"page is null");
-  if (closed.get()) {
-    return Futures.immediateFuture(true);
+  if (!state.get().canAddPages()) {
+    return immediateFuture(true);
   }
   if (bufferedBytes < maxBufferedBytes) {
     addInternal(page);
-    return Futures.immediateFuture(true);
+    return immediateFuture(true);
   }
   QueuedPage queuedPage=new QueuedPage(page);
   queuedPages.addLast(queuedPage);
+  updateState();
   return queuedPage.getFuture();
 }

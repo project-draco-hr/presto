@@ -1,0 +1,24 @@
+{
+  checkState(Thread.holdsLock(SharedBuffer.this),"Thread must hold a lock on the %s",SharedBuffer.class.getSimpleName());
+  checkArgument(maxSize.toBytes() > 0,"maxSize must be at least 1 byte");
+  checkArgument(startingSequenceId >= sequenceId,"startingSequenceId is before the beginning of the buffer");
+  if (startingSequenceId > sequenceId) {
+    sequenceId=startingSequenceId;
+  }
+  if (checkCompletion()) {
+    return emptyResults(startingSequenceId,true);
+  }
+  long maxBytes=maxSize.toBytes();
+  List<Page> pages=new ArrayList<>();
+  long bytes=0;
+  int listOffset=Ints.checkedCast(sequenceId - masterSequenceId);
+  while (listOffset < masterBuffer.size()) {
+    Page page=masterBuffer.get(listOffset++);
+    bytes+=page.getDataSize().toBytes();
+    if (!pages.isEmpty() && bytes > maxBytes) {
+      break;
+    }
+    pages.add(page);
+  }
+  return new BufferResult(startingSequenceId,startingSequenceId + pages.size(),false,ImmutableList.copyOf(pages),partitionFunction);
+}

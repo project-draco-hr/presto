@@ -1,0 +1,33 @@
+{
+  this.taskStateMachine=checkNotNull(taskStateMachine,"taskStateMachine is null");
+  this.taskId=taskStateMachine.getTaskId();
+  this.taskContext=checkNotNull(taskContext,"taskContext is null");
+  this.sharedBuffer=checkNotNull(sharedBuffer,"sharedBuffer is null");
+  this.taskExecutor=checkNotNull(taskExecutor,"driverExecutor is null");
+  this.notificationExecutor=checkNotNull(notificationExecutor,"notificationExecutor is null");
+  this.queryMonitor=checkNotNull(queryMonitor,"queryMonitor is null");
+  try (SetThreadName ignored=new SetThreadName("Task-%s",taskId)){
+    LocalExecutionPlan localExecutionPlan=planner.plan(taskContext.getSession(),fragment.getRoot(),fragment.getSymbols(),new TaskOutputFactory(sharedBuffer));
+    List<DriverFactory> driverFactories=localExecutionPlan.getDriverFactories();
+    DriverSplitRunnerFactory partitionedDriverFactory=null;
+    ImmutableList.Builder<DriverSplitRunnerFactory> unpartitionedDriverFactories=ImmutableList.builder();
+    for (    DriverFactory driverFactory : driverFactories) {
+      if (driverFactory.getSourceIds().contains(fragment.getPartitionedSource())) {
+        checkState(partitionedDriverFactory == null,"multiple partitioned sources are not supported");
+        partitionedDriverFactory=new DriverSplitRunnerFactory(driverFactory);
+      }
+ else {
+        unpartitionedDriverFactories.add(new DriverSplitRunnerFactory(driverFactory));
+      }
+    }
+    this.unpartitionedDriverFactories=unpartitionedDriverFactories.build();
+    if (fragment.getDistribution() == PlanDistribution.SOURCE) {
+      checkArgument(partitionedDriverFactory != null,"Fragment is partitioned, but no partitioned driver found");
+    }
+    this.partitionedSourceId=fragment.getPartitionedSource();
+    this.partitionedDriverFactory=partitionedDriverFactory;
+    taskHandle=taskExecutor.addTask(taskId);
+    taskStateMachine.addStateChangeListener(new RemoveTaskHandleWhenDone(taskExecutor,taskHandle));
+    sharedBuffer.addStateChangeListener(new CheckTaskCompletionOnBufferFinish(SqlTaskExecution.this));
+  }
+ }
