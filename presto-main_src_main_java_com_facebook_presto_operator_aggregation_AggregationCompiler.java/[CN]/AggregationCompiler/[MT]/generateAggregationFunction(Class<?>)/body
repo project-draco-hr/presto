@@ -1,0 +1,11 @@
+{
+  AggregationFunctionMetadata metadata=clazz.getAnnotation(AggregationFunctionMetadata.class);
+  checkNotNull(metadata,"AggregationFunctionMetadata annotate missing");
+  Class<?> stateClass=getStateClass(clazz);
+  AccumulatorStateSerializer<?> stateSerializer=new StateCompiler().generateStateSerializer(stateClass);
+  Type intermediateType=stateSerializer.getSerializedType();
+  Type outputType=getOutputType(clazz,stateSerializer);
+  AccumulatorStateFactory<?> stateFactory=new StateCompiler().generateStateFactory(stateClass);
+  AccumulatorFactory factory=new AccumulatorCompiler().generateAccumulatorFactory(clazz,stateClass,intermediateType,outputType,stateSerializer,stateFactory,false);
+  return new GenericAggregationFunction(getParameterTypes(clazz),intermediateType,outputType,false,factory);
+}

@@ -1,0 +1,10 @@
+{
+  Block body=definition.declareMethod(new CompilerContext(null),a(PUBLIC),"evaluateFinal",type(void.class),arg("state",AccumulatorState.class),arg("confidence",double.class),arg("out",BlockBuilder.class)).getBody();
+  Method outputFunction=findOutputFunction(aggregationClass,stateClass);
+  if (outputFunction != null) {
+    body.comment("output(state, out)").getVariable("state").checkCast(stateClass).getVariable("out").invokeStatic(outputFunction).ret();
+  }
+ else {
+    body.pushThis().comment("stateSerializer.serialize(state, out)").getField(clazz,"stateSerializer",AccumulatorStateSerializer.class).getVariable("state").getVariable("out").invokeInterface(AccumulatorStateSerializer.class,"serialize",void.class,Object.class,BlockBuilder.class).ret();
+  }
+}

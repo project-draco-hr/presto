@@ -1,0 +1,20 @@
+{
+  checkNotNull(method,"method is null");
+  Class<?>[] parameters=method.getParameterTypes();
+  Annotation[][] annotations=method.getParameterAnnotations();
+  checkArgument(stateClass == parameters[0],"First argument of aggregation input function must be %s",stateClass.getSimpleName());
+  checkArgument(parameters.length > 1,"Aggregation input function must have at least one parameter");
+  for (int i=1; i < parameters.length; i++) {
+    checkArgument(annotations[i].length == 1,"Each parameter (besides state) must have exactly one annotation (either @SqlType or @BlockIndex)");
+    Annotation annotation=annotations[i][0];
+    if (annotation instanceof SqlType) {
+      checkArgument(SUPPORTED_PARAMETER_TYPES.contains(parameters[i]),"Unsupported type: %s",parameters[i].getSimpleName());
+    }
+ else     if (annotation instanceof BlockIndex) {
+      checkArgument(parameters[i] == int.class,"Block index parameter must be an int");
+    }
+ else {
+      throw new IllegalArgumentException("Unsupported annotation: " + annotation);
+    }
+  }
+}

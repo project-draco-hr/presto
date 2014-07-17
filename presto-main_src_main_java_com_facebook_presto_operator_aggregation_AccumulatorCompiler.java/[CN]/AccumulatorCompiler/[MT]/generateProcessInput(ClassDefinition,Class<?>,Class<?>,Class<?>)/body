@@ -1,0 +1,18 @@
+{
+  Block body=definition.declareMethod(new CompilerContext(null),a(PUBLIC),"processInput",type(void.class),arg("state",AccumulatorState.class),arg("blocks",List.class),arg("position",int.class),arg("sampleWeight",long.class)).getBody();
+  Method inputFunction=findInputFunction(aggregationClass,stateClass);
+  body.comment("Call input function with unpacked Block arguments").getVariable("state").checkCast(stateClass);
+  Class<?>[] parameters=inputFunction.getParameterTypes();
+  Annotation[][] annotations=inputFunction.getParameterAnnotations();
+  for (int i=1, blockNum=0; i < parameters.length; i++) {
+    if (annotations[i][0] instanceof BlockIndex) {
+      body.getVariable("position");
+    }
+ else {
+      body.getVariable("blocks").push(blockNum).invokeInterface(List.class,"get",Object.class,int.class).checkCast(com.facebook.presto.spi.block.Block.class);
+      getStackTypeIfNecessary(body,parameters[i]);
+      blockNum++;
+    }
+  }
+  body.invokeStatic(inputFunction).ret();
+}
