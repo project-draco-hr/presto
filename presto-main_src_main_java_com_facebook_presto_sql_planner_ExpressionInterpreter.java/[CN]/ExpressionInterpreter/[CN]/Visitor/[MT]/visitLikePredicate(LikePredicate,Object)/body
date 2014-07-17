@@ -4,7 +4,7 @@
     return null;
   }
   if (value instanceof Slice && node.getPattern() instanceof StringLiteral && (node.getEscape() instanceof StringLiteral || node.getEscape() == null)) {
-    return LikeUtils.regexMatches(getConstantPattern(node),(Slice)value);
+    return LikeFunctions.like((Slice)value,getConstantPattern(node));
   }
   Object pattern=process(node.getPattern(),context);
   if (pattern == null) {
@@ -18,8 +18,14 @@
     }
   }
   if (value instanceof Slice && pattern instanceof Slice && (escape == null || escape instanceof Slice)) {
-    Regex regex=LikeUtils.likeToPattern((Slice)pattern,(Slice)escape);
-    return LikeUtils.regexMatches(regex,(Slice)value);
+    Regex regex;
+    if (escape == null) {
+      regex=LikeFunctions.likePattern((Slice)pattern);
+    }
+ else {
+      regex=LikeFunctions.likePattern((Slice)pattern,(Slice)escape);
+    }
+    return LikeFunctions.like((Slice)value,regex);
   }
   if (pattern instanceof Slice && escape == null) {
     String stringPattern=((Slice)pattern).toString(Charsets.UTF_8);
