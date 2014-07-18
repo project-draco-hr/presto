@@ -1,5 +1,17 @@
 {
-  FunctionBinding binding=bindConstantArguments(NEXT_BINDING_ID.getAndIncrement(),function.getSignature().getName(),getSessionByteCode,arguments,function.getMethodHandle(),function.isNullable());
+  MethodHandle method=function.getMethodHandle();
+  ImmutableList.Builder<ByteCodeNode> actualArguments=ImmutableList.builder();
+  int index=0;
+  for (  Class<?> type : method.type().parameterArray()) {
+    if (type == ConnectorSession.class) {
+      actualArguments.add(getSessionByteCode);
+    }
+ else {
+      actualArguments.add(arguments.get(index));
+      index++;
+    }
+  }
+  FunctionBinding binding=new FunctionBinding(NEXT_BINDING_ID.getAndIncrement(),function.getSignature().getName(),new ConstantCallSite(method),actualArguments.build(),function.isNullable());
   bindings.put(binding.getBindingId(),binding.getCallSite());
   return binding;
 }
