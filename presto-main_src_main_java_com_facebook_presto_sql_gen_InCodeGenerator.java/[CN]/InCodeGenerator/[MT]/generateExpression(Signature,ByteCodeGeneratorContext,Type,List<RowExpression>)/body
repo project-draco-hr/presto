@@ -8,7 +8,8 @@
   }
   Type type=arguments.get(0).getType();
   Class<?> javaType=type.getJavaType();
-  FunctionBinding hashCodeFunction=generatorContext.getBootstrapBinder().bindOperator(OperatorType.HASH_CODE,generatorContext.generateGetSession(),ImmutableList.<ByteCodeNode>of(NOP),ImmutableList.of(type));
+  FunctionInfo hashCodeFunction=generatorContext.getRegistry().resolveOperator(OperatorType.HASH_CODE,ImmutableList.of(type));
+  FunctionBinding hashCodeBinding=generatorContext.getBootstrapBinder().bindFunction(hashCodeFunction,generatorContext.generateGetSession(),ImmutableList.of(NOP));
   ImmutableListMultimap.Builder<Integer,ByteCodeNode> hashBucketsBuilder=ImmutableListMultimap.builder();
   ImmutableList.Builder<ByteCodeNode> defaultBucket=ImmutableList.builder();
   ImmutableSet.Builder<Object> constantValuesBuilder=ImmutableSet.builder();
@@ -19,7 +20,7 @@
       Object object=constant.getValue();
       constantValuesBuilder.add(object);
       try {
-        int hashCode=(int)hashCodeFunction.getCallSite().dynamicInvoker().invoke(object);
+        int hashCode=(int)hashCodeBinding.getCallSite().dynamicInvoker().invoke(object);
         hashBucketsBuilder.put(hashCode,testByteCode);
       }
  catch (      Throwable throwable) {
@@ -49,7 +50,7 @@
       switchCaseBlocks.append(caseBlock.setDescription("case " + bucket.getKey()));
     }
     switchBuilder.defaultCase(defaultLabel);
-    switchBlock=new Block(context).comment("lookupSwitch(hashCode(<stackValue>))").dup(javaType).invokeDynamic(hashCodeFunction.getName(),hashCodeFunction.getCallSite().type(),hashCodeFunction.getBindingId()).append(switchBuilder.build()).append(switchCaseBlocks);
+    switchBlock=new Block(context).comment("lookupSwitch(hashCode(<stackValue>))").dup(javaType).invokeDynamic(hashCodeBinding.getName(),hashCodeBinding.getCallSite().type(),hashCodeBinding.getBindingId()).append(switchBuilder.build()).append(switchCaseBlocks);
   }
  else {
     FunctionBinding constant=generatorContext.getBootstrapBinder().bindConstant(constantValues,Set.class);
