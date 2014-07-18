@@ -1,0 +1,15 @@
+{
+  if (retries >= 10) {
+    return RetryDecision.rethrow();
+  }
+  try {
+    int jitter=ThreadLocalRandom.current().nextInt(100);
+    int delay=(100 * (retries + 1)) + jitter;
+    Thread.sleep(delay);
+    return RetryDecision.retry(consistencyLevel);
+  }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    return RetryDecision.rethrow();
+  }
+}
