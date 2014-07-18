@@ -1,20 +1,22 @@
 {
-  BootstrapEntry bootstrap=BootstrapEntry.makeBootstrap(classLoader,metadata);
-  ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(bootstrap.getBootstrapMethod()),a(PUBLIC,FINAL),typeFromPathName("FilterAndProjectOperator_" + CLASS_ID.incrementAndGet()),type(AbstractFilterAndProjectOperator.class));
+  BootstrapFunctionBinder functionBinder=new BootstrapFunctionBinder();
+  ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(BOOTSTRAP_METHOD),a(PUBLIC,FINAL),typeFromPathName("FilterAndProjectOperator_" + CLASS_ID.incrementAndGet()),type(AbstractFilterAndProjectOperator.class));
   FieldDefinition sessionField=classDefinition.declareField(a(PRIVATE,FINAL),"session",ConnectorSession.class);
-  classDefinition.declareConstructor(new CompilerContext(bootstrap.getBootstrapMethod()),a(PUBLIC),arg("operatorContext",OperatorContext.class),arg("types",type(Iterable.class,Type.class))).getBody().comment("super(operatorContext, types);").pushThis().getVariable("operatorContext").getVariable("types").invokeConstructor(AbstractFilterAndProjectOperator.class,OperatorContext.class,Iterable.class).comment("this.session = operatorContext.getSession();").pushThis().getVariable("operatorContext").invokeVirtual(OperatorContext.class,"getSession",ConnectorSession.class).putField(sessionField).ret();
-  generateFilterAndProjectRowOriented(bootstrap,classDefinition,filter,projections);
-  generateFilterMethod(bootstrap,classDefinition,filter,true);
-  generateFilterMethod(bootstrap,classDefinition,filter,false);
+  classDefinition.declareField(a(PRIVATE,VOLATILE,STATIC),"callSites",Map.class);
+  classDefinition.declareConstructor(new CompilerContext(BOOTSTRAP_METHOD),a(PUBLIC),arg("operatorContext",OperatorContext.class),arg("types",type(Iterable.class,Type.class))).getBody().comment("super(operatorContext, types);").pushThis().getVariable("operatorContext").getVariable("types").invokeConstructor(AbstractFilterAndProjectOperator.class,OperatorContext.class,Iterable.class).comment("this.session = operatorContext.getSession();").pushThis().getVariable("operatorContext").invokeVirtual(OperatorContext.class,"getSession",ConnectorSession.class).putField(sessionField).ret();
+  generateFilterAndProjectRowOriented(classDefinition,filter,projections);
+  generateFilterMethod(functionBinder,classDefinition,filter,true);
+  generateFilterMethod(functionBinder,classDefinition,filter,false);
   List<Type> types=new ArrayList<>();
   int projectionIndex=0;
   for (  RowExpression projection : projections) {
-    generateProjectMethod(bootstrap,classDefinition,"project_" + projectionIndex,projection,true);
-    generateProjectMethod(bootstrap,classDefinition,"project_" + projectionIndex,projection,false);
+    generateProjectMethod(functionBinder,classDefinition,"project_" + projectionIndex,projection,true);
+    generateProjectMethod(functionBinder,classDefinition,"project_" + projectionIndex,projection,false);
     types.add(projection.getType());
     projectionIndex++;
   }
-  generateToString(bootstrap,classDefinition,toStringHelper(classDefinition.getType().getJavaClassName()).add("filter",filter).add("projections",projections).toString());
+  generateToString(classDefinition,toStringHelper(classDefinition.getType().getJavaClassName()).add("filter",filter).add("projections",projections).toString());
   Class<? extends Operator> filterAndProjectClass=defineClass(classDefinition,Operator.class,classLoader);
+  setCallSitesField(filterAndProjectClass,functionBinder.getCallSites());
   return new TypedOperatorClass(filterAndProjectClass,types);
 }
