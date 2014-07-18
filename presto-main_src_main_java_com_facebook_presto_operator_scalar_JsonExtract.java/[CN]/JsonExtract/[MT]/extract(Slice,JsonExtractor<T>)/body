@@ -1,0 +1,17 @@
+{
+  checkNotNull(jsonInput,"jsonInput is null");
+  try {
+    try (JsonParser jsonParser=JSON_FACTORY.createJsonParser(jsonInput.getInput())){
+      if (jsonParser.nextToken() == null) {
+        throw new JsonParseException("Missing starting token",jsonParser.getCurrentLocation());
+      }
+      return jsonExtractor.extract(jsonParser);
+    }
+   }
+ catch (  JsonParseException e) {
+    return null;
+  }
+catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+}
