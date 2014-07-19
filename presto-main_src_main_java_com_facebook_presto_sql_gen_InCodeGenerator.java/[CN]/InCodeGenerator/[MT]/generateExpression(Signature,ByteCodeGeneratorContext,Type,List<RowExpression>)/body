@@ -9,7 +9,6 @@
   Type type=arguments.get(0).getType();
   Class<?> javaType=type.getJavaType();
   FunctionInfo hashCodeFunction=generatorContext.getRegistry().resolveOperator(OperatorType.HASH_CODE,ImmutableList.of(type));
-  FunctionBinding hashCodeBinding=generatorContext.getBootstrapBinder().bindFunction(hashCodeFunction,generatorContext.generateGetSession(),ImmutableList.of(NOP));
   ImmutableListMultimap.Builder<Integer,ByteCodeNode> hashBucketsBuilder=ImmutableListMultimap.builder();
   ImmutableList.Builder<ByteCodeNode> defaultBucket=ImmutableList.builder();
   ImmutableSet.Builder<Object> constantValuesBuilder=ImmutableSet.builder();
@@ -20,7 +19,7 @@
       Object object=constant.getValue();
       constantValuesBuilder.add(object);
       try {
-        int hashCode=(int)hashCodeBinding.getCallSite().dynamicInvoker().invoke(object);
+        int hashCode=(int)hashCodeFunction.getMethodHandle().invoke(object);
         hashBucketsBuilder.put(hashCode,testByteCode);
       }
  catch (      Throwable throwable) {
@@ -50,11 +49,12 @@
       switchCaseBlocks.append(caseBlock.setDescription("case " + bucket.getKey()));
     }
     switchBuilder.defaultCase(defaultLabel);
-    switchBlock=new Block(context).comment("lookupSwitch(hashCode(<stackValue>))").dup(javaType).invokeDynamic(hashCodeBinding.getName(),hashCodeBinding.getCallSite().type(),hashCodeBinding.getBindingId()).append(switchBuilder.build()).append(switchCaseBlocks);
+    Binding hashCodeBinding=generatorContext.getCallSiteBinder().bind(hashCodeFunction.getMethodHandle());
+    switchBlock=new Block(context).comment("lookupSwitch(hashCode(<stackValue>))").dup(javaType).append(invoke(generatorContext.getContext(),hashCodeBinding)).append(switchBuilder.build()).append(switchCaseBlocks);
   }
  else {
-    FunctionBinding constant=generatorContext.getBootstrapBinder().bindConstant(constantValues,Set.class);
-    switchBlock=new Block(context).comment("inListSet.contains(<stackValue>)").append(new IfStatement(context,new Block(context).comment("value (+boxing if necessary)").dup(javaType).append(ByteCodeUtils.boxPrimitive(context,javaType)).comment("set").invokeDynamic(constant.getName(),constant.getCallSite().type(),constant.getBindingId()).invokeStatic(CompilerOperations.class,"in",boolean.class,Object.class,Set.class),jump(match),NOP));
+    Binding constant=generatorContext.getCallSiteBinder().bind(constantValues,Set.class);
+    switchBlock=new Block(context).comment("inListSet.contains(<stackValue>)").append(new IfStatement(context,new Block(context).comment("value (+boxing if necessary)").dup(javaType).append(ByteCodeUtils.boxPrimitive(context,javaType)).comment("set").append(loadConstant(context,constant)).invokeStatic(CompilerOperations.class,"in",boolean.class,Object.class,Set.class),jump(match),NOP));
   }
   Block defaultCaseBlock=buildInCase(generatorContext,context,type,defaultLabel,match,noMatch,defaultBucket.build(),true).setDescription("default");
   Block block=new Block(context).comment("IN").append(value).append(ifWasNullPopAndGoto(context,end,boolean.class,javaType)).append(switchBlock).append(defaultCaseBlock);

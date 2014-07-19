@@ -14,7 +14,7 @@
   }
   elseBlock.gotoLabel(noMatchLabel);
   FunctionInfo operator=generatorContext.getRegistry().resolveOperator(OperatorType.EQUAL,ImmutableList.of(type,type));
-  FunctionBinding equalsFunction=generatorContext.getBootstrapBinder().bindFunction(operator,generatorContext.generateGetSession(),ImmutableList.of(NOP,NOP));
+  Binding equalsFunction=generatorContext.getCallSiteBinder().bind(operator.getMethodHandle());
   ByteCodeNode elseNode=elseBlock;
   for (  ByteCodeNode testNode : testValues) {
     LabelNode testLabel=new LabelNode("test");
@@ -23,7 +23,7 @@
     if (checkForNulls) {
       condition.getVariable("wasNull").putVariable(caseWasNull.getLocalVariableDefinition()).append(ifWasNullPopAndGoto(context,elseLabel,void.class,type.getJavaType(),type.getJavaType()));
     }
-    condition.invokeDynamic(equalsFunction.getName(),equalsFunction.getCallSite().type(),equalsFunction.getBindingId());
+    condition.append(invoke(generatorContext.getContext(),equalsFunction));
     test.condition(condition);
     test.ifTrue(new Block(context).gotoLabel(matchLabel));
     test.ifFalse(elseNode);

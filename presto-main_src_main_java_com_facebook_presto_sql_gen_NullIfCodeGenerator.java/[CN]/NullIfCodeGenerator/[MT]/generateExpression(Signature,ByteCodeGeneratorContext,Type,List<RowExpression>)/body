@@ -7,19 +7,8 @@
   Type firstType=first.getType();
   Type secondType=second.getType();
   Type commonType=FunctionRegistry.getCommonSuperType(firstType,secondType).get();
-  FunctionInfo equalOperator=generatorContext.getRegistry().resolveOperator(OperatorType.EQUAL,ImmutableList.of(firstType,secondType));
-  FunctionBinding functionBinding=generatorContext.getBootstrapBinder().bindFunction(equalOperator,generatorContext.generateGetSession(),ImmutableList.of(cast(generatorContext,new Block(context).dup(firstType.getJavaType()),firstType,commonType),cast(generatorContext,generatorContext.generate(second),secondType,commonType)));
-  MethodType methodType=functionBinding.getCallSite().type();
-  Class<?> unboxedReturnType=Primitives.unwrap(methodType.returnType());
-  LabelNode end=new LabelNode("end");
-  Block equalsCall=new Block(context).setDescription("invoke").comment("equal");
-  ArrayList<Class<?>> stackTypes=new ArrayList<>();
-  for (int i=0; i < functionBinding.getArguments().size(); i++) {
-    equalsCall.append(functionBinding.getArguments().get(i));
-    stackTypes.add(methodType.parameterType(i));
-    equalsCall.append(ByteCodeUtils.ifWasNullPopAndGoto(context,end,unboxedReturnType,Lists.reverse(stackTypes)));
-  }
-  equalsCall.invokeDynamic(functionBinding.getName(),functionBinding.getCallSite().type(),functionBinding.getBindingId()).visitLabel(end);
+  FunctionInfo equalsFunction=generatorContext.getRegistry().resolveOperator(OperatorType.EQUAL,ImmutableList.of(firstType,secondType));
+  ByteCodeNode equalsCall=generatorContext.generateCall(equalsFunction,ImmutableList.of(cast(generatorContext,new Block(context).dup(firstType.getJavaType()),firstType,commonType),cast(generatorContext,generatorContext.generate(second),secondType,commonType)));
   Block conditionBlock=new Block(context).append(equalsCall).append(ByteCodeUtils.ifWasNullClearPopAndGoto(context,notMatch,void.class,boolean.class));
   Block trueBlock=new Block(context).putVariable("wasNull",true).pop(first.getType().getJavaType()).pushJavaDefault(first.getType().getJavaType());
   block.append(new IfStatement(context,conditionBlock,trueBlock,notMatch));
