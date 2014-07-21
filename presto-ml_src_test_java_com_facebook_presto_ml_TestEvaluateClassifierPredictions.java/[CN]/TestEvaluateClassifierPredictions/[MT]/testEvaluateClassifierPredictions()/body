@@ -1,0 +1,14 @@
+{
+  MetadataManager metadata=new MetadataManager();
+  metadata.addFunctions(new MLFunctionFactory().listFunctions());
+  AggregationFunction aggregation=metadata.getExactFunction(new Signature("evaluate_classifier_predictions",VARCHAR,BIGINT,BIGINT)).getAggregationFunction();
+  Accumulator accumulator=aggregation.createAggregation(Optional.<Integer>absent(),Optional.<Integer>absent(),1.0,0,1);
+  accumulator.addInput(getPage());
+  Block block=accumulator.evaluateFinal();
+  String output=block.getSlice(0).toStringUtf8();
+  List<String> parts=ImmutableList.copyOf(Splitter.on('\n').split(output));
+  assertEquals(parts.size(),3);
+  assertEquals(parts.get(0),"Accuracy: 1/2 (50.00%)");
+  assertEquals(parts.get(1),"Precision: 1/1 (100.00%)");
+  assertEquals(parts.get(2),"Recall: 1/2 (50.00%)");
+}
