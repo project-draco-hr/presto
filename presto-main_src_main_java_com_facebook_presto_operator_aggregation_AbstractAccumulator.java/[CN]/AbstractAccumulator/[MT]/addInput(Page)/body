@@ -1,5 +1,6 @@
 {
-  List<Block> values=ImmutableList.of(page.getBlock(valueChannel));
+  checkArgument(!inputChannels.isEmpty(),"Aggregation has no input channels");
+  List<Block> values=IterableTransformer.on(inputChannels).transform(page.blockGetter()).list();
   Block masks=maskChannel.transform(page.blockGetter()).orNull();
   Block sampleWeights=sampleWeightChannel.transform(page.blockGetter()).orNull();
   for (int position=0; position < page.getPositionCount(); position++) {

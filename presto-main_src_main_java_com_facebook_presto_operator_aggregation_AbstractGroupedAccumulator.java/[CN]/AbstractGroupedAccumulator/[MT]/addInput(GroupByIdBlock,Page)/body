@@ -1,7 +1,7 @@
 {
-  checkArgument(valueChannel != -1,"Raw input is not allowed for a final aggregation");
+  checkArgument(!inputChannels.isEmpty(),"Aggregation has no input channels");
   groupedState.ensureCapacity(groupIdsBlock.getGroupCount());
-  List<Block> values=ImmutableList.of(page.getBlock(valueChannel));
+  List<Block> values=IterableTransformer.on(inputChannels).transform(page.blockGetter()).list();
   Block masks=maskChannel.transform(page.blockGetter()).orNull();
   Block sampleWeights=sampleWeightChannel.transform(page.blockGetter()).orNull();
   for (int position=0; position < groupIdsBlock.getPositionCount(); position++) {
