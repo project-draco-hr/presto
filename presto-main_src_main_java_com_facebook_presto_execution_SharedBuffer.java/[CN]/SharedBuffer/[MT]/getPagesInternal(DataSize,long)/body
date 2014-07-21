@@ -1,0 +1,15 @@
+{
+  long maxBytes=maxSize.toBytes();
+  List<Page> pages=new ArrayList<>();
+  long bytes=0;
+  int listOffset=Ints.checkedCast(sequenceId - masterSequenceId.get());
+  while (listOffset < masterBuffer.size()) {
+    Page page=masterBuffer.get(listOffset++);
+    bytes+=page.getDataSize().toBytes();
+    if (!pages.isEmpty() && bytes > maxBytes) {
+      break;
+    }
+    pages.add(page);
+  }
+  return ImmutableList.copyOf(pages);
+}

@@ -13,20 +13,20 @@
       queuedPages.clear();
     }
     if (!state.canAddBuffers() && !namedBuffers.isEmpty()) {
-      long oldMasterSequenceId=masterSequenceId;
+      long oldMasterSequenceId=masterSequenceId.get();
       long newMasterSequenceId=Long.MAX_VALUE;
       for (      NamedBuffer namedBuffer : namedBuffers.values()) {
         newMasterSequenceId=Math.min(namedBuffer.getSequenceId(),newMasterSequenceId);
       }
-      masterSequenceId=newMasterSequenceId;
-      int pagesToRemove=Ints.checkedCast(masterSequenceId - oldMasterSequenceId);
-      checkState(pagesToRemove >= 0,"Master sequence id moved backwards: oldMasterSequenceId=%s, newMasterSequenceId=%s",oldMasterSequenceId,masterSequenceId);
+      masterSequenceId.set(newMasterSequenceId);
+      int pagesToRemove=Ints.checkedCast(newMasterSequenceId - oldMasterSequenceId);
+      checkState(pagesToRemove >= 0,"Master sequence id moved backwards: oldMasterSequenceId=%s, newMasterSequenceId=%s",oldMasterSequenceId,newMasterSequenceId);
       for (int i=0; i < pagesToRemove; i++) {
         Page page=masterBuffer.removeFirst();
         bufferedBytes-=page.getDataSize().toBytes();
       }
       while (!queuedPages.isEmpty() && bufferedBytes < maxBufferedBytes) {
-        QueuedPage queuedPage=queuedPages.removeFirst();
+        QueuedPage queuedPage=queuedPages.remove();
         addInternal(queuedPage.getPage());
         queuedPage.getFuture().set(null);
       }

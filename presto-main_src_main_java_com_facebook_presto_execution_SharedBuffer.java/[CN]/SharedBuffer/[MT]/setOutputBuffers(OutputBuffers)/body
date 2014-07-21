@@ -18,8 +18,9 @@
       namedBuffers.put(bufferId,namedBuffer);
     }
   }
-  if (outputBuffers.isNoMoreBufferIds() && (state.compareAndSet(OPEN,NO_MORE_BUFFERS) || state.compareAndSet(NO_MORE_PAGES,FLUSHING))) {
-    namedBuffers=ImmutableMap.copyOf(namedBuffers);
+  if (outputBuffers.isNoMoreBufferIds()) {
+    state.compareAndSet(OPEN,NO_MORE_BUFFERS);
+    state.compareAndSet(NO_MORE_PAGES,FLUSHING);
   }
   updateState();
 }
