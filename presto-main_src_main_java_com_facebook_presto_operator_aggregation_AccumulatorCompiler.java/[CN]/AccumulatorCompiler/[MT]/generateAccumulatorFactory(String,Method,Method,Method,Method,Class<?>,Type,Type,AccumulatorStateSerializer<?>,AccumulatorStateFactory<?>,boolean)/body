@@ -1,0 +1,13 @@
+{
+  DynamicClassLoader classLoader=createClassLoader();
+  checkNotNull(inputFunction,"inputFunction is null");
+  checkArgument(combineFunction == null || intermediateInputFunction == null,"Aggregation cannot have both a combine and a intermediate input method");
+  checkArgument(combineFunction != null || intermediateInputFunction != null,"Aggregation must have either a combine or a intermediate input method");
+  verifyInputFunctionSignature(inputFunction,stateClass);
+  verifyInputFunctionSignature(intermediateInputFunction,stateClass);
+  verifyCombineFunction(combineFunction,stateClass);
+  verifyOutputFunction(outputFunction,stateClass);
+  Class<? extends Accumulator> accumulatorClass=generateAccumulatorClass(name,AbstractAccumulator.class,inputFunction,intermediateInputFunction,combineFunction,outputFunction,stateClass,classLoader);
+  Class<? extends GroupedAccumulator> groupedAccumulatorClass=generateAccumulatorClass(name,AbstractGroupedAccumulator.class,inputFunction,intermediateInputFunction,combineFunction,outputFunction,stateClass,classLoader);
+  return new GenericAccumulatorFactory(finalType,intermediateType,stateSerializer,stateFactory,accumulatorClass,groupedAccumulatorClass,approximateSupported);
+}

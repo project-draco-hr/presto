@@ -1,0 +1,27 @@
+{
+  AggregationFunctionMetadata metadata=clazz.getAnnotation(AggregationFunctionMetadata.class);
+  checkNotNull(metadata,"AggregationFunctionMetadata annotate missing");
+  ImmutableList.Builder<AggregationFunction> builder=ImmutableList.builder();
+  for (  Class<?> stateClass : getStateClasses(clazz)) {
+    AccumulatorStateSerializer<?> stateSerializer=new StateCompiler().generateStateSerializer(stateClass);
+    Type intermediateType=stateSerializer.getSerializedType();
+    Method intermediateInputFunction=getIntermediateInputFunction(clazz,stateClass);
+    Method combineFunction=getCombineFunction(clazz,stateClass);
+    AccumulatorStateFactory<?> stateFactory=new StateCompiler().generateStateFactory(stateClass);
+    for (    Method outputFunction : getOutputFunctions(clazz,stateClass)) {
+      for (      Method inputFunction : getInputFunctions(clazz,stateClass)) {
+        List<Type> inputTypes=getInputTypes(inputFunction);
+        Type outputType=getOutputType(outputFunction,stateSerializer);
+        StringBuilder sb=new StringBuilder();
+        sb.append(outputType.getName());
+        for (        Type inputType : inputTypes) {
+          sb.append(inputType.getName());
+        }
+        sb.append(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL,metadata.value().toLowerCase()));
+        AccumulatorFactory factory=new AccumulatorCompiler().generateAccumulatorFactory(sb.toString(),inputFunction,intermediateInputFunction,combineFunction,outputFunction,stateClass,intermediateType,outputType,stateSerializer,stateFactory,false);
+        builder.add(new GenericAggregationFunction(inputTypes,intermediateType,outputType,false,factory));
+      }
+    }
+  }
+  return builder.build();
+}

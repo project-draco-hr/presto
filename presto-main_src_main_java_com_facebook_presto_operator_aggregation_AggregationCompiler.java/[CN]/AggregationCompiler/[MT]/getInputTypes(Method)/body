@@ -1,0 +1,14 @@
+{
+  ImmutableList.Builder<Type> builder=ImmutableList.builder();
+  Annotation[][] parameterAnnotations=inputFunction.getParameterAnnotations();
+  for (  Annotation[] annotations : parameterAnnotations) {
+    for (    Annotation annotation : annotations) {
+      if (annotation instanceof SqlType) {
+        builder.add(getTypeInstance(((SqlType)annotation).value()));
+      }
+    }
+  }
+  ImmutableList<Type> types=builder.build();
+  checkArgument(!types.isEmpty(),"Input function has no parameters");
+  return types;
+}

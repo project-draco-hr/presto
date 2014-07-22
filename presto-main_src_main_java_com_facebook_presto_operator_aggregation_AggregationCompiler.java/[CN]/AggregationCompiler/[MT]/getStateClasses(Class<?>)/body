@@ -1,0 +1,12 @@
+{
+  ImmutableSet.Builder<Class<?>> builder=ImmutableSet.builder();
+  for (  Method inputFunction : CompilerUtils.findPublicStaticMethodsWithAnnotation(clazz,InputFunction.class)) {
+    checkArgument(inputFunction.getParameterTypes().length > 0,"Input function has no parameters");
+    Class<?> stateClass=inputFunction.getParameterTypes()[0];
+    checkArgument(AccumulatorState.class.isAssignableFrom(stateClass),"stateClass is not a subclass of AccumulatorState");
+    builder.add(stateClass);
+  }
+  ImmutableSet<Class<?>> stateClasses=builder.build();
+  checkArgument(!stateClasses.isEmpty(),"No input functions found");
+  return stateClasses;
+}

@@ -1,0 +1,24 @@
+{
+  Block body=definition.declareMethod(new CompilerContext(null),a(PUBLIC),"processIntermediate",type(void.class),arg("state",AccumulatorState.class),arg("scratchState",AccumulatorState.class),arg("block",com.facebook.presto.spi.block.Block.class),arg("position",int.class)).getBody();
+  if (combineFunction != null) {
+    body.pushThis().comment("stateSerializer.deserialize(block, position, scratchState)").getField(accumulatorClass,"stateSerializer",AccumulatorStateSerializer.class).getVariable("block").getVariable("position").getVariable("scratchState").invokeInterface(AccumulatorStateSerializer.class,"deserialize",void.class,com.facebook.presto.spi.block.Block.class,int.class,Object.class).comment("combine(state, scratchState)").getVariable("state").checkCast(stateClass).getVariable("scratchState").checkCast(stateClass).invokeStatic(combineFunction).ret();
+  }
+ else {
+    body.getVariable("state");
+    Class<?>[] parameters=intermediateInputFunction.getParameterTypes();
+    Annotation[][] annotations=intermediateInputFunction.getParameterAnnotations();
+    boolean parameterFound=false;
+    for (int i=1; i < parameters.length; i++) {
+      if (annotations[i][0] instanceof BlockIndex) {
+        body.getVariable("position");
+      }
+ else {
+        checkArgument(!parameterFound,"Intermediate input functions may only have one parameter");
+        body.getVariable("block");
+        getStackTypeIfNecessary(body,parameters[i]);
+        parameterFound=true;
+      }
+    }
+    body.invokeStatic(intermediateInputFunction).ret();
+  }
+}

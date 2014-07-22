@@ -1,5 +1,9 @@
 {
   AggregationFunctionMetadata metadata=clazz.getAnnotation(AggregationFunctionMetadata.class);
   checkNotNull(metadata,"AggregationFunctionMetadata annotate missing");
-  return new GenericAggregationFunctionFactory(ImmutableMap.of(metadata.value(),new AggregationCompiler().generateAggregationFunction(clazz)));
+  FunctionRegistry.FunctionListBuilder builder=new FunctionRegistry.FunctionListBuilder();
+  for (  AggregationFunction aggregation : new AggregationCompiler().generateAggregationFunctions(clazz)) {
+    builder.aggregate(metadata.value(),aggregation);
+  }
+  return new GenericAggregationFunctionFactory(builder.getFunctions());
 }
