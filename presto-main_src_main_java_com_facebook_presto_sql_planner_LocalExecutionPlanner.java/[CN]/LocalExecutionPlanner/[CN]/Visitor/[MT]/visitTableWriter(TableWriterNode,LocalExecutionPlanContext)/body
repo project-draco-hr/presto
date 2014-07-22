@@ -1,7 +1,7 @@
 {
   PhysicalOperation exchange=createInMemoryExchange(node.getSource(),context);
   Optional<Integer> sampleWeightChannel=node.getSampleWeightSymbol().transform(exchange.channelGetter());
-  RecordSink recordSink=recordSinkManager.getRecordSink(node.getTarget());
+  RecordSink recordSink=getRecordSink(node);
   List<Type> types=IterableTransformer.on(node.getColumns()).transform(Functions.forMap(context.getTypes())).list();
   List<Integer> inputChannels=IterableTransformer.on(node.getColumns()).transform(exchange.channelGetter()).list();
   OperatorFactory operatorFactory=new TableWriterOperatorFactory(context.getNextOperatorId(),recordSink,types,inputChannels,sampleWeightChannel);
