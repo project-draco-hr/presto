@@ -1,6 +1,15 @@
 {
   AggregationFunction metadata=clazz.getAnnotation(AggregationFunction.class);
-  checkNotNull(metadata,"AggregationFunctionMetadata annotate missing");
+  ApproximateAggregationFunction approximateMetadata=clazz.getAnnotation(ApproximateAggregationFunction.class);
+  checkArgument(metadata != null || approximateMetadata != null,"Aggregation function annotation is missing");
+  checkArgument(metadata == null || approximateMetadata == null,"Aggregation function cannot be exact and approximate");
+  String name;
+  if (metadata != null) {
+    name=metadata.value();
+  }
+ else {
+    name=approximateMetadata.value();
+  }
   ImmutableList.Builder<InternalAggregationFunction> builder=ImmutableList.builder();
   for (  Class<?> stateClass : getStateClasses(clazz)) {
     AccumulatorStateSerializer<?> stateSerializer=new StateCompiler().generateStateSerializer(stateClass);
@@ -17,8 +26,8 @@
         for (        Type inputType : inputTypes) {
           sb.append(inputType.getName());
         }
-        sb.append(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL,metadata.value().toLowerCase()));
-        AccumulatorFactory factory=new AccumulatorCompiler().generateAccumulatorFactory(sb.toString(),inputFunction,intermediateInputFunction,combineFunction,outputFunction,stateClass,intermediateType,outputType,stateSerializer,stateFactory,false);
+        sb.append(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL,name.toLowerCase()));
+        AccumulatorFactory factory=new AccumulatorCompiler().generateAccumulatorFactory(sb.toString(),inputFunction,intermediateInputFunction,combineFunction,outputFunction,stateClass,intermediateType,outputType,stateSerializer,stateFactory,approximateMetadata != null);
         builder.add(new GenericAggregationFunction(inputTypes,intermediateType,outputType,false,factory));
       }
     }

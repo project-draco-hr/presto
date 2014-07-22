@@ -6,8 +6,13 @@
   verifyInputFunctionSignature(inputFunction,stateClass);
   verifyInputFunctionSignature(intermediateInputFunction,stateClass);
   verifyCombineFunction(combineFunction,stateClass);
-  verifyOutputFunction(outputFunction,stateClass);
-  Class<? extends Accumulator> accumulatorClass=generateAccumulatorClass(name,AbstractAccumulator.class,inputFunction,intermediateInputFunction,combineFunction,outputFunction,stateClass,classLoader);
-  Class<? extends GroupedAccumulator> groupedAccumulatorClass=generateAccumulatorClass(name,AbstractGroupedAccumulator.class,inputFunction,intermediateInputFunction,combineFunction,outputFunction,stateClass,classLoader);
+  if (approximateSupported) {
+    verifyApproximateOutputFunction(outputFunction,stateClass);
+  }
+ else {
+    verifyExactOutputFunction(outputFunction,stateClass);
+  }
+  Class<? extends Accumulator> accumulatorClass=generateAccumulatorClass(name,AbstractAccumulator.class,inputFunction,intermediateInputFunction,combineFunction,outputFunction,stateClass,approximateSupported,classLoader);
+  Class<? extends GroupedAccumulator> groupedAccumulatorClass=generateAccumulatorClass(name,AbstractGroupedAccumulator.class,inputFunction,intermediateInputFunction,combineFunction,outputFunction,stateClass,approximateSupported,classLoader);
   return new GenericAccumulatorFactory(finalType,intermediateType,stateSerializer,stateFactory,accumulatorClass,groupedAccumulatorClass,approximateSupported);
 }

@@ -1,9 +1,18 @@
 {
   AggregationFunction metadata=clazz.getAnnotation(AggregationFunction.class);
-  checkNotNull(metadata,"AggregationFunctionMetadata annotate missing");
+  ApproximateAggregationFunction approximateMetadata=clazz.getAnnotation(ApproximateAggregationFunction.class);
+  checkArgument(metadata != null || approximateMetadata != null,"Aggregation function annotation is missing");
+  checkArgument(metadata == null || approximateMetadata == null,"Aggregation function cannot be exact and approximate");
+  String name;
+  if (metadata != null) {
+    name=metadata.value();
+  }
+ else {
+    name=approximateMetadata.value();
+  }
   FunctionRegistry.FunctionListBuilder builder=new FunctionRegistry.FunctionListBuilder();
   for (  InternalAggregationFunction aggregation : new AggregationCompiler().generateAggregationFunctions(clazz)) {
-    builder.aggregate(metadata.value(),aggregation);
+    builder.aggregate(name,aggregation);
   }
   return new GenericAggregationFunctionFactory(builder.getFunctions());
 }
