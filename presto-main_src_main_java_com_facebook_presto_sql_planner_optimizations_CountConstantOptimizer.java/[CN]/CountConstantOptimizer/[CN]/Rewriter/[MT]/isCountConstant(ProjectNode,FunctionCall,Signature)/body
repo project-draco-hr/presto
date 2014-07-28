@@ -1,0 +1,17 @@
+{
+  if (!"count".equals(signature.getName()) || signature.getArgumentTypes().size() != 1 || signature.getReturnType() != BIGINT) {
+    return false;
+  }
+  Expression argument=functionCall.getArguments().get(0);
+  if (argument instanceof Literal) {
+    return true;
+  }
+  if (argument instanceof QualifiedNameReference) {
+    QualifiedNameReference qualifiedNameReference=(QualifiedNameReference)argument;
+    QualifiedName qualifiedName=qualifiedNameReference.getName();
+    Symbol argumentSymbol=Symbol.fromQualifiedName(qualifiedName);
+    Expression argumentExpression=projectNode.getOutputMap().get(argumentSymbol);
+    return (argumentExpression instanceof Literal) && (!(argumentExpression instanceof NullLiteral));
+  }
+  return false;
+}
