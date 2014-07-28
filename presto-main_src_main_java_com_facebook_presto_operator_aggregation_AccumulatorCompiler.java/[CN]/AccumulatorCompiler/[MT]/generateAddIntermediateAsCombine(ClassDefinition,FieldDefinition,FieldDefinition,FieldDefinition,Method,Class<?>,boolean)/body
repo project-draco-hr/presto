@@ -1,0 +1,17 @@
+{
+  CompilerContext context=new CompilerContext(null);
+  Block body=declareAddIntermediate(definition,grouped,context);
+  LocalVariableDefinition scratchStateVariable=context.declareVariable(singleStateClass,"scratchState");
+  LocalVariableDefinition positionVariable=context.declareVariable(int.class,"position");
+  body.comment("scratchState = stateFactory.createSingleState();").pushThis().getField(stateFactoryField).invokeInterface(AccumulatorStateFactory.class,"createSingleState",Object.class).checkCast(scratchStateVariable.getType()).putVariable(scratchStateVariable);
+  if (grouped) {
+    generateEnsureCapacity(stateField,body);
+  }
+  Block loopBody=new Block(context);
+  if (grouped) {
+    generateSetGroupIdFromGroupIdsBlock(stateField,positionVariable,loopBody);
+  }
+  loopBody.comment("stateSerializer.deserialize(block, position, scratchState)").pushThis().getField(stateSerializerField).getVariable("block").getVariable(positionVariable).getVariable(scratchStateVariable).invokeInterface(AccumulatorStateSerializer.class,"deserialize",void.class,com.facebook.presto.spi.block.Block.class,int.class,Object.class);
+  loopBody.comment("combine(state, scratchState)").pushThis().getField(stateField).getVariable("scratchState").invokeStatic(combineFunction);
+  body.append(generateBlockNonNullPositionForLoop(context,positionVariable,loopBody)).ret();
+}

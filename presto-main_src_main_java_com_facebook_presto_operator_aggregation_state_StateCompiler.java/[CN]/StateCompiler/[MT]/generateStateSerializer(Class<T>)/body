@@ -1,25 +1,3 @@
 {
-  AccumulatorStateMetadata metadata=getMetadataAnnotation(clazz);
-  if (metadata != null && metadata.stateSerializerClass() != void.class) {
-    try {
-      return (AccumulatorStateSerializer<T>)metadata.stateSerializerClass().getConstructor().newInstance();
-    }
- catch (    InstantiationException|IllegalAccessException|NoSuchMethodException|InvocationTargetException e) {
-      throw Throwables.propagate(e);
-    }
-  }
-  DynamicClassLoader classLoader=new DynamicClassLoader(clazz.getClassLoader());
-  ClassDefinition definition=new ClassDefinition(new CompilerContext(null),a(PUBLIC,FINAL),typeFromPathName(clazz.getSimpleName() + "Serializer_" + CLASS_ID.incrementAndGet()),type(Object.class),type(AccumulatorStateSerializer.class));
-  definition.declareDefaultConstructor(a(PUBLIC));
-  List<StateField> fields=enumerateFields(clazz);
-  generateGetSerializedType(definition,fields);
-  generateSerialize(definition,clazz,fields);
-  generateDeserialize(definition,clazz,fields);
-  Class<? extends AccumulatorStateSerializer> serializerClass=defineClass(definition,AccumulatorStateSerializer.class,classLoader);
-  try {
-    return (AccumulatorStateSerializer<T>)serializerClass.newInstance();
-  }
- catch (  InstantiationException|IllegalAccessException e) {
-    throw Throwables.propagate(e);
-  }
+  return generateStateSerializer(clazz,new DynamicClassLoader(clazz.getClassLoader()));
 }

@@ -1,0 +1,26 @@
+{
+  AccumulatorStateMetadata metadata=getMetadataAnnotation(clazz);
+  if (metadata != null && metadata.stateFactoryClass() != void.class) {
+    try {
+      return (AccumulatorStateFactory<T>)metadata.stateFactoryClass().getConstructor().newInstance();
+    }
+ catch (    InstantiationException|IllegalAccessException|NoSuchMethodException|InvocationTargetException e) {
+      throw Throwables.propagate(e);
+    }
+  }
+  Class<? extends T> singleStateClass=generateSingleStateClass(clazz,classLoader);
+  Class<? extends T> groupedStateClass=generateGroupedStateClass(clazz,classLoader);
+  ClassDefinition definition=new ClassDefinition(new CompilerContext(null),a(PUBLIC,FINAL),typeFromPathName(clazz.getSimpleName() + "Factory_" + CLASS_ID.incrementAndGet()),type(Object.class),type(AccumulatorStateFactory.class));
+  definition.declareDefaultConstructor(a(PUBLIC));
+  definition.declareMethod(new CompilerContext(null),a(PUBLIC),"createSingleState",type(Object.class)).getBody().newObject(singleStateClass).dup().invokeConstructor(singleStateClass).retObject();
+  definition.declareMethod(new CompilerContext(null),a(PUBLIC),"createGroupedState",type(Object.class)).getBody().newObject(groupedStateClass).dup().invokeConstructor(groupedStateClass).retObject();
+  definition.declareMethod(new CompilerContext(null),a(PUBLIC),"getSingleStateClass",type(Class.class,singleStateClass)).getBody().push(singleStateClass).retObject();
+  definition.declareMethod(new CompilerContext(null),a(PUBLIC),"getGroupedStateClass",type(Class.class,groupedStateClass)).getBody().push(groupedStateClass).retObject();
+  Class<? extends AccumulatorStateFactory> factoryClass=defineClass(definition,AccumulatorStateFactory.class,classLoader);
+  try {
+    return (AccumulatorStateFactory<T>)factoryClass.newInstance();
+  }
+ catch (  InstantiationException|IllegalAccessException e) {
+    throw Throwables.propagate(e);
+  }
+}

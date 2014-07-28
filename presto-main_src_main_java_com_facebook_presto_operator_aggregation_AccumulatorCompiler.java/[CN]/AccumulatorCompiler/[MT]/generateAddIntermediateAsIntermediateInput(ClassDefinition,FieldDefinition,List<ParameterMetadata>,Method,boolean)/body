@@ -1,0 +1,25 @@
+{
+  CompilerContext context=new CompilerContext(null);
+  Block body=declareAddIntermediate(definition,grouped,context);
+  if (grouped) {
+    generateEnsureCapacity(stateField,body);
+  }
+  LocalVariableDefinition positionVariable=context.declareVariable(int.class,"position");
+  Block loopBody=new Block(context).comment("<intermediate>(state, ...)").pushThis().getField(stateField);
+  if (grouped) {
+    generateSetGroupIdFromGroupIdsBlock(stateField,positionVariable,loopBody);
+  }
+  Class<?>[] parameters=intermediateInputFunction.getParameterTypes();
+  for (int i=1; i < parameters.length; i++) {
+    ParameterMetadata parameterMetadata=parameterMetadatas.get(i);
+    if (parameterMetadata.getParameterType() == BLOCK_INDEX) {
+      loopBody.getVariable("position");
+    }
+ else {
+      Block getBlockByteCode=new Block(context).getVariable("block");
+      pushStackType(loopBody,parameterMetadata.getSqlType(),getBlockByteCode,parameters[i]);
+    }
+  }
+  loopBody.invokeStatic(intermediateInputFunction);
+  body.append(generateBlockNonNullPositionForLoop(context,positionVariable,loopBody)).ret();
+}

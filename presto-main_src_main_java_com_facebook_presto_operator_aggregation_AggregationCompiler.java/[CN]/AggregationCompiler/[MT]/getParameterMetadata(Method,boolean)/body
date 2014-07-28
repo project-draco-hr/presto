@@ -1,0 +1,20 @@
+{
+  if (method == null) {
+    return null;
+  }
+  ImmutableList.Builder<ParameterMetadata> builder=ImmutableList.builder();
+  builder.add(new ParameterMetadata(STATE));
+  Annotation[][] annotations=method.getParameterAnnotations();
+  for (int i=1; i < annotations.length; i++) {
+    Annotation foundAnnotation=null;
+    for (    Annotation annotation : annotations[i]) {
+      if (annotation instanceof SqlType || annotation instanceof BlockIndex || (sampleWeightAllowed && annotation instanceof SampleWeight)) {
+        checkState(foundAnnotation == null,"%s may only have one of @SqlType, @BlockIndex, @SampleWeight per parameter",method.getName());
+        foundAnnotation=annotation;
+      }
+    }
+    checkNotNull(foundAnnotation,"Parameter %d of %s must have @SqlType, @BlockIndex, or @SampleWeight",i,method.getName());
+    builder.add(fromAnnotation(foundAnnotation));
+  }
+  return builder.build();
+}

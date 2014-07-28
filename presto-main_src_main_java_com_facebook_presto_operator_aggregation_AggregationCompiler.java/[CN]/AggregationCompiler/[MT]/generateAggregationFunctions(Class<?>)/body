@@ -4,23 +4,24 @@
   DynamicClassLoader classLoader=new DynamicClassLoader(clazz.getClassLoader());
   ImmutableList.Builder<InternalAggregationFunction> builder=ImmutableList.builder();
   for (  Class<?> stateClass : getStateClasses(clazz)) {
-    AccumulatorStateSerializer<?> stateSerializer=new StateCompiler().generateStateSerializer(stateClass);
+    AccumulatorStateSerializer<?> stateSerializer=new StateCompiler().generateStateSerializer(stateClass,classLoader);
     Type intermediateType=stateSerializer.getSerializedType();
     Method intermediateInputFunction=getIntermediateInputFunction(clazz,stateClass);
     Method combineFunction=getCombineFunction(clazz,stateClass);
-    AccumulatorStateFactory<?> stateFactory=new StateCompiler().generateStateFactory(stateClass);
+    AccumulatorStateFactory<?> stateFactory=new StateCompiler().generateStateFactory(stateClass,classLoader);
     for (    Method outputFunction : getOutputFunctions(clazz,stateClass)) {
       for (      Method inputFunction : getInputFunctions(clazz,stateClass)) {
         for (        String name : getNames(outputFunction,aggregationAnnotation)) {
           List<Type> inputTypes=getInputTypes(inputFunction);
-          Type outputType=getOutputType(outputFunction,stateSerializer);
+          Type outputType=AggregationUtils.getOutputType(outputFunction,stateSerializer);
           StringBuilder sb=new StringBuilder();
-          sb.append(outputType.getName());
+          sb.append(CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL,outputType.getName()));
           for (          Type inputType : inputTypes) {
-            sb.append(inputType.getName());
+            sb.append(CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL,inputType.getName()));
           }
           sb.append(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL,name.toLowerCase()));
-          AccumulatorFactory factory=new AccumulatorCompiler().generateAccumulatorFactory(sb.toString(),inputFunction,intermediateInputFunction,combineFunction,outputFunction,stateClass,intermediateType,outputType,stateSerializer,stateFactory,aggregationAnnotation.approximate(),classLoader);
+          AggregationMetadata metadata=new AggregationMetadata(sb.toString(),getParameterMetadata(inputFunction,aggregationAnnotation.approximate()),inputFunction,getParameterMetadata(intermediateInputFunction,false),intermediateInputFunction,combineFunction,outputFunction,stateClass,stateSerializer,stateFactory,outputType,aggregationAnnotation.approximate());
+          AccumulatorFactory factory=new AccumulatorCompiler().generateAccumulatorFactory(metadata,classLoader);
           builder.add(new GenericAggregationFunction(name,inputTypes,intermediateType,outputType,false,aggregationAnnotation.approximate(),factory));
         }
       }

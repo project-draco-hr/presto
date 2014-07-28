@@ -1,0 +1,32 @@
+{
+  Block block=new Block(context);
+  if (grouped) {
+    generateSetGroupIdFromGroupIdsBlock(stateField,position,block);
+  }
+  block.comment("Call input function with unpacked Block arguments");
+  Class<?>[] parameters=inputFunction.getParameterTypes();
+  int inputChannel=0;
+  for (int i=0; i < parameters.length; i++) {
+    ParameterMetadata parameterMetadata=parameterMetadatas.get(i);
+switch (parameterMetadata.getParameterType()) {
+case STATE:
+      block.pushThis().getField(stateField);
+    break;
+case BLOCK_INDEX:
+  block.getVariable(position);
+break;
+case SAMPLE_WEIGHT:
+block.getVariable(sampleWeight);
+break;
+case INPUT_CHANNEL:
+Block getBlockByteCode=new Block(context).getVariable(parameterVariables.get(inputChannel));
+pushStackType(block,parameterMetadata.getSqlType(),getBlockByteCode,parameters[i]);
+inputChannel++;
+break;
+default :
+throw new IllegalArgumentException("Unsupported parameter type: " + parameterMetadata.getParameterType());
+}
+}
+block.invokeStatic(inputFunction);
+return block;
+}
