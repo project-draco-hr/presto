@@ -1,13 +1,8 @@
 {
   RaptorSplit raptorSplit=checkType(split,RaptorSplit.class,"split");
   checkNotNull(columns,"columns is null");
-  checkArgument(!columns.isEmpty(),"must provide at least one column");
-  ImmutableList.Builder<Type> types=ImmutableList.builder();
-  ImmutableList.Builder<Iterable<Block>> channels=ImmutableList.builder();
-  for (  ConnectorColumnHandle column : columns) {
-    RaptorColumnHandle raptorColumnHandle=checkType(column,RaptorColumnHandle.class,"column");
-    types.add(raptorColumnHandle.getColumnType());
-    channels.add(storageManager.getBlocks(raptorSplit.getShardUuid(),column));
+  if (columns.isEmpty()) {
+    return createNoColumnsOperator(operatorContext,raptorSplit);
   }
-  return new AlignmentOperator(operatorContext,types.build(),channels.build());
+  return createAlignmentOperator(operatorContext,columns,raptorSplit);
 }

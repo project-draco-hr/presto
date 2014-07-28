@@ -1,0 +1,10 @@
+{
+  ImmutableList.Builder<Type> types=ImmutableList.builder();
+  ImmutableList.Builder<Iterable<Block>> channels=ImmutableList.builder();
+  for (  ConnectorColumnHandle column : columns) {
+    RaptorColumnHandle raptorColumnHandle=checkType(column,RaptorColumnHandle.class,"column");
+    types.add(raptorColumnHandle.getColumnType());
+    channels.add(storageManager.getBlocks(raptorSplit.getShardUuid(),column));
+  }
+  return new AlignmentOperator(operatorContext,types.build(),channels.build());
+}
