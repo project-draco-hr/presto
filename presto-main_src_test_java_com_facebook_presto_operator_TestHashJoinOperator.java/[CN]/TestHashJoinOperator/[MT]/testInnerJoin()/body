@@ -1,7 +1,7 @@
 {
   DriverContext driverContext=taskContext.addPipelineContext(true,true).addDriverContext();
   OperatorContext operatorContext=driverContext.addOperatorContext(0,ValuesOperator.class.getSimpleName());
-  List<Type> buildTypes=ImmutableList.of(VARCHAR,BIGINT,BIGINT);
+  List<Type> buildTypes=ImmutableList.<Type>of(VARCHAR,BIGINT,BIGINT);
   Operator buildOperator=new ValuesOperator(operatorContext,buildTypes,rowPagesBuilder(buildTypes).addSequencePage(10,20,30,40).build());
   HashBuilderOperatorFactory hashBuilderOperatorFactory=new HashBuilderOperatorFactory(1,buildOperator.getTypes(),Ints.asList(0),100);
   Operator sourceHashProvider=hashBuilderOperatorFactory.createOperator(driverContext);
@@ -9,7 +9,7 @@
   while (!driver.isFinished()) {
     driver.process();
   }
-  List<Type> probeTypes=ImmutableList.of(VARCHAR,BIGINT,BIGINT);
+  List<Type> probeTypes=ImmutableList.<Type>of(VARCHAR,BIGINT,BIGINT);
   List<Page> probeInput=rowPagesBuilder(probeTypes).addSequencePage(1000,0,1000,2000).build();
   OperatorFactory joinOperatorFactory=LookupJoinOperators.innerJoin(0,hashBuilderOperatorFactory.getLookupSourceSupplier(),probeTypes,Ints.asList(0));
   Operator joinOperator=joinOperatorFactory.createOperator(taskContext.addPipelineContext(true,true).addDriverContext());
