@@ -1,6 +1,7 @@
 {
   AggregationFunction aggregationAnnotation=clazz.getAnnotation(AggregationFunction.class);
   checkNotNull(aggregationAnnotation,"aggregationAnnotation is null");
+  DynamicClassLoader classLoader=new DynamicClassLoader(clazz.getClassLoader());
   ImmutableList.Builder<InternalAggregationFunction> builder=ImmutableList.builder();
   for (  Class<?> stateClass : getStateClasses(clazz)) {
     AccumulatorStateSerializer<?> stateSerializer=new StateCompiler().generateStateSerializer(stateClass);
@@ -19,7 +20,7 @@
             sb.append(inputType.getName());
           }
           sb.append(CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL,name.toLowerCase()));
-          AccumulatorFactory factory=new AccumulatorCompiler().generateAccumulatorFactory(sb.toString(),inputFunction,intermediateInputFunction,combineFunction,outputFunction,stateClass,intermediateType,outputType,stateSerializer,stateFactory,aggregationAnnotation.approximate());
+          AccumulatorFactory factory=new AccumulatorCompiler().generateAccumulatorFactory(sb.toString(),inputFunction,intermediateInputFunction,combineFunction,outputFunction,stateClass,intermediateType,outputType,stateSerializer,stateFactory,aggregationAnnotation.approximate(),classLoader);
           builder.add(new GenericAggregationFunction(name,inputTypes,intermediateType,outputType,false,aggregationAnnotation.approximate(),factory));
         }
       }
