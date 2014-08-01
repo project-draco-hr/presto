@@ -1,4 +1,5 @@
 {
+  this.acceptNulls=acceptNulls;
   this.outputType=checkNotNull(outputType);
   this.inputMetadata=ImmutableList.copyOf(checkNotNull(inputMetadata,"inputMetadata is null"));
   checkArgument((intermediateInputFunction == null) == (intermediateInputMetadata == null),"intermediate input parameters must be specified iff an intermediate function is provided");
@@ -19,10 +20,10 @@
   this.stateSerializer=checkNotNull(stateSerializer,"stateSerializer is null");
   this.stateFactory=checkNotNull(stateFactory,"stateFactory is null");
   this.approximate=approximate;
-  verifyInputFunctionSignature(inputFunction,inputMetadata,stateInterface);
+  verifyInputFunctionSignature(inputFunction,inputMetadata,stateInterface,acceptNulls);
   if (intermediateInputFunction != null) {
     checkArgument(countInputChannels(intermediateInputMetadata) == 1,"Intermediate input function may only have one input channel");
-    verifyInputFunctionSignature(intermediateInputFunction,intermediateInputMetadata,stateInterface);
+    verifyInputFunctionSignature(intermediateInputFunction,intermediateInputMetadata,stateInterface,false);
   }
   if (combineFunction != null) {
     verifyCombineFunction(combineFunction,stateInterface);

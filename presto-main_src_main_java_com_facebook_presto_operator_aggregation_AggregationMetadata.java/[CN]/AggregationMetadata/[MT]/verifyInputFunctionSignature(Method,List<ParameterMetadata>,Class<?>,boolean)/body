@@ -8,7 +8,12 @@
     ParameterMetadata metadata=parameterMetadatas.get(i);
 switch (metadata.getParameterType()) {
 case INPUT_CHANNEL:
-      checkArgument(SUPPORTED_PARAMETER_TYPES.contains(parameters[i]),"Unsupported type: %s",parameters[i].getSimpleName());
+      if (acceptNulls) {
+        checkArgument(parameters[i] == Block.class,"Input function may only accept Blocks if acceptNulls is set");
+      }
+ else {
+        checkArgument(SUPPORTED_PARAMETER_TYPES.contains(parameters[i]),"Unsupported type: %s",parameters[i].getSimpleName());
+      }
     break;
 case BLOCK_INDEX:
   checkArgument(parameters[i] == int.class,"Block index parameter must be an int");
