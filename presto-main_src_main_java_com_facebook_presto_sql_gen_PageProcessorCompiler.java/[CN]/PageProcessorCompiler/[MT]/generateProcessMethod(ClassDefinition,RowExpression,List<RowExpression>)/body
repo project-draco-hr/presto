@@ -1,12 +1,13 @@
 {
   CompilerContext context=new CompilerContext(BOOTSTRAP_METHOD);
-  MethodDefinition method=classDefinition.declareMethod(context,a(PUBLIC),"process",type(void.class),arg("session",ConnectorSession.class),arg("page",Page.class),arg("pageBuilder",PageBuilder.class));
+  MethodDefinition method=classDefinition.declareMethod(context,a(PUBLIC),"process",type(int.class),arg("session",ConnectorSession.class),arg("page",Page.class),arg("start",int.class),arg("end",int.class),arg("pageBuilder",PageBuilder.class));
   Variable sessionVariable=context.getVariable("session");
   Variable pageVariable=context.getVariable("page");
+  Variable startVariable=context.getVariable("start");
+  Variable endVariable=context.getVariable("end");
   Variable pageBuilderVariable=context.getVariable("pageBuilder");
   Variable positionVariable=context.declareVariable(int.class,"position");
-  Variable endVariable=context.declareVariable(int.class,"end");
-  method.getBody().comment("int position = 0;").push(0).putVariable(positionVariable).comment("int end = page.getPositionCount()").getVariable(pageVariable).invokeVirtual(Page.class,"getPositionCount",int.class).putVariable(endVariable);
+  method.getBody().comment("int position = start;").getVariable(startVariable).putVariable(positionVariable);
   List<Integer> allInputChannels=getInputChannels(Iterables.concat(projections,ImmutableList.of(filter)));
   for (  int channel : allInputChannels) {
     Variable blockVariable=context.declareVariable(com.facebook.presto.spi.block.Block.class,"block_" + channel);
@@ -15,6 +16,7 @@
   LabelNode done=new LabelNode("done");
   Block loopBody=new Block(context);
   ForLoopBuilder loop=ForLoop.forLoopBuilder(context).initialize(NOP).condition(new Block(context).comment("position < end").getVariable(positionVariable).getVariable(endVariable).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new Block(context).comment("position++").incrementVariable(positionVariable,(byte)1)).body(loopBody);
+  loopBody.comment("if (pageBuilder.isFull()) break;").getVariable(pageBuilderVariable).invokeVirtual(PageBuilder.class,"isFull",boolean.class).ifTrueGoto(done);
   IfStatementBuilder filterBlock=new IfStatementBuilder(context);
   Block trueBlock=new Block(context);
   filterBlock.condition(new Block(context).pushThis().getVariable(sessionVariable).append(pushBlockVariables(context,getInputChannels(filter))).getVariable(positionVariable).invokeVirtual(classDefinition.getType(),"filter",type(boolean.class),ImmutableList.<ParameterizedType>builder().add(type(ConnectorSession.class)).addAll(nCopies(getInputChannels(filter).size(),type(com.facebook.presto.spi.block.Block.class))).add(type(int.class)).build())).ifTrue(trueBlock);
@@ -30,5 +32,5 @@
     }
   }
   loopBody.append(filterBlock.build());
-  method.getBody().append(loop.build()).visitLabel(done).ret();
+  method.getBody().append(loop.build()).visitLabel(done).comment("return position;").getVariable(positionVariable).retInt();
 }
