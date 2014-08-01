@@ -21,7 +21,7 @@
   }
   String dumpClassPath=DUMP_CLASS_FILES_TO.get();
   if (dumpClassPath != null) {
-    for (    Entry<String,byte[]> entry : byteCodes.entrySet()) {
+    for (    Map.Entry<String,byte[]> entry : byteCodes.entrySet()) {
       File file=new File(dumpClassPath,ParameterizedType.typeFromJavaClassName(entry.getKey()).getClassName() + ".class");
       try {
         log.debug("ClassFile: " + file.getAbsolutePath());
@@ -39,7 +39,5 @@
       classReader.accept(new TraceClassVisitor(new PrintWriter(System.err)),ClassReader.SKIP_FRAMES);
     }
   }
-  Map<String,Class<?>> classes=classLoader.defineClasses(byteCodes);
-  generatedClasses.addAndGet(classes.size());
-  return classes;
+  return classLoader.defineClasses(byteCodes);
 }
