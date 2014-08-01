@@ -1,0 +1,20 @@
+{
+  checkArgument(!pageBuilder.isFull(),"page builder can't be full");
+  checkArgument(count > 0,"count must be > 0");
+  int position=0;
+  for (; position < count; position++) {
+    if (pageBuilder.isFull()) {
+      break;
+    }
+    if (!cursor.advanceNextPosition()) {
+      break;
+    }
+    if (filterFunction.filter(cursor)) {
+      pageBuilder.declarePosition();
+      for (int channel=0; channel < projections.size(); channel++) {
+        projections.get(channel).project(cursor,pageBuilder.getBlockBuilder(channel));
+      }
+    }
+  }
+  return position;
+}

@@ -1,0 +1,22 @@
+{
+  return new RowExpressionVisitor<CompilerContext,ByteCodeNode>(){
+    @Override public ByteCodeNode visitInputReference(    InputReferenceExpression node,    CompilerContext context){
+      int field=node.getField();
+      Type type=node.getType();
+      Class<?> javaType=type.getJavaType();
+      Block isNullCheck=new Block(context).setDescription(format("cursor.get%s(%d)",type,field)).getVariable(cursorVariable).push(field).invokeInterface(RecordCursor.class,"isNull",boolean.class,int.class);
+      Block isNull=new Block(context).putVariable(wasNullVariable,true).pushJavaDefault(javaType);
+      Block isNotNull=new Block(context).getVariable(cursorVariable).push(field);
+      String methodName="get" + Primitives.wrap(javaType).getSimpleName();
+      isNotNull.invokeInterface(RecordCursor.class,methodName,javaType,int.class);
+      return new IfStatement(context,isNullCheck,isNull,isNotNull);
+    }
+    @Override public ByteCodeNode visitCall(    CallExpression call,    CompilerContext context){
+      throw new UnsupportedOperationException("not yet implemented");
+    }
+    @Override public ByteCodeNode visitConstant(    ConstantExpression literal,    CompilerContext context){
+      throw new UnsupportedOperationException("not yet implemented");
+    }
+  }
+;
+}

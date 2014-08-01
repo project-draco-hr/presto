@@ -1,0 +1,34 @@
+{
+  CompilerContext context=new CompilerContext(BOOTSTRAP_METHOD);
+  MethodDefinition method=classDefinition.declareMethod(context,a(PUBLIC),"process",type(void.class),arg("session",ConnectorSession.class),arg("page",Page.class),arg("pageBuilder",PageBuilder.class));
+  Variable sessionVariable=context.getVariable("session");
+  Variable pageVariable=context.getVariable("page");
+  Variable pageBuilderVariable=context.getVariable("pageBuilder");
+  Variable positionVariable=context.declareVariable(int.class,"position");
+  Variable endVariable=context.declareVariable(int.class,"end");
+  method.getBody().comment("int position = 0;").push(0).putVariable(positionVariable).comment("int end = page.getPositionCount()").getVariable(pageVariable).invokeVirtual(Page.class,"getPositionCount",int.class).putVariable(endVariable);
+  List<Integer> allInputChannels=getInputChannels(Iterables.concat(projections,ImmutableList.of(filter)));
+  for (  int channel : allInputChannels) {
+    Variable blockVariable=context.declareVariable(com.facebook.presto.spi.block.Block.class,"block_" + channel);
+    method.getBody().comment("Block %s = page.getBlock(%s);",blockVariable.getName(),channel).getVariable(pageVariable).push(channel).invokeVirtual(Page.class,"getBlock",com.facebook.presto.spi.block.Block.class,int.class).putVariable(blockVariable);
+  }
+  LabelNode done=new LabelNode("done");
+  Block loopBody=new Block(context);
+  ForLoopBuilder loop=ForLoop.forLoopBuilder(context).initialize(NOP).condition(new Block(context).comment("position < end").getVariable(positionVariable).getVariable(endVariable).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new Block(context).comment("position++").incrementVariable(positionVariable,(byte)1)).body(loopBody);
+  IfStatementBuilder filterBlock=new IfStatementBuilder(context);
+  Block trueBlock=new Block(context);
+  filterBlock.condition(new Block(context).pushThis().getVariable(sessionVariable).append(pushBlockVariables(context,getInputChannels(filter))).getVariable(positionVariable).invokeVirtual(classDefinition.getType(),"filter",type(boolean.class),ImmutableList.<ParameterizedType>builder().add(type(ConnectorSession.class)).addAll(nCopies(getInputChannels(filter).size(),type(com.facebook.presto.spi.block.Block.class))).add(type(int.class)).build())).ifTrue(trueBlock);
+  if (projections.size() == 0) {
+    trueBlock.getVariable(pageBuilderVariable).invokeVirtual(PageBuilder.class,"declarePosition",void.class);
+  }
+ else {
+    for (int projectionIndex=0; projectionIndex < projections.size(); projectionIndex++) {
+      List<Integer> inputChannels=getInputChannels(projections.get(projectionIndex));
+      trueBlock.pushThis().getVariable(sessionVariable).append(pushBlockVariables(context,inputChannels)).getVariable(positionVariable);
+      trueBlock.comment("pageBuilder.getBlockBuilder(" + projectionIndex + ")").getVariable(pageBuilderVariable).push(projectionIndex).invokeVirtual(PageBuilder.class,"getBlockBuilder",BlockBuilder.class,int.class);
+      trueBlock.comment("project_" + projectionIndex + "(session, block_"+ inputChannels+ ", position, blockBuilder)").invokeVirtual(classDefinition.getType(),"project_" + projectionIndex,type(void.class),ImmutableList.<ParameterizedType>builder().add(type(ConnectorSession.class)).addAll(nCopies(inputChannels.size(),type(com.facebook.presto.spi.block.Block.class))).add(type(int.class)).add(type(BlockBuilder.class)).build());
+    }
+  }
+  loopBody.append(filterBlock.build());
+  method.getBody().append(loop.build()).visitLabel(done).ret();
+}

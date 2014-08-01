@@ -1,0 +1,30 @@
+{
+  CompilerContext context=new CompilerContext(BOOTSTRAP_METHOD);
+  MethodDefinition method=classDefinition.declareMethod(context,a(PUBLIC),"process",type(int.class),arg("session",ConnectorSession.class),arg("cursor",RecordCursor.class),arg("count",int.class),arg("pageBuilder",PageBuilder.class));
+  Variable sessionVariable=context.getVariable("session");
+  Variable cursorVariable=context.getVariable("cursor");
+  Variable countVariable=context.getVariable("count");
+  Variable pageBuilderVariable=context.getVariable("pageBuilder");
+  Variable completedPositionsVariable=context.declareVariable(int.class,"completedPositions");
+  method.getBody().comment("int completedPositions = 0;").putVariable(completedPositionsVariable,0);
+  LabelNode done=new LabelNode("done");
+  ForLoopBuilder forLoop=ForLoop.forLoopBuilder(context).initialize(NOP).condition(new Block(context).comment("completedPositions < count").getVariable(completedPositionsVariable).getVariable(countVariable).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new Block(context).comment("completedPositions++").incrementVariable(completedPositionsVariable,(byte)1));
+  Block forLoopBody=new Block(context).comment("if (pageBuilder.isFull()) break;").append(new Block(context).getVariable(pageBuilderVariable).invokeVirtual(PageBuilder.class,"isFull",boolean.class).ifTrueGoto(done)).comment("if (!cursor.advanceNextPosition()) break;").append(new Block(context).getVariable(cursorVariable).invokeInterface(RecordCursor.class,"advanceNextPosition",boolean.class).ifFalseGoto(done));
+  forLoop.body(forLoopBody);
+  IfStatementBuilder ifStatement=new IfStatementBuilder(context);
+  ifStatement.condition(new Block(context).pushThis().getVariable(sessionVariable).getVariable(cursorVariable).invokeVirtual(classDefinition.getType(),"filter",type(boolean.class),type(ConnectorSession.class),type(RecordCursor.class)));
+  Block trueBlock=new Block(context);
+  ifStatement.ifTrue(trueBlock);
+  if (projections == 0) {
+    trueBlock.getVariable(pageBuilderVariable).invokeVirtual(PageBuilder.class,"declarePosition",void.class);
+  }
+ else {
+    for (int projectionIndex=0; projectionIndex < projections; projectionIndex++) {
+      trueBlock.pushThis().getVariable(sessionVariable).getVariable(cursorVariable);
+      trueBlock.getVariable(pageBuilderVariable).push(projectionIndex).invokeVirtual(PageBuilder.class,"getBlockBuilder",BlockBuilder.class,int.class);
+      trueBlock.invokeVirtual(classDefinition.getType(),"project_" + projectionIndex,type(void.class),type(ConnectorSession.class),type(RecordCursor.class),type(BlockBuilder.class));
+    }
+  }
+  forLoopBody.append(ifStatement.build());
+  method.getBody().append(forLoop.build()).visitLabel(done).comment("return completedPositions;").getVariable(completedPositionsVariable).retInt();
+}

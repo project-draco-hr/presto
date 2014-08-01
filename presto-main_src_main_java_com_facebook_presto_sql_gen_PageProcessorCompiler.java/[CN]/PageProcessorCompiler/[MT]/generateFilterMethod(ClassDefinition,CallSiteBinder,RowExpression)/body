@@ -1,0 +1,11 @@
+{
+  CompilerContext context=new CompilerContext(BOOTSTRAP_METHOD);
+  MethodDefinition method=classDefinition.declareMethod(context,a(PUBLIC),"filter",type(boolean.class),ImmutableList.<NamedParameterDefinition>builder().add(arg("session",ConnectorSession.class)).addAll(toBlockParameters(getInputChannels(filter))).add(arg("position",int.class)).build());
+  method.comment("Filter: %s",filter.toString());
+  Variable positionVariable=context.getVariable("position");
+  Variable wasNullVariable=context.declareVariable(type(boolean.class),"wasNull");
+  ByteCodeExpressionVisitor visitor=new ByteCodeExpressionVisitor(callSiteBinder,fieldReferenceCompiler(callSiteBinder,positionVariable,wasNullVariable),metadata.getFunctionRegistry());
+  ByteCodeNode body=filter.accept(visitor,context);
+  LabelNode end=new LabelNode("end");
+  method.getBody().comment("boolean wasNull = false;").putVariable(wasNullVariable,false).append(body).getVariable(wasNullVariable).ifFalseGoto(end).pop(boolean.class).push(false).visitLabel(end).retBoolean();
+}

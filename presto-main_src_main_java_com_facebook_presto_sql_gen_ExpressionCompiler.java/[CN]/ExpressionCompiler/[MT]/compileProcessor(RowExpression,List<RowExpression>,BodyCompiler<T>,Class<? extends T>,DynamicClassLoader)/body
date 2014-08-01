@@ -1,0 +1,11 @@
+{
+  ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(BOOTSTRAP_METHOD),a(PUBLIC,FINAL),typeFromPathName(superType.getSimpleName() + "_" + CLASS_ID.incrementAndGet()),type(Object.class),type(superType));
+  classDefinition.declareField(a(PRIVATE,VOLATILE,STATIC),CALL_SITES_FIELD_NAME,Map.class);
+  classDefinition.declareConstructor(new CompilerContext(BOOTSTRAP_METHOD),a(PUBLIC)).getBody().pushThis().invokeSpecial(Object.class,"<init>",void.class).ret();
+  CallSiteBinder callSiteBinder=new CallSiteBinder();
+  bodyCompiler.generateMethods(classDefinition,callSiteBinder,filter,projections);
+  generateToString(classDefinition,toStringHelper(classDefinition.getType().getJavaClassName()).add("filter",filter).add("projections",projections).toString());
+  Class<? extends T> clazz=defineClass(classDefinition,superType,classLoader);
+  setCallSitesField(clazz,callSiteBinder.getBindings());
+  return clazz;
+}

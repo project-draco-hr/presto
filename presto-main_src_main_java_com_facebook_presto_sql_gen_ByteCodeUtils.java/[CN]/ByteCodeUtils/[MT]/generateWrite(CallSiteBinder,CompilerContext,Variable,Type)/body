@@ -1,0 +1,11 @@
+{
+  String name="write" + Primitives.wrap(type.getJavaType()).getSimpleName();
+  MethodHandle target;
+  try {
+    target=MethodHandles.lookup().findVirtual(type.getClass(),name,MethodType.methodType(void.class,BlockBuilder.class,type.getJavaType()));
+  }
+ catch (  ReflectiveOperationException e) {
+    throw Throwables.propagate(e);
+  }
+  return new Block(context).comment("if (wasNull)").append(new IfStatement.IfStatementBuilder(context).condition(new Block(context).getVariable(wasNullVariable)).ifTrue(new Block(context).comment("output.appendNull();").pop(type.getJavaType()).invokeInterface(BlockBuilder.class,"appendNull",BlockBuilder.class).pop()).ifFalse(new Block(context).comment(type.getName() + "." + name+ "(output, "+ type.getJavaType().getSimpleName()+ ")").append(invoke(context,callSiteBinder.bind(target.bindTo(type))))).build());
+}

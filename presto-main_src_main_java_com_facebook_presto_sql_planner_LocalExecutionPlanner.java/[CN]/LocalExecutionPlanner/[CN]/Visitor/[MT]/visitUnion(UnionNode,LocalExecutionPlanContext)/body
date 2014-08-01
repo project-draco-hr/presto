@@ -10,7 +10,7 @@
     boolean projectionMatchesOutput=IterableTransformer.on(source.getLayout().entrySet()).orderBy(Ordering.<Integer>natural().onResultOf(MoreFunctions.<Symbol,Integer>valueGetter())).transform(MoreFunctions.<Symbol,Integer>keyGetter()).list().equals(expectedLayout);
     if (!projectionMatchesOutput) {
       IdentityProjectionInfo mappings=computeIdentityMapping(expectedLayout,source.getLayout(),context.getTypes());
-      operatorFactories.add(new FilterAndProjectOperatorFactory(subContext.getNextOperatorId(),FilterFunctions.TRUE_FUNCTION,mappings.getProjections()));
+      operatorFactories.add(new FilterAndProjectOperator.FilterAndProjectOperatorFactory(subContext.getNextOperatorId(),new GenericPageProcessor(FilterFunctions.TRUE_FUNCTION,mappings.getProjections()),toTypes(mappings.getProjections())));
     }
     operatorFactories.add(inMemoryExchange.createSinkFactory(subContext.getNextOperatorId()));
     DriverFactory driverFactory=new DriverFactory(subContext.isInputDriver(),false,operatorFactories);

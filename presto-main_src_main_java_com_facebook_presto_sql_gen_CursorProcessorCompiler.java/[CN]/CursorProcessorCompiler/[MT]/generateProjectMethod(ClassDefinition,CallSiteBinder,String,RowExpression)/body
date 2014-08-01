@@ -1,0 +1,11 @@
+{
+  CompilerContext context=new CompilerContext(BOOTSTRAP_METHOD);
+  MethodDefinition method=classDefinition.declareMethod(context,a(PUBLIC),methodName,type(void.class),arg("session",ConnectorSession.class),arg("cursor",RecordCursor.class),arg("output",BlockBuilder.class));
+  method.comment("Projection: %s",projection.toString());
+  Variable outputVariable=context.getVariable("output");
+  Variable cursorVariable=context.getVariable("cursor");
+  Variable wasNullVariable=context.declareVariable(type(boolean.class),"wasNull");
+  Block body=method.getBody().comment("boolean wasNull = false;").putVariable(wasNullVariable,false);
+  ByteCodeExpressionVisitor visitor=new ByteCodeExpressionVisitor(callSiteBinder,fieldReferenceCompiler(cursorVariable,wasNullVariable),metadata.getFunctionRegistry());
+  body.getVariable(outputVariable).comment("evaluate projection: " + projection.toString()).append(projection.accept(visitor,context)).append(generateWrite(callSiteBinder,context,wasNullVariable,projection.getType())).ret();
+}
