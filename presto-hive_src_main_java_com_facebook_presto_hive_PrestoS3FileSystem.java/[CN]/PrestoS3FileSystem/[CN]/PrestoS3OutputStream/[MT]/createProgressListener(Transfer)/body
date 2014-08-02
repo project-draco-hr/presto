@@ -1,0 +1,19 @@
+{
+  return new ProgressListener(){
+    private ProgressEventType previousType;
+    private double previousTransferred;
+    @Override public synchronized void progressChanged(    ProgressEvent progressEvent){
+      ProgressEventType eventType=progressEvent.getEventType();
+      if (previousType != eventType) {
+        log.debug("Upload progress event (%s/%s): %s",host,key,eventType);
+        previousType=eventType;
+      }
+      double transferred=transfer.getProgress().getPercentTransferred();
+      if (transferred >= (previousTransferred + 10.0)) {
+        log.debug("Upload percentage (%s/%s): %.0f%%",host,key,transferred);
+        previousTransferred=transferred;
+      }
+    }
+  }
+;
+}

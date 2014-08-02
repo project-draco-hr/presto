@@ -1,10 +1,18 @@
 {
   try {
-    log.debug("Starting upload for key: %s",key);
-    s3.putObject(host,key,tempFile);
-    log.debug("Completed upload for key: %s",key);
+    log.debug("Starting upload for host: %s, key: %s, file: %s, size: %s",host,key,tempFile,tempFile.length());
+    Upload upload=transferManager.upload(host,key,tempFile);
+    if (log.isDebugEnabled()) {
+      upload.addProgressListener(createProgressListener(upload));
+    }
+    upload.waitForCompletion();
+    log.debug("Completed upload for host: %s, key: %s",host,key);
   }
  catch (  AmazonClientException e) {
     throw new IOException(e);
+  }
+catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    throw new InterruptedIOException();
   }
 }
