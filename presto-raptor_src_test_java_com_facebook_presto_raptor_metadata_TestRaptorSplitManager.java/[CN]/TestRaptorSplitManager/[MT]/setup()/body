@@ -2,7 +2,7 @@
   TypeRegistry typeRegistry=new TypeRegistry();
   DBI dbi=new DBI("jdbc:h2:mem:test" + System.nanoTime());
   dbi.registerMapper(new TableColumn.Mapper(typeRegistry));
-  dbi.registerMapper(new RaptorPartitionKey.Mapper(typeRegistry));
+  dbi.registerMapper(new PartitionKey.Mapper(typeRegistry));
   dummyHandle=dbi.open();
   dataDir=Files.createTempDir();
   ShardManager shardManager=new DatabaseShardManager(dbi);
@@ -17,7 +17,7 @@
   UUID shardUuid2=UUID.randomUUID();
   UUID shardUuid3=UUID.randomUUID();
   UUID shardUuid4=UUID.randomUUID();
-  shardManager.commitPartition(tableHandle,"ds=1",ImmutableList.<PartitionKey>of(new RaptorPartitionKey("ds=1","ds",VARCHAR,"1")),ImmutableMap.<UUID,String>builder().put(shardUuid1,nodeName).put(shardUuid2,nodeName).put(shardUuid3,nodeName).build());
-  shardManager.commitPartition(tableHandle,"ds=2",ImmutableList.<PartitionKey>of(new RaptorPartitionKey("ds=2","ds",VARCHAR,"2")),ImmutableMap.<UUID,String>builder().put(shardUuid4,nodeName).build());
+  shardManager.commitPartition(tableHandle,"ds=1",ImmutableList.of(new PartitionKey("ds=1","ds",VARCHAR,"1")),ImmutableMap.<UUID,String>builder().put(shardUuid1,nodeName).put(shardUuid2,nodeName).put(shardUuid3,nodeName).build());
+  shardManager.commitPartition(tableHandle,"ds=2",ImmutableList.of(new PartitionKey("ds=2","ds",VARCHAR,"2")),ImmutableMap.<UUID,String>builder().put(shardUuid4,nodeName).build());
   raptorSplitManager=new RaptorSplitManager(connectorId,nodeManager,shardManager,metadata);
 }
