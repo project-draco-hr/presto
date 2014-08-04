@@ -1,9 +1,4 @@
 {
   long tableId=checkType(tableHandle,RaptorTableHandle.class,"tableHandle").getTableId();
-  Set<PartitionKey> partitionKeys=dao.getPartitionKeys(tableId);
-  ImmutableMultimap.Builder<String,PartitionKey> builder=ImmutableMultimap.builder();
-  for (  PartitionKey partitionKey : partitionKeys) {
-    builder.put(partitionKey.getPartitionName(),partitionKey);
-  }
-  return builder.build();
+  return Multimaps.index(dao.getPartitionKeys(tableId),partitionNameGetter());
 }
