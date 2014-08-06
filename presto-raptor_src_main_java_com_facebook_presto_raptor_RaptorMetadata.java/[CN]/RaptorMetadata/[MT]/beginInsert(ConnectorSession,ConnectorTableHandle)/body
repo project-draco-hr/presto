@@ -1,3 +1,13 @@
 {
-  throw new UnsupportedOperationException();
+  if (!shardManager.getAllPartitionKeys(tableHandle).isEmpty()) {
+    throw new PrestoException(NOT_SUPPORTED.toErrorCode(),"Inserting into partitioned tables is yet not supported");
+  }
+  long tableId=checkType(tableHandle,RaptorTableHandle.class,"tableHandle").getTableId();
+  ImmutableList.Builder<RaptorColumnHandle> columnHandles=ImmutableList.builder();
+  ImmutableList.Builder<Type> columnTypes=ImmutableList.builder();
+  for (  TableColumn column : dao.getTableColumns(tableId)) {
+    columnHandles.add(new RaptorColumnHandle(connectorId,column.getColumnName(),column.getColumnId(),column.getDataType()));
+    columnTypes.add(column.getDataType());
+  }
+  return new RaptorInsertTableHandle(connectorId,tableId,columnHandles.build(),columnTypes.build());
 }

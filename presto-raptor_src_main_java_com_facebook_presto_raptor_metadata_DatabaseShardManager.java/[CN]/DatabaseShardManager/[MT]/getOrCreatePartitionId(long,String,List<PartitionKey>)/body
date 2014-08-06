@@ -1,0 +1,20 @@
+{
+  Long id=dao.getPartitionId(tableId,partition);
+  if (id != null) {
+    return id;
+  }
+  runIgnoringConstraintViolation(new Runnable(){
+    @Override public void run(){
+      dao.insertPartition(tableId,partition);
+      for (      PartitionKey key : sorted(partitionKeys,partitionNameGetter())) {
+        dao.insertPartitionKey(tableId,partition,key.getName(),key.getType().getName(),key.getValue());
+      }
+    }
+  }
+);
+  id=dao.getPartitionId(tableId,partition);
+  if (id == null) {
+    throw new PrestoException(INTERNAL_ERROR.toErrorCode(),"partition does not exist after insert");
+  }
+  return id;
+}
