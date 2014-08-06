@@ -1,0 +1,32 @@
+{
+  checkArgument(unloadedKeysRecordSet.getColumnTypes().equals(missingKeysTypes),"unloadedKeysRecordSet must have same schema as missingKeys");
+  checkState(!isMemoryExceeded(),"Max memory exceeded");
+  for (  Page page : pages) {
+    outputPagesIndex.addPage(page);
+  }
+  pages.clear();
+  LookupSource lookupSource=outputPagesIndex.createLookupSource(indexChannels);
+  PageBuilder missingKeysPageBuilder=new PageBuilder(missingKeysIndex.getTypes());
+  UnloadedIndexKeyRecordCursor unloadedKeyRecordCursor=unloadedKeysRecordSet.cursor();
+  while (unloadedKeyRecordCursor.advanceNextPosition()) {
+    Block[] blocks=unloadedKeyRecordCursor.getBlocks();
+    int position=unloadedKeyRecordCursor.getPosition();
+    if (lookupSource.getJoinPosition(position,blocks) < 0) {
+      for (int i=0; i < blocks.length; i++) {
+        Block block=blocks[i];
+        Type type=unloadedKeyRecordCursor.getType(i);
+        type.appendTo(block,position,missingKeysPageBuilder.getBlockBuilder(i));
+      }
+    }
+  }
+  Page missingKeysPage=missingKeysPageBuilder.build();
+  memoryInBytes+=missingKeysPage.getDataSize().toBytes();
+  if (isMemoryExceeded()) {
+    return null;
+  }
+  if (!missingKeysPageBuilder.isEmpty()) {
+    missingKeysIndex.addPage(missingKeysPage);
+    missingKeys=missingKeysIndex.createLookupSource(missingKeysChannels);
+  }
+  return new IndexSnapshot(lookupSource,missingKeys);
+}

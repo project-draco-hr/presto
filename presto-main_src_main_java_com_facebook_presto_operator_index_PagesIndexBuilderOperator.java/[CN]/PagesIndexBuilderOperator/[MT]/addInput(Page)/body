@@ -1,6 +1,9 @@
 {
   checkNotNull(page,"page is null");
   checkState(!isFinished(),"Operator is already finished");
-  pagesIndex.addPage(page);
+  if (!indexSnapshotBuilder.tryAddPage(page)) {
+    finish();
+    return;
+  }
   operatorContext.recordGeneratedOutput(page.getDataSize(),page.getPositionCount());
 }

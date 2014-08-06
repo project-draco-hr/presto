@@ -1,0 +1,15 @@
+{
+  this.driverFactory=driverFactory;
+  this.pipelineContext=pipelineContext;
+  this.sourcePlanNodeId=sourcePlanNodeId;
+  this.indexSnapshotReference=indexSnapshotReference;
+  this.indexChannels=indexChannels;
+  this.types=pagesIndexOutput.getTypes();
+  ImmutableList.Builder<Type> typeBuilder=ImmutableList.builder();
+  for (  Integer outputIndexChannel : indexChannels) {
+    typeBuilder.add(pagesIndexOutput.getTypes().get(outputIndexChannel));
+  }
+  this.indexTypes=typeBuilder.build();
+  this.indexSnapshotBuilder=new IndexSnapshotBuilder(pagesIndexOutput.getTypes(),indexChannels,pipelineContext.addDriverContext(),maxIndexMemorySize,expectedPositions);
+  pagesIndexOutput.setPagesIndexBuilder(indexSnapshotBuilder);
+}

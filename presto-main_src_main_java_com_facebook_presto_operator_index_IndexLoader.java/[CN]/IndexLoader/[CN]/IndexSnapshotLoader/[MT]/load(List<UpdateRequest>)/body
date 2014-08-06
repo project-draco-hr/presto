@@ -1,0 +1,23 @@
+{
+  UnloadedIndexKeyRecordSet unloadedKeysRecordSet=new UnloadedIndexKeyRecordSet(indexSnapshotReference.get(),indexTypes,requests);
+  Driver driver=driverFactory.createDriver(pipelineContext.addDriverContext());
+  driver.updateSource(new TaskSource(sourcePlanNodeId,ImmutableSet.of(new ScheduledSplit(0,new Split("index",new IndexSplit(unloadedKeysRecordSet)))),true));
+  while (!driver.isFinished()) {
+    ListenableFuture<?> process=driver.process();
+    checkState(process.isDone(),"Driver should never block");
+  }
+  if (indexSnapshotBuilder.isMemoryExceeded()) {
+    clearCachedData();
+    return false;
+  }
+  IndexSnapshot newValue=indexSnapshotBuilder.createIndexSnapshot(unloadedKeysRecordSet);
+  if (newValue == null) {
+    clearCachedData();
+    return false;
+  }
+  indexSnapshotReference.set(newValue);
+  for (  UpdateRequest request : requests) {
+    request.finished(newValue);
+  }
+  return true;
+}
