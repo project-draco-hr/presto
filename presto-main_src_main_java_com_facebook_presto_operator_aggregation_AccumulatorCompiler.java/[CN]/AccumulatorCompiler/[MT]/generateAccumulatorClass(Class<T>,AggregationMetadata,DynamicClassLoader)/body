@@ -1,5 +1,6 @@
 {
   boolean grouped=accumulatorInterface == GroupedAccumulator.class;
+  boolean approximate=metadata.isApproximate();
   ClassDefinition definition=new ClassDefinition(a(PUBLIC,FINAL),typeFromPathName(metadata.getName() + accumulatorInterface.getSimpleName() + "_"+ CLASS_ID.incrementAndGet()),type(Object.class),type(accumulatorInterface));
   AccumulatorStateSerializer<?> stateSerializer=metadata.getStateSerializer();
   AccumulatorStateFactory<?> stateFactory=metadata.getStateFactory();
@@ -7,8 +8,12 @@
   FieldDefinition stateFactoryField=definition.declareField(a(PRIVATE,FINAL),"stateFactory",stateFactory.getClass());
   FieldDefinition inputChannelsField=definition.declareField(a(PRIVATE,FINAL),"inputChannels",type(List.class,Integer.class));
   FieldDefinition maskChannelField=definition.declareField(a(PRIVATE,FINAL),"maskChannel",type(Optional.class,Integer.class));
-  FieldDefinition sampleWeightChannelField=definition.declareField(a(PRIVATE,FINAL),"sampleWeightChannel",type(Optional.class,Integer.class));
-  FieldDefinition confidenceField=definition.declareField(a(PRIVATE,FINAL),"confidence",double.class);
+  FieldDefinition sampleWeightChannelField=null;
+  FieldDefinition confidenceField=null;
+  if (approximate) {
+    sampleWeightChannelField=definition.declareField(a(PRIVATE,FINAL),"sampleWeightChannel",type(Optional.class,Integer.class));
+    confidenceField=definition.declareField(a(PRIVATE,FINAL),"confidence",double.class);
+  }
   FieldDefinition stateField=definition.declareField(a(PRIVATE,FINAL),"state",grouped ? stateFactory.getGroupedStateClass() : stateFactory.getSingleStateClass());
   generateConstructor(definition,stateSerializerField,stateFactoryField,inputChannelsField,maskChannelField,sampleWeightChannelField,confidenceField,stateField,grouped);
   generateAddInput(definition,stateField,inputChannelsField,maskChannelField,sampleWeightChannelField,metadata.getInputMetadata(),metadata.getInputFunction(),grouped,metadata.isAcceptNulls());

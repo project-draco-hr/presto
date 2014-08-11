@@ -4,7 +4,9 @@
   generateCastCheckNotNullAndAssign(body,stateFactoryField,"stateFactory");
   generateCastCheckNotNullAndAssign(body,inputChannelsField,"inputChannels");
   generateCastCheckNotNullAndAssign(body,maskChannelField,"maskChannel");
-  generateCastCheckNotNullAndAssign(body,sampleWeightChannelField,"sampleWeightChannel");
+  if (sampleWeightChannelField != null) {
+    generateCastCheckNotNullAndAssign(body,sampleWeightChannelField,"sampleWeightChannel");
+  }
   String createState;
   if (grouped) {
     createState="createGroupedState";
@@ -12,5 +14,8 @@
  else {
     createState="createSingleState";
   }
-  body.comment("this.confidence = confidence").pushThis().getVariable("confidence").putField(confidenceField).comment("this.state = stateFactory.%s()",createState).pushThis().getVariable("stateFactory").invokeInterface(AccumulatorStateFactory.class,createState,Object.class).checkCast(stateField.getType()).putField(stateField).ret();
+  if (confidenceField != null) {
+    body.comment("this.confidence = confidence").pushThis().getVariable("confidence").putField(confidenceField);
+  }
+  body.comment("this.state = stateFactory.%s()",createState).pushThis().getVariable("stateFactory").invokeInterface(AccumulatorStateFactory.class,createState,Object.class).checkCast(stateField.getType()).putField(stateField).ret();
 }

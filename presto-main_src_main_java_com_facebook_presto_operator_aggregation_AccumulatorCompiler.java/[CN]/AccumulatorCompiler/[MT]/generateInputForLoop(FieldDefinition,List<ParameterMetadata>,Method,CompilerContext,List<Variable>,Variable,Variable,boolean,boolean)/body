@@ -1,8 +1,14 @@
 {
   Variable positionVariable=context.declareVariable(int.class,"position");
-  Variable sampleWeightVariable=context.declareVariable(long.class,"sampleWeight");
+  Variable sampleWeightVariable=null;
+  if (sampleWeightsBlock != null) {
+    sampleWeightVariable=context.declareVariable(long.class,"sampleWeight");
+  }
   Variable rowsVariable=context.declareVariable(int.class,"rows");
-  Block block=new Block(context).getVariable("page").invokeVirtual(Page.class,"getPositionCount",int.class).putVariable(rowsVariable).initializeVariable(positionVariable).initializeVariable(sampleWeightVariable);
+  Block block=new Block(context).getVariable("page").invokeVirtual(Page.class,"getPositionCount",int.class).putVariable(rowsVariable).initializeVariable(positionVariable);
+  if (sampleWeightVariable != null) {
+    block.initializeVariable(sampleWeightVariable);
+  }
   Block loopBody=generateInvokeInputFunction(context,stateField,positionVariable,sampleWeightVariable,parameterVariables,parameterMetadatas,inputFunction,grouped);
   if (!acceptNulls) {
     for (    Variable variable : parameterVariables) {
@@ -11,7 +17,14 @@
       loopBody=new Block(context).append(builder.build());
     }
   }
-  loopBody=generateComputeSampleWeightAndCheckGreaterThanZero(context,loopBody,sampleWeightVariable,masksBlock,sampleWeightsBlock,positionVariable);
+  if (sampleWeightVariable != null) {
+    loopBody=generateComputeSampleWeightAndCheckGreaterThanZero(context,loopBody,sampleWeightVariable,masksBlock,sampleWeightsBlock,positionVariable);
+  }
+ else {
+    IfStatementBuilder builder=ifStatementBuilder(context);
+    builder.comment("if(testMask(%s, position))",masksBlock.getName()).condition(new Block(context).getVariable(masksBlock).getVariable(positionVariable).invokeStatic(CompilerOperations.class,"testMask",boolean.class,com.facebook.presto.spi.block.Block.class,int.class)).ifTrue(loopBody).ifFalse(NOP);
+    loopBody=new Block(context).append(builder.build());
+  }
   block.append(new ForLoop.ForLoopBuilder(context).initialize(new Block(context).putVariable(positionVariable,0)).condition(new Block(context).getVariable(positionVariable).getVariable(rowsVariable).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new Block(context).incrementVariable(positionVariable,(byte)1)).body(loopBody).build());
   return block;
 }

@@ -5,21 +5,6 @@
     generateEnsureCapacity(stateField,body);
   }
   Variable positionVariable=context.declareVariable(int.class,"position");
-  Block loopBody=new Block(context).comment("<intermediate>(state, ...)").pushThis().getField(stateField);
-  if (grouped) {
-    generateSetGroupIdFromGroupIdsBlock(stateField,positionVariable,loopBody);
-  }
-  Class<?>[] parameters=intermediateInputFunction.getParameterTypes();
-  for (int i=1; i < parameters.length; i++) {
-    ParameterMetadata parameterMetadata=parameterMetadatas.get(i);
-    if (parameterMetadata.getParameterType() == BLOCK_INDEX) {
-      loopBody.getVariable("position");
-    }
- else {
-      Block getBlockByteCode=new Block(context).getVariable("block");
-      pushStackType(loopBody,parameterMetadata.getSqlType(),getBlockByteCode,parameters[i]);
-    }
-  }
-  loopBody.invokeStatic(intermediateInputFunction);
+  Block loopBody=generateInvokeInputFunction(context,stateField,positionVariable,null,ImmutableList.of(context.getVariable("block")),parameterMetadatas,intermediateInputFunction,grouped);
   body.append(generateBlockNonNullPositionForLoop(context,positionVariable,loopBody)).ret();
 }
