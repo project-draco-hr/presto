@@ -1,13 +1,14 @@
 {
-  Accumulator partialAggregation=function.createAggregation(Optional.<Integer>absent(),Optional.<Integer>absent(),confidence,args);
+  AccumulatorFactory factory=function.bind(Ints.asList(args),Optional.<Integer>absent(),Optional.<Integer>absent(),confidence);
+  Accumulator partialAggregation=factory.createAccumulator();
   for (  Page page : pages) {
     if (page.getPositionCount() > 0) {
       partialAggregation.addInput(page);
     }
   }
   Block partialBlock=partialAggregation.evaluateIntermediate();
-  Accumulator finalAggregation=function.createIntermediateAggregation(confidence);
-  Block emptyBlock=function.createAggregation(Optional.<Integer>absent(),Optional.<Integer>absent(),confidence,args).evaluateIntermediate();
+  Accumulator finalAggregation=factory.createIntermediateAccumulator();
+  Block emptyBlock=factory.createAccumulator().evaluateIntermediate();
   finalAggregation.addIntermediate(emptyBlock);
   finalAggregation.addIntermediate(partialBlock);
   Block finalBlock=finalAggregation.evaluateFinal();

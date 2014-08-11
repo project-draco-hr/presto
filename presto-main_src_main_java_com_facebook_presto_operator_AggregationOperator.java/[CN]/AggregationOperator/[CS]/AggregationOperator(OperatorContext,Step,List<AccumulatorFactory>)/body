@@ -1,0 +1,12 @@
+{
+  this.operatorContext=checkNotNull(operatorContext,"operatorContext is null");
+  checkNotNull(step,"step is null");
+  checkNotNull(accumulatorFactories,"accumulatorFactories is null");
+  this.types=toTypes(step,accumulatorFactories);
+  MemoryManager memoryManager=new MemoryManager(operatorContext);
+  ImmutableList.Builder<Aggregator> builder=ImmutableList.builder();
+  for (  AccumulatorFactory accumulatorFactory : accumulatorFactories) {
+    builder.add(new Aggregator(accumulatorFactory,step,memoryManager));
+  }
+  aggregates=builder.build();
+}
