@@ -1,9 +1,9 @@
 {
-  ClassDefinition definition=new ClassDefinition(new CompilerContext(null),a(PUBLIC,FINAL),typeFromPathName("Single" + clazz.getSimpleName() + "_"+ CLASS_ID.incrementAndGet()),type(Object.class),type(clazz));
+  ClassDefinition definition=new ClassDefinition(a(PUBLIC,FINAL),typeFromPathName("Single" + clazz.getSimpleName() + "_"+ CLASS_ID.incrementAndGet()),type(Object.class),type(clazz));
   FieldDefinition classSize=definition.declareField(a(PRIVATE,STATIC,FINAL),"CLASS_SIZE",long.class);
   definition.getClassInitializer().getBody().comment("CLASS_SIZE = ClassLayout.parseClass(%s.class).instanceSize()",definition.getName()).push(definition.getType()).invokeStatic(ClassLayout.class,"parseClass",ClassLayout.class,Class.class).invokeVirtual(ClassLayout.class,"instanceSize",int.class).intToLong().putStaticField(classSize);
   definition.declareMethod(new CompilerContext(null),a(PUBLIC),"getEstimatedSize",type(long.class)).getBody().getStaticField(classSize).retLong();
-  Block constructor=definition.declareConstructor(new CompilerContext(null),a(PUBLIC)).getBody().pushThis().invokeConstructor(Object.class);
+  Block constructor=definition.declareConstructor(a(PUBLIC)).getBody().pushThis().invokeConstructor(Object.class);
   List<StateField> fields=enumerateFields(clazz);
   for (  StateField field : fields) {
     generateField(definition,constructor,field);
