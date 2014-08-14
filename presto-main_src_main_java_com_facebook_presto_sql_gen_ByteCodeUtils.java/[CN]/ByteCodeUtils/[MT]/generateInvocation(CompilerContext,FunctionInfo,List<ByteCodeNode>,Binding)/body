@@ -13,8 +13,14 @@
     }
  else {
       block.append(arguments.get(index));
+      if (!function.getNullableArguments().get(index)) {
+        block.append(ifWasNullPopAndGoto(context,end,unboxedReturnType,Lists.reverse(stackTypes)));
+      }
+ else {
+        block.append(boxPrimitiveIfNecessary(context,type));
+        block.putVariable("wasNull",false);
+      }
       index++;
-      block.append(ifWasNullPopAndGoto(context,end,unboxedReturnType,Lists.reverse(stackTypes)));
     }
   }
   block.append(invoke(context,binding));

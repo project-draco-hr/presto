@@ -14,9 +14,10 @@
   Type returnType=type(returnTypeAnnotation);
   Signature signature=new Signature(name.toLowerCase(),returnType,parameterTypes(method));
   verifyMethodSignature(method,signature.getReturnType(),signature.getArgumentTypes());
-  scalar(signature,methodHandle,scalarFunction.deterministic(),getDescription(method),scalarFunction.hidden(),method.isAnnotationPresent(Nullable.class));
+  List<Boolean> nullableArguments=getNullableArguments(method);
+  scalar(signature,methodHandle,scalarFunction.deterministic(),getDescription(method),scalarFunction.hidden(),method.isAnnotationPresent(Nullable.class),nullableArguments);
   for (  String alias : scalarFunction.alias()) {
-    scalar(signature.withAlias(alias.toLowerCase()),methodHandle,scalarFunction.deterministic(),getDescription(method),scalarFunction.hidden(),method.isAnnotationPresent(Nullable.class));
+    scalar(signature.withAlias(alias.toLowerCase()),methodHandle,scalarFunction.deterministic(),getDescription(method),scalarFunction.hidden(),method.isAnnotationPresent(Nullable.class),nullableArguments);
   }
   return true;
 }
