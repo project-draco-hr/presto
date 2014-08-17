@@ -1,8 +1,0 @@
-{
-  LocalVariableDefinition rowsVariable=context.declareVariable(int.class,"rows");
-  Block block=new Block(context).getVariable("block").invokeInterface(com.facebook.presto.spi.block.Block.class,"getPositionCount",int.class).putVariable(rowsVariable);
-  IfStatementBuilder builder=ifStatementBuilder(context);
-  builder.comment("if(!block.isNull(position))").condition(new Block(context).getVariable("block").getVariable(positionVariable).invokeInterface(com.facebook.presto.spi.block.Block.class,"isNull",boolean.class,int.class)).ifTrue(NOP).ifFalse(loopBody);
-  block.append(new ForLoop.ForLoopBuilder(context).initialize(new Block(context).putVariable(positionVariable,0)).condition(new Block(context).getVariable(positionVariable).getVariable(rowsVariable).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new Block(context).incrementVariable(positionVariable,(byte)1)).body(builder.build()).build());
-  return block;
-}

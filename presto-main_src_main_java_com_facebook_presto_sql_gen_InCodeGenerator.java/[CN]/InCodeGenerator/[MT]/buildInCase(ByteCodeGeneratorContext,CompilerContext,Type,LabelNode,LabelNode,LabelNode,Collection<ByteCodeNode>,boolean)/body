@@ -5,12 +5,12 @@
   }
   Block caseBlock=new Block(context).visitLabel(caseLabel);
   if (checkForNulls) {
-    caseBlock.putVariable(caseWasNull.getLocalVariableDefinition(),false);
+    caseBlock.putVariable(caseWasNull,false);
   }
   LabelNode elseLabel=new LabelNode("else");
   Block elseBlock=new Block(context).visitLabel(elseLabel);
   if (checkForNulls) {
-    elseBlock.getVariable(caseWasNull.getLocalVariableDefinition()).putVariable("wasNull");
+    elseBlock.getVariable(caseWasNull).putVariable("wasNull");
   }
   elseBlock.gotoLabel(noMatchLabel);
   FunctionInfo operator=generatorContext.getRegistry().resolveOperator(OperatorType.EQUAL,ImmutableList.of(type,type));
@@ -21,7 +21,7 @@
     IfStatement.IfStatementBuilder test=ifStatementBuilder(context);
     Block condition=new Block(context).visitLabel(testLabel).dup(type.getJavaType()).append(testNode);
     if (checkForNulls) {
-      condition.getVariable("wasNull").putVariable(caseWasNull.getLocalVariableDefinition()).append(ifWasNullPopAndGoto(context,elseLabel,void.class,type.getJavaType(),type.getJavaType()));
+      condition.getVariable("wasNull").putVariable(caseWasNull).append(ifWasNullPopAndGoto(context,elseLabel,void.class,type.getJavaType(),type.getJavaType()));
     }
     condition.append(invoke(generatorContext.getContext(),equalsFunction));
     test.condition(condition);

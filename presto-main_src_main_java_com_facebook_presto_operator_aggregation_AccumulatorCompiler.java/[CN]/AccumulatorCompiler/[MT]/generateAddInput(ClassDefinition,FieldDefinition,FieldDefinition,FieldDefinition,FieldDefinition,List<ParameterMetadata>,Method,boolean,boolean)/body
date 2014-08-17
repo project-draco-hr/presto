@@ -9,12 +9,12 @@
   if (grouped) {
     generateEnsureCapacity(stateField,body);
   }
-  List<LocalVariableDefinition> parameterVariables=new ArrayList<>();
+  List<Variable> parameterVariables=new ArrayList<>();
   for (int i=0; i < countInputChannels(parameterMetadatas); i++) {
     parameterVariables.add(context.declareVariable(com.facebook.presto.spi.block.Block.class,"block" + i));
   }
-  LocalVariableDefinition masksBlock=context.declareVariable(com.facebook.presto.spi.block.Block.class,"masksBlock");
-  LocalVariableDefinition sampleWeightsBlock=context.declareVariable(com.facebook.presto.spi.block.Block.class,"sampleWeightsBlock");
+  Variable masksBlock=context.declareVariable(com.facebook.presto.spi.block.Block.class,"masksBlock");
+  Variable sampleWeightsBlock=context.declareVariable(com.facebook.presto.spi.block.Block.class,"sampleWeightsBlock");
   body.comment("masksBlock = maskChannel.transform(page.blockGetter()).orNull();").pushThis().getField(maskChannelField).getVariable("page").invokeVirtual(type(Page.class),"blockGetter",type(Function.class,Integer.class,com.facebook.presto.spi.block.Block.class)).invokeVirtual(Optional.class,"transform",Optional.class,Function.class).invokeVirtual(Optional.class,"orNull",Object.class).checkCast(com.facebook.presto.spi.block.Block.class).putVariable(masksBlock);
   body.comment("sampleWeightsBlock = sampleWeightChannel.transform(page.blockGetter()).orNull();").pushThis().getField(sampleWeightChannelField).getVariable("page").invokeVirtual(type(Page.class),"blockGetter",type(Function.class,Integer.class,com.facebook.presto.spi.block.Block.class)).invokeVirtual(Optional.class,"transform",Optional.class,Function.class).invokeVirtual(Optional.class,"orNull",Object.class).checkCast(com.facebook.presto.spi.block.Block.class).putVariable(sampleWeightsBlock);
   for (int i=0; i < countInputChannels(parameterMetadatas); i++) {
