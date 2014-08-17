@@ -1,5 +1,7 @@
 {
-  ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(bootstrapMethod),a(PUBLIC,FINAL),typeFromPathName("JoinProbe_" + CLASS_ID.incrementAndGet()),type(Object.class),type(JoinProbe.class));
+  CallSiteBinder callSiteBinder=new CallSiteBinder();
+  ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(BOOTSTRAP_METHOD),a(PUBLIC,FINAL),typeFromPathName("JoinProbe_" + CLASS_ID.incrementAndGet()),type(Object.class),type(JoinProbe.class));
+  classDefinition.declareField(a(PRIVATE,STATIC,VOLATILE),CALL_SITES_FIELD_NAME,Map.class);
   FieldDefinition lookupSourceField=classDefinition.declareField(a(PRIVATE,FINAL),"lookupSource",LookupSource.class);
   FieldDefinition positionCountField=classDefinition.declareField(a(PRIVATE,FINAL),"positionCount",int.class);
   List<FieldDefinition> blockFields=new ArrayList<>();
@@ -16,10 +18,11 @@
   FieldDefinition positionField=classDefinition.declareField(a(PRIVATE),"position",int.class);
   generateConstructor(classDefinition,probeChannels,lookupSourceField,blockFields,probeBlockFields,probeBlocksArrayField,positionField,positionCountField);
   generateGetChannelCountMethod(classDefinition,blockFields.size());
-  generateAppendToMethod(classDefinition,types,blockFields,positionField);
+  generateAppendToMethod(classDefinition,callSiteBinder,types,blockFields,positionField);
   generateAdvanceNextPosition(classDefinition,positionField,positionCountField);
   generateGetCurrentJoinPosition(classDefinition,lookupSourceField,probeBlocksArrayField,positionField);
   generateCurrentRowContainsNull(classDefinition,probeBlockFields,positionField);
   Class<? extends JoinProbe> joinProbeClass=defineClass(classDefinition,JoinProbe.class,classLoader);
+  ByteCodeUtils.setCallSitesField(joinProbeClass,callSiteBinder.getBindings());
   return joinProbeClass;
 }
