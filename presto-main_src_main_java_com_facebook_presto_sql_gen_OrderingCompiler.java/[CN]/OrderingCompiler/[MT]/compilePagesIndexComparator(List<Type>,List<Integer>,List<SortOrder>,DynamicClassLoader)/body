@@ -1,7 +1,10 @@
 {
-  ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(bootstrapMethod),a(PUBLIC,FINAL),typeFromPathName("PagesIndexComparator" + CLASS_ID.incrementAndGet()),type(Object.class),type(PagesIndexComparator.class));
+  CallSiteBinder callSiteBinder=new CallSiteBinder();
+  ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(BOOTSTRAP_METHOD),a(PUBLIC,FINAL),typeFromPathName("PagesIndexComparator" + CLASS_ID.incrementAndGet()),type(Object.class),type(PagesIndexComparator.class));
+  classDefinition.declareField(a(PRIVATE,STATIC,VOLATILE),CALL_SITES_FIELD_NAME,Map.class);
   generateConstructor(classDefinition);
-  generateCompareTo(classDefinition,sortTypes,sortChannels,sortOrders);
-  Class<? extends PagesIndexComparator> joinHashClass=defineClass(classDefinition,PagesIndexComparator.class,classLoader);
-  return joinHashClass;
+  generateCompareTo(classDefinition,callSiteBinder,sortTypes,sortChannels,sortOrders);
+  Class<? extends PagesIndexComparator> comparatorClass=defineClass(classDefinition,PagesIndexComparator.class,classLoader);
+  setCallSitesField(comparatorClass,callSiteBinder.getBindings());
+  return comparatorClass;
 }
