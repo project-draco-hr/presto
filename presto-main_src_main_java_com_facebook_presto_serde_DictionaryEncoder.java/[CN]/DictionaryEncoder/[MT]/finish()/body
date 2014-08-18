@@ -1,9 +1,9 @@
 {
   checkState(!finished,"already finished");
   finished=true;
-  BlockBuilder blockBuilder=type.createBlockBuilder(new BlockBuilderStatus());
+  PageBuilder pageBuilder=new PageBuilder(ImmutableList.of(type));
   for (int groupId=0; groupId < dictionaryBuilder.getGroupCount(); groupId++) {
-    dictionaryBuilder.appendValuesTo(groupId,blockBuilder);
+    dictionaryBuilder.appendValuesTo(groupId,pageBuilder,0);
   }
-  return new DictionaryBlockEncoding(blockBuilder.build(),idWriter.finish());
+  return new DictionaryBlockEncoding(pageBuilder.build().getBlock(0),idWriter.finish());
 }
