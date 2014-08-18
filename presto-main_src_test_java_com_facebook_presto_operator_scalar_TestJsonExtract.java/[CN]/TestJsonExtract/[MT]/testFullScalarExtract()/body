@@ -2,6 +2,8 @@
   assertEquals(doScalarExtract("{}","$"),null);
   assertEquals(doScalarExtract("{\"fuu\": {\"bar\": 1}}","$.fuu"),null);
   assertEquals(doScalarExtract("{\"fuu\": 1}","$.fuu"),"1");
+  assertEquals(doScalarExtract("{\"fuu\": 1}","$[fuu]"),"1");
+  assertEquals(doScalarExtract("{\"fuu\": 1}","$[\"fuu\"]"),"1");
   assertEquals(doScalarExtract("{\"fuu\": null}","$.fuu"),null);
   assertEquals(doScalarExtract("{\"fuu\": 1}","$.bar"),null);
   assertEquals(doScalarExtract("{\"fuu\": [\"\\u0001\"]}","$.fuu[0]"),"\001");
@@ -14,4 +16,13 @@
   assertEquals(doScalarExtract("\"abc\"","$"),"abc");
   assertEquals(doScalarExtract("123","$"),"123");
   assertEquals(doScalarExtract("null","$"),null);
+  assertEquals(doScalarExtract("[0, 1, 2]","$.1"),"1");
+  assertEquals(doScalarExtract("[0, 1, 2]","$[1]"),"1");
+  assertEquals(doScalarExtract("[0, 1, 2]","$[\"1\"]"),"1");
+  assertEquals(doScalarExtract("{\"0\" : 0, \"1\" : 1, \"2\" : 2, }","$.1"),"1");
+  assertEquals(doScalarExtract("{\"0\" : 0, \"1\" : 1, \"2\" : 2, }","$[1]"),"1");
+  assertEquals(doScalarExtract("{\"0\" : 0, \"1\" : 1, \"2\" : 2, }","$[\"1\"]"),"1");
+  assertEquals(doScalarExtract("{\"15day\" : 0, \"30day\" : 1, \"90day\" : 2, }","$.30day"),"1");
+  assertEquals(doScalarExtract("{\"15day\" : 0, \"30day\" : 1, \"90day\" : 2, }","$[30day]"),"1");
+  assertEquals(doScalarExtract("{\"15day\" : 0, \"30day\" : 1, \"90day\" : 2, }","$[\"30day\"]"),"1");
 }

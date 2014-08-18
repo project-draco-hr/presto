@@ -1,0 +1,15 @@
+{
+  skipWhitespace();
+  if (!hasNextCharacter()) {
+    return endOfData();
+  }
+  if (tryMatch(DOT)) {
+    return matchUnquotedToken();
+  }
+  if (tryMatch(OPEN_BRACKET)) {
+    String token=tryMatch(QUOTE) ? matchQuotedToken() : matchUnquotedToken();
+    match(CLOSE_BRACKET);
+    return token;
+  }
+  throw invalidJsonPath();
+}

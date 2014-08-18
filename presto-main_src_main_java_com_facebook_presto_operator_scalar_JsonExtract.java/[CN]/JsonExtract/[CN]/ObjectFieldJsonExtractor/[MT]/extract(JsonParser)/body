@@ -1,16 +1,9 @@
 {
-  if (jsonParser.getCurrentToken() != START_OBJECT) {
-    throw new JsonParseException("Expected a Json object",jsonParser.getCurrentLocation());
+  if (jsonParser.getCurrentToken() == START_OBJECT) {
+    return processJsonObject(jsonParser);
   }
-  while (!jsonParser.nextFieldName(fieldName)) {
-    if (!jsonParser.hasCurrentToken()) {
-      throw new JsonParseException("Unexpected end of object",jsonParser.getCurrentLocation());
-    }
-    if (jsonParser.getCurrentToken() == END_OBJECT) {
-      return null;
-    }
-    jsonParser.skipChildren();
+  if (jsonParser.getCurrentToken() == START_ARRAY) {
+    return processJsonArray(jsonParser);
   }
-  jsonParser.nextToken();
-  return delegate.extract(jsonParser);
+  throw new JsonParseException("Expected a JSON object or array",jsonParser.getCurrentLocation());
 }

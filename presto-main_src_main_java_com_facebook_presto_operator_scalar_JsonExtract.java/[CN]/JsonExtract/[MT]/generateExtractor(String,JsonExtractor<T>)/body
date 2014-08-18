@@ -1,16 +1,8 @@
 {
-  ImmutableList<Object> tokens=tokenizePath(path);
+  ImmutableList<String> tokens=ImmutableList.copyOf(new JsonPathTokenizer(path));
   JsonExtractor<T> jsonExtractor=rootExtractor;
-  for (  Object token : tokens.reverse()) {
-    if (token instanceof String) {
-      jsonExtractor=new ObjectFieldJsonExtractor<>((String)token,jsonExtractor);
-    }
- else     if (token instanceof Integer) {
-      jsonExtractor=new ArrayElementJsonExtractor<>((Integer)token,jsonExtractor);
-    }
- else {
-      throw new IllegalStateException("Unsupported JSON path token type " + token.getClass().getName());
-    }
+  for (  String token : tokens.reverse()) {
+    jsonExtractor=new ObjectFieldJsonExtractor<>(token,jsonExtractor);
   }
   return jsonExtractor;
 }
