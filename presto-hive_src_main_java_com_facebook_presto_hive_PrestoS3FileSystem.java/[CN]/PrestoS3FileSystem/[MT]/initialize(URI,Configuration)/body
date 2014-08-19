@@ -10,9 +10,11 @@
   int maxErrorRetries=conf.getInt(S3_MAX_ERROR_RETRIES,defaults.getS3MaxErrorRetries());
   boolean sslEnabled=conf.getBoolean(S3_SSL_ENABLED,defaults.isS3SslEnabled());
   Duration connectTimeout=Duration.valueOf(conf.get(S3_CONNECT_TIMEOUT,defaults.getS3ConnectTimeout().toString()));
+  int maxConnections=conf.getInt(S3_MAX_CONNECTIONS,defaults.getS3MaxConnections());
   ClientConfiguration configuration=new ClientConfiguration();
   configuration.setMaxErrorRetry(maxErrorRetries);
   configuration.setProtocol(sslEnabled ? Protocol.HTTPS : Protocol.HTTP);
   configuration.setConnectionTimeout(Ints.checkedCast(connectTimeout.toMillis()));
+  configuration.setMaxConnections(maxConnections);
   this.s3=new AmazonS3Client(getAwsCredentials(uri,conf),configuration);
 }
