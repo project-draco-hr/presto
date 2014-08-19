@@ -1,0 +1,28 @@
+{
+  Class<?> leftType=getPrimitiveType(left,"left");
+  Class<?> rightType=getPrimitiveType(right,"right");
+switch (baseOpCode) {
+case IAND:
+case IOR:
+case IXOR:
+    checkArgument(leftType == rightType,"left and right must be the same type");
+  checkArgument(leftType == int.class || leftType == long.class,"%s argument must be int or long, but is %s",name,leftType);
+return;
+case IADD:
+case ISUB:
+case IMUL:
+case IDIV:
+case IREM:
+checkArgument(leftType == rightType,"left and right must be the same type");
+checkArgument(leftType == int.class || leftType == long.class || leftType == float.class || leftType == double.class,"%s argument must be int, long, float, or double, but is %s",name,leftType);
+return;
+case ISHL:
+case ISHR:
+case IUSHR:
+checkArgument(leftType == int.class || leftType == long.class,"%s left argument be int or long, but is %s",name,leftType);
+checkArgument(rightType == int.class,"%s right argument be and int, but is %s",name,rightType);
+return;
+default :
+throw new IllegalArgumentException("Unsupported OpCode " + baseOpCode);
+}
+}
