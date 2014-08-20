@@ -1,0 +1,12 @@
+{
+  CompilerContext compilerContext=new CompilerContext(BOOTSTRAP_METHOD);
+  MethodDefinition hashPositionMethod=classDefinition.declareMethod(compilerContext,a(PUBLIC),"hashRow",type(int.class),arg("position",int.class),arg("blocks",com.facebook.presto.spi.block.Block[].class));
+  Variable resultVariable=hashPositionMethod.getCompilerContext().declareVariable(int.class,"result");
+  hashPositionMethod.getBody().push(0).putVariable(resultVariable);
+  for (int index=0; index < joinChannelTypes.size(); index++) {
+    ByteCodeExpression type=constantType(compilerContext,callSiteBinder,joinChannelTypes.get(index));
+    ByteCodeExpression block=compilerContext.getVariable("blocks").getElement(index).cast(com.facebook.presto.spi.block.Block.class);
+    hashPositionMethod.getBody().getVariable(resultVariable).push(31).append(OpCodes.IMUL).append(typeHashCode(compilerContext,type,block,compilerContext.getVariable("position"))).append(OpCodes.IADD).putVariable(resultVariable);
+  }
+  hashPositionMethod.getBody().getVariable(resultVariable).retInt();
+}

@@ -1,12 +1,15 @@
 {
-  Block constructor=classDefinition.declareConstructor(new CompilerContext(bootstrapMethod),a(PUBLIC),arg("channels",type(List.class,type(List.class,com.facebook.presto.spi.block.Block.class)))).getBody().comment("super();").pushThis().invokeConstructor(Object.class);
+  CompilerContext compilerContext=new CompilerContext(BOOTSTRAP_METHOD);
+  Block constructor=classDefinition.declareConstructor(compilerContext,a(PUBLIC),arg("channels",type(List.class,type(List.class,com.facebook.presto.spi.block.Block.class)))).getBody().comment("super();").pushThis().invokeConstructor(Object.class);
   constructor.comment("Set channel fields");
   for (int index=0; index < channelFields.size(); index++) {
-    constructor.pushThis().getVariable("channels").push(index).invokeInterface(List.class,"get",Object.class,int.class).checkCast(type(List.class,com.facebook.presto.spi.block.Block.class)).putField(channelFields.get(index));
+    ByteCodeExpression channel=compilerContext.getVariable("channels").invoke("get",Object.class,constantInt(index)).cast(type(List.class,com.facebook.presto.spi.block.Block.class));
+    constructor.append(compilerContext.getVariable("this").setField(channelFields.get(index),channel));
   }
   constructor.comment("Set join channel fields");
   for (int index=0; index < joinChannelFields.size(); index++) {
-    constructor.pushThis().getVariable("channels").push(joinChannels.get(index)).invokeInterface(List.class,"get",Object.class,int.class).checkCast(type(List.class,com.facebook.presto.spi.block.Block.class)).putField(joinChannelFields.get(index));
+    ByteCodeExpression joinChannel=compilerContext.getVariable("channels").invoke("get",Object.class,constantInt(joinChannels.get(index))).cast(type(List.class,com.facebook.presto.spi.block.Block.class));
+    constructor.append(compilerContext.getVariable("this").setField(joinChannelFields.get(index),joinChannel));
   }
   constructor.ret();
 }

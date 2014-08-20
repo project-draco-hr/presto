@@ -1,0 +1,11 @@
+{
+  CompilerContext compilerContext=new CompilerContext(BOOTSTRAP_METHOD);
+  Block appendToBody=classDefinition.declareMethod(compilerContext,a(PUBLIC),"appendTo",type(void.class),arg("blockIndex",int.class),arg("blockPosition",int.class),arg("pageBuilder",PageBuilder.class),arg("outputChannelOffset",int.class)).getBody();
+  for (int index=0; index < channelFields.size(); index++) {
+    Type type=types.get(index);
+    ByteCodeExpression typeExpression=constantType(compilerContext,callSiteBinder,type);
+    ByteCodeExpression block=compilerContext.getVariable("this").getField(channelFields.get(index)).invoke("get",Object.class,compilerContext.getVariable("blockIndex")).cast(com.facebook.presto.spi.block.Block.class);
+    appendToBody.comment("%s.appendTo(channel_%s.get(blockIndex), blockPosition, pageBuilder.getBlockBuilder(outputChannelOffset + %s));",type.getClass(),index,index).append(typeExpression).append(block).getVariable("blockPosition").getVariable("pageBuilder").getVariable("outputChannelOffset").push(index).append(OpCodes.IADD).invokeVirtual(PageBuilder.class,"getBlockBuilder",BlockBuilder.class,int.class).invokeVirtual(type.getClass(),"appendTo",void.class,com.facebook.presto.spi.block.Block.class,int.class,BlockBuilder.class);
+  }
+  appendToBody.ret();
+}
