@@ -1,17 +1,21 @@
 {
   try {
     log.debug("Starting upload for host: %s, key: %s, file: %s, size: %s",host,key,tempFile,tempFile.length());
+    STATS.uploadStarted();
     Upload upload=transferManager.upload(host,key,tempFile);
     if (log.isDebugEnabled()) {
       upload.addProgressListener(createProgressListener(upload));
     }
     upload.waitForCompletion();
+    STATS.uploadSuccessful();
     log.debug("Completed upload for host: %s, key: %s",host,key);
   }
  catch (  AmazonClientException e) {
+    STATS.uploadFailed();
     throw new IOException(e);
   }
 catch (  InterruptedException e) {
+    STATS.uploadFailed();
     Thread.currentThread().interrupt();
     throw new InterruptedIOException();
   }
