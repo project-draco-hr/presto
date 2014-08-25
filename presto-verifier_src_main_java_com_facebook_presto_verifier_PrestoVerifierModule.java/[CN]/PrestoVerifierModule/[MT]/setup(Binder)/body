@@ -1,7 +1,9 @@
 {
   bindConfig(binder).to(VerifierConfig.class);
   eventBinder(binder).bindEventClient(VerifierQueryEvent.class);
-  String eventClientType=buildConfigObject(VerifierConfig.class).getEventClient();
-  Class<? extends EventClient> eventClientClass=getEventClientClass(eventClientType);
-  newSetBinder(binder,EventClient.class).addBinding().to(eventClientClass).in(Scopes.SINGLETON);
+  Multibinder<String> supportedClients=newSetBinder(binder,String.class,Names.named(PrestoVerifier.SUPPORTED_EVENT_CLIENTS));
+  supportedClients.addBinding().toInstance("human-readable");
+  supportedClients.addBinding().toInstance("file");
+  Set<String> eventClientTypes=buildConfigObject(VerifierConfig.class).getEventClients();
+  bindEventClientClasses(eventClientTypes,newSetBinder(binder,EventClient.class));
 }
