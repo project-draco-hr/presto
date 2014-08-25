@@ -1,0 +1,21 @@
+{
+  StringBuilder sql=new StringBuilder();
+  sql.append("SELECT ");
+  Joiner.on(", ").appendTo(sql,transform(columns,quoteColumn()));
+  if (columns.isEmpty()) {
+    sql.append("null");
+  }
+  sql.append(" FROM ");
+  if (!isNullOrEmpty(catalog)) {
+    sql.append(quote(catalog)).append('.');
+  }
+  if (!isNullOrEmpty(schema)) {
+    sql.append(quote(schema)).append('.');
+  }
+  sql.append(quote(table));
+  List<String> clauses=toConjuncts(columns,tupleDomain);
+  if (!clauses.isEmpty()) {
+    sql.append(" WHERE ").append(Joiner.on(" AND ").join(clauses));
+  }
+  return sql.toString();
+}

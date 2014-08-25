@@ -1,0 +1,14 @@
+{
+  DistributedQueryRunner queryRunner=new DistributedQueryRunner(createSession("tpch"),2);
+  queryRunner.installPlugin(new TpchPlugin());
+  queryRunner.createCatalog("tpch","tpch");
+  Map<String,String> properties=TestingH2JdbcModule.createProperties();
+  createSchema(properties,"tpch");
+  queryRunner.installPlugin(new JdbcPlugin("base-jdbc",new TestingH2JdbcModule()));
+  queryRunner.createCatalog("jdbc","base-jdbc",properties);
+  log.info("Loading data...");
+  long startTime=System.nanoTime();
+  copyAllTables(queryRunner,"tpch",TINY_SCHEMA_NAME,createSession("tpch"));
+  log.info("Loading complete in %s",nanosSince(startTime).toString(SECONDS));
+  return queryRunner;
+}

@@ -1,0 +1,29 @@
+{
+  try (Connection connection=driver.connect(connectionUrl,connectionProperties)){
+    DatabaseMetaData metadata=connection.getMetaData();
+    try (ResultSet resultSet=metadata.getColumns(tableHandle.getCatalogName(),tableHandle.getSchemaName(),tableHandle.getTableName(),null)){
+      List<JdbcColumnHandle> columns=new ArrayList<>();
+      boolean found=false;
+      int ordinalPosition=0;
+      while (resultSet.next()) {
+        found=true;
+        Type columnType=toPrestoType(resultSet.getInt("DATA_TYPE"));
+        if (columnType != null) {
+          String columnName=resultSet.getString("COLUMN_NAME");
+          columns.add(new JdbcColumnHandle(connectorId,columnName,columnType,ordinalPosition));
+          ordinalPosition++;
+        }
+      }
+      if (!found) {
+        throw new TableNotFoundException(tableHandle.getSchemaTableName());
+      }
+      if (columns.isEmpty()) {
+        throw new PrestoException(NOT_SUPPORTED.toErrorCode(),"Table has no supported column types: " + tableHandle.getSchemaTableName());
+      }
+      return ImmutableList.copyOf(columns);
+    }
+   }
+ catch (  SQLException e) {
+    throw Throwables.propagate(e);
+  }
+}

@@ -1,0 +1,14 @@
+{
+  this.columnHandles=ImmutableList.copyOf(checkNotNull(columnHandles,"columnHandles is null"));
+  String sql=jdbcClient.buildSql(split,columnHandles);
+  try {
+    connection=jdbcClient.getConnection(split);
+    statement=connection.createStatement();
+    statement.setFetchSize(1000);
+    log.debug("Executing: %s",sql);
+    resultSet=statement.executeQuery(sql);
+  }
+ catch (  SQLException e) {
+    throw handleSqlException(e);
+  }
+}

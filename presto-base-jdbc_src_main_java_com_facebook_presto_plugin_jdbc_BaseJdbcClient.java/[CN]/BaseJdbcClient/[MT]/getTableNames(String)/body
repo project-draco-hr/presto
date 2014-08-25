@@ -1,0 +1,18 @@
+{
+  try (Connection connection=driver.connect(connectionUrl,connectionProperties)){
+    DatabaseMetaData metadata=connection.getMetaData();
+    if (metadata.storesUpperCaseIdentifiers()) {
+      schema=schema.toUpperCase();
+    }
+    try (ResultSet resultSet=getTables(connection,schema,null)){
+      ImmutableSet.Builder<String> tableNames=ImmutableSet.builder();
+      while (resultSet.next()) {
+        tableNames.add(resultSet.getString("TABLE_NAME").toLowerCase());
+      }
+      return tableNames.build();
+    }
+   }
+ catch (  SQLException e) {
+    throw Throwables.propagate(e);
+  }
+}

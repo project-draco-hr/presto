@@ -1,0 +1,15 @@
+{
+  try (Connection connection=driver.connect(connectionUrl,connectionProperties);ResultSet resultSet=connection.getMetaData().getSchemas()){
+    ImmutableSet.Builder<String> schemaNames=ImmutableSet.builder();
+    while (resultSet.next()) {
+      String schemaName=resultSet.getString("TABLE_SCHEM").toLowerCase();
+      if (!schemaName.equals("information_schema")) {
+        schemaNames.add(schemaName);
+      }
+    }
+    return schemaNames.build();
+  }
+ catch (  SQLException e) {
+    throw Throwables.propagate(e);
+  }
+}

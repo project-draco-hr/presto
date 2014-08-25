@@ -1,0 +1,16 @@
+{
+  checkState(!closed,"cursor is closed");
+  try {
+    Type type=getType(field);
+    if (type.equals(VarcharType.VARCHAR)) {
+      return utf8Slice(resultSet.getString(field + 1));
+    }
+    if (type.equals(VarbinaryType.VARBINARY)) {
+      return wrappedBuffer(resultSet.getBytes(field + 1));
+    }
+    throw new PrestoException(INTERNAL_ERROR.toErrorCode(),"Unhandled type for slice: " + type.getName());
+  }
+ catch (  SQLException e) {
+    throw handleSqlException(e);
+  }
+}

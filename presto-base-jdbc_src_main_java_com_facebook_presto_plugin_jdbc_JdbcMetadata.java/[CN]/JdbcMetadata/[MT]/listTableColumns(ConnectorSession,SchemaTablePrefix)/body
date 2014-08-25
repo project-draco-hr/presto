@@ -1,0 +1,15 @@
+{
+  ImmutableMap.Builder<SchemaTableName,List<ColumnMetadata>> columns=ImmutableMap.builder();
+  for (  SchemaTableName tableName : listTables(session,prefix.getSchemaName())) {
+    try {
+      JdbcTableHandle tableHandle=jdbcClient.getTableHandle(tableName);
+      if (tableHandle == null) {
+        continue;
+      }
+      columns.put(tableName,getTableMetadata(tableHandle).getColumns());
+    }
+ catch (    TableNotFoundException e) {
+    }
+  }
+  return columns.build();
+}

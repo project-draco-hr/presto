@@ -1,0 +1,14 @@
+{
+  RecordSet recordSet=new JdbcRecordSet(jdbcClient,split,ImmutableList.of(columnHandles.get("value"),columnHandles.get("value"),columnHandles.get("text")));
+  try (RecordCursor cursor=recordSet.cursor()){
+    assertEquals(cursor.getType(0),BIGINT);
+    assertEquals(cursor.getType(1),BIGINT);
+    assertEquals(cursor.getType(2),VARCHAR);
+    Map<String,Long> data=new LinkedHashMap<>();
+    while (cursor.advanceNextPosition()) {
+      assertEquals(cursor.getLong(0),cursor.getLong(1));
+      data.put(cursor.getSlice(2).toStringUtf8(),cursor.getLong(0));
+    }
+    assertEquals(data,ImmutableMap.<String,Long>builder().put("one",1L).put("two",2L).put("three",3L).put("ten",10L).put("eleven",11L).put("twelve",12L).build());
+  }
+ }

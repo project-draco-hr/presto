@@ -1,0 +1,27 @@
+{
+  try (Connection connection=driver.connect(connectionUrl,connectionProperties)){
+    DatabaseMetaData metadata=connection.getMetaData();
+    String jdbcSchemaName=schemaTableName.getSchemaName();
+    String jdbcTableName=schemaTableName.getTableName();
+    if (metadata.storesUpperCaseIdentifiers()) {
+      jdbcSchemaName=jdbcSchemaName.toUpperCase();
+      jdbcTableName=jdbcTableName.toUpperCase();
+    }
+    try (ResultSet resultSet=getTables(connection,jdbcSchemaName,jdbcTableName)){
+      List<JdbcTableHandle> tableHandles=new ArrayList<>();
+      while (resultSet.next()) {
+        tableHandles.add(new JdbcTableHandle(connectorId,schemaTableName,resultSet.getString("TABLE_CAT"),resultSet.getString("TABLE_SCHEM"),resultSet.getString("TABLE_NAME")));
+      }
+      if (tableHandles.isEmpty()) {
+        return null;
+      }
+      if (tableHandles.size() > 1) {
+        throw new PrestoException(NOT_SUPPORTED.toErrorCode(),"Multiple tables matched: " + schemaTableName);
+      }
+      return getOnlyElement(tableHandles);
+    }
+   }
+ catch (  SQLException e) {
+    throw Throwables.propagate(e);
+  }
+}

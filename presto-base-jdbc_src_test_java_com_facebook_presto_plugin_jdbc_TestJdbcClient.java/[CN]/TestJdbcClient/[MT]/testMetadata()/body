@@ -1,0 +1,13 @@
+{
+  assertTrue(jdbcClient.getSchemaNames().containsAll(ImmutableSet.of("example","tpch")));
+  assertEquals(jdbcClient.getTableNames("example"),ImmutableSet.of("numbers"));
+  assertEquals(jdbcClient.getTableNames("tpch"),ImmutableSet.of("orders","lineitem"));
+  SchemaTableName schemaTableName=new SchemaTableName("example","numbers");
+  JdbcTableHandle table=jdbcClient.getTableHandle(schemaTableName);
+  assertNotNull(table,"table is null");
+  assertEquals(table.getCatalogName(),catalogName.toUpperCase());
+  assertEquals(table.getSchemaName(),"EXAMPLE");
+  assertEquals(table.getTableName(),"NUMBERS");
+  assertEquals(table.getSchemaTableName(),schemaTableName);
+  assertEquals(jdbcClient.getColumns(table),ImmutableList.of(new JdbcColumnHandle(CONNECTOR_ID,"TEXT",VARCHAR,0),new JdbcColumnHandle(CONNECTOR_ID,"VALUE",BIGINT,1)));
+}

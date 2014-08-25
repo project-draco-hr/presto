@@ -1,0 +1,10 @@
+{
+  JdbcTableHandle tableHandle=jdbcClient.getTableHandle(new SchemaTableName(schemaName,tableName));
+  List<JdbcColumnHandle> columns=jdbcClient.getColumns(tableHandle);
+  checkArgument(columns != null,"table not found: %s.%s",schemaName,tableName);
+  ImmutableMap.Builder<String,JdbcColumnHandle> columnHandles=ImmutableMap.builder();
+  for (  JdbcColumnHandle column : columns) {
+    columnHandles.put(column.getColumnMetadata().getName(),column);
+  }
+  return columnHandles.build();
+}
