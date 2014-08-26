@@ -1,0 +1,19 @@
+{
+  try (TestingPostgreSqlServer server=new TestingPostgreSqlServer("testuser","testdb")){
+    assertEquals(server.getUser(),"testuser");
+    assertEquals(server.getDatabase(),"testdb");
+    assertEquals(server.getJdbcUrl().substring(0,5),"jdbc:");
+    assertEquals(server.getPort(),URI.create(server.getJdbcUrl().substring(5)).getPort());
+    try (Connection connection=DriverManager.getConnection(server.getJdbcUrl())){
+      try (Statement statement=connection.createStatement()){
+        statement.execute("CREATE TABLE test_table (c1 bigint PRIMARY KEY)");
+        statement.execute("INSERT INTO test_table (c1) VALUES (1)");
+        try (ResultSet resultSet=statement.executeQuery("SELECT count(*) FROM test_table")){
+          assertTrue(resultSet.next());
+          assertEquals(resultSet.getLong(1),1L);
+          assertFalse(resultSet.next());
+        }
+       }
+     }
+   }
+ }
