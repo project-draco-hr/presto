@@ -1,0 +1,22 @@
+{
+  queueSize.decrementAndGet();
+  final SettableFuture<?> settableFuture=SettableFuture.create();
+  queryExecution.addStateChangeListener(new StateChangeListener<QueryState>(){
+    @Override public void stateChanged(    QueryState newValue){
+      if (newValue.isDone()) {
+        settableFuture.set(null);
+      }
+    }
+  }
+);
+  queryExecutor.execute(new Runnable(){
+    @Override public void run(){
+      try (SetThreadName setThreadName=new SetThreadName("Query-%s",queryExecution.getQueryInfo().getQueryId())){
+        stats.queryStarted();
+        queryExecution.start();
+      }
+     }
+  }
+);
+  return settableFuture;
+}
