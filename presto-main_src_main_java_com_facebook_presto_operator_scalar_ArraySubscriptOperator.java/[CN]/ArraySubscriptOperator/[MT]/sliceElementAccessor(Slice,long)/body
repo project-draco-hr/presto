@@ -1,0 +1,16 @@
+{
+  checkCondition(index > 0,StandardErrorCode.INVALID_FUNCTION_ARGUMENT,"Array index must be greater than zero. Got %d",index);
+  try (JsonParser jsonParser=JSON_FACTORY.createJsonParser(array.getInput())){
+    checkState(jsonParser.nextToken() == START_ARRAY,"Expected start of array in input: \"%s\"",array.toStringUtf8());
+    jsonParser.nextToken();
+    seekTo(jsonParser,index);
+    String stringValue=jsonParser.getValueAsString();
+    if (stringValue == null) {
+      return null;
+    }
+    return Slices.utf8Slice(stringValue);
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+}

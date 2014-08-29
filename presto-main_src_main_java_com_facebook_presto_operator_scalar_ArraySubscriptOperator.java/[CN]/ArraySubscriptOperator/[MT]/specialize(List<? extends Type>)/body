@@ -1,0 +1,10 @@
+{
+  checkArgument(types.size() == 2,"Expected two types, got %s",types);
+  checkArgument(types.get(0) instanceof ArrayType,"Expected an array type as the first type");
+  checkArgument(types.get(1) instanceof BigintType,"Expected bigint type as second type");
+  ArrayType arrayType=(ArrayType)types.get(0);
+  Type elementType=arrayType.getElementType();
+  MethodHandle methodHandle=METHOD_HANDLES.get(elementType.getJavaType());
+  checkNotNull(methodHandle,"methodHandle is null");
+  return new FunctionInfo(Signature.internalOperator(SUBSCRIPT.name(),elementType.getName(),arrayType.getName(),StandardTypes.BIGINT),"Array subscript",true,methodHandle,true,true,ImmutableList.of(false,false));
+}

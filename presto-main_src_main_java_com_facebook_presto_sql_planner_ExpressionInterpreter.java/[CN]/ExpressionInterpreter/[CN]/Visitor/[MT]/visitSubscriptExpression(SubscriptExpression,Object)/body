@@ -1,0 +1,14 @@
+{
+  Object base=process(node.getBase(),context);
+  if (base == null) {
+    return null;
+  }
+  Object index=process(node.getIndex(),context);
+  if (index == null) {
+    return null;
+  }
+  if (hasUnresolvedValue(base,index)) {
+    return new SubscriptExpression(toExpression(base,expressionTypes.get(node.getBase())),toExpression(index,expressionTypes.get(node.getIndex())));
+  }
+  return invokeOperator(OperatorType.SUBSCRIPT,types(node.getBase(),node.getIndex()),ImmutableList.of(base,index));
+}

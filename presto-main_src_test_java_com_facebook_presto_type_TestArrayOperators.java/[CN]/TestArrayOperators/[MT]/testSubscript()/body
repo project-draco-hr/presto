@@ -1,0 +1,38 @@
+{
+  try {
+    assertFunction("ARRAY [1, 2, 3][0]",null);
+    fail("Access to array element zero should fail");
+  }
+ catch (  PrestoException e) {
+  }
+  try {
+    assertFunction("ARRAY [1, 2, 3][-1]",null);
+    fail("Access to negative array element should fail");
+  }
+ catch (  PrestoException e) {
+  }
+  try {
+    assertFunction("ARRAY [1, 2, 3][4]",null);
+    fail("Access to out of bounds array element should fail");
+  }
+ catch (  PrestoException e) {
+  }
+  try {
+    assertFunction("ARRAY [1, 2, 3][1.1]",null);
+    fail("Access to array with double subscript should fail");
+  }
+ catch (  SemanticException e) {
+    assertTrue(e.getCode() == SemanticErrorCode.TYPE_MISMATCH);
+  }
+  assertFunction("1 + ARRAY [2, 1, 3][2]",2);
+  assertFunction("ARRAY [2, 1, 3][2]",1);
+  assertFunction("ARRAY [2, NULL, 3][2]",null);
+  assertFunction("ARRAY [1.0, 2.5, 3.5][3]",3.5);
+  assertFunction("ARRAY [ARRAY[1, 2], ARRAY[3]][2]",ImmutableList.of(3L));
+  assertFunction("ARRAY [ARRAY[1, 2], NULL, ARRAY[3]][2]",null);
+  assertFunction("ARRAY [ARRAY[1, 2], ARRAY[3]][2][1]",3);
+  assertFunction("ARRAY ['puppies', 'kittens'][2]","kittens");
+  assertFunction("ARRAY ['puppies', 'kittens', NULL][3]",null);
+  assertFunction("ARRAY [TRUE, FALSE][2]",false);
+  assertFunction("ARRAY [from_unixtime(1), from_unixtime(100)][1]",new SqlTimestamp(1000,FunctionAssertions.SESSION.getTimeZoneKey()));
+}

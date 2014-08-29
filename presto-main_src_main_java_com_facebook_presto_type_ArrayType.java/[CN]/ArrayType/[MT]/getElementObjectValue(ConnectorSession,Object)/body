@@ -1,0 +1,23 @@
+{
+  if (value == null) {
+    return null;
+  }
+  if (getElementType() instanceof ArrayType) {
+    ArrayType arrayType=checkType(getElementType(),ArrayType.class,"elementType");
+    return arrayType.fromStackRepresentation(session,checkType(value,String.class,"value"));
+  }
+  BlockBuilder blockBuilder=getElementType().createBlockBuilder(new BlockBuilderStatus());
+  if (getElementType().getJavaType() == boolean.class) {
+    getElementType().writeBoolean(blockBuilder,checkType(value,Boolean.class,"value"));
+  }
+ else   if (getElementType().getJavaType() == long.class) {
+    getElementType().writeLong(blockBuilder,checkType(value,Long.class,"value"));
+  }
+ else   if (getElementType().getJavaType() == double.class) {
+    getElementType().writeDouble(blockBuilder,checkType(value,Double.class,"value"));
+  }
+ else   if (getElementType().getJavaType() == Slice.class) {
+    getElementType().writeSlice(blockBuilder,checkType(value,Slice.class,"value"));
+  }
+  return getElementType().getObjectValue(session,blockBuilder.build(),0);
+}

@@ -1,0 +1,37 @@
+{
+  Class<?> elementJsonType;
+  if (getElementType().getJavaType() == boolean.class) {
+    elementJsonType=Boolean.class;
+  }
+ else   if (getElementType().getJavaType() == long.class) {
+    elementJsonType=Long.class;
+  }
+ else   if (getElementType().getJavaType() == double.class) {
+    elementJsonType=Double.class;
+  }
+ else   if (getElementType().getJavaType() == Slice.class) {
+    elementJsonType=String.class;
+  }
+ else   if (getElementType().getJavaType() == void.class) {
+    elementJsonType=Void.class;
+  }
+ else {
+    throw new UnsupportedOperationException(format("Unsupported stack type: %s",getElementType().getJavaType()));
+  }
+  JavaType listType=OBJECT_MAPPER.getTypeFactory().constructParametricType(List.class,elementJsonType);
+  List<Object> jsonElements;
+  try {
+    jsonElements=OBJECT_MAPPER.readValue(stackRepresentation,listType);
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+  if (PASSTHROUGH_TYPES.contains(getElementType())) {
+    return jsonElements;
+  }
+  List<Object> objectElements=new ArrayList<>();
+  for (  Object value : jsonElements) {
+    objectElements.add(getElementObjectValue(session,value));
+  }
+  return objectElements;
+}
