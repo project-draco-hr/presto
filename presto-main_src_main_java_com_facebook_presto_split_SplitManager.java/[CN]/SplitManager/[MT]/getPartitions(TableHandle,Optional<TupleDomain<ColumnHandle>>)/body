@@ -1,4 +1,11 @@
 {
-  ConnectorPartitionResult result=getConnectorSplitManager(table).getPartitions(table.getConnectorHandle(),toConnectorDomain(tupleDomain.or(TupleDomain.<ColumnHandle>all())));
+  TupleDomain<ColumnHandle> domain=tupleDomain.or(TupleDomain.<ColumnHandle>all());
+  ConnectorPartitionResult result;
+  if (domain.isNone()) {
+    result=new ConnectorPartitionResult(ImmutableList.<ConnectorPartition>of(),toConnectorDomain(domain));
+  }
+ else {
+    result=getConnectorSplitManager(table).getPartitions(table.getConnectorHandle(),toConnectorDomain(domain));
+  }
   return new PartitionResult(table.getConnectorId(),result);
 }
