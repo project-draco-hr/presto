@@ -1,15 +1,15 @@
 {
   try (Connection connection=driver.connect(connectionUrl,connectionProperties)){
     DatabaseMetaData metadata=connection.getMetaData();
-    if (metadata.storesUpperCaseIdentifiers()) {
+    if (metadata.storesUpperCaseIdentifiers() && (schema != null)) {
       schema=schema.toUpperCase();
     }
     try (ResultSet resultSet=getTables(connection,schema,null)){
-      ImmutableSet.Builder<String> tableNames=ImmutableSet.builder();
+      ImmutableList.Builder<SchemaTableName> list=ImmutableList.builder();
       while (resultSet.next()) {
-        tableNames.add(resultSet.getString("TABLE_NAME").toLowerCase());
+        list.add(getSchemaTableName(resultSet));
       }
-      return tableNames.build();
+      return list.build();
     }
    }
  catch (  SQLException e) {
