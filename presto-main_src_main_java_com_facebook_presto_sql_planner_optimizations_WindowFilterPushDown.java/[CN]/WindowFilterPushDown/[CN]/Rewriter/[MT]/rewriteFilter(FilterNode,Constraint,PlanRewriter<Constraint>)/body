@@ -1,0 +1,10 @@
+{
+  PlanNode rewrittenSource=planRewriter.rewrite(node.getSource(),new Constraint(Optional.<Integer>absent(),Optional.of(node.getPredicate())));
+  if (rewrittenSource != node.getSource()) {
+    if (rewrittenSource instanceof TopNRowNumberNode) {
+      return rewrittenSource;
+    }
+    return new FilterNode(idAllocator.getNextId(),rewrittenSource,node.getPredicate());
+  }
+  return planRewriter.defaultRewrite(node,null);
+}

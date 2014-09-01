@@ -1,0 +1,10 @@
+{
+  BlockBuilder rowNumberBlock=BIGINT.createFixedSizeBlockBuilder(inputPage.getPositionCount());
+  for (int currentPosition=0; currentPosition < inputPage.getPositionCount(); currentPosition++) {
+    long partitionId=getPartitionId(currentPosition);
+    long nextRowCount=partitionRowCount.get(partitionId) + 1;
+    BIGINT.writeLong(rowNumberBlock,nextRowCount);
+    partitionRowCount.set(partitionId,nextRowCount);
+  }
+  return rowNumberBlock.build();
+}

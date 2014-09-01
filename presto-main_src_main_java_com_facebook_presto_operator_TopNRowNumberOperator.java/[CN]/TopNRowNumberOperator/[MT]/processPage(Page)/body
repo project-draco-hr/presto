@@ -1,11 +1,17 @@
 {
-  long groupByHashSize=groupByHash.getEstimatedSize();
-  GroupByIdBlock partitionIds=groupByHash.getGroupIds(page);
-  memoryManager.canUseDelta(groupByHash.getEstimatedSize() - groupByHashSize);
+  Optional<GroupByIdBlock> partitionIds=Optional.absent();
+  if (groupByHash.isPresent()) {
+    GroupByHash hash=groupByHash.get();
+    long groupByHashSize=hash.getEstimatedSize();
+    partitionIds=Optional.of(hash.getGroupIds(page));
+    if (!memoryManager.canUseDelta(hash.getEstimatedSize() - groupByHashSize)) {
+      throw new ExceededMemoryLimitException(memoryManager.getMaxMemorySize());
+    }
+  }
   long sizeDelta=0;
   Block[] blocks=page.getBlocks();
   for (int position=0; position < page.getPositionCount(); position++) {
-    long partitionId=partitionIds.getGroupId(position);
+    long partitionId=groupByHash.isPresent() ? partitionIds.get().getGroupId(position) : 0;
     if (!partitionRows.containsKey(partitionId)) {
       partitionRows.put(partitionId,new PartitionBuilder(sortTypes,sortChannels,sortOrders,maxRowCountPerPartition));
     }

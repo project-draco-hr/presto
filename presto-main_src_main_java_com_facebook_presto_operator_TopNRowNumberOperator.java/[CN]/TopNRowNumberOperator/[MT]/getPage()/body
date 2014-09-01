@@ -14,7 +14,9 @@
         Type type=types.get(channel);
         type.appendTo(next[channel],0,pageBuilder.getBlockBuilder(i));
       }
-      BIGINT.writeLong(pageBuilder.getBlockBuilder(outputChannels.length),currentFlushingPartition.getRowNumber());
+      if (generateRowNumber) {
+        BIGINT.writeLong(pageBuilder.getBlockBuilder(outputChannels.length),currentFlushingPartition.getRowNumber());
+      }
     }
     if (!currentFlushingPartition.hasNext()) {
       flushingPartition=getFlushingPartition();

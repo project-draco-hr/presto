@@ -1,0 +1,22 @@
+{
+  PageBuilder pageBuilder=new PageBuilder(types);
+  int rowNumberChannel=types.size() - 1;
+  for (int currentPosition=0; currentPosition < inputPage.getPositionCount(); currentPosition++) {
+    long partitionId=getPartitionId(currentPosition);
+    long rowCount=partitionRowCount.get(partitionId);
+    if (rowCount == maxRowsPerPartition.get()) {
+      continue;
+    }
+    for (int i=0; i < outputChannels.length; i++) {
+      int channel=outputChannels[i];
+      Type type=types.get(channel);
+      type.appendTo(inputPage.getBlock(channel),currentPosition,pageBuilder.getBlockBuilder(i));
+    }
+    BIGINT.writeLong(pageBuilder.getBlockBuilder(rowNumberChannel),rowCount + 1);
+    partitionRowCount.set(partitionId,rowCount + 1);
+  }
+  if (pageBuilder.isEmpty()) {
+    return null;
+  }
+  return pageBuilder.build();
+}

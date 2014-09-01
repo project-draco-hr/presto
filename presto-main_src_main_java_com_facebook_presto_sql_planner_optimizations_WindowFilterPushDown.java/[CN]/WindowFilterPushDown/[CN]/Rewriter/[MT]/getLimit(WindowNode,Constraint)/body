@@ -1,0 +1,13 @@
+{
+  if (filter == null || (!filter.getLimit().isPresent() && !filter.getFilterExpression().isPresent())) {
+    return Optional.absent();
+  }
+  if (filter.getLimit().isPresent()) {
+    return filter.getLimit();
+  }
+  if (filterContainsWindowFunctions(node,filter.getFilterExpression().get())) {
+    Symbol rowNumberSymbol=Iterables.getOnlyElement(node.getWindowFunctions().entrySet()).getKey();
+    return WindowLimitExtractor.extract(filter.getFilterExpression().get(),rowNumberSymbol);
+  }
+  return Optional.absent();
+}
