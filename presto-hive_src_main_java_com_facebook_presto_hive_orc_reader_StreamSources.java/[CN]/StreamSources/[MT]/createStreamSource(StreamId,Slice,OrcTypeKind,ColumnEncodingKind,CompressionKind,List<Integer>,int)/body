@@ -1,0 +1,66 @@
+{
+  int inputStreamInitialOffset=0;
+  if (!offsetPositions.isEmpty()) {
+    int sliceOffset=Ints.checkedCast(offsetPositions.get(0));
+    slice=slice.slice(sliceOffset,slice.length() - sliceOffset);
+    offsetPositions=offsetPositions.subList(1,offsetPositions.size());
+  }
+  if (!offsetPositions.isEmpty() & compressionKind != UNCOMPRESSED) {
+    inputStreamInitialOffset=Ints.checkedCast(offsetPositions.get(0));
+    offsetPositions=offsetPositions.subList(1,offsetPositions.size());
+  }
+  ByteSource byteSource=new OrcByteSource(slice,compressionKind,bufferSize,inputStreamInitialOffset);
+  if (streamId.getStreamKind() == PRESENT) {
+    return new BooleanStreamSource(byteSource,Ints.checkedCast(offsetPositions.get(0) * 8 + offsetPositions.get(1)));
+  }
+  if (streamId.getStreamKind() == DICTIONARY_DATA) {
+    return new ByteArrayStreamSource(byteSource);
+  }
+  if (streamId.getStreamKind() == LENGTH && (encoding == DICTIONARY || encoding == DICTIONARY_V2)) {
+    return new LongStreamSource(byteSource,encoding,false,0);
+  }
+  if (streamId.getStreamKind() == DATA) {
+switch (type) {
+case BOOLEAN:
+      return new BooleanStreamSource(byteSource,Ints.checkedCast(offsetPositions.get(0) * 8 + offsetPositions.get(1)));
+case BYTE:
+    return new ByteStreamSource(byteSource,Ints.checkedCast(offsetPositions.get(0)));
+case SHORT:
+case INT:
+case LONG:
+  return new LongStreamSource(byteSource,encoding,true,Ints.checkedCast(offsetPositions.get(0)));
+case FLOAT:
+return new FloatStreamSource(byteSource,0);
+case DOUBLE:
+return new DoubleStreamSource(byteSource,0);
+case DATE:
+return new LongStreamSource(byteSource,encoding,true,Ints.checkedCast(offsetPositions.get(0)));
+case STRING:
+case BINARY:
+if (encoding == DIRECT || encoding == DIRECT_V2) {
+return new ByteArrayStreamSource(byteSource);
+}
+ else if (encoding == DICTIONARY || encoding == DICTIONARY_V2) {
+return new LongStreamSource(byteSource,encoding,false,Ints.checkedCast(offsetPositions.get(0)));
+}
+ else {
+throw new IllegalArgumentException("Unsupported encoding " + encoding);
+}
+case TIMESTAMP:
+return new LongStreamSource(byteSource,encoding,true,Ints.checkedCast(offsetPositions.get(0)));
+}
+}
+if (streamId.getStreamKind() == LENGTH) {
+switch (type) {
+case STRING:
+case BINARY:
+case MAP:
+case LIST:
+return new LongStreamSource(byteSource,encoding,false,Ints.checkedCast(offsetPositions.get(0)));
+}
+}
+if (type == OrcTypeKind.TIMESTAMP && streamId.getStreamKind() == SECONDARY) {
+return new LongStreamSource(byteSource,encoding,false,Ints.checkedCast(offsetPositions.get(0)));
+}
+throw new IllegalArgumentException("Unsupported column type " + type + " for stream "+ streamId);
+}

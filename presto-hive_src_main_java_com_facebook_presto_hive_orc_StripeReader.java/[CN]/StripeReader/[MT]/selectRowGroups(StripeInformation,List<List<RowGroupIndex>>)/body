@@ -1,0 +1,15 @@
+{
+  int rowsInStripe=Ints.checkedCast(stripe.getNumberOfRows());
+  int groupsInStripe=ceil(rowsInStripe,rowsInRowGroup);
+  ImmutableSet.Builder<Integer> selectedRowGroups=ImmutableSet.builder();
+  int remainingRows=rowsInStripe;
+  for (int rowGroup=0; rowGroup < groupsInStripe; ++rowGroup) {
+    int rows=Math.min(remainingRows,rowsInRowGroup);
+    TupleDomain<HiveColumnHandle> rowGroupTupleDomain=OrcDomainExtractor.extractDomain(typeManager,columnHandleStreamIndex,columnIndexes,rowGroup,rows);
+    if (tupleDomain.overlaps(rowGroupTupleDomain)) {
+      selectedRowGroups.add(rowGroup);
+    }
+    remainingRows-=rows;
+  }
+  return selectedRowGroups.build();
+}

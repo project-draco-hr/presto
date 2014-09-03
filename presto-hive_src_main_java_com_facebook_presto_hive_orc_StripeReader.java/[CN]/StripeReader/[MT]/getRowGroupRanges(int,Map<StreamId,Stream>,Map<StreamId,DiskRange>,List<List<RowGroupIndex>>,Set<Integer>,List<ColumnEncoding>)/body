@@ -1,0 +1,29 @@
+{
+  Set<Integer> columnsWithNulls=new HashSet<>();
+  for (  Stream stream : streams.values()) {
+    if (stream.getStreamKind() == PRESENT) {
+      columnsWithNulls.add(stream.getColumn());
+    }
+  }
+  ImmutableList.Builder<RowGroupLayout> rowGroupLayouts=ImmutableList.builder();
+  for (  Integer rowGroupId : selectedRowGroups) {
+    ImmutableList.Builder<StreamLayout> streamLayouts=ImmutableList.builder();
+    for (    Entry<StreamId,Stream> entry : streams.entrySet()) {
+      StreamId streamId=entry.getKey();
+      Stream stream=entry.getValue();
+      int column=stream.getColumn();
+      ColumnEncoding encoding=encodings.get(column);
+      if (isIndexStream(stream) || isDictionary(stream,encoding)) {
+        continue;
+      }
+      boolean hasNulls=columnsWithNulls.contains(column);
+      DiskRange diskRange=getRowGroupStreamDiskRange(columnIndexes.get(column),diskRanges.get(streamId),hasNulls,rowGroupId,streamId,encoding.getColumnEncodingKind());
+      List<Long> offsetPositions=getOffsetPositions(streamId,encoding.getColumnEncodingKind(),hasNulls,columnIndexes.get(column).get(rowGroupId).getPositions());
+      StreamLayout streamLayout=new StreamLayout(streamId,rowGroupId,types.get(column).getOrcTypeKind(),encoding.getColumnEncodingKind(),compressionKind,diskRange,checkedCastToInteger(offsetPositions));
+      streamLayouts.add(streamLayout);
+    }
+    int rowsInGroup=Math.min(rowsInStripe - (rowGroupId * rowsInRowGroup),rowsInRowGroup);
+    rowGroupLayouts.add(new RowGroupLayout(rowGroupId,rowsInGroup,streamLayouts.build()));
+  }
+  return rowGroupLayouts.build();
+}

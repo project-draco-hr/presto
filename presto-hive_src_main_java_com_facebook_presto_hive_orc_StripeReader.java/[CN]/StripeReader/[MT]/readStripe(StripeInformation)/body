@@ -1,21 +1,21 @@
 {
   StripeFooter stripeFooter=readStripeFooter(stripe);
   Map<StreamId,Stream> streams=new HashMap<>();
-  for (  Stream stream : stripeFooter.getStreamsList()) {
+  for (  Stream stream : stripeFooter.getStreams()) {
     if (includedColumns[stream.getColumn()]) {
       streams.put(new StreamId(stream),stream);
     }
   }
-  Map<StreamId,DiskRange> diskRanges=getDiskRanges(stripeFooter.getStreamsList());
+  Map<StreamId,DiskRange> diskRanges=getDiskRanges(stripeFooter.getStreams());
   diskRanges=Maps.filterKeys(diskRanges,Predicates.in(streams.keySet()));
   Map<StreamId,Slice> streamsData=readDiskRanges(stripe.getOffset(),diskRanges);
-  List<RowIndex> indexes=readRowIndex(streams,streamsData);
-  Set<Integer> selectedRowGroups=selectRowGroups(stripe,indexes);
+  List<List<RowGroupIndex>> columnIndexes=readColumnIndexes(streams,streamsData);
+  Set<Integer> selectedRowGroups=selectRowGroups(stripe,columnIndexes);
   if (selectedRowGroups.isEmpty()) {
     return null;
   }
-  List<StreamLayout> dictionaryStreamLayouts=getDictionaryStreams(streams,diskRanges,stripeFooter.getColumnsList());
-  List<RowGroupLayout> rowGroupLayouts=getRowGroupRanges(Ints.checkedCast(stripe.getNumberOfRows()),streams,diskRanges,indexes,selectedRowGroups,stripeFooter.getColumnsList());
+  List<StreamLayout> dictionaryStreamLayouts=getDictionaryStreams(streams,diskRanges,stripeFooter.getColumnEncodings());
+  List<RowGroupLayout> rowGroupLayouts=getRowGroupRanges(stripe.getNumberOfRows(),streams,diskRanges,columnIndexes,selectedRowGroups,stripeFooter.getColumnEncodings());
   rowGroupLayouts=RowGroupLayout.mergeAdjacentRowGroups(rowGroupLayouts);
   ImmutableMap.Builder<StreamId,StreamSource<?>> dictionaryStreamBuilder=ImmutableMap.builder();
   for (  StreamLayout dictionaryStreamLayout : dictionaryStreamLayouts) {
@@ -30,5 +30,5 @@
   for (  RowGroupLayout rowGroupLayout : rowGroupLayouts) {
     rowGroupBuilder.add(rowGroupLayout.createRowGroup(streamsData,bufferSize));
   }
-  return new Stripe(stripe.getNumberOfRows(),stripeFooter.getColumnsList(),rowGroupBuilder.build(),dictionaryStreamSources);
+  return new Stripe(stripe.getNumberOfRows(),stripeFooter.getColumnEncodings(),rowGroupBuilder.build(),dictionaryStreamSources);
 }
