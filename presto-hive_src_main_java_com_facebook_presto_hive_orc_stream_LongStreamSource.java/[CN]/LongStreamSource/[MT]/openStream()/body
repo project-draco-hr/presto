@@ -3,8 +3,14 @@
   if (encoding == DIRECT_V2 || encoding == DICTIONARY_V2) {
     integerStream=new LongStreamV2(byteSource.openStream(),signed,false);
   }
- else {
+ else   if (encoding == DIRECT || encoding == DICTIONARY) {
     integerStream=new LongStreamV1(byteSource.openStream(),signed);
+  }
+ else   if (encoding == DWRF_DIRECT) {
+    integerStream=new LongStreamDwrf(byteSource.openStream(),orcTypeKind,signed,usesVInt);
+  }
+ else {
+    throw new IllegalArgumentException("Unsupported encoding for long stream: " + encoding);
   }
   if (valueSkipSize > 0) {
     integerStream.skip(valueSkipSize);

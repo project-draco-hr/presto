@@ -6,24 +6,10 @@
       dictionaryLength=new int[dictionarySize];
     }
     LongStream lengthStream=dictionaryStreamSources.getStreamSource(streamDescriptor,LENGTH,LongStream.class).openStream();
-    verifyFormat(lengthStream != null,"Dictionary is not empty but dictionary length stream is not present");
+    verifyFormat(lengthStream != null,"Dictionary is not empty but length stream is not present");
     lengthStream.nextIntVector(dictionarySize,dictionaryLength);
-    int totalLength=0;
-    for (int i=0; i < dictionarySize; i++) {
-      totalLength+=dictionaryLength[i];
-    }
-    byte[] dictionaryData=new byte[0];
-    if (totalLength > 0) {
-      ByteArrayStream dictionaryStream=dictionaryStreamSources.getStreamSource(streamDescriptor,DICTIONARY_DATA,ByteArrayStream.class).openStream();
-      verifyFormat(dictionaryStream != null,"Dictionary length is not zero but dictionary data stream is not present");
-      dictionaryData=dictionaryStream.next(totalLength);
-    }
-    int offset=0;
-    for (int i=0; i < dictionarySize; i++) {
-      int length=dictionaryLength[i];
-      dictionary[i]=new DictionaryEntry(dictionaryData,offset,length);
-      offset+=length;
-    }
+    ByteArrayStream dictionaryDataStream=dictionaryStreamSources.getStreamSource(streamDescriptor,DICTIONARY_DATA,ByteArrayStream.class).openStream();
+    readDictionary(dictionaryDataStream,dictionarySize,dictionaryLength,dictionary);
   }
   presentStream=null;
   dataStream=null;

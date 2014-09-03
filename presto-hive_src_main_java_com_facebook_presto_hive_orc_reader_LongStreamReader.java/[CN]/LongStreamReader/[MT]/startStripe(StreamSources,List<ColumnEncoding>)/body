@@ -1,9 +1,13 @@
 {
-  presentStreamSource=missingStreamSource(BooleanStream.class);
-  dataStreamSource=missingStreamSource(LongStream.class);
-  readOffset=0;
-  nextBatchSize=0;
-  presentStream=null;
-  dataStream=null;
-  rowGroupOpen=false;
+  ColumnEncodingKind kind=encoding.get(streamDescriptor.getStreamId()).getColumnEncodingKind();
+  if (kind == DIRECT || kind == DIRECT_V2 || kind == DWRF_DIRECT) {
+    currentReader=directReader;
+  }
+ else   if (kind == DICTIONARY) {
+    currentReader=dictionaryReader;
+  }
+ else {
+    throw new IllegalArgumentException("Unsupported encoding " + kind);
+  }
+  currentReader.startStripe(dictionaryStreamSources,encoding);
 }

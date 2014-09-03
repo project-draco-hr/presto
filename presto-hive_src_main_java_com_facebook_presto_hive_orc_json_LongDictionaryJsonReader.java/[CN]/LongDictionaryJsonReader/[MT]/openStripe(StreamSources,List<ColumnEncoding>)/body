@@ -1,0 +1,14 @@
+{
+  int dictionarySize=encoding.get(streamDescriptor.getStreamId()).getDictionarySize();
+  if (dictionarySize > 0) {
+    if (dictionary.length < dictionarySize) {
+      dictionary=new long[dictionarySize];
+    }
+    LongStream dictionaryStream=dictionaryStreamSources.getStreamSource(streamDescriptor,DICTIONARY_DATA,LongStream.class).openStream();
+    verifyFormat(dictionaryStream != null,"Dictionary is not empty but data stream is not present");
+    dictionaryStream.nextLongVector(dictionarySize,dictionary);
+  }
+  presentStream=null;
+  inDictionaryStream=null;
+  dataStream=null;
+}

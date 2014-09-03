@@ -16,7 +16,9 @@
   }
   List<StreamLayout> dictionaryStreamLayouts=getDictionaryStreams(streams,diskRanges,stripeFooter.getColumnEncodings());
   List<RowGroupLayout> rowGroupLayouts=getRowGroupRanges(stripe.getNumberOfRows(),streams,diskRanges,columnIndexes,selectedRowGroups,stripeFooter.getColumnEncodings());
-  rowGroupLayouts=RowGroupLayout.mergeAdjacentRowGroups(rowGroupLayouts);
+  if (!(metadataReader instanceof DwrfMetadataReader)) {
+    rowGroupLayouts=RowGroupLayout.mergeAdjacentRowGroups(rowGroupLayouts);
+  }
   ImmutableMap.Builder<StreamId,StreamSource<?>> dictionaryStreamBuilder=ImmutableMap.builder();
   for (  StreamLayout dictionaryStreamLayout : dictionaryStreamLayouts) {
     StreamId streamId=dictionaryStreamLayout.getStreamId();

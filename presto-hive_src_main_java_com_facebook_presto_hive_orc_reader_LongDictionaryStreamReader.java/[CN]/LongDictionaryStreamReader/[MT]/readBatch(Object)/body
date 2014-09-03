@@ -1,0 +1,45 @@
+{
+  if (!rowGroupOpen) {
+    openRowGroup();
+  }
+  if (readOffset > 0) {
+    if (presentStream != null) {
+      readOffset=presentStream.countBitsSet(readOffset);
+    }
+    if (inDictionaryStream != null) {
+      inDictionaryStream.skip(readOffset);
+    }
+    if (readOffset > 0) {
+      verifyFormat(dataStream != null,"Value is not null but data stream is not present");
+      dataStream.skip(readOffset);
+    }
+  }
+  LongVector longVector=(LongVector)vector;
+  if (presentStream == null) {
+    verifyFormat(dataStream != null,"Value is not null but data stream is not present");
+    Arrays.fill(longVector.isNull,false);
+    dataStream.nextLongVector(nextBatchSize,longVector.vector);
+  }
+ else {
+    int nonNullValues=presentStream.getUnsetBits(nextBatchSize,longVector.isNull);
+    if (nonNullValues != nextBatchSize) {
+      verifyFormat(dataStream != null,"Value is not null but data stream is not present");
+      dataStream.nextLongVector(nextBatchSize,longVector.vector,longVector.isNull);
+    }
+  }
+  if (inDictionaryStream == null) {
+    Arrays.fill(inDictionary,true);
+  }
+ else {
+    inDictionaryStream.getSetBits(nextBatchSize,inDictionary,longVector.isNull);
+  }
+  for (int i=0; i < nextBatchSize; i++) {
+    if (!longVector.isNull[i]) {
+      if (inDictionary[i]) {
+        longVector.vector[i]=dictionary[((int)longVector.vector[i])];
+      }
+    }
+  }
+  readOffset=0;
+  nextBatchSize=0;
+}

@@ -8,6 +8,9 @@
     }
     if (readOffset > 0) {
       verifyFormat(dataStream != null,"Value is not null but data stream is not present");
+      if (inDictionaryStream != null) {
+        inDictionaryStream.skip(readOffset);
+      }
       dataStream.skip(readOffset);
     }
   }
@@ -24,12 +27,21 @@
       dataStream.nextIntVector(nextBatchSize,dataVector,isNullVector);
     }
   }
+  if (inDictionaryStream == null) {
+    Arrays.fill(inDictionary,true);
+  }
+ else {
+    inDictionaryStream.getSetBits(nextBatchSize,inDictionary,isNullVector);
+  }
   for (int i=0; i < nextBatchSize; i++) {
-    if (!isNullVector[i]) {
+    if (isNullVector[i]) {
+      sliceVector.vector[i]=null;
+    }
+ else     if (inDictionary[i]) {
       sliceVector.vector[i]=dictionary[dataVector[i]];
     }
  else {
-      sliceVector.vector[i]=null;
+      sliceVector.vector[i]=rowGroupDictionary[dataVector[i]];
     }
   }
   readOffset=0;

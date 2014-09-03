@@ -1,10 +1,11 @@
 {
-  Set<Integer> columnsWithNulls=new HashSet<>();
+  ImmutableSetMultimap.Builder<Integer,StreamKind> streamKindsBuilder=ImmutableSetMultimap.builder();
   for (  Stream stream : streams.values()) {
-    if (stream.getStreamKind() == PRESENT) {
-      columnsWithNulls.add(stream.getColumn());
+    if (stream.getLength() > 0) {
+      streamKindsBuilder.put(stream.getColumn(),stream.getStreamKind());
     }
   }
+  SetMultimap<Integer,StreamKind> streamKinds=streamKindsBuilder.build();
   ImmutableList.Builder<RowGroupLayout> rowGroupLayouts=ImmutableList.builder();
   for (  Integer rowGroupId : selectedRowGroups) {
     ImmutableList.Builder<StreamLayout> streamLayouts=ImmutableList.builder();
@@ -13,13 +14,13 @@
       Stream stream=entry.getValue();
       int column=stream.getColumn();
       ColumnEncoding encoding=encodings.get(column);
-      if (isIndexStream(stream) || isDictionary(stream,encoding)) {
+      if (stream.getLength() == 0 || isIndexStream(stream) || isDictionary(stream,encoding)) {
         continue;
       }
-      boolean hasNulls=columnsWithNulls.contains(column);
-      DiskRange diskRange=getRowGroupStreamDiskRange(columnIndexes.get(column),diskRanges.get(streamId),hasNulls,rowGroupId,streamId,encoding.getColumnEncodingKind());
-      List<Long> offsetPositions=getOffsetPositions(streamId,encoding.getColumnEncodingKind(),hasNulls,columnIndexes.get(column).get(rowGroupId).getPositions());
-      StreamLayout streamLayout=new StreamLayout(streamId,rowGroupId,types.get(column).getOrcTypeKind(),encoding.getColumnEncodingKind(),compressionKind,diskRange,checkedCastToInteger(offsetPositions));
+      Set<StreamKind> availableStreams=streamKinds.get(column);
+      DiskRange diskRange=getRowGroupStreamDiskRange(columnIndexes.get(column),diskRanges.get(streamId),rowGroupId,streamId,encoding.getColumnEncodingKind(),availableStreams);
+      List<Long> offsetPositions=getOffsetPositions(streamId,encoding.getColumnEncodingKind(),availableStreams,columnIndexes.get(column).get(rowGroupId).getPositions());
+      StreamLayout streamLayout=new StreamLayout(streamId,rowGroupId,types.get(column).getOrcTypeKind(),encoding.getColumnEncodingKind(),stream.isUseVInts(),compressionKind,diskRange,checkedCastToInteger(offsetPositions));
       streamLayouts.add(streamLayout);
     }
     int rowsInGroup=Math.min(rowsInStripe - (rowGroupId * rowsInRowGroup),rowsInRowGroup);

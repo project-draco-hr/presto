@@ -1,0 +1,25 @@
+{
+  OrcRecordReader recordReader=createCustomOrcRecordReader(tempFile,metadataReader);
+  Vector vector=createResultsVector(objectInspector);
+  boolean isFirst=true;
+  Iterator<?> iterator=expectedValues.iterator();
+  for (int batchSize=Ints.checkedCast(recordReader.nextBatch()); batchSize >= 0; batchSize=Ints.checkedCast(recordReader.nextBatch())) {
+    if (skipFirstBatch && isFirst) {
+      assertEquals(advance(iterator,batchSize),batchSize);
+    }
+ else {
+      recordReader.readVector(0,vector);
+      ObjectVector objectVector=vector.toObjectVector(batchSize);
+      for (int i=0; i < batchSize; i++) {
+        assertTrue(iterator.hasNext());
+        Object expected=iterator.next();
+        if (!Objects.equals(objectVector.vector[i],expected)) {
+          assertEquals(objectVector.vector[i],expected);
+        }
+      }
+    }
+    isFirst=false;
+  }
+  assertFalse(iterator.hasNext());
+  recordReader.close();
+}
