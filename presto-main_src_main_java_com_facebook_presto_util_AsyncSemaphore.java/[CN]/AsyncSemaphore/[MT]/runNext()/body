@@ -1,0 +1,15 @@
+{
+  final QueuedTask<T> queuedTask=queuedTasks.poll();
+  ListenableFuture<?> future=submitTask(queuedTask.getTask());
+  Futures.addCallback(future,new FutureCallback<Object>(){
+    @Override public void onSuccess(    Object result){
+      queuedTask.markCompleted();
+      releasePermit();
+    }
+    @Override public void onFailure(    Throwable t){
+      queuedTask.markFailure(t);
+      releasePermit();
+    }
+  }
+);
+}

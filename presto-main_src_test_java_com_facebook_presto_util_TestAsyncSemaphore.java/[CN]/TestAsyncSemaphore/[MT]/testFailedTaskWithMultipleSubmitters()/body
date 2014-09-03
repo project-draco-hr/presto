@@ -1,0 +1,56 @@
+{
+  final AtomicInteger successCount=new AtomicInteger();
+  final AtomicInteger failureCount=new AtomicInteger();
+  final AtomicInteger concurrency=new AtomicInteger();
+  final CountDownLatch startLatch=new CountDownLatch(1);
+  final CountDownLatch completionLatch=new CountDownLatch(100);
+  final AsyncSemaphore<Runnable> asyncSemaphore=new AsyncSemaphore<>(2,executor,new Function<Runnable,ListenableFuture<?>>(){
+    @Override public ListenableFuture<?> apply(    Runnable task){
+      int currentConcurrency=concurrency.incrementAndGet();
+      assertLessThanOrEqual(currentConcurrency,2);
+      Uninterruptibles.sleepUninterruptibly(1,TimeUnit.MILLISECONDS);
+      concurrency.decrementAndGet();
+      throw new IllegalStateException();
+    }
+  }
+);
+  final Queue<ListenableFuture<?>> futures=new ConcurrentLinkedQueue<>();
+  for (int i=0; i < 100; i++) {
+    executor.execute(new Runnable(){
+      @Override public void run(){
+        Uninterruptibles.awaitUninterruptibly(startLatch,1,TimeUnit.MINUTES);
+        ListenableFuture<?> future=asyncSemaphore.submit(new Runnable(){
+          @Override public void run(){
+            Assert.fail();
+          }
+        }
+);
+        futures.add(future);
+        Futures.addCallback(future,new FutureCallback<Object>(){
+          @Override public void onSuccess(          @Nullable Object result){
+            successCount.incrementAndGet();
+            completionLatch.countDown();
+          }
+          @Override public void onFailure(          Throwable t){
+            failureCount.incrementAndGet();
+            completionLatch.countDown();
+          }
+        }
+);
+      }
+    }
+);
+  }
+  startLatch.countDown();
+  Uninterruptibles.awaitUninterruptibly(completionLatch,1,TimeUnit.MINUTES);
+  for (  ListenableFuture<?> future : futures) {
+    try {
+      future.get();
+      Assert.fail();
+    }
+ catch (    Exception ignored) {
+    }
+  }
+  Assert.assertEquals(successCount.get(),0);
+  Assert.assertEquals(failureCount.get(),100);
+}
