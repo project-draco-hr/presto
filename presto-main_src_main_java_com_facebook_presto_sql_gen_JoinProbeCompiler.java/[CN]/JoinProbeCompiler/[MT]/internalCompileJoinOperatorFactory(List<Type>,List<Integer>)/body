@@ -1,9 +1,9 @@
 {
-  DynamicClassLoader classLoader=new DynamicClassLoader(getClass().getClassLoader());
-  Class<? extends JoinProbe> joinProbeClass=compileJoinProbe(types,probeJoinChannel,classLoader);
+  Class<? extends JoinProbe> joinProbeClass=compileJoinProbe(types,probeJoinChannel);
   ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(BOOTSTRAP_METHOD),a(PUBLIC,FINAL),makeClassName("JoinProbeFactory"),type(Object.class),type(JoinProbeFactory.class));
   classDefinition.declareDefaultConstructor(a(PUBLIC));
   classDefinition.declareMethod(new CompilerContext(BOOTSTRAP_METHOD),a(PUBLIC),"createJoinProbe",type(JoinProbe.class),arg("lookupSource",LookupSource.class),arg("page",Page.class)).getBody().newObject(joinProbeClass).dup().getVariable("lookupSource").getVariable("page").invokeConstructor(joinProbeClass,LookupSource.class,Page.class).retObject();
+  DynamicClassLoader classLoader=new DynamicClassLoader(joinProbeClass.getClassLoader());
   Class<? extends JoinProbeFactory> joinProbeFactoryClass=defineClass(classDefinition,JoinProbeFactory.class,classLoader);
   JoinProbeFactory joinProbeFactory;
   try {

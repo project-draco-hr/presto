@@ -1,7 +1,6 @@
 {
   CallSiteBinder callSiteBinder=new CallSiteBinder();
   ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(BOOTSTRAP_METHOD),a(PUBLIC,FINAL),makeClassName("JoinProbe"),type(Object.class),type(JoinProbe.class));
-  classDefinition.declareField(a(PRIVATE,STATIC,VOLATILE),CALL_SITES_FIELD_NAME,Map.class);
   FieldDefinition lookupSourceField=classDefinition.declareField(a(PRIVATE,FINAL),"lookupSource",LookupSource.class);
   FieldDefinition positionCountField=classDefinition.declareField(a(PRIVATE,FINAL),"positionCount",int.class);
   List<FieldDefinition> blockFields=new ArrayList<>();
@@ -22,7 +21,5 @@
   generateAdvanceNextPosition(classDefinition,positionField,positionCountField);
   generateGetCurrentJoinPosition(classDefinition,lookupSourceField,probeBlocksArrayField,positionField);
   generateCurrentRowContainsNull(classDefinition,probeBlockFields,positionField);
-  Class<? extends JoinProbe> joinProbeClass=defineClass(classDefinition,JoinProbe.class,classLoader);
-  ByteCodeUtils.setCallSitesField(joinProbeClass,callSiteBinder.getBindings());
-  return joinProbeClass;
+  return defineClass(classDefinition,JoinProbe.class,callSiteBinder.getBindings(),getClass().getClassLoader());
 }

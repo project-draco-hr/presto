@@ -1,5 +1,24 @@
 {
-  DynamicClassLoader classLoader=new DynamicClassLoader(getClass().getClassLoader());
-  Class<? extends PagesHashStrategy> pagesHashStrategyClass=compilePagesHashStrategy(types,joinChannels,classLoader);
-  return new PagesHashStrategyFactory(pagesHashStrategyClass);
+  CallSiteBinder callSiteBinder=new CallSiteBinder();
+  ClassDefinition classDefinition=new ClassDefinition(new CompilerContext(BOOTSTRAP_METHOD),a(PUBLIC,FINAL),makeClassName("PagesHashStrategy"),type(Object.class),type(PagesHashStrategy.class));
+  List<FieldDefinition> channelFields=new ArrayList<>();
+  for (int i=0; i < types.size(); i++) {
+    FieldDefinition channelField=classDefinition.declareField(a(PRIVATE,FINAL),"channel_" + i,type(List.class,com.facebook.presto.spi.block.Block.class));
+    channelFields.add(channelField);
+  }
+  List<Type> joinChannelTypes=new ArrayList<>();
+  List<FieldDefinition> joinChannelFields=new ArrayList<>();
+  for (int i=0; i < joinChannels.size(); i++) {
+    joinChannelTypes.add(types.get(joinChannels.get(i)));
+    FieldDefinition channelField=classDefinition.declareField(a(PRIVATE,FINAL),"joinChannel_" + i,type(List.class,com.facebook.presto.spi.block.Block.class));
+    joinChannelFields.add(channelField);
+  }
+  generateConstructor(classDefinition,joinChannels,channelFields,joinChannelFields);
+  generateGetChannelCountMethod(classDefinition,channelFields);
+  generateAppendToMethod(classDefinition,callSiteBinder,types,channelFields);
+  generateHashPositionMethod(classDefinition,callSiteBinder,joinChannelTypes,joinChannelFields);
+  generateHashRowMethod(classDefinition,callSiteBinder,joinChannelTypes,joinChannelFields);
+  generatePositionEqualsRowMethod(classDefinition,callSiteBinder,joinChannelTypes,joinChannelFields);
+  generatePositionEqualsPositionMethod(classDefinition,callSiteBinder,joinChannelTypes,joinChannelFields);
+  return defineClass(classDefinition,PagesHashStrategy.class,callSiteBinder.getBindings(),getClass().getClassLoader());
 }
