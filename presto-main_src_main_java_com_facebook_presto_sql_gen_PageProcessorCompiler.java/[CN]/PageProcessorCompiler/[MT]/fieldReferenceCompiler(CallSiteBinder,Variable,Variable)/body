@@ -6,15 +6,8 @@
       Class<?> javaType=type.getJavaType();
       Block isNullCheck=new Block(context).setDescription(format("block_%d.get%s()",field,type)).getVariable("block_" + field).getVariable(positionVariable).invokeInterface(com.facebook.presto.spi.block.Block.class,"isNull",boolean.class,int.class);
       Block isNull=new Block(context).putVariable(wasNullVariable,true).pushJavaDefault(javaType);
-      MethodHandle target;
       String methodName="get" + Primitives.wrap(javaType).getSimpleName();
-      try {
-        target=MethodHandles.lookup().findVirtual(type.getClass(),methodName,MethodType.methodType(javaType,com.facebook.presto.spi.block.Block.class,int.class));
-      }
- catch (      ReflectiveOperationException e) {
-        throw Throwables.propagate(e);
-      }
-      Block isNotNull=new Block(context).getVariable("block_" + field).getVariable(positionVariable).append(invoke(context,callSiteBinder.bind(target.bindTo(type)),methodName));
+      Block isNotNull=new Block(context).append(loadConstant(context,callSiteBinder.bind(type,Type.class))).getVariable("block_" + field).getVariable(positionVariable).invokeInterface(Type.class,methodName,javaType,com.facebook.presto.spi.block.Block.class,int.class);
       return new IfStatement(context,isNullCheck,isNull,isNotNull);
     }
     @Override public ByteCodeNode visitCall(    CallExpression call,    CompilerContext context){
