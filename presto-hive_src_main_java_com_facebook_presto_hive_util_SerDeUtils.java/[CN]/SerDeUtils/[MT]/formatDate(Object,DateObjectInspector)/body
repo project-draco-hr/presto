@@ -1,0 +1,10 @@
+{
+  if (object instanceof DateWritable) {
+    int days=((DateWritable)object).getDays();
+    return DATE_FORMATTER.withZone(DateTimeZone.UTC).print(days * MILLIS_IN_DAY);
+  }
+  Date date=inspector.getPrimitiveJavaObject(object);
+  long storageTime=date.getTime();
+  long utcMillis=storageTime + DateTimeZone.getDefault().getOffset(storageTime);
+  return DATE_FORMATTER.withZone(DateTimeZone.UTC).print(utcMillis);
+}

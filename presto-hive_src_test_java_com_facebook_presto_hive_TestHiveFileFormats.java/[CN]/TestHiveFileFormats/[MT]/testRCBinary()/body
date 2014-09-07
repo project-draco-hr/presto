@@ -1,18 +1,12 @@
 {
-  JobConf jobConf=new JobConf();
-  RCFileOutputFormat outputFormat=new RCFileOutputFormat();
-  @SuppressWarnings("rawtypes") RCFileInputFormat inputFormat=new RCFileInputFormat();
+  HiveOutputFormat<?,?> outputFormat=new RCFileOutputFormat();
+  InputFormat<?,?> inputFormat=new RCFileInputFormat<>();
   @SuppressWarnings("deprecation") SerDe serde=new LazyBinaryColumnarSerDe();
   File file=File.createTempFile("presto_test","rc-binary");
   try {
-    FileSplit split=createTestFile(file.getAbsolutePath(),outputFormat,serde,null);
-    @SuppressWarnings("unchecked") RecordReader<?,BytesRefArrayWritable> recordReader=(RecordReader<?,BytesRefArrayWritable>)inputFormat.getRecordReader(split,jobConf,Reporter.NULL);
-    Properties splitProperties=new Properties();
-    splitProperties.setProperty("serialization.lib","org.apache.hadoop.hive.serde2.columnar.LazyBinaryColumnarSerDe");
-    splitProperties.setProperty("columns",COLUMN_NAMES_STRING);
-    splitProperties.setProperty("columns.types",COLUMN_TYPES);
-    RecordCursor cursor=new ColumnarBinaryHiveRecordCursor<>(recordReader,split.getLength(),splitProperties,new ArrayList<HivePartitionKey>(),getColumns(),DateTimeZone.getDefault(),new TypeRegistry());
-    checkCursor(cursor);
+    FileSplit split=createTestFile(file.getAbsolutePath(),outputFormat,serde,null,TEST_COLUMNS);
+    testCursorProvider(new ColumnarBinaryHiveRecordCursorProvider(),split,inputFormat,serde,TEST_COLUMNS);
+    testCursorProvider(new GenericHiveRecordCursorProvider(),split,inputFormat,serde,TEST_COLUMNS);
   }
   finally {
     file.delete();

@@ -1,0 +1,52 @@
+{
+  for (int row=0; row < NUM_ROWS; row++) {
+    assertTrue(cursor.advanceNextPosition());
+    for (int i=0, testColumnsSize=testColumns.size(); i < testColumnsSize; i++) {
+      TestColumn testColumn=testColumns.get(i);
+      Object fieldFromCursor;
+      Type type=getType(testColumn.getObjectInspector());
+      if (cursor.isNull(i)) {
+        fieldFromCursor=null;
+      }
+ else       if (BOOLEAN.equals(type)) {
+        fieldFromCursor=cursor.getBoolean(i);
+      }
+ else       if (BIGINT.equals(type)) {
+        fieldFromCursor=cursor.getLong(i);
+      }
+ else       if (DOUBLE.equals(type)) {
+        fieldFromCursor=cursor.getDouble(i);
+      }
+ else       if (VARCHAR.equals(type)) {
+        fieldFromCursor=cursor.getSlice(i);
+      }
+ else       if (VARBINARY.equals(type)) {
+        fieldFromCursor=cursor.getSlice(i);
+      }
+ else       if (DateType.DATE.equals(type)) {
+        fieldFromCursor=cursor.getLong(i);
+      }
+ else       if (TimestampType.TIMESTAMP.equals(type)) {
+        fieldFromCursor=cursor.getLong(i);
+      }
+ else {
+        throw new RuntimeException("unknown type");
+      }
+      if (fieldFromCursor == null) {
+        assertEquals(null,testColumn.getExpectedValue(),String.format("Expected null for column %s",testColumn.getName()));
+      }
+ else       if (testColumn.getObjectInspector().getTypeName().equals("float") || testColumn.getObjectInspector().getTypeName().equals("double")) {
+        assertEquals((double)fieldFromCursor,(double)testColumn.getExpectedValue(),EPSILON);
+      }
+ else       if (testColumn.getObjectInspector().getCategory() == Category.PRIMITIVE) {
+        assertEquals(fieldFromCursor,testColumn.getExpectedValue(),String.format("Wrong value for column %s",testColumn.getName()));
+      }
+ else {
+        ObjectMapper mapper=new ObjectMapper();
+        JsonNode expected=mapper.readTree((String)testColumn.getExpectedValue());
+        JsonNode actual=mapper.readTree(((Slice)fieldFromCursor).getBytes());
+        assertEquals(actual,expected,String.format("Wrong value for column %s",testColumn.getName()));
+      }
+    }
+  }
+}
