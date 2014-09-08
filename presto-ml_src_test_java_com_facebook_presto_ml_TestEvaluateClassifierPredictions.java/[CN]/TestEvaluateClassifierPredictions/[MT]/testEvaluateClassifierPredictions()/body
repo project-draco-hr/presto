@@ -1,6 +1,10 @@
 {
   MetadataManager metadata=new MetadataManager();
-  metadata.addFunctions(new MLFunctionFactory().listFunctions());
+  TypeRegistry typeRegistry=new TypeRegistry();
+  typeRegistry.addType(new ClassifierType());
+  typeRegistry.addType(new RegressorType());
+  typeRegistry.addType(new ModelType());
+  metadata.addFunctions(new MLFunctionFactory(typeRegistry).listFunctions());
   InternalAggregationFunction aggregation=metadata.getExactFunction(new Signature("evaluate_classifier_predictions",VARCHAR,BIGINT,BIGINT)).getAggregationFunction();
   Accumulator accumulator=aggregation.bind(ImmutableList.of(0,1),Optional.<Integer>absent(),Optional.<Integer>absent(),1.0).createAccumulator();
   accumulator.addInput(getPage());
