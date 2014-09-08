@@ -2,10 +2,11 @@
   boolean grouped=accumulatorInterface == GroupedAccumulator.class;
   boolean approximate=metadata.isApproximate();
   ClassDefinition definition=new ClassDefinition(a(PUBLIC,FINAL),makeClassName(metadata.getName() + accumulatorInterface.getSimpleName()),type(Object.class),type(accumulatorInterface));
+  CallSiteBinder callSiteBinder=new CallSiteBinder();
   AccumulatorStateSerializer<?> stateSerializer=metadata.getStateSerializer();
   AccumulatorStateFactory<?> stateFactory=metadata.getStateFactory();
-  FieldDefinition stateSerializerField=definition.declareField(a(PRIVATE,FINAL),"stateSerializer",stateSerializer.getClass());
-  FieldDefinition stateFactoryField=definition.declareField(a(PRIVATE,FINAL),"stateFactory",stateFactory.getClass());
+  FieldDefinition stateSerializerField=definition.declareField(a(PRIVATE,FINAL),"stateSerializer",AccumulatorStateSerializer.class);
+  FieldDefinition stateFactoryField=definition.declareField(a(PRIVATE,FINAL),"stateFactory",AccumulatorStateFactory.class);
   FieldDefinition inputChannelsField=definition.declareField(a(PRIVATE,FINAL),"inputChannels",type(List.class,Integer.class));
   FieldDefinition maskChannelField=definition.declareField(a(PRIVATE,FINAL),"maskChannel",type(Optional.class,Integer.class));
   FieldDefinition sampleWeightChannelField=null;
@@ -16,15 +17,15 @@
   }
   FieldDefinition stateField=definition.declareField(a(PRIVATE,FINAL),"state",grouped ? stateFactory.getGroupedStateClass() : stateFactory.getSingleStateClass());
   generateConstructor(definition,stateSerializerField,stateFactoryField,inputChannelsField,maskChannelField,sampleWeightChannelField,confidenceField,stateField,grouped);
-  generateAddInput(definition,stateField,inputChannelsField,maskChannelField,sampleWeightChannelField,metadata.getInputMetadata(),metadata.getInputFunction(),grouped);
+  generateAddInput(definition,stateField,inputChannelsField,maskChannelField,sampleWeightChannelField,metadata.getInputMetadata(),metadata.getInputFunction(),callSiteBinder,grouped);
   generateGetEstimatedSize(definition,stateField);
-  MethodDefinition getIntermediateType=generateGetIntermediateType(definition,stateSerializer.getSerializedType());
-  MethodDefinition getFinalType=generateGetFinalType(definition,metadata.getOutputType());
+  MethodDefinition getIntermediateType=generateGetIntermediateType(definition,callSiteBinder,stateSerializer.getSerializedType());
+  MethodDefinition getFinalType=generateGetFinalType(definition,callSiteBinder,metadata.getOutputType());
   if (metadata.getIntermediateInputFunction() == null) {
     generateAddIntermediateAsCombine(definition,stateField,stateSerializerField,stateFactoryField,metadata.getCombineFunction(),stateFactory.getSingleStateClass(),grouped);
   }
  else {
-    generateAddIntermediateAsIntermediateInput(definition,stateField,metadata.getIntermediateInputMetadata(),metadata.getIntermediateInputFunction(),grouped);
+    generateAddIntermediateAsIntermediateInput(definition,stateField,metadata.getIntermediateInputMetadata(),metadata.getIntermediateInputFunction(),callSiteBinder,grouped);
   }
   if (grouped) {
     generateGroupedEvaluateIntermediate(definition,stateSerializerField,stateField);
@@ -38,5 +39,5 @@
  else {
     generateEvaluateFinal(definition,getFinalType,confidenceField,stateSerializerField,stateField,metadata.getOutputFunction(),metadata.isApproximate());
   }
-  return defineClass(definition,accumulatorInterface,classLoader);
+  return defineClass(definition,accumulatorInterface,callSiteBinder.getBindings(),classLoader);
 }

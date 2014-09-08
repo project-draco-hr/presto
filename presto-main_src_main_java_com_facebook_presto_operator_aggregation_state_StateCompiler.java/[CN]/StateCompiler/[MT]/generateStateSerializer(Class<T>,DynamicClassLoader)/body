@@ -9,12 +9,13 @@
     }
   }
   ClassDefinition definition=new ClassDefinition(a(PUBLIC,FINAL),makeClassName(clazz.getSimpleName() + "Serializer"),type(Object.class),type(AccumulatorStateSerializer.class));
+  CallSiteBinder callSiteBinder=new CallSiteBinder();
   definition.declareDefaultConstructor(a(PUBLIC));
   List<StateField> fields=enumerateFields(clazz);
-  generateGetSerializedType(definition,fields);
+  generateGetSerializedType(definition,fields,callSiteBinder);
   generateSerialize(definition,clazz,fields);
   generateDeserialize(definition,clazz,fields);
-  Class<? extends AccumulatorStateSerializer> serializerClass=defineClass(definition,AccumulatorStateSerializer.class,classLoader);
+  Class<? extends AccumulatorStateSerializer> serializerClass=defineClass(definition,AccumulatorStateSerializer.class,callSiteBinder.getBindings(),classLoader);
   try {
     return (AccumulatorStateSerializer<T>)serializerClass.newInstance();
   }
