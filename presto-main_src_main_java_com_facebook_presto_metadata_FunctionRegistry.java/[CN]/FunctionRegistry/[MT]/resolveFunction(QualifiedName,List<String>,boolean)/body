@@ -1,0 +1,40 @@
+{
+  List<FunctionInfo> candidates=IterableTransformer.on(functions.get(name)).select(new Predicate<FunctionInfo>(){
+    @Override public boolean apply(    FunctionInfo input){
+      return input.isScalar() || input.isApproximate() == approximate;
+    }
+  }
+).list();
+  for (  FunctionInfo functionInfo : candidates) {
+    if (functionInfo.getArgumentTypes().equals(parameterTypes)) {
+      return functionInfo;
+    }
+  }
+  for (  FunctionInfo functionInfo : candidates) {
+    if (canCoerce(resolveTypes(parameterTypes,typeManager),resolveTypes(functionInfo.getArgumentTypes(),typeManager))) {
+      return functionInfo;
+    }
+  }
+  List<String> expectedParameters=new ArrayList<>();
+  for (  FunctionInfo functionInfo : candidates) {
+    expectedParameters.add(format("%s(%s)",name,Joiner.on(", ").join(functionInfo.getArgumentTypes())));
+  }
+  String parameters=Joiner.on(", ").join(parameterTypes);
+  String message=format("Function %s not registered",name);
+  if (!expectedParameters.isEmpty()) {
+    String expected=Joiner.on(", ").join(expectedParameters);
+    message=format("Unexpected parameters (%s) for function %s. Expected: %s",parameters,name,expected);
+  }
+  if (name.getSuffix().startsWith(MAGIC_LITERAL_FUNCTION_PREFIX)) {
+    String typeName=name.getSuffix().substring(MAGIC_LITERAL_FUNCTION_PREFIX.length());
+    Type type=typeManager.getType(typeName);
+    checkArgument(type != null,"Type %s not registered",typeName);
+    checkArgument(parameterTypes.size() == 1,"Expected one argument to literal function, but got %s",parameterTypes);
+    Type parameterType=typeManager.getType(parameterTypes.get(0));
+    checkNotNull(parameterType,"Type %s not foudn",parameterTypes.get(0));
+    checkArgument(parameterType.getJavaType() == type.getJavaType(),"Expected type %s to use Java type %s, but Java type is %s",type,parameterType.getJavaType(),type.getJavaType());
+    MethodHandle identity=MethodHandles.identity(parameterType.getJavaType());
+    return new FunctionInfo(getMagicLiteralFunctionSignature(type),null,true,identity,true,false,ImmutableList.of(false));
+  }
+  throw new PrestoException(StandardErrorCode.FUNCTION_NOT_FOUND.toErrorCode(),message);
+}

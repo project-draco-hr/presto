@@ -2,7 +2,7 @@
   ImmutableList.Builder<RowExpression> arguments=ImmutableList.builder();
   arguments.add(process(node.getOperand(),context));
   for (  WhenClause clause : node.getWhenClauses()) {
-    arguments.add(call(whenSignature(types.get(clause)),process(clause.getOperand(),context),process(clause.getResult(),context)));
+    arguments.add(call(whenSignature(types.get(clause)),types.get(clause),process(clause.getOperand(),context),process(clause.getResult(),context)));
   }
   Type returnType=types.get(node);
   if (node.getDefaultValue() != null) {
@@ -11,5 +11,5 @@
  else {
     arguments.add(constantNull(returnType));
   }
-  return call(switchSignature(returnType),arguments.build());
+  return call(switchSignature(returnType),returnType,arguments.build());
 }
