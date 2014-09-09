@@ -24,6 +24,8 @@
   }
 );
   queries.put(queryId,queryExecution);
-  queryStarter.submit(queryExecution);
+  if (!queryStarter.submit(queryExecution)) {
+    return createFailedQuery(session,query,queryId,new PrestoException(QUERY_QUEUE_FULL.toErrorCode(),"Too many queued queries!"));
+  }
   return queryExecution.getQueryInfo();
 }

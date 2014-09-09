@@ -1,4 +1,8 @@
 {
-  queueSize.incrementAndGet();
+  if (queueSize.incrementAndGet() > maxQueuedQueries) {
+    queueSize.decrementAndGet();
+    return false;
+  }
   asyncSemaphore.submit(queryExecution);
+  return true;
 }
