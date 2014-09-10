@@ -1,13 +1,7 @@
 {
-  Iterable<ParametricFunction> candidates=functions.get(QualifiedName.of(mangleOperatorName(operatorType)));
-  for (  ParametricFunction operator : candidates) {
-    if (operator.getSignature().match(returnType,argumentTypes,false,typeManager)) {
-      return operator.createFunction(returnType,argumentTypes);
-    }
+  FunctionInfo functionInfo=getExactFunction(Signature.internalOperator(operatorType.name(),returnType.getName(),Lists.transform(argumentTypes,nameGetter())));
+  if (functionInfo == null) {
+    throw new OperatorNotFoundException(operatorType,argumentTypes,returnType);
   }
-  if ((operatorType == OperatorType.CAST) && (argumentTypes.size() == 1) && argumentTypes.get(0).equals(returnType)) {
-    MethodHandle identity=MethodHandles.identity(returnType.getJavaType());
-    return operatorInfo(OperatorType.CAST,returnType.getName(),FluentIterable.from(argumentTypes).transform(nameGetter()).toList(),identity,false,ImmutableList.of(false));
-  }
-  throw new OperatorNotFoundException(operatorType,argumentTypes,returnType);
+  return functionInfo;
 }
