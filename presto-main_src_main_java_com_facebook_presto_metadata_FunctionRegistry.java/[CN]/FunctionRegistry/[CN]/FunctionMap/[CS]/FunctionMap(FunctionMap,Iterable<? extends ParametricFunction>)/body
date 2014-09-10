@@ -1,0 +1,12 @@
+{
+  this.functions=ImmutableListMultimap.<QualifiedName,ParametricFunction>builder().putAll(map.functions).putAll(Multimaps.index(functions,new Function<ParametricFunction,QualifiedName>(){
+    @Override public QualifiedName apply(    ParametricFunction input){
+      return QualifiedName.of(input.getSignature().getName());
+    }
+  }
+)).build();
+  for (  Map.Entry<QualifiedName,Collection<ParametricFunction>> entry : this.functions.asMap().entrySet()) {
+    Collection<ParametricFunction> values=entry.getValue();
+    checkState(Iterables.all(values,isAggregationPredicate()) || !Iterables.any(values,isAggregationPredicate()),"'%s' is both an aggregation and a scalar function",entry.getKey());
+  }
+}

@@ -7,5 +7,13 @@
       return null;
     }
   }
-  return functions.get(signature);
+  Iterable<ParametricFunction> candidates=functions.get(QualifiedName.of(signature.getName()));
+  for (  ParametricFunction operator : candidates) {
+    Type returnType=typeManager.getType(signature.getReturnType());
+    List<Type> argumentTypes=resolveTypes(signature.getArgumentTypes(),typeManager);
+    if (operator.getSignature().match(returnType,argumentTypes,false,typeManager)) {
+      return operator.specialize(returnType,argumentTypes);
+    }
+  }
+  return null;
 }

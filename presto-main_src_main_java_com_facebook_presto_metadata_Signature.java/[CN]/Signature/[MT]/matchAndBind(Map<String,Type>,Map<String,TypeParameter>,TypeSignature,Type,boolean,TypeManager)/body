@@ -1,0 +1,26 @@
+{
+  if (boundParameters.containsKey(signature.getBase())) {
+    checkArgument(signature.getParameters().isEmpty(),"Unexpected parameteric type");
+    if (allowCoercion) {
+      return canCoerce(type,boundParameters.get(signature.getBase()));
+    }
+ else {
+      return type.equals(boundParameters.get(signature.getBase()));
+    }
+  }
+  if (unboundParameters.containsKey(signature.getBase())) {
+    TypeParameter typeParameter=unboundParameters.get(signature.getBase());
+    if (!typeParameter.canBind(type)) {
+      return false;
+    }
+    unboundParameters.remove(signature.getBase());
+    boundParameters.put(signature.getBase(),type);
+    return true;
+  }
+  if (allowCoercion) {
+    return canCoerce(type,typeManager.getType(signature.getBase()));
+  }
+ else {
+    return type.equals(typeManager.getType(signature.getBase()));
+  }
+}

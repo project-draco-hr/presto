@@ -1,23 +1,29 @@
 {
-  List<FunctionInfo> candidates=IterableTransformer.on(functions.get(name)).select(new Predicate<FunctionInfo>(){
-    @Override public boolean apply(    FunctionInfo input){
+  List<ParametricFunction> candidates=IterableTransformer.on(functions.get(name)).select(new Predicate<ParametricFunction>(){
+    @Override public boolean apply(    ParametricFunction input){
       return input.isScalar() || input.isApproximate() == approximate;
     }
   }
 ).list();
-  for (  FunctionInfo functionInfo : candidates) {
-    if (functionInfo.getArgumentTypes().equals(parameterTypes)) {
-      return functionInfo;
+  List<Type> resolvedTypes=resolveTypes(parameterTypes,typeManager);
+  FunctionInfo match=null;
+  for (  ParametricFunction function : candidates) {
+    if (function.getSignature().match(resolvedTypes,false,typeManager)) {
+      checkArgument(match == null,"Ambiguous call to %s with parameters %s",name,parameterTypes);
+      match=function.specialize(resolvedTypes);
     }
   }
-  for (  FunctionInfo functionInfo : candidates) {
-    if (canCoerce(resolveTypes(parameterTypes,typeManager),resolveTypes(functionInfo.getArgumentTypes(),typeManager))) {
-      return functionInfo;
+  if (match != null) {
+    return match;
+  }
+  for (  ParametricFunction function : candidates) {
+    if (function.getSignature().match(resolvedTypes,true,typeManager)) {
+      return function.specialize(resolvedTypes);
     }
   }
   List<String> expectedParameters=new ArrayList<>();
-  for (  FunctionInfo functionInfo : candidates) {
-    expectedParameters.add(format("%s(%s)",name,Joiner.on(", ").join(functionInfo.getArgumentTypes())));
+  for (  ParametricFunction function : candidates) {
+    expectedParameters.add(format("%s(%s)",name,Joiner.on(", ").join(function.getSignature().getArgumentTypes())));
   }
   String parameters=Joiner.on(", ").join(parameterTypes);
   String message=format("Function %s not registered",name);

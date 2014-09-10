@@ -1,9 +1,8 @@
 {
-  Iterable<FunctionInfo> candidates=functions.get(QualifiedName.of(mangleOperatorName(operatorType)));
-  List<String> argumentTypeNames=FluentIterable.from(argumentTypes).transform(nameGetter()).toList();
-  for (  FunctionInfo operatorInfo : candidates) {
-    if (operatorInfo.getReturnType().equals(returnType.getName()) && operatorInfo.getArgumentTypes().equals(argumentTypeNames)) {
-      return operatorInfo;
+  Iterable<ParametricFunction> candidates=functions.get(QualifiedName.of(mangleOperatorName(operatorType)));
+  for (  ParametricFunction operator : candidates) {
+    if (operator.getSignature().match(returnType,argumentTypes,false,typeManager)) {
+      return operator.createFunction(returnType,argumentTypes);
     }
   }
   if ((operatorType == OperatorType.CAST) && (argumentTypes.size() == 1) && argumentTypes.get(0).equals(returnType)) {

@@ -1,6 +1,6 @@
 {
   InternalTable.Builder table=InternalTable.builder(informationSchemaTableColumns(TABLE_INTERNAL_FUNCTIONS));
-  for (  FunctionInfo function : metadata.listFunctions()) {
+  for (  ParametricFunction function : metadata.listFunctions()) {
     if (function.isApproximate()) {
       continue;
     }
@@ -17,7 +17,7 @@
  else {
       functionType="scalar (non-deterministic)";
     }
-    table.add(function.getName().toString(),Joiner.on(", ").join(function.getArgumentTypes()),function.getReturnType(),functionType,nullToEmpty(function.getDescription()));
+    table.add(function.getSignature().getName(),Joiner.on(", ").join(function.getSignature().getArgumentTypes()),function.getSignature().getReturnType(),functionType,nullToEmpty(function.getDescription()));
   }
   return table.build();
 }

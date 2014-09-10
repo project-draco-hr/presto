@@ -2,15 +2,13 @@
   TypeRegistry typeManager=new TypeRegistry();
   FunctionRegistry registry=new FunctionRegistry(typeManager,true);
   boolean foundOperator=false;
-  for (  FunctionInfo functionInfo : registry.listOperators()) {
-    OperatorType operatorType=unmangleOperator(functionInfo.getSignature().getName());
+  for (  ParametricFunction function : registry.listOperators()) {
+    OperatorType operatorType=unmangleOperator(function.getSignature().getName());
     if (operatorType == OperatorType.CAST) {
       continue;
     }
-    FunctionInfo exactOperator=registry.resolveOperator(operatorType,resolveTypes(functionInfo.getArgumentTypes(),typeManager));
-    assertEquals(exactOperator.getSignature().getName().toLowerCase(),functionInfo.getName().toString().toLowerCase());
-    assertEquals(exactOperator.getArgumentTypes(),functionInfo.getArgumentTypes());
-    assertEquals(exactOperator.getReturnType(),functionInfo.getReturnType());
+    FunctionInfo exactOperator=registry.resolveOperator(operatorType,resolveTypes(function.getSignature().getArgumentTypes(),typeManager));
+    assertEquals(exactOperator.getSignature(),function.getSignature());
     foundOperator=true;
   }
   assertTrue(foundOperator);

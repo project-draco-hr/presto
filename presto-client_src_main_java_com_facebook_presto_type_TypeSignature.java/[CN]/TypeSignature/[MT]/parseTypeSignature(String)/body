@@ -1,0 +1,39 @@
+{
+  if (!signature.contains("<")) {
+    return new TypeSignature(signature,ImmutableList.<TypeSignature>of());
+  }
+  String baseName=null;
+  List<TypeSignature> parameters=new ArrayList<>();
+  int parameterStart=-1;
+  int bracketCount=0;
+  for (int i=0; i < signature.length(); i++) {
+    char c=signature.charAt(i);
+    if (c == '<') {
+      if (bracketCount == 0) {
+        checkState(baseName == null,"Expected baseName to be null");
+        checkState(parameterStart == -1,"Expected parameter start to be -1");
+        baseName=signature.substring(0,i);
+        parameterStart=i + 1;
+      }
+      bracketCount++;
+    }
+ else     if (c == '>') {
+      bracketCount--;
+      checkArgument(bracketCount >= 0,"Bad type signature: '%s'",signature);
+      if (bracketCount == 0) {
+        checkArgument(i == signature.length() - 1,"Bad type signature: '%s'",signature);
+        checkArgument(parameterStart >= 0,"Bad type signature: '%s'",signature);
+        parameters.add(parseTypeSignature(signature.substring(parameterStart,i)));
+        return new TypeSignature(baseName,parameters);
+      }
+    }
+ else     if (c == ',') {
+      if (bracketCount == 1) {
+        checkArgument(parameterStart >= 0,"Bad type signature: '%s'",signature);
+        parameters.add(parseTypeSignature(signature.substring(parameterStart,i)));
+        parameterStart=i + 1;
+      }
+    }
+  }
+  throw new IllegalArgumentException(format("Bad type signature: '%s'",signature));
+}
