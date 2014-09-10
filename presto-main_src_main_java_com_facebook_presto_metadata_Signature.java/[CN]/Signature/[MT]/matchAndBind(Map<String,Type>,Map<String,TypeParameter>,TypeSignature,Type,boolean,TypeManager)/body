@@ -8,6 +8,21 @@
       return type.equals(boundParameters.get(signature.getBase()));
     }
   }
+  if (!signature.getParameters().isEmpty()) {
+    if (type.getTypeParameters().size() != signature.getParameters().size()) {
+      return false;
+    }
+    for (int i=0; i < signature.getParameters().size(); i++) {
+      Type componentType=type.getTypeParameters().get(i);
+      TypeSignature componentSignature=signature.getParameters().get(i);
+      if (!matchAndBind(boundParameters,unboundParameters,componentSignature,componentType,allowCoercion,typeManager)) {
+        return false;
+      }
+    }
+  }
+  if (type.equals(UnknownType.UNKNOWN) && allowCoercion) {
+    return true;
+  }
   if (unboundParameters.containsKey(signature.getBase())) {
     TypeParameter typeParameter=unboundParameters.get(signature.getBase());
     if (!typeParameter.canBind(type)) {
@@ -16,6 +31,9 @@
     unboundParameters.remove(signature.getBase());
     boundParameters.put(signature.getBase(),type);
     return true;
+  }
+  if (!signature.getParameters().isEmpty()) {
+    return parseTypeSignature(type.getName()).getBase().equals(signature.getBase());
   }
   if (allowCoercion) {
     return canCoerce(type,typeManager.getType(signature.getBase()));
