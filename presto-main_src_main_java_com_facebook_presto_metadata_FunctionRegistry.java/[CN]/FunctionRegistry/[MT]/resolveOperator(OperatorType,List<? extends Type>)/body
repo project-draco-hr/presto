@@ -1,14 +1,13 @@
 {
-  Iterable<FunctionInfo> candidates=functions.getOperators(operatorType);
-  for (  FunctionInfo operatorInfo : candidates) {
-    if (operatorInfo.getArgumentTypes().equals(Lists.transform(argumentTypes,nameGetter()))) {
-      return operatorInfo;
+  try {
+    return resolveFunction(QualifiedName.of(mangleOperatorName(operatorType)),Lists.transform(argumentTypes,nameGetter()),false);
+  }
+ catch (  PrestoException e) {
+    if (e.getErrorCode().getCode() == StandardErrorCode.FUNCTION_NOT_FOUND.toErrorCode().getCode()) {
+      throw new OperatorNotFoundException(operatorType,argumentTypes);
+    }
+ else {
+      throw e;
     }
   }
-  for (  FunctionInfo operatorInfo : candidates) {
-    if (canCoerce(argumentTypes,TypeUtils.resolveTypes(operatorInfo.getArgumentTypes(),typeManager))) {
-      return operatorInfo;
-    }
-  }
-  throw new OperatorNotFoundException(operatorType,argumentTypes);
 }

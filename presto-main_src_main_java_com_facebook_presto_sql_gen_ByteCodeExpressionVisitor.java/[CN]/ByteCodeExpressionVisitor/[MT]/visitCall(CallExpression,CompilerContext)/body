@@ -1,17 +1,18 @@
 {
   ByteCodeGenerator generator;
+  if (call.getSignature().getName().equals(CAST)) {
+    generator=new CastCodeGenerator();
+  }
+ else {
 switch (call.getSignature().getName()) {
 case IF:
-    generator=new IfCodeGenerator();
-  break;
+      generator=new IfCodeGenerator();
+    break;
 case NULL_IF:
-generator=new NullIfCodeGenerator();
+  generator=new NullIfCodeGenerator();
 break;
 case SWITCH:
 generator=new SwitchCodeGenerator();
-break;
-case CAST:
-generator=new CastCodeGenerator();
 break;
 case TRY_CAST:
 generator=new TryCastCodeGenerator();
@@ -36,6 +37,7 @@ generator=new OrCodeGenerator();
 break;
 default :
 generator=new FunctionCallCodeGenerator();
+}
 }
 ByteCodeGeneratorContext generatorContext=new ByteCodeGeneratorContext(this,context,callSiteBinder,registry);
 return generator.generateExpression(call.getSignature(),generatorContext,call.getType(),call.getArguments());

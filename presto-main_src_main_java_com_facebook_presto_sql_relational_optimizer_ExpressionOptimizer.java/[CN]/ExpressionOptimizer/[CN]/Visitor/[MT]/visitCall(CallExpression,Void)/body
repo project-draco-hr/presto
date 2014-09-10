@@ -1,6 +1,13 @@
 {
   FunctionInfo function;
   Signature signature=call.getSignature();
+  if (signature.getName().equals(CAST)) {
+    if (call.getArguments().get(0).getType().equals(UnknownType.UNKNOWN)) {
+      return constantNull(call.getType());
+    }
+    function=registry.getCoercion(call.getArguments().get(0).getType(),call.getType());
+  }
+ else {
 switch (signature.getName()) {
 case IF:
 case NULL_IF:
@@ -12,17 +19,12 @@ case COALESCE:
 case "AND":
 case "OR":
 case IN:
-    return call;
-case CAST:
-  if (call.getArguments().get(0).getType().equals(UnknownType.UNKNOWN)) {
-    return constantNull(call.getType());
-  }
-function=registry.getCoercion(call.getArguments().get(0).getType(),call.getType());
-break;
+      return call;
 default :
-function=registry.getExactFunction(signature);
-if (function == null) {
-function=registry.resolveFunction(QualifiedName.of(signature.getName()),signature.getArgumentTypes(),false);
+    function=registry.getExactFunction(signature);
+  if (function == null) {
+    function=registry.resolveFunction(QualifiedName.of(signature.getName()),signature.getArgumentTypes(),false);
+  }
 }
 }
 List<RowExpression> arguments=Lists.transform(call.getArguments(),new Function<RowExpression,RowExpression>(){
@@ -40,7 +42,7 @@ List<Object> constantArguments=new ArrayList<>();
 for (RowExpression argument : arguments) {
 Object value=((ConstantExpression)argument).getValue();
 if (value == null) {
-return constantNull(call.getType());
+  return constantNull(call.getType());
 }
 constantArguments.add(value);
 }
@@ -49,7 +51,7 @@ return constant(method.invokeWithArguments(constantArguments),call.getType());
 }
  catch (Throwable e) {
 if (e instanceof InterruptedException) {
-Thread.currentThread().interrupt();
+  Thread.currentThread().interrupt();
 }
 throw Throwables.propagate(e);
 }

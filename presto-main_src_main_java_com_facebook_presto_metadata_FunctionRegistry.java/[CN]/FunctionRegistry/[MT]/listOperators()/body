@@ -1,3 +1,14 @@
 {
-  return ImmutableList.copyOf(functions.byOperator.values());
+  final Set<String> operatorNames=FluentIterable.from(Arrays.asList(OperatorType.values())).transform(new Function<OperatorType,String>(){
+    @Override public String apply(    OperatorType input){
+      return mangleOperatorName(input);
+    }
+  }
+).toSet();
+  return FluentIterable.from(functions.functionsByName.values()).filter(new Predicate<FunctionInfo>(){
+    @Override public boolean apply(    FunctionInfo input){
+      return operatorNames.contains(input.getSignature().getName());
+    }
+  }
+).toList();
 }

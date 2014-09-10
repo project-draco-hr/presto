@@ -13,8 +13,8 @@
     return new NullIfExpression(toExpression(first,firstType),toExpression(second,secondType));
   }
   Type commonType=FunctionRegistry.getCommonSuperType(firstType,secondType).get();
-  FunctionInfo firstCast=metadata.getExactOperator(OperatorType.CAST,commonType,ImmutableList.of(firstType));
-  FunctionInfo secondCast=metadata.getExactOperator(OperatorType.CAST,commonType,ImmutableList.of(secondType));
+  FunctionInfo firstCast=metadata.getFunctionRegistry().getCoercion(firstType,commonType);
+  FunctionInfo secondCast=metadata.getFunctionRegistry().getCoercion(secondType,commonType);
   boolean equal=(Boolean)invokeOperator(OperatorType.EQUAL,ImmutableList.of(commonType,commonType),ImmutableList.of(invoke(session,firstCast.getMethodHandle(),ImmutableList.of(first)),invoke(session,secondCast.getMethodHandle(),ImmutableList.of(second))));
   if (equal) {
     return null;
