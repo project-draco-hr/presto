@@ -4,7 +4,7 @@
   for (  StructField field : getTableStructFields(table)) {
     HiveType hiveType=getHiveType(field.getFieldObjectInspector());
     if (hiveType != null && (includeSampleWeight || !field.getFieldName().equals(SAMPLE_WEIGHT_COLUMN_NAME))) {
-      columns.add(new HiveColumnHandle(connectorId,field.getFieldName(),hiveColumnIndex,hiveType,hiveColumnIndex,false));
+      columns.add(new HiveColumnHandle(connectorId,field.getFieldName(),hiveColumnIndex,hiveType,getType(field.getFieldObjectInspector()).getName(),hiveColumnIndex,false));
     }
     hiveColumnIndex++;
   }
@@ -12,7 +12,7 @@
   for (int i=0; i < partitionKeys.size(); i++) {
     FieldSchema field=partitionKeys.get(i);
     HiveType hiveType=getSupportedHiveType(field.getType());
-    columns.add(new HiveColumnHandle(connectorId,field.getName(),hiveColumnIndex + i,hiveType,-1,true));
+    columns.add(new HiveColumnHandle(connectorId,field.getName(),hiveColumnIndex + i,hiveType,getType(field.getType()).getName(),-1,true));
   }
   return columns.build();
 }

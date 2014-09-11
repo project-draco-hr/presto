@@ -7,7 +7,7 @@
   File tpchDataDir=new File(tempDir,"tpch");
   tpchDataDir.mkdir();
   metastore.createDatabase(new Database("tpch",null,tpchDataDir.toURI().toString(),null));
-  HiveConnectorFactory hiveConnectorFactory=new HiveConnectorFactory("hive",ImmutableMap.of("node.environment","test"),HiveBenchmarkQueryRunner.class.getClassLoader(),metastore);
+  HiveConnectorFactory hiveConnectorFactory=new HiveConnectorFactory("hive",ImmutableMap.of("node.environment","test"),HiveBenchmarkQueryRunner.class.getClassLoader(),metastore,new TypeRegistry());
   Map<String,String> hiveCatalogConfig=ImmutableMap.<String,String>builder().put("hive.metastore.uri","thrift://none.invalid").put("hive.max-split-size","10GB").build();
   localQueryRunner.createCatalog("hive",hiveConnectorFactory,hiveCatalogConfig);
   localQueryRunner.execute("CREATE TABLE orders AS SELECT * FROM tpch.sf1.orders");

@@ -3,7 +3,7 @@
   if (length == "\\N".length() && bytes[start] == '\\' && bytes[start + 1] == 'N') {
     wasNull=true;
   }
- else   if (hiveTypes[column] == HiveType.MAP || hiveTypes[column] == HiveType.LIST || hiveTypes[column] == HiveType.STRUCT) {
+ else   if (hiveTypes[column].getCategory() == MAP || hiveTypes[column].getCategory() == LIST || hiveTypes[column].getCategory() == STRUCT) {
     LazyObject<? extends ObjectInspector> lazyObject=LazyFactory.createLazyObject(fieldInspectors[column]);
     ByteArrayRef byteArrayRef=new ByteArrayRef();
     byteArrayRef.setData(bytes);
@@ -13,7 +13,7 @@
   }
  else {
     slices[column]=Slices.wrappedBuffer(Arrays.copyOfRange(bytes,start,start + length));
-    if (hiveTypes[column] == HiveType.BINARY) {
+    if (hiveTypes[column].equals(HiveType.HIVE_BINARY)) {
       slices[column]=Slices.wrappedBuffer(Base64.decodeBase64(slices[column].getBytes()));
     }
     wasNull=false;
