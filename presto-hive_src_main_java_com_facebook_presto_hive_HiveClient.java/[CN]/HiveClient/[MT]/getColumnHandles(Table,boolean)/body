@@ -4,7 +4,9 @@
   for (  StructField field : getTableStructFields(table)) {
     HiveType hiveType=getHiveType(field.getFieldObjectInspector());
     if (hiveType != null && (includeSampleWeight || !field.getFieldName().equals(SAMPLE_WEIGHT_COLUMN_NAME))) {
-      columns.add(new HiveColumnHandle(connectorId,field.getFieldName(),hiveColumnIndex,hiveType,getType(field.getFieldObjectInspector()).getName(),hiveColumnIndex,false));
+      Type type=getType(field.getFieldObjectInspector(),typeManager);
+      checkNotNull(type,"Unsupported hive type: %s",field.getFieldObjectInspector().getTypeName());
+      columns.add(new HiveColumnHandle(connectorId,field.getFieldName(),hiveColumnIndex,hiveType,type.getName(),hiveColumnIndex,false));
     }
     hiveColumnIndex++;
   }

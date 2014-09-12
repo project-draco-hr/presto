@@ -4,7 +4,7 @@
     for (int i=0, testColumnsSize=testColumns.size(); i < testColumnsSize; i++) {
       TestColumn testColumn=testColumns.get(i);
       Object fieldFromCursor;
-      Type type=getType(testColumn.getObjectInspector());
+      Type type=getType(testColumn.getObjectInspector(),TYPE_MANAGER);
       if (cursor.isNull(i)) {
         fieldFromCursor=null;
       }
@@ -28,6 +28,9 @@
       }
  else       if (TimestampType.TIMESTAMP.equals(type)) {
         fieldFromCursor=cursor.getLong(i);
+      }
+ else       if (isArrayType(type) || isMapType(type)) {
+        fieldFromCursor=cursor.getSlice(i);
       }
  else {
         throw new RuntimeException("unknown type");

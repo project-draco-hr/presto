@@ -1,0 +1,29 @@
+{
+  List<HiveColumnHandle> readColumns=ImmutableList.copyOf(filter(columns,not(isPartitionKeyPredicate())));
+  if (readColumns.isEmpty()) {
+    HiveColumnHandle primitiveColumn=getFirstPrimitiveColumn(clientId,schema,typeManager);
+    readColumns=ImmutableList.of(primitiveColumn);
+  }
+  ArrayList<Integer> readHiveColumnIndexes=new ArrayList<>(transform(readColumns,hiveColumnIndexGetter()));
+  ColumnProjectionUtils.setReadColumnIDs(configuration,readHiveColumnIndexes);
+  configuration.set(IOConstants.COLUMNS,Joiner.on(',').join(Iterables.transform(readColumns,HiveColumnHandle.nameGetter())));
+  final InputFormat<?,?> inputFormat=getInputFormat(configuration,schema,true);
+  final JobConf jobConf=new JobConf(configuration);
+  final FileSplit fileSplit=new FileSplit(path,start,length,(String[])null);
+  for (  String name : schema.stringPropertyNames()) {
+    if (name.startsWith("serialization.")) {
+      jobConf.set(name,schema.getProperty(name));
+    }
+  }
+  try {
+    return retry().stopOnIllegalExceptions().run("createRecordReader",new Callable<RecordReader<?,?>>(){
+      @Override public RecordReader<?,?> call() throws IOException {
+        return inputFormat.getRecordReader(fileSplit,jobConf,Reporter.NULL);
+      }
+    }
+);
+  }
+ catch (  Exception e) {
+    throw new PrestoException(HiveErrorCode.HIVE_CANNOT_OPEN_SPLIT.toErrorCode(),String.format("Error opening Hive split %s (offset=%s, length=%s) using %s: %s",path,start,length,getInputFormatName(schema),e.getMessage()),e);
+  }
+}

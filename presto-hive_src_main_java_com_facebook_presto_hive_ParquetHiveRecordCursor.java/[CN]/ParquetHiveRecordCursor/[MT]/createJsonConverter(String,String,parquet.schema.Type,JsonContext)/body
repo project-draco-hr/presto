@@ -1,0 +1,20 @@
+{
+  if (type.isPrimitive()) {
+    return new ParquetPrimitiveJsonConverter(fieldName);
+  }
+ else   if (type.getOriginalType() == LIST) {
+    return new ParquetListJsonConverter(columnName,fieldName,type.asGroupType(),context);
+  }
+ else   if (type.getOriginalType() == MAP) {
+    return new ParquetMapJsonConverter(columnName,fieldName,type.asGroupType(),context);
+  }
+ else   if (type.getOriginalType() == null) {
+    if (context == JsonContext.JSON_STACK) {
+      return new ParquetStructJsonStackConverter(columnName,fieldName,type.asGroupType());
+    }
+ else {
+      return new ParquetStructJsonConverter(columnName,fieldName,type.asGroupType());
+    }
+  }
+  throw new IllegalArgumentException("Unsupported type " + type);
+}

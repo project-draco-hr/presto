@@ -20,5 +20,14 @@
   if (TimestampType.TIMESTAMP.equals(type)) {
     return HIVE_TIMESTAMP;
   }
+  if (isArrayType(type)) {
+    HiveType hiveElementType=toHiveType(type.getTypeParameters().get(0));
+    return new HiveType(format("array<%s>",hiveElementType.getHiveTypeName()));
+  }
+  if (isMapType(type)) {
+    HiveType hiveKeyType=toHiveType(type.getTypeParameters().get(0));
+    HiveType hiveValueType=toHiveType(type.getTypeParameters().get(1));
+    return new HiveType(format("map<%s,%s>",hiveKeyType.getHiveTypeName(),hiveValueType.getHiveTypeName()));
+  }
   throw new IllegalArgumentException("unsupported type: " + type);
 }

@@ -1,0 +1,19 @@
+{
+  if (object == null) {
+    generator.writeNull();
+    return;
+  }
+  if (context == JsonContext.JSON_STACK) {
+    ByteArrayOutputStream out=new ByteArrayOutputStream();
+    try (JsonGenerator structGenerator=new JsonFactory().createGenerator(out)){
+      serializeStructHelper(sessionTimeZone,object,inspector,structGenerator);
+    }
+ catch (    IOException e) {
+      throw Throwables.propagate(e);
+    }
+    generator.writeString(out.toString());
+  }
+ else {
+    serializeStructHelper(sessionTimeZone,object,inspector,generator);
+  }
+}

@@ -30,11 +30,11 @@
     throw new RuntimeException(format("Target directory for table '%s' already exists: %s",table,targetPath));
   }
   if (!useTemporaryDirectory(targetPath)) {
-    return new HiveOutputTableHandle(connectorId,schemaName,tableName,columnNames.build(),columnTypes.build(),tableMetadata.getOwner(),targetPath.toString(),targetPath.toString());
+    return new HiveOutputTableHandle(connectorId,schemaName,tableName,columnNames.build(),columnTypes.build(),tableMetadata.getOwner(),targetPath.toString(),targetPath.toString(),session);
   }
   String temporaryPrefix="/tmp/presto-" + StandardSystemProperty.USER_NAME.value();
   Path temporaryRoot=new Path(targetPath,temporaryPrefix);
   Path temporaryPath=new Path(temporaryRoot,randomUUID().toString());
   createDirectories(temporaryPath);
-  return new HiveOutputTableHandle(connectorId,schemaName,tableName,columnNames.build(),columnTypes.build(),tableMetadata.getOwner(),targetPath.toString(),temporaryPath.toString());
+  return new HiveOutputTableHandle(connectorId,schemaName,tableName,columnNames.build(),columnTypes.build(),tableMetadata.getOwner(),targetPath.toString(),temporaryPath.toString(),session);
 }

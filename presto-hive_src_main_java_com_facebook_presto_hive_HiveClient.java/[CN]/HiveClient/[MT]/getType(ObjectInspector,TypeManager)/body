@@ -1,0 +1,26 @@
+{
+switch (fieldInspector.getCategory()) {
+case PRIMITIVE:
+    PrimitiveCategory primitiveCategory=((PrimitiveObjectInspector)fieldInspector).getPrimitiveCategory();
+  return getPrimitiveType(primitiveCategory);
+case MAP:
+MapObjectInspector mapObjectInspector=checkType(fieldInspector,MapObjectInspector.class,"fieldInspector");
+Type keyType=getType(mapObjectInspector.getMapKeyObjectInspector(),typeManager);
+Type valueType=getType(mapObjectInspector.getMapValueObjectInspector(),typeManager);
+if (keyType == null || valueType == null) {
+return null;
+}
+return typeManager.getParameterizedType(StandardTypes.MAP,ImmutableList.of(keyType.getName(),valueType.getName()));
+case LIST:
+ListObjectInspector listObjectInspector=checkType(fieldInspector,ListObjectInspector.class,"fieldInspector");
+Type elementType=getType(listObjectInspector.getListElementObjectInspector(),typeManager);
+if (elementType == null) {
+return null;
+}
+return typeManager.getParameterizedType(StandardTypes.ARRAY,ImmutableList.of(elementType.getName()));
+case STRUCT:
+return VARCHAR;
+default :
+throw new IllegalArgumentException("Unsupported hive type " + fieldInspector.getTypeName());
+}
+}

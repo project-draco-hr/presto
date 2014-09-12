@@ -1,7 +1,8 @@
 {
   checkState(!closed,"Cursor is closed");
-  if (!types[fieldId].equals(VARCHAR) && !types[fieldId].equals(VARBINARY)) {
-    throw new IllegalArgumentException(String.format("Expected field to be VARCHAR or VARBINARY, actual %s (field %s)",types[fieldId],fieldId));
+  Type type=types[fieldId];
+  if (!type.equals(VARCHAR) && !type.equals(VARBINARY) && !isArrayOrMap(hiveTypes[fieldId])) {
+    throw new IllegalArgumentException(String.format("Expected field to be VARCHAR or VARBINARY, actual %s (field %s)",type,fieldId));
   }
   if (!loaded[fieldId]) {
     parseStringColumn(fieldId);
