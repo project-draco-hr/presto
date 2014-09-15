@@ -1,0 +1,18 @@
+{
+  Class<?> valueJsonType=stackTypeToJsonClass(valueType);
+  JavaType listType=OBJECT_MAPPER.getTypeFactory().constructParametricType(Map.class,String.class,valueJsonType);
+  Map<String,Object> stackMap;
+  try {
+    stackMap=OBJECT_MAPPER.readValue(stackRepresentation,listType);
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+  Map<Object,Object> objectMap=new HashMap<>();
+  for (  Map.Entry<String,Object> entry : stackMap.entrySet()) {
+    Object key=stackRepresentationToObject(session,castJsonMapKey(entry.getKey(),keyType),keyType);
+    Object value=stackRepresentationToObject(session,entry.getValue(),valueType);
+    objectMap.put(key,value);
+  }
+  return objectMap;
+}

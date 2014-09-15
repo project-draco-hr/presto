@@ -1,0 +1,44 @@
+{
+  checkArgument(!types.isEmpty() && types.size() % 2 == 0,"Expected an even number of type arguments");
+  checkArgument(ImmutableSet.copyOf(types).size() <= 2,"Can only construct maps from up to two types, got %s",ImmutableSet.copyOf(types));
+  Type keyType=types.get(0);
+  Type valueType=types.get(1);
+  for (int i=0; i < types.size(); i++) {
+    Type type=types.get(i);
+    if (i % 2 == 0) {
+      checkArgument(canCoerce(type,keyType),"Arguments must alternate key, value, key, value");
+    }
+ else {
+      checkArgument(canCoerce(type,valueType),"Arguments must alternate key, value, key, value");
+    }
+  }
+  ImmutableList.Builder<Type> actualTypeBuilder=ImmutableList.builder();
+  for (int i=0; i < types.size() / 2; i++) {
+    actualTypeBuilder.add(keyType);
+    actualTypeBuilder.add(valueType);
+  }
+  types=actualTypeBuilder.build();
+  ImmutableList.Builder<Class<?>> builder=ImmutableList.builder();
+  for (  Type type : types) {
+    if (type.getJavaType().isPrimitive()) {
+      builder.add(Primitives.wrap(type.getJavaType()));
+    }
+ else {
+      builder.add(type.getJavaType());
+    }
+  }
+  ImmutableList<Class<?>> stackTypes=builder.build();
+  Class<?> clazz=generateMapConstructor(stackTypes);
+  MethodHandle methodHandle;
+  try {
+    Method method=clazz.getMethod("mapConstructor",stackTypes.toArray(new Class<?>[stackTypes.size()]));
+    methodHandle=lookup().unreflect(method);
+  }
+ catch (  NoSuchMethodException|IllegalAccessException e) {
+    throw Throwables.propagate(e);
+  }
+  Type mapType=typeManager.getParameterizedType(MAP.getName(),ImmutableList.of(keyType.getName(),valueType.getName()));
+  Signature signature=new Signature("map",ImmutableList.<TypeParameter>of(),mapType.getName(),Lists.transform(types,nameGetter()),false,true);
+  List<Boolean> nullableParameters=ImmutableList.copyOf(Collections.nCopies(stackTypes.size(),true));
+  return new FunctionInfo(signature,"Constructs a map of the given entries",true,methodHandle,true,false,nullableParameters);
+}
