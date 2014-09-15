@@ -1,0 +1,36 @@
+{
+  Type keyType=types.get("K");
+  Type valueType=types.get("V");
+  ImmutableList.Builder<Class<?>> builder=ImmutableList.builder();
+  ImmutableList.Builder<String> actualArgumentNames=ImmutableList.builder();
+  for (int i=0; i < arity; i++) {
+    Type type;
+    if (i % 2 == 0) {
+      type=keyType;
+    }
+ else {
+      type=valueType;
+    }
+    actualArgumentNames.add(type.getName());
+    if (type.getJavaType().isPrimitive()) {
+      builder.add(Primitives.wrap(type.getJavaType()));
+    }
+ else {
+      builder.add(type.getJavaType());
+    }
+  }
+  ImmutableList<Class<?>> stackTypes=builder.build();
+  Class<?> clazz=generateMapConstructor(stackTypes);
+  MethodHandle methodHandle;
+  try {
+    Method method=clazz.getMethod("mapConstructor",stackTypes.toArray(new Class<?>[stackTypes.size()]));
+    methodHandle=lookup().unreflect(method);
+  }
+ catch (  NoSuchMethodException|IllegalAccessException e) {
+    throw Throwables.propagate(e);
+  }
+  Type mapType=typeManager.getParameterizedType(MAP.getName(),ImmutableList.of(keyType.getName(),valueType.getName()));
+  Signature signature=new Signature("map",ImmutableList.<TypeParameter>of(),mapType.getName(),actualArgumentNames.build(),false,true);
+  List<Boolean> nullableParameters=ImmutableList.copyOf(Collections.nCopies(stackTypes.size(),true));
+  return new FunctionInfo(signature,"Constructs a map of the given entries",true,methodHandle,true,false,nullableParameters);
+}

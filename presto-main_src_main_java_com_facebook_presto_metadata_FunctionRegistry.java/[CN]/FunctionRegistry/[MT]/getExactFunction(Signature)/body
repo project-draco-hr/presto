@@ -3,8 +3,9 @@
   for (  ParametricFunction operator : candidates) {
     Type returnType=typeManager.getType(signature.getReturnType());
     List<Type> argumentTypes=resolveTypes(signature.getArgumentTypes(),typeManager);
-    if (operator.getSignature().match(returnType,argumentTypes,false,typeManager)) {
-      return operator.specialize(returnType,argumentTypes);
+    Map<String,Type> boundTypeParameters=operator.getSignature().bindTypeParameters(returnType,argumentTypes,false,typeManager);
+    if (boundTypeParameters != null) {
+      return operator.specialize(boundTypeParameters,signature.getArgumentTypes().size());
     }
   }
   return null;

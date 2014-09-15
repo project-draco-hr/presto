@@ -8,17 +8,19 @@
   List<Type> resolvedTypes=resolveTypes(parameterTypes,typeManager);
   FunctionInfo match=null;
   for (  ParametricFunction function : candidates) {
-    if (function.getSignature().match(resolvedTypes,false,typeManager)) {
+    Map<String,Type> boundTypeParameters=function.getSignature().bindTypeParameters(resolvedTypes,false,typeManager);
+    if (boundTypeParameters != null) {
       checkArgument(match == null,"Ambiguous call to %s with parameters %s",name,parameterTypes);
-      match=function.specialize(resolvedTypes);
+      match=function.specialize(boundTypeParameters,resolvedTypes.size());
     }
   }
   if (match != null) {
     return match;
   }
   for (  ParametricFunction function : candidates) {
-    if (function.getSignature().match(resolvedTypes,true,typeManager)) {
-      return function.specialize(resolvedTypes);
+    Map<String,Type> boundTypeParameters=function.getSignature().bindTypeParameters(resolvedTypes,true,typeManager);
+    if (boundTypeParameters != null) {
+      return function.specialize(boundTypeParameters,resolvedTypes.size());
     }
   }
   List<String> expectedParameters=new ArrayList<>();
