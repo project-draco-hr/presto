@@ -1,8 +1,10 @@
 {
+  long start=System.nanoTime();
   for (  TestingPrestoServer server : servers) {
     server.createCatalog(catalogName,connectorName,properties);
   }
-  long start=System.nanoTime();
+  log.info("Created catalog %s in %s",catalogName,nanosSince(start).convertToMostSuccinctTimeUnit());
+  start=System.nanoTime();
   while (!isConnectionVisibleToAllNodes(catalogName)) {
     Assertions.assertLessThan(nanosSince(start),new Duration(100,SECONDS),"waiting form connector " + connectorName + " to be initialized in every node");
     try {
@@ -13,4 +15,5 @@
       throw Throwables.propagate(e);
     }
   }
+  log.info("Announced catalog %s in %s",catalogName,nanosSince(start).convertToMostSuccinctTimeUnit());
 }
