@@ -1,5 +1,8 @@
 {
   MaterializedResult actualSchemas=computeActual("SHOW SCHEMAS").toJdbcTypes();
-  MaterializedResult expectedSchemas=MaterializedResult.resultBuilder(queryRunner.getDefaultSession(),VARCHAR).row("tpch").row("tpch_sampled").build();
-  assertTrue(actualSchemas.getMaterializedRows().containsAll(expectedSchemas.getMaterializedRows()));
+  MaterializedResult.Builder resultBuilder=MaterializedResult.resultBuilder(queryRunner.getDefaultSession(),VARCHAR).row("tpch");
+  if (sampledSession.isPresent()) {
+    resultBuilder.row("tpch_sampled");
+  }
+  assertTrue(actualSchemas.getMaterializedRows().containsAll(resultBuilder.build().getMaterializedRows()));
 }
