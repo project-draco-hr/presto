@@ -1,0 +1,17 @@
+{
+  DistributedQueryRunner queryRunner=null;
+  try {
+    queryRunner=new DistributedQueryRunner(createSession(),3);
+    queryRunner.installPlugin(new TpchPlugin());
+    queryRunner.createCatalog("tpch","tpch");
+    Map<String,String> properties=ImmutableMap.of("connection-url",server.getJdbcUrl());
+    queryRunner.installPlugin(new MySqlPlugin());
+    queryRunner.createCatalog("mysql","mysql",properties);
+    copyTpchTables(queryRunner,"tpch",TINY_SCHEMA_NAME,createSession(),tables);
+    return queryRunner;
+  }
+ catch (  Throwable e) {
+    closeAllSuppress(e,queryRunner,server);
+    throw e;
+  }
+}
