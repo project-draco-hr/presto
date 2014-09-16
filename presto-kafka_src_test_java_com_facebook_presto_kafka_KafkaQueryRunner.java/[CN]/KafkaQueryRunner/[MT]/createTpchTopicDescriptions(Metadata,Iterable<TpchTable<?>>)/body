@@ -1,0 +1,10 @@
+{
+  JsonCodec<KafkaTopicDescription> topicDescriptionJsonCodec=new CodecSupplier<>(KafkaTopicDescription.class,metadata).get();
+  ImmutableMap.Builder<SchemaTableName,KafkaTopicDescription> topicDescriptions=ImmutableMap.builder();
+  for (  TpchTable<?> table : tables) {
+    String tableName=table.getTableName();
+    SchemaTableName tpchTable=new SchemaTableName(TPCH_SCHEMA,tableName);
+    topicDescriptions.put(loadTpchTopicDescription(topicDescriptionJsonCodec,tpchTable.toString(),tpchTable));
+  }
+  return topicDescriptions.build();
+}

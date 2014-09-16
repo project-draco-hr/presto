@@ -1,0 +1,26 @@
+{
+  DistributedQueryRunner queryRunner=null;
+  try {
+    queryRunner=new DistributedQueryRunner(createSession(),2);
+    queryRunner.installPlugin(new TpchPlugin());
+    queryRunner.createCatalog("tpch","tpch");
+    embeddedKafka.start();
+    for (    TpchTable<?> table : tables) {
+      embeddedKafka.createTopics(kafkaTopicName(table));
+    }
+    Map<SchemaTableName,KafkaTopicDescription> topicDescriptions=createTpchTopicDescriptions(queryRunner.getCoordinator().getMetadata(),tables);
+    installKafkaPlugin(embeddedKafka,queryRunner,topicDescriptions);
+    TestingPrestoClient prestoClient=queryRunner.getClient();
+    log.info("Loading data...");
+    long startTime=System.nanoTime();
+    for (    TpchTable<?> table : tables) {
+      loadTpchTopic(embeddedKafka,prestoClient,table);
+    }
+    log.info("Loading complete in %s",nanosSince(startTime).toString(SECONDS));
+    return queryRunner;
+  }
+ catch (  Throwable e) {
+    closeAllSuppress(e,queryRunner,embeddedKafka);
+    throw e;
+  }
+}
