@@ -2,6 +2,12 @@
   SubPlanBuilder left=node.getLeft().accept(this,context);
   SubPlanBuilder right=node.getRight().accept(this,context);
   if (left.isDistributed() || right.isDistributed()) {
+    if (distributedJoins) {
+      List<Symbol> leftSymbols=Lists.transform(node.getCriteria(),leftGetter());
+      List<Symbol> rightSymbols=Lists.transform(node.getCriteria(),rightGetter());
+      left=hashDistributeSubplan(left,leftSymbols);
+      right=hashDistributeSubplan(right,rightSymbols);
+    }
 switch (node.getType()) {
 case INNER:
 case LEFT:
