@@ -1,16 +1,25 @@
 {
+  ConnectorSession session=new ConnectorSession("user","source","catalog","schema",UTC_KEY,Locale.ENGLISH,"address","agent");
+  ImmutableList<Type> types=ImmutableList.<Type>of(VARCHAR,BIGINT);
   UUID shardUuid=UUID.randomUUID();
   assertFalse(storageManager.shardExists(shardUuid));
   List<RaptorColumnHandle> columnHandles=ImmutableList.of(new RaptorColumnHandle("test","column_7",7L,VARCHAR),new RaptorColumnHandle("test","column_11",11L,BIGINT));
-  List<Page> pages=rowPagesBuilder(VARCHAR,BIGINT).row("alice",0).row("bob",1).row("charlie",2).row("dave",3).pageBreak().row("alice",4).row("bob",5).row("charlie",6).row("dave",7).pageBreak().row("alice",8).row("bob",9).row("charlie",10).row("dave",11).build();
+  List<Page> pages=rowPagesBuilder(types).row("alice",0).row("bob",1).row("charlie",2).row("dave",3).pageBreak().row("alice",4).row("bob",5).row("charlie",6).row("dave",7).pageBreak().row("alice",8).row("bob",9).row("charlie",10).row("dave",11).build();
+  MaterializedResult expected=toMaterializedResult(session,types,pages);
   ColumnFileHandle fileHandles=storageManager.createStagingFileHandles(shardUuid,columnHandles);
   for (  Page page : pages) {
     fileHandles.append(page);
   }
   storageManager.commit(fileHandles);
   assertTrue(storageManager.shardExists(shardUuid));
-  OperatorContext operatorContext=driverContext.addOperatorContext(0,AlignmentOperator.class.getSimpleName());
-  Operator operator=new AlignmentOperator(operatorContext,ImmutableList.<Type>of(VARCHAR,BIGINT),ImmutableList.of(storageManager.getBlocks(shardUuid,columnHandles.get(0)),storageManager.getBlocks(shardUuid,columnHandles.get(1))));
-  MaterializedResult expected=toMaterializedResult(operator.getOperatorContext().getSession(),operator.getTypes(),pages);
-  OperatorAssertion.assertOperatorEquals(operator,expected);
+  RaptorPageSource raptorPageSource=new RaptorPageSource(ImmutableList.of(storageManager.getBlocks(shardUuid,columnHandles.get(0)),storageManager.getBlocks(shardUuid,columnHandles.get(1))));
+  List<Page> actualPages=new ArrayList<>();
+  while (!raptorPageSource.isFinished()) {
+    Page page=raptorPageSource.getNextPage();
+    if (page != null) {
+      actualPages.add(page);
+    }
+  }
+  MaterializedResult actual=toMaterializedResult(session,types,actualPages);
+  assertEquals(actual,expected);
 }

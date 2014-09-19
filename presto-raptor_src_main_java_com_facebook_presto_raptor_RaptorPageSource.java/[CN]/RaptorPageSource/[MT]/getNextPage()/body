@@ -1,0 +1,29 @@
+{
+  if (finished) {
+    return null;
+  }
+  if (blockPositions.get(0).getRemainingPositions() <= 0 && !iterators.get(0).hasNext()) {
+    for (    Iterator<Block> iterator : iterators) {
+      checkState(!iterator.hasNext());
+    }
+    finished=true;
+    return null;
+  }
+  int length=Integer.MAX_VALUE;
+  for (int i=0; i < iterators.size(); i++) {
+    Iterator<? extends Block> iterator=iterators.get(i);
+    BlockPosition blockPosition=blockPositions.get(i);
+    if (blockPosition.getRemainingPositions() <= 0) {
+      blockPosition=new BlockPosition(iterator.next());
+      blockPositions.set(i,blockPosition);
+    }
+    length=Math.min(length,blockPosition.getRemainingPositions());
+  }
+  Block[] blocks=new Block[iterators.size()];
+  for (int i=0; i < blockPositions.size(); i++) {
+    blocks[i]=blockPositions.get(i).getRegionAndAdvance(length);
+  }
+  Page page=new Page(blocks);
+  sizeInBytes+=page.getSizeInBytes();
+  return page;
+}

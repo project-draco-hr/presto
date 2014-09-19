@@ -1,0 +1,15 @@
+{
+  List<Page> expected=rowPagesBuilder(VARCHAR,BIGINT).row("alice",0).row("bob",1).row("charlie",2).row("dave",3).pageBreak().row("alice",4).row("bob",5).row("charlie",6).row("dave",7).pageBreak().row("alice",8).row("bob",9).row("charlie",10).row("dave",11).build();
+  RaptorPageSource raptorDataSource=createRaptorDataSource();
+  List<Page> actual=new ArrayList<>();
+  while (!raptorDataSource.isFinished()) {
+    Page nextPage=raptorDataSource.getNextPage();
+    if (nextPage != null) {
+      actual.add(nextPage);
+    }
+  }
+  assertEquals(actual.size(),expected.size());
+  for (int i=0; i < actual.size(); i++) {
+    assertPageEquals(TYPES,actual.get(i),expected.get(i));
+  }
+}

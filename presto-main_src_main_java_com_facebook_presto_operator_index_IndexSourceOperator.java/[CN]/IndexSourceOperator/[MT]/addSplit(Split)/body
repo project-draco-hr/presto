@@ -5,6 +5,6 @@
   IndexSplit indexSplit=(IndexSplit)split.getConnectorSplit();
   RecordSet normalizedRecordSet=probeKeyNormalizer.apply(indexSplit.getKeyRecordSet());
   RecordSet result=index.lookup(normalizedRecordSet);
-  source=new RecordProjectOperator(operatorContext,result);
+  source=new PageSourceOperator(new RecordPageSource(result),result.getColumnTypes(),operatorContext);
   operatorContext.setInfoSupplier(Suppliers.ofInstance(split.getInfo()));
 }

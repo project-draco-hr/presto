@@ -42,7 +42,7 @@
     if (columns != null) {
       CursorProcessor cursorProcessor=compiler.compileCursorProcessor(traslatedFilter,translatedProjections,sourceNode.getId());
       PageProcessor pageProcessor=compiler.compilePageProcessor(traslatedFilter,translatedProjections);
-      SourceOperatorFactory operatorFactory=new ScanFilterAndProjectOperator.ScanFilterAndProjectOperatorFactory(context.getNextOperatorId(),sourceNode.getId(),dataStreamProvider,cursorProcessor,pageProcessor,columns,Lists.transform(rewrittenProjections,forMap(expressionTypes)));
+      SourceOperatorFactory operatorFactory=new ScanFilterAndProjectOperator.ScanFilterAndProjectOperatorFactory(context.getNextOperatorId(),sourceNode.getId(),pageSourceProvider,cursorProcessor,pageProcessor,columns,Lists.transform(rewrittenProjections,forMap(expressionTypes)));
       return new PhysicalOperation(operatorFactory,outputMappings);
     }
  else {
@@ -77,7 +77,7 @@
     projectionFunctions.add(function);
   }
   if (columns != null) {
-    OperatorFactory operatorFactory=new ScanFilterAndProjectOperator.ScanFilterAndProjectOperatorFactory(context.getNextOperatorId(),sourceNode.getId(),dataStreamProvider,new GenericCursorProcessor(filterFunction,projectionFunctions),new GenericPageProcessor(filterFunction,projectionFunctions),columns,toTypes(projectionFunctions));
+    OperatorFactory operatorFactory=new ScanFilterAndProjectOperator.ScanFilterAndProjectOperatorFactory(context.getNextOperatorId(),sourceNode.getId(),pageSourceProvider,new GenericCursorProcessor(filterFunction,projectionFunctions),new GenericPageProcessor(filterFunction,projectionFunctions),columns,toTypes(projectionFunctions));
     return new PhysicalOperation(operatorFactory,outputMappings);
   }
  else {

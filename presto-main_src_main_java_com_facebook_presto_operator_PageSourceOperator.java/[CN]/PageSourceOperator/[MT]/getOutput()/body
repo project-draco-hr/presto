@@ -1,0 +1,12 @@
+{
+  Page page=pageSource.getNextPage();
+  if (page == null) {
+    return null;
+  }
+  long endCompletedBytes=pageSource.getCompletedBytes();
+  long endReadTimeNanos=pageSource.getReadTimeNanos();
+  operatorContext.recordGeneratedInput(endCompletedBytes - completedBytes,page.getPositionCount(),endReadTimeNanos - readTimeNanos);
+  completedBytes=endCompletedBytes;
+  readTimeNanos=endReadTimeNanos;
+  return page;
+}

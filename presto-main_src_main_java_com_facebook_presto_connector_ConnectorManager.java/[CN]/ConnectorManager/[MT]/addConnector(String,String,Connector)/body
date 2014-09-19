@@ -3,15 +3,15 @@
   checkState(connectorMetadata != null,"Connector %s can not provide metadata",connectorId);
   ConnectorSplitManager connectorSplitManager=connector.getSplitManager();
   checkState(connectorSplitManager != null,"Connector %s does not have a split manager",connectorId);
-  ConnectorDataStreamProvider connectorDataStreamProvider=null;
+  ConnectorPageSourceProvider connectorPageSourceProvider=null;
   if (connector instanceof InternalConnector) {
     try {
-      connectorDataStreamProvider=((InternalConnector)connector).getDataStreamProvider();
+      connectorPageSourceProvider=((InternalConnector)connector).getPageSourceProvider();
     }
  catch (    UnsupportedOperationException ignored) {
     }
   }
-  if (connectorDataStreamProvider == null) {
+  if (connectorPageSourceProvider == null) {
     ConnectorRecordSetProvider connectorRecordSetProvider=null;
     try {
       connectorRecordSetProvider=connector.getRecordSetProvider();
@@ -19,7 +19,7 @@
  catch (    UnsupportedOperationException ignored) {
     }
     checkState(connectorRecordSetProvider != null,"Connector %s does not have a data stream provider",connectorId);
-    connectorDataStreamProvider=new RecordSetDataStreamProvider(connectorRecordSetProvider);
+    connectorPageSourceProvider=new RecordPageSourceProvider(connectorRecordSetProvider);
   }
   ConnectorHandleResolver connectorHandleResolver=connector.getHandleResolver();
   checkNotNull(connectorHandleResolver,"Connector %s does not have a handle resolver",connectorId);
@@ -41,14 +41,14 @@
     metadataManager.addConnectorMetadata(connectorId,catalogName,connectorMetadata);
     metadataManager.addInformationSchemaMetadata(makeInformationSchemaConnectorId(connectorId),catalogName,new InformationSchemaMetadata(catalogName));
     splitManager.addConnectorSplitManager(makeInformationSchemaConnectorId(connectorId),new InformationSchemaSplitManager(nodeManager));
-    dataStreamManager.addConnectorDataStreamProvider(makeInformationSchemaConnectorId(connectorId),new InformationSchemaDataStreamProvider(metadataManager,splitManager));
+    pageSourceManager.addConnectorPageSourceProvider(makeInformationSchemaConnectorId(connectorId),new InformationSchemaPageSourceProvider(metadataManager,splitManager));
   }
  else {
     metadataManager.addGlobalSchemaMetadata(connectorId,connectorMetadata);
   }
   splitManager.addConnectorSplitManager(connectorId,connectorSplitManager);
   handleResolver.addHandleResolver(connectorId,connectorHandleResolver);
-  dataStreamManager.addConnectorDataStreamProvider(connectorId,connectorDataStreamProvider);
+  pageSourceManager.addConnectorPageSourceProvider(connectorId,connectorPageSourceProvider);
   if (connectorRecordSinkProvider != null) {
     recordSinkManager.addConnectorRecordSinkProvider(connectorId,connectorRecordSinkProvider);
   }

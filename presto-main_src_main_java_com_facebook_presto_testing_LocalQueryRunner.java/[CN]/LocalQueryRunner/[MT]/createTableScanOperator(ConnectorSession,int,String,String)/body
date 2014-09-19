@@ -20,7 +20,8 @@
     }
     @Override public Operator createOperator(    DriverContext driverContext){
       OperatorContext operatorContext=driverContext.addOperatorContext(operatorId,"BenchmarkSource");
-      return dataStreamProvider.createNewDataStream(operatorContext,split,columnHandles);
+      ConnectorPageSource pageSource=pageSourceManager.createPageSource(split,columnHandles);
+      return new PageSourceOperator(pageSource,columnTypes,operatorContext);
     }
     @Override public void close(){
     }

@@ -37,10 +37,10 @@
         }
       }
     }
-    long bytesProcessed=cursor.getCompletedBytes() - completedBytes;
+    long endCompletedBytes=cursor.getCompletedBytes();
     long endReadTimeNanos=cursor.getReadTimeNanos();
-    operatorContext.recordGeneratedInput(bytesProcessed,i,endReadTimeNanos - readTimeNanos);
-    completedBytes+=bytesProcessed;
+    operatorContext.recordGeneratedInput(endCompletedBytes - completedBytes,i,endReadTimeNanos - readTimeNanos);
+    completedBytes=endCompletedBytes;
     readTimeNanos=endReadTimeNanos;
   }
   if (pageBuilder.isEmpty() || (!finishing && !pageBuilder.isFull())) {
