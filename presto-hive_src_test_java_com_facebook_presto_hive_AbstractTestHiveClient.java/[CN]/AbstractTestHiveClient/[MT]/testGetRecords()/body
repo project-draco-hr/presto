@@ -10,7 +10,8 @@
     HiveSplit hiveSplit=(HiveSplit)split;
     List<HivePartitionKey> partitionKeys=hiveSplit.getPartitionKeys();
     String ds=partitionKeys.get(0).getValue();
-    String fileType=partitionKeys.get(1).getValue();
+    String fileFormat=partitionKeys.get(1).getValue();
+    HiveStorageFormat fileType=HiveStorageFormat.valueOf(fileFormat.toUpperCase());
     long dummyPartition=Long.parseLong(partitionKeys.get(2).getValue());
     long rowNumber=0;
     long completedBytes=0;
@@ -52,7 +53,7 @@
           assertEquals(row.getField(columnIndex.get("t_boolean")),rowNumber % 3 != 0);
         }
         assertEquals(row.getField(columnIndex.get("ds")),ds);
-        assertEquals(row.getField(columnIndex.get("file_format")),fileType);
+        assertEquals(row.getField(columnIndex.get("file_format")),fileFormat);
         assertEquals(row.getField(columnIndex.get("dummy")),dummyPartition);
         long newCompletedBytes=pageSource.getCompletedBytes();
         assertTrue(newCompletedBytes >= completedBytes);

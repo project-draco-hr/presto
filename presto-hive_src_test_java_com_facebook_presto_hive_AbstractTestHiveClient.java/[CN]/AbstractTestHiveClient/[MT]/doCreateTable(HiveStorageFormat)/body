@@ -1,7 +1,8 @@
 {
   List<ColumnMetadata> columns=ImmutableList.<ColumnMetadata>builder().add(new ColumnMetadata("id",BIGINT,1,false)).add(new ColumnMetadata("t_string",VARCHAR,2,false)).add(new ColumnMetadata("t_bigint",BIGINT,3,false)).add(new ColumnMetadata("t_double",DOUBLE,4,false)).add(new ColumnMetadata("t_boolean",BOOLEAN,5,false)).build();
   ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(temporaryCreateTable,columns,tableOwner);
-  ConnectorOutputTableHandle outputHandle=metadata.beginCreateTable(SESSION,tableMetadata);
+  ConnectorSession session=new ConnectorSession(SESSION.getUser(),SESSION.getTimeZoneKey(),SESSION.getLocale(),SESSION.getStartTime(),ImmutableMap.of(STORAGE_FORMAT_PROPERTY,storageFormat.name().toLowerCase()));
+  ConnectorOutputTableHandle outputHandle=metadata.beginCreateTable(session,tableMetadata);
   RecordSink sink=recordSinkProvider.getRecordSink(outputHandle);
   sink.beginRecord(1);
   sink.appendLong(1);
@@ -41,8 +42,8 @@
   ConnectorSplitSource splitSource=splitManager.getPartitionSplits(tableHandle,partitionResult.getPartitions());
   ConnectorSplit split=getOnlyElement(getAllSplits(splitSource));
   try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(split,columnHandles)){
-    assertPageSourceType(pageSource,"rcfile-binary");
-    MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,getTypes(columnHandles));
+    assertPageSourceType(pageSource,storageFormat);
+    MaterializedResult result=materializeSourceDataStream(session,pageSource,getTypes(columnHandles));
     assertEquals(result.getRowCount(),3);
     MaterializedRow row;
     row=result.getMaterializedRows().get(0);

@@ -1,6 +1,7 @@
 {
   checkArgument(allowCorruptWritesForTesting || timeZone.equals(DateTimeZone.getDefault()),"To write Hive data, your JVM timezone must match the Hive storage timezone. Add -Duser.timezone=%s to your JVM arguments",timeZone.getID());
   checkArgument(!isNullOrEmpty(tableMetadata.getOwner()),"Table owner is null or empty");
+  HiveStorageFormat hiveStorageFormat=getHiveStorageFormat(session);
   ImmutableList.Builder<String> columnNames=ImmutableList.builder();
   ImmutableList.Builder<Type> columnTypes=ImmutableList.builder();
   for (  ColumnMetadata column : tableMetadata.getColumns()) {
@@ -30,11 +31,11 @@
     throw new RuntimeException(format("Target directory for table '%s' already exists: %s",table,targetPath));
   }
   if (!useTemporaryDirectory(targetPath)) {
-    return new HiveOutputTableHandle(connectorId,schemaName,tableName,columnNames.build(),columnTypes.build(),tableMetadata.getOwner(),targetPath.toString(),targetPath.toString(),session);
+    return new HiveOutputTableHandle(connectorId,schemaName,tableName,columnNames.build(),columnTypes.build(),tableMetadata.getOwner(),targetPath.toString(),targetPath.toString(),session,hiveStorageFormat);
   }
   String temporaryPrefix="/tmp/presto-" + StandardSystemProperty.USER_NAME.value();
   Path temporaryRoot=new Path(targetPath,temporaryPrefix);
   Path temporaryPath=new Path(temporaryRoot,randomUUID().toString());
   createDirectories(temporaryPath);
-  return new HiveOutputTableHandle(connectorId,schemaName,tableName,columnNames.build(),columnTypes.build(),tableMetadata.getOwner(),targetPath.toString(),temporaryPath.toString(),session);
+  return new HiveOutputTableHandle(connectorId,schemaName,tableName,columnNames.build(),columnTypes.build(),tableMetadata.getOwner(),targetPath.toString(),temporaryPath.toString(),session,hiveStorageFormat);
 }
