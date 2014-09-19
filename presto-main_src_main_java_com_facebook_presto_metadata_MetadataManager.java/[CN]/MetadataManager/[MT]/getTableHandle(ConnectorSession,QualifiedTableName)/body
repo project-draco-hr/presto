@@ -1,8 +1,8 @@
 {
   checkNotNull(table,"table is null");
-  SchemaTableName tableName=table.asSchemaTableName();
-  for (  ConnectorMetadataEntry entry : allConnectorsFor(table.getCatalogName())) {
-    ConnectorTableHandle tableHandle=entry.getMetadata().getTableHandle(session,tableName);
+  ConnectorMetadataEntry entry=getConnectorFor(table);
+  if (entry != null) {
+    ConnectorTableHandle tableHandle=entry.getMetadata().getTableHandle(session,table.asSchemaTableName());
     if (tableHandle != null) {
       return Optional.of(new TableHandle(entry.getConnectorId(),tableHandle));
     }
