@@ -2,6 +2,9 @@
   if (!outputStage.getState().isDone()) {
     for (    TaskInfo taskInfo : outputStage.getTasks()) {
       List<BufferInfo> buffers=taskInfo.getOutputBuffers().getBuffers();
+      if (buffers.isEmpty()) {
+        continue;
+      }
       Preconditions.checkState(buffers.size() == 1,"Expected a single output buffer for task %s, but found %s",taskInfo.getTaskId(),buffers);
       String bufferId=Iterables.getOnlyElement(buffers).getBufferId();
       URI uri=uriBuilderFrom(taskInfo.getSelf()).appendPath("results").appendPath(bufferId).build();
