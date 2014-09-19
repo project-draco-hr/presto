@@ -1,7 +1,7 @@
 {
   SqlTask sqlTask=createInitialTask();
-  updateTask(sqlTask,EMPTY_SOURCES,INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffer("out",new UnpartitionedPagePartitionFunction()));
-  ListenableFuture<BufferResult> bufferResult=sqlTask.getTaskResults("out",0,new DataSize(1,MEGABYTE));
+  updateTask(sqlTask,EMPTY_SOURCES,INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffer(OUT,new UnpartitionedPagePartitionFunction()));
+  ListenableFuture<BufferResult> bufferResult=sqlTask.getTaskResults(OUT,0,new DataSize(1,MEGABYTE));
   assertFalse(bufferResult.isDone());
   TaskState taskState=sqlTask.getTaskInfo().getState();
   sqlTask.failed(new Exception("test"));
@@ -12,5 +12,5 @@
   }
  catch (  TimeoutException expected) {
   }
-  assertFalse(sqlTask.getTaskResults("out",0,new DataSize(1,MEGABYTE)).isDone());
+  assertFalse(sqlTask.getTaskResults(OUT,0,new DataSize(1,MEGABYTE)).isDone());
 }

@@ -1,14 +1,14 @@
 {
   SharedBuffer sharedBuffer=new SharedBuffer(TASK_ID,stateNotificationExecutor,sizeOfPages(5));
-  sharedBuffer.setOutputBuffers(INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffer("queue",new UnpartitionedPagePartitionFunction()));
+  sharedBuffer.setOutputBuffers(INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffer(QUEUE,new UnpartitionedPagePartitionFunction()));
   assertFalse(sharedBuffer.isFinished());
-  ListenableFuture<BufferResult> future=sharedBuffer.get("queue",0,sizeOfPages(10));
+  ListenableFuture<BufferResult> future=sharedBuffer.get(QUEUE,0,sizeOfPages(10));
   assertFalse(future.isDone());
   addPage(sharedBuffer,createPage(0));
   assertBufferResultEquals(TYPES,getFuture(future,NO_WAIT),bufferResult(0,createPage(0)));
-  future=sharedBuffer.get("queue",1,sizeOfPages(10));
+  future=sharedBuffer.get(QUEUE,1,sizeOfPages(10));
   assertFalse(future.isDone());
   sharedBuffer.setNoMorePages();
-  assertQueueClosed(sharedBuffer,"queue",1);
+  assertQueueClosed(sharedBuffer,QUEUE,1);
   assertBufferResultEquals(TYPES,getFuture(future,NO_WAIT),emptyResults(1,true));
 }

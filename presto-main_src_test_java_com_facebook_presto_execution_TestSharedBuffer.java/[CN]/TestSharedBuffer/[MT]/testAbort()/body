@@ -5,17 +5,17 @@
   }
   sharedBuffer.setNoMorePages();
   OutputBuffers outputBuffers=INITIAL_EMPTY_OUTPUT_BUFFERS;
-  outputBuffers=outputBuffers.withBuffer("first",new UnpartitionedPagePartitionFunction());
+  outputBuffers=outputBuffers.withBuffer(FIRST,new UnpartitionedPagePartitionFunction());
   sharedBuffer.setOutputBuffers(outputBuffers);
-  assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,"first",0,sizeOfPages(1),NO_WAIT),bufferResult(0,createPage(0)));
-  sharedBuffer.abort("first");
-  assertQueueClosed(sharedBuffer,"first",0);
-  assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,"first",1,sizeOfPages(1),NO_WAIT),emptyResults(1,true));
-  outputBuffers=outputBuffers.withBuffer("second",new UnpartitionedPagePartitionFunction()).withNoMoreBufferIds();
+  assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,FIRST,0,sizeOfPages(1),NO_WAIT),bufferResult(0,createPage(0)));
+  sharedBuffer.abort(FIRST);
+  assertQueueClosed(sharedBuffer,FIRST,0);
+  assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,FIRST,1,sizeOfPages(1),NO_WAIT),emptyResults(1,true));
+  outputBuffers=outputBuffers.withBuffer(SECOND,new UnpartitionedPagePartitionFunction()).withNoMoreBufferIds();
   sharedBuffer.setOutputBuffers(outputBuffers);
-  assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,"second",0,sizeOfPages(1),NO_WAIT),bufferResult(0,createPage(0)));
-  sharedBuffer.abort("second");
-  assertQueueClosed(sharedBuffer,"second",0);
+  assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,SECOND,0,sizeOfPages(1),NO_WAIT),bufferResult(0,createPage(0)));
+  sharedBuffer.abort(SECOND);
+  assertQueueClosed(sharedBuffer,SECOND,0);
   assertFinished(sharedBuffer);
-  assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,"second",1,sizeOfPages(1),NO_WAIT),emptyResults(0,true));
+  assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,SECOND,1,sizeOfPages(1),NO_WAIT),emptyResults(0,true));
 }

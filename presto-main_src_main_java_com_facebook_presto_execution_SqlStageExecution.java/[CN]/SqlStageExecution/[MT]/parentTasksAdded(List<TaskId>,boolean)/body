@@ -1,0 +1,31 @@
+{
+  checkNotNull(parentTasks,"parentTasks is null");
+  OutputBuffers startingOutputBuffers=nextOutputBuffers != null ? nextOutputBuffers : currentOutputBuffers;
+  OutputBuffers newOutputBuffers;
+  if (fragment.getOutputPartitioning() == OutputPartitioning.NONE) {
+    ImmutableMap.Builder<TaskId,PagePartitionFunction> newBuffers=ImmutableMap.builder();
+    for (    TaskId taskId : parentTasks) {
+      newBuffers.put(taskId,new UnpartitionedPagePartitionFunction());
+    }
+    newOutputBuffers=startingOutputBuffers.withBuffers(newBuffers.build());
+    if (noMoreParentNodes) {
+      newOutputBuffers=newOutputBuffers.withNoMoreBufferIds();
+    }
+  }
+ else   if (fragment.getOutputPartitioning() == OutputPartitioning.HASH) {
+    checkArgument(noMoreParentNodes,"Hash partitioned output requires all parent nodes be added in a single call");
+    ImmutableMap.Builder<TaskId,PagePartitionFunction> buffers=ImmutableMap.builder();
+    for (int nodeIndex=0; nodeIndex < parentTasks.size(); nodeIndex++) {
+      TaskId taskId=parentTasks.get(nodeIndex);
+      buffers.put(taskId,new HashPagePartitionFunction(nodeIndex,parentTasks.size(),fragment.getPartitioningChannels(),fragment.getTypes()));
+    }
+    newOutputBuffers=startingOutputBuffers.withBuffers(buffers.build()).withNoMoreBufferIds();
+  }
+ else {
+    throw new UnsupportedOperationException("Unsupported output partitioning " + fragment.getOutputPartitioning());
+  }
+  if (newOutputBuffers.getVersion() != startingOutputBuffers.getVersion()) {
+    this.nextOutputBuffers=newOutputBuffers;
+    this.notifyAll();
+  }
+}
