@@ -2,18 +2,25 @@
   if (!acquired) {
     return;
   }
-  try {
+  boolean done=false;
+  while (!done) {
+    done=true;
     try {
-      processNewSources();
-    }
+      try {
+        processNewSources();
+      }
   finally {
-      destroyIfNecessary();
+        destroyIfNecessary();
+      }
     }
-  }
   finally {
 synchronized (Driver.this) {
-      lockHolder=null;
+        lockHolder=null;
+      }
+      exclusiveLock.unlock();
+      if (!newSources.isEmpty() && state.get() == State.ALIVE && tryAcquire(0,TimeUnit.MILLISECONDS)) {
+        done=false;
+      }
     }
-    exclusiveLock.unlock();
   }
 }
