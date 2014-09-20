@@ -1,2 +1,13 @@
 {
+  int positionCount=sliceInput.readInt();
+  int[] offsets=new int[positionCount + 1];
+  int offset=0;
+  for (int position=0; position < positionCount; position++) {
+    offset+=sliceInput.readInt();
+    offsets[position + 1]=offset;
+  }
+  boolean[] valueIsNull=decodeNullBits(sliceInput,positionCount);
+  int blockSize=sliceInput.readInt();
+  Slice slice=sliceInput.readSlice(blockSize);
+  return new VariableWidthBlock(positionCount,slice,offsets,valueIsNull);
 }
