@@ -1,0 +1,29 @@
+{
+  if (!rowGroupOpen) {
+    openRowGroup();
+  }
+  if (readOffset > 0) {
+    if (presentStream != null) {
+      readOffset=presentStream.countBitsSet(readOffset);
+    }
+    if (readOffset > 0) {
+      verifyFormat(dataStream != null,"Value is not null but data stream is not present");
+      dataStream.skip(readOffset);
+    }
+  }
+  DoubleVector doubleVector=(DoubleVector)vector;
+  if (presentStream == null) {
+    verifyFormat(dataStream != null,"Value is not null but data stream is not present");
+    Arrays.fill(doubleVector.isNull,false);
+    dataStream.nextVector(nextBatchSize,doubleVector.vector);
+  }
+ else {
+    int nonNullValues=presentStream.getUnsetBits(nextBatchSize,doubleVector.isNull);
+    if (nonNullValues != nextBatchSize) {
+      verifyFormat(dataStream != null,"Value is not null but data stream is not present");
+      dataStream.nextVector(nextBatchSize,doubleVector.vector,doubleVector.isNull);
+    }
+  }
+  readOffset=0;
+  nextBatchSize=0;
+}

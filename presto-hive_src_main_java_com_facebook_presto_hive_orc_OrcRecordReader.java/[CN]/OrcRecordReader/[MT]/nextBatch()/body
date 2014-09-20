@@ -1,0 +1,16 @@
+{
+  if (nextRowInGroup >= currentGroupRowCount) {
+    if (!advanceToNextRowGroup()) {
+      return -1;
+    }
+  }
+  int batchSize=Ints.checkedCast(Math.min(Vector.MAX_VECTOR_LENGTH,currentGroupRowCount - nextRowInGroup));
+  for (  StreamReader column : streamReaders) {
+    if (column != null) {
+      column.prepareNextRead(batchSize);
+    }
+  }
+  nextRowInGroup+=batchSize;
+  currentPosition+=batchSize;
+  return batchSize;
+}

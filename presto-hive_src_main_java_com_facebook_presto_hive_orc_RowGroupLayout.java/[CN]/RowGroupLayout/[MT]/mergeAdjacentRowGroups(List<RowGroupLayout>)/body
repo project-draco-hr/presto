@@ -1,0 +1,23 @@
+{
+  checkNotNull(rowGroups,"rowGroups is null");
+  if (rowGroups.isEmpty()) {
+    return rowGroups;
+  }
+  rowGroups=Ordering.natural().onResultOf(groupIdGetter()).sortedCopy(rowGroups);
+  ImmutableList.Builder<RowGroupLayout> builder=ImmutableList.builder();
+  RowGroupLayout previousGroup=rowGroups.get(0);
+  int previousGroupId=previousGroup.getGroupId();
+  for (int i=1; i < rowGroups.size(); i++) {
+    RowGroupLayout group=rowGroups.get(i);
+    if (previousGroupId + 1 == group.getGroupId()) {
+      previousGroup=previousGroup.mergeWith(group);
+    }
+ else {
+      builder.add(previousGroup);
+      previousGroup=group;
+    }
+    previousGroupId=group.getGroupId();
+  }
+  builder.add(previousGroup);
+  return builder.build();
+}

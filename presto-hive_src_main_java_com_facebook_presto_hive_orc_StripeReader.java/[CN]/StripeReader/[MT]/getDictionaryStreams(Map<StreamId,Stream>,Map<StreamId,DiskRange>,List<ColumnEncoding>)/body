@@ -1,0 +1,15 @@
+{
+  ImmutableList.Builder<StreamLayout> streamLayouts=ImmutableList.builder();
+  for (  Entry<StreamId,Stream> entry : streams.entrySet()) {
+    StreamId streamId=entry.getKey();
+    Stream stream=entry.getValue();
+    int column=stream.getColumn();
+    ColumnEncoding encoding=encodings.get(column);
+    if (isIndexStream(stream) || !isDictionary(stream,encoding)) {
+      continue;
+    }
+    StreamLayout streamLayout=new StreamLayout(streamId,0,types.get(column).getKind(),encoding.getKind(),compressionKind,diskRanges.get(streamId),ImmutableList.<Integer>of());
+    streamLayouts.add(streamLayout);
+  }
+  return streamLayouts.build();
+}

@@ -1,0 +1,15 @@
+{
+  if (presentStream != null && !presentStream.nextBit()) {
+    generator.writeNull();
+    return;
+  }
+  verifyFormat(lengthStream != null,"Value is not null but length stream is not present");
+  long length=lengthStream.next();
+  generator.writeStartObject();
+  for (int i=0; i < length; i++) {
+    String name=keyReader.nextValueAsMapKey();
+    generator.writeFieldName(name);
+    valueReader.readNextValueInto(generator);
+  }
+  generator.writeEndObject();
+}

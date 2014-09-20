@@ -1,0 +1,15 @@
+{
+  int control=input.read();
+  verifyFormat(control != -1,"Read past end of buffer RLE byte from %s",input);
+  offset=0;
+  if ((control & 0x80) == 0) {
+    length=control + MIN_REPEAT_SIZE;
+    int value=input.read();
+    verifyFormat(value != -1,"Reading RLE byte got EOF");
+    Arrays.fill(buffer,0,length,(byte)value);
+  }
+ else {
+    length=0x100 - control;
+    readFully(input,buffer,0,length);
+  }
+}

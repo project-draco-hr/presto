@@ -1,0 +1,13 @@
+{
+  List<StreamDescriptor> streamDescriptors=createStreamDescriptor("","",0,types,orcDataSource).getNestedStreams();
+  Type rowType=types.get(0);
+  StreamReader[] streamReaders=new StreamReader[rowType.getSubtypesCount()];
+  for (int fieldId=0; fieldId < rowType.getSubtypesCount(); fieldId++) {
+    int streamId=rowType.getSubtypes(fieldId);
+    if (includedStreams == null || includedStreams[streamId]) {
+      StreamDescriptor streamDescriptor=streamDescriptors.get(fieldId);
+      streamReaders[fieldId]=StreamReaders.createStreamReader(streamDescriptor,hiveStorageTimeZone,sessionTimeZone);
+    }
+  }
+  return streamReaders;
+}

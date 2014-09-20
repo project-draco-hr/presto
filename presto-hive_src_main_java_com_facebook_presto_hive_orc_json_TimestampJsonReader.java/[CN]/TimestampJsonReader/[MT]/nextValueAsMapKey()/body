@@ -1,0 +1,12 @@
+{
+  if (presentStream != null && !presentStream.nextBit()) {
+    return null;
+  }
+  verifyFormat(secondsStream != null,"Value is not null but seconds stream is not present");
+  verifyFormat(nanosStream != null,"Value is not null but nanos stream is not present");
+  long timestamp=decodeTimestamp(secondsStream.next(),nanosStream.next(),baseTimestampInSeconds);
+  if (writeStackType) {
+    return String.valueOf(timestamp);
+  }
+  return timestampFormatter.print(timestamp);
+}

@@ -1,0 +1,21 @@
+{
+  currentStripe++;
+  if (currentStripe >= stripes.size()) {
+    return;
+  }
+  StripeInformation stripeInformation=stripes.get(currentStripe);
+  Stripe stripe=stripeReader.readStripe(stripeInformation);
+  if (stripe != null) {
+    StreamSources dictionaryStreamSources=stripe.getDictionaryStreamSources();
+    List<ColumnEncoding> columnEncodings=stripe.getColumnEncodings();
+    for (    StreamReader column : streamReaders) {
+      if (column != null) {
+        column.startStripe(dictionaryStreamSources,columnEncodings);
+      }
+    }
+    rowGroups=stripe.getRowGroups().iterator();
+  }
+ else {
+    rowGroups=ImmutableList.<RowGroup>of().iterator();
+  }
+}

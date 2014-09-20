@@ -1,0 +1,54 @@
+{
+  if (!rowGroupOpen) {
+    openRowGroup();
+  }
+  if (readOffset > 0) {
+    if (presentStream != null) {
+      readOffset=presentStream.countBitsSet(readOffset);
+    }
+    if (readOffset > 0) {
+      verifyFormat(lengthStream != null,"Value is not null but length stream is not present");
+      long dataSkipSize=lengthStream.sum(readOffset);
+      if (dataSkipSize > 0) {
+        verifyFormat(dataStream != null,"Value is not null but data stream is not present");
+        dataStream.skip(dataSkipSize);
+      }
+    }
+  }
+  SliceVector sliceVector=(SliceVector)vector;
+  if (presentStream == null) {
+    verifyFormat(lengthStream != null,"Value is not null but length stream is not present");
+    lengthStream.nextIntVector(nextBatchSize,lengthVector);
+  }
+ else {
+    int nonNullValues=presentStream.getUnsetBits(nextBatchSize,isNullVector);
+    if (nonNullValues != nextBatchSize) {
+      verifyFormat(lengthStream != null,"Value is not null but length stream is not present");
+      lengthStream.nextIntVector(nextBatchSize,lengthVector,isNullVector);
+    }
+  }
+  int totalLength=0;
+  for (int i=0; i < nextBatchSize; i++) {
+    if (!isNullVector[i]) {
+      totalLength+=lengthVector[i];
+    }
+  }
+  byte[] data=new byte[0];
+  if (totalLength > 0) {
+    verifyFormat(dataStream != null,"Value is not null but data stream is not present");
+    data=dataStream.next(totalLength);
+  }
+  int offset=0;
+  for (int i=0; i < nextBatchSize; i++) {
+    if (!isNullVector[i]) {
+      int length=lengthVector[i];
+      sliceVector.vector[i]=Slices.wrappedBuffer(data,offset,length);
+      offset+=length;
+    }
+ else {
+      sliceVector.vector[i]=null;
+    }
+  }
+  readOffset=0;
+  nextBatchSize=0;
+}

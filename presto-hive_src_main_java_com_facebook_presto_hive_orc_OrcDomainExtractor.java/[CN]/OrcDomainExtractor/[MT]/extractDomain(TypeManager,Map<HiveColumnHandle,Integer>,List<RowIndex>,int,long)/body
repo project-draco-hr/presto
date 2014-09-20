@@ -1,0 +1,11 @@
+{
+  ImmutableMap.Builder<HiveColumnHandle,Domain> domains=ImmutableMap.builder();
+  for (  Entry<HiveColumnHandle,Integer> entry : columnHandles.entrySet()) {
+    HiveColumnHandle columnHandle=entry.getKey();
+    Integer streamIndex=entry.getValue();
+    RowIndexEntry rowIndexEntry=rowIndexes.get(streamIndex).getEntry(rowGroup);
+    Domain domain=getDomain(typeManager.getType(columnHandle.getTypeSignature()),rowCount,rowIndexEntry.hasStatistics() ? rowIndexEntry.getStatistics() : null);
+    domains.put(columnHandle,domain);
+  }
+  return TupleDomain.withColumnDomains(domains.build());
+}

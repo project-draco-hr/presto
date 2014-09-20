@@ -1,0 +1,19 @@
+{
+  nextRowInGroup=0;
+  while (!rowGroups.hasNext() && currentStripe < stripes.size()) {
+    advanceToNextStripe();
+  }
+  if (!rowGroups.hasNext()) {
+    currentGroupRowCount=0;
+    return false;
+  }
+  RowGroup currentRowGroup=rowGroups.next();
+  currentGroupRowCount=currentRowGroup.getRowCount();
+  StreamSources rowGroupStreamSources=currentRowGroup.getStreamSources();
+  for (  StreamReader column : streamReaders) {
+    if (column != null) {
+      column.startRowGroup(rowGroupStreamSources);
+    }
+  }
+  return true;
+}

@@ -1,0 +1,76 @@
+{
+  Class<?> boxedJavaType=Primitives.wrap(type.getJavaType());
+  if (rowCount == 0) {
+    return Domain.none(boxedJavaType);
+  }
+  if (columnStatistics == null) {
+    return Domain.all(boxedJavaType);
+  }
+  if (columnStatistics.hasNumberOfValues() && columnStatistics.getNumberOfValues() == 0) {
+    return Domain.onlyNull(boxedJavaType);
+  }
+  boolean hasNullValue=columnStatistics.getNumberOfValues() != rowCount;
+  if (boxedJavaType == Boolean.class && columnStatistics.hasBucketStatistics()) {
+    BucketStatistics bucketStatistics=columnStatistics.getBucketStatistics();
+    boolean hasTrueValues=(bucketStatistics.getCount(0) != 0);
+    boolean hasFalseValues=(columnStatistics.getNumberOfValues() != bucketStatistics.getCount(0));
+    if (hasTrueValues && hasFalseValues) {
+      return Domain.all(Boolean.class);
+    }
+ else     if (hasTrueValues) {
+      return Domain.create(SortedRangeSet.singleValue(true),hasNullValue);
+    }
+ else     if (hasFalseValues) {
+      return Domain.create(SortedRangeSet.singleValue(false),hasNullValue);
+    }
+  }
+ else   if (boxedJavaType == Long.class && columnStatistics.hasIntStatistics()) {
+    IntegerStatistics integerStatistics=columnStatistics.getIntStatistics();
+    if (integerStatistics.hasMinimum() && integerStatistics.hasMaximum()) {
+      return Domain.create(SortedRangeSet.of(Range.range(integerStatistics.getMinimum(),true,integerStatistics.getMaximum(),true)),hasNullValue);
+    }
+ else     if (integerStatistics.hasMaximum()) {
+      return Domain.create(SortedRangeSet.of(Range.lessThanOrEqual(integerStatistics.getMaximum())),hasNullValue);
+    }
+ else     if (integerStatistics.hasMinimum()) {
+      return Domain.create(SortedRangeSet.of(Range.greaterThanOrEqual(integerStatistics.getMinimum())),hasNullValue);
+    }
+  }
+ else   if (boxedJavaType == Double.class && columnStatistics.hasDoubleStatistics()) {
+    DoubleStatistics doubleStatistics=columnStatistics.getDoubleStatistics();
+    if (doubleStatistics.hasMinimum() && doubleStatistics.hasMaximum()) {
+      return Domain.create(SortedRangeSet.of(Range.range(doubleStatistics.getMinimum(),true,doubleStatistics.getMaximum(),true)),hasNullValue);
+    }
+ else     if (doubleStatistics.hasMaximum()) {
+      return Domain.create(SortedRangeSet.of(Range.lessThanOrEqual(doubleStatistics.getMaximum())),hasNullValue);
+    }
+ else     if (doubleStatistics.hasMinimum()) {
+      return Domain.create(SortedRangeSet.of(Range.greaterThanOrEqual(doubleStatistics.getMinimum())),hasNullValue);
+    }
+  }
+ else   if (boxedJavaType == Slice.class && columnStatistics.hasStringStatistics()) {
+    StringStatistics stringStatistics=columnStatistics.getStringStatistics();
+    if (stringStatistics.hasMinimum() && stringStatistics.hasMaximum()) {
+      return Domain.create(SortedRangeSet.of(Range.range(utf8Slice(stringStatistics.getMinimum()),true,utf8Slice(stringStatistics.getMaximum()),true)),hasNullValue);
+    }
+ else     if (stringStatistics.hasMaximum()) {
+      return Domain.create(SortedRangeSet.of(Range.lessThanOrEqual(utf8Slice(stringStatistics.getMaximum()))),hasNullValue);
+    }
+ else     if (stringStatistics.hasMinimum()) {
+      return Domain.create(SortedRangeSet.of(Range.greaterThanOrEqual(utf8Slice(stringStatistics.getMinimum()))),hasNullValue);
+    }
+  }
+ else   if (boxedJavaType == Long.class && columnStatistics.hasDateStatistics()) {
+    DateStatistics dateStatistics=columnStatistics.getDateStatistics();
+    if (dateStatistics.hasMinimum() && dateStatistics.hasMaximum()) {
+      return Domain.create(SortedRangeSet.of(Range.range(dateStatistics.getMinimum() * MILLIS_IN_DAY,true,dateStatistics.getMaximum() * MILLIS_IN_DAY,true)),hasNullValue);
+    }
+ else     if (dateStatistics.hasMaximum()) {
+      return Domain.create(SortedRangeSet.of(Range.lessThanOrEqual(dateStatistics.getMaximum() * MILLIS_IN_DAY)),hasNullValue);
+    }
+ else     if (dateStatistics.hasMinimum()) {
+      return Domain.create(SortedRangeSet.of(Range.greaterThanOrEqual(dateStatistics.getMinimum() * MILLIS_IN_DAY)),hasNullValue);
+    }
+  }
+  return Domain.create(SortedRangeSet.all(boxedJavaType),hasNullValue);
+}

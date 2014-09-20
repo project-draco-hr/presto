@@ -1,0 +1,22 @@
+{
+  JobConf jobConf=new JobConf();
+  jobConf.set("hive.exec.orc.write.format",formatVersion);
+  jobConf.set("hive.exec.orc.default.compress",compressionCodec);
+  ReaderWriterProfiler.setProfilerOptions(jobConf);
+  RecordWriter recordWriter=new OrcOutputFormat().getHiveRecordWriter(jobConf,new Path(outputFile.toURI()),Text.class,compressionCodec != null,createTableProperties("test",columnObjectInspector.getTypeName()),new Progressable(){
+    @Override public void progress(){
+    }
+  }
+);
+  SettableStructObjectInspector objectInspector=createSettableStructObjectInspector("test",columnObjectInspector);
+  Object row=objectInspector.create();
+  List<StructField> fields=ImmutableList.copyOf(objectInspector.getAllStructFieldRefs());
+  while (values.hasNext()) {
+    Object value=values.next();
+    objectInspector.setStructFieldData(row,fields.get(0),value);
+    Writable record=new OrcSerde().serialize(row,objectInspector);
+    recordWriter.write(record);
+  }
+  recordWriter.close(false);
+  return new DataSize(outputFile.length(),Unit.BYTE).convertToMostSuccinctDataSize();
+}

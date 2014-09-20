@@ -1,0 +1,17 @@
+{
+  if (presentStream != null && !presentStream.nextBit()) {
+    return null;
+  }
+  verifyFormat(dataStream != null,"Value is not null but data stream is not present");
+  int dictionaryIndex=Ints.checkedCast(dataStream.next());
+  DictionaryEntry value=dictionary[dictionaryIndex];
+  byte[] data=value.getData();
+  int offset=value.getOffset();
+  int length=value.length();
+  if (writeBinary) {
+    return BaseEncoding.base64().encode(data,offset,length);
+  }
+ else {
+    return new String(data,offset,length,UTF_8);
+  }
+}

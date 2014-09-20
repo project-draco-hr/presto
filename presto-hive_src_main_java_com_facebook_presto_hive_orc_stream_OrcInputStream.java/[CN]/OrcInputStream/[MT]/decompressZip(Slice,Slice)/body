@@ -1,0 +1,20 @@
+{
+  byte[] outArray=(byte[])buffer.getBase();
+  int outOffset=0;
+  byte[] inArray=(byte[])in.getBase();
+  int inOffset=(int)(in.getAddress() - ARRAY_BYTE_BASE_OFFSET);
+  int inLength=in.length();
+  Inflater inflater=new Inflater(true);
+  inflater.setInput(inArray,inOffset,inLength);
+  while (!(inflater.finished() || inflater.needsDictionary() || inflater.needsInput())) {
+    try {
+      int count=inflater.inflate(outArray,outOffset,outArray.length - outOffset);
+      outOffset+=count;
+    }
+ catch (    DataFormatException e) {
+      throw new OrcCorruptionException(e,"Invalid compressed stream");
+    }
+  }
+  inflater.end();
+  return outOffset;
+}

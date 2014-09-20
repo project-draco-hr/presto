@@ -1,0 +1,38 @@
+{
+  if (!rowGroupOpen) {
+    openRowGroup();
+  }
+  if (readOffset > 0) {
+    if (presentStream != null) {
+      readOffset=presentStream.countBitsSet(readOffset);
+    }
+    if (readOffset > 0) {
+      verifyFormat(secondsStream != null,"Value is not null but seconds stream is not present");
+      verifyFormat(nanosStream != null,"Value is not null but nanos stream is not present");
+      secondsStream.skip(readOffset);
+      nanosStream.skip(readOffset);
+    }
+  }
+  LongVector longVector=(LongVector)vector;
+  if (presentStream == null) {
+    verifyFormat(secondsStream != null,"Value is not null but seconds stream is not present");
+    verifyFormat(nanosStream != null,"Value is not null but nanos stream is not present");
+    Arrays.fill(longVector.isNull,false);
+    secondsStream.nextLongVector(nextBatchSize,longVector.vector);
+    nanosStream.nextLongVector(nextBatchSize,nanosVector);
+  }
+ else {
+    int nonNullValues=presentStream.getUnsetBits(nextBatchSize,longVector.isNull);
+    if (nonNullValues != nextBatchSize) {
+      verifyFormat(secondsStream != null,"Value is not null but seconds stream is not present");
+      verifyFormat(nanosStream != null,"Value is not null but nanos stream is not present");
+      secondsStream.nextLongVector(nextBatchSize,longVector.vector,longVector.isNull);
+      nanosStream.nextLongVector(nextBatchSize,nanosVector,longVector.isNull);
+    }
+  }
+  for (int i=0; i < nextBatchSize; i++) {
+    longVector.vector[i]=decodeTimestamp(longVector.vector[i],nanosVector[i],baseTimestampInSeconds);
+  }
+  readOffset=0;
+  nextBatchSize=0;
+}

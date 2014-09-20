@@ -1,0 +1,34 @@
+{
+  this.orcDataSource=checkNotNull(orcDataSource,"orcDataSource is null");
+  this.typeManager=checkNotNull(typeManager,"typeManager is null");
+  long size=orcDataSource.getSize();
+  byte[] buffer=new byte[(int)Math.min(size,EXPECTED_FOOTER_SIZE)];
+  orcDataSource.readFully(size - buffer.length,buffer);
+  int postScriptSize=buffer[buffer.length - SIZE_OF_BYTE] & 0xff;
+  verifyOrcFooter(orcDataSource,postScriptSize,buffer);
+  int postScriptOffset=buffer.length - SIZE_OF_BYTE - postScriptSize;
+  PostScript postScript=PostScript.parseFrom(CodedInputStream.newInstance(buffer,postScriptOffset,postScriptSize));
+  checkOrcVersion(orcDataSource,postScript.getVersionList());
+  this.compressionKind=postScript.getCompression();
+  checkArgument(compressionKind == NONE || compressionKind == SNAPPY || compressionKind == ZLIB,"%s compression not implemented yet",compressionKind);
+  this.bufferSize=Ints.checkedCast(postScript.getCompressionBlockSize());
+  int footerSize=Ints.checkedCast(postScript.getFooterLength());
+  int metadataSize=Ints.checkedCast(postScript.getMetadataLength());
+  Slice completeFooterSlice;
+  int completeFooterSize=footerSize + metadataSize + postScriptSize+ SIZE_OF_BYTE;
+  if (completeFooterSize > buffer.length) {
+    byte[] newBuffer=new byte[completeFooterSize];
+    completeFooterSlice=Slices.wrappedBuffer(newBuffer);
+    orcDataSource.readFully(size - completeFooterSize,newBuffer,0,completeFooterSize - buffer.length);
+    completeFooterSlice.setBytes(completeFooterSize - buffer.length,buffer);
+  }
+ else {
+    completeFooterSlice=Slices.wrappedBuffer(buffer,buffer.length - completeFooterSize,completeFooterSize);
+  }
+  Slice metadataSlice=completeFooterSlice.slice(0,metadataSize);
+  InputStream metadataInputStream=new OrcInputStream(metadataSlice.getInput(),compressionKind,bufferSize);
+  this.metadata=Metadata.parseFrom(metadataInputStream);
+  Slice footerSlice=completeFooterSlice.slice(metadataSize,footerSize);
+  InputStream footerInputStream=new OrcInputStream(footerSlice.getInput(),compressionKind,bufferSize);
+  this.footer=Footer.parseFrom(footerInputStream);
+}

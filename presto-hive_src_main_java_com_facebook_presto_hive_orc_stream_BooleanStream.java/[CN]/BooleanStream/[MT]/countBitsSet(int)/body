@@ -1,0 +1,23 @@
+{
+  int count=0;
+  if (items > bitsInData && bitsInData > 0) {
+    count+=bitCount(data);
+    items-=bitsInData;
+    bitsInData=0;
+  }
+  while (items > 8) {
+    count+=bitCount(byteStream.next());
+    items-=8;
+  }
+  for (int i=0; i < items; i++) {
+    if (bitsInData == 0) {
+      readByte();
+    }
+    if ((data & HIGH_BIT_MASK) != 0) {
+      count++;
+    }
+    data<<=1;
+    bitsInData--;
+  }
+  return count;
+}

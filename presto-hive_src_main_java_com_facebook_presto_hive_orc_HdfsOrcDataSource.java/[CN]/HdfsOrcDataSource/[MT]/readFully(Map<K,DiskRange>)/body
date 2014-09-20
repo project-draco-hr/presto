@@ -1,0 +1,19 @@
+{
+  checkNotNull(diskRanges,"diskRanges is null");
+  if (diskRanges.isEmpty()) {
+    return ImmutableMap.of();
+  }
+  DiskRange fullRange=diskRanges.values().iterator().next();
+  for (  DiskRange diskRange : diskRanges.values()) {
+    fullRange=fullRange.span(diskRange);
+  }
+  byte[] buffer=new byte[fullRange.getLength()];
+  readFully(fullRange.getOffset(),buffer);
+  ImmutableMap.Builder<K,Slice> slices=ImmutableMap.builder();
+  for (  Entry<K,DiskRange> entry : diskRanges.entrySet()) {
+    DiskRange diskRange=entry.getValue();
+    int offset=Ints.checkedCast(diskRange.getOffset() - fullRange.getOffset());
+    slices.put(entry.getKey(),Slices.wrappedBuffer(buffer,offset,diskRange.getLength()));
+  }
+  return slices.build();
+}

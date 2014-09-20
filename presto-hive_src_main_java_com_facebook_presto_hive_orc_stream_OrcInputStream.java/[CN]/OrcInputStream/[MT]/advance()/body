@@ -1,0 +1,28 @@
+{
+  if (compressedSliceInput == null || compressedSliceInput.available() == 0) {
+    current=null;
+    return;
+  }
+  int b0=compressedSliceInput.readUnsignedByte();
+  int b1=compressedSliceInput.readUnsignedByte();
+  int b2=compressedSliceInput.readUnsignedByte();
+  boolean isUncompressed=(b0 & 0x01) == 1;
+  int chunkLength=(b2 << 15) | (b1 << 7) | (b0 >>> 1);
+  Slice chunk=compressedSliceInput.readSlice(chunkLength);
+  if (isUncompressed) {
+    current=chunk.getInput();
+  }
+ else {
+    if (buffer == null) {
+      buffer=Slices.allocate(bufferSize);
+    }
+    int uncompressedSize;
+    if (compressionKind == ZLIB) {
+      uncompressedSize=decompressZip(chunk,buffer);
+    }
+ else {
+      uncompressedSize=decompressSnappy(chunk,buffer);
+    }
+    current=buffer.slice(0,uncompressedSize).getInput();
+  }
+}

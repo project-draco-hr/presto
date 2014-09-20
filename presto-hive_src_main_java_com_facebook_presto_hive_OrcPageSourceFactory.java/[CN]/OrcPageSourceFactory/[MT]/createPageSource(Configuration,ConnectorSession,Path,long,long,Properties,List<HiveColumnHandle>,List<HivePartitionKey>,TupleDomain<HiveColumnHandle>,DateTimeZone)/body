@@ -1,0 +1,32 @@
+{
+  if (!enabled) {
+    return Optional.absent();
+  }
+  @SuppressWarnings("deprecation") Deserializer deserializer=getDeserializer(schema);
+  if (!(deserializer instanceof OrcSerde)) {
+    return Optional.absent();
+  }
+  HdfsOrcDataSource orcDataSource;
+  try {
+    FileSystem fileSystem=path.getFileSystem(configuration);
+    long size=fileSystem.getFileStatus(path).getLen();
+    FSDataInputStream inputStream=fileSystem.open(path);
+    orcDataSource=new HdfsOrcDataSource(path.toString(),inputStream,size);
+  }
+ catch (  Exception e) {
+    throw Throwables.propagate(e);
+  }
+  try {
+    OrcReader reader=new OrcReader(orcDataSource,typeManager);
+    OrcRecordReader recordReader=reader.createRecordReader(start,length,columns,tupleDomain,hiveStorageTimeZone,DateTimeZone.forID(session.getTimeZoneKey().getId()));
+    return Optional.of(new OrcPageSource(recordReader,orcDataSource,partitionKeys,columns,hiveStorageTimeZone,typeManager));
+  }
+ catch (  Exception e) {
+    try {
+      orcDataSource.close();
+    }
+ catch (    IOException ignored) {
+    }
+    throw Throwables.propagate(e);
+  }
+}

@@ -1,0 +1,35 @@
+{
+  int fixedBits=(firstByte >>> 1) & 0x1f;
+  if (fixedBits != 0) {
+    fixedBits=LongDecode.decodeBitWidth(fixedBits);
+  }
+  int length=(firstByte & 0x01) << 8;
+  length|=input.read();
+  long firstVal=LongDecode.readVInt(signed,input);
+  literals[numLiterals++]=firstVal;
+  long prevVal;
+  if (fixedBits == 0) {
+    long fixedDelta=LongDecode.readSignedVInt(input);
+    for (int i=0; i < length; i++) {
+      literals[numLiterals++]=literals[numLiterals - 2] + fixedDelta;
+    }
+  }
+ else {
+    long deltaBase=LongDecode.readSignedVInt(input);
+    literals[numLiterals++]=firstVal + deltaBase;
+    prevVal=literals[numLiterals - 1];
+    length-=1;
+    readBitPackedLongs(literals,numLiterals,length,fixedBits,input);
+    while (length > 0) {
+      if (deltaBase < 0) {
+        literals[numLiterals]=prevVal - literals[numLiterals];
+      }
+ else {
+        literals[numLiterals]=prevVal + literals[numLiterals];
+      }
+      prevVal=literals[numLiterals];
+      length--;
+      numLiterals++;
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  if (presentStream != null && !presentStream.nextBit()) {
+    generator.writeNull();
+    return;
+  }
+  verifyFormat(dataStream != null,"Value is not null but data stream is not present");
+  int dictionaryIndex=Ints.checkedCast(dataStream.next());
+  DictionaryEntry value=dictionary[dictionaryIndex];
+  byte[] data=value.getData();
+  int offset=value.getOffset();
+  int length=value.length();
+  if (writeBinary) {
+    generator.writeBinary(data,offset,length);
+  }
+ else {
+    generator.writeUTF8String(data,offset,length);
+  }
+}

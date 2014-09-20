@@ -1,0 +1,31 @@
+{
+  if (!dictionaryOpen && dictionarySize > 0) {
+    if (dictionary.length < dictionarySize) {
+      dictionary=new Slice[dictionarySize];
+      dictionaryLength=new int[dictionarySize];
+    }
+    LongStream lengthStream=dictionaryLengthStreamSource.openStream();
+    verifyFormat(lengthStream != null,"Dictionary is not empty but dictionary length stream is not present");
+    lengthStream.nextIntVector(dictionarySize,dictionaryLength);
+    int totalLength=0;
+    for (int i=0; i < dictionarySize; i++) {
+      totalLength+=dictionaryLength[i];
+    }
+    byte[] dictionaryData=new byte[0];
+    if (totalLength > 0) {
+      ByteArrayStream dictionaryByteArrayStream=dictionaryDataStreamSource.openStream();
+      verifyFormat(dictionaryByteArrayStream != null,"Dictionary length is not zero but dictionary data stream is not present");
+      dictionaryData=dictionaryByteArrayStream.next(totalLength);
+    }
+    int offset=0;
+    for (int i=0; i < dictionarySize; i++) {
+      int length=dictionaryLength[i];
+      dictionary[i]=Slices.wrappedBuffer(dictionaryData,offset,length);
+      offset+=length;
+    }
+  }
+  dictionaryOpen=true;
+  presentStream=presentStreamSource.openStream();
+  dataStream=dataStreamSource.openStream();
+  rowGroupOpen=true;
+}

@@ -1,0 +1,33 @@
+{
+switch (streamDescriptor.getStreamType()) {
+case BOOLEAN:
+    return new BooleanJsonReader(streamDescriptor);
+case BYTE:
+  return new ByteJsonReader(streamDescriptor);
+case SHORT:
+case INT:
+case LONG:
+return new LongJsonReader(streamDescriptor);
+case FLOAT:
+return new FloatJsonReader(streamDescriptor);
+case DOUBLE:
+return new DoubleJsonReader(streamDescriptor);
+case BINARY:
+return new SliceJsonReader(streamDescriptor,true);
+case STRING:
+return new SliceJsonReader(streamDescriptor,false);
+case TIMESTAMP:
+return new TimestampJsonReader(streamDescriptor,writeStackType,hiveStorageTimeZone,sessionTimeZone);
+case DATE:
+return new DateJsonReader(streamDescriptor,writeStackType);
+case STRUCT:
+case LIST:
+case MAP:
+case UNION:
+case DECIMAL:
+case VARCHAR:
+case CHAR:
+default :
+throw new IllegalArgumentException("Unsupported map key type: " + streamDescriptor.getStreamType());
+}
+}

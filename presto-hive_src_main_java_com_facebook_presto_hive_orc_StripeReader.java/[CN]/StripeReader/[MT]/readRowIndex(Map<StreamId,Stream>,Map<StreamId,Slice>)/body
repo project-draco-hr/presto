@@ -1,0 +1,11 @@
+{
+  List<RowIndex> indexes=new ArrayList<>(Collections.<RowIndex>nCopies(types.size(),null));
+  for (  Entry<StreamId,Stream> entry : streams.entrySet()) {
+    Stream stream=entry.getValue();
+    if (stream.getKind() == ROW_INDEX) {
+      Slice slice=streamsData.get(entry.getKey());
+      indexes.set(stream.getColumn(),RowIndex.parseFrom(new OrcInputStream(slice.getInput(),compressionKind,bufferSize)));
+    }
+  }
+  return indexes;
+}

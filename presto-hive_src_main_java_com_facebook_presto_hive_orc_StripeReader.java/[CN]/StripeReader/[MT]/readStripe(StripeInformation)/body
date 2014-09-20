@@ -1,0 +1,34 @@
+{
+  StripeFooter stripeFooter=readStripeFooter(stripe);
+  Map<StreamId,Stream> streams=new HashMap<>();
+  for (  Stream stream : stripeFooter.getStreamsList()) {
+    if (includedColumns[stream.getColumn()]) {
+      streams.put(new StreamId(stream),stream);
+    }
+  }
+  Map<StreamId,DiskRange> diskRanges=getDiskRanges(stripeFooter.getStreamsList());
+  diskRanges=Maps.filterKeys(diskRanges,Predicates.in(streams.keySet()));
+  Map<StreamId,Slice> streamsData=readDiskRanges(stripe.getOffset(),diskRanges);
+  List<RowIndex> indexes=readRowIndex(streams,streamsData);
+  Set<Integer> selectedRowGroups=selectRowGroups(stripe,indexes);
+  if (selectedRowGroups.isEmpty()) {
+    return null;
+  }
+  List<StreamLayout> dictionaryStreamLayouts=getDictionaryStreams(streams,diskRanges,stripeFooter.getColumnsList());
+  List<RowGroupLayout> rowGroupLayouts=getRowGroupRanges(Ints.checkedCast(stripe.getNumberOfRows()),streams,diskRanges,indexes,selectedRowGroups,stripeFooter.getColumnsList());
+  rowGroupLayouts=RowGroupLayout.mergeAdjacentRowGroups(rowGroupLayouts);
+  ImmutableMap.Builder<StreamId,StreamSource<?>> dictionaryStreamBuilder=ImmutableMap.builder();
+  for (  StreamLayout dictionaryStreamLayout : dictionaryStreamLayouts) {
+    StreamId streamId=dictionaryStreamLayout.getStreamId();
+    Slice data=streamsData.get(streamId);
+    checkArgument(data != null,"No data for stream %s",streamId);
+    StreamSource<?> streamSource=dictionaryStreamLayout.createStreamSource(data,bufferSize);
+    dictionaryStreamBuilder.put(streamId,streamSource);
+  }
+  StreamSources dictionaryStreamSources=new StreamSources(dictionaryStreamBuilder.build());
+  ImmutableList.Builder<RowGroup> rowGroupBuilder=ImmutableList.builder();
+  for (  RowGroupLayout rowGroupLayout : rowGroupLayouts) {
+    rowGroupBuilder.add(rowGroupLayout.createRowGroup(streamsData,bufferSize));
+  }
+  return new Stripe(stripe.getNumberOfRows(),stripeFooter.getColumnsList(),rowGroupBuilder.build(),dictionaryStreamSources);
+}

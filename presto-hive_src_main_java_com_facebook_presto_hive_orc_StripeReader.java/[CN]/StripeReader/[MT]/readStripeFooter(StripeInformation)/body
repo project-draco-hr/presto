@@ -1,0 +1,8 @@
+{
+  long offset=stripe.getOffset() + stripe.getIndexLength() + stripe.getDataLength();
+  int tailLength=Ints.checkedCast(stripe.getFooterLength());
+  byte[] tailBuffer=new byte[tailLength];
+  orcDataSource.readFully(offset,tailBuffer);
+  InputStream inputStream=new OrcInputStream(Slices.wrappedBuffer(tailBuffer).getInput(),compressionKind,bufferSize);
+  return StripeFooter.parseFrom(inputStream);
+}

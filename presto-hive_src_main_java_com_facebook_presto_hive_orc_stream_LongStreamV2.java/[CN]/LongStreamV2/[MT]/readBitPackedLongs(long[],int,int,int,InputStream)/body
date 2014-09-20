@@ -1,0 +1,21 @@
+{
+  int bitsLeft=0;
+  int current=0;
+  for (int i=offset; i < (offset + len); i++) {
+    long result=0;
+    int bitsLeftToRead=bitSize;
+    while (bitsLeftToRead > bitsLeft) {
+      result<<=bitsLeft;
+      result|=current & ((1 << bitsLeft) - 1);
+      bitsLeftToRead-=bitsLeft;
+      current=input.read();
+      bitsLeft=8;
+    }
+    if (bitsLeftToRead > 0) {
+      result<<=bitsLeftToRead;
+      bitsLeft-=bitsLeftToRead;
+      result|=(current >> bitsLeft) & ((1 << bitsLeftToRead) - 1);
+    }
+    buffer[i]=result;
+  }
+}
