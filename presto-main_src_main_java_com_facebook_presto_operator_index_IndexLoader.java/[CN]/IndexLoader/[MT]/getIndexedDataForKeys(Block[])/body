@@ -1,0 +1,40 @@
+{
+  UpdateRequest myUpdateRequest=new UpdateRequest(indexBlocks);
+  updateRequests.add(myUpdateRequest);
+synchronized (this) {
+    if (!myUpdateRequest.isFinished()) {
+      stats.recordIndexJoinLookup();
+      initializeStateIfNecessary();
+      List<UpdateRequest> requests=new ArrayList<>();
+      updateRequests.drainTo(requests);
+      long initialCacheSizeInBytes=indexSnapshotLoader.getCacheSizeInBytes();
+      if (indexSnapshotLoader.load(requests)) {
+        return myUpdateRequest.getFinishedIndexSnapshot();
+      }
+      if (initialCacheSizeInBytes > 0 && indexSnapshotLoader.load(requests)) {
+        stats.recordSuccessfulIndexJoinLookupByCacheReset();
+        return myUpdateRequest.getFinishedIndexSnapshot();
+      }
+      if (requests.size() > 1) {
+        Iterables.addAll(updateRequests,filter(requests,not(equalTo(myUpdateRequest))));
+        if (indexSnapshotLoader.load(ImmutableList.of(myUpdateRequest))) {
+          stats.recordSuccessfulIndexJoinLookupBySingleRequest();
+          return myUpdateRequest.getFinishedIndexSnapshot();
+        }
+      }
+      int totalPositions=indexBlocks[0].getPositionCount();
+      int attemptedPositions=totalPositions / 10;
+      while (attemptedPositions > 1) {
+        myUpdateRequest=new UpdateRequest(sliceBlocks(indexBlocks,0,attemptedPositions));
+        if (indexSnapshotLoader.load(ImmutableList.of(myUpdateRequest))) {
+          stats.recordSuccessfulIndexJoinLookupByLimitedRequest();
+          return myUpdateRequest.getFinishedIndexSnapshot();
+        }
+        attemptedPositions/=10;
+      }
+      stats.recordStreamedIndexJoinLookup();
+      return streamIndexDataForSingleKey(myUpdateRequest);
+    }
+  }
+  return myUpdateRequest.getFinishedIndexSnapshot();
+}

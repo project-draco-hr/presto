@@ -1,6 +1,7 @@
 {
   UnloadedIndexKeyRecordSet unloadedKeysRecordSet=new UnloadedIndexKeyRecordSet(indexSnapshotReference.get(),indexTypes,requests);
   Driver driver=driverFactory.createDriver(pipelineContext.addDriverContext());
+  PlanNodeId sourcePlanNodeId=Iterables.getOnlyElement(driverFactory.getSourceIds());
   driver.updateSource(new TaskSource(sourcePlanNodeId,ImmutableSet.of(new ScheduledSplit(0,new Split("index",new IndexSplit(unloadedKeysRecordSet)))),true));
   while (!driver.isFinished()) {
     ListenableFuture<?> process=driver.process();

@@ -12,9 +12,8 @@
   LocalExecutionPlanContext indexContext=context.createIndexSourceSubContext(new IndexSourceContext(indexLookupToProbeInput));
   PhysicalOperation indexSource=node.getIndexSource().accept(this,indexContext);
   List<Integer> indexChannels=getChannelsForSymbols(indexSymbols,indexSource.getLayout());
-  PagesIndexBuilderOperatorFactory pagesIndexOutput=new PagesIndexBuilderOperatorFactory(indexContext.getNextOperatorId(),indexSource.getTypes());
-  DriverFactory indexBuildDriverFactory=new DriverFactory(indexContext.isInputDriver(),false,ImmutableList.<OperatorFactory>builder().addAll(indexSource.getOperatorFactories()).add(pagesIndexOutput).build());
-  IndexLookupSourceSupplier indexLookupSourceSupplier=new IndexLookupSourceSupplier(indexChannels,indexSource.getTypes(),indexBuildDriverFactory,pagesIndexOutput,maxIndexMemorySize,indexJoinLookupStats);
+  IndexBuildDriverFactoryProvider indexBuildDriverFactoryProvider=new IndexBuildDriverFactoryProvider(indexContext.getNextOperatorId(),indexContext.isInputDriver(),indexSource.getOperatorFactories());
+  IndexLookupSourceSupplier indexLookupSourceSupplier=new IndexLookupSourceSupplier(indexChannels,indexSource.getTypes(),indexBuildDriverFactoryProvider,maxIndexMemorySize,indexJoinLookupStats);
   ImmutableMap.Builder<Symbol,Integer> outputMappings=ImmutableMap.builder();
   outputMappings.putAll(probeSource.getLayout());
   int offset=probeSource.getTypes().size();
