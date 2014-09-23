@@ -4,5 +4,7 @@
   checkNotNull(properties,"properties is null");
   ConnectorFactory connectorFactory=connectorFactories.get(connectorName);
   checkArgument(connectorFactory != null,"No factory for connector %s",connectorName);
-  createConnection(catalogName,connectorFactory,properties);
-}
+  try (ThreadContextClassLoader ignored=new ThreadContextClassLoader(connectorFactory.getClass().getClassLoader())){
+    createConnection(catalogName,connectorFactory,properties);
+  }
+ }
