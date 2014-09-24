@@ -1,0 +1,13 @@
+{
+  if (!context.isDefaultRewrite()) {
+    PlanNode result=nodeRewriter.rewriteUnnest(node,context.get(),PlanRewriter.this);
+    if (result != null) {
+      return result;
+    }
+  }
+  PlanNode source=rewrite(node.getSource(),context.get());
+  if (source != node.getSource()) {
+    return new UnnestNode(node.getId(),source,node.getReplicateSymbols(),node.getUnnestSymbols());
+  }
+  return node;
+}

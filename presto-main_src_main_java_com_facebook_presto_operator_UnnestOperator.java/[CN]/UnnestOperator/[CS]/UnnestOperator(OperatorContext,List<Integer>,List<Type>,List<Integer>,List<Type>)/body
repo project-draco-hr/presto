@@ -1,0 +1,12 @@
+{
+  this.operatorContext=checkNotNull(operatorContext,"operatorContext is null");
+  this.replicateChannels=ImmutableList.copyOf(checkNotNull(replicateChannels,"replicateChannels is null"));
+  this.replicateTypes=ImmutableList.copyOf(checkNotNull(replicateTypes,"replicateTypes is null"));
+  this.unnestChannels=ImmutableList.copyOf(checkNotNull(unnestChannels,"unnestChannels is null"));
+  this.unnestTypes=ImmutableList.copyOf(checkNotNull(unnestTypes,"unnestTypes is null"));
+  checkArgument(replicateChannels.size() == replicateTypes.size(),"replicate channels or types has wrong size");
+  checkArgument(unnestChannels.size() == unnestTypes.size(),"unnest channels or types has wrong size");
+  outputTypes=ImmutableList.<Type>builder().addAll(replicateTypes).addAll(getUnnestedTypes(unnestTypes)).build();
+  this.pageBuilder=new PageBuilder(outputTypes);
+  this.unnesters=new ArrayList<>();
+}

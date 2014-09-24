@@ -1,0 +1,17 @@
+{
+  unnesters.clear();
+  for (int i=0; i < unnestTypes.size(); i++) {
+    Type type=unnestTypes.get(i);
+    int channel=unnestChannels.get(i);
+    Slice slice=type.getSlice(currentPage.getBlock(channel),currentPosition);
+    if (type instanceof ArrayType) {
+      unnesters.add(new ArrayUnnester((ArrayType)type,slice));
+    }
+ else     if (type instanceof MapType) {
+      unnesters.add(new MapUnnester((MapType)type,slice));
+    }
+ else {
+      throw new IllegalArgumentException("Cannot unnest type: " + type);
+    }
+  }
+}

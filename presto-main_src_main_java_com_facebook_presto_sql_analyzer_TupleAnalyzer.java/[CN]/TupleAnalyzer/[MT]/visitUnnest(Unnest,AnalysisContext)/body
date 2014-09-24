@@ -1,0 +1,20 @@
+{
+  ImmutableList.Builder<Field> outputFields=ImmutableList.builder();
+  for (  Expression expression : node.getExpressions()) {
+    ExpressionAnalysis expressionAnalysis=ExpressionAnalyzer.analyzeExpression(session,metadata,sqlParser,context.getLateralTupleDescriptor(),analysis,experimentalSyntaxEnabled,context,expression);
+    Type expressionType=expressionAnalysis.getType(expression);
+    if (expressionType instanceof ArrayType) {
+      outputFields.add(Field.newUnqualified(Optional.<String>absent(),((ArrayType)expressionType).getElementType()));
+    }
+ else     if (expressionType instanceof MapType) {
+      outputFields.add(Field.newUnqualified(Optional.<String>absent(),((MapType)expressionType).getKeyType()));
+      outputFields.add(Field.newUnqualified(Optional.<String>absent(),((MapType)expressionType).getValueType()));
+    }
+ else {
+      throw new PrestoException(StandardErrorCode.INVALID_FUNCTION_ARGUMENT.toErrorCode(),"Cannot unnest type: " + expressionType);
+    }
+  }
+  TupleDescriptor descriptor=new TupleDescriptor(outputFields.build());
+  analysis.setOutputDescriptor(node,descriptor);
+  return descriptor;
+}

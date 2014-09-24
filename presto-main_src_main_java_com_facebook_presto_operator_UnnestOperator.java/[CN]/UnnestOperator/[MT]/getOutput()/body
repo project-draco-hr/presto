@@ -1,0 +1,38 @@
+{
+  while (!pageBuilder.isFull() && currentPage != null) {
+    while (!anyUnnesterHasData()) {
+      currentPosition++;
+      if (currentPosition == currentPage.getPositionCount()) {
+        currentPage=null;
+        currentPosition=0;
+        break;
+      }
+      initializeUnnesters();
+    }
+    while (!pageBuilder.isFull() && anyUnnesterHasData()) {
+      for (int replicateChannel=0; replicateChannel < replicateTypes.size(); replicateChannel++) {
+        Type type=replicateTypes.get(replicateChannel);
+        int channel=replicateChannels.get(replicateChannel);
+        type.appendTo(currentPage.getBlock(channel),currentPosition,pageBuilder.getBlockBuilder(replicateChannel));
+      }
+      int offset=replicateTypes.size();
+      for (      Unnester unnester : unnesters) {
+        if (unnester.hasNext()) {
+          unnester.appendNext(pageBuilder,offset);
+        }
+ else {
+          for (int unnesterChannelIndex=0; unnesterChannelIndex < unnester.getChannelCount(); unnesterChannelIndex++) {
+            pageBuilder.getBlockBuilder(offset + unnesterChannelIndex).appendNull();
+          }
+        }
+        offset+=unnester.getChannelCount();
+      }
+    }
+  }
+  if ((!finishing && !pageBuilder.isFull()) || pageBuilder.isEmpty()) {
+    return null;
+  }
+  Page page=pageBuilder.build();
+  pageBuilder.reset();
+  return page;
+}

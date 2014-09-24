@@ -1,5 +1,18 @@
 {
   RelationPlan leftPlan=process(node.getLeft(),context);
+  if (node.getRight() instanceof Unnest || (node.getRight() instanceof AliasedRelation && ((AliasedRelation)node.getRight()).getRelation() instanceof Unnest)) {
+    Unnest unnest;
+    if (node.getRight() instanceof AliasedRelation) {
+      unnest=(Unnest)((AliasedRelation)node.getRight()).getRelation();
+    }
+ else {
+      unnest=(Unnest)node.getRight();
+    }
+    if (node.getType() != Join.Type.CROSS) {
+      throw new SemanticException(NOT_SUPPORTED,unnest,"UNNEST only supported on the right side of CROSS JOIN");
+    }
+    return planCrossJoinUnnest(leftPlan,node,unnest);
+  }
   RelationPlan rightPlan=process(node.getRight(),context);
   PlanBuilder leftPlanBuilder=initializePlanBuilder(leftPlan);
   PlanBuilder rightPlanBuilder=initializePlanBuilder(rightPlan);

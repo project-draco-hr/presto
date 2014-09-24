@@ -1,0 +1,17 @@
+{
+  this.channelCount=channelCount;
+  if (slice == null) {
+    this.jsonParser=null;
+    return;
+  }
+  try {
+    this.jsonParser=JSON_FACTORY.createJsonParser(slice.getInput());
+    JsonToken token=jsonParser.nextToken();
+    checkState(token == JsonToken.START_ARRAY || token == JsonToken.START_OBJECT,"Expected start of array or object in input: \"%s\"",slice.toStringUtf8());
+    readNextToken();
+  }
+ catch (  IOException e) {
+    close();
+    throw Throwables.propagate(e);
+  }
+}

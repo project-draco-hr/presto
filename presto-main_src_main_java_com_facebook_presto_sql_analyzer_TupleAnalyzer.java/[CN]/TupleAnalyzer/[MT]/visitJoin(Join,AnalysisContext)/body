@@ -6,8 +6,10 @@
   if (criteria instanceof NaturalJoin) {
     throw new SemanticException(NOT_SUPPORTED,node,"Natural join not supported");
   }
+  AnalysisContext leftContext=new AnalysisContext(context);
   TupleDescriptor left=process(node.getLeft(),context);
-  TupleDescriptor right=process(node.getRight(),context);
+  leftContext.setLateralTupleDescriptor(left);
+  TupleDescriptor right=process(node.getRight(),leftContext);
   Sets.SetView<QualifiedName> duplicateAliases=Sets.intersection(left.getRelationAliases(),right.getRelationAliases());
   if (!duplicateAliases.isEmpty()) {
     throw new SemanticException(DUPLICATE_RELATION,node,"Relations appear more than once: %s",duplicateAliases);
