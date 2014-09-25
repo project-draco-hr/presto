@@ -1,0 +1,17 @@
+{
+  JobConf jobConf=new JobConf();
+  ReaderWriterProfiler.setProfilerOptions(jobConf);
+  if (compressionCodec != null) {
+    CompressionCodec codec=new CompressionCodecFactory(new Configuration()).getCodecByName(compressionCodec);
+    jobConf.set(COMPRESS_CODEC,codec.getClass().getName());
+    jobConf.set(COMPRESS_TYPE,CompressionType.BLOCK.toString());
+    jobConf.set("parquet.compression",compressionCodec);
+    jobConf.set("parquet.enable.dictionary","true");
+  }
+  RecordWriter recordWriter=outputFormat.getHiveRecordWriter(jobConf,new Path(outputFile.toURI()),Text.class,compressionCodec != null,createTableProperties(columns),new Progressable(){
+    @Override public void progress(){
+    }
+  }
+);
+  return recordWriter;
+}
