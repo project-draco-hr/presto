@@ -1,0 +1,17 @@
+{
+  @SuppressWarnings("deprecation") Deserializer deserializer=getDeserializer(schema);
+  if (!(deserializer instanceof OrcSerde)) {
+    return Optional.absent();
+  }
+  RecordReader recordReader;
+  try {
+    FileSystem fileSystem=path.getFileSystem(configuration);
+    Reader reader=OrcFile.createReader(fileSystem,path);
+    boolean[] include=findIncludedColumns(reader.getTypes(),columns);
+    recordReader=reader.rows(start,length,include);
+  }
+ catch (  Exception e) {
+    throw Throwables.propagate(e);
+  }
+  return Optional.<HiveRecordCursor>of(new OrcHiveRecordCursor(recordReader,length,schema,partitionKeys,columns,hiveStorageTimeZone,DateTimeZone.forID(session.getTimeZoneKey().getId()),typeManager));
+}

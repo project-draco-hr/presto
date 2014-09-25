@@ -1,0 +1,83 @@
+{
+  checkNotNull(recordReader,"recordReader is null");
+  checkArgument(totalBytes >= 0,"totalBytes is negative");
+  checkNotNull(splitSchema,"splitSchema is null");
+  checkNotNull(partitionKeys,"partitionKeys is null");
+  checkNotNull(columns,"columns is null");
+  checkArgument(!columns.isEmpty(),"columns is empty");
+  checkNotNull(hiveStorageTimeZone,"hiveStorageTimeZone is null");
+  checkNotNull(sessionTimeZone,"sessionTimeZone is null");
+  this.recordReader=recordReader;
+  this.totalBytes=totalBytes;
+  this.sessionTimeZone=sessionTimeZone;
+  int size=columns.size();
+  this.names=new String[size];
+  this.types=new Type[size];
+  this.hiveTypes=new HiveType[size];
+  this.fieldInspectors=new ObjectInspector[size];
+  this.hiveColumnIndexes=new int[size];
+  this.isPartitionColumn=new boolean[size];
+  this.loaded=new boolean[size];
+  this.booleans=new boolean[size];
+  this.longs=new long[size];
+  this.doubles=new double[size];
+  this.slices=new Slice[size];
+  this.nulls=new boolean[size];
+  long hiveStorageCorrection=new DateTime(2015,1,1,0,0,hiveStorageTimeZone).getMillis() - new DateTime(2015,1,1,0,0,DateTimeZone.UTC).getMillis();
+  long jvmCorrection=new DateTime(2015,1,1,0,0).getMillis() - new DateTime(2015,1,1,0,0,DateTimeZone.UTC).getMillis();
+  timeZoneCorrection=hiveStorageCorrection - jvmCorrection;
+  StructObjectInspector rowInspector=getTableObjectInspector(splitSchema);
+  for (int i=0; i < columns.size(); i++) {
+    HiveColumnHandle column=columns.get(i);
+    names[i]=column.getName();
+    types[i]=typeManager.getType(column.getTypeName());
+    hiveTypes[i]=column.getHiveType();
+    if (!column.isPartitionKey()) {
+      fieldInspectors[i]=rowInspector.getStructFieldRef(column.getName()).getFieldObjectInspector();
+    }
+    hiveColumnIndexes[i]=column.getHiveColumnIndex();
+    isPartitionColumn[i]=column.isPartitionKey();
+  }
+  Map<String,HivePartitionKey> partitionKeysByName=uniqueIndex(partitionKeys,HivePartitionKey.nameGetter());
+  for (int columnIndex=0; columnIndex < columns.size(); columnIndex++) {
+    HiveColumnHandle column=columns.get(columnIndex);
+    if (column.isPartitionKey()) {
+      HivePartitionKey partitionKey=partitionKeysByName.get(column.getName());
+      checkArgument(partitionKey != null,"Unknown partition key %s",column.getName());
+      byte[] bytes=partitionKey.getValue().getBytes(Charsets.UTF_8);
+      if (types[columnIndex].equals(BOOLEAN)) {
+        if (isTrue(bytes,0,bytes.length)) {
+          booleans[columnIndex]=true;
+        }
+ else         if (isFalse(bytes,0,bytes.length)) {
+          booleans[columnIndex]=false;
+        }
+ else {
+          String valueString=new String(bytes,Charsets.UTF_8);
+          throw new IllegalArgumentException(String.format("Invalid partition value '%s' for BOOLEAN partition key %s",valueString,names[columnIndex]));
+        }
+      }
+ else       if (types[columnIndex].equals(BIGINT)) {
+        if (bytes.length == 0) {
+          throw new IllegalArgumentException(String.format("Invalid partition value '' for BIGINT partition key %s",names[columnIndex]));
+        }
+        longs[columnIndex]=parseLong(bytes,0,bytes.length);
+      }
+ else       if (types[columnIndex].equals(DOUBLE)) {
+        if (bytes.length == 0) {
+          throw new IllegalArgumentException(String.format("Invalid partition value '' for DOUBLE partition key %s",names[columnIndex]));
+        }
+        doubles[columnIndex]=parseDouble(bytes,0,bytes.length);
+      }
+ else       if (types[columnIndex].equals(VARCHAR)) {
+        slices[columnIndex]=Slices.wrappedBuffer(bytes);
+      }
+ else       if (types[columnIndex].equals(DATE)) {
+        longs[columnIndex]=ISODateTimeFormat.date().withZone(DateTimeZone.UTC).parseMillis(partitionKey.getValue());
+      }
+ else {
+        throw new UnsupportedOperationException("Unsupported column type: " + types[columnIndex]);
+      }
+    }
+  }
+}
