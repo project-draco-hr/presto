@@ -1,0 +1,16 @@
+{
+  try {
+    if (closed || !recordReader.hasNext()) {
+      close();
+      return false;
+    }
+    value=(OrcLazyRow)recordReader.next(value);
+    System.arraycopy(isPartitionColumn,0,loaded,0,isPartitionColumn.length);
+    Arrays.fill(nulls,false);
+    return true;
+  }
+ catch (  IOException|RuntimeException e) {
+    closeWithSuppression(e);
+    throw new PrestoException(HIVE_CURSOR_ERROR.toErrorCode(),e);
+  }
+}

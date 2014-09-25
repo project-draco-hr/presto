@@ -1,0 +1,22 @@
+{
+  @SuppressWarnings("deprecation") Deserializer deserializer=getDeserializer(schema);
+  if (!(deserializer instanceof OrcSerde)) {
+    return Optional.absent();
+  }
+  StructObjectInspector rowInspector=getTableObjectInspector(schema);
+  if (!all(rowInspector.getAllStructFieldRefs(),isSupportedDwrfType())) {
+    throw new IllegalArgumentException("DWRF does not support DATE type");
+  }
+  ReaderWriterProfiler.setProfilerOptions(configuration);
+  RecordReader recordReader;
+  try {
+    FileSystem fileSystem=path.getFileSystem(configuration);
+    Reader reader=OrcFile.createReader(fileSystem,path,new JobConf(configuration));
+    boolean[] include=findIncludedColumns(reader.getTypes(),columns);
+    recordReader=reader.rows(start,length,include);
+  }
+ catch (  Exception e) {
+    throw Throwables.propagate(e);
+  }
+  return Optional.<HiveRecordCursor>of(new DwrfHiveRecordCursor(recordReader,length,schema,partitionKeys,columns,hiveStorageTimeZone,DateTimeZone.forID(session.getTimeZoneKey().getId()),typeManager));
+}
