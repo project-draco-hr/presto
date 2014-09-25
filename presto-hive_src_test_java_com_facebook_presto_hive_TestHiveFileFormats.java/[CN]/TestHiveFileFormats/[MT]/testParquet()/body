@@ -1,0 +1,25 @@
+{
+  List<TestColumn> testColumns=ImmutableList.copyOf(filter(TEST_COLUMNS,new Predicate<TestColumn>(){
+    @Override public boolean apply(    TestColumn testColumn){
+      if (testColumn.getName().equals("t_complex")) {
+        return false;
+      }
+      ObjectInspector objectInspector=testColumn.getObjectInspector();
+      return !hasType(objectInspector,PrimitiveCategory.DATE,PrimitiveCategory.TIMESTAMP,PrimitiveCategory.BINARY);
+    }
+  }
+));
+  HiveOutputFormat<?,?> outputFormat=new MapredParquetOutputFormat();
+  InputFormat<?,?> inputFormat=new MapredParquetInputFormat();
+  @SuppressWarnings("deprecation") SerDe serde=new ParquetHiveSerDe();
+  File file=File.createTempFile("presto_test","ord");
+  file.delete();
+  try {
+    FileSplit split=createTestFile(file.getAbsolutePath(),outputFormat,serde,null,testColumns);
+    HiveRecordCursorProvider cursorProvider=new ParquetRecordCursorProvider();
+    testCursorProvider(cursorProvider,split,inputFormat,serde,testColumns);
+  }
+  finally {
+    file.delete();
+  }
+}

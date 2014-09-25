@@ -1,0 +1,29 @@
+{
+  this.columns=columns;
+  ImmutableList.Builder<Converter> converters=ImmutableList.builder();
+  for (int i=0; i < columns.size(); i++) {
+    HiveColumnHandle column=columns.get(i);
+    if (!column.isPartitionKey() && column.getHiveColumnIndex() < messageType.getFieldCount()) {
+      parquet.schema.Type parquetType=messageType.getFields().get(column.getHiveColumnIndex());
+      if (parquetType.isPrimitive()) {
+        converters.add(new ParquetPrimitiveColumnConverter(i));
+      }
+ else {
+        GroupType groupType=parquetType.asGroupType();
+switch (groupType.getOriginalType()) {
+case LIST:
+          converters.add(new ParquetJsonColumnConverter(new ParquetListJsonConverter(groupType.getName(),null,groupType),i));
+        break;
+case MAP:
+case MAP_KEY_VALUE:
+      converters.add(new ParquetJsonColumnConverter(new ParquetMapJsonConverter(groupType.getName(),null,groupType),i));
+    break;
+case UTF8:
+case ENUM:
+  throw new IllegalArgumentException("Group column " + groupType.getName() + " type "+ groupType.getOriginalType()+ " not supported");
+}
+}
+}
+}
+this.converters=converters.build();
+}

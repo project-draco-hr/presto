@@ -1,0 +1,34 @@
+{
+  try {
+    ParquetMetadata parquetMetadata=ParquetFileReader.readFooter(configuration,path);
+    List<BlockMetaData> blocks=parquetMetadata.getBlocks();
+    FileMetaData fileMetaData=parquetMetadata.getFileMetaData();
+    PrestoReadSupport readSupport=new PrestoReadSupport(columns,parquetMetadata.getFileMetaData().getSchema());
+    ReadContext readContext=readSupport.init(configuration,fileMetaData.getKeyValueMetaData(),fileMetaData.getSchema());
+    List<BlockMetaData> splitGroup=new ArrayList<>();
+    long splitStart=start;
+    long splitLength=length;
+    for (    BlockMetaData block : blocks) {
+      long firstDataPage=block.getColumns().get(0).getFirstDataPageOffset();
+      if (firstDataPage >= splitStart && firstDataPage < splitStart + splitLength) {
+        splitGroup.add(block);
+      }
+    }
+    ParquetInputSplit split;
+    if (splitGroup.isEmpty()) {
+      return null;
+    }
+    split=new ParquetInputSplit(path,splitStart,splitLength,null,splitGroup,readContext.getRequestedSchema().toString(),fileMetaData.getSchema().toString(),fileMetaData.getKeyValueMetaData(),readContext.getReadSupportMetadata());
+    TaskAttemptContext taskContext=ContextUtil.newTaskAttemptContext(configuration,new TaskAttemptID());
+    ParquetRecordReader<Void> realReader=new ParquetRecordReader<>(readSupport);
+    realReader.initialize(split,taskContext);
+    return realReader;
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    throw Throwables.propagate(e);
+  }
+}

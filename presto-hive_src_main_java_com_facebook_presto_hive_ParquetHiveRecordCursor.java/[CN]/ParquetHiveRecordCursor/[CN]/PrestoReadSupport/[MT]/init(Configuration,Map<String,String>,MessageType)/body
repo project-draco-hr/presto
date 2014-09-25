@@ -1,0 +1,10 @@
+{
+  ImmutableList.Builder<parquet.schema.Type> fields=ImmutableList.builder();
+  for (  HiveColumnHandle column : columns) {
+    if (!column.isPartitionKey() && column.getHiveColumnIndex() < messageType.getFieldCount()) {
+      fields.add(messageType.getType(column.getName()));
+    }
+  }
+  MessageType requestedProjection=new MessageType(messageType.getName(),fields.build());
+  return new ReadContext(requestedProjection);
+}

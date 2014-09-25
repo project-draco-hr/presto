@@ -1,0 +1,17 @@
+{
+  try {
+    System.arraycopy(nullsRowDefault,0,nulls,0,isPartitionColumn.length);
+    if (closed || !recordReader.nextKeyValue()) {
+      close();
+      return false;
+    }
+    return true;
+  }
+ catch (  IOException|RuntimeException|InterruptedException e) {
+    if (e instanceof InterruptedException) {
+      Thread.currentThread().interrupt();
+    }
+    closeWithSuppression(e);
+    throw new PrestoException(HIVE_CURSOR_ERROR.toErrorCode(),e);
+  }
+}
