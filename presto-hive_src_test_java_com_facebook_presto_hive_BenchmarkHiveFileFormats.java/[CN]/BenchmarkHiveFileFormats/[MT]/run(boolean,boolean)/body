@@ -3,21 +3,23 @@
   ReaderWriterProfiler.setProfilerOptions(JOB_CONF);
   JOB_CONF.set(IOConstants.COLUMNS,Joiner.on(',').join(transform(COLUMNS,columnNameGetter())));
   DATA_DIR.mkdirs();
-  List<BenchmarkFile> benchmarkFiles=ImmutableList.of(new BenchmarkFile("orc","orc",new org.apache.hadoop.hive.ql.io.orc.OrcInputFormat(),new org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat(),new org.apache.hadoop.hive.ql.io.orc.OrcSerde(),null,new OrcRecordCursorProvider()),new BenchmarkFile("rc binary gzip","rc-binary.gz",new RCFileInputFormat<>(),new RCFileOutputFormat(),new LazyBinaryColumnarSerDe(),"gzip",new ColumnarBinaryHiveRecordCursorProvider()),new BenchmarkFile("parquet gzip","parquet.gz",new MapredParquetInputFormat(),new MapredParquetOutputFormat(),new ParquetHiveSerDe(),"gzip",new ParquetRecordCursorProvider()),new BenchmarkFile("dwrf","dwrf",new com.facebook.hive.orc.OrcInputFormat(),new com.facebook.hive.orc.OrcOutputFormat(),new com.facebook.hive.orc.OrcSerde(),null,new DwrfRecordCursorProvider()));
+  List<BenchmarkFile> benchmarkFiles=ImmutableList.<BenchmarkFile>builder().add(new BenchmarkFile("rc-binary",new RCFileInputFormat<>(),new RCFileOutputFormat(),new LazyBinaryColumnarSerDe(),ImmutableList.<HiveRecordCursorProvider>builder().add(new ColumnarBinaryHiveRecordCursorProvider()).build(),ImmutableList.<HivePageSourceFactory>builder().build())).add(new BenchmarkFile("parquet",new MapredParquetInputFormat(),new MapredParquetOutputFormat(),new ParquetHiveSerDe(),ImmutableList.<HiveRecordCursorProvider>builder().add(new ParquetRecordCursorProvider()).build(),ImmutableList.<HivePageSourceFactory>builder().build())).add(new BenchmarkFile("dwrf",new com.facebook.hive.orc.OrcInputFormat(),new com.facebook.hive.orc.OrcOutputFormat(),new com.facebook.hive.orc.OrcSerde(),ImmutableList.<HiveRecordCursorProvider>builder().add(new DwrfRecordCursorProvider()).build(),ImmutableList.<HivePageSourceFactory>builder().build())).add(new BenchmarkFile("orc",new org.apache.hadoop.hive.ql.io.orc.OrcInputFormat(),new org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat(),new org.apache.hadoop.hive.ql.io.orc.OrcSerde(),ImmutableList.<HiveRecordCursorProvider>builder().add(new OrcRecordCursorProvider()).build(),ImmutableList.<HivePageSourceFactory>builder().build())).build();
   if (!benchmarkWriteSpeed) {
     for (    BenchmarkFile benchmarkFile : benchmarkFiles) {
-      if (!benchmarkFile.getFile().exists()) {
-        writeLineItems(benchmarkFile.getFile(),benchmarkFile.getOutputFormat(),benchmarkFile.getSerDe(),benchmarkFile.getCompressionCodec(),COLUMNS);
+      for (      CompressionType compressionType : ENABLED_COMPRESSION) {
+        if (!benchmarkFile.getFile(compressionType).exists()) {
+          writeLineItems(benchmarkFile.getFile(compressionType),benchmarkFile.getOutputFormat(),benchmarkFile.getSerDe(),compressionType,COLUMNS);
+        }
       }
     }
   }
   for (int run=0; run < 2; run++) {
     System.out.println("==== Run " + run + " ====");
     if (benchmarkWriteSpeed) {
-      benchmarkWrite(benchmarkFiles,2);
+      benchmarkWrite(benchmarkFiles,2,ENABLED_COMPRESSION);
     }
     if (benchmarkReadSpeed) {
-      benchmarkRead(benchmarkFiles,1);
+      benchmarkRead(benchmarkFiles,2 + (run > 0 ? 3 : 0),ENABLED_COMPRESSION);
     }
   }
 }

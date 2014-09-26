@@ -1,0 +1,28 @@
+{
+  RecordWriter recordWriter=createRecordWriter(columns,outputFile,outputFormat,compressionType);
+  SettableStructObjectInspector objectInspector=getStandardStructObjectInspector(transform(columns,columnNameGetter()),transform(columns,objectInspectorGetter()));
+  Object row=objectInspector.create();
+  List<StructField> fields=ImmutableList.copyOf(objectInspector.getAllStructFieldRefs());
+  for (  LineItem lineItem : new LineItemGenerator(1,1,1)) {
+    objectInspector.setStructFieldData(row,fields.get(0),lineItem.getOrderKey());
+    objectInspector.setStructFieldData(row,fields.get(1),lineItem.getPartKey());
+    objectInspector.setStructFieldData(row,fields.get(2),lineItem.getSupplierKey());
+    objectInspector.setStructFieldData(row,fields.get(3),lineItem.getLineNumber());
+    objectInspector.setStructFieldData(row,fields.get(4),lineItem.getQuantity());
+    objectInspector.setStructFieldData(row,fields.get(5),lineItem.getExtendedPrice());
+    objectInspector.setStructFieldData(row,fields.get(6),lineItem.getDiscount());
+    objectInspector.setStructFieldData(row,fields.get(7),lineItem.getTax());
+    objectInspector.setStructFieldData(row,fields.get(8),lineItem.getReturnFlag());
+    objectInspector.setStructFieldData(row,fields.get(9),lineItem.getStatus());
+    objectInspector.setStructFieldData(row,fields.get(10),lineItem.getShipDate());
+    objectInspector.setStructFieldData(row,fields.get(11),lineItem.getCommitDate());
+    objectInspector.setStructFieldData(row,fields.get(12),lineItem.getReceiptDate());
+    objectInspector.setStructFieldData(row,fields.get(13),lineItem.getShipInstructions());
+    objectInspector.setStructFieldData(row,fields.get(14),lineItem.getShipMode());
+    objectInspector.setStructFieldData(row,fields.get(15),lineItem.getComment());
+    Writable record=serializer.serialize(row,objectInspector);
+    recordWriter.write(record);
+  }
+  recordWriter.close(false);
+  return getFileSize(outputFile);
+}

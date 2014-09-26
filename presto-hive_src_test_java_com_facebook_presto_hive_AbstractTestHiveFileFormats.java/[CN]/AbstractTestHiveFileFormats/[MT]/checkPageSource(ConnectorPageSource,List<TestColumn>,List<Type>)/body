@@ -1,0 +1,46 @@
+{
+  try {
+    MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,types);
+    for (    MaterializedRow row : result) {
+      for (int i=0, testColumnsSize=testColumns.size(); i < testColumnsSize; i++) {
+        TestColumn testColumn=testColumns.get(i);
+        Type type=types.get(i);
+        Object actualValue=row.getField(i);
+        Object expectedValue=testColumn.getExpectedValue();
+        if (expectedValue instanceof Slice) {
+          expectedValue=((Slice)expectedValue).toStringUtf8();
+        }
+        if (actualValue == null) {
+          assertEquals(null,expectedValue,String.format("Expected null for column %d",i));
+        }
+ else         if (testColumn.getObjectInspector().getTypeName().equals("float") || testColumn.getObjectInspector().getTypeName().equals("double")) {
+          assertEquals((double)actualValue,(double)expectedValue,EPSILON);
+        }
+ else         if (testColumn.getObjectInspector().getTypeName().equals("date")) {
+          SqlDate expectedDate=new SqlDate((Long)expectedValue,SESSION.getTimeZoneKey());
+          assertEquals(actualValue,expectedDate);
+        }
+ else         if (testColumn.getObjectInspector().getTypeName().equals("timestamp")) {
+          SqlTimestamp expectedTimestamp=new SqlTimestamp((Long)expectedValue,SESSION.getTimeZoneKey());
+          assertEquals(actualValue,expectedTimestamp);
+        }
+ else         if (testColumn.getObjectInspector().getCategory() == Category.PRIMITIVE) {
+          if (actualValue instanceof Slice) {
+            actualValue=((Slice)actualValue).toStringUtf8();
+          }
+          if (actualValue instanceof SqlVarbinary) {
+            actualValue=new String(((SqlVarbinary)actualValue).getBytes(),UTF_8);
+          }
+          assertEquals(actualValue,expectedValue,String.format("Wrong value for column %d",i));
+        }
+ else {
+          Object expected=stackRepresentationToObject(SESSION,Slices.utf8Slice((String)expectedValue),type);
+          assertEquals(actualValue,expected,String.format("Wrong value for column %s",testColumn.getName()));
+        }
+      }
+    }
+  }
+  finally {
+    pageSource.close();
+  }
+}
