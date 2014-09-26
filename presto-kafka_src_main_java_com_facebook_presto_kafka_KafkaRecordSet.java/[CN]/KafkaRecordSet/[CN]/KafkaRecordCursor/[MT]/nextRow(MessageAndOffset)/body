@@ -2,12 +2,18 @@
   cursorOffset=messageAndOffset.offset() + 1;
   totalBytes+=messageAndOffset.message().payloadSize();
   totalMessages++;
+  byte[] keyData=EMPTY_BYTE_ARRAY;
+  byte[] messageData=EMPTY_BYTE_ARRAY;
   ByteBuffer key=messageAndOffset.message().key();
-  byte[] keyData=new byte[key.limit() - key.position()];
-  key.get(keyData);
+  if (key != null) {
+    keyData=new byte[key.remaining()];
+    key.get(keyData);
+  }
   ByteBuffer message=messageAndOffset.message().payload();
-  byte[] messageData=new byte[message.limit() - message.position()];
-  message.get(messageData);
+  if (message != null) {
+    messageData=new byte[message.remaining()];
+    message.get(messageData);
+  }
   Set<KafkaFieldValueProvider> fieldValueProviders=new HashSet<>();
   fieldValueProviders.addAll(globalInternalFieldValueProviders);
   fieldValueProviders.add(KafkaInternalFieldDescription.SEGMENT_COUNT_FIELD.forLongValue(totalMessages));
