@@ -1,0 +1,9 @@
+{
+  if (HIVE_STRING.equals(hiveType) || HIVE_BINARY.equals(hiveType)) {
+    return new LazySliceBlockLoader(batch,fieldId);
+  }
+  if (hiveType.getCategory() == Category.MAP || hiveType.getCategory() == Category.LIST || hiveType.getCategory() == Category.STRUCT) {
+    return new LazyJsonSliceBlockLoader(batch,fieldId,fieldInspector,sessionTimeZone);
+  }
+  throw new UnsupportedOperationException("Unsupported column type: " + hiveType);
+}
