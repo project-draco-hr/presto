@@ -6,11 +6,6 @@
   context.addDriverFactory(new DriverFactory(subContext.isInputDriver(),false,factories));
   exchange.noMoreSinkFactories();
   context.setInputDriver(false);
-  List<Symbol> layout=node.getOutputSymbols();
-  ImmutableMap.Builder<Symbol,Integer> outputMappings=ImmutableMap.builder();
-  for (int i=0; i < layout.size(); i++) {
-    outputMappings.put(layout.get(i),i);
-  }
   OperatorFactory factory=new InMemoryExchangeSourceOperatorFactory(context.getNextOperatorId(),exchange);
-  return new PhysicalOperation(factory,outputMappings.build());
+  return new PhysicalOperation(factory,makeLayout(node));
 }

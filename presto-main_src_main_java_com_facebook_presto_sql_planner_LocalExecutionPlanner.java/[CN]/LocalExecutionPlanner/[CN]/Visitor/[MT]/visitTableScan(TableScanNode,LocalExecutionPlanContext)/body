@@ -1,13 +1,9 @@
 {
-  ImmutableMap.Builder<Symbol,Integer> outputMappings=ImmutableMap.builder();
   List<ColumnHandle> columns=new ArrayList<>();
-  int channel=0;
   for (  Symbol symbol : node.getOutputSymbols()) {
     columns.add(node.getAssignments().get(symbol));
-    outputMappings.put(symbol,channel);
-    channel++;
   }
   List<Type> types=getSourceOperatorTypes(node,context.getTypes());
   OperatorFactory operatorFactory=new TableScanOperatorFactory(context.getNextOperatorId(),node.getId(),pageSourceProvider,types,columns);
-  return new PhysicalOperation(operatorFactory,outputMappings.build());
+  return new PhysicalOperation(operatorFactory,makeLayout(node));
 }

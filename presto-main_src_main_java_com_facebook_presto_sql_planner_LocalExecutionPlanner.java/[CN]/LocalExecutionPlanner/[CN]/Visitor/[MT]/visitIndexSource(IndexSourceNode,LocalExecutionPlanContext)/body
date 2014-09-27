@@ -1,12 +1,6 @@
 {
   checkState(context.getIndexSourceContext().isPresent(),"Must be in an index source context");
   IndexSourceContext indexSourceContext=context.getIndexSourceContext().get();
-  ImmutableMap.Builder<Symbol,Integer> outputMappings=ImmutableMap.builder();
-  int channel=0;
-  for (  Symbol symbol : node.getOutputSymbols()) {
-    outputMappings.put(symbol,channel);
-    channel++;
-  }
   SetMultimap<Symbol,Integer> indexLookupToProbeInput=indexSourceContext.getIndexLookupToProbeInput();
   checkState(indexLookupToProbeInput.keySet().equals(node.getLookupSymbols()));
   List<Symbol> lookupSymbolSchema=ImmutableList.copyOf(node.getLookupSymbols());
@@ -36,5 +30,5 @@
   Index index=indexManager.getIndex(node.getIndexHandle(),lookupSchema,outputSchema);
   List<Type> types=getSourceOperatorTypes(node,context.getTypes());
   OperatorFactory operatorFactory=new IndexSourceOperator.IndexSourceOperatorFactory(context.getNextOperatorId(),node.getId(),index,types,probeKeyNormalizer);
-  return new PhysicalOperation(operatorFactory,outputMappings.build());
+  return new PhysicalOperation(operatorFactory,makeLayout(node));
 }

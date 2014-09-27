@@ -1,13 +1,8 @@
 {
-  Map<Symbol,Integer> outputMappings=new LinkedHashMap<>();
   List<Type> outputTypes=new ArrayList<>();
-  int channel=0;
   for (  Symbol symbol : node.getOutputSymbols()) {
-    Integer input=channel;
-    outputMappings.put(symbol,input);
     Type type=checkNotNull(context.getTypes().get(symbol),"No type for symbol %s",symbol);
     outputTypes.add(type);
-    channel++;
   }
   PageBuilder pageBuilder=new PageBuilder(outputTypes);
   for (  List<Expression> row : node.getRows()) {
@@ -19,5 +14,5 @@
     }
   }
   OperatorFactory operatorFactory=new ValuesOperatorFactory(context.getNextOperatorId(),outputTypes,ImmutableList.of(pageBuilder.build()));
-  return new PhysicalOperation(operatorFactory,outputMappings);
+  return new PhysicalOperation(operatorFactory,makeLayout(node));
 }

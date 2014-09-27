@@ -1,11 +1,5 @@
 {
   List<Type> types=getSourceOperatorTypes(node,context.getTypes());
   OperatorFactory operatorFactory=new ExchangeOperatorFactory(context.getNextOperatorId(),node.getId(),exchangeClientSupplier,types);
-  ImmutableMap.Builder<Symbol,Integer> outputMappings=ImmutableMap.builder();
-  int channel=0;
-  for (  Symbol symbol : node.getOutputSymbols()) {
-    outputMappings.put(symbol,channel);
-    channel++;
-  }
-  return new PhysicalOperation(operatorFactory,outputMappings.build());
+  return new PhysicalOperation(operatorFactory,makeLayout(node));
 }
