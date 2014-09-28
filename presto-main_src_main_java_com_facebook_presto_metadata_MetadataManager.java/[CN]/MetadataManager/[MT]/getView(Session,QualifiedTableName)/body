@@ -1,0 +1,12 @@
+{
+  ConnectorMetadataEntry entry=getConnectorFor(viewName);
+  if (entry != null) {
+    SchemaTablePrefix prefix=viewName.asSchemaTableName().toSchemaTablePrefix();
+    Map<SchemaTableName,String> views=entry.getMetadata().getViews(session.toConnectorSession(),prefix);
+    String view=views.get(viewName.asSchemaTableName());
+    if (view != null) {
+      return Optional.of(deserializeView(view));
+    }
+  }
+  return Optional.absent();
+}

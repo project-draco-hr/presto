@@ -1,0 +1,24 @@
+{
+  checkNotNull(prefix,"prefix is null");
+  SchemaTablePrefix tablePrefix=prefix.asSchemaTablePrefix();
+  Map<QualifiedTableName,List<ColumnMetadata>> tableColumns=new HashMap<>();
+  for (  ConnectorMetadataEntry connectorMetadata : allConnectorsFor(prefix.getCatalogName())) {
+    ConnectorMetadata metadata=connectorMetadata.getMetadata();
+    ConnectorSession connectorSession=session.toConnectorSession();
+    for (    Entry<SchemaTableName,List<ColumnMetadata>> entry : metadata.listTableColumns(connectorSession,tablePrefix).entrySet()) {
+      QualifiedTableName tableName=new QualifiedTableName(prefix.getCatalogName(),entry.getKey().getSchemaName(),entry.getKey().getTableName());
+      tableColumns.put(tableName,entry.getValue());
+    }
+    for (    Entry<SchemaTableName,String> entry : metadata.getViews(connectorSession,tablePrefix).entrySet()) {
+      QualifiedTableName tableName=new QualifiedTableName(prefix.getCatalogName(),entry.getKey().getSchemaName(),entry.getKey().getTableName());
+      int ordinalPosition=0;
+      ImmutableList.Builder<ColumnMetadata> columns=ImmutableList.builder();
+      for (      ViewColumn column : deserializeView(entry.getValue()).getColumns()) {
+        columns.add(new ColumnMetadata(column.getName(),column.getType(),ordinalPosition,false));
+        ordinalPosition++;
+      }
+      tableColumns.put(tableName,columns.build());
+    }
+  }
+  return ImmutableMap.copyOf(tableColumns);
+}
