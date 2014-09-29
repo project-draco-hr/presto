@@ -1,6 +1,11 @@
 {
   try (Query query=queryRunner.startQuery(sql)){
     query.renderOutput(System.out,outputFormat,interactive);
+    if (!query.getSetSessionProperties().isEmpty()) {
+      Map<String,String> sessionProperties=new HashMap<>(queryRunner.getSession().getProperties());
+      sessionProperties.putAll(query.getSetSessionProperties());
+      queryRunner.setSession(withProperties(queryRunner.getSession(),sessionProperties));
+    }
   }
  catch (  RuntimeException e) {
     System.out.println("Error running command: " + e.getMessage());

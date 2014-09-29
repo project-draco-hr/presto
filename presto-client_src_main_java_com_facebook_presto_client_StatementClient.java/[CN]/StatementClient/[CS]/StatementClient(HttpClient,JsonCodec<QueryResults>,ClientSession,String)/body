@@ -9,5 +9,9 @@
   this.timeZoneId=session.getTimeZoneId();
   this.query=query;
   Request request=buildQueryRequest(session,query);
-  currentResults.set(httpClient.execute(request,responseHandler).getValue());
+  JsonResponse<QueryResults> response=httpClient.execute(request,responseHandler);
+  if (response.getStatusCode() != HttpStatus.OK.code() || !response.hasValue()) {
+    throw requestFailedException("starting query",request,response);
+  }
+  processResponse(response);
 }

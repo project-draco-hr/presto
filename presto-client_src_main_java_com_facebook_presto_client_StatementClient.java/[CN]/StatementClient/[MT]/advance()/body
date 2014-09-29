@@ -21,15 +21,11 @@
       continue;
     }
     if (response.getStatusCode() == HttpStatus.OK.code() && response.hasValue()) {
-      currentResults.set(response.getValue());
+      processResponse(response);
       return true;
     }
     if (response.getStatusCode() != HttpStatus.SERVICE_UNAVAILABLE.code()) {
-      gone.set(true);
-      if (!response.hasValue()) {
-        throw new RuntimeException(format("Error fetching next at %s returned an invalid response: %s",request.getUri(),response),response.getException());
-      }
-      throw new RuntimeException(format("Error fetching next at %s returned %s: %s",request.getUri(),response.getStatusCode(),response.getStatusMessage()));
+      throw requestFailedException("fetching next",request,response);
     }
   }
  while ((System.nanoTime() - start) < MINUTES.toNanos(2) && !isClosed());
