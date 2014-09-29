@@ -1,0 +1,39 @@
+{
+  List<String> stackTypeNames=FluentIterable.from(stackTypes).transform(new Function<Class<?>,String>(){
+    @Override public String apply(    Class<?> input){
+      return input.getSimpleName();
+    }
+  }
+).toList();
+  ClassDefinition definition=new ClassDefinition(new CompilerContext(null),a(PUBLIC,FINAL),makeClassName(Joiner.on("").join(stackTypeNames) + "MapConstructor"),type(Object.class));
+  definition.declareDefaultConstructor(a(PRIVATE));
+  ImmutableList.Builder<NamedParameterDefinition> parameters=ImmutableList.builder();
+  for (int i=0; i < stackTypes.size(); i++) {
+    Class<?> stackType=stackTypes.get(i);
+    parameters.add(arg("arg" + i,stackType));
+  }
+  CompilerContext context=new CompilerContext(null);
+  Block body=definition.declareMethod(context,a(PUBLIC,STATIC),"mapConstructor",type(Slice.class),parameters.build()).getBody();
+  Variable valuesVariable=context.declareVariable(Map.class,"values");
+  body.comment("Map<Object, Object> values = new HashMap();").newObject(HashMap.class).dup().invokeConstructor(HashMap.class).putVariable(valuesVariable);
+  for (int i=0; i < stackTypes.size(); i+=2) {
+    body.comment("values.put(arg%d, arg%d)",i,i + 1).getVariable(valuesVariable).getVariable("arg" + i);
+    Class<?> stackType=stackTypes.get(i);
+    if (stackType.isPrimitive()) {
+      body.append(ByteCodeUtils.boxPrimitiveIfNecessary(context,stackType));
+    }
+    body.getVariable("arg" + (i + 1));
+    stackType=stackTypes.get(i + 1);
+    if (stackType.isPrimitive()) {
+      body.append(ByteCodeUtils.boxPrimitiveIfNecessary(context,stackType));
+    }
+    body.invokeInterface(Map.class,"put",Object.class,Object.class,Object.class);
+  }
+  if (valueType instanceof ArrayType || valueType instanceof MapType) {
+    body.comment("return rawValueSlicesToStackRepresentation(values);").getVariable(valuesVariable).invokeStatic(MapType.class,"rawValueSlicesToStackRepresentation",Slice.class,Map.class).retObject();
+  }
+ else {
+    body.comment("return toStackRepresentation(values);").getVariable(valuesVariable).invokeStatic(MapType.class,"toStackRepresentation",Slice.class,Map.class).retObject();
+  }
+  return defineClass(definition,Object.class,new DynamicClassLoader());
+}

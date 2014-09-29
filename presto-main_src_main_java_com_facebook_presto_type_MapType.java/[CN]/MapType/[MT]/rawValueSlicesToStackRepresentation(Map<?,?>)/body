@@ -1,0 +1,17 @@
+{
+  try {
+    Map<String,Object> map=new HashMap<>();
+    for (    Map.Entry<?,?> entry : value.entrySet()) {
+      if (entry.getKey() instanceof Slice) {
+        map.put(((Slice)entry.getKey()).toStringUtf8(),entry.getValue());
+      }
+ else {
+        map.put(entry.getKey().toString(),entry.getValue());
+      }
+    }
+    return Slices.utf8Slice(RAW_SLICE_OBJECT_MAPPER.writeValueAsString(map));
+  }
+ catch (  JsonProcessingException e) {
+    throw Throwables.propagate(e);
+  }
+}

@@ -1,0 +1,37 @@
+{
+  if (parser.getCurrentToken() == JsonToken.VALUE_NULL) {
+    return null;
+  }
+  if (type instanceof ArrayType) {
+    List<Object> list=new ArrayList<>();
+    checkState(parser.getCurrentToken() == JsonToken.START_ARRAY,"Expected a json array");
+    while (parser.nextToken() != JsonToken.END_ARRAY) {
+      list.add(stackRepresentationToObjectHelper(session,parser,((ArrayType)type).getElementType()));
+    }
+    return Collections.unmodifiableList(list);
+  }
+  if (type instanceof MapType) {
+    Map<Object,Object> map=new HashMap<>();
+    checkState(parser.getCurrentToken() == JsonToken.START_OBJECT,"Expected a json object");
+    while (parser.nextValue() != JsonToken.END_OBJECT) {
+      Object key=mapKeyToObject(session,parser.getCurrentName(),((MapType)type).getKeyType());
+      Object value=stackRepresentationToObjectHelper(session,parser,((MapType)type).getValueType());
+      map.put(key,value);
+    }
+    return Collections.unmodifiableMap(map);
+  }
+  BlockBuilder blockBuilder=type.createBlockBuilder(new BlockBuilderStatus());
+  if (type.getJavaType() == boolean.class) {
+    type.writeBoolean(blockBuilder,parser.getBooleanValue());
+  }
+ else   if (type.getJavaType() == long.class) {
+    type.writeLong(blockBuilder,parser.getLongValue());
+  }
+ else   if (type.getJavaType() == double.class) {
+    type.writeDouble(blockBuilder,parser.getDoubleValue());
+  }
+ else   if (type.getJavaType() == Slice.class) {
+    type.writeSlice(blockBuilder,Slices.utf8Slice(parser.getValueAsString()));
+  }
+  return type.getObjectValue(session,blockBuilder.build(),0);
+}
