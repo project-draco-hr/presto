@@ -1,0 +1,10 @@
+{
+  checkArgument(!catalog.isPresent() || !catalog.get().isEmpty(),"Invalid session property: %s.%s:%s",catalog,name,value);
+  checkArgument(!name.isEmpty(),"Session property name is empty");
+  CharsetEncoder charsetEncoder=US_ASCII.newEncoder();
+  checkArgument(catalog.or("").indexOf('=') < 0,"Session property catalog must not contain '=': %s",name);
+  checkArgument(charsetEncoder.canEncode(catalog.or("")),"Session property catalog is not US_ASCII: %s",name);
+  checkArgument(name.indexOf('=') < 0,"Session property name must not contain '=': %s",name);
+  checkArgument(charsetEncoder.canEncode(name),"Session property name is not US_ASCII: %s",name);
+  checkArgument(charsetEncoder.canEncode(value),"Session property value is not US_ASCII: %s",value);
+}
