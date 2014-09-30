@@ -1,0 +1,11 @@
+{
+  ImmutableMap.Builder<String,String> properties=ImmutableMap.builder();
+  properties.putAll(systemProperties);
+  for (  Entry<String,Map<String,String>> catalogProperties : this.catalogProperties.entrySet()) {
+    String catalog=catalogProperties.getKey();
+    for (    Entry<String,String> entry : catalogProperties.getValue().entrySet()) {
+      properties.put(catalog + "." + entry.getKey(),entry.getValue());
+    }
+  }
+  return new ClientSession(checkNotNull(server,"server is null"),user,source,catalog,schema,timeZoneKey.getId(),locale,properties.build(),debug);
+}

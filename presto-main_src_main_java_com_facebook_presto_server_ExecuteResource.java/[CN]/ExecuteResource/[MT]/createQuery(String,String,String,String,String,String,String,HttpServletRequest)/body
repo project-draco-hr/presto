@@ -1,17 +1,8 @@
 {
   assertRequest(!isNullOrEmpty(query),"SQL query is empty");
-  assertRequest(!isNullOrEmpty(user),"User (%s) is empty",PRESTO_USER);
-  assertRequest(!isNullOrEmpty(catalog),"Catalog (%s) is empty",PRESTO_CATALOG);
-  assertRequest(!isNullOrEmpty(schema),"Schema (%s) is empty",PRESTO_SCHEMA);
-  if (timeZoneId == null) {
-    timeZoneId=TimeZone.getDefault().getID();
-  }
-  Locale locale=Locale.getDefault();
-  if (language != null) {
-    locale=Locale.forLanguageTag(language);
-  }
-  ClientSession session=new ClientSession(serverUri(),user,source,catalog,schema,timeZoneId,locale,false);
-  StatementClient client=new StatementClient(httpClient,queryResultsCodec,session,query);
+  Session session=createSessionForRequest(servletRequest);
+  ClientSession clientSession=session.toClientSession(serverUri(),false);
+  StatementClient client=new StatementClient(httpClient,queryResultsCodec,clientSession,query);
   List<Column> columns=getColumns(client);
   Iterator<List<Object>> iterator=flatten(new ResultsPageIterator(client));
   SimpleQueryResults results=new SimpleQueryResults(columns,iterator);
