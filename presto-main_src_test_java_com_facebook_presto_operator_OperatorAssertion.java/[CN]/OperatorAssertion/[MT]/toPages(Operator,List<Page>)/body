@@ -1,26 +1,6 @@
 {
-  ImmutableList.Builder<Page> outputPages=ImmutableList.builder();
   assertEquals(operator.isFinished(),false);
   assertEquals(operator.needsInput(),true);
   assertEquals(operator.getOutput(),null);
-  for (  Page inputPage : input) {
-    while (!operator.needsInput() && !operator.isFinished()) {
-      Page outputPage=operator.getOutput();
-      assertNotNull(outputPage);
-      outputPages.add(outputPage);
-    }
-    if (operator.isFinished()) {
-      break;
-    }
-    assertEquals(operator.needsInput(),true);
-    operator.addInput(inputPage);
-    Page outputPage=operator.getOutput();
-    if (outputPage != null) {
-      outputPages.add(outputPage);
-    }
-  }
-  operator.finish();
-  assertEquals(operator.needsInput(),false);
-  addRemainingOutputPages(operator,outputPages);
-  return outputPages.build();
+  return toPages(operator,input.iterator());
 }
