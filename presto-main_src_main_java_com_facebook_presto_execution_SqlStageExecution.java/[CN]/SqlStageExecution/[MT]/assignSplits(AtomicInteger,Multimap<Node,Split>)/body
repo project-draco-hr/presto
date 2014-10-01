@@ -2,7 +2,8 @@
   for (  Entry<Node,Collection<Split>> taskSplits : splitAssignment.asMap().entrySet()) {
     long scheduleSplitStart=System.nanoTime();
     Node node=taskSplits.getKey();
-    RemoteTask task=tasks.get(node);
+    TaskId taskId=Iterables.getOnlyElement(localNodeTaskMap.get(node),null);
+    RemoteTask task=taskId != null ? tasks.get(taskId) : null;
     if (task == null) {
       RemoteTask remoteTask=scheduleTask(nextTaskId.getAndIncrement(),node,fragment.getPartitionedSource(),taskSplits.getValue());
       addStageNode(remoteTask.getTaskInfo().getTaskId());

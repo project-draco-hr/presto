@@ -12,11 +12,12 @@
   }
   RemoteTask newRemoteTask=remoteTaskFactory.createTableScanTask(newNode,initialSplits.build());
   taskMap.put(newNode,newRemoteTask);
+  nodeTaskMap.addTask(newNode,newRemoteTask);
   Set<Split> splits=new HashSet<>();
   for (int i=0; i < 5; i++) {
     splits.add(new Split("foo",new TestSplitRemote()));
   }
-  Multimap<Node,Split> assignments=nodeSelector.computeAssignments(splits);
+  Multimap<Node,Split> assignments=nodeSelector.computeAssignments(splits,taskMap.values());
   assertEquals(assignments.keySet().size(),3);
   assertFalse(assignments.keySet().contains(newNode));
 }

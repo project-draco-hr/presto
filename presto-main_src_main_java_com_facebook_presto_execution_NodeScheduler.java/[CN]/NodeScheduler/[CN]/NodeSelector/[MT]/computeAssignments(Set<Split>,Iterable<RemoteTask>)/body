@@ -2,6 +2,14 @@
   Multimap<Node,Split> assignment=HashMultimap.create();
   Map<Node,Integer> assignmentCount=new HashMap<>();
   Map<Node,Integer> splitCountByNode=new HashMap<>();
+  Map<String,Integer> queuedSplitCountByNode=new HashMap<>();
+  for (  RemoteTask task : existingTasks) {
+    String nodeId=task.getNodeId();
+    if (!queuedSplitCountByNode.containsKey(nodeId)) {
+      queuedSplitCountByNode.put(nodeId,0);
+    }
+    queuedSplitCountByNode.put(nodeId,queuedSplitCountByNode.get(nodeId) + task.getQueuedPartitionedSplitCount());
+  }
   for (  Split split : splits) {
     List<Node> candidateNodes;
     if (locationAwareScheduling) {
@@ -29,8 +37,10 @@
     if (chosenNode == null) {
       for (      Node node : candidateNodes) {
         int assignedSplitCount=assignmentCount.containsKey(node) ? assignmentCount.get(node) : 0;
-        RemoteTask remoteTask=taskMap.get(node);
-        int queuedSplitCount=remoteTask == null ? 0 : remoteTask.getQueuedPartitionedSplitCount();
+        int queuedSplitCount=0;
+        if (queuedSplitCountByNode.containsKey(node.getNodeIdentifier())) {
+          queuedSplitCount=queuedSplitCountByNode.get(node.getNodeIdentifier());
+        }
         int totalSplitCount=queuedSplitCount + assignedSplitCount;
         if (totalSplitCount < min && totalSplitCount < maxSplitsPerNodePerTaskWhenFull) {
           chosenNode=node;
