@@ -1,8 +1,5 @@
 {
-  TaskInfo finalTaskInfo=taskHolder.getFinalTaskInfo();
-  if (finalTaskInfo != null) {
-    return finalTaskInfo;
-  }
+  long versionNumber=nextTaskInfoVersion.getAndIncrement();
   TaskState state=taskStateMachine.getState();
   List<ExecutionFailureInfo> failures=ImmutableList.of();
   if (state == TaskState.FAILED) {
@@ -10,14 +7,21 @@
   }
   TaskStats taskStats;
   Set<PlanNodeId> noMoreSplits;
-  SqlTaskExecution taskExecution=taskHolder.getTaskExecution();
-  if (taskExecution != null) {
-    taskStats=taskExecution.getTaskContext().getTaskStats();
-    noMoreSplits=taskExecution.getNoMoreSplits();
+  TaskInfo finalTaskInfo=taskHolder.getFinalTaskInfo();
+  if (finalTaskInfo != null) {
+    taskStats=finalTaskInfo.getStats();
+    noMoreSplits=finalTaskInfo.getNoMoreSplits();
   }
  else {
-    taskStats=new TaskStats(taskStateMachine.getCreatedTime());
-    noMoreSplits=ImmutableSet.of();
+    SqlTaskExecution taskExecution=taskHolder.getTaskExecution();
+    if (taskExecution != null) {
+      taskStats=taskExecution.getTaskContext().getTaskStats();
+      noMoreSplits=taskExecution.getNoMoreSplits();
+    }
+ else {
+      taskStats=new TaskStats(taskStateMachine.getCreatedTime());
+      noMoreSplits=ImmutableSet.of();
+    }
   }
-  return new TaskInfo(taskStateMachine.getTaskId(),nextTaskInfoVersion.getAndIncrement(),state,location,lastHeartbeat.get(),sharedBuffer.getInfo(),noMoreSplits,taskStats,failures);
+  return new TaskInfo(taskStateMachine.getTaskId(),versionNumber,state,location,lastHeartbeat.get(),sharedBuffer.getInfo(),noMoreSplits,taskStats,failures);
 }
