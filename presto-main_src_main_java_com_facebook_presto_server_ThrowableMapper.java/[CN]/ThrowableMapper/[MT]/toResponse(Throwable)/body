@@ -1,0 +1,14 @@
+{
+  if (throwable instanceof WebApplicationException) {
+    return ((WebApplicationException)throwable).getResponse();
+  }
+  log.warn(throwable,"Request failed for %s",request.getRequestURI());
+  ResponseBuilder responseBuilder=Response.serverError().header(CONTENT_TYPE,TEXT_PLAIN);
+  if (includeExceptionInResponse) {
+    responseBuilder.entity(Throwables.getStackTraceAsString(throwable));
+  }
+ else {
+    responseBuilder.entity("Exception processing request");
+  }
+  return responseBuilder.build();
+}
