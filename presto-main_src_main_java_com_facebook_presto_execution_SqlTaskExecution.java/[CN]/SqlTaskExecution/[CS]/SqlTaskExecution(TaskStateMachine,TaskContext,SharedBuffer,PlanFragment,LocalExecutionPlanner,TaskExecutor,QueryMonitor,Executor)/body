@@ -7,8 +7,16 @@
   this.notificationExecutor=checkNotNull(notificationExecutor,"notificationExecutor is null");
   this.queryMonitor=checkNotNull(queryMonitor,"queryMonitor is null");
   try (SetThreadName ignored=new SetThreadName("Task-%s",taskId)){
-    LocalExecutionPlan localExecutionPlan=planner.plan(taskContext.getSession(),fragment.getRoot(),fragment.getSymbols(),new TaskOutputFactory(sharedBuffer));
-    List<DriverFactory> driverFactories=localExecutionPlan.getDriverFactories();
+    List<DriverFactory> driverFactories;
+    try {
+      LocalExecutionPlan localExecutionPlan=planner.plan(taskContext.getSession(),fragment.getRoot(),fragment.getSymbols(),new TaskOutputFactory(sharedBuffer));
+      driverFactories=localExecutionPlan.getDriverFactories();
+    }
+ catch (    Throwable e) {
+      taskStateMachine.failed(e);
+      Throwables.propagateIfInstanceOf(e,Error.class);
+      driverFactories=ImmutableList.of();
+    }
     DriverSplitRunnerFactory partitionedDriverFactory=null;
     ImmutableList.Builder<DriverSplitRunnerFactory> unpartitionedDriverFactories=ImmutableList.builder();
     for (    DriverFactory driverFactory : driverFactories) {
@@ -26,8 +34,13 @@
     }
     this.partitionedSourceId=fragment.getPartitionedSource();
     this.partitionedDriverFactory=partitionedDriverFactory;
-    taskHandle=taskExecutor.addTask(taskId);
-    taskStateMachine.addStateChangeListener(new RemoveTaskHandleWhenDone(taskExecutor,taskHandle));
+    if (!taskStateMachine.getState().isDone()) {
+      taskHandle=taskExecutor.addTask(taskId);
+      taskStateMachine.addStateChangeListener(new RemoveTaskHandleWhenDone(taskExecutor,taskHandle));
+    }
+ else {
+      taskHandle=null;
+    }
     sharedBuffer.addStateChangeListener(new CheckTaskCompletionOnBufferFinish(SqlTaskExecution.this));
   }
  }
