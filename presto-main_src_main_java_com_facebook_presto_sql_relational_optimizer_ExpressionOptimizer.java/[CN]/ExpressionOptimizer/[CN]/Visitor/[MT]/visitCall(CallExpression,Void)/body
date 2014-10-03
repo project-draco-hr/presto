@@ -27,12 +27,12 @@ default :
   }
 }
 }
-List<RowExpression> arguments=Lists.transform(call.getArguments(),new Function<RowExpression,RowExpression>(){
+List<RowExpression> arguments=IterableTransformer.on(call.getArguments()).transform(new Function<RowExpression,RowExpression>(){
 @Override public RowExpression apply(RowExpression input){
 return input.accept(Visitor.this,context);
 }
 }
-);
+).list();
 if (Iterables.all(arguments,instanceOf(ConstantExpression.class)) && function.isDeterministic()) {
 MethodHandle method=function.getMethodHandle();
 if (method.type().parameterCount() > 0 && method.type().parameterType(0) == ConnectorSession.class) {
