@@ -10,9 +10,19 @@ case DOUBLE:
 case STRING:
     return String.valueOf(inspector.getPrimitiveJavaObject(object));
 case DATE:
-  return String.valueOf(formatDate(object,(DateObjectInspector)inspector));
+  if (context == JsonContext.JSON_STACK) {
+    return String.valueOf(formatDateAsLong(object,(DateObjectInspector)inspector));
+  }
+ else {
+    return formatDate(object,(DateObjectInspector)inspector);
+  }
 case TIMESTAMP:
-return String.valueOf(formatTimestamp(sessionTimeZone,object,(TimestampObjectInspector)inspector));
+if (context == JsonContext.JSON_STACK) {
+  return String.valueOf(formatTimestampAsLong(object,(TimestampObjectInspector)inspector));
+}
+ else {
+  return formatTimestamp(sessionTimeZone,object,(TimestampObjectInspector)inspector);
+}
 case BINARY:
 BytesWritable writable=((BinaryObjectInspector)inspector).getPrimitiveWritableObject(object);
 return Base64Variants.getDefaultVariant().encode(Arrays.copyOf(writable.getBytes(),writable.getLength()));
