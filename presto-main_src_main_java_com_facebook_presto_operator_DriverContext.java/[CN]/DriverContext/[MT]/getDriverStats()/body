@@ -2,11 +2,12 @@
   long totalScheduledTime=processWallNanos.get();
   long totalCpuTime=processCpuNanos.get();
   long totalUserTime=processUserNanos.get();
-  long totalBlockedTime=0;
-  List<OperatorStats> operators=ImmutableList.copyOf(transform(operatorContexts,operatorStatsGetter()));
-  for (  OperatorStats operator : operators) {
-    totalBlockedTime+=operator.getBlockedWall().roundTo(NANOSECONDS);
+  long totalBlockedTime=blockedWallNanos.get();
+  BlockedMonitor blockedMonitor=this.blockedMonitor.get();
+  if (blockedMonitor != null) {
+    totalBlockedTime+=blockedMonitor.getBlockedTime();
   }
+  List<OperatorStats> operators=ImmutableList.copyOf(transform(operatorContexts,operatorStatsGetter()));
   OperatorStats inputOperator=getFirst(operators,null);
   DataSize rawInputDataSize;
   long rawInputPositions;
