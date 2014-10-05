@@ -1,19 +1,10 @@
 {
-  long totalScheduledTime=0;
-  long totalCpuTime=0;
-  long totalUserTime=0;
+  long totalScheduledTime=processWallNanos.get();
+  long totalCpuTime=processCpuNanos.get();
+  long totalUserTime=processUserNanos.get();
   long totalBlockedTime=0;
   List<OperatorStats> operators=ImmutableList.copyOf(transform(operatorContexts,operatorStatsGetter()));
   for (  OperatorStats operator : operators) {
-    totalScheduledTime+=operator.getGetOutputWall().roundTo(NANOSECONDS);
-    totalCpuTime+=operator.getGetOutputCpu().roundTo(NANOSECONDS);
-    totalUserTime+=operator.getGetOutputUser().roundTo(NANOSECONDS);
-    totalScheduledTime+=operator.getAddInputWall().roundTo(NANOSECONDS);
-    totalCpuTime+=operator.getAddInputCpu().roundTo(NANOSECONDS);
-    totalUserTime+=operator.getAddInputUser().roundTo(NANOSECONDS);
-    totalScheduledTime+=operator.getFinishWall().roundTo(NANOSECONDS);
-    totalCpuTime+=operator.getFinishCpu().roundTo(NANOSECONDS);
-    totalUserTime+=operator.getFinishUser().roundTo(NANOSECONDS);
     totalBlockedTime+=operator.getBlockedWall().roundTo(NANOSECONDS);
   }
   OperatorStats inputOperator=getFirst(operators,null);

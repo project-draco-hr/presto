@@ -5,42 +5,47 @@
       if (!lockResult.wasAcquired()) {
         return NOT_BLOCKED;
       }
-      driverContext.start();
-      if (!newSources.isEmpty()) {
-        processNewSources();
-      }
-      for (int i=0; i < operators.size() - 1 && !driverContext.isDone(); i++) {
-        Operator current=operators.get(i);
-        ListenableFuture<?> blocked=current.isBlocked();
-        if (!blocked.isDone()) {
-          current.getOperatorContext().recordBlocked(blocked);
-          return blocked;
+      driverContext.startProcessTimer();
+      try {
+        if (!newSources.isEmpty()) {
+          processNewSources();
         }
-        Operator next=operators.get(i + 1);
-        blocked=next.isBlocked();
-        if (!blocked.isDone()) {
-          next.getOperatorContext().recordBlocked(blocked);
-          return blocked;
-        }
-        if (current.isFinished()) {
-          next.getOperatorContext().startIntervalTimer();
-          next.finish();
-          next.getOperatorContext().recordFinish();
-        }
+        for (int i=0; i < operators.size() - 1 && !driverContext.isDone(); i++) {
+          Operator current=operators.get(i);
+          ListenableFuture<?> blocked=current.isBlocked();
+          if (!blocked.isDone()) {
+            current.getOperatorContext().recordBlocked(blocked);
+            return blocked;
+          }
+          Operator next=operators.get(i + 1);
+          blocked=next.isBlocked();
+          if (!blocked.isDone()) {
+            next.getOperatorContext().recordBlocked(blocked);
+            return blocked;
+          }
+          if (current.isFinished()) {
+            next.getOperatorContext().startIntervalTimer();
+            next.finish();
+            next.getOperatorContext().recordFinish();
+          }
  else {
-          if (next.needsInput()) {
-            current.getOperatorContext().startIntervalTimer();
-            Page page=current.getOutput();
-            current.getOperatorContext().recordGetOutput(page);
-            if (page != null) {
-              next.getOperatorContext().startIntervalTimer();
-              next.addInput(page);
-              next.getOperatorContext().recordAddInput(page);
+            if (next.needsInput()) {
+              current.getOperatorContext().startIntervalTimer();
+              Page page=current.getOutput();
+              current.getOperatorContext().recordGetOutput(page);
+              if (page != null) {
+                next.getOperatorContext().startIntervalTimer();
+                next.addInput(page);
+                next.getOperatorContext().recordAddInput(page);
+              }
             }
           }
         }
+        return NOT_BLOCKED;
       }
-      return NOT_BLOCKED;
+  finally {
+        driverContext.recordProcessed();
+      }
     }
  catch (    Throwable t) {
       driverContext.failed(t);
