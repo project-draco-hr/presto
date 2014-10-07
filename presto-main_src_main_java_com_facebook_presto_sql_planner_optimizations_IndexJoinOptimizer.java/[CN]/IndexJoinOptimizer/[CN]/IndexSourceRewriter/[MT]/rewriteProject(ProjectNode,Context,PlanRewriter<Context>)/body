@@ -1,7 +1,7 @@
 {
-  if (FluentIterable.from(context.getLookupSymbols()).transform(Functions.forMap(node.getOutputMap())).anyMatch(not(instanceOfQualifiedNameReference()))) {
+  Set<Symbol> newLookupSymbols=FluentIterable.from(context.getLookupSymbols()).transform(Functions.forMap(node.getOutputMap())).filter(instanceOfQualifiedNameReference()).transform(symbolFromReferenceGetter()).toSet();
+  if (newLookupSymbols.isEmpty()) {
     return node;
   }
-  Set<Symbol> newLookupSymbols=FluentIterable.from(context.getLookupSymbols()).transform(Functions.forMap(node.getOutputMap())).transform(symbolFromReferenceGetter()).toSet();
   return planRewriter.defaultRewrite(node,new Context(newLookupSymbols,context.getSuccess()));
 }

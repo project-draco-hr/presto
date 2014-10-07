@@ -1,20 +1,20 @@
 {
-  checkArgument(unloadedKeysRecordSet.getColumnTypes().equals(missingKeysTypes),"unloadedKeysRecordSet must have same schema as missingKeys");
+  checkArgument(indexKeysRecordSet.getColumnTypes().equals(missingKeysTypes),"indexKeysRecordSet must have same schema as missingKeys");
   checkState(!isMemoryExceeded(),"Max memory exceeded");
   for (  Page page : pages) {
     outputPagesIndex.addPage(page);
   }
   pages.clear();
-  LookupSource lookupSource=outputPagesIndex.createLookupSource(indexChannels);
+  LookupSource lookupSource=outputPagesIndex.createLookupSource(keyOutputChannels);
   PageBuilder missingKeysPageBuilder=new PageBuilder(missingKeysIndex.getTypes());
-  UnloadedIndexKeyRecordCursor unloadedKeyRecordCursor=unloadedKeysRecordSet.cursor();
-  while (unloadedKeyRecordCursor.advanceNextPosition()) {
-    Block[] blocks=unloadedKeyRecordCursor.getBlocks();
-    int position=unloadedKeyRecordCursor.getPosition();
+  UnloadedIndexKeyRecordCursor indexKeysRecordCursor=indexKeysRecordSet.cursor();
+  while (indexKeysRecordCursor.advanceNextPosition()) {
+    Block[] blocks=indexKeysRecordCursor.getBlocks();
+    int position=indexKeysRecordCursor.getPosition();
     if (lookupSource.getJoinPosition(position,blocks) < 0) {
       for (int i=0; i < blocks.length; i++) {
         Block block=blocks[i];
-        Type type=unloadedKeyRecordCursor.getType(i);
+        Type type=indexKeysRecordCursor.getType(i);
         type.appendTo(block,position,missingKeysPageBuilder.getBlockBuilder(i));
       }
     }

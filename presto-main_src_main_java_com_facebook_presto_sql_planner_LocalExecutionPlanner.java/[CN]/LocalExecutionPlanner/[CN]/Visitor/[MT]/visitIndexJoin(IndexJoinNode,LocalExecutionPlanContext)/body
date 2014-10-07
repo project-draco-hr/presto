@@ -11,9 +11,18 @@
   SetMultimap<Symbol,Integer> indexLookupToProbeInput=mapIndexSourceLookupSymbolToProbeKeyInput(node,probeKeyLayout);
   LocalExecutionPlanContext indexContext=context.createIndexSourceSubContext(new IndexSourceContext(indexLookupToProbeInput));
   PhysicalOperation indexSource=node.getIndexSource().accept(this,indexContext);
-  List<Integer> indexChannels=getChannelsForSymbols(indexSymbols,indexSource.getLayout());
-  IndexBuildDriverFactoryProvider indexBuildDriverFactoryProvider=new IndexBuildDriverFactoryProvider(indexContext.getNextOperatorId(),indexContext.isInputDriver(),indexSource.getOperatorFactories());
-  IndexLookupSourceSupplier indexLookupSourceSupplier=new IndexLookupSourceSupplier(indexChannels,indexSource.getTypes(),indexBuildDriverFactoryProvider,maxIndexMemorySize,indexJoinLookupStats);
+  List<Integer> indexOutputChannels=getChannelsForSymbols(indexSymbols,indexSource.getLayout());
+  Set<Symbol> indexSymbolsNeededBySource=IndexJoinOptimizer.IndexKeyTracer.trace(node.getIndexSource(),ImmutableSet.copyOf(indexSymbols)).keySet();
+  Set<Integer> lookupSourceInputChannels=FluentIterable.from(node.getCriteria()).filter(Predicates.compose(in(indexSymbolsNeededBySource),indexGetter())).transform(probeGetter()).transform(Functions.forMap(probeKeyLayout)).toSet();
+  Optional<DynamicTupleFilterFactory> dynamicTupleFilterFactory=Optional.absent();
+  if (lookupSourceInputChannels.size() < probeKeyLayout.values().size()) {
+    int[] nonLookupInputChannels=Ints.toArray(FluentIterable.from(node.getCriteria()).filter(Predicates.compose(not(in(indexSymbolsNeededBySource)),indexGetter())).transform(probeGetter()).transform(Functions.forMap(probeKeyLayout)).toList());
+    int[] nonLookupOutputChannels=Ints.toArray(FluentIterable.from(node.getCriteria()).filter(Predicates.compose(not(in(indexSymbolsNeededBySource)),indexGetter())).transform(indexGetter()).transform(Functions.forMap(indexSource.getLayout())).toList());
+    int filterOperatorId=indexContext.getNextOperatorId();
+    dynamicTupleFilterFactory=Optional.of(new DynamicTupleFilterFactory(filterOperatorId,nonLookupInputChannels,nonLookupOutputChannels,indexSource.getTypes()));
+  }
+  IndexBuildDriverFactoryProvider indexBuildDriverFactoryProvider=new IndexBuildDriverFactoryProvider(indexContext.getNextOperatorId(),indexContext.isInputDriver(),indexSource.getOperatorFactories(),dynamicTupleFilterFactory);
+  IndexLookupSourceSupplier indexLookupSourceSupplier=new IndexLookupSourceSupplier(lookupSourceInputChannels,indexOutputChannels,indexSource.getTypes(),indexBuildDriverFactoryProvider,maxIndexMemorySize,indexJoinLookupStats);
   ImmutableMap.Builder<Symbol,Integer> outputMappings=ImmutableMap.builder();
   outputMappings.putAll(probeSource.getLayout());
   int offset=probeSource.getTypes().size();

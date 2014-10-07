@@ -1,10 +1,10 @@
 {
+  Page indexKeyTuple=new Page(sliceBlocks(updateRequest.getBlocks(),0,1));
   PageBuffer pageBuffer=new PageBuffer(100);
-  DriverFactory driverFactory=indexBuildDriverFactoryProvider.create(pageBuffer);
+  DriverFactory driverFactory=indexBuildDriverFactoryProvider.createStreaming(pageBuffer,indexKeyTuple);
   Driver driver=driverFactory.createDriver(pipelineContext.addDriverContext());
-  Page indedKeyTuple=new Page(sliceBlocks(updateRequest.getBlocks(),0,1));
-  PageRecordSet pageRecordSet=new PageRecordSet(indexTypes,indedKeyTuple);
+  PageRecordSet pageRecordSet=new PageRecordSet(keyTypes,indexKeyTuple);
   PlanNodeId planNodeId=Iterables.getOnlyElement(driverFactory.getSourceIds());
   driver.updateSource(new TaskSource(planNodeId,ImmutableSet.of(new ScheduledSplit(0,new Split("index",new IndexSplit(pageRecordSet)))),true));
-  return new StreamingIndexedData(outputTypes,indexTypes,indedKeyTuple,pageBuffer,driver);
+  return new StreamingIndexedData(outputTypes,keyTypes,indexKeyTuple,pageBuffer,driver);
 }

@@ -1,0 +1,8 @@
+{
+  ImmutableList.Builder<OperatorFactory> operatorFactories=ImmutableList.<OperatorFactory>builder().addAll(coreOperatorFactories);
+  if (dynamicTupleFilterFactory.isPresent()) {
+    operatorFactories.add(dynamicTupleFilterFactory.get().filterWithTuple(indexKeyTuple));
+  }
+  operatorFactories.add(new PageBufferOperatorFactory(outputOperatorId,pageBuffer));
+  return new DriverFactory(inputDriver,false,operatorFactories.build());
+}

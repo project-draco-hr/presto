@@ -6,11 +6,13 @@
     List<Symbol> rightJoinSymbols=Lists.transform(node.getCriteria(),rightGetter());
     Optional<PlanNode> leftIndexCandidate=IndexSourceRewriter.rewriteWithIndex(leftRewritten,ImmutableSet.copyOf(leftJoinSymbols),indexManager,symbolAllocator,idAllocator);
     if (leftIndexCandidate.isPresent()) {
-      checkState(IndexKeyTracer.trace(leftIndexCandidate.get(),ImmutableSet.copyOf(leftJoinSymbols)).keySet().containsAll(leftJoinSymbols));
+      Map<Symbol,Symbol> trace=IndexKeyTracer.trace(leftIndexCandidate.get(),ImmutableSet.copyOf(leftJoinSymbols));
+      checkState(!trace.isEmpty() && leftJoinSymbols.containsAll(trace.keySet()));
     }
     Optional<PlanNode> rightIndexCandidate=IndexSourceRewriter.rewriteWithIndex(rightRewritten,ImmutableSet.copyOf(rightJoinSymbols),indexManager,symbolAllocator,idAllocator);
     if (rightIndexCandidate.isPresent()) {
-      checkState(IndexKeyTracer.trace(rightIndexCandidate.get(),ImmutableSet.copyOf(rightJoinSymbols)).keySet().containsAll(rightJoinSymbols));
+      Map<Symbol,Symbol> trace=IndexKeyTracer.trace(rightIndexCandidate.get(),ImmutableSet.copyOf(rightJoinSymbols));
+      checkState(!trace.isEmpty() && rightJoinSymbols.containsAll(trace.keySet()));
     }
 switch (node.getType()) {
 case INNER:

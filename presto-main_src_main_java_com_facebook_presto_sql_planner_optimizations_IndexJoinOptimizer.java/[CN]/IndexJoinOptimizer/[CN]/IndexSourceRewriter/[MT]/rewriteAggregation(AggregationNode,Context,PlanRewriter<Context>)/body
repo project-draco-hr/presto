@@ -1,6 +1,7 @@
 {
-  if (!node.getGroupBy().containsAll(context.getLookupSymbols())) {
+  Set<Symbol> groupByLookupSymbols=FluentIterable.from(context.getLookupSymbols()).filter(in(node.getGroupBy())).toSet();
+  if (groupByLookupSymbols.isEmpty()) {
     return node;
   }
-  return planRewriter.defaultRewrite(node,new Context(context.getLookupSymbols(),context.getSuccess()));
+  return planRewriter.defaultRewrite(node,new Context(groupByLookupSymbols,context.getSuccess()));
 }

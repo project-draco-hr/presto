@@ -1,5 +1,8 @@
 {
-  Map<Symbol,Symbol> outputToSourceMap=FluentIterable.from(lookupSymbols).toMap(Functions.compose(symbolFromReferenceGetter(),Functions.forMap(node.getOutputMap())));
+  Map<Symbol,Symbol> directSymbolTranslationOutputMap=Maps.transformValues(Maps.filterValues(node.getOutputMap(),instanceOfQualifiedNameReference()),symbolFromReferenceGetter());
+  Map<Symbol,Symbol> outputToSourceMap=FluentIterable.from(lookupSymbols).filter(in(directSymbolTranslationOutputMap.keySet())).toMap(Functions.forMap(directSymbolTranslationOutputMap));
+  checkState(!outputToSourceMap.isEmpty(),"No lookup symbols were able to pass through the projection");
   Map<Symbol,Symbol> sourceToIndexMap=node.getSource().accept(this,ImmutableSet.copyOf(outputToSourceMap.values()));
-  return FluentIterable.from(lookupSymbols).toMap(Functions.compose(Functions.forMap(sourceToIndexMap),Functions.forMap(outputToSourceMap)));
+  Map<Symbol,Symbol> outputToIndexMap=Maps.transformValues(Maps.filterValues(outputToSourceMap,in(sourceToIndexMap.keySet())),Functions.forMap(sourceToIndexMap));
+  return ImmutableMap.copyOf(outputToIndexMap);
 }

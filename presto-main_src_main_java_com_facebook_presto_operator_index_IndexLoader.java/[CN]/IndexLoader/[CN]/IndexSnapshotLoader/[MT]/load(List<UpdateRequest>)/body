@@ -1,8 +1,8 @@
 {
-  UnloadedIndexKeyRecordSet unloadedKeysRecordSet=new UnloadedIndexKeyRecordSet(indexSnapshotReference.get(),indexTypes,requests);
+  UnloadedIndexKeyRecordSet recordSetForLookupSource=new UnloadedIndexKeyRecordSet(indexSnapshotReference.get(),lookupSourceInputChannels,indexTypes,requests);
   Driver driver=driverFactory.createDriver(pipelineContext.addDriverContext());
   PlanNodeId sourcePlanNodeId=Iterables.getOnlyElement(driverFactory.getSourceIds());
-  driver.updateSource(new TaskSource(sourcePlanNodeId,ImmutableSet.of(new ScheduledSplit(0,new Split("index",new IndexSplit(unloadedKeysRecordSet)))),true));
+  driver.updateSource(new TaskSource(sourcePlanNodeId,ImmutableSet.of(new ScheduledSplit(0,new Split("index",new IndexSplit(recordSetForLookupSource)))),true));
   while (!driver.isFinished()) {
     ListenableFuture<?> process=driver.process();
     checkState(process.isDone(),"Driver should never block");
@@ -11,7 +11,8 @@
     clearCachedData();
     return false;
   }
-  IndexSnapshot newValue=indexSnapshotBuilder.createIndexSnapshot(unloadedKeysRecordSet);
+  UnloadedIndexKeyRecordSet indexKeysRecordSet=(lookupSourceInputChannels.equals(allInputChannels)) ? recordSetForLookupSource : new UnloadedIndexKeyRecordSet(indexSnapshotReference.get(),allInputChannels,indexTypes,requests);
+  IndexSnapshot newValue=indexSnapshotBuilder.createIndexSnapshot(indexKeysRecordSet);
   if (newValue == null) {
     clearCachedData();
     return false;
