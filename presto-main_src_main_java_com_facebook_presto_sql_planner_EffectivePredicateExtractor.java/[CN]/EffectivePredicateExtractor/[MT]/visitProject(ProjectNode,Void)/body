@@ -1,12 +1,5 @@
 {
   Expression underlyingPredicate=node.getSource().accept(this,context);
-  Iterable<Expression> projectionEqualities=transform(filter(node.getOutputMap().entrySet(),not(symbolMatchesExpression())),new Function<Map.Entry<Symbol,Expression>,Expression>(){
-    @Override public Expression apply(    Map.Entry<Symbol,Expression> entry){
-      QualifiedNameReference reference=new QualifiedNameReference(entry.getKey().toQualifiedName());
-      Expression expression=entry.getValue();
-      return new ComparisonExpression(ComparisonExpression.Type.EQUAL,reference,expression);
-    }
-  }
-);
+  Iterable<Expression> projectionEqualities=FluentIterable.from(node.getOutputMap().entrySet()).filter(not(symbolMatchesExpression())).transform(entryToEquality());
   return pullExpressionThroughSymbols(combineConjuncts(ImmutableList.<Expression>builder().addAll(projectionEqualities).add(underlyingPredicate).build()),node.getOutputSymbols());
 }
