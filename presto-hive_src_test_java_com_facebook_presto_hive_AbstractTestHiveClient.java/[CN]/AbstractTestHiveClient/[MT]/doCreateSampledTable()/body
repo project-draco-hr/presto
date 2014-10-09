@@ -1,6 +1,6 @@
 {
   List<ColumnMetadata> columns=ImmutableList.<ColumnMetadata>builder().add(new ColumnMetadata("sales",BIGINT,1,false)).build();
-  ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(temporaryCreateSampledTable,columns,tableOwner,true);
+  ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(temporaryCreateSampledTable,columns,SESSION.getUser(),true);
   ConnectorOutputTableHandle outputHandle=metadata.beginCreateTable(SESSION,tableMetadata);
   RecordSink sink=recordSinkProvider.getRecordSink(outputHandle);
   sink.beginRecord(8);
@@ -18,7 +18,7 @@
   List<ConnectorColumnHandle> columnHandles=ImmutableList.<ConnectorColumnHandle>builder().addAll(metadata.getColumnHandles(tableHandle).values()).add(metadata.getSampleWeightColumnHandle(tableHandle)).build();
   assertEquals(columnHandles.size(),2);
   tableMetadata=metadata.getTableMetadata(getTableHandle(temporaryCreateSampledTable));
-  assertEquals(tableMetadata.getOwner(),tableOwner);
+  assertEquals(tableMetadata.getOwner(),SESSION.getUser());
   Map<String,ColumnMetadata> columnMap=uniqueIndex(tableMetadata.getColumns(),columnNameGetter());
   assertEquals(columnMap.size(),1);
   assertPrimitiveField(columnMap,0,"sales",BIGINT,false);

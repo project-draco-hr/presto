@@ -1,6 +1,6 @@
 {
   List<ColumnMetadata> columns=ImmutableList.<ColumnMetadata>builder().add(new ColumnMetadata("id",BIGINT,1,false)).add(new ColumnMetadata("t_string",VARCHAR,2,false)).add(new ColumnMetadata("t_bigint",BIGINT,3,false)).add(new ColumnMetadata("t_double",DOUBLE,4,false)).add(new ColumnMetadata("t_boolean",BOOLEAN,5,false)).build();
-  ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(temporaryCreateTable,columns,tableOwner);
+  ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(temporaryCreateTable,columns,SESSION.getUser());
   ConnectorSession session=new ConnectorSession(SESSION.getUser(),SESSION.getTimeZoneKey(),SESSION.getLocale(),SESSION.getStartTime(),ImmutableMap.of(STORAGE_FORMAT_PROPERTY,storageFormat.name().toLowerCase()));
   ConnectorOutputTableHandle outputHandle=metadata.beginCreateTable(session,tableMetadata);
   RecordSink sink=recordSinkProvider.getRecordSink(outputHandle);
@@ -30,7 +30,7 @@
   ConnectorTableHandle tableHandle=getTableHandle(temporaryCreateTable);
   List<ConnectorColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(tableHandle).values());
   tableMetadata=metadata.getTableMetadata(getTableHandle(temporaryCreateTable));
-  assertEquals(tableMetadata.getOwner(),tableOwner);
+  assertEquals(tableMetadata.getOwner(),session.getUser());
   Map<String,ColumnMetadata> columnMap=uniqueIndex(tableMetadata.getColumns(),columnNameGetter());
   assertPrimitiveField(columnMap,0,"id",BIGINT,false);
   assertPrimitiveField(columnMap,1,"t_string",VARCHAR,false);

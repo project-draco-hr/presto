@@ -1,7 +1,11 @@
 {
   try {
-    metastoreClient.dropTable(table.getSchemaName(),table.getTableName());
+    ConnectorTableHandle handle=metadata.getTableHandle(SESSION,table);
+    if (handle != null) {
+      metadata.dropTable(handle);
+    }
   }
  catch (  RuntimeException e) {
+    Logger.get(getClass()).warn(e,"failed to drop table");
   }
 }
