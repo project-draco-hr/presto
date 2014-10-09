@@ -17,7 +17,8 @@
   }
   this.missingKeysTypes=missingKeysTypes.build();
   this.missingKeysChannels=missingKeysChannels.build();
-  this.bogusOperatorContext=new TaskContext(driverContext.getTaskId(),driverContext.getExecutor(),driverContext.getSession(),new DataSize(Long.MAX_VALUE,Unit.BYTE)).addPipelineContext(true,true).addDriverContext().addOperatorContext(0,"operator");
+  boolean cpuTimerEnabled=driverContext.getPipelineContext().getTaskContext().isCpuTimerEnabled();
+  this.bogusOperatorContext=new TaskContext(driverContext.getTaskId(),driverContext.getExecutor(),driverContext.getSession(),new DataSize(Long.MAX_VALUE,Unit.BYTE),cpuTimerEnabled).addPipelineContext(true,true).addDriverContext().addOperatorContext(0,"operator");
   this.outputPagesIndex=new PagesIndex(outputTypes,expectedPositions,bogusOperatorContext);
   this.missingKeysIndex=new PagesIndex(missingKeysTypes.build(),expectedPositions,bogusOperatorContext);
   this.missingKeys=missingKeysIndex.createLookupSource(this.missingKeysChannels);
