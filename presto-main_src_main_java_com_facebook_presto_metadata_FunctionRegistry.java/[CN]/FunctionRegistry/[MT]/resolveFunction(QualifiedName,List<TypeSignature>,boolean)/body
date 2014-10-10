@@ -5,7 +5,7 @@
     }
   }
 ).list();
-  List<Type> resolvedTypes=resolveTypes(Lists.transform(parameterTypes,TypeUtils.typeSignatureParser()),typeManager);
+  List<Type> resolvedTypes=resolveTypes(parameterTypes,typeManager);
   FunctionInfo match=null;
   for (  ParametricFunction function : candidates) {
     Map<String,Type> boundTypeParameters=function.getSignature().bindTypeParameters(resolvedTypes,false,typeManager);
@@ -38,7 +38,7 @@
     Type type=typeManager.getType(parseTypeSignature(typeName));
     checkNotNull(type,"Type %s not registered",typeName);
     checkArgument(parameterTypes.size() == 1,"Expected one argument to literal function, but got %s",parameterTypes);
-    Type parameterType=typeManager.getType(parseTypeSignature(parameterTypes.get(0)));
+    Type parameterType=typeManager.getType(parameterTypes.get(0));
     checkNotNull(parameterType,"Type %s not foudn",parameterTypes.get(0));
     checkArgument(parameterType.getJavaType() == type.getJavaType(),"Expected type %s to use Java type %s, but Java type is %s",type,parameterType.getJavaType(),type.getJavaType());
     MethodHandle identity=MethodHandles.identity(parameterType.getJavaType());
