@@ -1,27 +1,21 @@
 {
-  Stopwatch splitTimer=Stopwatch.createStarted();
   RaptorTableHandle raptorTableHandle=checkType(tableHandle,RaptorTableHandle.class,"tableHandle");
-  checkNotNull(partitions,"partitions is null");
-  if (partitions.isEmpty()) {
-    return new FixedSplitSource(connectorId,ImmutableList.<ConnectorSplit>of());
-  }
+  checkArgument(partitions.size() == 1,"expected exactly one partition");
   Map<String,Node> nodesById=uniqueIndex(nodeManager.getActiveNodes(),nodeIdentifier());
-  List<ConnectorSplit> splits=new ArrayList<>();
-  Multimap<Long,Entry<UUID,String>> partitionShardNodes=shardManager.getShardNodesByPartition(raptorTableHandle);
-  for (  ConnectorPartition partition : partitions) {
-    RaptorPartition raptorPartition=checkType(partition,RaptorPartition.class,"partition");
-    ImmutableMultimap.Builder<UUID,String> shardNodes=ImmutableMultimap.builder();
-    for (    Entry<UUID,String> shardNode : partitionShardNodes.get(raptorPartition.getRaptorPartitionId())) {
-      shardNodes.put(shardNode.getKey(),shardNode.getValue());
-    }
-    for (    Map.Entry<UUID,Collection<String>> entry : shardNodes.build().asMap().entrySet()) {
-      List<HostAddress> addresses=getAddressesForNodes(nodesById,entry.getValue());
-      checkState(!addresses.isEmpty(),"no host for shard %s found: %s",entry.getKey(),entry.getValue());
-      ConnectorSplit split=new RaptorSplit(entry.getKey(),addresses,raptorTableHandle.getCountColumnHandle());
-      splits.add(split);
-    }
+  ImmutableMultimap.Builder<UUID,String> shardNodes=ImmutableMultimap.builder();
+  for (  ShardNode shardNode : shardManager.getShardNodes(raptorTableHandle.getTableId())) {
+    shardNodes.put(shardNode.getShardUuid(),shardNode.getNodeIdentifier());
   }
-  log.debug("Split retrieval for %d partitions (%d splits): %dms",partitions.size(),splits.size(),splitTimer.elapsed(TimeUnit.MILLISECONDS));
+  List<ConnectorSplit> splits=new ArrayList<>();
+  for (  Map.Entry<UUID,Collection<String>> entry : shardNodes.build().asMap().entrySet()) {
+    UUID shardId=entry.getKey();
+    Collection<String> nodeId=entry.getValue();
+    List<HostAddress> addresses=getAddressesForNodes(nodesById,nodeId);
+    if (addresses.isEmpty()) {
+      throw new PrestoException(INTERNAL_ERROR.toErrorCode(),format("no host for shard %s found: %s",shardId,nodeId));
+    }
+    splits.add(new RaptorSplit(shardId,addresses,raptorTableHandle.getCountColumnHandle()));
+  }
   Collections.shuffle(splits);
   return new FixedSplitSource(connectorId,splits);
 }

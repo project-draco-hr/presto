@@ -1,0 +1,21 @@
+{
+  final Map<String,Long> nodeIds=new HashMap<>();
+  for (  ShardNode shardNode : shardNodes) {
+    String nodeIdentifier=shardNode.getNodeIdentifier();
+    if (!nodeIds.containsKey(nodeIdentifier)) {
+      nodeIds.put(nodeIdentifier,getOrCreateNodeId(nodeIdentifier));
+    }
+  }
+  dbi.inTransaction(new VoidTransactionCallback(){
+    @Override protected void execute(    Handle handle,    TransactionStatus status){
+      ShardManagerDao dao=handle.attach(ShardManagerDao.class);
+      for (      ShardNode shardNode : shardNodes) {
+        long nodeId=nodeIds.get(shardNode.getNodeIdentifier());
+        long shardId=dao.insertShard(shardNode.getShardUuid());
+        dao.insertShardNode(shardId,nodeId);
+        dao.insertTableShard(tableId,shardId);
+      }
+    }
+  }
+);
+}
