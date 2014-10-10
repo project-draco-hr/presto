@@ -1,18 +1,3 @@
 {
-  checkNotNull(name,"name is null");
-  checkNotNull(typeParameters,"typeParameters is null");
-  checkNotNull(returnType,"returnType is null");
-  checkNotNull(argumentTypes,"argumentTypes is null");
-  this.name=name;
-  this.typeParameters=ImmutableList.copyOf(typeParameters);
-  this.returnType=parseTypeSignature(checkNotNull(returnType,"returnType is null"));
-  this.argumentTypes=FluentIterable.from(argumentTypes).transform(new Function<String,TypeSignature>(){
-    @Override public TypeSignature apply(    String input){
-      checkNotNull(input,"input is null");
-      return parseTypeSignature(input);
-    }
-  }
-).toList();
-  this.variableArity=variableArity;
-  this.internal=internal;
+  this(name,typeParameters,parseTypeSignature(returnType),Lists.transform(argumentTypes,TypeUtils.typeSignatureParser()),variableArity,internal);
 }

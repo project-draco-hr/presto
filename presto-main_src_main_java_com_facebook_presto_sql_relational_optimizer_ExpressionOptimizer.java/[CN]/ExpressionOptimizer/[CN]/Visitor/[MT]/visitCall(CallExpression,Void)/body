@@ -23,7 +23,7 @@ case IN:
 default :
     function=registry.getExactFunction(signature);
   if (function == null) {
-    function=registry.resolveFunction(QualifiedName.of(signature.getName()),signature.getArgumentTypes(),false);
+    function=registry.resolveFunction(QualifiedName.of(signature.getName()),FluentIterable.from(signature.getArgumentTypes()).transform(Functions.toStringFunction()).toList(),false);
   }
 }
 }
@@ -56,5 +56,5 @@ if (e instanceof InterruptedException) {
 throw Throwables.propagate(e);
 }
 }
-return call(signature,typeManager.getType(parseTypeSignature(signature.getReturnType())),arguments);
+return call(signature,typeManager.getType(signature.getReturnType()),arguments);
 }
