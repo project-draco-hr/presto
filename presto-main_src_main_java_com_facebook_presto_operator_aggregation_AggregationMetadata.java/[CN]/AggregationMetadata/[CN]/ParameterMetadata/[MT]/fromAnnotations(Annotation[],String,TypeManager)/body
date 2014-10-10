@@ -10,11 +10,12 @@
   Annotation annotation=baseTypes.get(0);
   checkArgument(!nullable || (annotation instanceof SqlType),"%s contains a parameters with @Nullable that is not @SqlType",methodName);
   if (annotation instanceof SqlType) {
+    TypeSignature signature=parseTypeSignature(((SqlType)annotation).value());
     if (nullable) {
-      return new ParameterMetadata(NULLABLE_INPUT_CHANNEL,typeManager.getType(((SqlType)annotation).value()));
+      return new ParameterMetadata(NULLABLE_INPUT_CHANNEL,typeManager.getType(signature));
     }
  else {
-      return new ParameterMetadata(INPUT_CHANNEL,typeManager.getType(((SqlType)annotation).value()));
+      return new ParameterMetadata(INPUT_CHANNEL,typeManager.getType(signature));
     }
   }
  else   if (annotation instanceof BlockIndex) {
