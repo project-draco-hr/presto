@@ -1,5 +1,8 @@
 {
   ImmutableList.Builder<PlanOptimizer> builder=ImmutableList.builder();
   builder.add(new ImplementSampleAsFilter(),new CanonicalizeExpressions(),new SimplifyExpressions(metadata,sqlParser),new UnaliasSymbolReferences(),new PruneRedundantProjections(),new SetFlatteningOptimizer(),new LimitPushDown(),new PredicatePushDown(metadata,sqlParser,splitManager,featuresConfig.isExperimentalSyntaxEnabled()),new PredicatePushDown(metadata,sqlParser,splitManager,featuresConfig.isExperimentalSyntaxEnabled()),new MergeProjections(),new SimplifyExpressions(metadata,sqlParser),new UnaliasSymbolReferences(),new IndexJoinOptimizer(indexManager),new CountConstantOptimizer(),new WindowFilterPushDown(),new PruneUnreferencedOutputs(),new PruneRedundantProjections());
+  if (featuresConfig.isOptimizeMetadataQueries()) {
+    builder.add(new MetadataQueryOptimizer(metadata,splitManager));
+  }
   this.optimizers=builder.build();
 }

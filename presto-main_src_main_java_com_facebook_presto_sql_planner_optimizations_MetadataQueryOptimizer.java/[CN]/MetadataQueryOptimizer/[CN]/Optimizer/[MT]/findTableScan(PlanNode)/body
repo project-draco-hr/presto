@@ -1,0 +1,20 @@
+{
+  while (true) {
+    if (source instanceof MarkDistinctNode || source instanceof FilterNode || source instanceof LimitNode|| source instanceof TopNNode|| source instanceof SortNode) {
+      source=source.getSources().get(0);
+    }
+ else     if (source instanceof ProjectNode) {
+      ProjectNode project=(ProjectNode)source;
+      if (!Iterables.all(project.getExpressions(),DeterminismEvaluator.deterministic())) {
+        return Optional.absent();
+      }
+      source=project.getSource();
+    }
+ else     if (source instanceof TableScanNode) {
+      return Optional.of((TableScanNode)source);
+    }
+ else {
+      return Optional.absent();
+    }
+  }
+}

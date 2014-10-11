@@ -1,0 +1,52 @@
+{
+  for (  FunctionCall call : node.getAggregations().values()) {
+    if (!ALLOWED_FUNCTIONS.contains(call.getName().toString()) && !call.isDistinct()) {
+      return null;
+    }
+  }
+  Optional<TableScanNode> result=findTableScan(node.getSource());
+  if (!result.isPresent()) {
+    return null;
+  }
+  TableScanNode tableScan=result.get();
+  ImmutableMap.Builder<Symbol,Type> typesBuilder=ImmutableMap.builder();
+  ImmutableMap.Builder<Symbol,ColumnHandle> columnBuilder=ImmutableMap.builder();
+  List<Symbol> inputs=tableScan.getOutputSymbols();
+  for (  Symbol symbol : inputs) {
+    ColumnHandle column=tableScan.getAssignments().get(symbol);
+    ColumnMetadata columnMetadata=metadata.getColumnMetadata(tableScan.getTable(),column);
+    if (!columnMetadata.isPartitionKey()) {
+      return null;
+    }
+    typesBuilder.put(symbol,columnMetadata.getType());
+    columnBuilder.put(symbol,column);
+  }
+  Map<Symbol,ColumnHandle> columns=columnBuilder.build();
+  Map<Symbol,Type> types=typesBuilder.build();
+  List<Partition> partitions;
+  if (tableScan.getGeneratedPartitions().isPresent()) {
+    partitions=tableScan.getGeneratedPartitions().get().getPartitions();
+  }
+ else {
+    partitions=splitManager.getPartitions(result.get().getTable(),Optional.of(tableScan.getPartitionsDomainSummary())).getPartitions();
+  }
+  ImmutableList.Builder<List<Expression>> rowsBuilder=ImmutableList.builder();
+  for (  Partition partition : partitions) {
+    Map<ColumnHandle,SerializableNativeValue> entries=partition.getTupleDomain().extractNullableFixedValues();
+    ImmutableList.Builder<Expression> rowBuilder=ImmutableList.builder();
+    for (    Symbol input : inputs) {
+      ColumnHandle column=columns.get(input);
+      Type type=types.get(input);
+      SerializableNativeValue value=entries.get(column);
+      if (value == null) {
+        return null;
+      }
+ else {
+        rowBuilder.add(LiteralInterpreter.toExpression(value.getValue(),type));
+      }
+    }
+    rowsBuilder.add(rowBuilder.build());
+  }
+  ValuesNode valuesNode=new ValuesNode(idAllocator.getNextId(),inputs,rowsBuilder.build());
+  return PlanRewriter.rewriteWith(new Replacer(valuesNode),node);
+}
