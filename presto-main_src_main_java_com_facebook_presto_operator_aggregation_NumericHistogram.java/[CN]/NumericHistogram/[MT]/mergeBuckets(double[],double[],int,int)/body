@@ -1,0 +1,26 @@
+{
+  checkArgument(targetCount > 0,"targetCount must be > 0");
+  PriorityQueue<Entry> queue=initializeQueue(values,weights,count);
+  while (count > targetCount) {
+    Entry current=queue.poll();
+    if (!current.isValid()) {
+      continue;
+    }
+    count--;
+    Entry right=current.getRight();
+    checkState(right != null,"Expected right to be != null");
+    checkState(right.isValid(),"Expected right to be valid");
+    double newWeight=current.getWeight() + right.getWeight();
+    double newValue=(current.getValue() * current.getWeight() + right.getValue() * right.getWeight()) / newWeight;
+    right.invalidate();
+    Entry merged=new Entry(current.getId(),newValue,newWeight,right.getRight());
+    queue.add(merged);
+    Entry left=current.getLeft();
+    if (left != null) {
+      checkState(left.isValid(),"Expected left to be valid");
+      left.invalidate();
+      queue.add(new Entry(left.getId(),left.getValue(),left.getWeight(),left.getLeft(),merged));
+    }
+  }
+  return queue;
+}

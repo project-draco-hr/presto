@@ -1,0 +1,12 @@
+{
+  checkNotNull(serialized,"serialized is null");
+  checkArgument(buffer >= 1,"buffer must be >= 1");
+  SliceInput input=serialized.getInput();
+  checkArgument(input.readByte() == FORMAT_TAG,"Unsupported format tag");
+  maxBuckets=input.readInt();
+  nextIndex=input.readInt();
+  values=new double[maxBuckets + buffer];
+  weights=new double[maxBuckets + buffer];
+  input.readBytes(Slices.wrappedDoubleArray(values),nextIndex * SizeOf.SIZE_OF_DOUBLE);
+  input.readBytes(Slices.wrappedDoubleArray(weights),nextIndex * SizeOf.SIZE_OF_DOUBLE);
+}
