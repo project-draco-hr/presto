@@ -5,7 +5,12 @@
     Map<String,String> config=ImmutableMap.<String,String>builder().put("metadata.db.type","h2").put("metadata.db.filename",databaseDir.getAbsolutePath()).put("storage.data-directory",dataDir.getAbsolutePath()).put("storage.compress","false").build();
     BlockEncodingSerde blockEncodingSerde=createTestingBlockEncodingManager();
     TypeManager typeManager=new TypeRegistry();
-    return new RaptorConnectorFactory(config,nodeManager,blockEncodingSerde,typeManager);
+    RaptorPlugin plugin=new RaptorPlugin();
+    plugin.setOptionalConfig(config);
+    plugin.setNodeManager(nodeManager);
+    plugin.setBlockEncodingSerde(blockEncodingSerde);
+    plugin.setTypeManager(typeManager);
+    return getOnlyElement(plugin.getServices(ConnectorFactory.class));
   }
  catch (  Exception e) {
     throw Throwables.propagate(e);
