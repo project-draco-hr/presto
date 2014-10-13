@@ -9,5 +9,8 @@
   Map<Symbol,List<Symbol>> unnestSymbols=builder.build();
   ImmutableSet.Builder<Symbol> expectedInputs=ImmutableSet.<Symbol>builder().addAll(replicateSymbols).addAll(unnestSymbols.keySet());
   PlanNode source=planRewriter.rewrite(node.getSource(),expectedInputs.build());
+  if (unnestSymbols.isEmpty()) {
+    return source;
+  }
   return new UnnestNode(node.getId(),source,replicateSymbols,unnestSymbols);
 }
