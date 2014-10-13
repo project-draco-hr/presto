@@ -1,0 +1,12 @@
+{
+  ImmutableMap.Builder<C,Domain> domains=ImmutableMap.builder();
+  for (  ColumnReference<C> columnReference : columnReferences) {
+    ColumnStatistics columnStatistics=statisticsByHiveColumnIndex.get(columnReference.getOrdinal());
+    if (columnStatistics == null) {
+      return true;
+    }
+    domains.put(columnReference.getColumn(),getDomain(columnReference.getType(),numberOfRows,columnStatistics));
+  }
+  TupleDomain<C> stripeDomain=TupleDomain.withColumnDomains(domains.build());
+  return tupleDomain.overlaps(stripeDomain);
+}
