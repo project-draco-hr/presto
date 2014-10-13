@@ -1,0 +1,12 @@
+{
+  Session defaultSession=Session.builder().setUser("user").setSource("test").setCatalog("local").setSchema(TINY_SCHEMA_NAME).setTimeZoneKey(UTC_KEY).setLocale(ENGLISH).build();
+  LocalQueryRunner localQueryRunner=new LocalQueryRunner(defaultSession);
+  localQueryRunner.createCatalog(defaultSession.getCatalog(),new TpchConnectorFactory(localQueryRunner.getNodeManager(),1),ImmutableMap.<String,String>of());
+  MLPlugin plugin=new MLPlugin();
+  plugin.setTypeManager(localQueryRunner.getTypeManager());
+  for (  Type type : plugin.getServices(Type.class)) {
+    localQueryRunner.getTypeManager().addType(type);
+  }
+  localQueryRunner.getMetadata().getFunctionRegistry().addFunctions(Iterables.getOnlyElement(plugin.getServices(FunctionFactory.class)).listFunctions());
+  return localQueryRunner;
+}
