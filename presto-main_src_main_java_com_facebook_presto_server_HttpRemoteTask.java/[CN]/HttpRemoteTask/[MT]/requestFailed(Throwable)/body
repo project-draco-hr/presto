@@ -18,7 +18,7 @@
   long errorCount=this.errorCount.incrementAndGet();
   Duration timeSinceLastSuccess=Duration.nanosSince(lastSuccessfulRequest.get());
   if (errorCount > maxConsecutiveErrorCount && timeSinceLastSuccess.compareTo(minErrorDuration) > 0) {
-    PrestoException exception=new PrestoException(TOO_MANY_REQUESTS_FAILED.toErrorCode(),format("Encountered too many errors talking to a worker node. The node may have crashed or be under too much load. This is probably a transient issue, so please retry your query in a few minutes (%s - %s failures, time since last success %s)",taskInfo.getSelf(),errorCount,timeSinceLastSuccess.convertToMostSuccinctTimeUnit()));
+    PrestoException exception=new PrestoException(TOO_MANY_REQUESTS_FAILED,format("Encountered too many errors talking to a worker node. The node may have crashed or be under too much load. This is probably a transient issue, so please retry your query in a few minutes (%s - %s failures, time since last success %s)",taskInfo.getSelf(),errorCount,timeSinceLastSuccess.convertToMostSuccinctTimeUnit()));
     for (    Throwable error : errorsSinceLastSuccess) {
       exception.addSuppressed(error);
     }
