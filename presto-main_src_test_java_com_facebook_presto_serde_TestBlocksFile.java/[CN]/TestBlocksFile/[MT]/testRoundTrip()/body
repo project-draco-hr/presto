@@ -1,0 +1,17 @@
+{
+  DynamicSliceOutputSupplier sliceOutput=new DynamicSliceOutputSupplier(1024);
+  BlocksFileWriter fileWriter=new BlocksFileWriter(VARCHAR,createTestingBlockEncodingManager(),sliceOutput);
+  fileWriter.append(expectedBlock);
+  fileWriter.append(expectedBlock);
+  fileWriter.append(expectedBlock);
+  fileWriter.close();
+  Slice slice=sliceOutput.getLastSlice();
+  BlocksFileReader actualBlocks=readBlocks(createTestingBlockEncodingManager(),slice);
+  List<Object> actualValues=BlockAssertions.toValues(VARCHAR,actualBlocks);
+  assertEquals(actualValues,expectedValues);
+  BlocksFileStats stats=actualBlocks.getStats();
+  assertEquals(stats.getAvgRunLength(),1);
+  assertEquals(stats.getRowCount(),12);
+  assertEquals(stats.getRunsCount(),12);
+  assertEquals(stats.getUniqueCount(),4);
+}
