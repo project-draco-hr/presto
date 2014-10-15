@@ -3,17 +3,9 @@
     generator.writeNull();
     return;
   }
-  if (context == JsonContext.JSON_STACK) {
-    ByteArrayOutputStream out=new ByteArrayOutputStream();
-    try (JsonGenerator structGenerator=new JsonFactory().createGenerator(out)){
-      serializeStructHelper(sessionTimeZone,object,inspector,structGenerator);
-    }
- catch (    IOException e) {
-      throw Throwables.propagate(e);
-    }
-    generator.writeString(out.toString());
+  generator.writeStartArray();
+  for (  StructField field : inspector.getAllStructFieldRefs()) {
+    serializeObject(sessionTimeZone,generator,inspector.getStructFieldData(object,field),field.getFieldObjectInspector(),JsonContext.JSON_STACK);
   }
- else {
-    serializeStructHelper(sessionTimeZone,object,inspector,generator);
-  }
+  generator.writeEndArray();
 }

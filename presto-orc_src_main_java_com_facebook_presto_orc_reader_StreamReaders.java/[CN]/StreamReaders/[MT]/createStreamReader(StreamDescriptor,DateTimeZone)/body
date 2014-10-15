@@ -1,0 +1,32 @@
+{
+switch (streamDescriptor.getStreamType()) {
+case BOOLEAN:
+    return new BooleanStreamReader(streamDescriptor);
+case BYTE:
+  return new ByteStreamReader(streamDescriptor);
+case SHORT:
+case INT:
+case LONG:
+case DATE:
+return new LongStreamReader(streamDescriptor);
+case FLOAT:
+return new FloatStreamReader(streamDescriptor);
+case DOUBLE:
+return new DoubleStreamReader(streamDescriptor);
+case BINARY:
+case STRING:
+return new SliceStreamReader(streamDescriptor);
+case TIMESTAMP:
+return new TimestampStreamReader(streamDescriptor,hiveStorageTimeZone);
+case STRUCT:
+case LIST:
+case MAP:
+return new JsonStreamReader(streamDescriptor,hiveStorageTimeZone);
+case UNION:
+case DECIMAL:
+case VARCHAR:
+case CHAR:
+default :
+throw new IllegalArgumentException("Unsupported type: " + streamDescriptor.getStreamType());
+}
+}

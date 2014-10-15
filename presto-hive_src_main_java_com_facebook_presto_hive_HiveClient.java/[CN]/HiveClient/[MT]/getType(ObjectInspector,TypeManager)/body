@@ -19,7 +19,18 @@ return null;
 }
 return typeManager.getParameterizedType(StandardTypes.ARRAY,ImmutableList.of(elementType.getTypeSignature()),ImmutableList.of());
 case STRUCT:
-return VARCHAR;
+StructObjectInspector structObjectInspector=checkType(fieldInspector,StructObjectInspector.class,"fieldInspector");
+List<TypeSignature> fieldTypes=new ArrayList<>();
+List<Object> fieldNames=new ArrayList<>();
+for (StructField field : structObjectInspector.getAllStructFieldRefs()) {
+fieldNames.add(field.getFieldName());
+Type fieldType=getType(field.getFieldObjectInspector(),typeManager);
+if (fieldType == null) {
+return null;
+}
+fieldTypes.add(fieldType.getTypeSignature());
+}
+return typeManager.getParameterizedType(StandardTypes.ROW,fieldTypes,fieldNames);
 default :
 throw new IllegalArgumentException("Unsupported hive type " + fieldInspector.getTypeName());
 }

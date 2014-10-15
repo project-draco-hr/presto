@@ -1,13 +1,11 @@
 {
-  if (writeStackType) {
-    buffer.reset();
-    try (JsonGenerator jsonGenerator=new JsonFactory().createGenerator(buffer)){
-      readNextValueIntoInternal(jsonGenerator);
-    }
-     byte[] byteArray=(byte[])buffer.getUnderlyingSlice().getBase();
-    generator.writeUTF8String(byteArray,0,buffer.size());
+  if (presentStream != null && !presentStream.nextBit()) {
+    generator.writeNull();
+    return;
   }
- else {
-    readNextValueIntoInternal(generator);
+  generator.writeStartArray();
+  for (  JsonReader structField : structFields) {
+    structField.readNextValueInto(generator);
   }
+  generator.writeEndArray();
 }
