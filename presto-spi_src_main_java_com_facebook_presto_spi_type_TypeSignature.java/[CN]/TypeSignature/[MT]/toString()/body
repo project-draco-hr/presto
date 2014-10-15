@@ -1,16 +1,33 @@
 {
-  String typeName=base;
+  StringBuilder typeName=new StringBuilder(base);
   if (!parameters.isEmpty()) {
-    typeName+="<";
+    typeName.append("<");
     boolean first=true;
     for (    TypeSignature parameter : parameters) {
       if (!first) {
-        typeName+=",";
+        typeName.append(",");
       }
       first=false;
-      typeName+=parameter.toString();
+      typeName.append(parameter.toString());
     }
-    typeName+=">";
+    typeName.append(">");
   }
-  return typeName;
+  if (!literalParameters.isEmpty()) {
+    typeName.append("(");
+    boolean first=true;
+    for (    Object parameter : literalParameters) {
+      if (!first) {
+        typeName.append(",");
+      }
+      first=false;
+      if (parameter instanceof String) {
+        typeName.append("'").append(parameter).append("'");
+      }
+ else {
+        typeName.append(parameter.toString());
+      }
+    }
+    typeName.append(")");
+  }
+  return typeName.toString();
 }

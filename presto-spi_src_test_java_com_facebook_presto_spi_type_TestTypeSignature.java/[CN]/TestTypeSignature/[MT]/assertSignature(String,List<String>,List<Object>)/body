@@ -1,0 +1,33 @@
+{
+  List<String> lowerCaseTypeNames=FluentIterable.from(parameters).transform(new Function<String,String>(){
+    @Override public String apply(    String input){
+      return input.toLowerCase(ENGLISH);
+    }
+  }
+).toList();
+  String typeName=base.toLowerCase(ENGLISH);
+  if (!parameters.isEmpty()) {
+    typeName+="<" + Joiner.on(",").join(lowerCaseTypeNames) + ">";
+  }
+  if (!literalParameters.isEmpty()) {
+    typeName+="(" + Joiner.on(",").join(Lists.transform(literalParameters,new Function<Object,String>(){
+      @Override public String apply(      Object input){
+        if (input instanceof String) {
+          return "'" + input + "'";
+        }
+ else {
+          return input.toString();
+        }
+      }
+    }
+)) + ")";
+  }
+  TypeSignature signature=parseTypeSignature(typeName);
+  assertEquals(signature.getBase(),base);
+  assertEquals(signature.getParameters().size(),parameters.size());
+  for (int i=0; i < signature.getParameters().size(); i++) {
+    assertEquals(signature.getParameters().get(i).toString(),parameters.get(i));
+  }
+  assertEquals(signature.getLiteralParameters(),literalParameters);
+  assertEquals(typeName,signature.toString());
+}
