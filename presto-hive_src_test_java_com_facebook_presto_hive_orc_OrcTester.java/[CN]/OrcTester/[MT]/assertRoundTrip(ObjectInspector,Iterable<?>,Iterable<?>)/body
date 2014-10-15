@@ -13,9 +13,12 @@
     for (    Compression compression : compressions) {
       try (TempFile tempFile=new TempFile("test","orc")){
         writeOrcColumn(tempFile.getFile(),formatVersion,compression,objectInspector,writeValues.iterator());
-        assertFileContents(objectInspector,tempFile,readValues,false,metadataReader);
+        assertFileContents(objectInspector,tempFile,readValues,false,false,metadataReader);
         if (skipBatchTestsEnabled) {
-          assertFileContents(objectInspector,tempFile,readValues,true,metadataReader);
+          assertFileContents(objectInspector,tempFile,readValues,true,false,metadataReader);
+        }
+        if (skipStripeTestsEnabled) {
+          assertFileContents(objectInspector,tempFile,readValues,false,true,metadataReader);
         }
       }
      }

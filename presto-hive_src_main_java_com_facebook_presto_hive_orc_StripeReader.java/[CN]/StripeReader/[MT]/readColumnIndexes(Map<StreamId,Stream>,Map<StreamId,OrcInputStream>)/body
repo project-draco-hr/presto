@@ -3,8 +3,8 @@
   for (  Entry<StreamId,Stream> entry : streams.entrySet()) {
     Stream stream=entry.getValue();
     if (stream.getStreamKind() == ROW_INDEX) {
-      Slice slice=streamsData.get(entry.getKey());
-      columnIndexes.put(stream.getColumn(),metadataReader.readRowIndexes(new OrcInputStream(slice.getInput(),compressionKind,bufferSize)));
+      OrcInputStream inputStream=streamsData.get(entry.getKey());
+      columnIndexes.put(stream.getColumn(),metadataReader.readRowIndexes(inputStream));
     }
   }
   return columnIndexes.build();

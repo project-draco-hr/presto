@@ -5,5 +5,11 @@
     }
   }
 );
-  return orcDataSource.readFully(diskRanges);
+  Map<StreamId,Slice> streamsData=orcDataSource.readFully(diskRanges);
+  return ImmutableMap.copyOf(Maps.transformValues(streamsData,new Function<Slice,OrcInputStream>(){
+    @Override public OrcInputStream apply(    Slice input){
+      return new OrcInputStream(input.getInput(),compressionKind,bufferSize);
+    }
+  }
+));
 }

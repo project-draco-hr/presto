@@ -2,10 +2,15 @@
   OrcRecordReader recordReader=createCustomOrcRecordReader(tempFile,metadataReader);
   Vector vector=createResultsVector(objectInspector);
   boolean isFirst=true;
+  int rowsProcessed=0;
   Iterator<?> iterator=expectedValues.iterator();
   for (int batchSize=Ints.checkedCast(recordReader.nextBatch()); batchSize >= 0; batchSize=Ints.checkedCast(recordReader.nextBatch())) {
-    if (skipFirstBatch && isFirst) {
+    if (skipStripe && rowsProcessed < 10000) {
       assertEquals(advance(iterator,batchSize),batchSize);
+    }
+ else     if (skipFirstBatch && isFirst) {
+      assertEquals(advance(iterator,batchSize),batchSize);
+      isFirst=false;
     }
  else {
       recordReader.readVector(0,vector);
@@ -18,7 +23,6 @@
         }
       }
     }
-    isFirst=false;
   }
   assertFalse(iterator.hasNext());
   recordReader.close();
