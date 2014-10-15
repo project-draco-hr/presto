@@ -1,4 +1,7 @@
 {
+  if (externalBatchId.isPresent() && dao.externalBatchExists(externalBatchId.get())) {
+    throw new PrestoException(RAPTOR_EXTERNAL_BATCH_ALREADY_EXISTS,"External batch already exists: " + externalBatchId.get());
+  }
   final Map<String,Long> nodeIds=new HashMap<>();
   for (  ShardNode shardNode : shardNodes) {
     String nodeIdentifier=shardNode.getNodeIdentifier();
@@ -14,6 +17,9 @@
         long shardId=dao.insertShard(shardNode.getShardUuid());
         dao.insertShardNode(shardId,nodeId);
         dao.insertTableShard(tableId,shardId);
+      }
+      if (externalBatchId.isPresent()) {
+        dao.insertExternalBatch(externalBatchId.get());
       }
     }
   }

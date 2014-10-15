@@ -1,0 +1,15 @@
+{
+  assertFalse(dao.externalBatchExists("foo"));
+  assertFalse(dao.externalBatchExists("bar"));
+  dao.insertExternalBatch("foo");
+  assertTrue(dao.externalBatchExists("foo"));
+  assertFalse(dao.externalBatchExists("bar"));
+  try {
+    dao.insertExternalBatch("foo");
+    fail("expected exception");
+  }
+ catch (  UnableToExecuteStatementException e) {
+    assertInstanceOf(e.getCause(),SQLException.class);
+    assertTrue(((SQLException)e.getCause()).getSQLState().startsWith("23"));
+  }
+}
