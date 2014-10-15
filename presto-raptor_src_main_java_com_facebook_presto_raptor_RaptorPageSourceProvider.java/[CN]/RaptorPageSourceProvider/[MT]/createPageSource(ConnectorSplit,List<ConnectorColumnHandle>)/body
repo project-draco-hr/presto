@@ -1,8 +1,7 @@
 {
   RaptorSplit raptorSplit=checkType(split,RaptorSplit.class,"split");
-  checkNotNull(columns,"columns is null");
-  if (columns.isEmpty()) {
-    return createNoColumnsOperator(raptorSplit);
-  }
-  return createAlignmentOperator(columns,raptorSplit);
+  UUID shardUuid=raptorSplit.getShardUuid();
+  long countColumnId=raptorSplit.getCountColumnHandle().getColumnId();
+  List<Long> columnIds=FluentIterable.from(columns).transform(raptorColumnId()).toList();
+  return storageManager.getPageSource(shardUuid,columnIds,countColumnId);
 }

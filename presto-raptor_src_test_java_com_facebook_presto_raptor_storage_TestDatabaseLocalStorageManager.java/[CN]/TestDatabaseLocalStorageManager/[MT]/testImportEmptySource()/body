@@ -4,5 +4,7 @@
   ColumnFileHandle fileHandles=storageManager.createStagingFileHandles(shardUuid,columnHandles);
   storageManager.commit(fileHandles);
   assertTrue(storageManager.shardExists(shardUuid));
-  assertTrue(Iterables.isEmpty(storageManager.getBlocks(shardUuid,columnHandles.get(0))));
+  List<Long> columnIds=ImmutableList.of(columnHandles.get(0).getColumnId());
+  ConnectorPageSource pageSource=storageManager.getPageSource(shardUuid,columnIds,columnIds.get(0));
+  assertTrue(pageSource.isFinished());
 }

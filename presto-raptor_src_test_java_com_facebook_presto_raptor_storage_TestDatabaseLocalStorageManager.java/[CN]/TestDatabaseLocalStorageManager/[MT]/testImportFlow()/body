@@ -12,10 +12,11 @@
   }
   storageManager.commit(fileHandles);
   assertTrue(storageManager.shardExists(shardUuid));
-  RaptorPageSource raptorPageSource=new RaptorPageSource(ImmutableList.of(storageManager.getBlocks(shardUuid,columnHandles.get(0)),storageManager.getBlocks(shardUuid,columnHandles.get(1))));
+  List<Long> columnIds=ImmutableList.of(columnHandles.get(0).getColumnId(),columnHandles.get(1).getColumnId());
+  ConnectorPageSource pageSource=storageManager.getPageSource(shardUuid,columnIds,columnIds.get(0));
   List<Page> actualPages=new ArrayList<>();
-  while (!raptorPageSource.isFinished()) {
-    Page page=raptorPageSource.getNextPage();
+  while (!pageSource.isFinished()) {
+    Page page=pageSource.getNextPage();
     if (page != null) {
       actualPages.add(page);
     }
