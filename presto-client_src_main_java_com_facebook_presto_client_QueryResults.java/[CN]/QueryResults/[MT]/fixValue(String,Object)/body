@@ -19,6 +19,16 @@
     }
     return fixedValue;
   }
+  if (signature.getBase().equals(StandardTypes.ROW)) {
+    Map<String,Object> fixedValue=new LinkedHashMap<>();
+    List<Object> listValue=List.class.cast(value);
+    checkArgument(listValue.size() == signature.getLiteralParameters().size(),"Mismatched data values and row type");
+    for (int i=0; i < listValue.size(); i++) {
+      String key=(String)signature.getLiteralParameters().get(i);
+      fixedValue.put(key,fixValue(signature.getParameters().get(i).toString(),listValue.get(i)));
+    }
+    return fixedValue;
+  }
 switch (type) {
 case "bigint":
     if (value instanceof String) {

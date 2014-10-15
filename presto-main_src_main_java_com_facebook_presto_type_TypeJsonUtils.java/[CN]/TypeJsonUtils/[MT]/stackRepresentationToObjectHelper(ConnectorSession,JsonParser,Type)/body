@@ -20,6 +20,20 @@
     }
     return Collections.unmodifiableMap(map);
   }
+  if (type instanceof RowType) {
+    List<Object> list=new ArrayList<>();
+    checkState(parser.getCurrentToken() == JsonToken.START_ARRAY,"Expected a json array");
+    int field=0;
+    RowType rowType=(RowType)type;
+    while (parser.nextValue() != JsonToken.END_ARRAY) {
+      checkArgument(field < rowType.getFields().size(),"Unexpected field for type %s",type);
+      Object value=stackRepresentationToObjectHelper(session,parser,rowType.getFields().get(field).getType());
+      list.add(value);
+      field++;
+    }
+    checkArgument(field == rowType.getFields().size(),"Expected %d fields for type %s",rowType.getFields().size(),type);
+    return Collections.unmodifiableList(list);
+  }
   BlockBuilder blockBuilder=type.createBlockBuilder(new BlockBuilderStatus());
   if (type.getJavaType() == boolean.class) {
     type.writeBoolean(blockBuilder,parser.getBooleanValue());
