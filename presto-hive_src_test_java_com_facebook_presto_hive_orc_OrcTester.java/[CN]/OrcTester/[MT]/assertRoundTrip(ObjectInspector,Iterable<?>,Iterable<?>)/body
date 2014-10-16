@@ -1,0 +1,23 @@
+{
+  for (  Format formatVersion : formats) {
+    MetadataReader metadataReader;
+    if (DWRF == formatVersion) {
+      if (hasType(objectInspector,PrimitiveCategory.DATE)) {
+        return;
+      }
+      metadataReader=new DwrfMetadataReader();
+    }
+ else {
+      metadataReader=new OrcMetadataReader();
+    }
+    for (    Compression compression : compressions) {
+      try (TempFile tempFile=new TempFile("test","orc")){
+        writeOrcColumn(tempFile.getFile(),formatVersion,compression,objectInspector,writeValues.iterator());
+        assertFileContents(objectInspector,tempFile,readValues,false,metadataReader);
+        if (skipBatchTestsEnabled) {
+          assertFileContents(objectInspector,tempFile,readValues,true,metadataReader);
+        }
+      }
+     }
+  }
+}

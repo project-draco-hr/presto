@@ -1,0 +1,15 @@
+{
+  JobConf jobConf=new JobConf();
+  jobConf.set("hive.exec.orc.default.compress",compressionCodec.name());
+  jobConf.set("hive.exec.orc.compress",compressionCodec.name());
+  OrcConf.setIntVar(jobConf,OrcConf.ConfVars.HIVE_ORC_ENTROPY_STRING_THRESHOLD,1);
+  OrcConf.setIntVar(jobConf,OrcConf.ConfVars.HIVE_ORC_DICTIONARY_ENCODING_INTERVAL,2);
+  OrcConf.setBoolVar(jobConf,OrcConf.ConfVars.HIVE_ORC_BUILD_STRIDE_DICTIONARY,true);
+  OrcConf.setBoolVar(jobConf,OrcConf.ConfVars.HIVE_ORC_DICTIONARY_SORT_KEYS,true);
+  ReaderWriterProfiler.setProfilerOptions(jobConf);
+  return new com.facebook.hive.orc.OrcOutputFormat().getHiveRecordWriter(jobConf,new Path(outputFile.toURI()),Text.class,compressionCodec != NONE,createTableProperties("test",columnObjectInspector.getTypeName()),new Progressable(){
+    @Override public void progress(){
+    }
+  }
+);
+}
