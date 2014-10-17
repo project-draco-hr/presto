@@ -10,10 +10,10 @@
     return Domain.onlyNull(boxedJavaType);
   }
   boolean hasNullValue=columnStatistics.getNumberOfValues() != rowCount;
-  if (boxedJavaType == Boolean.class && columnStatistics.getBucketStatistics() != null) {
-    BucketStatistics bucketStatistics=columnStatistics.getBucketStatistics();
-    boolean hasTrueValues=(bucketStatistics.getCount(0) != 0);
-    boolean hasFalseValues=(columnStatistics.getNumberOfValues() != bucketStatistics.getCount(0));
+  if (boxedJavaType == Boolean.class && columnStatistics.getBooleanStatistics() != null) {
+    BooleanStatistics booleanStatistics=columnStatistics.getBooleanStatistics();
+    boolean hasTrueValues=(booleanStatistics.getTrueValueCount() != 0);
+    boolean hasFalseValues=(columnStatistics.getNumberOfValues() != booleanStatistics.getTrueValueCount());
     if (hasTrueValues && hasFalseValues) {
       return Domain.all(Boolean.class);
     }
@@ -24,24 +24,24 @@
       return Domain.create(SortedRangeSet.singleValue(false),hasNullValue);
     }
   }
+ else   if (type.getTypeSignature().getBase().equals(StandardTypes.DATE) && columnStatistics.getDateStatistics() != null) {
+    return createDomain(boxedJavaType,hasNullValue,columnStatistics.getDateStatistics(),new Function<Integer,Long>(){
+      @Override public Long apply(      Integer days){
+        return days * MILLIS_IN_DAY;
+      }
+    }
+);
+  }
  else   if (boxedJavaType == Long.class && columnStatistics.getIntegerStatistics() != null) {
     return createDomain(boxedJavaType,hasNullValue,columnStatistics.getIntegerStatistics());
   }
- else   if (boxedJavaType == Double.class && columnStatistics.getDateStatistics() != null) {
+ else   if (boxedJavaType == Double.class && columnStatistics.getDoubleStatistics() != null) {
     return createDomain(boxedJavaType,hasNullValue,columnStatistics.getDoubleStatistics());
   }
  else   if (boxedJavaType == Slice.class && columnStatistics.getStringStatistics() != null) {
     return createDomain(boxedJavaType,hasNullValue,columnStatistics.getStringStatistics(),new Function<String,Slice>(){
       @Override public Slice apply(      String value){
         return utf8Slice(value);
-      }
-    }
-);
-  }
- else   if (boxedJavaType == Long.class && columnStatistics.getDateStatistics() != null) {
-    return createDomain(boxedJavaType,hasNullValue,columnStatistics.getDateStatistics(),new Function<Integer,Long>(){
-      @Override public Long apply(      Integer days){
-        return days * MILLIS_IN_DAY;
       }
     }
 );

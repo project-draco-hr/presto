@@ -2,11 +2,15 @@
   ImmutableMap.Builder<C,Domain> domains=ImmutableMap.builder();
   for (  ColumnReference<C> columnReference : columnReferences) {
     ColumnStatistics columnStatistics=statisticsByColumnIndex.get(columnReference.getOrdinal());
+    Domain domain;
     if (columnStatistics == null) {
-      return true;
+      domain=Domain.all(Primitives.wrap(columnReference.getType().getJavaType()));
     }
-    domains.put(columnReference.getColumn(),getDomain(columnReference.getType(),numberOfRows,columnStatistics));
+ else {
+      domain=getDomain(columnReference.getType(),numberOfRows,columnStatistics);
+    }
+    domains.put(columnReference.getColumn(),domain);
   }
   TupleDomain<C> stripeDomain=TupleDomain.withColumnDomains(domains.build());
-  return tupleDomain.overlaps(stripeDomain);
+  return effectivePredicate.overlaps(stripeDomain);
 }
