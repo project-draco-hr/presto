@@ -7,11 +7,15 @@
   checkNotNull(hiveStorageTimeZone,"hiveStorageTimeZone is null");
   checkNotNull(typeManager,"typeManager is null");
   try {
+    if (offset > recordReader.getPosition()) {
+      recordReader.sync(offset);
+    }
     this.startFilePosition=recordReader.getPosition();
   }
  catch (  IOException e) {
     throw Throwables.propagate(e);
   }
+  this.endFilePosition=offset + length;
   Map<String,HivePartitionKey> partitionKeysByName=uniqueIndex(partitionKeys,HivePartitionKey.nameGetter());
   int size=columns.size();
   this.constantBlocks=new Block[size];
