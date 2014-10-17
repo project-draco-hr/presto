@@ -44,5 +44,23 @@
     MethodHandle identity=MethodHandles.identity(parameterType.getJavaType());
     return new FunctionInfo(getMagicLiteralFunctionSignature(type),null,true,identity,true,false,ImmutableList.of(false));
   }
+  for (  TypeSignature typeSignature : parameterTypes) {
+    if (typeSignature.getBase().equals(StandardTypes.ROW)) {
+      RowType rowType=RowParametricType.ROW.createType(resolveTypes(typeSignature.getParameters(),typeManager),typeSignature.getLiteralParameters());
+      for (      ParametricFunction function : RowParametricType.ROW.createFunctions(rowType)) {
+        if (!function.getSignature().getName().equals(name.toString())) {
+          continue;
+        }
+        Map<String,Type> boundTypeParameters=function.getSignature().bindTypeParameters(resolvedTypes,false,typeManager);
+        if (boundTypeParameters != null) {
+          checkArgument(match == null,"Ambiguous call to %s with parameters %s",name,parameterTypes);
+          match=function.specialize(boundTypeParameters,resolvedTypes.size(),typeManager);
+        }
+      }
+      if (match != null) {
+        return match;
+      }
+    }
+  }
   throw new PrestoException(FUNCTION_NOT_FOUND,message);
 }

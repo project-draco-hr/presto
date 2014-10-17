@@ -1,0 +1,36 @@
+{
+  Type returnType=null;
+  int index=0;
+  for (  RowField field : type.getFields()) {
+    if (field.getName().equals(fieldName)) {
+      returnType=field.getType();
+      break;
+    }
+    index++;
+  }
+  checkNotNull(returnType,"%s not found in row type %s",fieldName,type);
+  signature=new Signature(mangleFieldAccessor(fieldName),returnType.getTypeSignature(),type.getTypeSignature());
+  JsonExtractor<?> extractor;
+  if (returnType instanceof ArrayType || returnType instanceof MapType || returnType instanceof RowType) {
+    extractor=new JsonValueJsonExtractor();
+  }
+ else   if (returnType.getJavaType() == boolean.class) {
+    extractor=new BooleanJsonExtractor();
+  }
+ else   if (returnType.getJavaType() == long.class) {
+    extractor=new LongJsonExtractor();
+  }
+ else   if (returnType.getJavaType() == double.class) {
+    extractor=new DoubleJsonExtractor();
+  }
+ else   if (returnType.getJavaType() == Slice.class) {
+    extractor=new ScalarValueJsonExtractor();
+  }
+ else {
+    throw new IllegalArgumentException("Unsupported stack type: " + returnType.getJavaType());
+  }
+  extractor=generateExtractor(format("$[%d]",index),extractor,true);
+  String stackType=returnType.getJavaType().getSimpleName().toLowerCase();
+  checkState(METHOD_HANDLE_MAP.containsKey(stackType),"method handle missing for %s stack type",stackType);
+  methodHandle=METHOD_HANDLE_MAP.get(stackType).bindTo(extractor);
+}
