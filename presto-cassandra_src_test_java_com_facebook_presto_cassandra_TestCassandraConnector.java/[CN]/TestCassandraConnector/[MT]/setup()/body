@@ -1,9 +1,9 @@
 {
   EmbeddedCassandraServerHelper.startEmbeddedCassandra();
-  createTestData("Presto_Database","Presto_Test");
+  initializeTestData(DATE);
   String connectorId="cassandra-test";
   CassandraConnectorFactory connectorFactory=new CassandraConnectorFactory(connectorId,ImmutableMap.<String,String>of());
-  Connector connector=connectorFactory.create(connectorId,ImmutableMap.<String,String>of("cassandra.contact-points","localhost","cassandra.native-protocol-port","9142"));
+  Connector connector=connectorFactory.create(connectorId,ImmutableMap.of("cassandra.contact-points",HOSTNAME,"cassandra.native-protocol-port",Integer.toString(PORT)));
   metadata=connector.getMetadata();
   assertInstanceOf(metadata,CassandraMetadata.class);
   splitManager=connector.getSplitManager();
@@ -12,8 +12,8 @@
   assertInstanceOf(recordSetProvider,CassandraRecordSetProvider.class);
   ConnectorHandleResolver handleResolver=connector.getHandleResolver();
   assertInstanceOf(handleResolver,CassandraHandleResolver.class);
-  database="presto_database";
-  table=new SchemaTableName(database,"presto_test");
+  database=KEYSPACE_NAME.toLowerCase();
+  table=new SchemaTableName(database,TABLE_NAME.toLowerCase());
   tableUnpartitioned=new SchemaTableName(database,"presto_test_unpartitioned");
   invalidTable=new SchemaTableName(database,"totally_invalid_table_name");
 }

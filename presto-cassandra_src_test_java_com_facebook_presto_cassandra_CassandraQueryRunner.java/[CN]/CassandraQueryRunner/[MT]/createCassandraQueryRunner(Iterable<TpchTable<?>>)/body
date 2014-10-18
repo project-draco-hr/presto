@@ -1,8 +1,10 @@
 {
   EmbeddedCassandraServerHelper.startEmbeddedCassandra();
-  createOrReplaceKeyspace("tpch");
-  createOrReplaceKeyspace("tpch_sampled");
-  DistributedQueryRunner queryRunner=new DistributedQueryRunner(createSession(),4);
+  try (Cluster cluster=CassandraTestingUtils.getCluster();com.datastax.driver.core.Session session=cluster.connect()){
+    createOrReplaceKeyspace(session,"tpch");
+    createOrReplaceKeyspace(session,"tpch_sampled");
+  }
+   DistributedQueryRunner queryRunner=new DistributedQueryRunner(createSession(),4);
   queryRunner.installPlugin(new TpchPlugin());
   queryRunner.createCatalog("tpch","tpch");
   queryRunner.installPlugin(new SampledTpchPlugin());
