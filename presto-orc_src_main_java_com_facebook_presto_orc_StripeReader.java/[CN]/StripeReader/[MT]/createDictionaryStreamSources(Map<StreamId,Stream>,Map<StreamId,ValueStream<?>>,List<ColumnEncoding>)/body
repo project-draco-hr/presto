@@ -1,0 +1,21 @@
+{
+  ImmutableMap.Builder<StreamId,StreamSource<?>> dictionaryStreamBuilder=ImmutableMap.builder();
+  for (  Entry<StreamId,Stream> entry : streams.entrySet()) {
+    StreamId streamId=entry.getKey();
+    Stream stream=entry.getValue();
+    int column=stream.getColumn();
+    ColumnEncodingKind columnEncoding=columnEncodings.get(column).getColumnEncodingKind();
+    if (!isDictionary(stream,columnEncoding)) {
+      continue;
+    }
+    ValueStream<?> valueStream=valueStreams.get(streamId);
+    if (valueStream == null) {
+      continue;
+    }
+    OrcTypeKind columnType=types.get(stream.getColumn()).getOrcTypeKind();
+    StreamCheckpoint streamCheckpoint=getDictionaryStreamCheckpoint(streamId,columnType,columnEncoding);
+    StreamSource<?> streamSource=createCheckpointStreamSource(valueStream,streamCheckpoint);
+    dictionaryStreamBuilder.put(streamId,streamSource);
+  }
+  return new StreamSources(dictionaryStreamBuilder.build());
+}

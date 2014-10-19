@@ -1,0 +1,56 @@
+{
+  ImmutableSetMultimap.Builder<Integer,StreamKind> streamKindsBuilder=ImmutableSetMultimap.builder();
+  for (  Stream stream : streams.values()) {
+    streamKindsBuilder.put(stream.getColumn(),stream.getStreamKind());
+  }
+  SetMultimap<Integer,StreamKind> streamKinds=streamKindsBuilder.build();
+  ImmutableMap.Builder<StreamId,StreamCheckpoint> checkpoints=ImmutableMap.builder();
+  for (  int column : columns) {
+    List<Integer> positionsList=columnIndexes.get(column).get(rowGroupId).getPositions();
+    ColumnEncodingKind columnEncoding=columnEncodings.get(column).getColumnEncodingKind();
+    OrcTypeKind columnType=columnTypes.get(column).getOrcTypeKind();
+    Set<StreamKind> availableStreams=streamKinds.get(column);
+    ColumnPositionsList columnPositionsList=new ColumnPositionsList(column,columnType,positionsList);
+switch (columnType) {
+case BOOLEAN:
+      checkpoints.putAll(getBooleanColumnCheckpoints(column,compressionKind,availableStreams,columnPositionsList));
+    break;
+case BYTE:
+  checkpoints.putAll(getByteColumnCheckpoints(column,compressionKind,availableStreams,columnPositionsList));
+break;
+case SHORT:
+case INT:
+case LONG:
+case DATE:
+checkpoints.putAll(getLongColumnCheckpoints(column,columnEncoding,compressionKind,availableStreams,columnPositionsList));
+break;
+case FLOAT:
+checkpoints.putAll(getFloatColumnCheckpoints(column,compressionKind,availableStreams,columnPositionsList));
+break;
+case DOUBLE:
+checkpoints.putAll(getDoubleColumnCheckpoints(column,compressionKind,availableStreams,columnPositionsList));
+break;
+case TIMESTAMP:
+checkpoints.putAll(getTimestampColumnCheckpoints(column,columnEncoding,compressionKind,availableStreams,columnPositionsList));
+break;
+case BINARY:
+case STRING:
+checkpoints.putAll(getSliceColumnCheckpoints(column,columnEncoding,compressionKind,availableStreams,columnPositionsList));
+break;
+case LIST:
+case MAP:
+checkpoints.putAll(getListOrMapColumnCheckpoints(column,columnEncoding,compressionKind,availableStreams,columnPositionsList));
+break;
+case STRUCT:
+checkpoints.putAll(getStructColumnCheckpoints(column,compressionKind,availableStreams,columnPositionsList));
+break;
+case DECIMAL:
+case CHAR:
+case VARCHAR:
+case UNION:
+throw new IllegalArgumentException("Unsupported column type " + columnType);
+}
+checkState(!columnPositionsList.hasNextPosition() || Iterables.all(positionsList,equalTo(0)),"Column %s, of type %s, contains %s offset positions, but only %s positions were consumed",column,columnType,positionsList.size(),columnPositionsList.getIndex());
+}
+return checkpoints.build();
+}

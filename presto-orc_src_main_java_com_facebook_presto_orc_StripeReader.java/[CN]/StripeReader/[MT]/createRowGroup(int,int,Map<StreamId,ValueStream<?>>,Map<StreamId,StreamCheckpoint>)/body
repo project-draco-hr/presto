@@ -1,0 +1,14 @@
+{
+  ImmutableMap.Builder<StreamId,StreamSource<?>> builder=ImmutableMap.builder();
+  for (  Entry<StreamId,StreamCheckpoint> entry : checkpoints.entrySet()) {
+    StreamId streamId=entry.getKey();
+    StreamCheckpoint checkpoint=entry.getValue();
+    ValueStream<?> valueStream=valueStreams.get(streamId);
+    if (valueStream == null) {
+      continue;
+    }
+    builder.put(streamId,createCheckpointStreamSource(valueStream,checkpoint));
+  }
+  StreamSources rowGroupStreams=new StreamSources(builder.build());
+  return new RowGroup(groupId,rowCount,rowGroupStreams);
+}

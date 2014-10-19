@@ -1,0 +1,15 @@
+{
+  ImmutableMap.Builder<StreamId,ValueStream<?>> valueStreams=ImmutableMap.builder();
+  for (  Entry<StreamId,Stream> entry : streams.entrySet()) {
+    StreamId streamId=entry.getKey();
+    Stream stream=entry.getValue();
+    ColumnEncodingKind columnEncoding=columnEncodings.get(stream.getColumn()).getColumnEncodingKind();
+    if (isIndexStream(stream) || stream.getLength() == 0) {
+      continue;
+    }
+    OrcInputStream inputStream=streamsData.get(streamId);
+    OrcTypeKind columnType=types.get(stream.getColumn()).getOrcTypeKind();
+    valueStreams.put(streamId,ValueStreams.createValueStreams(streamId,inputStream,columnType,columnEncoding,stream.isUseVInts()));
+  }
+  return valueStreams.build();
+}

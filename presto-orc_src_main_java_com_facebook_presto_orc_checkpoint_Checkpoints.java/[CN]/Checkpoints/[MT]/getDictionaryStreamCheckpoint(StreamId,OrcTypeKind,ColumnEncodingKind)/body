@@ -1,0 +1,24 @@
+{
+  if (streamId.getStreamKind() == DICTIONARY_DATA) {
+switch (columnType) {
+case SHORT:
+case INT:
+case LONG:
+      return new LongStreamDwrfCheckpoint(createInputStreamCheckpoint(0,0));
+case STRING:
+case VARCHAR:
+case CHAR:
+case BINARY:
+    return new ByteArrayStreamCheckpoint(createInputStreamCheckpoint(0,0));
+}
+}
+if (streamId.getStreamKind() == LENGTH || streamId.getStreamKind() == DATA) {
+if (columnEncoding == DICTIONARY_V2) {
+  return new LongStreamV2Checkpoint(0,createInputStreamCheckpoint(0,0));
+}
+ else if (columnEncoding == DICTIONARY) {
+  return new LongStreamV1Checkpoint(0,createInputStreamCheckpoint(0,0));
+}
+}
+throw new IllegalArgumentException("Unsupported column type " + columnType + " for dictionary stream "+ streamId);
+}

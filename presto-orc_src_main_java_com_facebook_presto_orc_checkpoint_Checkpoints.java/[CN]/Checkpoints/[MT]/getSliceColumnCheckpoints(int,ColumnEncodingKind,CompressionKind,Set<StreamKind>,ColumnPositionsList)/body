@@ -1,0 +1,35 @@
+{
+  ImmutableMap.Builder<StreamId,StreamCheckpoint> checkpoints=ImmutableMap.builder();
+  if (availableStreams.contains(PRESENT)) {
+    checkpoints.put(new StreamId(column,PRESENT),new BooleanStreamCheckpoint(compressionKind,positionsList));
+  }
+  if (encoding == DIRECT || encoding == DIRECT_V2) {
+    if (availableStreams.contains(DATA)) {
+      checkpoints.put(new StreamId(column,DATA),new ByteArrayStreamCheckpoint(compressionKind,positionsList));
+    }
+    if (availableStreams.contains(LENGTH)) {
+      checkpoints.put(new StreamId(column,LENGTH),createLongStreamCheckpoint(encoding,compressionKind,positionsList));
+    }
+  }
+ else   if (encoding == DICTIONARY || encoding == DICTIONARY_V2) {
+    if (availableStreams.contains(IN_DICTIONARY)) {
+      if (availableStreams.contains(ROW_GROUP_DICTIONARY)) {
+        checkpoints.put(new StreamId(column,ROW_GROUP_DICTIONARY),new ByteArrayStreamCheckpoint(compressionKind,positionsList));
+      }
+      checkpoints.put(new StreamId(column,ROW_GROUP_DICTIONARY_LENGTH),new RowGroupDictionaryLengthStreamCheckpoint(compressionKind,positionsList));
+      if (availableStreams.contains(DATA)) {
+        checkpoints.put(new StreamId(column,DATA),createLongStreamCheckpoint(encoding,compressionKind,positionsList));
+      }
+      checkpoints.put(new StreamId(column,IN_DICTIONARY),new BooleanStreamCheckpoint(compressionKind,positionsList));
+    }
+ else {
+      if (availableStreams.contains(DATA)) {
+        checkpoints.put(new StreamId(column,DATA),createLongStreamCheckpoint(encoding,compressionKind,positionsList));
+      }
+    }
+  }
+ else {
+    throw new IllegalArgumentException("Unsupported encoding for slice column: " + encoding);
+  }
+  return checkpoints.build();
+}

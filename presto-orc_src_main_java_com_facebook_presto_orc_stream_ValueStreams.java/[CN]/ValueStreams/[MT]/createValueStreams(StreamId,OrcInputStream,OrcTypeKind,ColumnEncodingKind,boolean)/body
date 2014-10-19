@@ -1,0 +1,73 @@
+{
+  if (streamId.getStreamKind() == PRESENT) {
+    return new BooleanStream(inputStream);
+  }
+  if ((encoding == DICTIONARY || encoding == DICTIONARY_V2) && (streamId.getStreamKind() == LENGTH || streamId.getStreamKind() == DATA)) {
+    return createLongStream(inputStream,encoding,INT,false,usesVInt);
+  }
+  if (streamId.getStreamKind() == DATA) {
+switch (type) {
+case BOOLEAN:
+      return new BooleanStream(inputStream);
+case BYTE:
+    return new ByteStream(inputStream);
+case SHORT:
+case INT:
+case LONG:
+case DATE:
+  return createLongStream(inputStream,encoding,type,true,usesVInt);
+case FLOAT:
+return new FloatStream(inputStream);
+case DOUBLE:
+return new DoubleStream(inputStream);
+case STRING:
+case BINARY:
+return new ByteArrayStream(inputStream);
+case TIMESTAMP:
+return createLongStream(inputStream,encoding,type,true,usesVInt);
+}
+}
+if (streamId.getStreamKind() == LENGTH) {
+switch (type) {
+case STRING:
+case BINARY:
+case MAP:
+case LIST:
+return createLongStream(inputStream,encoding,type,false,usesVInt);
+}
+}
+if (streamId.getStreamKind() == ROW_GROUP_DICTIONARY_LENGTH) {
+switch (type) {
+case STRING:
+case BINARY:
+return new RowGroupDictionaryLengthStream(inputStream,false);
+}
+}
+if (streamId.getStreamKind() == ROW_GROUP_DICTIONARY) {
+switch (type) {
+case STRING:
+case BINARY:
+return new ByteArrayStream(inputStream);
+}
+}
+if (streamId.getStreamKind() == IN_DICTIONARY) {
+return new BooleanStream(inputStream);
+}
+if (type == TIMESTAMP && streamId.getStreamKind() == SECONDARY) {
+return createLongStream(inputStream,encoding,type,false,usesVInt);
+}
+if (streamId.getStreamKind() == DICTIONARY_DATA) {
+switch (type) {
+case SHORT:
+case INT:
+case LONG:
+return createLongStream(inputStream,DWRF_DIRECT,INT,true,usesVInt);
+case STRING:
+case VARCHAR:
+case CHAR:
+case BINARY:
+return new ByteArrayStream(inputStream);
+}
+}
+throw new IllegalArgumentException(format("Unsupported column type %s for stream %s with encoding %s",type,streamId,encoding));
+}
