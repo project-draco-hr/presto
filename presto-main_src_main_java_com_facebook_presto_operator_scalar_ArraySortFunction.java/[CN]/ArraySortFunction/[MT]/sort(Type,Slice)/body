@@ -1,0 +1,16 @@
+{
+  List<Object> elements;
+  try {
+    elements=OBJECT_MAPPER.readValue(jsonArray.getInput(),COLLECTION_TYPE);
+  }
+ catch (  IOException e) {
+    throw new PrestoException(INVALID_FUNCTION_ARGUMENT,e);
+  }
+  Collections.sort(elements,new Comparator<Object>(){
+    @Override public int compare(    Object o1,    Object o2){
+      return type.compareTo(createBlock(type,o1),0,createBlock(type,o2),0);
+    }
+  }
+);
+  return toStackRepresentation(elements);
+}
