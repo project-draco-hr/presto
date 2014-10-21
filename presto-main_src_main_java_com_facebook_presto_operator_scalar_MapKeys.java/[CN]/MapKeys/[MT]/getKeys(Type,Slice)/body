@@ -3,19 +3,15 @@
   try (JsonParser parser=JSON_FACTORY.createJsonParser(map.getInput())){
     JsonToken token=parser.nextToken();
     while (token != null) {
-switch (token) {
-case FIELD_NAME:
+      if (token == JsonToken.FIELD_NAME) {
         String fieldName=parser.getCurrentName();
-      keys.add(parseMapKeyAsType(fieldName,keyType));
-    break;
-default :
-  break;
-}
-token=parser.nextToken();
-}
-}
- catch (IOException e) {
-throw Throwables.propagate(e);
-}
-return toStackRepresentation(keys);
+        keys.add(parseMapKeyAsType(fieldName,keyType));
+      }
+      token=parser.nextToken();
+    }
+  }
+ catch (  IOException e) {
+    throw new PrestoException(INVALID_FUNCTION_ARGUMENT,e);
+  }
+  return toStackRepresentation(keys);
 }
