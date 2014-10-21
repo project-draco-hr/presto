@@ -3,7 +3,7 @@
     @Override public HivePartition apply(    String partitionId){
       try {
         if (partitionId.equals(UNPARTITIONED_ID)) {
-          return new HivePartition(tableName);
+          return new HivePartition(tableName,effectivePredicate);
         }
         ImmutableMap.Builder<ConnectorColumnHandle,SerializableNativeValue> builder=ImmutableMap.builder();
         for (        Entry<String,String> entry : makeSpecFromName(partitionId).entrySet()) {
@@ -12,7 +12,7 @@
           HiveColumnHandle columnHandle=checkType(handle,HiveColumnHandle.class,"handle");
           builder.put(columnHandle,parsePartitionValue(partitionId,entry.getValue(),columnHandle.getHiveType(),timeZone));
         }
-        return new HivePartition(tableName,partitionId,builder.build(),bucket);
+        return new HivePartition(tableName,effectivePredicate,partitionId,builder.build(),bucket);
       }
  catch (      MetaException e) {
         throw Throwables.propagate(e);

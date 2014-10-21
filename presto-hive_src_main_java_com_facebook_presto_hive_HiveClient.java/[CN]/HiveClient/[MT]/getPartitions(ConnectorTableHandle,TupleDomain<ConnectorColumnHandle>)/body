@@ -1,6 +1,6 @@
 {
   checkNotNull(tableHandle,"tableHandle is null");
-  checkNotNull(tupleDomain,"tupleDomain is null");
+  checkNotNull(effectivePredicate,"effectivePredicate is null");
   SchemaTableName tableName=getTableName(tableHandle);
   List<FieldSchema> partitionKeys;
   Optional<HiveBucket> bucket;
@@ -15,7 +15,7 @@
       throw new TableOfflineException(tableName,format("Table '%s' is offline for Presto: %s",tableName,prestoOffline));
     }
     partitionKeys=table.getPartitionKeys();
-    bucket=getHiveBucket(table,tupleDomain.extractFixedValues());
+    bucket=getHiveBucket(table,effectivePredicate.extractFixedValues());
   }
  catch (  NoSuchObjectException e) {
     throw new TableNotFoundException(tableName);
@@ -27,8 +27,8 @@
     HiveType hiveType=getSupportedHiveType(field.getType());
     HiveColumnHandle columnHandle=new HiveColumnHandle(connectorId,field.getName(),i,hiveType,getType(field.getType()).getTypeSignature(),-1,true);
     partitionKeysByNameBuilder.put(field.getName(),columnHandle);
-    if (filterPrefix.size() == i && !tupleDomain.isNone()) {
-      Domain domain=tupleDomain.getDomains().get(columnHandle);
+    if (filterPrefix.size() == i && !effectivePredicate.isNone()) {
+      Domain domain=effectivePredicate.getDomains().get(columnHandle);
       if (domain != null && domain.isNullableSingleValue()) {
         Comparable<?> value=domain.getNullableSingleValue();
         if (value == null) {
@@ -62,10 +62,10 @@
     throw new TableNotFoundException(tableName);
   }
   Map<String,ConnectorColumnHandle> partitionKeysByName=partitionKeysByNameBuilder.build();
-  List<ConnectorPartition> partitions=FluentIterable.from(partitionNames).transform(toPartition(tableName,partitionKeysByName,bucket,timeZone,typeManager)).filter(partitionMatches(tupleDomain)).filter(ConnectorPartition.class).toList();
+  List<ConnectorPartition> partitions=FluentIterable.from(partitionNames).transform(toPartition(tableName,partitionKeysByName,bucket,timeZone,toHiveTupleDomain(effectivePredicate))).filter(partitionMatches(effectivePredicate)).filter(ConnectorPartition.class).toList();
   TupleDomain<ConnectorColumnHandle> remainingTupleDomain=TupleDomain.none();
-  if (!tupleDomain.isNone()) {
-    remainingTupleDomain=TupleDomain.withColumnDomains(Maps.filterKeys(tupleDomain.getDomains(),not(in(partitionKeysByName.values()))));
+  if (!effectivePredicate.isNone()) {
+    remainingTupleDomain=TupleDomain.withColumnDomains(Maps.filterKeys(effectivePredicate.getDomains(),not(in(partitionKeysByName.values()))));
   }
   return new ConnectorPartitionResult(partitions,remainingTupleDomain);
 }
