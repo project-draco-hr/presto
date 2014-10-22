@@ -14,9 +14,8 @@
     return Optional.absent();
   }
   List<HiveColumnHandle> readColumns=ImmutableList.copyOf(filter(columns,not(isPartitionKeyPredicate())));
-  ArrayList<Integer> readHiveColumnIndexes=new ArrayList<>(transform(readColumns,hiveColumnIndexGetter()));
+  List<Integer> readHiveColumnIndexes=ImmutableList.copyOf(transform(readColumns,hiveColumnIndexGetter()));
   ColumnProjectionUtils.appendReadColumns(configuration,readHiveColumnIndexes);
-  configuration.set(IOConstants.COLUMNS,Joiner.on(',').join(Iterables.transform(readColumns,HiveColumnHandle.nameGetter())));
   for (  String name : schema.stringPropertyNames()) {
     if (name.startsWith("serialization.")) {
       configuration.set(name,schema.getProperty(name));
