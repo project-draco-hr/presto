@@ -1,5 +1,18 @@
 {
-  if (queueSize.incrementAndGet() > maxQueuedQueries) {
+  AtomicInteger queueSize;
+  int maxQueueSize;
+  AsyncSemaphore<QueryExecution> asyncSemaphore;
+  if (isBigQueryEnabled(queryExecution.getQueryInfo().getSession(),false)) {
+    queueSize=bigQueryQueueSize;
+    maxQueueSize=maxQueuedBigQueries;
+    asyncSemaphore=bigQueryAsyncSemaphore;
+  }
+ else {
+    queueSize=queryQueueSize;
+    maxQueueSize=maxQueuedQueries;
+    asyncSemaphore=queryAsyncSemaphore;
+  }
+  if (queueSize.incrementAndGet() > maxQueueSize) {
     queueSize.decrementAndGet();
     return false;
   }
