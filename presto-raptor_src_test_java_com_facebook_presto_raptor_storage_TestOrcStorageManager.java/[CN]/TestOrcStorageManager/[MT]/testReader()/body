@@ -1,0 +1,48 @@
+{
+  OrcStorageManager manager=new OrcStorageManager(directory);
+  List<Long> columnIds=ImmutableList.of(2L,4L,6L,7L,8L,9L);
+  List<Type> columnTypes=ImmutableList.<Type>of(BIGINT,VARCHAR,VARBINARY,DATE,BOOLEAN,DOUBLE);
+  byte[] bytes1=octets(0x00,0xFE,0xFF);
+  byte[] bytes3=octets(0x01,0x02,0x19,0x80);
+  OutputHandle handle=manager.createOutputHandle(columnIds,columnTypes,Optional.<Long>absent());
+  RowSink sink=handle.getRowSink();
+  sink.beginRecord(1);
+  sink.appendLong(123);
+  sink.appendString("hello");
+  sink.appendBytes(bytes1);
+  sink.appendLong(dateValue(new DateTime(2001,8,22,0,0,0,0,UTC)));
+  sink.appendBoolean(true);
+  sink.appendDouble(123.45);
+  sink.finishRecord();
+  sink.beginRecord(1);
+  for (int i=0; i < columnIds.size(); i++) {
+    sink.appendNull();
+  }
+  sink.finishRecord();
+  sink.beginRecord(1);
+  sink.appendLong(456);
+  sink.appendString("bye");
+  sink.appendBytes(bytes3);
+  sink.appendLong(dateValue(new DateTime(2005,4,22,0,0,0,0,UTC)));
+  sink.appendBoolean(false);
+  sink.appendDouble(987.65);
+  sink.finishRecord();
+  manager.commit(handle);
+  TupleDomain<RaptorColumnHandle> tupleDomain=TupleDomain.all();
+  try (ConnectorPageSource pageSource=manager.getPageSource(handle.getShardUuid(),columnIds,columnTypes,tupleDomain)){
+    MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,columnTypes);
+    assertEquals(result.getRowCount(),3);
+    MaterializedResult expected=resultBuilder(SESSION,columnTypes).row(123,"hello",sqlBinary(bytes1),sqlDate(2001,8,22),true,123.45).row(null,null,null,null,null,null).row(456,"bye",sqlBinary(bytes3),sqlDate(2005,4,22),false,987.65).build();
+    assertEquals(result,expected);
+  }
+   tupleDomain=TupleDomain.withFixedValues(ImmutableMap.<RaptorColumnHandle,Comparable<?>>builder().put(new RaptorColumnHandle("test","c1",2,BIGINT),124L).build());
+  try (ConnectorPageSource pageSource=manager.getPageSource(handle.getShardUuid(),columnIds,columnTypes,tupleDomain)){
+    MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,columnTypes);
+    assertEquals(result.getRowCount(),3);
+  }
+   tupleDomain=TupleDomain.withFixedValues(ImmutableMap.<RaptorColumnHandle,Comparable<?>>builder().put(new RaptorColumnHandle("test","c1",2,BIGINT),122L).build());
+  try (ConnectorPageSource pageSource=manager.getPageSource(handle.getShardUuid(),columnIds,columnTypes,tupleDomain)){
+    MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,columnTypes);
+    assertEquals(result.getRowCount(),0);
+  }
+ }

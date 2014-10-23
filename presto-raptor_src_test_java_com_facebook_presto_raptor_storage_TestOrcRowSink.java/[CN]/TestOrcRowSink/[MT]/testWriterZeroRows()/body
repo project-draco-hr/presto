@@ -1,0 +1,14 @@
+{
+  List<Long> columnIds=ImmutableList.of(1L);
+  List<StorageType> columnTypes=ImmutableList.of(LONG);
+  Optional<Long> sampleWeightColumnId=Optional.absent();
+  File file=new File(directory,System.nanoTime() + ".orc");
+  try (RowSink ignored=new OrcRowSink(columnIds,columnTypes,sampleWeightColumnId,file)){
+  }
+   try (FileOrcDataSource dataSource=new FileOrcDataSource(file)){
+    OrcRecordReader reader=createReaderNoRows(dataSource);
+    assertEquals(reader.getTotalRowCount(),0);
+    assertEquals(reader.getPosition(),0);
+    assertEquals(reader.nextBatch(),-1);
+  }
+ }

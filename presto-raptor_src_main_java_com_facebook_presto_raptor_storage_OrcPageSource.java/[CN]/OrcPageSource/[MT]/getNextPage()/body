@@ -1,0 +1,41 @@
+{
+  try {
+    batchId++;
+    int batchSize=recordReader.nextBatch();
+    if (batchSize <= 0) {
+      close();
+      return null;
+    }
+    Block[] blocks=new Block[columnIndexes.length];
+    for (int fieldId=0; fieldId < blocks.length; fieldId++) {
+      Type type=types.get(fieldId);
+      if (constantBlocks[fieldId] != null) {
+        blocks[fieldId]=constantBlocks[fieldId].getRegion(0,batchSize);
+      }
+ else       if (BOOLEAN.equals(type)) {
+        blocks[fieldId]=new LazyFixedWidthBlock(BOOLEAN.getFixedSize(),batchSize,new LazyBooleanBlockLoader(columnIndexes[fieldId],batchSize));
+      }
+ else       if (DATE.equals(type)) {
+        blocks[fieldId]=new LazyFixedWidthBlock(DATE.getFixedSize(),batchSize,new LazyDateBlockLoader(columnIndexes[fieldId],batchSize));
+      }
+ else       if (BIGINT.equals(type) || TIMESTAMP.equals(type)) {
+        blocks[fieldId]=new LazyFixedWidthBlock(((FixedWidthType)type).getFixedSize(),batchSize,new LazyLongBlockLoader(columnIndexes[fieldId],batchSize));
+      }
+ else       if (DOUBLE.equals(type)) {
+        blocks[fieldId]=new LazyFixedWidthBlock(DOUBLE.getFixedSize(),batchSize,new LazyDoubleBlockLoader(columnIndexes[fieldId],batchSize));
+      }
+ else       if (VARCHAR.equals(type) || VARBINARY.equals(type)) {
+        blocks[fieldId]=new LazySliceArrayBlock(batchSize,new LazySliceBlockLoader(columnIndexes[fieldId]));
+      }
+ else {
+        throw new PrestoException(NOT_SUPPORTED,"Unsupported column type: " + type);
+      }
+    }
+    updateCompletedBytes();
+    return new Page(batchSize,blocks);
+  }
+ catch (  IOException|RuntimeException e) {
+    closeWithSuppression(e);
+    throw new PrestoException(RAPTOR_ERROR,e);
+  }
+}

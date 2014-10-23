@@ -1,0 +1,12 @@
+{
+  outputHandle.getRowSink().close();
+  File stagingFile=getStagingFile(outputHandle.getShardUuid());
+  File storageFile=getStorageFile(outputHandle.getShardUuid());
+  createParents(storageFile);
+  try {
+    Files.move(stagingFile.toPath(),storageFile.toPath(),ATOMIC_MOVE);
+  }
+ catch (  IOException e) {
+    throw new PrestoException(RAPTOR_ERROR,"Failed to move shard file",e);
+  }
+}

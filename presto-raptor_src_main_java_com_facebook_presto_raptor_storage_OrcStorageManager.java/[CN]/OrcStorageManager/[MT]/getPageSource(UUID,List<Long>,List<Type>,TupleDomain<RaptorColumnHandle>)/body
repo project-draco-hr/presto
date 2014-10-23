@@ -1,0 +1,31 @@
+{
+  OrcDataSource dataSource=openShard(shardUuid);
+  try {
+    OrcReader reader=new OrcReader(dataSource,new OrcMetadataReader());
+    Map<Long,Integer> indexMap=columnIdIndex(reader.getColumnNames());
+    ImmutableSet.Builder<Integer> includedColumns=ImmutableSet.builder();
+    ImmutableList.Builder<Integer> columnIndexes=ImmutableList.builder();
+    for (    long columnId : columnIds) {
+      Integer index=indexMap.get(columnId);
+      if (index == null) {
+        columnIndexes.add(-1);
+      }
+ else {
+        columnIndexes.add(index);
+        includedColumns.add(index);
+      }
+    }
+    OrcPredicate predicate=getPredicate(effectivePredicate,indexMap);
+    OrcRecordReader recordReader=reader.createRecordReader(includedColumns.build(),predicate,0,dataSource.getSize(),UTC,UTC);
+    return new OrcPageSource(recordReader,dataSource,columnIds,columnTypes,columnIndexes.build());
+  }
+ catch (  IOException|RuntimeException e) {
+    try {
+      dataSource.close();
+    }
+ catch (    IOException ex) {
+      e.addSuppressed(ex);
+    }
+    throw new PrestoException(RAPTOR_ERROR,"Failed to create page source",e);
+  }
+}

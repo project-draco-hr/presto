@@ -1,4 +1,12 @@
 {
-  Slice slice=Slices.wrappedBuffer(value);
-  columnTypes.get(field).writeSlice(nextBlockBuilder(),slice,0,slice.length());
+  Type type=currentType();
+  if (type.equals(VARCHAR)) {
+    rowSink.appendString(new String(value,UTF_8));
+  }
+ else   if (type.equals(VARBINARY)) {
+    rowSink.appendBytes(value);
+  }
+ else {
+    throw unsupportedType(type);
+  }
 }

@@ -1,6 +1,8 @@
 {
   RaptorTableHandle raptorTableHandle=checkType(tableHandle,RaptorTableHandle.class,"tableHandle");
   checkArgument(partitions.size() == 1,"expected exactly one partition");
+  RaptorPartition partition=checkType(getOnlyElement(partitions),RaptorPartition.class,"partition");
+  TupleDomain<RaptorColumnHandle> effectivePredicate=toRaptorTupleDomain(partition.getEffectivePredicate());
   Map<String,Node> nodesById=uniqueIndex(nodeManager.getActiveNodes(),nodeIdentifier());
   ImmutableMultimap.Builder<UUID,String> shardNodes=ImmutableMultimap.builder();
   for (  ShardNode shardNode : shardManager.getShardNodes(raptorTableHandle.getTableId())) {
@@ -14,7 +16,7 @@
     if (addresses.isEmpty()) {
       throw new PrestoException(INTERNAL_ERROR,format("no host for shard %s found: %s",shardId,nodeId));
     }
-    splits.add(new RaptorSplit(shardId,addresses,raptorTableHandle.getCountColumnHandle()));
+    splits.add(new RaptorSplit(shardId,addresses,effectivePredicate));
   }
   Collections.shuffle(splits);
   return new FixedSplitSource(connectorId,splits);

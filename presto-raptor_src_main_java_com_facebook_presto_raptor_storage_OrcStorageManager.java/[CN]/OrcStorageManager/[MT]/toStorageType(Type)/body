@@ -1,0 +1,21 @@
+{
+  Class<?> javaType=type.getJavaType();
+  if (javaType == boolean.class) {
+    return StorageType.BOOLEAN;
+  }
+  if (javaType == long.class) {
+    return StorageType.LONG;
+  }
+  if (javaType == double.class) {
+    return StorageType.DOUBLE;
+  }
+  if (javaType == Slice.class) {
+    if (type.equals(VarcharType.VARCHAR)) {
+      return StorageType.STRING;
+    }
+    if (type.equals(VarbinaryType.VARBINARY)) {
+      return StorageType.BYTES;
+    }
+  }
+  throw new PrestoException(NOT_SUPPORTED,"No storage type for type: " + type);
+}

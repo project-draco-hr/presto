@@ -1,0 +1,32 @@
+{
+  OrcStorageManager manager=new OrcStorageManager(directory);
+  List<Long> columnIds=ImmutableList.of(3L,7L);
+  List<Type> columnTypes=ImmutableList.<Type>of(BIGINT,VARCHAR);
+  OutputHandle handle=manager.createOutputHandle(columnIds,columnTypes,Optional.<Long>absent());
+  RowSink sink=handle.getRowSink();
+  sink.beginRecord(1);
+  sink.appendLong(123);
+  sink.appendString("hello");
+  sink.finishRecord();
+  sink.beginRecord(1);
+  sink.appendLong(456);
+  sink.appendString("bye");
+  sink.finishRecord();
+  manager.commit(handle);
+  File file=manager.getStorageFile(handle.getShardUuid());
+  try (FileOrcDataSource dataSource=new FileOrcDataSource(file)){
+    OrcRecordReader reader=createReader(dataSource,columnIds);
+    assertEquals(reader.nextBatch(),2);
+    LongVector longVector=new LongVector();
+    reader.readVector(0,longVector);
+    assertEquals(longVector.isNull[0],false);
+    assertEquals(longVector.isNull[1],false);
+    assertEquals(longVector.vector[0],123L);
+    assertEquals(longVector.vector[1],456L);
+    SliceVector stringVector=new SliceVector();
+    reader.readVector(1,stringVector);
+    assertEquals(stringVector.vector[0],utf8Slice("hello"));
+    assertEquals(stringVector.vector[1],utf8Slice("bye"));
+    assertEquals(reader.nextBatch(),-1);
+  }
+ }
