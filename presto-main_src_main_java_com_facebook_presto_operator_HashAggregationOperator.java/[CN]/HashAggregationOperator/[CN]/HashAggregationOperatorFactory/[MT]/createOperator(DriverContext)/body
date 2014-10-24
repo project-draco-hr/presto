@@ -1,5 +1,11 @@
 {
   checkState(!closed,"Factory is already closed");
-  OperatorContext operatorContext=driverContext.addOperatorContext(operatorId,HashAggregationOperator.class.getSimpleName());
+  OperatorContext operatorContext;
+  if (step == Step.PARTIAL) {
+    operatorContext=driverContext.addOperatorContext(operatorId,HashAggregationOperator.class.getSimpleName(),maxPartialMemory);
+  }
+ else {
+    operatorContext=driverContext.addOperatorContext(operatorId,HashAggregationOperator.class.getSimpleName());
+  }
   return new HashAggregationOperator(operatorContext,groupByTypes,groupByChannels,step,accumulatorFactories,expectedGroups);
 }
