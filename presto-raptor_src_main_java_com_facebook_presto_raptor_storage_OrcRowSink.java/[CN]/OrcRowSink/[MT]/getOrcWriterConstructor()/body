@@ -1,0 +1,11 @@
+{
+  try {
+    String writerClassName=OrcOutputFormat.class.getName() + "$OrcRecordWriter";
+    Constructor<? extends RecordWriter> constructor=OrcOutputFormat.class.getClassLoader().loadClass(writerClassName).asSubclass(RecordWriter.class).getDeclaredConstructor(Path.class,OrcFile.WriterOptions.class);
+    constructor.setAccessible(true);
+    return constructor;
+  }
+ catch (  ReflectiveOperationException e) {
+    throw Throwables.propagate(e);
+  }
+}
