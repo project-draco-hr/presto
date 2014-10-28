@@ -1,0 +1,21 @@
+{
+  Block valuesBlock=BlockAssertions.createStringSequenceBlock(0,100);
+  Block hashBlock=TypeUtils.getHashBlock(ImmutableList.of(VARCHAR),valuesBlock);
+  GroupByHash groupByHash=new GroupByHash(ImmutableList.of(VARCHAR),new int[]{0},Optional.of(1),100);
+  GroupByIdBlock groupIds=groupByHash.getGroupIds(new Page(valuesBlock,hashBlock));
+  for (int i=0; i < groupIds.getPositionCount(); i++) {
+    assertEquals(groupIds.getGroupId(i),i);
+  }
+  assertEquals(groupByHash.getGroupCount(),100);
+  PageBuilder pageBuilder=new PageBuilder(groupByHash.getTypes());
+  for (int i=0; i < groupByHash.getGroupCount(); i++) {
+    groupByHash.appendValuesTo(i,pageBuilder,0);
+  }
+  Page page=pageBuilder.build();
+  for (int i=0; i < groupByHash.getTypes().size(); i++) {
+    assertEquals(page.getBlock(i).getPositionCount(),100);
+  }
+  assertEquals(page.getPositionCount(),100);
+  BlockAssertions.assertBlockEquals(VARCHAR,page.getBlock(0),valuesBlock);
+  BlockAssertions.assertBlockEquals(BIGINT,page.getBlock(1),hashBlock);
+}

@@ -1,5 +1,8 @@
 {
   ImmutableSet.Builder<Symbol> expectedInputs=ImmutableSet.<Symbol>builder().addAll(node.getGroupBy());
+  if (node.getHashSymbol().isPresent()) {
+    expectedInputs.add(node.getHashSymbol().get());
+  }
   ImmutableMap.Builder<Symbol,Signature> functions=ImmutableMap.builder();
   ImmutableMap.Builder<Symbol,FunctionCall> functionCalls=ImmutableMap.builder();
   ImmutableMap.Builder<Symbol,Symbol> masks=ImmutableMap.builder();
@@ -20,5 +23,5 @@
     expectedInputs.add(node.getSampleWeight().get());
   }
   PlanNode source=planRewriter.rewrite(node.getSource(),expectedInputs.build());
-  return new AggregationNode(node.getId(),source,node.getGroupBy(),functionCalls.build(),functions.build(),masks.build(),node.getSampleWeight(),node.getConfidence());
+  return new AggregationNode(node.getId(),source,node.getGroupBy(),functionCalls.build(),functions.build(),masks.build(),node.getSampleWeight(),node.getConfidence(),node.getHashSymbol());
 }

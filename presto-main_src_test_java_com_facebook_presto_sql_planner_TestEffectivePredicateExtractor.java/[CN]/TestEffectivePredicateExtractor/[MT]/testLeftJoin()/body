@@ -7,7 +7,7 @@
   TableScanNode leftScan=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(leftAssignments.keySet()),leftAssignments,null,Optional.<GeneratedPartitions>absent());
   Map<Symbol,ColumnHandle> rightAssignments=Maps.filterKeys(scanAssignments,Predicates.in(ImmutableList.of(D,E,F)));
   TableScanNode rightScan=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(rightAssignments.keySet()),rightAssignments,null,Optional.<GeneratedPartitions>absent());
-  PlanNode node=new JoinNode(newId(),JoinNode.Type.LEFT,filter(leftScan,and(lessThan(BE,AE),lessThan(CE,number(10)))),filter(rightScan,and(equals(DE,EE),lessThan(FE,number(100)))),criteria);
+  PlanNode node=new JoinNode(newId(),JoinNode.Type.LEFT,filter(leftScan,and(lessThan(BE,AE),lessThan(CE,number(10)))),filter(rightScan,and(equals(DE,EE),lessThan(FE,number(100)))),criteria,Optional.<Symbol>absent(),Optional.<Symbol>absent());
   Expression effectivePredicate=EffectivePredicateExtractor.extract(node,TYPES);
   Assert.assertEquals(normalizeConjuncts(effectivePredicate),normalizeConjuncts(lessThan(BE,AE),lessThan(CE,number(10)),or(equals(DE,EE),and(isNull(DE),isNull(EE))),or(lessThan(FE,number(100)),isNull(FE)),or(equals(AE,DE),isNull(DE)),or(equals(BE,EE),isNull(EE))));
 }

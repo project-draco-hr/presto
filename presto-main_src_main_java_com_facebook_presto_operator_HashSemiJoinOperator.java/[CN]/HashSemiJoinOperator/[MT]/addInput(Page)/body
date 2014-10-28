@@ -4,13 +4,19 @@
   checkState(channelSet != null,"Set has not been built yet");
   checkState(outputPage == null,"Operator still has pending output");
   BlockBuilder blockBuilder=BOOLEAN.createFixedSizeBlockBuilder(page.getPositionCount());
-  Block probeJoinBlock=page.getBlock(probeJoinChannel);
+  Page probeJoinPage=new Page(page.getBlock(probeJoinChannel));
   for (int position=0; position < page.getPositionCount(); position++) {
-    if (probeJoinBlock.isNull(position)) {
+    if (probeJoinPage.getBlock(0).isNull(position)) {
       blockBuilder.appendNull();
     }
  else {
-      boolean contains=channelSet.contains(position,probeJoinBlock);
+      boolean contains;
+      if (probeHashChannel.isPresent()) {
+        contains=channelSet.contains(position,probeJoinPage,page.getBlock(probeHashChannel.get()));
+      }
+ else {
+        contains=channelSet.contains(position,probeJoinPage);
+      }
       if (!contains && channelSet.containsNull()) {
         blockBuilder.appendNull();
       }

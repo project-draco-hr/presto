@@ -3,10 +3,10 @@
     PlanNode rewrittenSource=planRewriter.rewrite(node.getSource(),null);
     Optional<Integer> limit=getLimit(node,filter);
     if (node.getOrderBy().isEmpty()) {
-      return new RowNumberNode(idAllocator.getNextId(),rewrittenSource,node.getPartitionBy(),getOnlyElement(node.getWindowFunctions().keySet()),limit);
+      return new RowNumberNode(idAllocator.getNextId(),rewrittenSource,node.getPartitionBy(),getOnlyElement(node.getWindowFunctions().keySet()),limit,Optional.<Symbol>absent());
     }
     if (limit.isPresent()) {
-      return new TopNRowNumberNode(idAllocator.getNextId(),rewrittenSource,node.getPartitionBy(),node.getOrderBy(),node.getOrderings(),getOnlyElement(node.getWindowFunctions().keySet()),limit.get(),false);
+      return new TopNRowNumberNode(idAllocator.getNextId(),rewrittenSource,node.getPartitionBy(),node.getOrderBy(),node.getOrderings(),getOnlyElement(node.getWindowFunctions().keySet()),limit.get(),false,Optional.<Symbol>absent());
     }
   }
   return planRewriter.defaultRewrite(node,null);

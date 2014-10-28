@@ -1,0 +1,12 @@
+{
+  Block[] blocks=Arrays.copyOf(page.getBlocks(),page.getChannelCount() + 1);
+  ImmutableList.Builder<Type> hashTypes=ImmutableList.builder();
+  Block[] hashBlocks=new Block[hashChannels.size()];
+  int hashBlockIndex=0;
+  for (  int channel : hashChannels) {
+    hashTypes.add(types.get(channel));
+    hashBlocks[hashBlockIndex++]=blocks[channel];
+  }
+  blocks[page.getChannelCount()]=getHashBlock(hashTypes.build(),hashBlocks);
+  return new Page(blocks);
+}

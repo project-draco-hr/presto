@@ -1,7 +1,17 @@
 {
-  Set<Symbol> probeInputs=ImmutableSet.<Symbol>builder().addAll(expectedOutputs).addAll(Iterables.transform(node.getCriteria(),IndexJoinNode.EquiJoinClause.probeGetter())).build();
-  Set<Symbol> indexInputs=ImmutableSet.<Symbol>builder().addAll(expectedOutputs).addAll(Iterables.transform(node.getCriteria(),IndexJoinNode.EquiJoinClause.indexGetter())).build();
+  ImmutableSet.Builder<Symbol> probeInputsBuilder=ImmutableSet.builder();
+  probeInputsBuilder.addAll(expectedOutputs).addAll(Iterables.transform(node.getCriteria(),IndexJoinNode.EquiJoinClause.probeGetter()));
+  if (node.getProbeHashSymbol().isPresent()) {
+    probeInputsBuilder.add(node.getProbeHashSymbol().get());
+  }
+  Set<Symbol> probeInputs=probeInputsBuilder.build();
+  ImmutableSet.Builder<Symbol> indexInputBuilder=ImmutableSet.builder();
+  indexInputBuilder.addAll(expectedOutputs).addAll(Iterables.transform(node.getCriteria(),IndexJoinNode.EquiJoinClause.indexGetter()));
+  if (node.getIndexHashSymbol().isPresent()) {
+    indexInputBuilder.add(node.getIndexHashSymbol().get());
+  }
+  Set<Symbol> indexInputs=indexInputBuilder.build();
   PlanNode probeSource=planRewriter.rewrite(node.getProbeSource(),probeInputs);
   PlanNode indexSource=planRewriter.rewrite(node.getIndexSource(),indexInputs);
-  return new IndexJoinNode(node.getId(),node.getType(),probeSource,indexSource,node.getCriteria());
+  return new IndexJoinNode(node.getId(),node.getType(),probeSource,indexSource,node.getCriteria(),node.getProbeHashSymbol(),node.getIndexHashSymbol());
 }

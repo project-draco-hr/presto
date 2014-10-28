@@ -1,7 +1,17 @@
 {
-  Set<Symbol> sourceInputs=ImmutableSet.<Symbol>builder().addAll(expectedOutputs).add(node.getSourceJoinSymbol()).build();
-  Set<Symbol> filteringSourceInputs=ImmutableSet.<Symbol>builder().add(node.getFilteringSourceJoinSymbol()).build();
+  ImmutableSet.Builder<Symbol> sourceInputsBuilder=ImmutableSet.builder();
+  sourceInputsBuilder.addAll(expectedOutputs).add(node.getSourceJoinSymbol());
+  if (node.getSourceHashSymbol().isPresent()) {
+    sourceInputsBuilder.add(node.getSourceHashSymbol().get());
+  }
+  Set<Symbol> sourceInputs=sourceInputsBuilder.build();
+  ImmutableSet.Builder<Symbol> filteringSourceInputBuilder=ImmutableSet.builder();
+  filteringSourceInputBuilder.add(node.getFilteringSourceJoinSymbol());
+  if (node.getFilteringSourceHashSymbol().isPresent()) {
+    filteringSourceInputBuilder.add(node.getFilteringSourceHashSymbol().get());
+  }
+  Set<Symbol> filteringSourceInputs=filteringSourceInputBuilder.build();
   PlanNode source=planRewriter.rewrite(node.getSource(),sourceInputs);
   PlanNode filteringSource=planRewriter.rewrite(node.getFilteringSource(),filteringSourceInputs);
-  return new SemiJoinNode(node.getId(),source,filteringSource,node.getSourceJoinSymbol(),node.getFilteringSourceJoinSymbol(),node.getSemiJoinOutput());
+  return new SemiJoinNode(node.getId(),source,filteringSource,node.getSourceJoinSymbol(),node.getFilteringSourceJoinSymbol(),node.getSemiJoinOutput(),node.getSourceHashSymbol(),node.getFilteringSourceHashSymbol());
 }

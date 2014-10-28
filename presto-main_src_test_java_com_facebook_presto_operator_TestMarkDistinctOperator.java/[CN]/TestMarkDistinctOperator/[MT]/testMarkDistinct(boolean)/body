@@ -1,0 +1,12 @@
+{
+  RowPagesBuilder rowPagesBuilder=rowPagesBuilder(hashEnabled,Ints.asList(0),BIGINT);
+  List<Page> input=rowPagesBuilder.addSequencePage(100,0).addSequencePage(100,0).build();
+  OperatorFactory operatorFactory=new MarkDistinctOperatorFactory(0,rowPagesBuilder.getTypes(),ImmutableList.of(0),rowPagesBuilder.getHashChannel());
+  Operator operator=operatorFactory.createOperator(driverContext);
+  MaterializedResult.Builder expected=resultBuilder(driverContext.getSession(),BIGINT,BOOLEAN);
+  for (int i=0; i < 100; i++) {
+    expected.row(i,true);
+    expected.row(i,false);
+  }
+  OperatorAssertion.assertOperatorEqualsIgnoreOrder(operator,input,expected.build(),hashEnabled,Optional.of(1));
+}

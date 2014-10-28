@@ -1,14 +1,13 @@
 {
   int positionCount=page.getPositionCount();
   BlockBuilder blockBuilder=BIGINT.createFixedSizeBlockBuilder(positionCount);
-  Block[] blocks=new Block[channels.length];
+  Block[] hashBlocks=new Block[channels.length];
   for (int i=0; i < channels.length; i++) {
-    blocks[i]=page.getBlock(channels[i]);
+    hashBlocks[i]=page.getBlock(channels[i]);
   }
-  for (int position=0; position < page.getPositionCount(); position++) {
-    int groupId=putIfAbsent(position,blocks);
+  for (int position=0; position < positionCount; position++) {
+    int groupId=putIfAbsent(position,page,hashBlocks);
     BIGINT.writeLong(blockBuilder,groupId);
   }
-  Block block=blockBuilder.build();
-  return new GroupByIdBlock(nextGroupId,block);
+  return new GroupByIdBlock(nextGroupId,blockBuilder.build());
 }

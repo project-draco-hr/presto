@@ -1,20 +1,3 @@
 {
-  try {
-    LookupSourceFactory lookupSourceFactory=joinCompiler.compileLookupSourceFactory(types,joinChannels);
-    ImmutableList.Builder<Type> joinChannelTypes=ImmutableList.builder();
-    for (    Integer joinChannel : joinChannels) {
-      joinChannelTypes.add(types.get(joinChannel));
-    }
-    LookupSource lookupSource=lookupSourceFactory.createLookupSource(valueAddresses,joinChannelTypes.build(),ImmutableList.<List<Block>>copyOf(channels),operatorContext);
-    return lookupSource;
-  }
- catch (  Exception e) {
-    log.error(e,"Lookup source compile failed for types=%s error=%s",types,e);
-  }
-  PagesHashStrategy hashStrategy=new SimplePagesHashStrategy(types,ImmutableList.<List<Block>>copyOf(channels),joinChannels);
-  ImmutableList.Builder<Type> hashTypes=ImmutableList.builder();
-  for (  Integer channel : joinChannels) {
-    hashTypes.add(types.get(channel));
-  }
-  return new InMemoryJoinHash(valueAddresses,hashTypes.build(),hashStrategy,operatorContext);
+  return createLookupSource(joinChannels,Optional.<Integer>absent());
 }

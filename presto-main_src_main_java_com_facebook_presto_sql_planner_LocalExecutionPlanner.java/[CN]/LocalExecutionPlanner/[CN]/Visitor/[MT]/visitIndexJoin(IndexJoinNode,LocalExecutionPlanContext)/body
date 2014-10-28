@@ -4,6 +4,7 @@
   List<Symbol> indexSymbols=Lists.transform(clauses,indexGetter());
   PhysicalOperation probeSource=node.getProbeSource().accept(this,context);
   List<Integer> probeChannels=getChannelsForSymbols(probeSymbols,probeSource.getLayout());
+  Optional<Integer> probeHashChannel=node.getProbeHashSymbol().transform(channelGetter(probeSource));
   Map<Symbol,Integer> probeKeyLayout=new HashMap<>();
   for (int i=0; i < probeSymbols.size(); i++) {
     probeKeyLayout.put(probeSymbols.get(i),i);
@@ -12,6 +13,7 @@
   LocalExecutionPlanContext indexContext=context.createIndexSourceSubContext(new IndexSourceContext(indexLookupToProbeInput));
   PhysicalOperation indexSource=node.getIndexSource().accept(this,indexContext);
   List<Integer> indexOutputChannels=getChannelsForSymbols(indexSymbols,indexSource.getLayout());
+  Optional<Integer> indexHashChannel=node.getIndexHashSymbol().transform(channelGetter(indexSource));
   Set<Symbol> indexSymbolsNeededBySource=IndexJoinOptimizer.IndexKeyTracer.trace(node.getIndexSource(),ImmutableSet.copyOf(indexSymbols)).keySet();
   Set<Integer> lookupSourceInputChannels=FluentIterable.from(node.getCriteria()).filter(Predicates.compose(in(indexSymbolsNeededBySource),indexGetter())).transform(probeGetter()).transform(Functions.forMap(probeKeyLayout)).toSet();
   Optional<DynamicTupleFilterFactory> dynamicTupleFilterFactory=Optional.absent();
@@ -22,7 +24,7 @@
     dynamicTupleFilterFactory=Optional.of(new DynamicTupleFilterFactory(filterOperatorId,nonLookupInputChannels,nonLookupOutputChannels,indexSource.getTypes()));
   }
   IndexBuildDriverFactoryProvider indexBuildDriverFactoryProvider=new IndexBuildDriverFactoryProvider(indexContext.getNextOperatorId(),indexContext.isInputDriver(),indexSource.getOperatorFactories(),dynamicTupleFilterFactory);
-  IndexLookupSourceSupplier indexLookupSourceSupplier=new IndexLookupSourceSupplier(lookupSourceInputChannels,indexOutputChannels,indexSource.getTypes(),indexBuildDriverFactoryProvider,maxIndexMemorySize,indexJoinLookupStats);
+  IndexLookupSourceSupplier indexLookupSourceSupplier=new IndexLookupSourceSupplier(lookupSourceInputChannels,indexOutputChannels,indexHashChannel,indexSource.getTypes(),indexBuildDriverFactoryProvider,maxIndexMemorySize,indexJoinLookupStats);
   ImmutableMap.Builder<Symbol,Integer> outputMappings=ImmutableMap.builder();
   outputMappings.putAll(probeSource.getLayout());
   int offset=probeSource.getTypes().size();
@@ -33,10 +35,10 @@
   OperatorFactory lookupJoinOperatorFactory;
 switch (node.getType()) {
 case INNER:
-    lookupJoinOperatorFactory=LookupJoinOperators.innerJoin(context.getNextOperatorId(),indexLookupSourceSupplier,probeSource.getTypes(),probeChannels);
+    lookupJoinOperatorFactory=LookupJoinOperators.innerJoin(context.getNextOperatorId(),indexLookupSourceSupplier,probeSource.getTypes(),probeChannels,probeHashChannel);
   break;
 case SOURCE_OUTER:
-lookupJoinOperatorFactory=LookupJoinOperators.outerJoin(context.getNextOperatorId(),indexLookupSourceSupplier,probeSource.getTypes(),probeChannels);
+lookupJoinOperatorFactory=LookupJoinOperators.outerJoin(context.getNextOperatorId(),indexLookupSourceSupplier,probeSource.getTypes(),probeChannels,probeHashChannel);
 break;
 default :
 throw new AssertionError("Unknown type: " + node.getType());

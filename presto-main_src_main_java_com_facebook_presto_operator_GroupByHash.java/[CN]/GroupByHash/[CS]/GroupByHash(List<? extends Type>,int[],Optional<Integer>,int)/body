@@ -1,0 +1,34 @@
+{
+  checkNotNull(hashTypes,"hashTypes is null");
+  checkArgument(hashTypes.size() == hashChannels.length,"hashTypes and hashChannels have different sizes");
+  checkNotNull(inputHashChannel,"inputHashChannel is null");
+  checkArgument(expectedSize > 0,"expectedSize must be greater than zero");
+  this.types=inputHashChannel.isPresent() ? ImmutableList.copyOf(Iterables.concat(hashTypes,ImmutableList.of(BIGINT))) : ImmutableList.copyOf(hashTypes);
+  this.channels=checkNotNull(hashChannels,"hashChannels is null").clone();
+  this.hashGenerator=inputHashChannel.isPresent() ? new PrecomputedHashGenerator(inputHashChannel.get()) : new InterpretedHashGenerator(ImmutableList.copyOf(hashTypes),hashChannels);
+  ImmutableList.Builder<Integer> outputChannels=ImmutableList.builder();
+  ImmutableList.Builder<ObjectArrayList<Block>> channelBuilders=ImmutableList.builder();
+  for (int i=0; i < hashChannels.length; i++) {
+    outputChannels.add(i);
+    channelBuilders.add(ObjectArrayList.wrap(new Block[1024],0));
+  }
+  if (inputHashChannel.isPresent()) {
+    this.precomputedHashChannel=Optional.of(hashChannels.length);
+    channelBuilders.add(ObjectArrayList.wrap(new Block[1024],0));
+  }
+ else {
+    this.precomputedHashChannel=Optional.absent();
+  }
+  this.channelBuilders=channelBuilders.build();
+  PagesHashStrategyFactory pagesHashStrategyFactory=JOIN_COMPILER.compilePagesHashStrategyFactory(this.types,outputChannels.build());
+  hashStrategy=pagesHashStrategyFactory.createPagesHashStrategy(this.channelBuilders,this.precomputedHashChannel);
+  startNewPage();
+  int hashSize=arraySize(expectedSize,FILL_RATIO);
+  maxFill=maxFill(hashSize,FILL_RATIO);
+  mask=hashSize - 1;
+  key=new long[hashSize];
+  Arrays.fill(key,-1);
+  value=new int[hashSize];
+  groupAddress=new LongBigArray();
+  groupAddress.ensureCapacity(maxFill);
+}

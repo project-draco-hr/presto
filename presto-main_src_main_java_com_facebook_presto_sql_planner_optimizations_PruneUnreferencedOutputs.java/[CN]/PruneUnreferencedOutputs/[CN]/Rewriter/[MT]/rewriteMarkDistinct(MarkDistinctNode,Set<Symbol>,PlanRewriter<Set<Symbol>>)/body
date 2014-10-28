@@ -3,6 +3,9 @@
     return planRewriter.rewrite(node.getSource(),expectedOutputs);
   }
   ImmutableSet.Builder<Symbol> expectedInputs=ImmutableSet.<Symbol>builder().addAll(node.getDistinctSymbols()).addAll(expectedOutputs);
+  if (node.getHashSymbol().isPresent()) {
+    expectedInputs.add(node.getHashSymbol().get());
+  }
   PlanNode source=planRewriter.rewrite(node.getSource(),expectedInputs.build());
-  return new MarkDistinctNode(node.getId(),source,node.getMarkerSymbol(),node.getDistinctSymbols());
+  return new MarkDistinctNode(node.getId(),source,node.getMarkerSymbol(),node.getDistinctSymbols(),node.getHashSymbol());
 }

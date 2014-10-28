@@ -9,19 +9,19 @@ case INNER:
 case LEFT:
       right.setRoot(new SinkNode(idAllocator.getNextId(),right.getRoot(),right.getRoot().getOutputSymbols()));
     if (distributedJoins) {
-      right.setHashOutputPartitioning(rightSymbols);
-      left=hashDistributeSubplan(left,leftSymbols);
+      right.setHashOutputPartitioning(rightSymbols,node.getRightHashSymbol().transform(channelGetter(right.getRoot())));
+      left=hashDistributeSubplan(left,leftSymbols,node.getLeftHashSymbol());
     }
-  left.setRoot(new JoinNode(node.getId(),node.getType(),left.getRoot(),new ExchangeNode(idAllocator.getNextId(),right.getId(),right.getRoot().getOutputSymbols()),node.getCriteria()));
+  left.setRoot(new JoinNode(node.getId(),node.getType(),left.getRoot(),new ExchangeNode(idAllocator.getNextId(),right.getId(),right.getRoot().getOutputSymbols()),node.getCriteria(),node.getLeftHashSymbol(),node.getRightHashSymbol()));
 left.addChild(right.build());
 return left;
 case RIGHT:
 left.setRoot(new SinkNode(idAllocator.getNextId(),left.getRoot(),left.getRoot().getOutputSymbols()));
 if (distributedJoins) {
-left.setHashOutputPartitioning(leftSymbols);
-right=hashDistributeSubplan(right,rightSymbols);
+left.setHashOutputPartitioning(leftSymbols,node.getLeftHashSymbol().transform(channelGetter(left.getRoot())));
+right=hashDistributeSubplan(right,rightSymbols,node.getRightHashSymbol());
 }
-right.setRoot(new JoinNode(node.getId(),node.getType(),new ExchangeNode(idAllocator.getNextId(),left.getId(),left.getRoot().getOutputSymbols()),right.getRoot(),node.getCriteria()));
+right.setRoot(new JoinNode(node.getId(),node.getType(),new ExchangeNode(idAllocator.getNextId(),left.getId(),left.getRoot().getOutputSymbols()),right.getRoot(),node.getCriteria(),node.getLeftHashSymbol(),node.getRightHashSymbol()));
 right.addChild(left.build());
 return right;
 default :
@@ -29,7 +29,7 @@ throw new UnsupportedOperationException("Unsupported join type: " + node.getType
 }
 }
  else {
-JoinNode join=new JoinNode(node.getId(),node.getType(),left.getRoot(),right.getRoot(),node.getCriteria());
+JoinNode join=new JoinNode(node.getId(),node.getType(),left.getRoot(),right.getRoot(),node.getCriteria(),node.getLeftHashSymbol(),node.getRightHashSymbol());
 return createSingleNodePlan(join).setChildren(Iterables.concat(left.getChildren(),right.getChildren()));
 }
 }

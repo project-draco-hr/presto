@@ -8,10 +8,10 @@
       current=createSingleNodePlan(source).addChild(current.build());
     }
  else {
-      current.setHashOutputPartitioning(partitionedBy);
+      current.setHashOutputPartitioning(partitionedBy,node.getHashSymbol().transform(channelGetter(current.getRoot())));
       current=createFixedDistributionPlan(source).addChild(current.build());
     }
   }
-  current.setRoot(new RowNumberNode(node.getId(),current.getRoot(),node.getPartitionBy(),node.getRowNumberSymbol(),node.getMaxRowCountPerPartition()));
+  current.setRoot(new RowNumberNode(node.getId(),current.getRoot(),node.getPartitionBy(),node.getRowNumberSymbol(),node.getMaxRowCountPerPartition(),node.getHashSymbol()));
   return current;
 }

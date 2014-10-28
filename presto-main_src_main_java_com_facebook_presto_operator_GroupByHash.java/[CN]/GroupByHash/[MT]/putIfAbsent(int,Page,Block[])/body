@@ -1,0 +1,17 @@
+{
+  int rawHash=hashGenerator.hashPosition(position,page);
+  int hashPosition=((int)Murmur3.hash64(rawHash)) & mask;
+  int groupId=-1;
+  while (key[hashPosition] != -1) {
+    long address=key[hashPosition];
+    if (positionEqualsCurrentRow(decodeSliceIndex(address),decodePosition(address),position,hashBlocks)) {
+      groupId=value[hashPosition];
+      break;
+    }
+    hashPosition=(hashPosition + 1) & mask;
+  }
+  if (groupId < 0) {
+    groupId=addNewGroup(hashPosition,position,page,rawHash);
+  }
+  return groupId;
+}

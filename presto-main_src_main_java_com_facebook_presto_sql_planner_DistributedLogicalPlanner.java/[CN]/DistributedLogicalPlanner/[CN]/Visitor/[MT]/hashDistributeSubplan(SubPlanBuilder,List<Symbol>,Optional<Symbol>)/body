@@ -1,0 +1,7 @@
+{
+  PlanNode sink=new SinkNode(idAllocator.getNextId(),subPlan.getRoot(),subPlan.getRoot().getOutputSymbols());
+  subPlan.setRoot(sink).setHashOutputPartitioning(symbols,hashSymbol.transform(channelGetter(subPlan.getRoot())));
+  PlanNode exchange=new ExchangeNode(idAllocator.getNextId(),subPlan.getId(),sink.getOutputSymbols());
+  subPlan=createFixedDistributionPlan(exchange).addChild(subPlan.build());
+  return subPlan;
+}

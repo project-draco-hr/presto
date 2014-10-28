@@ -1,20 +1,20 @@
 {
   SubPlanBuilder current=node.getSource().accept(this,context);
   if (current.isDistributed()) {
-    current.setRoot(new TopNRowNumberNode(node.getId(),current.getRoot(),node.getPartitionBy(),node.getOrderBy(),node.getOrderings(),node.getRowNumberSymbol(),node.getMaxRowCountPerPartition(),true));
+    current.setRoot(new TopNRowNumberNode(node.getId(),current.getRoot(),node.getPartitionBy(),node.getOrderBy(),node.getOrderings(),node.getRowNumberSymbol(),node.getMaxRowCountPerPartition(),true,node.getHashSymbol()));
     current.setRoot(new SinkNode(idAllocator.getNextId(),current.getRoot(),current.getRoot().getOutputSymbols()));
     ExchangeNode source=new ExchangeNode(idAllocator.getNextId(),current.getId(),current.getRoot().getOutputSymbols());
-    TopNRowNumberNode merge=new TopNRowNumberNode(node.getId(),source,node.getPartitionBy(),node.getOrderBy(),node.getOrderings(),node.getRowNumberSymbol(),node.getMaxRowCountPerPartition(),false);
+    TopNRowNumberNode merge=new TopNRowNumberNode(node.getId(),source,node.getPartitionBy(),node.getOrderBy(),node.getOrderings(),node.getRowNumberSymbol(),node.getMaxRowCountPerPartition(),false,node.getHashSymbol());
     if (node.getPartitionBy().isEmpty()) {
       current=createSingleNodePlan(merge).addChild(current.build());
     }
  else {
-      current.setHashOutputPartitioning(node.getPartitionBy());
+      current.setHashOutputPartitioning(node.getPartitionBy(),node.getHashSymbol().transform(channelGetter(current.getRoot())));
       current=createFixedDistributionPlan(merge).addChild(current.build());
     }
   }
  else {
-    current.setRoot(new TopNRowNumberNode(node.getId(),current.getRoot(),node.getPartitionBy(),node.getOrderBy(),node.getOrderings(),node.getRowNumberSymbol(),node.getMaxRowCountPerPartition(),false));
+    current.setRoot(new TopNRowNumberNode(node.getId(),current.getRoot(),node.getPartitionBy(),node.getOrderBy(),node.getOrderings(),node.getRowNumberSymbol(),node.getMaxRowCountPerPartition(),false,node.getHashSymbol()));
   }
   return current;
 }

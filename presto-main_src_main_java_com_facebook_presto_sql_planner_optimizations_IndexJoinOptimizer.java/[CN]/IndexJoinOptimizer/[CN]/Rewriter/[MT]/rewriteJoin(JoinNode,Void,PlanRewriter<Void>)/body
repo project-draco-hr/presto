@@ -17,20 +17,20 @@
 switch (node.getType()) {
 case INNER:
       if (rightIndexCandidate.isPresent()) {
-        return new IndexJoinNode(idAllocator.getNextId(),IndexJoinNode.Type.INNER,leftRewritten,rightIndexCandidate.get(),createEquiJoinClause(leftJoinSymbols,rightJoinSymbols));
+        return new IndexJoinNode(idAllocator.getNextId(),IndexJoinNode.Type.INNER,leftRewritten,rightIndexCandidate.get(),createEquiJoinClause(leftJoinSymbols,rightJoinSymbols),Optional.<Symbol>absent(),Optional.<Symbol>absent());
       }
  else       if (leftIndexCandidate.isPresent()) {
-        return new IndexJoinNode(idAllocator.getNextId(),IndexJoinNode.Type.INNER,rightRewritten,leftIndexCandidate.get(),createEquiJoinClause(rightJoinSymbols,leftJoinSymbols));
+        return new IndexJoinNode(idAllocator.getNextId(),IndexJoinNode.Type.INNER,rightRewritten,leftIndexCandidate.get(),createEquiJoinClause(rightJoinSymbols,leftJoinSymbols),Optional.<Symbol>absent(),Optional.<Symbol>absent());
       }
     break;
 case LEFT:
   if (rightIndexCandidate.isPresent()) {
-    return new IndexJoinNode(idAllocator.getNextId(),IndexJoinNode.Type.SOURCE_OUTER,leftRewritten,rightIndexCandidate.get(),createEquiJoinClause(leftJoinSymbols,rightJoinSymbols));
+    return new IndexJoinNode(idAllocator.getNextId(),IndexJoinNode.Type.SOURCE_OUTER,leftRewritten,rightIndexCandidate.get(),createEquiJoinClause(leftJoinSymbols,rightJoinSymbols),Optional.<Symbol>absent(),Optional.<Symbol>absent());
   }
 break;
 case RIGHT:
 if (leftIndexCandidate.isPresent()) {
-return new IndexJoinNode(idAllocator.getNextId(),IndexJoinNode.Type.SOURCE_OUTER,rightRewritten,leftIndexCandidate.get(),createEquiJoinClause(rightJoinSymbols,leftJoinSymbols));
+return new IndexJoinNode(idAllocator.getNextId(),IndexJoinNode.Type.SOURCE_OUTER,rightRewritten,leftIndexCandidate.get(),createEquiJoinClause(rightJoinSymbols,leftJoinSymbols),Optional.<Symbol>absent(),Optional.<Symbol>absent());
 }
 break;
 default :
@@ -38,7 +38,7 @@ throw new IllegalArgumentException("Unknown type: " + node.getType());
 }
 }
 if (leftRewritten != node.getLeft() || rightRewritten != node.getRight()) {
-return new JoinNode(node.getId(),node.getType(),leftRewritten,rightRewritten,node.getCriteria());
+return new JoinNode(node.getId(),node.getType(),leftRewritten,rightRewritten,node.getCriteria(),node.getLeftHashSymbol(),node.getRightHashSymbol());
 }
 return node;
 }

@@ -2,5 +2,9 @@
   if (currentRowContainsNull()) {
     return -1;
   }
-  return lookupSource.getJoinPosition(position,probeBlocks);
+  if (probeHashBlock.isPresent()) {
+    int rawHash=(int)BIGINT.getLong(probeHashBlock.get(),position);
+    return lookupSource.getJoinPosition(position,probePage,rawHash);
+  }
+  return lookupSource.getJoinPosition(position,probePage);
 }

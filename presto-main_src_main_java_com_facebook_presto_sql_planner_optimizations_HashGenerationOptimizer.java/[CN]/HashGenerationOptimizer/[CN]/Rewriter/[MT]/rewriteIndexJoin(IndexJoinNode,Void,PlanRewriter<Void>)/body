@@ -1,0 +1,12 @@
+{
+  PlanNode rewrittenIndex=planRewriter.rewrite(node.getIndexSource(),null);
+  PlanNode rewrittenProbe=planRewriter.rewrite(node.getProbeSource(),null);
+  Symbol indexHashSymbol=symbolAllocator.newHashSymbol();
+  Symbol probeHashSymbol=symbolAllocator.newHashSymbol();
+  List<IndexJoinNode.EquiJoinClause> clauses=node.getCriteria();
+  List<Symbol> indexSymbols=Lists.transform(clauses,indexGetter());
+  List<Symbol> probeSymbols=Lists.transform(clauses,probeGetter());
+  PlanNode indexHashProjectNode=getHashProjectNode(idAllocator,rewrittenIndex,indexHashSymbol,indexSymbols);
+  PlanNode probeHashProjectNode=getHashProjectNode(idAllocator,rewrittenProbe,probeHashSymbol,probeSymbols);
+  return new IndexJoinNode(idAllocator.getNextId(),node.getType(),probeHashProjectNode,indexHashProjectNode,node.getCriteria(),Optional.of(probeHashSymbol),Optional.of(indexHashSymbol));
+}

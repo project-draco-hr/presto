@@ -1,0 +1,13 @@
+{
+  List<Page> pages=toPages(operator,input);
+  MaterializedResult actual;
+  if (hashEnabled && !hashChannels.isEmpty()) {
+    List<Page> actualPages=dropChannel(pages,hashChannels);
+    List<Type> expectedTypes=without(operator.getTypes(),hashChannels);
+    actual=toMaterializedResult(operator.getOperatorContext().getSession(),expectedTypes,actualPages);
+  }
+ else {
+    actual=toMaterializedResult(operator.getOperatorContext().getSession(),operator.getTypes(),pages);
+  }
+  assertEquals(actual,expected);
+}

@@ -1,10 +1,10 @@
 {
   Preconditions.checkArgument(EnumSet.of(INNER,RIGHT,LEFT,CROSS).contains(node.getType()),"Unsupported join type: %s",node.getType());
   if (node.getType() == JoinNode.Type.CROSS) {
-    return new JoinNode(node.getId(),JoinNode.Type.INNER,node.getLeft(),node.getRight(),node.getCriteria());
+    return new JoinNode(node.getId(),JoinNode.Type.INNER,node.getLeft(),node.getRight(),node.getCriteria(),node.getLeftHashSymbol(),node.getRightHashSymbol());
   }
   if (node.getType() == JoinNode.Type.INNER || node.getType() == JoinNode.Type.LEFT && !canConvertOuterToInner(node.getRight().getOutputSymbols(),inheritedPredicate) || node.getType() == JoinNode.Type.RIGHT && !canConvertOuterToInner(node.getLeft().getOutputSymbols(),inheritedPredicate)) {
     return node;
   }
-  return new JoinNode(node.getId(),JoinNode.Type.INNER,node.getLeft(),node.getRight(),node.getCriteria());
+  return new JoinNode(node.getId(),JoinNode.Type.INNER,node.getLeft(),node.getRight(),node.getCriteria(),node.getLeftHashSymbol(),node.getRightHashSymbol());
 }

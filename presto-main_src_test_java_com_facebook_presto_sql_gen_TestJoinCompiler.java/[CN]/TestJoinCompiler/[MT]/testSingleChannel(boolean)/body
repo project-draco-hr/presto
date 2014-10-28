@@ -1,0 +1,39 @@
+{
+  List<Type> joinTypes=ImmutableList.<Type>of(VARCHAR);
+  List<Integer> joinChannels=Ints.asList(0);
+  PagesHashStrategyFactory pagesHashStrategyFactory=joinCompiler.compilePagesHashStrategyFactory(joinTypes,joinChannels);
+  List<Block> channel=ImmutableList.of(BlockAssertions.createStringSequenceBlock(10,20),BlockAssertions.createStringSequenceBlock(20,30),BlockAssertions.createStringSequenceBlock(15,25));
+  Optional<Integer> hashChannel=Optional.absent();
+  List<List<Block>> channels=ImmutableList.of(channel);
+  if (hashEnabled) {
+    ImmutableList.Builder<Block> hashChannelBuilder=ImmutableList.builder();
+    for (    Block block : channel) {
+      hashChannelBuilder.add(TypeUtils.getHashBlock(joinTypes,block));
+    }
+    hashChannel=Optional.of(1);
+    channels=ImmutableList.of(channel,hashChannelBuilder.build());
+  }
+  PagesHashStrategy hashStrategy=pagesHashStrategyFactory.createPagesHashStrategy(channels,hashChannel);
+  assertEquals(hashStrategy.getChannelCount(),1);
+  for (int leftBlockIndex=0; leftBlockIndex < channel.size(); leftBlockIndex++) {
+    Block leftBlock=channel.get(leftBlockIndex);
+    PageBuilder pageBuilder=new PageBuilder(ImmutableList.of(VARCHAR));
+    for (int leftBlockPosition=0; leftBlockPosition < leftBlock.getPositionCount(); leftBlockPosition++) {
+      assertEquals(hashStrategy.hashPosition(leftBlockIndex,leftBlockPosition),hashPosition(VARCHAR,leftBlock,leftBlockPosition));
+      assertTrue(hashStrategy.positionEqualsPosition(leftBlockIndex,leftBlockPosition,leftBlockIndex,leftBlockPosition));
+      for (int rightBlockIndex=0; rightBlockIndex < channel.size(); rightBlockIndex++) {
+        Block rightBlock=channel.get(rightBlockIndex);
+        for (int rightBlockPosition=0; rightBlockPosition < rightBlock.getPositionCount(); rightBlockPosition++) {
+          assertEquals(hashStrategy.positionEqualsPosition(leftBlockIndex,leftBlockPosition,rightBlockIndex,rightBlockPosition),positionEqualsPosition(VARCHAR,leftBlock,leftBlockPosition,rightBlock,rightBlockPosition));
+        }
+      }
+      for (      Block rightBlock : channel) {
+        for (int position=0; position < rightBlock.getPositionCount(); position++) {
+          assertEquals(hashStrategy.positionEqualsRow(leftBlockIndex,leftBlockPosition,position,rightBlock),positionEqualsPosition(VARCHAR,leftBlock,leftBlockPosition,rightBlock,position));
+        }
+      }
+      hashStrategy.appendTo(leftBlockIndex,leftBlockPosition,pageBuilder,0);
+    }
+    assertBlockEquals(VARCHAR,pageBuilder.build().getBlock(0),leftBlock);
+  }
+}

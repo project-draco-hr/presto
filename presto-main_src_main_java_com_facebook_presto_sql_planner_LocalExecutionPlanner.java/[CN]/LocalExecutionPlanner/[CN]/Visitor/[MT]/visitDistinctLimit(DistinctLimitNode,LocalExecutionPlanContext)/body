@@ -1,5 +1,7 @@
 {
   PhysicalOperation source=node.getSource().accept(this,context);
-  OperatorFactory operatorFactory=new DistinctLimitOperatorFactory(context.getNextOperatorId(),source.getTypes(),node.getLimit());
+  Optional<Integer> hashChannel=node.getHashSymbol().transform(channelGetter(source));
+  List<Integer> distinctChannels=getChannelsForSymbols(node.getDistinctSymbols(),source.getLayout());
+  OperatorFactory operatorFactory=new DistinctLimitOperatorFactory(context.getNextOperatorId(),source.getTypes(),distinctChannels,node.getLimit(),hashChannel);
   return new PhysicalOperation(operatorFactory,source.getLayout(),source);
 }
