@@ -1,11 +1,13 @@
 {
-  if (!sliceInput.isReadable()) {
+  if (!input.isReadable()) {
     return endOfData();
   }
-  int positions=sliceInput.readInt();
-  Block[] blocks=new Block[blockEncodings.length];
+  int positions=input.readInt();
+  int numberOfBlocks=input.readInt();
+  Block[] blocks=new Block[numberOfBlocks];
   for (int i=0; i < blocks.length; i++) {
-    blocks[i]=blockEncodings[i].readBlock(sliceInput);
+    BlockEncoding encoding=serde.readBlockEncoding(input);
+    blocks[i]=encoding.readBlock(input);
   }
   @SuppressWarnings("UnnecessaryLocalVariable") Page page=new Page(positions,blocks);
   return page;
