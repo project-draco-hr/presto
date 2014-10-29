@@ -52,11 +52,16 @@
     outputDataSize+=driverStats.getOutputDataSize().toBytes();
     outputPositions+=driverStats.getOutputPositions();
   }
-  TreeMap<Integer,OperatorStats> operatorSummaries=new TreeMap<>();
-  for (  Entry<Integer,OperatorStats> entry : this.operatorSummaries.entrySet()) {
-    OperatorStats operator=entry.getValue();
-    operator.add(runningOperators.get(entry.getKey()));
-    operatorSummaries.put(entry.getKey(),operator);
+  TreeMap<Integer,OperatorStats> operatorSummaries=new TreeMap<>(this.operatorSummaries);
+  for (  Entry<Integer,OperatorStats> entry : runningOperators.entries()) {
+    OperatorStats current=operatorSummaries.get(entry.getKey());
+    if (current == null) {
+      current=entry.getValue();
+    }
+ else {
+      current=current.add(entry.getValue());
+    }
+    operatorSummaries.put(entry.getKey(),current);
   }
   return new PipelineStats(inputPipeline,outputPipeline,totalDriers,queuedDrivers,queuedPartitionedDrivers,runningDrivers,runningPartitionedDrivers,completedDrivers,new DataSize(memoryReservation.get(),BYTE).convertToMostSuccinctDataSize(),queuedTime.snapshot(),elapsedTime.snapshot(),new Duration(totalScheduledTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalCpuTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalUserTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalBlockedTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new DataSize(rawInputDataSize,BYTE).convertToMostSuccinctDataSize(),rawInputPositions,new DataSize(processedInputDataSize,BYTE).convertToMostSuccinctDataSize(),processedInputPositions,new DataSize(outputDataSize,BYTE).convertToMostSuccinctDataSize(),outputPositions,ImmutableList.copyOf(operatorSummaries.values()),drivers);
 }
