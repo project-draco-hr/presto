@@ -1,6 +1,8 @@
 {
-  try {
-    OrcFile.WriterOptions options=OrcFile.writerOptions(conf).fileSystem(getFileSystem(target,conf)).compress(SNAPPY);
+  try (ThreadContextClassLoader ignored=new ThreadContextClassLoader(FileSystem.class.getClassLoader())){
+    FileSystem fileSystem=target.getFileSystem(conf);
+    fileSystem.setWriteChecksum(false);
+    OrcFile.WriterOptions options=OrcFile.writerOptions(conf).fileSystem(fileSystem).compress(SNAPPY);
     return WRITER_CONSTRUCTOR.newInstance(target,options);
   }
  catch (  ReflectiveOperationException|IOException e) {

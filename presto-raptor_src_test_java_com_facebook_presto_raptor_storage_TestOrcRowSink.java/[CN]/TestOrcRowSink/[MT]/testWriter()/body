@@ -5,7 +5,7 @@
   File file=new File(directory,System.nanoTime() + ".orc");
   byte[] bytes1=octets(0x00,0xFE,0xFF);
   byte[] bytes3=octets(0x01,0x02,0x19,0x80);
-  try (RowSink sink=new OrcRowSink(columnIds,columnTypes,sampleWeightColumnId,file)){
+  try (ThreadContextClassLoader ignored=new ThreadContextClassLoader(new EmptyClassLoader());RowSink sink=new OrcRowSink(columnIds,columnTypes,sampleWeightColumnId,file)){
     sink.beginRecord(1);
     sink.appendLong(123);
     sink.appendString("hello");
