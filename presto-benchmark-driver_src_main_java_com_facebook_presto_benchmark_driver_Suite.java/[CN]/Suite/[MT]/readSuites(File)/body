@@ -1,0 +1,11 @@
+{
+  checkNotNull(file,"file is null");
+  checkArgument(file.canRead(),"Can not read file: %s" + file);
+  byte[] json=Files.toByteArray(file);
+  Map<String,OptionsJson> options=mapJsonCodec(String.class,OptionsJson.class).fromJson(json);
+  ImmutableList.Builder<Suite> runOptions=ImmutableList.builder();
+  for (  Entry<String,OptionsJson> entry : options.entrySet()) {
+    runOptions.add(entry.getValue().toSuite(entry.getKey()));
+  }
+  return runOptions.build();
+}

@@ -1,0 +1,17 @@
+{
+  checkNotNull(value,"value is null");
+  Matcher matcher=pattern.matcher(value);
+  if (!matcher.matches()) {
+    return Optional.absent();
+  }
+  ImmutableMap.Builder<String,String> fieldsBuilder=ImmutableMap.builder();
+  for (int index=0; index < fieldNames.size(); index++) {
+    String fieldName=fieldNames.get(index);
+    String fieldValue=matcher.group(index + 1);
+    if (fieldValue != null) {
+      fieldsBuilder.put(fieldName,fieldValue);
+    }
+  }
+  Map<String,String> fields=fieldsBuilder.build();
+  return Optional.of(fields);
+}

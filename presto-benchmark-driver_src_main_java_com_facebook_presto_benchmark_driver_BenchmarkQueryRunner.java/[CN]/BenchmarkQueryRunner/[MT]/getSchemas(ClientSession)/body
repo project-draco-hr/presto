@@ -1,0 +1,31 @@
+{
+  failures=0;
+  while (true) {
+    StatementClient client=new StatementClient(httpClient,queryResultsCodec,session,"show schemas");
+    ImmutableList.Builder<String> schemas=ImmutableList.builder();
+    while (client.isValid() && client.advance()) {
+      Iterable<List<Object>> data=client.current().getData();
+      if (data != null) {
+        for (        List<Object> objects : data) {
+          schemas.add(objects.get(0).toString());
+        }
+      }
+    }
+    if (client.isClosed()) {
+      throw new IllegalStateException("Query aborted by user");
+    }
+    if (client.isGone()) {
+      throw new IllegalStateException("Query is gone (server restarted?)");
+    }
+    QueryError resultsError=client.finalResults().getError();
+    if (resultsError != null) {
+      RuntimeException cause=null;
+      if (resultsError.getFailureInfo() != null) {
+        cause=resultsError.getFailureInfo().toException();
+      }
+      handleFailure(cause);
+      continue;
+    }
+    return schemas.build();
+  }
+}

@@ -1,0 +1,18 @@
+{
+  this.template=checkNotNull(template,"template is null");
+  try {
+    this.pattern=Pattern.compile(template);
+  }
+ catch (  Exception e) {
+    throw new IllegalArgumentException("Invalid template: " + template,e);
+  }
+  Map<String,Integer> namedGroups;
+  try {
+    namedGroups=(Map<String,Integer>)NAMED_GROUPS_METHOD.invoke(pattern);
+  }
+ catch (  Exception e) {
+    throw Throwables.propagate(e);
+  }
+  ImmutableSortedMap<Integer,String> sortedGroups=ImmutableSortedMap.copyOf(ImmutableBiMap.copyOf(namedGroups).inverse());
+  this.fieldNames=ImmutableList.copyOf(sortedGroups.values());
+}

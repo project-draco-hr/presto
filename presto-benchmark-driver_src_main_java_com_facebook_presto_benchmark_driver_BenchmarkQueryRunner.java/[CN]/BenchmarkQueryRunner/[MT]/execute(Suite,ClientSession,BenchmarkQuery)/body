@@ -1,0 +1,34 @@
+{
+  failures=0;
+  for (int i=0; i < warm; ) {
+    try {
+      execute(session,query.getSql());
+      i++;
+      failures=0;
+    }
+ catch (    Exception e) {
+      handleFailure(e);
+    }
+  }
+  double[] wallTimeNanos=new double[runs];
+  double[] processCpuTimeNanos=new double[runs];
+  double[] queryCpuTimeNanos=new double[runs];
+  for (int i=0; i < runs; ) {
+    try {
+      long startCpuTime=getTotalCpuTime();
+      long startWallTime=System.nanoTime();
+      StatementStats statementStats=execute(session,query.getSql());
+      long endWallTime=System.nanoTime();
+      long endCpuTime=getTotalCpuTime();
+      wallTimeNanos[i]=endWallTime - startWallTime;
+      processCpuTimeNanos[i]=endCpuTime - startCpuTime;
+      queryCpuTimeNanos[i]=MILLISECONDS.toNanos(statementStats.getCpuTimeMillis());
+      i++;
+      failures=0;
+    }
+ catch (    Exception e) {
+      handleFailure(e);
+    }
+  }
+  return new BenchmarkQueryResult(suite,query,new Stat(wallTimeNanos),new Stat(processCpuTimeNanos),new Stat(queryCpuTimeNanos));
+}

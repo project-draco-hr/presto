@@ -1,0 +1,17 @@
+{
+  checkArgument(warm >= 0,"warm is negative");
+  this.warm=warm;
+  checkArgument(runs >= 1,"runs must be at least 1");
+  this.runs=runs;
+  checkArgument(maxFailures >= 0,"maxFailures must be at least 0");
+  this.maxFailures=maxFailures;
+  this.debug=debug;
+  this.queryResultsCodec=jsonCodec(QueryResults.class);
+  checkNotNull(socksProxy,"socksProxy is null");
+  HttpClientConfig httpClientConfig=new HttpClientConfig();
+  if (socksProxy.isPresent()) {
+    httpClientConfig.setSocksProxy(socksProxy.get());
+  }
+  this.httpClient=new JettyHttpClient(httpClientConfig.setConnectTimeout(new Duration(10,TimeUnit.SECONDS)));
+  nodes=getAllNodes(checkNotNull(serverUri,"serverUri is null"));
+}

@@ -1,0 +1,25 @@
+{
+  List<BenchmarkQuery> queries=suite.selectQueries(this.queries);
+  if (queries.isEmpty()) {
+    return;
+  }
+  ClientSession session=ClientSession.withSessionProperties(clientSession,suite.getSessionProperties());
+  List<BenchmarkSchema> benchmarkSchemas;
+  if (!suite.getSchemaNameTemplates().isEmpty()) {
+    List<String> schemas=queryRunner.getSchemas(session);
+    benchmarkSchemas=suite.selectSchemas(schemas);
+  }
+ else {
+    benchmarkSchemas=ImmutableList.of(new BenchmarkSchema(session.getSchema()));
+  }
+  if (benchmarkSchemas.isEmpty()) {
+    return;
+  }
+  for (  BenchmarkSchema benchmarkSchema : benchmarkSchemas) {
+    for (    BenchmarkQuery benchmarkQuery : queries) {
+      session=ClientSession.withCatalogAndSchema(session,session.getCatalog(),benchmarkSchema.getName());
+      BenchmarkQueryResult result=queryRunner.execute(suite,session,benchmarkQuery);
+      resultsStore.store(benchmarkSchema,result);
+    }
+  }
+}

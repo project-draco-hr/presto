@@ -1,0 +1,20 @@
+{
+  StatementClient client=new StatementClient(httpClient,queryResultsCodec,session,query);
+  while (client.isValid() && client.advance()) {
+  }
+  if (client.isClosed()) {
+    throw new IllegalStateException("Query aborted by user");
+  }
+  if (client.isGone()) {
+    throw new IllegalStateException("Query is gone (server restarted?)");
+  }
+  QueryError resultsError=client.finalResults().getError();
+  if (resultsError != null) {
+    RuntimeException cause=null;
+    if (resultsError.getFailureInfo() != null) {
+      cause=resultsError.getFailureInfo().toException();
+    }
+    throw new IllegalStateException(String.format("Query failed: %s%n",resultsError.getMessage()),cause);
+  }
+  return client.finalResults().getStats();
+}

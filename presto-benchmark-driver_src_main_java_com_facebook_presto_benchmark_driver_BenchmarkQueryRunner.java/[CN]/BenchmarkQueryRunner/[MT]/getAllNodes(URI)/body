@@ -1,0 +1,13 @@
+{
+  Request request=prepareGet().setUri(uriBuilderFrom(server).replacePath("/v1/service/presto").build()).build();
+  JsonResponseHandler<ServiceDescriptorsRepresentation> responseHandler=createJsonResponseHandler(jsonCodec(ServiceDescriptorsRepresentation.class));
+  ServiceDescriptorsRepresentation serviceDescriptors=httpClient.execute(request,responseHandler);
+  ImmutableList.Builder<URI> addresses=ImmutableList.builder();
+  for (  ServiceDescriptor serviceDescriptor : serviceDescriptors.getServiceDescriptors()) {
+    String httpUri=serviceDescriptor.getProperties().get("http");
+    if (httpUri != null) {
+      addresses.add(URI.create(httpUri));
+    }
+  }
+  return addresses.build();
+}

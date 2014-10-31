@@ -1,0 +1,15 @@
+{
+  if (schemaNameTemplates.isEmpty()) {
+    return ImmutableList.of();
+  }
+  ImmutableList.Builder<BenchmarkSchema> benchmarkSchemas=ImmutableList.builder();
+  for (  RegexTemplate schemaNameTemplate : schemaNameTemplates) {
+    for (    String schema : schemas) {
+      Optional<Map<String,String>> tags=schemaNameTemplate.parse(schema);
+      if (tags.isPresent()) {
+        benchmarkSchemas.add(new BenchmarkSchema(schema,tags.get()));
+      }
+    }
+  }
+  return benchmarkSchemas.build();
+}
