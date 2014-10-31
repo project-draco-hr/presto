@@ -3,6 +3,14 @@
   for (  FieldOrExpression fieldOrExpression : Iterables.concat(outputExpressions,orderByExpressions)) {
     if (fieldOrExpression.isExpression()) {
       extractor.process(fieldOrExpression.getExpression(),null);
+      if (fieldOrExpression.getExpression() instanceof FunctionCall) {
+        FunctionCall functionCall=(FunctionCall)fieldOrExpression.getExpression();
+        FunctionInfo functionInfo=analysis.getFunctionInfo(functionCall);
+        checkState(functionInfo != null,"functionInfo is null");
+        if (functionInfo.isWindow() && !functionCall.getWindow().isPresent()) {
+          throw new SemanticException(WINDOW_REQUIRES_OVER,node,"Window function %s requires an OVER clause",functionInfo.getName());
+        }
+      }
     }
   }
   List<FunctionCall> windowFunctions=extractor.getWindowFunctions();
