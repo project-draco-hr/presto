@@ -1,9 +1,4 @@
 {
-  if (!checkCorrectness) {
-    testResult=executeQuery(testGateway,testUsername,testPassword,queryPair.getTest(),testTimeout);
-    controlResult=testResult;
-    return testResult.getState() == State.SUCCESS;
-  }
   controlResult=executeQuery(controlGateway,controlUsername,controlPassword,queryPair.getControl(),controlTimeout);
   if (controlResult.getState() == State.TOO_MANY_ROWS) {
     testResult=new QueryResult(State.INVALID,null,null,ImmutableList.<List<Object>>of());
@@ -16,6 +11,9 @@
   testResult=executeQuery(testGateway,testUsername,testPassword,queryPair.getTest(),testTimeout);
   if ((controlResult.getState() != State.SUCCESS) || (testResult.getState() != State.SUCCESS)) {
     return false;
+  }
+  if (!checkCorrectness) {
+    return true;
   }
   if (resultsMatch(controlResult,testResult)) {
     return true;
