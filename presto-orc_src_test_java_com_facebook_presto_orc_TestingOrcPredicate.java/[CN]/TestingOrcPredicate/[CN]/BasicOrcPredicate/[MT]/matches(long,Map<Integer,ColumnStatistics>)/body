@@ -1,0 +1,27 @@
+{
+  ColumnStatistics columnStatistics=statisticsByColumnIndex.get(0);
+  assertTrue(columnStatistics.hasNumberOfValues());
+  if (numberOfRows == expectedValues.size()) {
+    assertChunkStats(expectedValues,columnStatistics);
+  }
+ else   if (numberOfRows == ORC_ROW_GROUP_SIZE) {
+    boolean foundMatch=false;
+    int length;
+    for (int offset=0; offset < expectedValues.size(); offset+=length) {
+      length=Math.min(ORC_ROW_GROUP_SIZE,expectedValues.size() - offset);
+      if (chunkMatchesStats(expectedValues.subList(offset,offset + length),columnStatistics)) {
+        foundMatch=true;
+        break;
+      }
+    }
+    assertTrue(foundMatch);
+  }
+ else   if (numberOfRows == expectedValues.size() % ORC_ROW_GROUP_SIZE) {
+    List<T> chunk=expectedValues.subList((int)(expectedValues.size() - numberOfRows),expectedValues.size());
+    assertChunkStats(chunk,columnStatistics);
+  }
+ else {
+    fail("Unexpected number of rows: " + numberOfRows);
+  }
+  return true;
+}

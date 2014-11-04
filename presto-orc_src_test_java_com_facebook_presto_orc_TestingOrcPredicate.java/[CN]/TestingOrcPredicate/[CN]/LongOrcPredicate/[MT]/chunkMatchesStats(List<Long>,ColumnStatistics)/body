@@ -1,0 +1,18 @@
+{
+  assertNull(columnStatistics.getBooleanStatistics());
+  assertNull(columnStatistics.getDoubleStatistics());
+  assertNull(columnStatistics.getStringStatistics());
+  assertNull(columnStatistics.getDateStatistics());
+  if (!super.chunkMatchesStats(chunk,columnStatistics)) {
+    return false;
+  }
+  if (columnStatistics.getIntegerStatistics() != null) {
+    if (!columnStatistics.getIntegerStatistics().getMin().equals(Ordering.natural().nullsLast().min(chunk))) {
+      return false;
+    }
+    if (!columnStatistics.getIntegerStatistics().getMax().equals(Ordering.natural().nullsFirst().max(chunk))) {
+      return false;
+    }
+  }
+  return true;
+}
