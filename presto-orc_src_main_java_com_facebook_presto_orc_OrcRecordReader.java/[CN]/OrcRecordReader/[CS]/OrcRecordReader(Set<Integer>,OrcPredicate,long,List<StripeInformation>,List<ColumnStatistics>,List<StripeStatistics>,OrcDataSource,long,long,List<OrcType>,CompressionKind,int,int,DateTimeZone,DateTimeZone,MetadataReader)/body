@@ -21,10 +21,10 @@
   checkArgument(rowsInRowGroup > 0,"rowsInRowGroup must be greater than zero");
   long totalRowCount=0;
   ImmutableList.Builder<StripeInformation> stripes=ImmutableList.builder();
-  if (predicate.matches(numberOfRows,indexByOrdinal(fileStats))) {
+  if (predicate.matches(numberOfRows,getStatisticsByColumnOrdinal(root,fileStats))) {
     for (int stripeIndex=0; stripeIndex < fileStripes.size(); stripeIndex++) {
       StripeInformation stripe=fileStripes.get(stripeIndex);
-      if (splitContainsStripe(splitOffset,splitLength,stripe) && isStripeIncluded(stripe,stripeStats,predicate,stripeIndex)) {
+      if (splitContainsStripe(splitOffset,splitLength,stripe) && isStripeIncluded(root,stripe,stripeStats,predicate,stripeIndex)) {
         stripes.add(stripe);
         totalRowCount+=stripe.getNumberOfRows();
       }

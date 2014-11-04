@@ -1,0 +1,14 @@
+{
+  checkNotNull(rootStructType,"rootStructType is null");
+  checkArgument(rootStructType.getOrcTypeKind() == OrcTypeKind.STRUCT);
+  checkNotNull(columnIndexes,"columnIndexes is null");
+  checkArgument(rowGroup >= 0,"rowGroup is negative");
+  ImmutableMap.Builder<Integer,ColumnStatistics> statistics=ImmutableMap.builder();
+  for (int ordinal=0; ordinal < rootStructType.getFieldCount(); ordinal++) {
+    List<RowGroupIndex> rowGroupIndexes=columnIndexes.get(rootStructType.getFieldTypeIndex(ordinal));
+    if (rowGroupIndexes != null) {
+      statistics.put(ordinal,rowGroupIndexes.get(rowGroup).getColumnStatistics());
+    }
+  }
+  return statistics.build();
+}
