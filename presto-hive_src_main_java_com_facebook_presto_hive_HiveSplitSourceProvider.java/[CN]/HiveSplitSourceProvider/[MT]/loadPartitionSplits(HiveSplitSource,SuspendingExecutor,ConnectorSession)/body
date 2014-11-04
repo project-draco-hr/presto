@@ -6,7 +6,7 @@
       final String partitionName=partition.getHivePartition().getPartitionId();
       final Properties schema=getPartitionSchema(table,partition.getPartition());
       final List<HivePartitionKey> partitionKeys=getPartitionKeys(table,partition.getPartition());
-      final TupleDomain<HiveColumnHandle> tupleDomain=(TupleDomain<HiveColumnHandle>)(Object)partition.getHivePartition().getTupleDomain();
+      final TupleDomain<HiveColumnHandle> effectivePredicate=partition.getHivePartition().getEffectivePredicate();
       Path path=new Path(getPartitionLocation(table,partition.getPartition()));
       Configuration configuration=hdfsEnvironment.getConfiguration(path);
       final InputFormat<?,?> inputFormat=getInputFormat(configuration,schema,false);
@@ -18,7 +18,7 @@
           FileSplit split=((SymlinkTextInputFormat.SymlinkTextInputSplit)rawSplit).getTargetSplit();
           FileSystem targetFilesystem=hdfsEnvironment.getFileSystem(split.getPath());
           FileStatus fileStatus=targetFilesystem.getFileStatus(split.getPath());
-          hiveSplitSource.addToQueue(createHiveSplits(partitionName,fileStatus,targetFilesystem.getFileBlockLocations(fileStatus,split.getStart(),split.getLength()),split.getStart(),split.getLength(),schema,partitionKeys,false,session,partition.getHivePartition().getEffectivePredicate()));
+          hiveSplitSource.addToQueue(createHiveSplits(partitionName,fileStatus,targetFilesystem.getFileBlockLocations(fileStatus,split.getStart(),split.getLength()),split.getStart(),split.getLength(),schema,partitionKeys,false,session,effectivePredicate));
         }
         continue;
       }
@@ -29,7 +29,7 @@
           FileStatus file=bucketFile.get();
           BlockLocation[] blockLocations=fs.getFileBlockLocations(file,0,file.getLen());
           boolean splittable=isSplittable(inputFormat,fs,file.getPath());
-          hiveSplitSource.addToQueue(createHiveSplits(partitionName,file,blockLocations,0,file.getLen(),schema,partitionKeys,splittable,session,tupleDomain));
+          hiveSplitSource.addToQueue(createHiveSplits(partitionName,file,blockLocations,0,file.getLen(),schema,partitionKeys,splittable,session,effectivePredicate));
           continue;
         }
       }
@@ -44,7 +44,7 @@
         @Override public void process(        FileStatus file,        BlockLocation[] blockLocations){
           try {
             boolean splittable=isSplittable(inputFormat,hdfsEnvironment.getFileSystem(file.getPath()),file.getPath());
-            hiveSplitSource.addToQueue(createHiveSplits(partitionName,file,blockLocations,0,file.getLen(),schema,partitionKeys,splittable,session,tupleDomain));
+            hiveSplitSource.addToQueue(createHiveSplits(partitionName,file,blockLocations,0,file.getLen(),schema,partitionKeys,splittable,session,effectivePredicate));
           }
  catch (          IOException e) {
             hiveSplitSource.fail(e);
