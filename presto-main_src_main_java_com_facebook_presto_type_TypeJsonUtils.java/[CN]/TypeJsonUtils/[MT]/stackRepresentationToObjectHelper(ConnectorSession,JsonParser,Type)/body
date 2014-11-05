@@ -42,7 +42,14 @@
     type.writeLong(blockBuilder,parser.getLongValue());
   }
  else   if (type.getJavaType() == double.class) {
-    type.writeDouble(blockBuilder,parser.getDoubleValue());
+    double value;
+    try {
+      value=parser.getDoubleValue();
+    }
+ catch (    JsonParseException e) {
+      value=Double.parseDouble(parser.getValueAsString());
+    }
+    type.writeDouble(blockBuilder,value);
   }
  else   if (type.getJavaType() == Slice.class) {
     type.writeSlice(blockBuilder,Slices.utf8Slice(parser.getValueAsString()));
