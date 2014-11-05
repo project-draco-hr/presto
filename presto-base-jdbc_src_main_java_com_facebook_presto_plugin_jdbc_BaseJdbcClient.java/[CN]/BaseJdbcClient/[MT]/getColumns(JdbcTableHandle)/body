@@ -1,7 +1,6 @@
 {
   try (Connection connection=driver.connect(connectionUrl,connectionProperties)){
-    DatabaseMetaData metadata=connection.getMetaData();
-    try (ResultSet resultSet=metadata.getColumns(tableHandle.getCatalogName(),tableHandle.getSchemaName(),tableHandle.getTableName(),null)){
+    try (ResultSet resultSet=getColumns(tableHandle,connection.getMetaData())){
       List<JdbcColumnHandle> columns=new ArrayList<>();
       boolean found=false;
       while (resultSet.next()) {

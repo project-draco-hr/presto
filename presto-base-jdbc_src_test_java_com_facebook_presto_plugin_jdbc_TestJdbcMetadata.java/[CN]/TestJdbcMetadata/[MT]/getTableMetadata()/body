@@ -2,6 +2,10 @@
   ConnectorTableMetadata tableMetadata=metadata.getTableMetadata(SESSION,tableHandle);
   assertEquals(tableMetadata.getTable(),new SchemaTableName("example","numbers"));
   assertEquals(tableMetadata.getColumns(),ImmutableList.of(new ColumnMetadata("text",VARCHAR,false),new ColumnMetadata("value",BIGINT,false)));
+  JdbcTableHandle specialTableHandle=metadata.getTableHandle(SESSION,new SchemaTableName("exa_ple","num_ers"));
+  ConnectorTableMetadata specialTableMetadata=metadata.getTableMetadata(SESSION,specialTableHandle);
+  assertEquals(specialTableMetadata.getTable(),new SchemaTableName("exa_ple","num_ers"));
+  assertEquals(specialTableMetadata.getColumns(),ImmutableList.of(new ColumnMetadata("te_t",VARCHAR,false),new ColumnMetadata("va%ue",BIGINT,false)));
   unknownTableMetadata(new JdbcTableHandle(CONNECTOR_ID,new SchemaTableName("u","numbers"),null,"unknown","unknown"));
   unknownTableMetadata(new JdbcTableHandle(CONNECTOR_ID,new SchemaTableName("example","numbers"),null,"example","unknown"));
   unknownTableMetadata(new JdbcTableHandle(CONNECTOR_ID,new SchemaTableName("example","numbers"),null,"unknown","numbers"));
