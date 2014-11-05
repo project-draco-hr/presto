@@ -1,10 +1,10 @@
 {
   PlanNode source=planRewriter.rewrite(node.getSource(),context);
   if (node.getOutputSymbols().size() != source.getOutputSymbols().size()) {
-    return new ProjectNode(node.getId(),source,node.getOutputMap());
+    return new ProjectNode(node.getId(),source,node.getAssignments());
   }
   boolean canElide=true;
-  for (  Map.Entry<Symbol,Expression> entry : node.getOutputMap().entrySet()) {
+  for (  Map.Entry<Symbol,Expression> entry : node.getAssignments().entrySet()) {
     Expression expression=entry.getValue();
     Symbol symbol=entry.getKey();
     if (!(expression instanceof QualifiedNameReference && ((QualifiedNameReference)expression).getName().equals(symbol.toQualifiedName()))) {
@@ -15,5 +15,5 @@
   if (canElide) {
     return source;
   }
-  return new ProjectNode(node.getId(),source,node.getOutputMap());
+  return new ProjectNode(node.getId(),source,node.getAssignments());
 }
