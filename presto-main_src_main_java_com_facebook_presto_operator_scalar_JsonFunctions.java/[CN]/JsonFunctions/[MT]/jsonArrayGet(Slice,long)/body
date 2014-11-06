@@ -1,5 +1,5 @@
 {
-  try (JsonParser parser=JSON_FACTORY.createJsonParser(json.getInput())){
+  try (JsonParser parser=MAPPING_JSON_FACTORY.createJsonParser(json.getInput())){
     if (parser.nextToken() != START_ARRAY) {
       return null;
     }
@@ -19,15 +19,18 @@
         }
         return null;
       }
-      parser.skipChildren();
+      String arrayElement;
+      if (token == START_OBJECT || token == START_ARRAY) {
+        arrayElement=parser.readValueAsTree().toString();
+      }
+ else {
+        arrayElement=parser.getValueAsString();
+      }
       if (count == index) {
-        if (parser.getValueAsString() == null) {
-          return null;
-        }
-        return utf8Slice(parser.getValueAsString());
+        return arrayElement == null ? null : utf8Slice(arrayElement);
       }
       if (tokens != null) {
-        tokens.add(parser.getValueAsString());
+        tokens.add(arrayElement);
         if (count >= index * -1) {
           tokens.remove(0);
         }
