@@ -16,18 +16,18 @@
   queryManagementExecutor.scheduleAtFixedRate(new Runnable(){
     @Override public void run(){
       try {
-        removeExpiredQueries();
-      }
- catch (      Throwable e) {
-        log.warn(e,"Error removing old queries");
-      }
-      try {
         failAbandonedQueries();
       }
  catch (      Throwable e) {
-        log.warn(e,"Error removing old queries");
+        log.warn(e,"Error cancelling abandoned queries");
+      }
+      try {
+        removeExpiredQueries();
+      }
+ catch (      Throwable e) {
+        log.warn(e,"Error removing expired queries");
       }
     }
   }
-,200,200,TimeUnit.MILLISECONDS);
+,1,1,TimeUnit.SECONDS);
 }

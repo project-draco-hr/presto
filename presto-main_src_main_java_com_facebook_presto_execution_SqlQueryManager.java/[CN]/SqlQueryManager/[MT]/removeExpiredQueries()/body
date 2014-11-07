@@ -1,17 +1,15 @@
 {
-  List<QueryExecution> sortedQueries=IterableTransformer.on(queries.values()).select(compose(not(isNull()),endTimeGetter())).orderBy(Ordering.natural().onResultOf(endTimeGetter())).list();
-  int toRemove=Math.max(sortedQueries.size() - maxQueryHistory,0);
+  while (expirationQueue.size() > maxQueryHistory) {
+    QueryExecution query=expirationQueue.remove();
+    removeQuery(query.getQueryInfo().getQueryId());
+  }
   DateTime oldestAllowedQuery=DateTime.now().minus(maxQueryAge.toMillis());
-  for (  QueryExecution queryExecution : sortedQueries) {
-    try {
-      DateTime endTime=queryExecution.getQueryInfo().getQueryStats().getEndTime();
-      if ((endTime.isBefore(oldestAllowedQuery) || toRemove > 0) && isAbandoned(queryExecution)) {
-        removeQuery(queryExecution.getQueryInfo().getQueryId());
-        --toRemove;
-      }
+  while (expirationQueue.size() > 0) {
+    QueryExecution query=expirationQueue.peek();
+    if (query.getQueryInfo().getQueryStats().getEndTime().isAfter(oldestAllowedQuery)) {
+      return;
     }
- catch (    RuntimeException e) {
-      log.warn(e,"Error while inspecting age of query %s",queryExecution.getQueryInfo().getQueryId());
-    }
+    removeQuery(query.getQueryInfo().getQueryId());
+    expirationQueue.remove();
   }
 }
