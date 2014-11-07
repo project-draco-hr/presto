@@ -1,0 +1,9 @@
+{
+  ImmutableMap.Builder<HiveColumnHandle,Domain> builder=ImmutableMap.builder();
+  for (  Entry<ConnectorColumnHandle,Domain> entry : effectivePredicate.getDomains().entrySet()) {
+    HiveColumnHandle hiveColumnHandle=checkType(entry.getKey(),HiveColumnHandle.class,"ColumnHandle");
+    Range span=entry.getValue().getRanges().getSpan();
+    builder.put(hiveColumnHandle,new Domain(SortedRangeSet.of(span),entry.getValue().isNullAllowed()));
+  }
+  return TupleDomain.withColumnDomains(builder.build());
+}

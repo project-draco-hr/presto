@@ -62,7 +62,7 @@
     throw new TableNotFoundException(tableName);
   }
   Map<String,ConnectorColumnHandle> partitionKeysByName=partitionKeysByNameBuilder.build();
-  List<ConnectorPartition> partitions=FluentIterable.from(partitionNames).transform(toPartition(tableName,partitionKeysByName,bucket,timeZone,toHiveTupleDomain(effectivePredicate))).filter(partitionMatches(effectivePredicate)).filter(ConnectorPartition.class).toList();
+  List<ConnectorPartition> partitions=FluentIterable.from(partitionNames).transform(toPartition(tableName,partitionKeysByName,bucket,timeZone,toCompactTupleDomain(effectivePredicate))).filter(partitionMatches(effectivePredicate)).filter(ConnectorPartition.class).toList();
   TupleDomain<ConnectorColumnHandle> remainingTupleDomain=TupleDomain.none();
   if (!effectivePredicate.isNone()) {
     remainingTupleDomain=TupleDomain.withColumnDomains(Maps.filterKeys(effectivePredicate.getDomains(),not(in(partitionKeysByName.values()))));
