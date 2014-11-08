@@ -21,7 +21,7 @@
   }
   if (criteria instanceof JoinUsing) {
     List<String> columns=((JoinUsing)criteria).getColumns();
-    ImmutableList.Builder<EquiJoinClause> builder=ImmutableList.builder();
+    List<Expression> expressions=new ArrayList<>();
     for (    String column : columns) {
       Expression leftExpression=new QualifiedNameReference(QualifiedName.of(column));
       Expression rightExpression=new QualifiedNameReference(QualifiedName.of(column));
@@ -29,9 +29,9 @@
       ExpressionAnalysis rightExpressionAnalysis=ExpressionAnalyzer.analyzeExpression(session,metadata,sqlParser,right,analysis,experimentalSyntaxEnabled,context,rightExpression);
       checkState(leftExpressionAnalysis.getSubqueryInPredicates().isEmpty(),"INVARIANT");
       checkState(rightExpressionAnalysis.getSubqueryInPredicates().isEmpty(),"INVARIANT");
-      builder.add(new EquiJoinClause(leftExpression,rightExpression));
+      expressions.add(new ComparisonExpression(EQUAL,leftExpression,rightExpression));
     }
-    analysis.setEquijoinCriteria(node,builder.build());
+    analysis.setJoinCriteria(node,ExpressionUtils.and(expressions));
   }
  else   if (criteria instanceof JoinOn) {
     Expression expression=((JoinOn)criteria).getExpression();
@@ -42,24 +42,20 @@
     Object optimizedExpression=expressionOptimizer(canonicalized,metadata,session,analyzer.getExpressionTypes()).optimize(NoOpSymbolResolver.INSTANCE);
     if (!(optimizedExpression instanceof Expression) && optimizedExpression instanceof Boolean) {
       if (optimizedExpression.equals(Boolean.TRUE)) {
-        optimizedExpression=new ComparisonExpression(ComparisonExpression.Type.EQUAL,new LongLiteral("0"),new LongLiteral("0"));
+        optimizedExpression=new ComparisonExpression(EQUAL,new LongLiteral("0"),new LongLiteral("0"));
       }
  else {
-        optimizedExpression=new ComparisonExpression(ComparisonExpression.Type.EQUAL,new LongLiteral("0"),new LongLiteral("1"));
+        optimizedExpression=new ComparisonExpression(EQUAL,new LongLiteral("0"),new LongLiteral("1"));
       }
     }
     if (!(optimizedExpression instanceof Expression)) {
       throw new SemanticException(TYPE_MISMATCH,node,"Join clause must be a boolean expression");
     }
-    ImmutableList.Builder<EquiJoinClause> clauses=ImmutableList.builder();
     for (    Expression conjunct : ExpressionUtils.extractConjuncts((Expression)optimizedExpression)) {
       if (!(conjunct instanceof ComparisonExpression)) {
         throw new SemanticException(NOT_SUPPORTED,node,"Non-equi joins not supported: %s",conjunct);
       }
       ComparisonExpression comparison=(ComparisonExpression)conjunct;
-      if (comparison.getType() != ComparisonExpression.Type.EQUAL) {
-        throw new SemanticException(NOT_SUPPORTED,node,"Non-equi joins not supported: %s",conjunct);
-      }
       Set<QualifiedName> firstDependencies=DependencyExtractor.extract(comparison.getLeft());
       Set<QualifiedName> secondDependencies=DependencyExtractor.extract(comparison.getRight());
       Expression leftExpression;
@@ -78,9 +74,8 @@
       ExpressionAnalysis leftExpressionAnalysis=ExpressionAnalyzer.analyzeExpression(session,metadata,sqlParser,left,analysis,experimentalSyntaxEnabled,context,leftExpression);
       ExpressionAnalysis rightExpressionAnalysis=ExpressionAnalyzer.analyzeExpression(session,metadata,sqlParser,right,analysis,experimentalSyntaxEnabled,context,rightExpression);
       analysis.addJoinInPredicates(node,new Analysis.JoinInPredicates(leftExpressionAnalysis.getSubqueryInPredicates(),rightExpressionAnalysis.getSubqueryInPredicates()));
-      clauses.add(new EquiJoinClause(leftExpression,rightExpression));
     }
-    analysis.setEquijoinCriteria(node,clauses.build());
+    analysis.setJoinCriteria(node,(Expression)optimizedExpression);
   }
  else {
     throw new UnsupportedOperationException("unsupported join criteria: " + criteria.getClass().getName());

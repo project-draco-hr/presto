@@ -18,23 +18,70 @@
   PlanBuilder rightPlanBuilder=initializePlanBuilder(rightPlan);
   TupleDescriptor outputDescriptor=analysis.getOutputDescriptor(node);
   List<Symbol> outputSymbols=ImmutableList.<Symbol>builder().addAll(leftPlan.getOutputSymbols()).addAll(rightPlan.getOutputSymbols()).build();
-  ImmutableList.Builder<JoinNode.EquiJoinClause> clauses=ImmutableList.builder();
+  ImmutableList.Builder<JoinNode.EquiJoinClause> equiClauses=ImmutableList.builder();
+  Expression postInnerJoinCriteria=new BooleanLiteral("TRUE");
   if (node.getType() != Join.Type.CROSS && node.getType() != Join.Type.IMPLICIT) {
-    List<EquiJoinClause> criteria=analysis.getJoinCriteria(node);
+    Expression criteria=analysis.getJoinCriteria(node);
+    TupleDescriptor left=analysis.getOutputDescriptor(node.getLeft());
+    TupleDescriptor right=analysis.getOutputDescriptor(node.getRight());
+    List<Expression> leftExpressions=new ArrayList<>();
+    List<Expression> rightExpressions=new ArrayList<>();
+    List<ComparisonExpression.Type> comparisonTypes=new ArrayList<>();
+    for (    Expression conjunct : ExpressionUtils.extractConjuncts(criteria)) {
+      if (!(conjunct instanceof ComparisonExpression)) {
+        throw new SemanticException(NOT_SUPPORTED,node,"Unsupported non-equi join form: %s",conjunct);
+      }
+      ComparisonExpression comparison=(ComparisonExpression)conjunct;
+      ComparisonExpression.Type comparisonType=comparison.getType();
+      if (comparison.getType() != EQUAL && node.getType() != INNER) {
+        throw new SemanticException(NOT_SUPPORTED,node,"Non-equi joins only supported for inner join: %s",conjunct);
+      }
+      Set<QualifiedName> firstDependencies=TupleAnalyzer.DependencyExtractor.extract(comparison.getLeft());
+      Set<QualifiedName> secondDependencies=TupleAnalyzer.DependencyExtractor.extract(comparison.getRight());
+      Expression leftExpression;
+      Expression rightExpression;
+      if (Iterables.all(firstDependencies,left.canResolvePredicate()) && Iterables.all(secondDependencies,right.canResolvePredicate())) {
+        leftExpression=comparison.getLeft();
+        rightExpression=comparison.getRight();
+      }
+ else       if (Iterables.all(firstDependencies,right.canResolvePredicate()) && Iterables.all(secondDependencies,left.canResolvePredicate())) {
+        leftExpression=comparison.getRight();
+        rightExpression=comparison.getLeft();
+        comparisonType=flipComparison(comparisonType);
+      }
+ else {
+        throw new SemanticException(NOT_SUPPORTED,node,"Unsupported non-equi join form: %s",conjunct);
+      }
+      leftExpressions.add(leftExpression);
+      rightExpressions.add(rightExpression);
+      comparisonTypes.add(comparisonType);
+    }
     Analysis.JoinInPredicates joinInPredicates=analysis.getJoinInPredicates(node);
     if (joinInPredicates != null) {
       leftPlanBuilder=appendSemiJoins(leftPlanBuilder,joinInPredicates.getLeftInPredicates());
       rightPlanBuilder=appendSemiJoins(rightPlanBuilder,joinInPredicates.getRightInPredicates());
     }
-    leftPlanBuilder=appendProjections(leftPlanBuilder,Iterables.transform(criteria,leftGetter()));
-    rightPlanBuilder=appendProjections(rightPlanBuilder,Iterables.transform(criteria,rightGetter()));
-    for (    EquiJoinClause clause : criteria) {
-      Symbol leftSymbol=leftPlanBuilder.translate(clause.getLeft());
-      Symbol rightSymbol=rightPlanBuilder.translate(clause.getRight());
-      clauses.add(new JoinNode.EquiJoinClause(leftSymbol,rightSymbol));
+    leftPlanBuilder=appendProjections(leftPlanBuilder,leftExpressions);
+    rightPlanBuilder=appendProjections(rightPlanBuilder,rightExpressions);
+    List<Expression> postInnerJoinComparisons=new ArrayList<>();
+    for (int i=0; i < comparisonTypes.size(); i++) {
+      Symbol leftSymbol=leftPlanBuilder.translate(leftExpressions.get(i));
+      Symbol rightSymbol=rightPlanBuilder.translate(rightExpressions.get(i));
+      equiClauses.add(new JoinNode.EquiJoinClause(leftSymbol,rightSymbol));
+      Expression leftExpression=leftPlanBuilder.rewrite(leftExpressions.get(i));
+      Expression rightExpression=rightPlanBuilder.rewrite(rightExpressions.get(i));
+      postInnerJoinComparisons.add(new ComparisonExpression(comparisonTypes.get(i),leftExpression,rightExpression));
     }
+    postInnerJoinCriteria=ExpressionUtils.and(postInnerJoinComparisons);
   }
-  PlanNode root=new JoinNode(idAllocator.getNextId(),JoinNode.Type.typeConvert(node.getType()),leftPlanBuilder.getRoot(),rightPlanBuilder.getRoot(),clauses.build(),Optional.<Symbol>absent(),Optional.<Symbol>absent());
+  PlanNode root;
+  if (node.getType() == INNER) {
+    root=new JoinNode(idAllocator.getNextId(),JoinNode.Type.CROSS,leftPlanBuilder.getRoot(),rightPlanBuilder.getRoot(),ImmutableList.<JoinNode.EquiJoinClause>of(),Optional.<Symbol>absent(),Optional.<Symbol>absent());
+    root=new FilterNode(idAllocator.getNextId(),root,postInnerJoinCriteria);
+  }
+ else {
+    root=new JoinNode(idAllocator.getNextId(),JoinNode.Type.typeConvert(node.getType()),leftPlanBuilder.getRoot(),rightPlanBuilder.getRoot(),equiClauses.build(),Optional.<Symbol>absent(),Optional.<Symbol>absent());
+  }
   Optional<Symbol> sampleWeight=Optional.absent();
   if (leftPlanBuilder.getSampleWeight().isPresent() || rightPlanBuilder.getSampleWeight().isPresent()) {
     Expression expression=new ArithmeticExpression(ArithmeticExpression.Type.MULTIPLY,oneIfNull(leftPlanBuilder.getSampleWeight()),oneIfNull(rightPlanBuilder.getSampleWeight()));
