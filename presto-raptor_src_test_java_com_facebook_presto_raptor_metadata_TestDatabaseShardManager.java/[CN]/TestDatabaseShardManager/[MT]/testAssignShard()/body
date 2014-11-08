@@ -1,0 +1,11 @@
+{
+  long tableId=1;
+  UUID shard=UUID.randomUUID();
+  List<ShardNode> shardNodes=ImmutableList.of(new ShardNode(shard,"node1"));
+  shardManager.commitTable(tableId,shardNodes,Optional.<String>absent());
+  ShardNodes actual=Iterables.getOnlyElement(shardManager.getShardNodes(tableId));
+  assertEquals(actual,new ShardNodes(shard,ImmutableSet.of("node1")));
+  shardManager.assignShard(shard,"node2");
+  actual=Iterables.getOnlyElement(shardManager.getShardNodes(tableId));
+  assertEquals(actual,new ShardNodes(shard,ImmutableSet.of("node1","node2")));
+}

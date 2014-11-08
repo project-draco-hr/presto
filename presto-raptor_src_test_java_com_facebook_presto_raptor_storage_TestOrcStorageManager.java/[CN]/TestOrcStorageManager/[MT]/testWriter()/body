@@ -1,5 +1,5 @@
 {
-  OrcStorageManager manager=new OrcStorageManager(directory);
+  OrcStorageManager manager=new OrcStorageManager(directory,Optional.of(backupDirectory));
   List<Long> columnIds=ImmutableList.of(3L,7L);
   List<Type> columnTypes=ImmutableList.<Type>of(BIGINT,VARCHAR);
   OutputHandle handle=manager.createOutputHandle(columnIds,columnTypes,Optional.<Long>absent());
@@ -13,8 +13,15 @@
   sink.appendString("bye");
   sink.finishRecord();
   manager.commit(handle);
-  File file=manager.getStorageFile(handle.getShardUuid());
-  try (FileOrcDataSource dataSource=new FileOrcDataSource(file)){
+  UUID shardUuid=handle.getShardUuid();
+  File file=manager.getStorageFile(shardUuid);
+  File backupFile=manager.getBackupFile(shardUuid);
+  assertFile(file,"primary shard");
+  assertFile(backupFile,"backup shard");
+  assertTrue(file.delete());
+  assertTrue(file.getParentFile().delete());
+  assertFalse(file.exists());
+  try (OrcDataSource dataSource=manager.openShard(shardUuid)){
     OrcRecordReader reader=createReader(dataSource,columnIds);
     assertEquals(reader.nextBatch(),2);
     LongVector longVector=new LongVector();

@@ -9,4 +9,14 @@
  catch (  IOException e) {
     throw new PrestoException(RAPTOR_ERROR,"Failed to move shard file",e);
   }
+  if (baseBackupDir.isPresent()) {
+    File backupFile=getBackupFile(outputHandle.getShardUuid());
+    createParents(backupFile);
+    try {
+      Files.copy(storageFile.toPath(),backupFile.toPath());
+    }
+ catch (    IOException e) {
+      throw new PrestoException(RAPTOR_ERROR,"Failed to create backup shard file",e);
+    }
+  }
 }
