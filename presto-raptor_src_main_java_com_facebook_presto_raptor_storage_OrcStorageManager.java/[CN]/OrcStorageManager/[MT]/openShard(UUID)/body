@@ -1,7 +1,20 @@
 {
   File file=storageService.getStorageFile(shardUuid).getAbsoluteFile();
   if (!file.exists() && storageService.isBackupAvailable(shardUuid)) {
-    restoreFromBackup(shardUuid,file);
+    try {
+      Future<?> future=recoveryManager.recoverShard(shardUuid);
+      future.get(recoveryTimeout.toMillis(),TimeUnit.MILLISECONDS);
+    }
+ catch (    InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw Throwables.propagate(e);
+    }
+catch (    ExecutionException e) {
+      throw new PrestoException(RAPTOR_RECOVERY_ERROR,"Error recovering shard " + shardUuid,e.getCause());
+    }
+catch (    TimeoutException e) {
+      throw new PrestoException(RAPTOR_ERROR,"Shard is being recovered from backup. Please retry in a few minutes: " + shardUuid);
+    }
   }
   try {
     return new FileOrcDataSource(file,orcMaxMergeDistance);
