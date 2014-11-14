@@ -1,0 +1,31 @@
+{
+  if (completed.get() && pages.isEmpty()) {
+    return BufferResult.emptyResults(token.get(),true);
+  }
+  assertEquals(sequenceId,token.get(),"token");
+  Page page=null;
+  try {
+    page=pages.poll(10,TimeUnit.MILLISECONDS);
+  }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+  }
+  if (page == null) {
+    return BufferResult.emptyResults(token.get(),false);
+  }
+  List<Page> responsePages=new ArrayList<>();
+  responsePages.add(page);
+  long responseSize=page.getSizeInBytes();
+  while (responseSize < maxSize.toBytes()) {
+    page=pages.poll();
+    if (page == null) {
+      break;
+    }
+    responsePages.add(page);
+    responseSize+=page.getSizeInBytes();
+  }
+  long nextToken=token.get() + responsePages.size();
+  BufferResult bufferResult=new BufferResult(token.get(),nextToken,false,responsePages);
+  token.set(nextToken);
+  return bufferResult;
+}
