@@ -1,16 +1,16 @@
 {
   DataSize maxResponseSize=new DataSize(1,Unit.BYTE);
   MockExchangeRequestProcessor processor=new MockExchangeRequestProcessor(maxResponseSize);
-  @SuppressWarnings("resource") ExchangeClient exchangeClient=new ExchangeClient(createTestingBlockEncodingManager(),new DataSize(1,Unit.BYTE),maxResponseSize,1,new Duration(1,TimeUnit.MINUTES),new TestingHttpClient(processor,newCachedThreadPool(daemonThreadsNamed("test-%s"))),executor);
   URI location=URI.create("http://localhost:8080");
-  exchangeClient.addLocation(location);
-  exchangeClient.noMoreLocations();
-  assertEquals(exchangeClient.isClosed(),false);
-  long start=System.nanoTime();
   processor.addPage(location,createPage(1));
   processor.addPage(location,createPage(2));
   processor.addPage(location,createPage(3));
   processor.setComplete(location);
+  @SuppressWarnings("resource") ExchangeClient exchangeClient=new ExchangeClient(createTestingBlockEncodingManager(),new DataSize(1,Unit.BYTE),maxResponseSize,1,new Duration(1,TimeUnit.MINUTES),new TestingHttpClient(processor,newCachedThreadPool(daemonThreadsNamed("test-%s"))),executor);
+  exchangeClient.addLocation(location);
+  exchangeClient.noMoreLocations();
+  assertEquals(exchangeClient.isClosed(),false);
+  long start=System.nanoTime();
   exchangeClient.scheduleRequestIfNecessary();
   do {
     assertLessThan(Duration.nanosSince(start),new Duration(5,TimeUnit.SECONDS));
