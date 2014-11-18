@@ -10,11 +10,6 @@
     }
     hiveColumnIndex++;
   }
-  List<FieldSchema> partitionKeys=table.getPartitionKeys();
-  for (int i=0; i < partitionKeys.size(); i++) {
-    FieldSchema field=partitionKeys.get(i);
-    HiveType hiveType=getSupportedHiveType(field.getType());
-    columns.add(new HiveColumnHandle(connectorId,field.getName(),hiveColumnIndex + i,hiveType,getType(field.getType()).getTypeSignature(),-1,true));
-  }
+  columns.addAll(getPartitionKeyColumnHandles(table,hiveColumnIndex));
   return columns.build();
 }

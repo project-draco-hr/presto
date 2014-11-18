@@ -1,0 +1,28 @@
+{
+  List<String> filter=new ArrayList<>();
+  for (  HiveColumnHandle partitionKey : partitionKeys) {
+    Domain domain=effectivePredicate.getDomains().get(partitionKey);
+    if (domain != null && domain.isNullableSingleValue()) {
+      Comparable<?> value=domain.getNullableSingleValue();
+      if (value == null) {
+        filter.add(HivePartitionKey.HIVE_DEFAULT_DYNAMIC_PARTITION);
+      }
+ else       if (value instanceof Slice) {
+        filter.add(((Slice)value).toStringUtf8());
+      }
+ else {
+        checkArgument(value instanceof Boolean || value instanceof Double || value instanceof Long,"Only Boolean, Slice (UTF8 String), Double and Long partition keys are supported");
+        filter.add(value.toString());
+      }
+    }
+ else {
+      filter.add(PARTITION_VALUE_WILDCARD);
+    }
+  }
+  try {
+    return metastore.getPartitionNamesByParts(tableName.getSchemaName(),tableName.getTableName(),filter);
+  }
+ catch (  NoSuchObjectException e) {
+    throw new TableNotFoundException(tableName);
+  }
+}
