@@ -1,0 +1,11 @@
+{
+  for (  Entry<DiskRange,byte[]> bufferEntry : buffers.entrySet()) {
+    DiskRange bufferRange=bufferEntry.getKey();
+    byte[] buffer=bufferEntry.getValue();
+    if (bufferRange.contains(diskRange)) {
+      int offset=Ints.checkedCast(diskRange.getOffset() - bufferRange.getOffset());
+      return Slices.wrappedBuffer(buffer,offset,diskRange.getLength());
+    }
+  }
+  throw new IllegalStateException("No matching buffer for disk range");
+}
