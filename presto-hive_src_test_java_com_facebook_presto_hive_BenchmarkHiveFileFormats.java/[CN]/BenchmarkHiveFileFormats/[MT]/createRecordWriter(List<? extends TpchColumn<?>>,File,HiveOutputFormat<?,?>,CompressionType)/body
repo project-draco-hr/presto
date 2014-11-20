@@ -1,7 +1,7 @@
 {
   JobConf jobConf=new JobConf();
   ReaderWriterProfiler.setProfilerOptions(jobConf);
-  if (compressionCodec != CompressionType.uncompressed) {
+  if (compressionCodec != CompressionType.none) {
     CompressionCodec codec=new CompressionCodecFactory(new Configuration()).getCodecByName(compressionCodec.toString());
     jobConf.set(COMPRESS_CODEC,codec.getClass().getName());
     jobConf.set(COMPRESS_TYPE,org.apache.hadoop.io.SequenceFile.CompressionType.BLOCK.toString());
@@ -25,7 +25,7 @@ jobConf.set("parquet.enable.dictionary","true");
 jobConf.set("hive.exec.orc.default.compress","NONE");
 jobConf.set("hive.exec.orc.compress","NONE");
 }
-RecordWriter recordWriter=outputFormat.getHiveRecordWriter(jobConf,new Path(outputFile.toURI()),Text.class,compressionCodec != CompressionType.uncompressed,createTableProperties(columns),new Progressable(){
+RecordWriter recordWriter=outputFormat.getHiveRecordWriter(jobConf,new Path(outputFile.toURI()),Text.class,compressionCodec != CompressionType.none,createTableProperties(columns),new Progressable(){
 @Override public void progress(){
 }
 }
