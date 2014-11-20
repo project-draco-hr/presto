@@ -184,5 +184,28 @@
       }
     }
   }
+  setReadColumns(JOB_CONF,ALL_COLUMN_INDEXES);
+  for (  BenchmarkFile benchmarkFile : benchmarkFiles) {
+    for (    HiveRecordCursorProvider recordCursorProvider : benchmarkFile.getRecordCursorProviders()) {
+      for (      CompressionType compressionType : compressionTypes) {
+        double result=0;
+        start=System.nanoTime();
+        for (int loop=0; loop < loopCount; loop++) {
+          result=benchmarkReadAll(createFileSplit(benchmarkFile.getFile(compressionType)),createPartitionProperties(benchmarkFile),recordCursorProvider);
+        }
+        logDuration("pushdown",benchmarkFile.getName(),getCursorType(recordCursorProvider),compressionType,start,loopCount,result);
+      }
+    }
+    for (    HivePageSourceFactory pageSourceFactory : benchmarkFile.getPageSourceFactory()) {
+      for (      CompressionType compressionType : compressionTypes) {
+        double result=0;
+        start=System.nanoTime();
+        for (int loop=0; loop < loopCount; loop++) {
+          result=benchmarkPredicatePushDown(createFileSplit(benchmarkFile.getFile(compressionType)),createPartitionProperties(benchmarkFile),pageSourceFactory);
+        }
+        logDuration("pushdown",benchmarkFile.getName(),"page",compressionType,start,loopCount,result);
+      }
+    }
+  }
   System.out.println();
 }
