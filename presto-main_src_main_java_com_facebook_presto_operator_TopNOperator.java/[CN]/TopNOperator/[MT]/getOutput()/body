@@ -6,9 +6,13 @@
     if (!finishing && !topNBuilder.isFull()) {
       return null;
     }
-    checkState(finishing || partial,"Task exceeded max memory size of %s",memoryManager.getMaxMemorySize());
-    outputIterator=topNBuilder.build();
-    topNBuilder=null;
+    if (finishing || partial) {
+      outputIterator=topNBuilder.build();
+      topNBuilder=null;
+    }
+ else {
+      throw new ExceededMemoryLimitException(memoryManager.getMaxMemorySize());
+    }
   }
   pageBuilder.reset();
   while (!pageBuilder.isFull() && outputIterator.hasNext()) {
