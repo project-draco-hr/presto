@@ -1,0 +1,13 @@
+{
+  List<Object> values=new ArrayList<>();
+  for (int field=0; field < prestoRow.getFieldCount(); field++) {
+    Object value=prestoRow.getField(field);
+    if (value instanceof Date) {
+      long oldMillis=((Date)value).getTime();
+      long newMillis=oldTimeZone.getMillisKeepLocal(newTimeZone,oldMillis);
+      value=new Date(newMillis);
+    }
+    values.add(value);
+  }
+  return new MaterializedRow(prestoRow.getPrecision(),values);
+}

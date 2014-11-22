@@ -1,4 +1,8 @@
 {
   checkState(row != null,"No current row");
-  return getTpchColumn(field).getLong(row);
+  TpchColumn<E> tpchColumn=getTpchColumn(field);
+  if (tpchColumn.getType() == TpchColumnType.DATE) {
+    return TimeUnit.DAYS.toMillis(tpchColumn.getDate(row));
+  }
+  return tpchColumn.getLong(row);
 }
