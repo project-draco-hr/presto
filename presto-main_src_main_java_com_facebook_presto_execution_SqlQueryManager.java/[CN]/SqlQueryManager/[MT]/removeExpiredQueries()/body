@@ -1,15 +1,11 @@
 {
+  DateTime timeHorizon=DateTime.now().minus(maxQueryAge.toMillis());
   while (expirationQueue.size() > maxQueryHistory) {
-    QueryExecution query=expirationQueue.remove();
-    removeQuery(query.getQueryInfo().getQueryId());
-  }
-  DateTime oldestAllowedQuery=DateTime.now().minus(maxQueryAge.toMillis());
-  while (expirationQueue.size() > 0) {
-    QueryExecution query=expirationQueue.peek();
-    if (query.getQueryInfo().getQueryStats().getEndTime().isAfter(oldestAllowedQuery)) {
+    QueryInfo info=expirationQueue.peek().getQueryInfo();
+    if (info.getQueryStats().getEndTime().isAfter(timeHorizon)) {
       return;
     }
-    removeQuery(query.getQueryInfo().getQueryId());
+    removeQuery(info.getQueryId());
     expirationQueue.remove();
   }
 }
