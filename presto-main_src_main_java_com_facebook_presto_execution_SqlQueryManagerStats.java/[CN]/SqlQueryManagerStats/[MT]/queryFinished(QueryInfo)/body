@@ -1,6 +1,15 @@
 {
   completedQueries.update(1);
-  executionTime.add(info.getQueryStats().getEndTime().getMillis() - info.getQueryStats().getCreateTime().getMillis(),MILLISECONDS);
+  long rawInputBytes=info.getQueryStats().getRawInputDataSize().toBytes();
+  long executionWallMillis=info.getQueryStats().getEndTime().getMillis() - info.getQueryStats().getCreateTime().getMillis();
+  executionTime.add(executionWallMillis,MILLISECONDS);
+  if (executionWallMillis > 0) {
+    wallInputBytesRate.add(rawInputBytes * 1000 / executionWallMillis);
+  }
+  long executionCpuMillis=info.getQueryStats().getTotalCpuTime().toMillis();
+  if (executionCpuMillis > 0) {
+    cpuInputByteRate.add(rawInputBytes * 1000 / executionCpuMillis);
+  }
   if (info.getErrorCode() != null) {
 switch (StandardErrorCode.toErrorType(info.getErrorCode().getCode())) {
 case USER_ERROR:
