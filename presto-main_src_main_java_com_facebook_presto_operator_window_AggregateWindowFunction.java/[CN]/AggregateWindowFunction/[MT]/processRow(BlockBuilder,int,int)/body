@@ -1,0 +1,14 @@
+{
+  PageBuilder pageBuilder=new PageBuilder(function.getParameterTypes());
+  for (int position=partitionStartPosition; position <= peerGroupEnd; position++) {
+    for (int i=0; i < function.getParameterTypes().size(); i++) {
+      pagesIndex.appendTo(argumentChannels.get(i),position,pageBuilder.getBlockBuilder(i));
+    }
+    pageBuilder.declarePosition();
+  }
+  Accumulator accumulator=accumulatorFactory.createAccumulator();
+  accumulator.addInput(pageBuilder.build());
+  Block result=accumulator.evaluateFinal();
+  checkCondition(result.getPositionCount() == 1,INTERNAL_ERROR,"aggregation function returned multiple values");
+  getType().appendTo(result,0,output);
+}
