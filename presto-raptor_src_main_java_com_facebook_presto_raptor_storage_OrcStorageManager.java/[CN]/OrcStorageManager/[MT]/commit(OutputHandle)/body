@@ -1,17 +1,17 @@
 {
   outputHandle.getRowSink().close();
-  File stagingFile=getStagingFile(outputHandle.getShardUuid());
-  File storageFile=getStorageFile(outputHandle.getShardUuid());
-  createParents(storageFile);
+  File stagingFile=storageService.getStagingFile(outputHandle.getShardUuid());
+  File storageFile=storageService.getStorageFile(outputHandle.getShardUuid());
+  storageService.createParents(storageFile);
   try {
     Files.move(stagingFile.toPath(),storageFile.toPath(),ATOMIC_MOVE);
   }
  catch (  IOException e) {
     throw new PrestoException(RAPTOR_ERROR,"Failed to move shard file",e);
   }
-  if (baseBackupDir.isPresent()) {
-    File backupFile=getBackupFile(outputHandle.getShardUuid());
-    createParents(backupFile);
+  if (isBackupAvailable()) {
+    File backupFile=storageService.getBackupFile(outputHandle.getShardUuid());
+    storageService.createParents(backupFile);
     try {
       Files.copy(storageFile.toPath(),backupFile.toPath());
     }

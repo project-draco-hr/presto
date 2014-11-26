@@ -1,5 +1,5 @@
 {
-  OrcStorageManager manager=new OrcStorageManager(directory,Optional.of(backupDirectory),new DataSize(1,Unit.MEGABYTE));
+  OrcStorageManager manager=new OrcStorageManager(storageService,ORC_MERGE_DISTANCE);
   List<Long> columnIds=ImmutableList.of(3L,7L);
   List<Type> columnTypes=ImmutableList.<Type>of(BIGINT,VARCHAR);
   OutputHandle handle=manager.createOutputHandle(columnIds,columnTypes,Optional.<Long>absent());
@@ -14,8 +14,8 @@
   sink.finishRecord();
   manager.commit(handle);
   UUID shardUuid=handle.getShardUuid();
-  File file=manager.getStorageFile(shardUuid);
-  File backupFile=manager.getBackupFile(shardUuid);
+  File file=storageService.getStorageFile(shardUuid);
+  File backupFile=storageService.getBackupFile(shardUuid);
   assertFile(file,"primary shard");
   assertFile(backupFile,"backup shard");
   assertTrue(file.delete());

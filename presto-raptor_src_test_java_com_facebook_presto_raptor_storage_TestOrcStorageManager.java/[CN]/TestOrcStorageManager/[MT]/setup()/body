@@ -1,5 +1,9 @@
 {
   temporary=createTempDir();
   directory=new File(temporary,"data");
-  backupDirectory=new File(temporary,"backup");
+  File backupDirectory=new File(temporary,"backup");
+  storageService=new FileStorageService(directory,Optional.of(backupDirectory));
+  storageService.start();
+  IDBI dbi=new DBI("jdbc:h2:mem:test" + System.nanoTime());
+  dummyHandle=dbi.open();
 }

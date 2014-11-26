@@ -1,7 +1,7 @@
 {
-  File backupFile=getBackupFile(shardUuid);
-  File stagingFile=temporarySuffix(getStagingFile(shardUuid));
-  createParents(stagingFile);
+  File backupFile=storageService.getBackupFile(shardUuid);
+  File stagingFile=temporarySuffix(storageService.getStagingFile(shardUuid));
+  storageService.createParents(stagingFile);
   log.info("Copying shard %s from backup...",shardUuid);
   long start=System.nanoTime();
   try {
@@ -14,7 +14,7 @@
   DataSize size=new DataSize(stagingFile.length(),BYTE);
   DataSize rate=dataRate(size,duration);
   log.info("Copied shard %s from backup in %s (%s at %s/s)",shardUuid,duration,size,rate);
-  createParents(file);
+  storageService.createParents(file);
   try {
     Files.move(stagingFile.toPath(),file.toPath(),ATOMIC_MOVE);
   }
