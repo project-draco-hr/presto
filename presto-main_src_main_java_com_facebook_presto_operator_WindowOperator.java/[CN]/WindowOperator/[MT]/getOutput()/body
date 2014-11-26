@@ -25,14 +25,14 @@
     }
     boolean newPeerGroup=newPartition || (currentPosition == peerGroupEnd);
     if (newPeerGroup) {
+      peerGroupStart=currentPosition;
       peerGroupEnd++;
       while ((peerGroupEnd < partitionEnd) && (orderComparator.compare(peerGroupEnd - 1,peerGroupEnd) == 0)) {
         peerGroupEnd++;
       }
-      peerGroupCount=peerGroupEnd - currentPosition;
     }
     for (    WindowFunction function : windowFunctions) {
-      function.processRow(pageBuilder.getBlockBuilder(channel),newPeerGroup,peerGroupCount);
+      function.processRow(pageBuilder.getBlockBuilder(channel),peerGroupStart,peerGroupEnd - 1);
       channel++;
     }
     currentPosition++;
