@@ -10,12 +10,14 @@
   while (!pageBuilder.isFull() && currentPosition < pagesIndex.getPositionCount()) {
     boolean newPartition=(currentPosition == 0) || (currentPosition == partitionEnd);
     if (newPartition) {
+      partitionStart=currentPosition;
       partitionEnd++;
       while ((partitionEnd < pagesIndex.getPositionCount()) && (partitionComparator.compare(partitionEnd - 1,partitionEnd) == 0)) {
         partitionEnd++;
       }
+      WindowIndex windowIndex=new WindowIndex(pagesIndex,partitionStart,partitionEnd);
       for (      WindowFunction function : windowFunctions) {
-        function.reset(currentPosition,partitionEnd - currentPosition,pagesIndex);
+        function.reset(windowIndex);
       }
     }
     int channel=0;
@@ -32,7 +34,7 @@
       }
     }
     for (    WindowFunction function : windowFunctions) {
-      function.processRow(pageBuilder.getBlockBuilder(channel),peerGroupStart,peerGroupEnd - 1);
+      function.processRow(pageBuilder.getBlockBuilder(channel),peerGroupStart - partitionStart,peerGroupEnd - partitionStart - 1);
       channel++;
     }
     currentPosition++;

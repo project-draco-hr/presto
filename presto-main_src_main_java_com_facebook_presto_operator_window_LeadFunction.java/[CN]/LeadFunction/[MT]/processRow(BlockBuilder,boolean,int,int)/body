@@ -1,0 +1,19 @@
+{
+  if ((offsetChannel >= 0) && windowIndex.isNull(offsetChannel,currentPosition)) {
+    output.appendNull();
+  }
+ else {
+    long offset=(offsetChannel < 0) ? 1 : windowIndex.getLong(offsetChannel,currentPosition);
+    checkCondition(offset >= 0,INVALID_FUNCTION_ARGUMENT,"Offset must be at least 0");
+    long valuePosition=currentPosition + offset;
+    if ((valuePosition >= 0) && (valuePosition < windowIndex.size())) {
+      windowIndex.appendTo(valueChannel,Ints.checkedCast(valuePosition),output);
+    }
+ else     if (defaultChannel >= 0) {
+      windowIndex.appendTo(defaultChannel,currentPosition,output);
+    }
+ else {
+      output.appendNull();
+    }
+  }
+}
