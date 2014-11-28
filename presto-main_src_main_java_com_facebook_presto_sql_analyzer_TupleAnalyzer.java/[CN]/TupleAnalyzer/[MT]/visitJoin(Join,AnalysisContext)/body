@@ -25,8 +25,8 @@
     for (    String column : columns) {
       Expression leftExpression=new QualifiedNameReference(QualifiedName.of(column));
       Expression rightExpression=new QualifiedNameReference(QualifiedName.of(column));
-      ExpressionAnalysis leftExpressionAnalysis=ExpressionAnalyzer.analyzeExpression(session,metadata,sqlParser,left,analysis,experimentalSyntaxEnabled,context,leftExpression);
-      ExpressionAnalysis rightExpressionAnalysis=ExpressionAnalyzer.analyzeExpression(session,metadata,sqlParser,right,analysis,experimentalSyntaxEnabled,context,rightExpression);
+      ExpressionAnalysis leftExpressionAnalysis=analyzeExpression(leftExpression,left,context);
+      ExpressionAnalysis rightExpressionAnalysis=analyzeExpression(rightExpression,right,context);
       checkState(leftExpressionAnalysis.getSubqueryInPredicates().isEmpty(),"INVARIANT");
       checkState(rightExpressionAnalysis.getSubqueryInPredicates().isEmpty(),"INVARIANT");
       expressions.add(new ComparisonExpression(EQUAL,leftExpression,rightExpression));
@@ -71,8 +71,8 @@
  else {
         throw new SemanticException(NOT_SUPPORTED,node,"Non-equi joins not supported: %s",conjunct);
       }
-      ExpressionAnalysis leftExpressionAnalysis=ExpressionAnalyzer.analyzeExpression(session,metadata,sqlParser,left,analysis,experimentalSyntaxEnabled,context,leftExpression);
-      ExpressionAnalysis rightExpressionAnalysis=ExpressionAnalyzer.analyzeExpression(session,metadata,sqlParser,right,analysis,experimentalSyntaxEnabled,context,rightExpression);
+      ExpressionAnalysis leftExpressionAnalysis=analyzeExpression(leftExpression,left,context);
+      ExpressionAnalysis rightExpressionAnalysis=analyzeExpression(rightExpression,right,context);
       analysis.addJoinInPredicates(node,new Analysis.JoinInPredicates(leftExpressionAnalysis.getSubqueryInPredicates(),rightExpressionAnalysis.getSubqueryInPredicates()));
     }
     analysis.setJoinCriteria(node,(Expression)optimizedExpression);
