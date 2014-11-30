@@ -1,7 +1,13 @@
 {
   InMemoryNodeManager nodeManager=new InMemoryNodeManager();
   NodeScheduler nodeScheduler=new NodeScheduler(nodeManager,new NodeSchedulerConfig().setIncludeCoordinator(false),nodeTaskMap);
-  SqlStageExecution sqlStageExecution=createSqlStageExecution(nodeScheduler,2,20);
+  StageExecutionPlan tableScanPlan=createTableScanPlan("test",20,new Supplier<ConnectorSplit>(){
+    @Override public ConnectorSplit get(){
+      return TestingSplit.createEmptySplit();
+    }
+  }
+);
+  SqlStageExecution sqlStageExecution=createSqlStageExecution(nodeScheduler,2,tableScanPlan);
   Future future=sqlStageExecution.start();
   future.get(1,TimeUnit.SECONDS);
 }

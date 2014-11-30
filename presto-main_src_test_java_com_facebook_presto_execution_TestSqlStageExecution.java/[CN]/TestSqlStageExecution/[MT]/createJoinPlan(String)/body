@@ -1,7 +1,7 @@
 {
-  StageExecutionPlan build=createTableScanPlan("build",1);
+  StageExecutionPlan build=createTableScanPlan("build",1,splitFactory);
   ExchangeNode buildExchange=new ExchangeNode(new PlanNodeId(planId + "-build"),build.getFragment().getId(),ImmutableList.copyOf(build.getFragment().getSymbols().keySet()));
-  StageExecutionPlan probe=createTableScanPlan("probe",10);
+  StageExecutionPlan probe=createTableScanPlan("probe",10,splitFactory);
   ExchangeNode probeExchange=new ExchangeNode(new PlanNodeId(planId + "-probe"),probe.getFragment().getId(),ImmutableList.copyOf(probe.getFragment().getSymbols().keySet()));
   PlanFragment joinPlan=new PlanFragment(new PlanFragmentId(planId),new JoinNode(new PlanNodeId(planId),JoinNode.Type.INNER,probeExchange,buildExchange,ImmutableList.<EquiJoinClause>of(),Optional.<Symbol>absent(),Optional.<Symbol>absent()),probe.getFragment().getSymbols(),PlanDistribution.SOURCE,new PlanNodeId(planId),OutputPartitioning.NONE,ImmutableList.<Symbol>of(),Optional.<Integer>absent());
   return new StageExecutionPlan(joinPlan,probe.getDataSource(),ImmutableList.of(probe,build));
