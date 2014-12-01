@@ -1,0 +1,14 @@
+{
+  SliceOutput sliceOutput=new DynamicSliceOutput((int)state.getEstimatedSize());
+  int valueLength=0;
+  if (state.getValue() != null && !state.getValue().isNull(0)) {
+    valueLength=state.getValue().getLength(0);
+  }
+  sliceOutput.writeInt(valueLength);
+  if (state.getValue() != null && !state.getValue().isNull(0)) {
+    appendTo(state.getType(),sliceOutput,state.getValue());
+  }
+  Slice slice=sliceOutput.slice();
+  out.writeBytes(slice,0,slice.length());
+  out.closeEntry();
+}
