@@ -3,11 +3,12 @@
   try {
     LongVector vector=new LongVector();
     recordReader.readVector(columnIndex,vector);
-    for (int i=0; i < batchSize; i++) {
-      vector.vector[i]*=MILLIS_IN_DAY;
-    }
     block.setNullVector(vector.isNull);
-    block.setRawSlice(wrappedLongArray(vector.vector,0,batchSize));
+    int[] ints=new int[batchSize];
+    for (int i=0; i < batchSize; i++) {
+      ints[i]=(int)vector.vector[i];
+    }
+    block.setRawSlice(wrappedIntArray(ints,0,batchSize));
   }
  catch (  IOException e) {
     throw new PrestoException(RAPTOR_ERROR,e);

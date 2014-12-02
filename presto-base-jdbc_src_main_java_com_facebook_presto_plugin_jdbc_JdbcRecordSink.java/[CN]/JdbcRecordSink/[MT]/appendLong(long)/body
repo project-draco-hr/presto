@@ -1,7 +1,9 @@
 {
   try {
     if (DATE.equals(columnTypes.get(field))) {
-      statement.setDate(next(),new Date(value));
+      long utcMillis=TimeUnit.DAYS.toMillis(value);
+      long localMillis=ISOChronology.getInstanceUTC().getZone().getMillisKeepLocal(DateTimeZone.getDefault(),utcMillis);
+      statement.setDate(next(),new Date(localMillis));
     }
  else {
       statement.setLong(next(),value);

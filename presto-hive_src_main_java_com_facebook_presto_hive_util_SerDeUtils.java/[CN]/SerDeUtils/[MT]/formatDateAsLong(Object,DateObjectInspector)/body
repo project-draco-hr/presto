@@ -1,8 +1,11 @@
 {
-  if (object instanceof DateWritable) {
-    int days=((DateWritable)object).getDays();
-    return days * MILLIS_IN_DAY;
+  if (object instanceof LazyDate) {
+    return ((LazyDate)object).getWritableObject().getDays();
   }
-  Date date=inspector.getPrimitiveJavaObject(object);
-  return date.getTime() - date.getTimezoneOffset() * 60 * 1000;
+  if (object instanceof DateWritable) {
+    return ((DateWritable)object).getDays();
+  }
+  long millisLocal=inspector.getPrimitiveJavaObject(object).getTime();
+  long millisUtc=DateTimeZone.getDefault().getMillisKeepLocal(DateTimeZone.UTC,millisLocal);
+  return TimeUnit.MILLISECONDS.toDays(millisUtc);
 }
