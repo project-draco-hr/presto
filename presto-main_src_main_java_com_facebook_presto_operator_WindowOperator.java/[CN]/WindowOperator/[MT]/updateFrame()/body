@@ -1,0 +1,38 @@
+{
+  int rowPosition=currentPosition - partitionStart;
+  int endPosition=partitionEnd - partitionStart - 1;
+  if (frameStartType == UNBOUNDED_PRECEDING) {
+    frameStart=0;
+  }
+ else   if (frameStartType == PRECEDING) {
+    frameStart=preceding(rowPosition,getStartValue());
+  }
+ else   if (frameStartType == FOLLOWING) {
+    frameStart=following(rowPosition,endPosition,getStartValue());
+  }
+ else   if (frameRange) {
+    frameStart=peerGroupStart - partitionStart;
+  }
+ else {
+    frameStart=rowPosition;
+  }
+  if (frameEndType == UNBOUNDED_FOLLOWING) {
+    frameEnd=endPosition;
+  }
+ else   if (frameEndType == PRECEDING) {
+    frameEnd=preceding(rowPosition,getEndValue());
+  }
+ else   if (frameEndType == FOLLOWING) {
+    frameEnd=following(rowPosition,endPosition,getEndValue());
+  }
+ else   if (frameRange) {
+    frameEnd=peerGroupEnd - partitionStart - 1;
+  }
+ else {
+    frameEnd=rowPosition;
+  }
+  if (emptyFrame(rowPosition,endPosition)) {
+    frameStart=-1;
+    frameEnd=-1;
+  }
+}

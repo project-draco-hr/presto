@@ -4,19 +4,50 @@
     return subPlan;
   }
   for (  FunctionCall windowFunction : windowFunctions) {
-    ImmutableList<Expression> inputs=ImmutableList.<Expression>builder().addAll(windowFunction.getArguments()).addAll(windowFunction.getWindow().get().getPartitionBy()).addAll(Iterables.transform(windowFunction.getWindow().get().getOrderBy(),sortKeyGetter())).build();
-    subPlan=appendProjections(subPlan,inputs);
+    Window window=windowFunction.getWindow().get();
+    WindowFrame.Type frameType=WindowFrame.Type.RANGE;
+    FrameBound.Type frameStartType=FrameBound.Type.UNBOUNDED_PRECEDING;
+    FrameBound.Type frameEndType=FrameBound.Type.CURRENT_ROW;
+    Expression frameStart=null;
+    Expression frameEnd=null;
+    if (window.getFrame().isPresent()) {
+      WindowFrame frame=window.getFrame().get();
+      frameType=frame.getType();
+      frameStartType=frame.getStart().getType();
+      frameStart=frame.getStart().getValue().orNull();
+      if (frame.getEnd().isPresent()) {
+        frameEndType=frame.getEnd().get().getType();
+        frameEnd=frame.getEnd().get().getValue().orNull();
+      }
+    }
+    ImmutableList.Builder<Expression> inputs=ImmutableList.<Expression>builder().addAll(windowFunction.getArguments()).addAll(window.getPartitionBy()).addAll(Iterables.transform(window.getOrderBy(),sortKeyGetter()));
+    if (frameStart != null) {
+      inputs.add(frameStart);
+    }
+    if (frameEnd != null) {
+      inputs.add(frameEnd);
+    }
+    subPlan=appendProjections(subPlan,inputs.build());
     ImmutableList.Builder<Symbol> partitionBySymbols=ImmutableList.builder();
-    for (    Expression expression : windowFunction.getWindow().get().getPartitionBy()) {
+    for (    Expression expression : window.getPartitionBy()) {
       partitionBySymbols.add(subPlan.translate(expression));
     }
     ImmutableList.Builder<Symbol> orderBySymbols=ImmutableList.builder();
     Map<Symbol,SortOrder> orderings=new HashMap<>();
-    for (    SortItem item : windowFunction.getWindow().get().getOrderBy()) {
+    for (    SortItem item : window.getOrderBy()) {
       Symbol symbol=subPlan.translate(item.getSortKey());
       orderBySymbols.add(symbol);
       orderings.put(symbol,toSortOrder(item));
     }
+    Optional<Symbol> frameStartSymbol=Optional.absent();
+    Optional<Symbol> frameEndSymbol=Optional.absent();
+    if (frameStart != null) {
+      frameStartSymbol=Optional.of(subPlan.translate(frameStart));
+    }
+    if (frameEnd != null) {
+      frameEndSymbol=Optional.of(subPlan.translate(frameEnd));
+    }
+    WindowNode.Frame frame=new WindowNode.Frame(frameType,frameStartType,frameStartSymbol,frameEndType,frameEndSymbol);
     TranslationMap outputTranslations=new TranslationMap(subPlan.getRelationPlan(),analysis);
     outputTranslations.copyMappingsFrom(subPlan.getTranslations());
     ImmutableMap.Builder<Symbol,FunctionCall> assignments=ImmutableMap.builder();
@@ -31,7 +62,7 @@
     outputTranslations.put(windowFunction,newSymbol);
     signatures.put(newSymbol,analysis.getFunctionInfo(windowFunction).getSignature());
     List<Symbol> sourceSymbols=subPlan.getRoot().getOutputSymbols();
-    subPlan=new PlanBuilder(outputTranslations,new WindowNode(idAllocator.getNextId(),subPlan.getRoot(),partitionBySymbols.build(),orderBySymbols.build(),orderings,assignments.build(),signatures,Optional.<Symbol>absent()),subPlan.getSampleWeight());
+    subPlan=new PlanBuilder(outputTranslations,new WindowNode(idAllocator.getNextId(),subPlan.getRoot(),partitionBySymbols.build(),orderBySymbols.build(),orderings,frame,assignments.build(),signatures,Optional.<Symbol>absent()),subPlan.getSampleWeight());
     if (needCoercion) {
       subPlan=explicitCoercionSymbols(subPlan,sourceSymbols,ImmutableList.of(windowFunction));
     }

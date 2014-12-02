@@ -1,6 +1,6 @@
 {
   List<Page> input=rowPagesBuilder(VARCHAR,VARCHAR,BIGINT,BIGINT,BOOLEAN,VARCHAR).row("b","A1",1,2,true,"").row("a","A2",1,3,false,"").row("a","B1",2,2,true,"").pageBreak().row("b","C1",2,3,false,"").row("a","C2",3,1,true,"").row("c","A3",1,null,true,"").build();
-  WindowOperatorFactory operatorFactory=new WindowOperatorFactory(0,ImmutableList.of(VARCHAR,VARCHAR,BIGINT,BIGINT,BOOLEAN,VARCHAR),Ints.asList(0,1,2,4),NTH_VALUE,Ints.asList(0),Ints.asList(2),ImmutableList.copyOf(new SortOrder[]{SortOrder.ASC_NULLS_LAST}),100);
+  WindowOperatorFactory operatorFactory=createFactoryUnbounded(ImmutableList.of(VARCHAR,VARCHAR,BIGINT,BIGINT,BOOLEAN,VARCHAR),Ints.asList(0,1,2,4),NTH_VALUE,Ints.asList(0),Ints.asList(2),ImmutableList.copyOf(new SortOrder[]{SortOrder.ASC_NULLS_LAST}));
   Operator operator=operatorFactory.createOperator(driverContext);
   MaterializedResult expected=resultBuilder(driverContext.getSession(),VARCHAR,VARCHAR,BIGINT,BOOLEAN,VARCHAR).row("a","A2",1,false,"C2").row("a","B1",2,true,"B1").row("a","C2",3,true,"A2").row("b","A1",1,true,"C1").row("b","C1",2,false,null).row("c","A3",1,true,null).build();
   assertOperatorEquals(operator,input,expected);
