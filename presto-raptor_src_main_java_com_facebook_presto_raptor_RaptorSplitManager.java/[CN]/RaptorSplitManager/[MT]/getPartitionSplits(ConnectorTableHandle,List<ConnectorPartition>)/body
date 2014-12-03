@@ -13,7 +13,11 @@
       if (!storageManager.isBackupAvailable()) {
         throw new PrestoException(RAPTOR_NO_HOST_FOR_SHARD,format("no host for shard %s found: %s",shardId,nodeIds));
       }
-      Node node=selectRandom(nodeManager.getActiveDatasourceNodes(connectorId));
+      Set<Node> activeDatasourceNodes=nodeManager.getActiveDatasourceNodes(connectorId);
+      if (!activeDatasourceNodes.isEmpty()) {
+        throw new PrestoException(NO_NODES_AVAILABLE,"No nodes available to run query");
+      }
+      Node node=selectRandom(activeDatasourceNodes);
       shardManager.assignShard(shardId,node.getNodeIdentifier());
       addresses=ImmutableList.of(node.getHostAndPort());
     }
