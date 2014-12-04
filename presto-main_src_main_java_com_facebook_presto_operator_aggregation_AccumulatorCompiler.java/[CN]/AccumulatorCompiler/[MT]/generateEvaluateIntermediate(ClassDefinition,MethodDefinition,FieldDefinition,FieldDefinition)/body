@@ -1,8 +1,4 @@
 {
   CompilerContext context=new CompilerContext();
-  Block body=definition.declareMethod(context,a(PUBLIC),"evaluateIntermediate",type(com.facebook.presto.spi.block.Block.class)).getBody();
-  context.declareVariable(BlockBuilder.class,"out");
-  body.comment("out = getIntermediateType().createBlockBuilder(new BlockBuilderStatus());").pushThis().invokeVirtual(getIntermediateType).newObject(BlockBuilderStatus.class).dup().invokeConstructor(BlockBuilderStatus.class).invokeInterface(Type.class,"createBlockBuilder",BlockBuilder.class,BlockBuilderStatus.class).putVariable("out");
-  body.comment("stateSerializer.serialize(state, out)").pushThis().getField(stateSerializerField).pushThis().getField(stateField).getVariable("out").invokeInterface(AccumulatorStateSerializer.class,"serialize",void.class,Object.class,BlockBuilder.class);
-  body.comment("return out.build();").getVariable("out").invokeInterface(BlockBuilder.class,"build",com.facebook.presto.spi.block.Block.class).retObject();
+  definition.declareMethod(context,a(PUBLIC),"evaluateIntermediate",type(void.class),arg("out",BlockBuilder.class)).getBody().comment("stateSerializer.serialize(state, out)").pushThis().getField(stateSerializerField).pushThis().getField(stateField).getVariable("out").invokeInterface(AccumulatorStateSerializer.class,"serialize",void.class,Object.class,BlockBuilder.class).ret();
 }

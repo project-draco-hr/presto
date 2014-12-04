@@ -1,11 +1,12 @@
 {
   Accumulator singleStep=factory.createAccumulator();
   singleStep.addInput(input);
-  Block expected=singleStep.evaluateFinal();
+  Block expected=getFinalBlock(singleStep);
   Accumulator partialStep=factory.createAccumulator();
   partialStep.addInput(input);
+  Block partialBlock=getIntermediateBlock(partialStep);
   Accumulator finalStep=factory.createAccumulator();
-  finalStep.addIntermediate(partialStep.evaluateIntermediate());
-  Block actual=finalStep.evaluateFinal();
+  finalStep.addIntermediate(partialBlock);
+  Block actual=getFinalBlock(finalStep);
   assertEquals(extractSingleValue(actual),extractSingleValue(expected));
 }

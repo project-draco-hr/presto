@@ -1,8 +1,5 @@
 {
-  CompilerContext context=new CompilerContext();
-  Block body=definition.declareMethod(context,a(PUBLIC),"evaluateFinal",type(com.facebook.presto.spi.block.Block.class)).getBody();
-  context.declareVariable(BlockBuilder.class,"out");
-  body.pushThis().invokeVirtual(getFinalType).newObject(BlockBuilderStatus.class).dup().invokeConstructor(BlockBuilderStatus.class).invokeInterface(Type.class,"createBlockBuilder",BlockBuilder.class,BlockBuilderStatus.class).putVariable("out");
+  Block body=definition.declareMethod(a(PUBLIC),"evaluateFinal",type(void.class),arg("out",BlockBuilder.class)).getBody();
   if (outputFunction != null) {
     body.comment("output(state, out)").pushThis().getField(stateField);
     if (approximate) {
@@ -15,5 +12,5 @@
     checkArgument(!approximate,"Approximate aggregations must specify an output function");
     body.comment("stateSerializer.serialize(state, out)").pushThis().getField(stateSerializerField).pushThis().getField(stateField).getVariable("out").invokeInterface(AccumulatorStateSerializer.class,"serialize",void.class,Object.class,BlockBuilder.class);
   }
-  body.getVariable("out").invokeInterface(BlockBuilder.class,"build",com.facebook.presto.spi.block.Block.class).retObject();
+  body.ret();
 }

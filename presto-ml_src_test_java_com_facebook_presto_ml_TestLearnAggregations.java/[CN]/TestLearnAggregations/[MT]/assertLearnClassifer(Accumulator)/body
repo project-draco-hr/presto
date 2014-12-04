@@ -1,6 +1,8 @@
 {
   accumulator.addInput(getPage());
-  Block block=accumulator.evaluateFinal();
+  BlockBuilder finalOut=accumulator.getFinalType().createBlockBuilder(new BlockBuilderStatus());
+  accumulator.evaluateFinal(finalOut);
+  Block block=finalOut.build();
   Slice slice=accumulator.getFinalType().getSlice(block,0);
   Model deserialized=ModelUtils.deserialize(slice);
   assertNotNull(deserialized,"deserialization failed");

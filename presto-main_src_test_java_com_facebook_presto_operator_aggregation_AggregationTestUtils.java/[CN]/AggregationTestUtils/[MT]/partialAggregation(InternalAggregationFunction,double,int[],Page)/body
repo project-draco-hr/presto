@@ -6,11 +6,12 @@
       partialAggregation.addInput(page);
     }
   }
-  Block partialBlock=partialAggregation.evaluateIntermediate();
+  Block partialBlock=getIntermediateBlock(partialAggregation);
   Accumulator finalAggregation=factory.createIntermediateAccumulator();
-  Block emptyBlock=factory.createAccumulator().evaluateIntermediate();
+  Accumulator emptyAggregation=factory.createAccumulator();
+  Block emptyBlock=getIntermediateBlock(emptyAggregation);
   finalAggregation.addIntermediate(emptyBlock);
   finalAggregation.addIntermediate(partialBlock);
-  Block finalBlock=finalAggregation.evaluateFinal();
+  Block finalBlock=getFinalBlock(finalAggregation);
   return BlockAssertions.getOnlyValue(finalAggregation.getFinalType(),finalBlock);
 }
