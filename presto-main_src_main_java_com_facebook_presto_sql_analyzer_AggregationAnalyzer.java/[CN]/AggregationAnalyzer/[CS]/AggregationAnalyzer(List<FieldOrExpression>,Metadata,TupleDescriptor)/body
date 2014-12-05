@@ -1,20 +1,2 @@
 {
-  Preconditions.checkNotNull(groupByExpressions,"groupByExpressions is null");
-  Preconditions.checkNotNull(metadata,"metadata is null");
-  Preconditions.checkNotNull(tupleDescriptor,"tupleDescriptor is null");
-  this.tupleDescriptor=tupleDescriptor;
-  this.metadata=metadata;
-  this.expressions=IterableTransformer.on(groupByExpressions).select(isExpressionPredicate()).transform(expressionGetter()).list();
-  ImmutableList.Builder<Integer> fieldIndexes=ImmutableList.builder();
-  fieldIndexes.addAll(IterableTransformer.on(groupByExpressions).select(isFieldReferencePredicate()).transform(fieldIndexGetter()).all());
-  for (  Expression expression : Iterables.filter(expressions,instanceOf(QualifiedNameReference.class))) {
-    QualifiedName name=((QualifiedNameReference)expression).getName();
-    List<Field> fields=tupleDescriptor.resolveFields(name);
-    Preconditions.checkState(fields.size() <= 1,"Found more than one field for name '%s': %s",name,fields);
-    if (fields.size() == 1) {
-      Field field=Iterables.getOnlyElement(fields);
-      fieldIndexes.add(tupleDescriptor.indexOf(field));
-    }
-  }
-  this.fieldIndexes=fieldIndexes.build();
 }
