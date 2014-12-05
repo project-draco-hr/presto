@@ -1,15 +1,2 @@
 {
-  node.getProbeSource().accept(this,context);
-  node.getIndexSource().accept(this,context);
-  verifyUniqueId(node);
-  Set<Symbol> probeInputs=ImmutableSet.copyOf(node.getProbeSource().getOutputSymbols());
-  Set<Symbol> indexSourceInputs=ImmutableSet.copyOf(node.getIndexSource().getOutputSymbols());
-  for (  IndexJoinNode.EquiJoinClause clause : node.getCriteria()) {
-    checkArgument(probeInputs.contains(clause.getProbe()),"Probe symbol from index join clause (%s) not in probe source (%s)",clause.getProbe(),node.getProbeSource().getOutputSymbols());
-    checkArgument(indexSourceInputs.contains(clause.getIndex()),"Index symbol from index join clause (%s) not in index source (%s)",clause.getIndex(),node.getIndexSource().getOutputSymbols());
-  }
-  Set<Symbol> lookupSymbols=FluentIterable.from(node.getCriteria()).transform(IndexJoinNode.EquiJoinClause.indexGetter()).toSet();
-  Map<Symbol,Symbol> trace=IndexKeyTracer.trace(node.getIndexSource(),lookupSymbols);
-  checkArgument(!trace.isEmpty() && lookupSymbols.containsAll(trace.keySet()),"Index lookup symbols are not traceable to index source: %s",lookupSymbols);
-  return null;
 }
