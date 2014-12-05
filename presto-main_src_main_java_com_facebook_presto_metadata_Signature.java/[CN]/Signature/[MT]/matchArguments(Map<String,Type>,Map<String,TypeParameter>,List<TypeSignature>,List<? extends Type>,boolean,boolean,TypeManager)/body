@@ -9,6 +9,15 @@
       return false;
     }
   }
+  if (varArgs && types.size() >= argumentTypes.size()) {
+    Optional<Type> superType=getCommonSuperType(types.subList(argumentTypes.size() - 1,types.size()));
+    if (!superType.isPresent()) {
+      return false;
+    }
+    if (!matchAndBind(boundParameters,unboundParameters,argumentTypes.get(argumentTypes.size() - 1),superType.get(),allowCoercion,typeManager)) {
+      return false;
+    }
+  }
   for (int i=0; i < types.size(); i++) {
     TypeSignature typeSignature=argumentTypes.get(Math.min(i,argumentTypes.size() - 1));
     Type type=types.get(i);
