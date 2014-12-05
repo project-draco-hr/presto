@@ -1,16 +1,2 @@
 {
-  TupleDescriptor descriptor=process(insert.getQuery(),context);
-  QualifiedTableName targetTable=MetadataUtil.createQualifiedTableName(session,insert.getTarget());
-  Optional<TableHandle> targetTableHandle=metadata.getTableHandle(session,targetTable);
-  if (!targetTableHandle.isPresent()) {
-    throw new SemanticException(MISSING_TABLE,insert,"Table '%s' does not exist",targetTable);
-  }
-  analysis.setInsertTarget(targetTableHandle.get());
-  List<ColumnMetadata> columns=metadata.getTableMetadata(targetTableHandle.get()).getColumns();
-  Iterable<Type> tableTypes=transform(columns,columnTypeGetter());
-  Iterable<Type> queryTypes=transform(descriptor.getVisibleFields(),typeGetter());
-  if (!elementsEqual(tableTypes,queryTypes)) {
-    throw new SemanticException(MISMATCHED_SET_COLUMN_TYPES,insert,"Insert query has mismatched column types: " + "Table: (" + Joiner.on(", ").join(tableTypes) + "), "+ "Query: ("+ Joiner.on(", ").join(queryTypes)+ ")");
-  }
-  return new TupleDescriptor(Field.newUnqualified("rows",BIGINT));
 }
