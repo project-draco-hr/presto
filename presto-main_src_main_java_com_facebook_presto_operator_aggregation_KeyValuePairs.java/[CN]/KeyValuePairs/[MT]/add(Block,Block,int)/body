@@ -1,0 +1,13 @@
+{
+  Page page=new Page(key);
+  if (!keysHash.contains(position,page)) {
+    int groupId=keysHash.putIfAbsent(position,page,new Block[]{key});
+    keysHash.appendValuesTo(groupId,keyPageBuilder,0);
+    if (value.isNull(position)) {
+      valuePageBuilder.getBlockBuilder(0).appendNull();
+    }
+ else {
+      valueType.appendTo(value,position,valuePageBuilder.getBlockBuilder(0));
+    }
+  }
+}

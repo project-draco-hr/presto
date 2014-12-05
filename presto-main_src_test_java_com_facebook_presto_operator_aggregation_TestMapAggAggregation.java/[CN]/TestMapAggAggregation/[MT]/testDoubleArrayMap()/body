@@ -1,0 +1,16 @@
+{
+  ArrayType arrayType=new ArrayType(VARCHAR);
+  MapType mapType=new MapType(DOUBLE,arrayType);
+  InternalAggregationFunction aggFunc=metadata.getExactFunction(new Signature(NAME,mapType.getTypeSignature().toString(),StandardTypes.DOUBLE,arrayType.getTypeSignature().toString())).getAggregationFunction();
+  PageBuilder builder=new PageBuilder(ImmutableList.of(DOUBLE,arrayType));
+  builder.declarePosition();
+  DOUBLE.writeDouble(builder.getBlockBuilder(0),1.0);
+  arrayType.writeSlice(builder.getBlockBuilder(1),toStackRepresentation(ImmutableList.of("a","b")));
+  builder.declarePosition();
+  DOUBLE.writeDouble(builder.getBlockBuilder(0),2.0);
+  arrayType.writeSlice(builder.getBlockBuilder(1),toStackRepresentation(ImmutableList.of("c","d")));
+  builder.declarePosition();
+  DOUBLE.writeDouble(builder.getBlockBuilder(0),3.0);
+  arrayType.writeSlice(builder.getBlockBuilder(1),toStackRepresentation(ImmutableList.of("e","f")));
+  assertAggregation(aggFunc,1.0,ImmutableMap.of(1.0,ImmutableList.of("a","b"),2.0,ImmutableList.of("c","d"),3.0,ImmutableList.of("e","f")),builder.build());
+}
