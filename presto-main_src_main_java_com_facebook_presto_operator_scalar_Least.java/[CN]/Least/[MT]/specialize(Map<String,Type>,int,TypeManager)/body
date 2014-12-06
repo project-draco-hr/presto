@@ -1,7 +1,7 @@
 {
-  ImmutableList.Builder<Class<?>> builder=ImmutableList.builder();
   Type type=types.get("E");
   checkArgument(type.isOrderable(),"Type must be orderable");
+  ImmutableList.Builder<Class<?>> builder=ImmutableList.builder();
   for (int i=0; i < arity; i++) {
     builder.add(type.getJavaType());
   }
@@ -9,5 +9,6 @@
   Class<?> clazz=generateLeast(stackTypes,type);
   MethodHandle methodHandle=methodHandle(clazz,"least",stackTypes.toArray(new Class<?>[stackTypes.size()]));
   List<Boolean> nullableParameters=ImmutableList.copyOf(Collections.nCopies(stackTypes.size(),false));
-  return new FunctionInfo(leastSignature(type.getTypeSignature(),Collections.nCopies(arity,type.getTypeSignature())),getDescription(),isHidden(),methodHandle,isDeterministic(),false,nullableParameters);
+  Signature specializedSignature=internalFunction(SIGNATURE.getName(),type.getTypeSignature(),Collections.nCopies(arity,type.getTypeSignature()));
+  return new FunctionInfo(specializedSignature,getDescription(),isHidden(),methodHandle,isDeterministic(),false,nullableParameters);
 }
