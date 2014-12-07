@@ -1,16 +1,9 @@
 {
-  int initialHashPartitions;
+  int initialHashPartitions=this.initialHashPartitions;
   if (isBigQueryEnabled(session,false)) {
-    if (this.bigQueryInitialHashPartitions == null) {
-      initialHashPartitions=nodeManager.getActiveNodes().size();
-    }
- else {
-      initialHashPartitions=this.bigQueryInitialHashPartitions;
-    }
+    initialHashPartitions=(bigQueryInitialHashPartitions == null) ? nodeManager.getActiveNodes().size() : bigQueryInitialHashPartitions;
   }
- else {
-    initialHashPartitions=this.initialHashPartitions;
-  }
+  initialHashPartitions=getHashPartitionCount(session,initialHashPartitions);
   SqlQueryExecution queryExecution=new SqlQueryExecution(queryId,query,session,locationFactory.createQueryLocation(queryId),statement,metadata,sqlParser,splitManager,nodeScheduler,planOptimizers,remoteTaskFactory,locationFactory,scheduleSplitBatchSize,maxPendingSplitsPerNode,initialHashPartitions,experimentalSyntaxEnabled,executor,nodeTaskMap);
   return queryExecution;
 }
