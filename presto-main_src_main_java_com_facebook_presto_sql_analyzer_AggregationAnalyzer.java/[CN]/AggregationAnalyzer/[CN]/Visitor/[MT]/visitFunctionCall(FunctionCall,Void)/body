@@ -1,21 +1,2 @@
 {
-  if (!node.getWindow().isPresent() && metadata.isAggregationFunction(node.getName())) {
-    AggregateExtractor aggregateExtractor=new AggregateExtractor(metadata);
-    WindowFunctionExtractor windowExtractor=new WindowFunctionExtractor();
-    for (    Expression argument : node.getArguments()) {
-      aggregateExtractor.process(argument,null);
-      windowExtractor.process(argument,null);
-    }
-    if (!aggregateExtractor.getAggregates().isEmpty()) {
-      throw new SemanticException(NESTED_AGGREGATION,node,"Cannot nest aggregations inside aggregation '%s': %s",node.getName(),aggregateExtractor.getAggregates());
-    }
-    if (!windowExtractor.getWindowFunctions().isEmpty()) {
-      throw new SemanticException(NESTED_WINDOW,node,"Cannot nest window functions inside aggregation '%s': %s",node.getName(),windowExtractor.getWindowFunctions());
-    }
-    return true;
-  }
-  if (node.getWindow().isPresent() && !process(node.getWindow().get(),context)) {
-    return false;
-  }
-  return Iterables.all(node.getArguments(),isConstantPredicate());
 }
