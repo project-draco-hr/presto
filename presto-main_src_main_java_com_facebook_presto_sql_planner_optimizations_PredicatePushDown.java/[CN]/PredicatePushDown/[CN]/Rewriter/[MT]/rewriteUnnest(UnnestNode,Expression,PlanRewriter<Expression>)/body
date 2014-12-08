@@ -1,29 +1,2 @@
 {
-  EqualityInference equalityInference=createEqualityInference(inheritedPredicate);
-  List<Expression> pushdownConjuncts=new ArrayList<>();
-  List<Expression> postUnnestConjuncts=new ArrayList<>();
-  postUnnestConjuncts.addAll(ImmutableList.copyOf(filter(extractConjuncts(inheritedPredicate),not(deterministic()))));
-  inheritedPredicate=stripNonDeterministicConjuncts(inheritedPredicate);
-  for (  Expression conjunct : EqualityInference.nonInferrableConjuncts(inheritedPredicate)) {
-    Expression rewrittenConjunct=equalityInference.rewriteExpression(conjunct,in(node.getReplicateSymbols()));
-    if (rewrittenConjunct != null) {
-      pushdownConjuncts.add(rewrittenConjunct);
-    }
- else {
-      postUnnestConjuncts.add(conjunct);
-    }
-  }
-  EqualityInference.EqualityPartition equalityPartition=equalityInference.generateEqualitiesPartitionedBy(in(node.getReplicateSymbols()));
-  pushdownConjuncts.addAll(equalityPartition.getScopeEqualities());
-  postUnnestConjuncts.addAll(equalityPartition.getScopeComplementEqualities());
-  postUnnestConjuncts.addAll(equalityPartition.getScopeStraddlingEqualities());
-  PlanNode rewrittenSource=planRewriter.rewrite(node.getSource(),combineConjuncts(pushdownConjuncts));
-  PlanNode output=node;
-  if (rewrittenSource != node.getSource()) {
-    output=new UnnestNode(node.getId(),rewrittenSource,node.getReplicateSymbols(),node.getUnnestSymbols());
-  }
-  if (!postUnnestConjuncts.isEmpty()) {
-    output=new FilterNode(idAllocator.getNextId(),output,combineConjuncts(postUnnestConjuncts));
-  }
-  return output;
 }
