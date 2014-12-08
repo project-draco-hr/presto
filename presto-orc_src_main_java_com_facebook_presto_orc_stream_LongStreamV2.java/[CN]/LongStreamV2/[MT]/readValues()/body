@@ -1,7 +1,9 @@
 {
   lastReadInputCheckpoint=input.getCheckpoint();
   int firstByte=input.read();
-  verifyFormat(firstByte >= 0,"Read past end of RLE integer from %s",input);
+  if (firstByte < 0) {
+    throw new OrcCorruptionException("Read past end of RLE integer from %s",input);
+  }
   int enc=(firstByte >>> 6) & 0x03;
   if (EncodingType.SHORT_REPEAT.ordinal() == enc) {
     readShortRepeatValues(firstByte);

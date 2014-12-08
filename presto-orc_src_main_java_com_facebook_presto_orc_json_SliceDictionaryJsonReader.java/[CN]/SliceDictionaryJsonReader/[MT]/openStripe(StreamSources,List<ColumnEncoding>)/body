@@ -6,7 +6,9 @@
       dictionaryLength=new int[dictionarySize];
     }
     LongStream lengthStream=dictionaryStreamSources.getStreamSource(streamDescriptor,LENGTH,LongStream.class).openStream();
-    verifyFormat(lengthStream != null,"Dictionary is not empty but length stream is not present");
+    if (lengthStream == null) {
+      throw new OrcCorruptionException("Dictionary is not empty but length stream is not present");
+    }
     lengthStream.nextIntVector(dictionarySize,dictionaryLength);
     ByteArrayStream dictionaryDataStream=dictionaryStreamSources.getStreamSource(streamDescriptor,DICTIONARY_DATA,ByteArrayStream.class).openStream();
     readDictionary(dictionaryDataStream,dictionarySize,dictionaryLength,dictionary);

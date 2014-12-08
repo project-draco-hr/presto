@@ -7,7 +7,9 @@
       readOffset=presentStream.countBitsSet(readOffset);
     }
     if (readOffset > 0) {
-      verifyFormat(dataStream != null,"Value is not null but data stream is not present");
+      if (dataStream == null) {
+        throw new OrcCorruptionException("Value is not null but data stream is not present");
+      }
       if (inDictionaryStream != null) {
         inDictionaryStream.skip(readOffset);
       }
@@ -16,14 +18,18 @@
   }
   SliceVector sliceVector=(SliceVector)vector;
   if (presentStream == null) {
-    verifyFormat(dataStream != null,"Value is not null but data stream is not present");
+    if (dataStream == null) {
+      throw new OrcCorruptionException("Value is not null but data stream is not present");
+    }
     Arrays.fill(isNullVector,false);
     dataStream.nextIntVector(nextBatchSize,dataVector);
   }
  else {
     int nullValues=presentStream.getUnsetBits(nextBatchSize,isNullVector);
     if (nullValues != nextBatchSize) {
-      verifyFormat(dataStream != null,"Value is not null but data stream is not present");
+      if (dataStream == null) {
+        throw new OrcCorruptionException("Value is not null but data stream is not present");
+      }
       dataStream.nextIntVector(nextBatchSize,dataVector,isNullVector);
     }
   }

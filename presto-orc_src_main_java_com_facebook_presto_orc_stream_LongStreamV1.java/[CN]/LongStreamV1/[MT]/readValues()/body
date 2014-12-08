@@ -1,13 +1,17 @@
 {
   lastReadInputCheckpoint=input.getCheckpoint();
   int control=input.read();
-  verifyFormat(control != -1,"Read past end of RLE integer from %s",input);
+  if (control == -1) {
+    throw new OrcCorruptionException("Read past end of RLE integer from %s",input);
+  }
   if (control < 0x80) {
     numLiterals=control + MIN_REPEAT_SIZE;
     used=0;
     repeat=true;
     delta=input.read();
-    verifyFormat(delta != -1,"End of stream in RLE Integer from %s",input);
+    if (delta == -1) {
+      throw new OrcCorruptionException("End of stream in RLE Integer from %s",input);
+    }
     delta=(byte)delta;
     literals[0]=LongDecode.readVInt(signed,input);
   }

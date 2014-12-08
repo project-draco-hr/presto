@@ -5,7 +5,9 @@
       dictionary=new long[dictionarySize];
     }
     LongStream dictionaryStream=dictionaryStreamSources.getStreamSource(streamDescriptor,DICTIONARY_DATA,LongStream.class).openStream();
-    verifyFormat(dictionaryStream != null,"Dictionary is not empty but data stream is not present");
+    if (dictionaryStream == null) {
+      throw new OrcCorruptionException("Dictionary is not empty but data stream is not present");
+    }
     dictionaryStream.nextLongVector(dictionarySize,dictionary);
   }
   presentStream=null;
