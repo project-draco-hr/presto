@@ -1,10 +1,2 @@
 {
-  PhysicalOperation source=node.getSource().accept(this,context);
-  boolean projectionMatchesOutput=IterableTransformer.on(source.getLayout().entrySet()).orderBy(Ordering.<Integer>natural().onResultOf(MoreFunctions.<Symbol,Integer>valueGetter())).transform(MoreFunctions.<Symbol,Integer>keyGetter()).list().equals(node.getOutputSymbols());
-  if (!projectionMatchesOutput) {
-    IdentityProjectionInfo mappings=computeIdentityMapping(node.getOutputSymbols(),source.getLayout(),context.getTypes());
-    OperatorFactory operatorFactory=new FilterAndProjectOperator.FilterAndProjectOperatorFactory(context.getNextOperatorId(),new GenericPageProcessor(FilterFunctions.TRUE_FUNCTION,mappings.getProjections()),toTypes(mappings.getProjections()));
-    return new PhysicalOperation(operatorFactory,mappings.getOutputLayout(),source);
-  }
-  return source;
 }

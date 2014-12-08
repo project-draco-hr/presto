@@ -1,12 +1,2 @@
 {
-  PhysicalOperation source=node.getSource().accept(this,context);
-  Ordering<Integer> comparator=Ordering.natural();
-  List<Symbol> sourceSymbols=IterableTransformer.on(source.getLayout().entrySet()).orderBy(comparator.onResultOf(MoreFunctions.<Symbol,Integer>valueGetter())).transform(MoreFunctions.<Symbol,Integer>keyGetter()).list();
-  List<Symbol> resultSymbols=node.getOutputSymbols();
-  if (resultSymbols.equals(sourceSymbols) && resultSymbols.size() == source.getTypes().size()) {
-    return source;
-  }
-  IdentityProjectionInfo mappings=computeIdentityMapping(resultSymbols,source.getLayout(),context.getTypes());
-  OperatorFactory operatorFactory=new FilterAndProjectOperator.FilterAndProjectOperatorFactory(context.getNextOperatorId(),new GenericPageProcessor(FilterFunctions.TRUE_FUNCTION,mappings.getProjections()),toTypes(mappings.getProjections()));
-  return new PhysicalOperation(operatorFactory,mappings.getOutputLayout(),source);
 }
