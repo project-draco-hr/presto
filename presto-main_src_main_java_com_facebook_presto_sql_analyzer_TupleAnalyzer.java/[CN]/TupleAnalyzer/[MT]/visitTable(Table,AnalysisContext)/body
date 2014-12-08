@@ -15,7 +15,7 @@
     }
   }
   QualifiedTableName name=MetadataUtil.createQualifiedTableName(session,table.getName());
-  Optional<ViewDefinition> optionalView=metadata.getView(session,name);
+  Optional<ViewDefinition> optionalView=jdkOptional(metadata.getView(session,name));
   if (optionalView.isPresent()) {
     ViewDefinition view=optionalView.get();
     Query query=parseView(view.getOriginalSql(),name,table);
@@ -27,7 +27,7 @@
     analysis.setOutputDescriptor(table,descriptor);
     return descriptor;
   }
-  Optional<TableHandle> tableHandle=metadata.getTableHandle(session,name);
+  Optional<TableHandle> tableHandle=jdkOptional(metadata.getTableHandle(session,name));
   if (!tableHandle.isPresent()) {
     if (!metadata.getCatalogNames().containsKey(name.getCatalogName())) {
       throw new SemanticException(MISSING_CATALOG,table,"Catalog %s does not exist",name.getCatalogName());
