@@ -1,28 +1,2 @@
 {
-  final Map<ColumnHandle,Symbol> columnToSymbol=ImmutableBiMap.copyOf(symbolToColumn).inverse();
-  final List<Expression> conjuncts=extractConjuncts(predicate);
-  final IdentityHashMap<Expression,Type> expressionTypes=getExpressionTypes(session,metadata,sqlParser,symbolAllocator.getTypes(),predicate);
-  return new Predicate<Partition>(){
-    @Override public boolean apply(    Partition partition){
-      Map<ColumnHandle,Comparable<?>> columnFixedValueAssignments=partition.getTupleDomain().extractFixedValues();
-      checkArgument(columnToSymbol.keySet().containsAll(columnFixedValueAssignments.keySet()),"assignments does not contain all required column handles");
-      ImmutableMap.Builder<Symbol,Object> builder=ImmutableMap.builder();
-      for (      Map.Entry<ColumnHandle,Comparable<?>> entry : columnFixedValueAssignments.entrySet()) {
-        Symbol translated=columnToSymbol.get(entry.getKey());
-        if (translated != null) {
-          builder.put(translated,entry.getValue());
-        }
-      }
-      LookupSymbolResolver inputs=new LookupSymbolResolver(builder.build());
-      for (      Expression expression : conjuncts) {
-        ExpressionInterpreter optimizer=ExpressionInterpreter.expressionOptimizer(expression,metadata,session,expressionTypes);
-        Object optimized=optimizer.optimize(inputs);
-        if (Boolean.FALSE.equals(optimized) || optimized == null || optimized instanceof NullLiteral) {
-          return true;
-        }
-      }
-      return false;
-    }
-  }
-;
 }

@@ -1,15 +1,2 @@
 {
-  List<String> partitionBy=Lists.transform(node.getPartitionBy(),Functions.toStringFunction());
-  List<String> orderBy=Lists.transform(node.getOrderBy(),new Function<Symbol,String>(){
-    @Override public String apply(    Symbol input){
-      return input + " " + node.getOrderings().get(input);
-    }
-  }
-);
-  List<String> args=new ArrayList<>();
-  args.add(format("partition by (%s)",Joiner.on(", ").join(partitionBy)));
-  args.add(format("order by (%s)",Joiner.on(", ").join(orderBy)));
-  print(indent,"- TopNRowNumber[%s limit %s] => [%s]",Joiner.on(", ").join(args),node.getMaxRowCountPerPartition(),formatOutputs(node.getOutputSymbols()));
-  print(indent + 2,"%s := %s",node.getRowNumberSymbol(),"row_number()");
-  return processChildren(node,indent + 1);
 }
