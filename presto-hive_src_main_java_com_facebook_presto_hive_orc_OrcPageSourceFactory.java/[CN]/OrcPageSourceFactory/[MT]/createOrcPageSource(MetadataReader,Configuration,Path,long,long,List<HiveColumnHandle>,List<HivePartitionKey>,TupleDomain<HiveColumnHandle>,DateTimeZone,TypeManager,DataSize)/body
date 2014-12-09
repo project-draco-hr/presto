@@ -7,6 +7,9 @@
     orcDataSource=new HdfsOrcDataSource(path.toString(),inputStream,size,maxMergeDistance);
   }
  catch (  Exception e) {
+    if (nullToEmpty(e.getMessage()).trim().equals("Filesystem closed")) {
+      throw new PrestoException(HIVE_CANNOT_OPEN_SPLIT,e);
+    }
     throw Throwables.propagate(e);
   }
   ImmutableSet.Builder<Integer> includedColumns=ImmutableSet.builder();
@@ -29,6 +32,9 @@
       orcDataSource.close();
     }
  catch (    IOException ignored) {
+    }
+    if (e instanceof BlockMissingException) {
+      throw new PrestoException(HIVE_MISSING_DATA,e);
     }
     throw Throwables.propagate(e);
   }
