@@ -1,27 +1,2 @@
 {
-  KafkaTableHandle kafkaTableHandle=handleResolver.convertTableHandle(tableHandle);
-  List<HostAddress> nodes=new ArrayList<>(kafkaConnectorConfig.getNodes());
-  Collections.shuffle(nodes);
-  SimpleConsumer simpleConsumer=consumerManager.getConsumer(nodes.get(0));
-  try {
-    TopicMetadataRequest topicMetadataRequest=new TopicMetadataRequest(ImmutableList.of(kafkaTableHandle.getTopicName()));
-    TopicMetadataResponse topicMetadataResponse=simpleConsumer.send(topicMetadataRequest);
-    ImmutableList.Builder<ConnectorPartition> builder=ImmutableList.builder();
-    for (    TopicMetadata metadata : topicMetadataResponse.topicsMetadata()) {
-      for (      PartitionMetadata part : metadata.partitionsMetadata()) {
-        log.debug("Adding Partition %s/%s",metadata.topic(),part.partitionId());
-        Broker leader=part.leader();
-        if (leader == null) {
-          log.warn("No leader for partition %s/%s found!",metadata.topic(),part.partitionId());
-        }
- else {
-          builder.add(new KafkaPartition(metadata.topic(),part.partitionId(),HostAddress.fromParts(leader.host(),leader.port()),ImmutableList.copyOf(Lists.transform(part.isr(),brokerToHostAddress()))));
-        }
-      }
-    }
-    return new ConnectorPartitionResult(builder.build(),tupleDomain);
-  }
- catch (  Exception e) {
-    throw new TableNotFoundException(kafkaTableHandle.toSchemaTableName(),e);
-  }
 }
