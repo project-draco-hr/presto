@@ -1,15 +1,2 @@
 {
-  Properties splitProperties=new Properties();
-  splitProperties.setProperty(FILE_INPUT_FORMAT,inputFormat.getClass().getName());
-  splitProperties.setProperty(SERIALIZATION_LIB,serde.getClass().getName());
-  splitProperties.setProperty("columns",Joiner.on(',').join(transform(filter(testColumns,not(partitionKeyFilter())),nameGetter())));
-  splitProperties.setProperty("columns.types",Joiner.on(',').join(transform(filter(testColumns,not(partitionKeyFilter())),typeGetter())));
-  List<HivePartitionKey> partitionKeys=ImmutableList.copyOf(transform(filter(testColumns,partitionKeyFilter()),new Function<TestColumn,HivePartitionKey>(){
-    @Override public HivePartitionKey apply(    TestColumn input){
-      return new HivePartitionKey(input.getName(),HiveType.getHiveType(input.getObjectInspector()),(String)input.getWriteValue());
-    }
-  }
-));
-  HiveRecordCursor cursor=cursorProvider.createHiveRecordCursor("test",new Configuration(),SESSION,split.getPath(),split.getStart(),split.getLength(),splitProperties,getColumnHandles(testColumns),partitionKeys,TupleDomain.<HiveColumnHandle>all(),DateTimeZone.getDefault(),TYPE_MANAGER).get();
-  checkCursor(cursor,testColumns);
 }

@@ -1,28 +1,2 @@
 {
-  try {
-    retry().stopOn(NoSuchObjectException.class).stopOnIllegalExceptions().run("dropTable",stats.getDropTable().wrap(new Callable<Void>(){
-      @Override public Void call() throws Exception {
-        try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
-          client.drop_table(databaseName,tableName,true);
-        }
-         tableCache.invalidate(new HiveTableName(databaseName,tableName));
-        tableNamesCache.invalidate(databaseName);
-        viewNamesCache.invalidate(databaseName);
-        return null;
-      }
-    }
-));
-  }
- catch (  NoSuchObjectException e) {
-    throw new TableNotFoundException(new SchemaTableName(databaseName,tableName));
-  }
-catch (  TException e) {
-    throw new PrestoException(HIVE_METASTORE_ERROR,e);
-  }
-catch (  Exception e) {
-    if (e instanceof InterruptedException) {
-      Thread.currentThread().interrupt();
-    }
-    throw Throwables.propagate(e);
-  }
 }
