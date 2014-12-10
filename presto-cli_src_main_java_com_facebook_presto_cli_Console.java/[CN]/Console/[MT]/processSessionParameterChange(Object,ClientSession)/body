@@ -1,12 +1,7 @@
 {
-  if (parsedStatement instanceof UseCollection) {
-    UseCollection use=(UseCollection)parsedStatement;
-switch (use.getType()) {
-case CATALOG:
-      return ClientSession.withCatalog(session,use.getCollection());
-case SCHEMA:
-    return ClientSession.withSchema(session,use.getCollection());
-}
-}
-return session;
+  if (parsedStatement instanceof Use) {
+    Use use=(Use)parsedStatement;
+    return ClientSession.withCatalogAndSchema(session,use.getCatalog().orElse(session.getCatalog()),use.getSchema());
+  }
+  return session;
 }
