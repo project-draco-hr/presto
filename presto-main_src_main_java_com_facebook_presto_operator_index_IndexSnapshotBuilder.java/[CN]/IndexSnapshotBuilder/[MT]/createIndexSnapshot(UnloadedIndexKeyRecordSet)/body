@@ -3,9 +3,10 @@
   checkState(!isMemoryExceeded(),"Max memory exceeded");
   for (  Page page : pages) {
     outputPagesIndex.addPage(page);
+    bogusOperatorContext.setMemoryReservation(outputPagesIndex.getEstimatedSize().toBytes());
   }
   pages.clear();
-  LookupSource lookupSource=outputPagesIndex.createLookupSource(keyOutputChannels,keyOutputHashChannel);
+  LookupSource lookupSource=outputPagesIndex.createLookupSource(keyOutputChannels,bogusOperatorContext,keyOutputHashChannel);
   PageBuilder missingKeysPageBuilder=new PageBuilder(missingKeysIndex.getTypes());
   UnloadedIndexKeyRecordCursor indexKeysRecordCursor=indexKeysRecordSet.cursor();
   while (indexKeysRecordCursor.advanceNextPosition()) {
@@ -28,7 +29,7 @@
   }
   if (!missingKeysPageBuilder.isEmpty()) {
     missingKeysIndex.addPage(missingKeysPage);
-    missingKeys=missingKeysIndex.createLookupSource(missingKeysChannels);
+    missingKeys=missingKeysIndex.createLookupSource(missingKeysChannels,bogusOperatorContext);
   }
   return new IndexSnapshot(lookupSource,missingKeys);
 }
