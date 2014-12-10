@@ -1,6 +1,6 @@
 {
   if (!table.getSd().isSetBucketCols() || table.getSd().getBucketCols().isEmpty() || !table.getSd().isSetNumBuckets()|| (table.getSd().getNumBuckets() <= 0)|| bindings.isEmpty()) {
-    return Optional.absent();
+    return Optional.empty();
   }
   List<String> bucketColumns=table.getSd().getBucketCols();
   Map<String,ObjectInspector> objectInspectors=new HashMap<>();
@@ -10,10 +10,10 @@
   for (  String column : bucketColumns) {
     ObjectInspector inspector=objectInspectors.get(column);
     if ((inspector == null) || (inspector.getCategory() != Category.PRIMITIVE)) {
-      return Optional.absent();
+      return Optional.empty();
     }
     if (!SUPPORTED_TYPES.contains(((PrimitiveObjectInspector)inspector).getPrimitiveCategory())) {
-      return Optional.absent();
+      return Optional.empty();
     }
   }
   Map<String,Object> bucketBindings=new HashMap<>();
@@ -24,7 +24,7 @@
     }
   }
   if (bucketBindings.size() != bucketColumns.size()) {
-    return Optional.absent();
+    return Optional.empty();
   }
   ImmutableList.Builder<Entry<ObjectInspector,Object>> columnBindings=ImmutableList.builder();
   for (  String column : bucketColumns) {
