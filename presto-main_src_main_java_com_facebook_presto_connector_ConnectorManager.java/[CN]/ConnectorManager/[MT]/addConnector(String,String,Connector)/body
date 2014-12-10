@@ -23,12 +23,22 @@
   }
   ConnectorHandleResolver connectorHandleResolver=connector.getHandleResolver();
   checkNotNull(connectorHandleResolver,"Connector %s does not have a handle resolver",connectorId);
-  ConnectorRecordSinkProvider connectorRecordSinkProvider=null;
+  ConnectorPageSinkProvider connectorPageSinkProvider=null;
   try {
-    connectorRecordSinkProvider=connector.getRecordSinkProvider();
-    checkNotNull(connectorRecordSinkProvider,"Connector %s returned a null record sink provider",connectorId);
+    connectorPageSinkProvider=connector.getPageSinkProvider();
+    checkNotNull(connectorPageSinkProvider,"Connector %s returned a null page sink provider",connectorId);
   }
  catch (  UnsupportedOperationException ignored) {
+  }
+  if (connectorPageSinkProvider == null) {
+    ConnectorRecordSinkProvider connectorRecordSinkProvider=null;
+    try {
+      connectorRecordSinkProvider=connector.getRecordSinkProvider();
+      checkNotNull(connectorRecordSinkProvider,"Connector %s returned a null record sink provider",connectorId);
+      connectorPageSinkProvider=new RecordPageSinkProvider(connectorRecordSinkProvider);
+    }
+ catch (    UnsupportedOperationException ignored) {
+    }
   }
   ConnectorIndexResolver indexResolver=null;
   try {
@@ -44,8 +54,8 @@
   splitManager.addConnectorSplitManager(connectorId,connectorSplitManager);
   handleResolver.addHandleResolver(connectorId,connectorHandleResolver);
   pageSourceManager.addConnectorPageSourceProvider(connectorId,connectorPageSourceProvider);
-  if (connectorRecordSinkProvider != null) {
-    recordSinkManager.addConnectorRecordSinkProvider(connectorId,connectorRecordSinkProvider);
+  if (connectorPageSinkProvider != null) {
+    pageSinkManager.addConnectorPageSinkProvider(connectorId,connectorPageSinkProvider);
   }
   if (indexResolver != null) {
     indexManager.addIndexResolver(connectorId,indexResolver);
