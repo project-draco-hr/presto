@@ -1,0 +1,16 @@
+{
+  Slice slice=VARCHAR.getSlice(block,index);
+  Map<String,Map<String,Integer>> jsonState;
+  try {
+    jsonState=OBJECT_MAPPER.readValue(slice.getBytes(),new TypeReference<Map<String,Map<String,Integer>>>(){
+    }
+);
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+  state.addMemoryUsage(slice.length());
+  state.getTruePositives().putAll(jsonState.getOrDefault(TRUE_POSITIVES,ImmutableMap.of()));
+  state.getFalsePositives().putAll(jsonState.getOrDefault(FALSE_POSITIVES,ImmutableMap.of()));
+  state.getFalseNegatives().putAll(jsonState.getOrDefault(FALSE_NEGATIVES,ImmutableMap.of()));
+}

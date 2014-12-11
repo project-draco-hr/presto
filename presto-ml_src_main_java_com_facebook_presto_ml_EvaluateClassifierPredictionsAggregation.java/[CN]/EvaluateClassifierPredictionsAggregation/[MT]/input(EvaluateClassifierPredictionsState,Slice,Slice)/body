@@ -1,0 +1,21 @@
+{
+  if (truth.equals(prediction)) {
+    String key=truth.toStringUtf8();
+    if (!state.getTruePositives().containsKey(key)) {
+      state.addMemoryUsage(truth.length() + SIZE_OF_INT);
+    }
+    state.getTruePositives().put(key,state.getTruePositives().getOrDefault(key,0) + 1);
+  }
+ else {
+    String truthKey=truth.toStringUtf8();
+    String predictionKey=prediction.toStringUtf8();
+    if (!state.getFalsePositives().containsKey(predictionKey)) {
+      state.addMemoryUsage(prediction.length() + SIZE_OF_INT);
+    }
+    state.getFalsePositives().put(predictionKey,state.getFalsePositives().getOrDefault(predictionKey,0) + 1);
+    if (!state.getFalseNegatives().containsKey(truthKey)) {
+      state.addMemoryUsage(truth.length() + SIZE_OF_INT);
+    }
+    state.getFalseNegatives().put(truthKey,state.getFalseNegatives().getOrDefault(truthKey,0) + 1);
+  }
+}
