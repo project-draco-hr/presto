@@ -1,0 +1,12 @@
+{
+  DescriptiveStatistics stats=new DescriptiveStatistics();
+  for (int i=0; i < 500; ++i) {
+    int uniques=ThreadLocalRandom.current().nextInt(20000) + 1;
+    List<Object> values=createRandomSample(uniques,(int)(uniques * 1.5));
+    long actual=estimateGroupByCount(values,maxStandardError);
+    double error=(actual - uniques) * 1.0 / uniques;
+    stats.addValue(error);
+  }
+  assertLessThan(stats.getMean(),1.0e-2);
+  assertLessThan(Math.abs(stats.getStandardDeviation() - maxStandardError),1.0e-2);
+}
