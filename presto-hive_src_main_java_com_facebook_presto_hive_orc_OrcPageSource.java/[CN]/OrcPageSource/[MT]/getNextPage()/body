@@ -28,7 +28,7 @@
         blocks[fieldId]=new LazySliceArrayBlock(batchSize,new LazySliceBlockLoader(hiveColumnIndexes[fieldId]));
       }
  else {
-        throw new UnsupportedOperationException("Unsupported column type: " + type);
+        throw new PrestoException(NOT_SUPPORTED,"Unsupported column type: " + type);
       }
     }
     Page page=new Page(batchSize,blocks);
@@ -36,7 +36,11 @@
     completedBytes=min(recordReader.getSplitLength(),max(completedBytes,newCompletedBytes));
     return page;
   }
- catch (  IOException|RuntimeException e) {
+ catch (  PrestoException e) {
+    closeWithSuppression(e);
+    throw e;
+  }
+catch (  IOException|RuntimeException e) {
     closeWithSuppression(e);
     throw new PrestoException(HIVE_CURSOR_ERROR,e);
   }
