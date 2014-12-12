@@ -1,7 +1,9 @@
 {
   List<Object> baseline=createRandomSample(10000,15000);
-  List<Object> mixed=new ArrayList<>(baseline);
-  mixed.addAll(Collections.<Long>nCopies(baseline.size(),null));
-  Collections.shuffle(mixed);
+  Iterator<Object> iterator=baseline.iterator();
+  List<Object> mixed=new ArrayList<>();
+  while (iterator.hasNext()) {
+    mixed.add(ThreadLocalRandom.current().nextBoolean() ? null : iterator.next());
+  }
   assertCount(mixed,maxStandardError,estimateGroupByCount(baseline,maxStandardError));
 }
