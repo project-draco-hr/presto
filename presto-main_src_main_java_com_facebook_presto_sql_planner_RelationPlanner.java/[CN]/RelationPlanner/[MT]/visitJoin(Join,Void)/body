@@ -76,13 +76,13 @@
   }
   PlanNode root;
   if (node.getType() == INNER) {
-    root=new JoinNode(idAllocator.getNextId(),JoinNode.Type.CROSS,leftPlanBuilder.getRoot(),rightPlanBuilder.getRoot(),ImmutableList.<JoinNode.EquiJoinClause>of(),Optional.<Symbol>absent(),Optional.<Symbol>absent());
+    root=new JoinNode(idAllocator.getNextId(),JoinNode.Type.CROSS,leftPlanBuilder.getRoot(),rightPlanBuilder.getRoot(),ImmutableList.<JoinNode.EquiJoinClause>of(),Optional.empty(),Optional.empty());
     root=new FilterNode(idAllocator.getNextId(),root,postInnerJoinCriteria);
   }
  else {
-    root=new JoinNode(idAllocator.getNextId(),JoinNode.Type.typeConvert(node.getType()),leftPlanBuilder.getRoot(),rightPlanBuilder.getRoot(),equiClauses.build(),Optional.<Symbol>absent(),Optional.<Symbol>absent());
+    root=new JoinNode(idAllocator.getNextId(),JoinNode.Type.typeConvert(node.getType()),leftPlanBuilder.getRoot(),rightPlanBuilder.getRoot(),equiClauses.build(),Optional.empty(),Optional.empty());
   }
-  Optional<Symbol> sampleWeight=Optional.absent();
+  Optional<Symbol> sampleWeight=Optional.empty();
   if (leftPlanBuilder.getSampleWeight().isPresent() || rightPlanBuilder.getSampleWeight().isPresent()) {
     Expression expression=new ArithmeticExpression(ArithmeticExpression.Type.MULTIPLY,oneIfNull(leftPlanBuilder.getSampleWeight()),oneIfNull(rightPlanBuilder.getSampleWeight()));
     sampleWeight=Optional.of(symbolAllocator.newSymbol(expression,BIGINT));

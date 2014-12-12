@@ -17,12 +17,12 @@
   AggregationNode partialAggregation=new AggregationNode(idAllocator.getNextId(),plan.getRoot(),groupBy,intermediateCalls,intermediateFunctions,intermediateMask,PARTIAL,sampleWeight,confidence,hashSymbol);
   plan.setRoot(new SinkNode(idAllocator.getNextId(),partialAggregation,partialAggregation.getOutputSymbols()));
   ExchangeNode source=new ExchangeNode(idAllocator.getNextId(),plan.getId(),plan.getRoot().getOutputSymbols());
-  AggregationNode finalAggregation=new AggregationNode(idAllocator.getNextId(),source,groupBy,finalCalls,functions,ImmutableMap.<Symbol,Symbol>of(),FINAL,Optional.<Symbol>absent(),confidence,hashSymbol);
+  AggregationNode finalAggregation=new AggregationNode(idAllocator.getNextId(),source,groupBy,finalCalls,functions,ImmutableMap.of(),FINAL,Optional.empty(),confidence,hashSymbol);
   if (groupBy.isEmpty()) {
     plan=createSingleNodePlan(finalAggregation).addChild(plan.build());
   }
  else {
-    plan.setHashOutputPartitioning(groupBy,hashSymbol.transform(channelGetter(plan.getRoot())));
+    plan.setHashOutputPartitioning(groupBy,hashSymbol.map(channelGetter(plan.getRoot())));
     plan=createFixedDistributionPlan(finalAggregation).addChild(plan.build());
   }
   return plan;

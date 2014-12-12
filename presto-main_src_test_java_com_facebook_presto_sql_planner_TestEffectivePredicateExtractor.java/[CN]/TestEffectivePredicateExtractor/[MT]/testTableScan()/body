@@ -1,6 +1,6 @@
 {
   Map<Symbol,ColumnHandle> assignments=Maps.filterKeys(scanAssignments,Predicates.in(ImmutableList.of(A,B,C,D)));
-  PlanNode node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(assignments.keySet()),assignments,null,Optional.<GeneratedPartitions>absent());
+  PlanNode node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(assignments.keySet()),assignments,null,Optional.empty());
   Expression effectivePredicate=EffectivePredicateExtractor.extract(node,TYPES);
   Assert.assertEquals(effectivePredicate,BooleanLiteral.TRUE_LITERAL);
   node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(assignments.keySet()),assignments,null,Optional.<GeneratedPartitions>of(new GeneratedPartitions(TupleDomain.withColumnDomains(ImmutableMap.<ColumnHandle,Domain>of(scanAssignments.get(A),Domain.singleValue(1L))),ImmutableList.<Partition>of())));
