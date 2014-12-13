@@ -1,6 +1,9 @@
 {
   try (SetThreadName setThreadName=new SetThreadName("Query-%s",stateMachine.getQueryId())){
     stateMachine.fail(cause);
-    cancelOutputStage();
+    SqlStageExecution stageExecution=outputStage.get();
+    if (stageExecution != null) {
+      stageExecution.cancel(true);
+    }
   }
  }
