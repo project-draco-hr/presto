@@ -1,0 +1,20 @@
+{
+  out.reset();
+  if (presentStream != null && !presentStream.nextBit()) {
+    checkNotNull(builder,"parent builder is null").appendNull();
+    return;
+  }
+  if (lengthStream == null) {
+    throw new OrcCorruptionException("Value is not null but length stream is not present");
+  }
+  BlockBuilder currentBuilder=VARBINARY.createBlockBuilder(new BlockBuilderStatus(1000,1000));
+  long length=lengthStream.next();
+  for (int i=0; i < length; i++) {
+    keyReader.readNextValueInto(currentBuilder);
+    valueReader.readNextValueInto(currentBuilder);
+  }
+  currentBuilder.getEncoding().writeBlock(out,currentBuilder.build());
+  if (builder != null) {
+    VARBINARY.writeSlice(builder,out.copySlice());
+  }
+}

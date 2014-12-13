@@ -1,12 +1,8 @@
 {
-  Map<Integer,Double> featureMap=new HashMap<>();
+  BlockBuilder blockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),features.length * (8 + 8));
   for (int i=0; i < features.length; i++) {
-    featureMap.put(i,features[i]);
+    BigintType.BIGINT.writeLong(blockBuilder,i);
+    DoubleType.DOUBLE.writeDouble(blockBuilder,features[i]);
   }
-  try {
-    return Slices.utf8Slice(OBJECT_MAPPER.writeValueAsString(featureMap));
-  }
- catch (  JsonProcessingException e) {
-    throw Throwables.propagate(e);
-  }
+  return buildStructuralSlice(blockBuilder);
 }

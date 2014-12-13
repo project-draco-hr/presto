@@ -37,8 +37,10 @@
   if (type.equals(BOOLEAN)) {
     return new BooleanLiteral(object.toString());
   }
-  if (type.equals(VARBINARY) && object instanceof Slice) {
-    return new FunctionCall(new QualifiedName("from_base64"),ImmutableList.of(new StringLiteral(VarbinaryFunctions.toBase64((Slice)object).toStringUtf8())));
+  if (object instanceof Slice && !type.equals(VARCHAR)) {
+    FunctionCall fromBase64=new FunctionCall(new QualifiedName("from_base64"),ImmutableList.of(new StringLiteral(VarbinaryFunctions.toBase64((Slice)object).toStringUtf8())));
+    Signature signature=FunctionRegistry.getMagicLiteralFunctionSignature(type);
+    return new FunctionCall(new QualifiedName(signature.getName()),ImmutableList.of(fromBase64));
   }
   Signature signature=FunctionRegistry.getMagicLiteralFunctionSignature(type);
   Expression rawLiteral=toExpression(object,FunctionRegistry.type(type.getJavaType()));

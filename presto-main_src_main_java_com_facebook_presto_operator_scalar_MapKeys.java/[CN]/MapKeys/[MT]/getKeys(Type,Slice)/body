@@ -1,18 +1,8 @@
 {
-  List<Object> keys=new ArrayList<>();
-  try (JsonParser parser=JSON_FACTORY.createJsonParser(map.getInput())){
-    JsonToken token=parser.nextToken();
-    while (token != null) {
-      if (token == JsonToken.FIELD_NAME) {
-        String fieldName=parser.getCurrentName();
-        keys.add(parseMapKeyAsType(fieldName,keyType));
-      }
-      token=parser.nextToken();
-      parser.skipChildren();
-    }
+  Block block=readStructuralBlock(map);
+  BlockBuilder blockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),block.getSizeInBytes());
+  for (int i=0; i < block.getPositionCount(); i+=2) {
+    keyType.appendTo(block,i,blockBuilder);
   }
- catch (  IOException e) {
-    throw new PrestoException(INVALID_FUNCTION_ARGUMENT,e);
-  }
-  return toStackRepresentation(keys);
+  return buildStructuralSlice(blockBuilder);
 }

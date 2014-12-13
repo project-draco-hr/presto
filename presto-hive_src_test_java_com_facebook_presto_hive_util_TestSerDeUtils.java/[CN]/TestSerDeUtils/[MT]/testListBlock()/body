@@ -1,0 +1,14 @@
+{
+  List<InnerStruct> array=new ArrayList<>(2);
+  array.add(new InnerStruct(8,9L));
+  array.add(new InnerStruct(10,11L));
+  ListHolder listHolder=new ListHolder();
+  listHolder.array=array;
+  Slice actual=toBinarySlice(listHolder,getInspector(ListHolder.class));
+  com.facebook.presto.spi.type.Type rowType=new RowType(ImmutableList.of(BIGINT,BIGINT),Optional.empty());
+  BlockBuilder blockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),1024);
+  rowType.writeSlice(blockBuilder,rowSliceOf(ImmutableList.of(BIGINT,BIGINT),8,9L));
+  rowType.writeSlice(blockBuilder,rowSliceOf(ImmutableList.of(BIGINT,BIGINT),10,11L));
+  Slice expected=rowSliceOf(ImmutableList.of(new ArrayType(rowType)),buildStructuralSlice(blockBuilder));
+  assertEquals(actual,expected);
+}

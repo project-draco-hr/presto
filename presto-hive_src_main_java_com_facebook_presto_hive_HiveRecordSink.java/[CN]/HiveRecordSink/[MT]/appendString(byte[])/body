@@ -3,6 +3,15 @@
   if (type == VarbinaryType.VARBINARY) {
     append(value);
   }
+ else   if (isMapType(type) || isArrayType(type)) {
+    BlockBuilder blockBuilder=type.createBlockBuilder(new BlockBuilderStatus());
+    type.writeSlice(blockBuilder,Slices.wrappedBuffer(value));
+    Object complexValue=type.getObjectValue(connectorSession,blockBuilder.build(),0);
+    if (hasDateTimeTypes.get(field)) {
+      complexValue=translateDateTime(type,complexValue);
+    }
+    append(complexValue);
+  }
  else {
     append(new String(value,UTF_8));
   }

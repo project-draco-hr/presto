@@ -1,0 +1,43 @@
+{
+  checkNotNull(builder,"parent builder is null");
+  if (object == null) {
+    builder.appendNull();
+    return;
+  }
+switch (inspector.getPrimitiveCategory()) {
+case BOOLEAN:
+    BooleanType.BOOLEAN.writeBoolean(builder,((BooleanObjectInspector)inspector).get(object));
+  return;
+case BYTE:
+BigintType.BIGINT.writeLong(builder,((ByteObjectInspector)inspector).get(object));
+return;
+case SHORT:
+BigintType.BIGINT.writeLong(builder,((ShortObjectInspector)inspector).get(object));
+return;
+case INT:
+BigintType.BIGINT.writeLong(builder,((IntObjectInspector)inspector).get(object));
+return;
+case LONG:
+BigintType.BIGINT.writeLong(builder,((LongObjectInspector)inspector).get(object));
+return;
+case FLOAT:
+DoubleType.DOUBLE.writeDouble(builder,((FloatObjectInspector)inspector).get(object));
+return;
+case DOUBLE:
+DoubleType.DOUBLE.writeDouble(builder,((DoubleObjectInspector)inspector).get(object));
+return;
+case STRING:
+VarcharType.VARCHAR.writeSlice(builder,Slices.utf8Slice(((StringObjectInspector)inspector).getPrimitiveJavaObject(object)));
+return;
+case DATE:
+DateType.DATE.writeLong(builder,formatDateAsLong(object,(DateObjectInspector)inspector));
+return;
+case TIMESTAMP:
+TimestampType.TIMESTAMP.writeLong(builder,formatTimestampAsLong(object,(TimestampObjectInspector)inspector));
+return;
+case BINARY:
+VARBINARY.writeSlice(builder,Slices.wrappedBuffer(((BinaryObjectInspector)inspector).getPrimitiveJavaObject(object)));
+return;
+}
+throw new RuntimeException("Unknown primitive type: " + inspector.getPrimitiveCategory());
+}

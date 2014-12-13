@@ -1,12 +1,11 @@
 {
-  List<Object> elements=extractElements(block,position);
+  Slice value=getSlice(block,position);
+  Block arrayBlock=readStructuralBlock(value);
   int result=1;
-  int nFields=elements.size();
-  for (int i=0; i < nFields; i++) {
-    Object element=elements.get(i);
-    checkElementNotNull(element);
+  for (int i=0; i < arrayBlock.getPositionCount(); i++) {
+    checkElementNotNull(arrayBlock.isNull(i));
     Type elementType=fields.get(i).getType();
-    result=31 * result + elementType.hash(createBlock(elementType,element),0);
+    result=31 * result + elementType.hash(arrayBlock,i);
   }
   return result;
 }

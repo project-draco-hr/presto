@@ -1,14 +1,13 @@
 {
-  List<Object> leftRow=extractElements(leftBlock,leftPosition);
-  List<Object> rightRow=extractElements(rightBlock,rightPosition);
-  int nFields=leftRow.size();
-  for (int i=0; i < nFields; i++) {
-    Object leftElement=leftRow.get(i);
-    Object rightElement=rightRow.get(i);
-    checkElementNotNull(leftElement);
-    checkElementNotNull(rightElement);
+  Slice leftSlice=getSlice(leftBlock,leftPosition);
+  Slice rightSlice=getSlice(rightBlock,rightPosition);
+  Block leftArray=readStructuralBlock(leftSlice);
+  Block rightArray=readStructuralBlock(rightSlice);
+  for (int i=0; i < leftArray.getPositionCount(); i++) {
+    checkElementNotNull(leftArray.isNull(i));
+    checkElementNotNull(rightArray.isNull(i));
     Type fieldType=fields.get(i).getType();
-    if (!fieldType.equalTo(createBlock(fieldType,leftElement),0,createBlock(fieldType,rightElement),0)) {
+    if (!fieldType.equalTo(leftArray,i,rightArray,i)) {
       return false;
     }
   }

@@ -3,5 +3,10 @@
     return null;
   }
   Slice slice=block.getSlice(position,0,block.getLength(position));
-  return stackRepresentationToObject(session,slice,this);
+  Block arrayBlock=readStructuralBlock(slice);
+  List<Object> values=Lists.newArrayListWithCapacity(arrayBlock.getPositionCount());
+  for (int i=0; i < arrayBlock.getPositionCount(); i++) {
+    values.add(elementType.getObjectValue(session,arrayBlock,i));
+  }
+  return Collections.unmodifiableList(values);
 }

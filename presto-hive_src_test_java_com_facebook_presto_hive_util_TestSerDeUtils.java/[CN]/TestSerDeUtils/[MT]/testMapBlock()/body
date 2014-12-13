@@ -1,0 +1,15 @@
+{
+  MapHolder holder=new MapHolder();
+  holder.map=new TreeMap<>();
+  holder.map.put("twelve",new InnerStruct(13,14L));
+  holder.map.put("fifteen",new InnerStruct(16,17L));
+  Slice actual=toBinarySlice(holder,getInspector(MapHolder.class));
+  com.facebook.presto.spi.type.Type rowType=new RowType(ImmutableList.of(BIGINT,BIGINT),Optional.empty());
+  BlockBuilder blockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),1024);
+  VARCHAR.writeString(blockBuilder,"fifteen");
+  rowType.writeSlice(blockBuilder,rowSliceOf(ImmutableList.of(BIGINT,BIGINT),16,17L));
+  VARCHAR.writeString(blockBuilder,"twelve");
+  rowType.writeSlice(blockBuilder,rowSliceOf(ImmutableList.of(BIGINT,BIGINT),13,14L));
+  Slice expected=rowSliceOf(ImmutableList.of(new MapType(VARCHAR,rowType)),buildStructuralSlice(blockBuilder));
+  assertEquals(actual,expected);
+}

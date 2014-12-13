@@ -3,5 +3,10 @@
     return null;
   }
   Slice slice=block.getSlice(position,0,block.getLength(position));
-  return stackRepresentationToObject(session,slice,this);
+  Block mapBlock=readStructuralBlock(slice);
+  Map<Object,Object> map=new HashMap<>();
+  for (int i=0; i < mapBlock.getPositionCount(); i+=2) {
+    map.put(keyType.getObjectValue(session,mapBlock,i),valueType.getObjectValue(session,mapBlock,i + 1));
+  }
+  return Collections.unmodifiableMap(map);
 }

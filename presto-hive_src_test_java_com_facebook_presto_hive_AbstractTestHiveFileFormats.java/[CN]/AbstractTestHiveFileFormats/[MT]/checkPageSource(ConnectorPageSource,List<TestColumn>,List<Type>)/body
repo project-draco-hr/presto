@@ -7,9 +7,6 @@
         Type type=types.get(i);
         Object actualValue=row.getField(i);
         Object expectedValue=testColumn.getExpectedValue();
-        if (expectedValue instanceof Slice) {
-          expectedValue=((Slice)expectedValue).toStringUtf8();
-        }
         if (actualValue == null) {
           assertEquals(null,expectedValue,String.format("Expected null for column %d",i));
         }
@@ -25,6 +22,9 @@
           assertEquals(actualValue,expectedTimestamp);
         }
  else         if (testColumn.getObjectInspector().getCategory() == Category.PRIMITIVE) {
+          if (expectedValue instanceof Slice) {
+            expectedValue=((Slice)expectedValue).toStringUtf8();
+          }
           if (actualValue instanceof Slice) {
             actualValue=((Slice)actualValue).toStringUtf8();
           }
@@ -34,8 +34,10 @@
           assertEquals(actualValue,expectedValue,String.format("Wrong value for column %d",i));
         }
  else {
-          Object expected=stackRepresentationToObject(SESSION,Slices.utf8Slice((String)expectedValue),type);
-          assertEquals(actualValue,expected,String.format("Wrong value for column %s",testColumn.getName()));
+          BlockBuilder builder=type.createBlockBuilder(new BlockBuilderStatus());
+          type.writeSlice(builder,(Slice)expectedValue);
+          expectedValue=type.getObjectValue(SESSION,builder.build(),0);
+          assertEquals(actualValue,expectedValue,String.format("Wrong value for column %s",testColumn.getName()));
         }
       }
     }

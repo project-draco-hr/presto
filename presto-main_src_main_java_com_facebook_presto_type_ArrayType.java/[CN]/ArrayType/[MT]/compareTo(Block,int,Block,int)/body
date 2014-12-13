@@ -1,21 +1,21 @@
 {
   Slice leftSlice=getSlice(leftBlock,leftPosition);
   Slice rightSlice=getSlice(rightBlock,rightPosition);
-  List<Object> leftArray=getObjectList(leftSlice);
-  List<Object> rightArray=getObjectList(rightSlice);
-  int len=Math.min(leftArray.size(),rightArray.size());
+  Block leftArray=readStructuralBlock(leftSlice);
+  Block rightArray=readStructuralBlock(rightSlice);
+  int len=Math.min(leftArray.getPositionCount(),rightArray.getPositionCount());
   int index=0;
   while (index < len) {
-    checkElementNotNull(leftArray.get(index));
-    checkElementNotNull(rightArray.get(index));
-    int comparison=elementType.compareTo(createBlock(elementType,leftArray.get(index)),0,createBlock(elementType,rightArray.get(index)),0);
+    checkElementNotNull(leftArray.isNull(index));
+    checkElementNotNull(rightArray.isNull(index));
+    int comparison=elementType.compareTo(leftArray,index,rightArray,index);
     if (comparison != 0) {
       return comparison;
     }
     index++;
   }
   if (index == len) {
-    return leftArray.size() - rightArray.size();
+    return leftArray.getPositionCount() - rightArray.getPositionCount();
   }
   return 0;
 }

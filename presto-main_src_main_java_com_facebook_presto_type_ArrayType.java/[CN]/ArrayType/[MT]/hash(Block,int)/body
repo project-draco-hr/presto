@@ -1,10 +1,10 @@
 {
   Slice value=getSlice(block,position);
-  List<Object> array=getObjectList(value);
-  List<Integer> hashArray=new ArrayList<Integer>();
-  for (  Object element : array) {
-    checkElementNotNull(element);
-    hashArray.add(elementType.hash(createBlock(elementType,element),0));
+  Block array=readStructuralBlock(value);
+  List<Integer> hashArray=new ArrayList<>(array.getPositionCount());
+  for (int i=0; i < array.getPositionCount(); i++) {
+    checkElementNotNull(array.isNull(i));
+    hashArray.add(elementType.hash(array,i));
   }
   return Objects.hash(hashArray);
 }

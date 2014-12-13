@@ -1,9 +1,15 @@
 {
   Matcher matcher=pattern.matcher(source.toString(UTF_8));
   validateGroup(group,matcher);
-  List<String> matches=new ArrayList<>();
+  BlockBuilder blockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),1024);
   while (matcher.find()) {
-    matches.add(matcher.group(Ints.checkedCast(group)));
+    String string=matcher.group(Ints.checkedCast(group));
+    if (string == null) {
+      blockBuilder.appendNull();
+    }
+ else {
+      VarcharType.VARCHAR.writeString(blockBuilder,string);
+    }
   }
-  return toStackRepresentation(matches);
+  return buildStructuralSlice(blockBuilder);
 }

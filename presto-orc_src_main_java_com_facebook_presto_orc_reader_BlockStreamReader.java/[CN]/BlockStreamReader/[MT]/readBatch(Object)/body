@@ -1,0 +1,26 @@
+{
+  if (!rowGroupOpen) {
+    openRowGroup();
+  }
+  if (readOffset > 0) {
+    if (presentStream != null) {
+      readOffset=presentStream.countBitsSet(readOffset);
+    }
+    blockReader.skip(readOffset);
+  }
+  SliceVector sliceVector=castOrcVector(vector,SliceVector.class);
+  if (presentStream != null) {
+    presentStream.getUnsetBits(nextBatchSize,isNullVector);
+  }
+  for (int i=0; i < nextBatchSize; i++) {
+    if (!isNullVector[i]) {
+      blockReader.readNextValueInto(null);
+      sliceVector.vector[i]=blockReader.toSlice();
+    }
+ else {
+      sliceVector.vector[i]=null;
+    }
+  }
+  readOffset=0;
+  nextBatchSize=0;
+}

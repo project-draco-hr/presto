@@ -1,7 +1,6 @@
 {
   this.columns=columns;
   ImmutableList.Builder<Converter> converters=ImmutableList.builder();
-  ImmutableList.Builder<Closeable> closeableBuilder=ImmutableList.builder();
   for (int i=0; i < columns.size(); i++) {
     HiveColumnHandle column=columns.get(i);
     if (!column.isPartitionKey() && column.getHiveColumnIndex() < messageType.getFieldCount()) {
@@ -13,19 +12,16 @@
         GroupType groupType=parquetType.asGroupType();
 switch (column.getTypeSignature().getBase()) {
 case StandardTypes.ARRAY:
-          ParquetJsonColumnConverter listConverter=new ParquetJsonColumnConverter(new ParquetListJsonConverter(groupType.getName(),null,groupType),i);
+          ParquetColumnConverter listConverter=new ParquetColumnConverter(new ParquetListConverter(groupType.getName(),groupType),i);
         converters.add(listConverter);
-      closeableBuilder.add(listConverter);
-    break;
+      break;
 case StandardTypes.MAP:
-  ParquetJsonColumnConverter mapConverter=new ParquetJsonColumnConverter(new ParquetMapJsonConverter(groupType.getName(),null,groupType),i);
-converters.add(mapConverter);
-closeableBuilder.add(mapConverter);
+    ParquetColumnConverter mapConverter=new ParquetColumnConverter(new ParquetMapConverter(groupType.getName(),groupType),i);
+  converters.add(mapConverter);
 break;
 case StandardTypes.ROW:
-ParquetJsonColumnConverter rowConverter=new ParquetJsonColumnConverter(new ParquetStructJsonConverter(groupType.getName(),null,groupType),i);
+ParquetColumnConverter rowConverter=new ParquetColumnConverter(new ParquetStructConverter(groupType.getName(),groupType),i);
 converters.add(rowConverter);
-closeableBuilder.add(rowConverter);
 break;
 default :
 throw new IllegalArgumentException("Group column " + groupType.getName() + " type "+ groupType.getOriginalType()+ " not supported");
@@ -34,5 +30,4 @@ throw new IllegalArgumentException("Group column " + groupType.getName() + " typ
 }
 }
 this.converters=converters.build();
-this.converterCloseables=closeableBuilder.build();
 }
