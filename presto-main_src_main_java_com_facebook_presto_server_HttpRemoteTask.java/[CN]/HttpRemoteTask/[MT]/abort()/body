@@ -1,9 +1,14 @@
 {
   try (SetThreadName ignored=new SetThreadName("HttpRemoteTask-%s",taskId)){
-    if (getTaskInfo().getState().isDone()) {
-      return;
+    pendingSplits.clear();
+    if (currentRequest != null) {
+      currentRequest.cancel(true);
+      currentRequest=null;
+      currentRequestStartNanos=0;
     }
-    URI uri=getTaskInfo().getSelf();
+    TaskInfo taskInfo=getTaskInfo();
+    URI uri=taskInfo.getSelf();
+    updateTaskInfo(new TaskInfo(taskInfo.getTaskId(),TaskInfo.MAX_VERSION,TaskState.CANCELED,uri,taskInfo.getLastHeartbeat(),taskInfo.getOutputBuffers(),taskInfo.getNoMoreSplits(),taskInfo.getStats(),ImmutableList.<ExecutionFailureInfo>of()));
     if (uri == null) {
       return;
     }
@@ -20,7 +25,7 @@
           Futures.addCallback(httpClient.executeAsync(request,createStatusResponseHandler()),this,executor);
         }
  else {
-          log.error(t,"Unable to cancel task at %s",request.getUri());
+          log.error(t,"Unable to abort task at %s",request.getUri());
         }
       }
     }
