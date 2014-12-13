@@ -1,8 +1,14 @@
 {
-  if (!isSimpleComparison(node)) {
+  if (isSimpleMagicLiteralComparison(node)) {
+    node=normalizeSimpleComparison(node);
+    node=convertMagicLiteralComparison(node);
+  }
+ else   if (isSimpleComparison(node)) {
+    node=normalizeSimpleComparison(node);
+  }
+ else {
     return super.visitComparisonExpression(node,complement);
   }
-  node=normalizeSimpleComparison(node);
   Symbol symbol=Symbol.fromQualifiedName(((QualifiedNameReference)node.getLeft()).getName());
   Type columnType=checkedTypeLookup(symbol);
   ColumnHandle columnHandle=checkedColumnHandleLookup(symbol);
