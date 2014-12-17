@@ -1,0 +1,18 @@
+{
+  Map<Symbol,FunctionCall> aggregations=new LinkedHashMap<>(node.getAggregations());
+  Map<Symbol,Signature> functions=new LinkedHashMap<>(node.getFunctions());
+  PlanNode source=context.rewrite(node.getSource());
+  if (source instanceof ProjectNode) {
+    ProjectNode projectNode=(ProjectNode)source;
+    for (    Entry<Symbol,FunctionCall> entry : node.getAggregations().entrySet()) {
+      Symbol symbol=entry.getKey();
+      FunctionCall functionCall=entry.getValue();
+      Signature signature=node.getFunctions().get(symbol);
+      if (isCountConstant(projectNode,functionCall,signature)) {
+        aggregations.put(symbol,new FunctionCall(functionCall.getName(),null,functionCall.isDistinct(),ImmutableList.<Expression>of()));
+        functions.put(symbol,new Signature("count",StandardTypes.BIGINT));
+      }
+    }
+  }
+  return new AggregationNode(node.getId(),source,node.getGroupBy(),aggregations,functions,node.getMasks(),node.getStep(),node.getSampleWeight(),node.getConfidence(),node.getHashSymbol());
+}

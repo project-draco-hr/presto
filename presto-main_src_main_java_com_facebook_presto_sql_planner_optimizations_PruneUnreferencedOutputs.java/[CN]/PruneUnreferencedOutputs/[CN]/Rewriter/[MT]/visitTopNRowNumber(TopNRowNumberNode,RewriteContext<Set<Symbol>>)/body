@@ -1,0 +1,8 @@
+{
+  ImmutableSet.Builder<Symbol> expectedInputs=ImmutableSet.<Symbol>builder().addAll(context.get()).addAll(node.getPartitionBy()).addAll(node.getOrderBy());
+  if (node.getHashSymbol().isPresent()) {
+    expectedInputs.add(node.getHashSymbol().get());
+  }
+  PlanNode source=context.rewrite(node.getSource(),expectedInputs.build());
+  return new TopNRowNumberNode(node.getId(),source,node.getPartitionBy(),node.getOrderBy(),node.getOrderings(),node.getRowNumberSymbol(),node.getMaxRowCountPerPartition(),node.isPartial(),node.getHashSymbol());
+}

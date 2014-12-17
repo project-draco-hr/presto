@@ -1,0 +1,12 @@
+{
+  LimitContext limit=context.get();
+  PlanNode rewrittenSource=context.rewrite(node.getSource());
+  if (rewrittenSource == node.getSource() && limit == null) {
+    return node;
+  }
+  long count=node.getCount();
+  if (limit != null) {
+    count=Math.min(count,limit.getCount());
+  }
+  return new TopNNode(node.getId(),rewrittenSource,count,node.getOrderBy(),node.getOrderings(),node.isPartial());
+}

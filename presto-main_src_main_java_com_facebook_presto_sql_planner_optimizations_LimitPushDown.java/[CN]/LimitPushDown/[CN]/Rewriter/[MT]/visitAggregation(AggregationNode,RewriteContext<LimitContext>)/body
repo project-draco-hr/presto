@@ -1,0 +1,13 @@
+{
+  LimitContext limit=context.get();
+  if (limit != null && node.getAggregations().isEmpty() && node.getOutputSymbols().size() == node.getGroupBy().size() && node.getOutputSymbols().containsAll(node.getGroupBy())) {
+    checkArgument(!node.getSampleWeight().isPresent(),"DISTINCT aggregation has sample weight symbol");
+    PlanNode rewrittenSource=context.rewrite(node.getSource());
+    return new DistinctLimitNode(idAllocator.getNextId(),rewrittenSource,limit.getCount(),Optional.empty());
+  }
+  PlanNode rewrittenNode=context.defaultRewrite(node);
+  if (limit != null) {
+    rewrittenNode=new LimitNode(idAllocator.getNextId(),rewrittenNode,limit.getCount());
+  }
+  return rewrittenNode;
+}
