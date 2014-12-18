@@ -1,27 +1,2 @@
 {
-  addNewExchangesAndBuffers();
-  TaskId taskId=new TaskId(stageId,String.valueOf(id));
-  ImmutableMultimap.Builder<PlanNodeId,Split> initialSplits=ImmutableMultimap.builder();
-  for (  Split sourceSplit : sourceSplits) {
-    initialSplits.put(sourceId,sourceSplit);
-  }
-  for (  Entry<PlanNodeId,URI> entry : exchangeLocations.get().entries()) {
-    initialSplits.put(entry.getKey(),createRemoteSplitFor(taskId,entry.getValue()));
-  }
-  RemoteTask task=remoteTaskFactory.createRemoteTask(session,taskId,node,fragment,initialSplits.build(),getCurrentOutputBuffers());
-  task.addStateChangeListener(new StateChangeListener<TaskInfo>(){
-    @Override public void stateChanged(    TaskInfo taskInfo){
-      doUpdateState();
-    }
-  }
-);
-  task.start();
-  tasks.put(task.getTaskInfo().getTaskId(),task);
-  localNodeTaskMap.put(node,task.getTaskInfo().getTaskId());
-  nodeTaskMap.addTask(node,task);
-  doUpdateState();
-  if (getState().isDone()) {
-    return task;
-  }
-  return task;
 }
