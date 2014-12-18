@@ -1,11 +1,9 @@
 {
   SubPlanBuilder current=node.getSource().accept(this,context);
-  checkState(current.getRoot() instanceof TableWriterNode,"table commit node must be preceeded by table writer node");
-  WriterTarget target=((TableWriterNode)current.getRoot()).getTarget();
   if (current.getDistribution() != PlanDistribution.COORDINATOR_ONLY && !createSingleNodePlan) {
     current.setRoot(new SinkNode(idAllocator.getNextId(),current.getRoot(),current.getRoot().getOutputSymbols()));
     current=createCoordinatorOnlyPlan(new ExchangeNode(idAllocator.getNextId(),current.getId(),current.getRoot().getOutputSymbols())).addChild(current.build());
   }
-  current.setRoot(new TableCommitNode(node.getId(),current.getRoot(),target,node.getOutputSymbols()));
+  current.setRoot(new TableCommitNode(node.getId(),current.getRoot(),node.getTarget(),node.getOutputSymbols()));
   return current;
 }
