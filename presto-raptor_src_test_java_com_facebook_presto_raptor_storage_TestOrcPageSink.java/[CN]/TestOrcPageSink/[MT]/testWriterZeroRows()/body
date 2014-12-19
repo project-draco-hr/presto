@@ -1,0 +1,13 @@
+{
+  List<Long> columnIds=ImmutableList.of(1L);
+  List<Type> columnTypes=ImmutableList.of(BIGINT);
+  File file=new File(directory,System.nanoTime() + ".orc");
+  try (StoragePageSink ignored=new OrcStoragePageSink(columnIds,columnTypes,file)){
+  }
+   try (FileOrcDataSource dataSource=new FileOrcDataSource(file,new DataSize(1,Unit.MEGABYTE))){
+    OrcRecordReader reader=createReaderNoRows(dataSource);
+    assertEquals(reader.getTotalRowCount(),0);
+    assertEquals(reader.getPosition(),0);
+    assertEquals(reader.nextBatch(),-1);
+  }
+ }
