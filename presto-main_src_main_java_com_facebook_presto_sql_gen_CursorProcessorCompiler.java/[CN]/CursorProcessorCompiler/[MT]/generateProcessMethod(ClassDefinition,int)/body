@@ -15,15 +15,11 @@
   ifStatement.condition(new Block(context).pushThis().getVariable(sessionVariable).getVariable(cursorVariable).invokeVirtual(classDefinition.getType(),"filter",type(boolean.class),type(ConnectorSession.class),type(RecordCursor.class)));
   Block trueBlock=new Block(context);
   ifStatement.ifTrue(trueBlock);
-  if (projections == 0) {
-    trueBlock.getVariable(pageBuilderVariable).invokeVirtual(PageBuilder.class,"declarePosition",void.class);
-  }
- else {
-    for (int projectionIndex=0; projectionIndex < projections; projectionIndex++) {
-      trueBlock.pushThis().getVariable(sessionVariable).getVariable(cursorVariable);
-      trueBlock.getVariable(pageBuilderVariable).push(projectionIndex).invokeVirtual(PageBuilder.class,"getBlockBuilder",BlockBuilder.class,int.class);
-      trueBlock.invokeVirtual(classDefinition.getType(),"project_" + projectionIndex,type(void.class),type(ConnectorSession.class),type(RecordCursor.class),type(BlockBuilder.class));
-    }
+  trueBlock.getVariable(pageBuilderVariable).invokeVirtual(PageBuilder.class,"declarePosition",void.class);
+  for (int projectionIndex=0; projectionIndex < projections; projectionIndex++) {
+    trueBlock.pushThis().getVariable(sessionVariable).getVariable(cursorVariable);
+    trueBlock.getVariable(pageBuilderVariable).push(projectionIndex).invokeVirtual(PageBuilder.class,"getBlockBuilder",BlockBuilder.class,int.class);
+    trueBlock.invokeVirtual(classDefinition.getType(),"project_" + projectionIndex,type(void.class),type(ConnectorSession.class),type(RecordCursor.class),type(BlockBuilder.class));
   }
   forLoopBody.append(ifStatement.build());
   method.getBody().append(forLoop.build()).visitLabel(done).comment("return completedPositions;").getVariable(completedPositionsVariable).retInt();
