@@ -2,7 +2,6 @@
   SubPlanBuilder current=node.getSource().accept(this,context);
   current.setRoot(new LimitNode(node.getId(),current.getRoot(),node.getCount()));
   if (current.isDistributed()) {
-    current.setRoot(new SinkNode(idAllocator.getNextId(),current.getRoot(),current.getRoot().getOutputSymbols()));
     PlanNode source=new ExchangeNode(idAllocator.getNextId(),current.getId(),current.getRoot().getOutputSymbols());
     LimitNode merge=new LimitNode(idAllocator.getNextId(),source,node.getCount());
     current=createSingleNodePlan(merge).addChild(current.build());

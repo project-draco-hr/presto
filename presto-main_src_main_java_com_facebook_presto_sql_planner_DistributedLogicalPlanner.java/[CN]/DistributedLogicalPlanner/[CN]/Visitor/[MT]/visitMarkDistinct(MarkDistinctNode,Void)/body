@@ -16,9 +16,8 @@
     return current;
   }
  else {
-    PlanNode sink=new SinkNode(idAllocator.getNextId(),current.getRoot(),current.getRoot().getOutputSymbols());
-    current.setRoot(sink).setHashOutputPartitioning(node.getDistinctSymbols(),hashSymbol);
-    PlanNode exchange=new ExchangeNode(idAllocator.getNextId(),current.getId(),sink.getOutputSymbols());
+    current.setHashOutputPartitioning(node.getDistinctSymbols(),hashSymbol);
+    PlanNode exchange=new ExchangeNode(idAllocator.getNextId(),current.getId(),current.getRoot().getOutputSymbols());
     MarkDistinctNode markNode=new MarkDistinctNode(idAllocator.getNextId(),exchange,node.getMarkerSymbol(),node.getDistinctSymbols(),hashSymbol);
     return createFixedDistributionPlan(markNode).addChild(current.build());
   }

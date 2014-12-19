@@ -15,7 +15,7 @@
     finalCalls.put(entry.getKey(),new FunctionCall(function.getName(),ImmutableList.<Expression>of(new QualifiedNameReference(intermediateSymbol.toQualifiedName()))));
   }
   AggregationNode partialAggregation=new AggregationNode(idAllocator.getNextId(),plan.getRoot(),groupBy,intermediateCalls,intermediateFunctions,intermediateMask,PARTIAL,sampleWeight,confidence,hashSymbol);
-  plan.setRoot(new SinkNode(idAllocator.getNextId(),partialAggregation,partialAggregation.getOutputSymbols()));
+  plan.setRoot(partialAggregation);
   ExchangeNode source=new ExchangeNode(idAllocator.getNextId(),plan.getId(),plan.getRoot().getOutputSymbols());
   AggregationNode finalAggregation=new AggregationNode(idAllocator.getNextId(),source,groupBy,finalCalls,functions,ImmutableMap.of(),FINAL,Optional.empty(),confidence,hashSymbol);
   if (groupBy.isEmpty()) {

@@ -1,7 +1,6 @@
 {
   SubPlanBuilder current=node.getSource().accept(this,context);
   if (current.getDistribution() != PlanDistribution.COORDINATOR_ONLY && !createSingleNodePlan) {
-    current.setRoot(new SinkNode(idAllocator.getNextId(),current.getRoot(),current.getRoot().getOutputSymbols()));
     current=createCoordinatorOnlyPlan(new ExchangeNode(idAllocator.getNextId(),current.getId(),current.getRoot().getOutputSymbols())).addChild(current.build());
   }
   current.setRoot(new TableCommitNode(node.getId(),current.getRoot(),node.getTarget(),node.getOutputSymbols()));
