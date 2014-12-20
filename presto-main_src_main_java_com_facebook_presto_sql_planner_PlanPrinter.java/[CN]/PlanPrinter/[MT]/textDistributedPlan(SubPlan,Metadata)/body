@@ -1,2 +1,12 @@
 {
+  StringBuilder builder=new StringBuilder();
+  for (  PlanFragment fragment : plan.getAllFragments()) {
+    builder.append(String.format("Fragment %s [%s]\n",fragment.getId(),fragment.getDistribution()));
+    builder.append(indentString(1)).append(String.format("Output layout: [%s]\n",Joiner.on(", ").join(fragment.getOutputLayout())));
+    if (fragment.getOutputPartitioning() == OutputPartitioning.HASH) {
+      builder.append(indentString(1)).append(String.format("Output partitioning: [%s]\n",Joiner.on(", ").join(fragment.getPartitionBy())));
+    }
+    builder.append(textLogicalPlan(fragment.getRoot(),fragment.getSymbols(),metadata,1)).append("\n");
+  }
+  return builder.toString();
 }
