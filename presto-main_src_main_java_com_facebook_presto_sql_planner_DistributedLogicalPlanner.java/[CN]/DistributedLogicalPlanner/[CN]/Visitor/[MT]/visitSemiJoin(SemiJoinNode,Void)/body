@@ -2,7 +2,7 @@
   SubPlanBuilder source=node.getSource().accept(this,context);
   SubPlanBuilder filteringSource=node.getFilteringSource().accept(this,context);
   if (source.isDistributed() || filteringSource.isDistributed()) {
-    source.setRoot(new SemiJoinNode(node.getId(),source.getRoot(),new ExchangeNode(idAllocator.getNextId(),filteringSource.getId(),filteringSource.getRoot().getOutputSymbols()),node.getSourceJoinSymbol(),node.getFilteringSourceJoinSymbol(),node.getSemiJoinOutput(),node.getSourceHashSymbol(),node.getFilteringSourceHashSymbol()));
+    source.setRoot(new SemiJoinNode(node.getId(),source.getRoot(),new RemoteSourceNode(idAllocator.getNextId(),filteringSource.getId(),filteringSource.getRoot().getOutputSymbols()),node.getSourceJoinSymbol(),node.getFilteringSourceJoinSymbol(),node.getSemiJoinOutput(),node.getSourceHashSymbol(),node.getFilteringSourceHashSymbol()));
     source.addChild(filteringSource.build());
     return source;
   }

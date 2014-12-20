@@ -2,7 +2,7 @@
   SubPlanBuilder current=node.getSource().accept(this,context);
   if (current.isDistributed()) {
     current.setRoot(new TopNRowNumberNode(node.getId(),current.getRoot(),node.getPartitionBy(),node.getOrderBy(),node.getOrderings(),node.getRowNumberSymbol(),node.getMaxRowCountPerPartition(),true,node.getHashSymbol()));
-    ExchangeNode source=new ExchangeNode(idAllocator.getNextId(),current.getId(),current.getRoot().getOutputSymbols());
+    RemoteSourceNode source=new RemoteSourceNode(idAllocator.getNextId(),current.getId(),current.getRoot().getOutputSymbols());
     TopNRowNumberNode merge=new TopNRowNumberNode(node.getId(),source,node.getPartitionBy(),node.getOrderBy(),node.getOrderings(),node.getRowNumberSymbol(),node.getMaxRowCountPerPartition(),false,node.getHashSymbol());
     if (node.getPartitionBy().isEmpty()) {
       current=createSingleNodePlan(merge).addChild(current.build());

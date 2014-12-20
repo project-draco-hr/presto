@@ -17,8 +17,8 @@
   }
  else {
     current.setHashOutputPartitioning(node.getDistinctSymbols(),hashSymbol);
-    PlanNode exchange=new ExchangeNode(idAllocator.getNextId(),current.getId(),current.getRoot().getOutputSymbols());
-    MarkDistinctNode markNode=new MarkDistinctNode(idAllocator.getNextId(),exchange,node.getMarkerSymbol(),node.getDistinctSymbols(),hashSymbol);
+    PlanNode source=new RemoteSourceNode(idAllocator.getNextId(),current.getId(),current.getRoot().getOutputSymbols());
+    MarkDistinctNode markNode=new MarkDistinctNode(idAllocator.getNextId(),source,node.getMarkerSymbol(),node.getDistinctSymbols(),hashSymbol);
     return createFixedDistributionPlan(markNode).addChild(current.build());
   }
 }
