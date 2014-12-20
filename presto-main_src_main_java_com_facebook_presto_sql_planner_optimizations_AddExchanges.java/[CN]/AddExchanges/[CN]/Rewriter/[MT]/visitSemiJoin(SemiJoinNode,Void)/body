@@ -1,0 +1,12 @@
+{
+  PlanWithProperties source=node.getSource().accept(this,context);
+  PlanWithProperties filteringSource=node.getFilteringSource().accept(this,context);
+  PlanNode filteringSourceNode;
+  if (source.getProperties().isPartitioned()) {
+    filteringSourceNode=new ExchangeNode(idAllocator.getNextId(),ExchangeNode.Type.REPLICATE,ImmutableList.of(),Optional.<Symbol>empty(),ImmutableList.of(filteringSource.getNode()),filteringSource.getNode().getOutputSymbols(),ImmutableList.of(filteringSource.getNode().getOutputSymbols()));
+  }
+ else {
+    filteringSourceNode=enforce(filteringSource,Requirements.of(PartitioningProperties.unpartitioned())).getNode();
+  }
+  return withNewChildren(node,source.getProperties(),ImmutableList.of(source.getNode(),filteringSourceNode));
+}

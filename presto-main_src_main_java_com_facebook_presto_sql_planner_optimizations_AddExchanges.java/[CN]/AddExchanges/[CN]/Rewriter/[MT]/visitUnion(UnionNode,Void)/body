@@ -1,0 +1,11 @@
+{
+  ImmutableList.Builder<PlanNode> builder=ImmutableList.builder();
+  for (  PlanNode child : node.getSources()) {
+    builder.add(child.accept(this,context).getNode());
+  }
+  ImmutableList.Builder<List<Symbol>> sourceOutputLayouts=ImmutableList.<List<Symbol>>builder();
+  for (int i=0; i < node.getSources().size(); i++) {
+    sourceOutputLayouts.add(node.sourceOutputLayout(i));
+  }
+  return new PlanWithProperties(new ExchangeNode(idAllocator.getNextId(),ExchangeNode.Type.GATHER,ImmutableList.of(),Optional.<Symbol>empty(),builder.build(),node.getOutputSymbols(),sourceOutputLayouts.build()),ActualProperties.of(PartitioningProperties.unpartitioned(),PlacementProperties.anywhere()));
+}
