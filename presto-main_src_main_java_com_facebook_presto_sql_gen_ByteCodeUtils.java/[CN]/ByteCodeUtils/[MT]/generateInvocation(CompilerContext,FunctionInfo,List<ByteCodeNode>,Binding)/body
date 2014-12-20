@@ -25,7 +25,7 @@
   }
   block.append(invoke(context,binding,function.getSignature()));
   if (function.isNullable()) {
-    if (unboxedReturnType.isPrimitive()) {
+    if (unboxedReturnType.isPrimitive() && unboxedReturnType != void.class) {
       LabelNode notNull=new LabelNode("notNull");
       block.dup(methodType.returnType()).ifNotNullGoto(notNull).putVariable("wasNull",true).comment("swap boxed null with unboxed default").pop(methodType.returnType()).pushJavaDefault(unboxedReturnType).gotoLabel(end).visitLabel(notNull).append(unboxPrimitive(context,unboxedReturnType));
     }
