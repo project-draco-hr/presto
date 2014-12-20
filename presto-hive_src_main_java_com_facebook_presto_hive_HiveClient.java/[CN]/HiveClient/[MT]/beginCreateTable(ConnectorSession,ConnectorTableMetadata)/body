@@ -5,6 +5,9 @@
   ImmutableList.Builder<String> columnNames=ImmutableList.builder();
   ImmutableList.Builder<Type> columnTypes=ImmutableList.builder();
   for (  ColumnMetadata column : tableMetadata.getColumns()) {
+    if (!HiveRecordSink.isTypeSupported(column.getType())) {
+      throw new PrestoException(NOT_SUPPORTED,format("Cannot create table with unsupported type: %s",column.getType().getDisplayName()));
+    }
     columnNames.add(column.getName());
     columnTypes.add(column.getType());
   }
