@@ -1,6 +1,11 @@
 {
+  if (rowCount >= maxRowCount) {
+    storagePageSink.close();
+    storagePageSink=createPageSink(storageManager,storageOutputHandle);
+    rowCount=0;
+  }
   if (sampleWeightField < 0) {
-    storagePageSink.appendPage(page);
+    appendPage(page);
     return;
   }
   checkArgument(page.getPositionCount() == sampleWeightBlock.getPositionCount(),"position count of page and sampleWeightBlock must match");
@@ -15,5 +20,5 @@
     blocks[channel]=page.getBlock(pageChannel);
     pageChannel++;
   }
-  storagePageSink.appendPage(new Page(blocks));
+  appendPage(new Page(blocks));
 }

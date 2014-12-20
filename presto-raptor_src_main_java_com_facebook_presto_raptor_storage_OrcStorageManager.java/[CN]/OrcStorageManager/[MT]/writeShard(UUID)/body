@@ -1,0 +1,21 @@
+{
+  File stagingFile=storageService.getStagingFile(shardUuid);
+  File storageFile=storageService.getStorageFile(shardUuid);
+  storageService.createParents(storageFile);
+  try {
+    Files.move(stagingFile.toPath(),storageFile.toPath(),ATOMIC_MOVE);
+  }
+ catch (  IOException e) {
+    throw new PrestoException(RAPTOR_ERROR,"Failed to move shard file",e);
+  }
+  if (isBackupAvailable()) {
+    File backupFile=storageService.getBackupFile(shardUuid);
+    storageService.createParents(backupFile);
+    try {
+      Files.copy(storageFile.toPath(),backupFile.toPath());
+    }
+ catch (    IOException e) {
+      throw new PrestoException(RAPTOR_ERROR,"Failed to create backup shard file",e);
+    }
+  }
+}
