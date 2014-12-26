@@ -1,0 +1,13 @@
+{
+  log.debug("Classpath for %s:",name);
+  List<URL> urls=new ArrayList<>();
+  for (  Artifact artifact : sortedArtifacts(artifacts)) {
+    if (artifact.getFile() == null) {
+      throw new RuntimeException("Could not resolve artifact: " + artifact);
+    }
+    File file=artifact.getFile().getCanonicalFile();
+    log.debug("    %s",file);
+    urls.add(file.toURI().toURL());
+  }
+  return createClassLoader(urls);
+}
