@@ -1,0 +1,27 @@
+{
+  try {
+    SqlBaseLexer lexer=new SqlBaseLexer(new CaseInsensitiveStream(new ANTLRInputStream(sql)));
+    CommonTokenStream tokenStream=new CommonTokenStream(lexer);
+    SqlBaseParser parser=new SqlBaseParser(tokenStream);
+    parser.addParseListener(new PostProcessor());
+    lexer.removeErrorListeners();
+    lexer.addErrorListener(ERROR_LISTENER);
+    parser.removeErrorListeners();
+    parser.addErrorListener(ERROR_LISTENER);
+    ParserRuleContext tree;
+    try {
+      parser.getInterpreter().setPredictionMode(PredictionMode.SLL);
+      tree=parseFunction.apply(parser);
+    }
+ catch (    ParseCancellationException ex) {
+      tokenStream.reset();
+      parser.reset();
+      parser.getInterpreter().setPredictionMode(PredictionMode.LL);
+      tree=parseFunction.apply(parser);
+    }
+    return new AstBuilder().visit(tree);
+  }
+ catch (  StackOverflowError e) {
+    throw new ParsingException(name + " is too large (stack overflow while parsing)");
+  }
+}

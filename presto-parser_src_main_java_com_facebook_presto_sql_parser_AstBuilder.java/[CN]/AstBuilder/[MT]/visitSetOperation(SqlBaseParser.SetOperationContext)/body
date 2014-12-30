@@ -1,0 +1,14 @@
+{
+  QueryBody left=(QueryBody)visit(context.left);
+  QueryBody right=(QueryBody)visit(context.right);
+  boolean distinct=context.setQuantifier() == null || context.setQuantifier().DISTINCT() != null;
+switch (context.operator.getType()) {
+case SqlBaseLexer.UNION:
+    return new Union(ImmutableList.of(left,right),distinct);
+case SqlBaseLexer.INTERSECT:
+  return new Intersect(ImmutableList.of(left,right),distinct);
+case SqlBaseLexer.EXCEPT:
+return new Except(left,right,distinct);
+}
+throw new IllegalArgumentException("Unsupported set operation: " + context.operator.getText());
+}

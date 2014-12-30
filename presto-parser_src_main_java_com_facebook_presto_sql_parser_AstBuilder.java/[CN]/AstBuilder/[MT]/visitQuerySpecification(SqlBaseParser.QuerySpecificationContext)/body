@@ -1,0 +1,13 @@
+{
+  Optional<Relation> from=Optional.empty();
+  List<Relation> relations=visit(context.relation(),Relation.class);
+  if (!relations.isEmpty()) {
+    Iterator<Relation> iterator=relations.iterator();
+    Relation relation=iterator.next();
+    while (iterator.hasNext()) {
+      relation=new Join(Join.Type.IMPLICIT,relation,iterator.next(),Optional.<JoinCriteria>empty());
+    }
+    from=Optional.of(relation);
+  }
+  return new QuerySpecification(new Select(isDistinct(context.setQuantifier()),visit(context.selectItem(),SelectItem.class)),from,visitIfPresent(context.where,Expression.class),visit(context.groupBy,Expression.class),visitIfPresent(context.having,Expression.class),ImmutableList.of(),Optional.<String>empty());
+}

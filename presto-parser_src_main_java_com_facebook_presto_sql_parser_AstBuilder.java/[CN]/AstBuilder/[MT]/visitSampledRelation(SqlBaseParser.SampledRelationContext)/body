@@ -1,0 +1,11 @@
+{
+  Relation child=(Relation)visit(context.aliasedRelation());
+  if (context.TABLESAMPLE() == null) {
+    return child;
+  }
+  Optional<List<Expression>> stratifyOn=Optional.empty();
+  if (context.STRATIFY() != null) {
+    stratifyOn=Optional.of(visit(context.stratify,Expression.class));
+  }
+  return new SampledRelation(child,getSamplingMethod((Token)context.sampleType().getChild(0).getPayload()),(Expression)visit(context.percentage),context.RESCALED() != null,stratifyOn);
+}
