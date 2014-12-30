@@ -1,15 +1,15 @@
 {
   ImmutableList.Builder<Row> rows=ImmutableList.builder();
   for (  Entry<String,String> property : new TreeMap<>(session.getSystemProperties()).entrySet()) {
-    rows.add(new Row(ImmutableList.<Expression>of(new StringLiteral(property.getKey()),new StringLiteral(property.getValue()),new BooleanLiteral("true"))));
+    rows.add(row(new StringLiteral(property.getKey()),new StringLiteral(property.getValue()),TRUE_LITERAL));
   }
   for (  Entry<String,Map<String,String>> entry : new TreeMap<>(session.getCatalogProperties()).entrySet()) {
     String catalog=entry.getKey();
     for (    Entry<String,String> property : new TreeMap<>(entry.getValue()).entrySet()) {
-      rows.add(new Row(ImmutableList.<Expression>of(new StringLiteral(catalog + "." + property.getKey()),new StringLiteral(property.getValue()),new BooleanLiteral("true"))));
+      rows.add(row(new StringLiteral(catalog + "." + property.getKey()),new StringLiteral(property.getValue()),TRUE_LITERAL));
     }
   }
-  rows.add(new Row(ImmutableList.<Expression>of(new StringLiteral(""),new StringLiteral(""),new BooleanLiteral("false"))));
-  Query query=new Query(Optional.<With>empty(),new QuerySpecification(selectList(aliasedName("name","Name"),aliasedName("value","Value")),Optional.of(aliased(new Values(rows.build()),"session",ImmutableList.of("name","value","include"))),Optional.<Expression>empty(),ImmutableList.<Expression>of(),Optional.<Expression>of(nameReference("include")),ImmutableList.<SortItem>of(),Optional.<String>empty()),ImmutableList.<SortItem>of(),Optional.<String>empty(),Optional.<Approximate>empty());
+  rows.add(row(new NullLiteral(),new NullLiteral(),FALSE_LITERAL));
+  Query query=simpleQuery(selectList(aliasedName("name","Name"),aliasedName("value","Value")),aliased(new Values(rows.build()),"session",ImmutableList.of("name","value","include")),nameReference("include"));
   return process(query,context);
 }

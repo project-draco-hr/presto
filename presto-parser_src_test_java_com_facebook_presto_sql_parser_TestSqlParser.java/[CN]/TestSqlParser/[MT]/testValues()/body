@@ -1,4 +1,5 @@
 {
-  assertStatement("VALUES ('a', 1, 2.2), ('b', 2, 3.3)",new Query(Optional.empty(),new Values(ImmutableList.of(new Row(ImmutableList.<Expression>of(new StringLiteral("a"),new LongLiteral("1"),new DoubleLiteral("2.2"))),new Row(ImmutableList.<Expression>of(new StringLiteral("b"),new LongLiteral("2"),new DoubleLiteral("3.3"))))),ImmutableList.<SortItem>of(),Optional.empty(),Optional.empty()));
-  assertStatement("SELECT * FROM (VALUES ('a', 1, 2.2), ('b', 2, 3.3))",new Query(Optional.empty(),new QuerySpecification(selectList(new AllColumns()),Optional.<Relation>of(new TableSubquery(new Query(Optional.empty(),new Values(ImmutableList.of(new Row(ImmutableList.<Expression>of(new StringLiteral("a"),new LongLiteral("1"),new DoubleLiteral("2.2"))),new Row(ImmutableList.<Expression>of(new StringLiteral("b"),new LongLiteral("2"),new DoubleLiteral("3.3"))))),ImmutableList.<SortItem>of(),Optional.empty(),Optional.empty()))),Optional.empty(),ImmutableList.<Expression>of(),Optional.empty(),ImmutableList.<SortItem>of(),Optional.empty()),ImmutableList.<SortItem>of(),Optional.empty(),Optional.empty()));
+  Query valuesQuery=query(values(row(new StringLiteral("a"),new LongLiteral("1"),new DoubleLiteral("2.2")),row(new StringLiteral("b"),new LongLiteral("2"),new DoubleLiteral("3.3"))));
+  assertStatement("VALUES ('a', 1, 2.2), ('b', 2, 3.3)",valuesQuery);
+  assertStatement("SELECT * FROM (VALUES ('a', 1, 2.2), ('b', 2, 3.3))",simpleQuery(selectList(new AllColumns()),subquery(valuesQuery)));
 }
