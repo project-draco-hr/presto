@@ -7,10 +7,10 @@
     orcDataSource=new HdfsOrcDataSource(path.toString(),inputStream,size,maxMergeDistance);
   }
  catch (  Exception e) {
-    if (nullToEmpty(e.getMessage()).trim().equals("Filesystem closed")) {
+    if (nullToEmpty(e.getMessage()).trim().equals("Filesystem closed") || e instanceof FileNotFoundException) {
       throw new PrestoException(HIVE_CANNOT_OPEN_SPLIT,e);
     }
-    throw Throwables.propagate(e);
+    throw new PrestoException(HIVE_CANNOT_OPEN_SPLIT,splitError(e,path,start,length),e);
   }
   ImmutableSet.Builder<Integer> includedColumns=ImmutableSet.builder();
   ImmutableList.Builder<ColumnReference<HiveColumnHandle>> columnReferences=ImmutableList.builder();
@@ -33,9 +33,10 @@
     }
  catch (    IOException ignored) {
     }
+    String message=splitError(e,path,start,length);
     if (e.getClass().getSimpleName().equals("BlockMissingException")) {
-      throw new PrestoException(HIVE_MISSING_DATA,e);
+      throw new PrestoException(HIVE_MISSING_DATA,message,e);
     }
-    throw Throwables.propagate(e);
+    throw new PrestoException(HIVE_CANNOT_OPEN_SPLIT,message,e);
   }
 }
