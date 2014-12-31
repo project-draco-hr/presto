@@ -1,7 +1,11 @@
 {
-  Expression result=(Expression)visit(context.valueExpression());
-  if (context.operator.getType() == SqlBaseLexer.MINUS) {
-    result=new NegativeExpression(result);
-  }
-  return result;
+  Expression child=(Expression)visit(context.valueExpression());
+switch (context.operator.getType()) {
+case SqlBaseLexer.MINUS:
+    return ArithmeticUnaryExpression.negative(child);
+case SqlBaseLexer.PLUS:
+  return ArithmeticUnaryExpression.positive(child);
+default :
+throw new UnsupportedOperationException("Unsupported sign: " + context.operator.getText());
+}
 }
