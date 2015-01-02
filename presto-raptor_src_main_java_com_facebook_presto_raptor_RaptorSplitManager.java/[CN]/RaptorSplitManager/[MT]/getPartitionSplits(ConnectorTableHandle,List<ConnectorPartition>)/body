@@ -1,28 +1,2 @@
 {
-  RaptorTableHandle raptorTableHandle=checkType(tableHandle,RaptorTableHandle.class,"tableHandle");
-  checkArgument(partitions.size() == 1,"expected exactly one partition");
-  RaptorPartition partition=checkType(getOnlyElement(partitions),RaptorPartition.class,"partition");
-  TupleDomain<RaptorColumnHandle> effectivePredicate=toRaptorTupleDomain(partition.getEffectivePredicate());
-  Map<String,Node> nodesById=uniqueIndex(nodeManager.getActiveNodes(),nodeIdentifier());
-  List<ConnectorSplit> splits=new ArrayList<>();
-  for (  ShardNodes shardNode : shardManager.getShardNodes(raptorTableHandle.getTableId())) {
-    UUID shardId=shardNode.getShardUuid();
-    Collection<String> nodeIds=shardNode.getNodeIdentifiers();
-    List<HostAddress> addresses=getAddressesForNodes(nodesById,nodeIds);
-    if (addresses.isEmpty()) {
-      if (!storageManager.isBackupAvailable()) {
-        throw new PrestoException(RAPTOR_NO_HOST_FOR_SHARD,format("no host for shard %s found: %s",shardId,nodeIds));
-      }
-      Set<Node> activeDatasourceNodes=nodeManager.getActiveDatasourceNodes(connectorId);
-      if (!activeDatasourceNodes.isEmpty()) {
-        throw new PrestoException(NO_NODES_AVAILABLE,"No nodes available to run query");
-      }
-      Node node=selectRandom(activeDatasourceNodes);
-      shardManager.assignShard(shardId,node.getNodeIdentifier());
-      addresses=ImmutableList.of(node.getHostAndPort());
-    }
-    splits.add(new RaptorSplit(shardId,addresses,effectivePredicate));
-  }
-  Collections.shuffle(splits);
-  return new FixedSplitSource(connectorId,splits);
 }

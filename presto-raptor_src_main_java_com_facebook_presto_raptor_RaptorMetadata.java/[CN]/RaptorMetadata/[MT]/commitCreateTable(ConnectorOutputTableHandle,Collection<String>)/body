@@ -1,17 +1,2 @@
 {
-  final RaptorOutputTableHandle table=checkType(outputTableHandle,RaptorOutputTableHandle.class,"outputTableHandle");
-  long tableId=dbi.inTransaction(new TransactionCallback<Long>(){
-    @Override public Long inTransaction(    Handle dbiHandle,    TransactionStatus status){
-      MetadataDao dao=dbiHandle.attach(MetadataDao.class);
-      long tableId=dao.insertTable(connectorId,table.getSchemaName(),table.getTableName());
-      for (int i=0; i < table.getColumnTypes().size(); i++) {
-        RaptorColumnHandle column=table.getColumnHandles().get(i);
-        Type columnType=table.getColumnTypes().get(i);
-        dao.insertColumn(tableId,i + 1,column.getColumnName(),i,columnType.getTypeSignature().toString());
-      }
-      return tableId;
-    }
-  }
-);
-  shardManager.commitTable(tableId,parseFragments(fragments),Optional.empty());
 }
