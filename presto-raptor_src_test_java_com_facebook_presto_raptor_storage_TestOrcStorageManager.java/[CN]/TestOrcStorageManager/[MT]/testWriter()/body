@@ -1,2 +1,35 @@
 {
-}
+  OrcStorageManager manager=new OrcStorageManager(storageService,ORC_MERGE_DISTANCE,recoveryManager,SHARD_RECOVERY_TIMEOUT,ROWS_PER_SHARD,MAX_BUFFER_SIZE);
+  List<Long> columnIds=ImmutableList.of(3L,7L);
+  List<Type> columnTypes=ImmutableList.<Type>of(BIGINT,VARCHAR);
+  StorageOutputHandle handle=manager.createStorageOutputHandle(columnIds,columnTypes);
+  List<Page> pages=RowPagesBuilder.rowPagesBuilder(columnTypes).row(123,"hello").row(456,"bye").build();
+  StoragePageSink storagePageSink=handle.createStoragePageSink();
+  storagePageSink.appendPages(pages);
+  storagePageSink.close();
+  manager.commit(handle);
+  UUID shardUuid=Iterables.getOnlyElement(handle.getShardUuids());
+  File file=storageService.getStorageFile(shardUuid);
+  File backupFile=storageService.getBackupFile(shardUuid);
+  assertFile(file,"primary shard");
+  assertFile(backupFile,"backup shard");
+  assertTrue(file.delete());
+  assertTrue(file.getParentFile().delete());
+  assertFalse(file.exists());
+  recoveryManager.restoreFromBackup(shardUuid);
+  try (OrcDataSource dataSource=manager.openShard(shardUuid)){
+    OrcRecordReader reader=createReader(dataSource,columnIds);
+    assertEquals(reader.nextBatch(),2);
+    LongVector longVector=new LongVector();
+    reader.readVector(0,longVector);
+    assertEquals(longVector.isNull[0],false);
+    assertEquals(longVector.isNull[1],false);
+    assertEquals(longVector.vector[0],123L);
+    assertEquals(longVector.vector[1],456L);
+    SliceVector stringVector=new SliceVector();
+    reader.readVector(1,stringVector);
+    assertEquals(stringVector.vector[0],utf8Slice("hello"));
+    assertEquals(stringVector.vector[1],utf8Slice("bye"));
+    assertEquals(reader.nextBatch(),-1);
+  }
+ }

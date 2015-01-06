@@ -1,12 +1,8 @@
 {
-  if (rowCount >= maxRowCount) {
-    storagePageSink.close();
-    storagePageSink=createPageSink(storageManager,storageOutputHandle);
-    rowCount=0;
-  }
+  flushPageBufferIfNecessary(page.getPositionCount());
   if (sampleWeightField >= 0) {
     page=createPageWithSampleWeightBlock(page,sampleWeightBlock);
   }
-  appendPage(page);
+  pageBuffer.add(page);
   rowCount+=page.getPositionCount();
 }

@@ -1,0 +1,15 @@
+{
+  if (rowCount >= maxRowCount) {
+    flushPages(pageBuffer.getPages());
+    pageBuffer.reset();
+    rowCount=0;
+    storagePageSink.close();
+    storagePageSink=createStoragePageSink(storageManager,storageOutputHandle);
+    return;
+  }
+  int maxRemainingRows=Integer.MAX_VALUE - Ints.checkedCast(pageBuffer.getRowCount());
+  if (pageBuffer.isFull() || (!sortFields.isEmpty() && (rowsToAdd > maxRemainingRows))) {
+    flushPages(pageBuffer.getPages());
+    pageBuffer.reset();
+  }
+}
