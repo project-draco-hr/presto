@@ -4,21 +4,9 @@
     storagePageSink=createPageSink(storageManager,storageOutputHandle);
     rowCount=0;
   }
-  if (sampleWeightField < 0) {
-    appendPage(page);
-    return;
+  if (sampleWeightField >= 0) {
+    page=createPageWithSampleWeightBlock(page,sampleWeightBlock);
   }
-  checkArgument(page.getPositionCount() == sampleWeightBlock.getPositionCount(),"position count of page and sampleWeightBlock must match");
-  int outputChannelCount=page.getChannelCount() + 1;
-  Block[] blocks=new Block[outputChannelCount];
-  blocks[sampleWeightField]=sampleWeightBlock;
-  int pageChannel=0;
-  for (int channel=0; channel < outputChannelCount; channel++) {
-    if (channel == sampleWeightField) {
-      continue;
-    }
-    blocks[channel]=page.getBlock(pageChannel);
-    pageChannel++;
-  }
-  appendPage(new Page(blocks));
+  appendPage(page);
+  rowCount+=page.getPositionCount();
 }
