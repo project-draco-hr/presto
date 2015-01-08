@@ -1,0 +1,13 @@
+{
+  int positionCount=10;
+  int maxPageSizeInBytes=100;
+  List<Type> types=ImmutableList.of(BIGINT,BIGINT,BIGINT);
+  Page largePage=SequencePageBuilder.createSequencePage(types,positionCount,0,1,1);
+  List<Page> pages=PageSplitterUtil.splitPage(largePage,maxPageSizeInBytes);
+  assertGreaterThan(pages.size(),1);
+  assertPageSize(pages,maxPageSizeInBytes);
+  assertPositionCount(pages,positionCount);
+  MaterializedResult actual=toMaterializedResult(TEST_SESSION,types,pages);
+  MaterializedResult expected=toMaterializedResult(TEST_SESSION,types,ImmutableList.of(largePage));
+  assertEquals(actual,expected);
+}
