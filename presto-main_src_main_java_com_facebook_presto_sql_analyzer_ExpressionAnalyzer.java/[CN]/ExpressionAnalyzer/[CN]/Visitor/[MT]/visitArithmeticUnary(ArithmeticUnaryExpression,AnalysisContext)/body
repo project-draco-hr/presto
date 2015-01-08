@@ -1,8 +1,14 @@
 {
-  if (node.getSign() == ArithmeticUnaryExpression.Sign.MINUS) {
-    return getOperator(context,node,OperatorType.NEGATION,node.getValue());
+switch (node.getSign()) {
+case PLUS:
+    Type type=process(node.getValue(),context);
+  if (!type.equals(BIGINT) && !type.equals(DOUBLE)) {
+    throw new SemanticException(TYPE_MISMATCH,node,"Unary '+' operator cannot by applied to %s type",type);
   }
-  Type type=process(node.getValue(),context);
-  expressionTypes.put(node,type);
-  return type;
+expressionTypes.put(node,type);
+break;
+case MINUS:
+return getOperator(context,node,OperatorType.NEGATION,node.getValue());
+}
+throw new UnsupportedOperationException("Unsupported unary operator: " + node.getSign());
 }
