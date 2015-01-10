@@ -7,7 +7,8 @@
       if (buffer.length() > 0) {
         prompt=Strings.repeat(" ",prompt.length() - 1) + "-";
       }
-      String line=reader.readLine(prompt + "> ");
+      String commandPrompt=prompt + "> ";
+      String line=reader.readLine(commandPrompt);
       if (reader.interrupted()) {
         String partial=squeezeStatement(buffer.toString());
         if (!partial.isEmpty()) {
@@ -22,6 +23,16 @@
       }
       if (buffer.length() == 0) {
         String command=line.trim();
+        if (HISTORY_INDEX_PATTERN.matcher(command).matches()) {
+          int historyIndex=parseInt(command.substring(1));
+          History history=reader.getHistory();
+          if ((historyIndex <= 0) || (historyIndex > history.index())) {
+            System.err.println("Command does not exist");
+            continue;
+          }
+          line=history.get(historyIndex - 1).toString();
+          System.out.println(commandPrompt + line);
+        }
         if (command.endsWith(";")) {
           command=command.substring(0,command.length() - 1).trim();
         }
@@ -29,10 +40,15 @@ switch (command.toLowerCase(ENGLISH)) {
 case "exit":
 case "quit":
           return;
+case "history":
+        for (        History.Entry entry : reader.getHistory()) {
+          System.out.printf("%5d  %s%n",entry.index() + 1,entry.value());
+        }
+      continue;
 case "help":
-        System.out.println();
-      System.out.println(getHelpText());
-    continue;
+    System.out.println();
+  System.out.println(getHelpText());
+continue;
 }
 }
 buffer.append(line).append("\n");
@@ -41,16 +57,16 @@ StatementSplitter splitter=new StatementSplitter(sql,ImmutableSet.of(";","\\G"))
 for (Statement split : splitter.getCompleteStatements()) {
 Optional<Object> statement=getParsedStatement(split.statement());
 if (statement.isPresent() && isSessionParameterChange(statement.get())) {
-  session=processSessionParameterChange(statement.get(),session);
-  queryRunner.setSession(session);
-  tableNameCompleter.populateCache();
+session=processSessionParameterChange(statement.get(),session);
+queryRunner.setSession(session);
+tableNameCompleter.populateCache();
 }
  else {
-  OutputFormat outputFormat=OutputFormat.ALIGNED;
-  if (split.terminator().equals("\\G")) {
-    outputFormat=OutputFormat.VERTICAL;
-  }
-  process(queryRunner,split.statement(),outputFormat,true);
+OutputFormat outputFormat=OutputFormat.ALIGNED;
+if (split.terminator().equals("\\G")) {
+outputFormat=OutputFormat.VERTICAL;
+}
+process(queryRunner,split.statement(),outputFormat,true);
 }
 reader.getHistory().add(squeezeStatement(split.statement()) + split.terminator());
 }
