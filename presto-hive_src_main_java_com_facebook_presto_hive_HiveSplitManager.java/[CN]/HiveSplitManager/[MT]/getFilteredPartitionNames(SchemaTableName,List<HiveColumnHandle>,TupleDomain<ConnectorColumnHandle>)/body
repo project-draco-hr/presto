@@ -10,9 +10,11 @@
  else       if (value instanceof Slice) {
         filter.add(((Slice)value).toStringUtf8());
       }
- else {
-        checkArgument(value instanceof Boolean || value instanceof Double || value instanceof Long,"Only Boolean, Slice (UTF8 String), Double and Long partition keys are supported");
+ else       if ((value instanceof Boolean) || (value instanceof Double) || (value instanceof Long)) {
         filter.add(value.toString());
+      }
+ else {
+        throw new PrestoException(NOT_SUPPORTED,"Only Boolean, Double and Long partition keys are supported");
       }
     }
  else {

@@ -1,10 +1,10 @@
 {
   ConnectorTableHandle table=getTableHandle(tableS3);
-  List<ConnectorColumnHandle> columnHandles=ImmutableList.copyOf(client.getColumnHandles(table).values());
+  List<ConnectorColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(table).values());
   Map<String,Integer> columnIndex=indexColumns(columnHandles);
-  ConnectorPartitionResult partitionResult=client.getPartitions(table,TupleDomain.<ConnectorColumnHandle>all());
+  ConnectorPartitionResult partitionResult=splitManager.getPartitions(table,TupleDomain.<ConnectorColumnHandle>all());
   assertEquals(partitionResult.getPartitions().size(),1);
-  ConnectorSplitSource splitSource=client.getPartitionSplits(table,partitionResult.getPartitions());
+  ConnectorSplitSource splitSource=splitManager.getPartitionSplits(table,partitionResult.getPartitions());
   long sum=0;
   for (  ConnectorSplit split : getAllSplits(splitSource)) {
     try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(split,columnHandles)){

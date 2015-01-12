@@ -10,9 +10,10 @@
 );
     Injector injector=app.strictConfig().doNotInitializeLogging().setRequiredConfigurationProperties(config).setOptionalConfigurationProperties(optionalConfig).initialize();
     HiveClient hiveClient=injector.getInstance(HiveClient.class);
+    ConnectorSplitManager splitManager=injector.getInstance(ConnectorSplitManager.class);
     ConnectorPageSourceProvider connectorPageSource=injector.getInstance(ConnectorPageSourceProvider.class);
     ConnectorRecordSinkProvider recordSinkProvider=injector.getInstance(ConnectorRecordSinkProvider.class);
-    return new HiveConnector(new ClassLoaderSafeConnectorMetadata(hiveClient,classLoader),new ClassLoaderSafeConnectorSplitManager(hiveClient,classLoader),new ClassLoaderSafeConnectorPageSourceProvider(connectorPageSource,classLoader),new ClassLoaderSafeConnectorRecordSinkProvider(recordSinkProvider,classLoader),new ClassLoaderSafeConnectorHandleResolver(hiveClient,classLoader));
+    return new HiveConnector(new ClassLoaderSafeConnectorMetadata(hiveClient,classLoader),new ClassLoaderSafeConnectorSplitManager(splitManager,classLoader),new ClassLoaderSafeConnectorPageSourceProvider(connectorPageSource,classLoader),new ClassLoaderSafeConnectorRecordSinkProvider(recordSinkProvider,classLoader),new ClassLoaderSafeConnectorHandleResolver(hiveClient,classLoader));
   }
  catch (  Exception e) {
     throw Throwables.propagate(e);
