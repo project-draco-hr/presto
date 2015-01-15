@@ -1,21 +1,8 @@
 {
-  AtomicInteger queueSize;
-  int maxQueueSize;
-  AsyncSemaphore<QueryExecution> asyncSemaphore;
   if (isBigQueryEnabled(queryExecution.getQueryInfo().getSession(),false)) {
-    queueSize=bigQueryQueueSize;
-    maxQueueSize=maxQueuedBigQueries;
-    asyncSemaphore=bigQueryAsyncSemaphore;
+    return bigQueryQueue.enqueue(queryExecution);
   }
  else {
-    queueSize=queryQueueSize;
-    maxQueueSize=maxQueuedQueries;
-    asyncSemaphore=queryAsyncSemaphore;
+    return queryQueue.enqueue(queryExecution);
   }
-  if (queueSize.incrementAndGet() > maxQueueSize) {
-    queueSize.decrementAndGet();
-    return false;
-  }
-  asyncSemaphore.submit(queryExecution);
-  return true;
 }

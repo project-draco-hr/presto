@@ -1,8 +1,7 @@
 {
   checkNotNull(queryExecutor,"queryExecutor is null");
   checkNotNull(stats,"stats is null");
-  this.maxQueuedQueries=config.getMaxQueuedQueries();
-  this.queryAsyncSemaphore=new AsyncSemaphore<>(config.getMaxConcurrentQueries(),queryExecutor,new QuerySubmitter(queryExecutor,stats,queryQueueSize));
-  this.maxQueuedBigQueries=config.getMaxQueuedBigQueries();
-  this.bigQueryAsyncSemaphore=new AsyncSemaphore<>(config.getMaxConcurrentBigQueries(),queryExecutor,new QuerySubmitter(queryExecutor,stats,bigQueryQueueSize));
+  checkNotNull(config,"config is null");
+  this.queryQueue=new QueryQueue(queryExecutor,stats,config.getMaxQueuedQueries(),config.getMaxConcurrentQueries());
+  this.bigQueryQueue=new QueryQueue(queryExecutor,stats,config.getMaxQueuedBigQueries(),config.getMaxConcurrentBigQueries());
 }
