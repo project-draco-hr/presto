@@ -4,11 +4,13 @@
   dbi.registerMapper(new TableColumn.Mapper(typeRegistry));
   dummyHandle=dbi.open();
   dataDir=Files.createTempDir();
-  ShardManager shardManager=new DatabaseShardManager(dbi);
+  shardManager=new DatabaseShardManager(dbi);
   InMemoryNodeManager nodeManager=new InMemoryNodeManager();
   StorageService storageService=new FileStorageService(dataDir,Optional.empty());
-  ShardRecoveryManager recoveryManager=new ShardRecoveryManager(storageService,new InMemoryNodeManager(),shardManager,new Duration(5,TimeUnit.MINUTES),10);
-  StorageManager storageManager=new OrcStorageManager(storageService,new DataSize(1,MEGABYTE),recoveryManager,new Duration(30,TimeUnit.SECONDS),100,new DataSize(256,MEGABYTE));
+  StorageService storageServiceWithBackup=new FileStorageService(dataDir,Optional.of(Files.createTempDir()));
+  ShardRecoveryManager recoveryManager=new ShardRecoveryManager(storageServiceWithBackup,new InMemoryNodeManager(),shardManager,new Duration(5,TimeUnit.MINUTES),10);
+  StorageManager storageManager=new OrcStorageManager(storageService,ORC_MAX_MERGE_DISTANCE,recoveryManager,SHARD_RECOVERY_TIMEOUT,ROWS_PER_SHARD,MAX_BUFFER_SIZE);
+  storageManagerWithBackup=new OrcStorageManager(storageServiceWithBackup,ORC_MAX_MERGE_DISTANCE,recoveryManager,SHARD_RECOVERY_TIMEOUT,ROWS_PER_SHARD,MAX_BUFFER_SIZE);
   String nodeName=UUID.randomUUID().toString();
   nodeManager.addNode("raptor",new PrestoNode(nodeName,new URI("http://127.0.0.1/"),NodeVersion.UNKNOWN));
   RaptorConnectorId connectorId=new RaptorConnectorId("raptor");
