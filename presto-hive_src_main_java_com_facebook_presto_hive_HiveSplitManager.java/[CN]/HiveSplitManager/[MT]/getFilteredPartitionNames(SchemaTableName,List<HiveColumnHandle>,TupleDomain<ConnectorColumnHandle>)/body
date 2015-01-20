@@ -11,7 +11,12 @@
         filter.add(((Slice)value).toStringUtf8());
       }
  else       if ((value instanceof Boolean) || (value instanceof Double) || (value instanceof Long)) {
-        filter.add(value.toString());
+        if (assumeCanonicalPartitionKeys) {
+          filter.add(value.toString());
+        }
+ else {
+          filter.add(PARTITION_VALUE_WILDCARD);
+        }
       }
  else {
         throw new PrestoException(NOT_SUPPORTED,"Only Boolean, Double and Long partition keys are supported");

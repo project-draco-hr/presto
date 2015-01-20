@@ -1,0 +1,17 @@
+{
+  ConnectorTableHandle table=getTableHandle(tablePartitionSchemaChangeNonCanonical);
+  ConnectorColumnHandle column=metadata.getColumnHandles(table).get("t_boolean");
+  assertNotNull(column);
+  ConnectorPartitionResult partitionResult=splitManager.getPartitions(table,TupleDomain.withFixedValues(ImmutableMap.of(column,false)));
+  assertEquals(partitionResult.getPartitions().size(),1);
+  assertEquals(partitionResult.getPartitions().get(0).getPartitionId(),"t_boolean=0");
+  ConnectorSplitSource splitSource=splitManager.getPartitionSplits(table,partitionResult.getPartitions());
+  ConnectorSplit split=getOnlyElement(getAllSplits(splitSource));
+  ImmutableList<ConnectorColumnHandle> columnHandles=ImmutableList.of(column);
+  try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(split,columnHandles)){
+    fail("expected exception");
+  }
+ catch (  PrestoException e) {
+    assertEquals(e.getErrorCode(),HIVE_INVALID_PARTITION_VALUE.toErrorCode());
+  }
+}
