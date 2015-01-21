@@ -4,9 +4,21 @@ synchronized (this) {
       future=null;
     }
     try {
-      requestFailed(cause);
+      TaskInfo taskInfo=getTaskInfo();
+      if (!taskInfo.getState().isDone()) {
+        errorTracker.requestFailed(cause);
+      }
     }
-  finally {
+ catch (    Error e) {
+      failTask(e);
+      abort();
+      throw e;
+    }
+catch (    RuntimeException e) {
+      failTask(e);
+      abort();
+    }
+ finally {
       scheduleNextRequest();
     }
   }
