@@ -1,9 +1,13 @@
 {
   int magicLength=MAGIC.length();
-  checkArgument(postScriptSize >= magicLength + 1,"Malformed ORC file %s. Invalid postscript length %s",source,postScriptSize);
+  if (postScriptSize < magicLength + 1) {
+    throw new OrcCorruptionException("Malformed ORC file %s. Invalid postscript length %s",source,postScriptSize);
+  }
   if (!MAGIC.equals(Slices.wrappedBuffer(buffer,buffer.length - 1 - magicLength,magicLength))) {
     byte[] headerMagic=new byte[magicLength];
     source.readFully(0,headerMagic);
-    checkArgument(MAGIC.equals(Slices.wrappedBuffer(headerMagic)),"Malformed ORC file %s. Invalid postscript.",source);
+    if (!MAGIC.equals(Slices.wrappedBuffer(headerMagic))) {
+      throw new OrcCorruptionException("Malformed ORC file %s. Invalid postscript.",source);
+    }
   }
 }

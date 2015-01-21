@@ -2,6 +2,9 @@
   this.orcDataSource=checkNotNull(orcDataSource,"orcDataSource is null");
   this.metadataReader=checkNotNull(metadataReader,"metadataReader is null");
   long size=orcDataSource.getSize();
+  if (size <= 0) {
+    throw new OrcCorruptionException("Malformed ORC file %s. Invalid file size %s",orcDataSource,size);
+  }
   byte[] buffer=new byte[(int)Math.min(size,EXPECTED_FOOTER_SIZE)];
   orcDataSource.readFully(size - buffer.length,buffer);
   int postScriptSize=buffer[buffer.length - SIZE_OF_BYTE] & 0xff;
