@@ -1,0 +1,14 @@
+{
+  ImmutableList.Builder<ShardNode> shards=ImmutableList.builder();
+  for (  Slice fragment : fragments) {
+    Iterator<String> split=NODE_SHARD_SPLITTER.split(fragment.toStringUtf8()).iterator();
+    String nodeId=split.next();
+    checkArgument(split.hasNext(),"fragment not formatted correctly");
+    String uuids=split.next();
+    for (    String uuidString : SHARD_SPLITTER.trimResults().omitEmptyStrings().split(uuids)) {
+      UUID shardUuid=UUID.fromString(uuidString);
+      shards.add(new ShardNode(shardUuid,nodeId));
+    }
+  }
+  return shards.build();
+}

@@ -3,11 +3,18 @@
     return null;
   }
   state=State.FINISHED;
-  String fragment=pageSink.commit();
+  Collection<Slice> fragments=pageSink.commit();
   committed=true;
   PageBuilder page=new PageBuilder(TYPES);
+  BlockBuilder rowsBuilder=page.getBlockBuilder(0);
+  BlockBuilder fragmentBuilder=page.getBlockBuilder(1);
   page.declarePosition();
-  BIGINT.writeLong(page.getBlockBuilder(0),rowCount);
-  VARCHAR.writeSlice(page.getBlockBuilder(1),Slices.utf8Slice(fragment));
+  BIGINT.writeLong(rowsBuilder,rowCount);
+  fragmentBuilder.appendNull();
+  for (  Slice fragment : fragments) {
+    page.declarePosition();
+    rowsBuilder.appendNull();
+    VARBINARY.writeSlice(fragmentBuilder,fragment);
+  }
   return page.build();
 }

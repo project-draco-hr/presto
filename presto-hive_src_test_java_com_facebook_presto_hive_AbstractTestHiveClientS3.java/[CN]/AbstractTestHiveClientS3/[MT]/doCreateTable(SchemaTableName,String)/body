@@ -12,8 +12,8 @@
   sink.beginRecord(1);
   sink.appendLong(2);
   sink.finishRecord();
-  String fragment=sink.commit();
-  client.commitCreateTable(outputHandle,ImmutableList.of(fragment));
+  Collection<Slice> fragments=sink.commit();
+  client.commitCreateTable(outputHandle,fragments);
   metastoreClient.updateTableLocation(database,tableName.getTableName(),outputHandle.getTargetPath());
   ConnectorTableHandle tableHandle=getTableHandle(tableName);
   List<ConnectorColumnHandle> columnHandles=ImmutableList.copyOf(client.getColumnHandles(tableHandle).values());
