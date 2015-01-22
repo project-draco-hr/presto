@@ -1,8 +1,9 @@
 {
   if (!outputStage.getState().isDone()) {
     for (    TaskInfo taskInfo : outputStage.getTasks()) {
-      List<BufferInfo> buffers=taskInfo.getOutputBuffers().getBuffers();
-      if (buffers.isEmpty()) {
+      SharedBufferInfo outputBuffers=taskInfo.getOutputBuffers();
+      List<BufferInfo> buffers=outputBuffers.getBuffers();
+      if (buffers.isEmpty() || outputBuffers.getState().canAddBuffers()) {
         continue;
       }
       Preconditions.checkState(buffers.size() == 1,"Expected a single output buffer for task %s, but found %s",taskInfo.getTaskId(),buffers);
@@ -11,7 +12,7 @@
       exchangeClient.addLocation(uri);
     }
   }
-  if ((outputStage.getState() != StageState.PLANNED) && (outputStage.getState() != StageState.SCHEDULING)) {
+  if (allOutputBuffersCreated(outputStage)) {
     exchangeClient.noMoreLocations();
   }
 }
