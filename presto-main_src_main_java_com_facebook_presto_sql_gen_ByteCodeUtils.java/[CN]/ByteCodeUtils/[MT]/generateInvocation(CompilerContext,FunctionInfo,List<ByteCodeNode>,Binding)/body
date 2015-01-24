@@ -1,7 +1,8 @@
 {
   MethodType methodType=binding.getType();
   Signature signature=function.getSignature();
-  Class<?> unboxedReturnType=Primitives.unwrap(methodType.returnType());
+  Class<?> returnType=methodType.returnType();
+  Class<?> unboxedReturnType=Primitives.unwrap(returnType);
   LabelNode end=new LabelNode("end");
   Block block=new Block(context).setDescription("invoke " + signature);
   List<Class<?>> stackTypes=new ArrayList<>();
@@ -25,13 +26,7 @@
   }
   block.append(invoke(context,binding,function.getSignature()));
   if (function.isNullable()) {
-    if (unboxedReturnType.isPrimitive() && unboxedReturnType != void.class) {
-      LabelNode notNull=new LabelNode("notNull");
-      block.dup(methodType.returnType()).ifNotNullGoto(notNull).putVariable("wasNull",true).comment("swap boxed null with unboxed default").pop(methodType.returnType()).pushJavaDefault(unboxedReturnType).gotoLabel(end).visitLabel(notNull).append(unboxPrimitive(context,unboxedReturnType));
-    }
- else {
-      block.dup(methodType.returnType()).ifNotNullGoto(end).putVariable("wasNull",true);
-    }
+    block.append(unboxPrimitiveIfNecessary(context,returnType));
   }
   block.visitLabel(end);
   return block;
