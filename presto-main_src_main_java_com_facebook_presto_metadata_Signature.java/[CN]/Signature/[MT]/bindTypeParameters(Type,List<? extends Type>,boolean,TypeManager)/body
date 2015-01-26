@@ -1,14 +1,16 @@
 {
   Map<String,Type> boundParameters=new HashMap<>();
-  Map<String,TypeParameter> unboundParameters=new HashMap<>();
+  ImmutableMap.Builder<String,TypeParameter> builder=ImmutableMap.builder();
   for (  TypeParameter parameter : typeParameters) {
-    unboundParameters.put(parameter.getName(),parameter);
+    builder.put(parameter.getName(),parameter);
   }
-  if (!matchAndBind(boundParameters,unboundParameters,this.returnType,returnType,allowCoercion,typeManager)) {
+  ImmutableMap<String,TypeParameter> parameters=builder.build();
+  if (!matchAndBind(boundParameters,parameters,this.returnType,returnType,allowCoercion,typeManager)) {
     return null;
   }
-  if (!matchArguments(boundParameters,unboundParameters,argumentTypes,types,allowCoercion,variableArity,typeManager)) {
+  if (!matchArguments(boundParameters,parameters,argumentTypes,types,allowCoercion,variableArity,typeManager)) {
     return null;
   }
+  checkState(boundParameters.keySet().equals(parameters.keySet()),"%s matched arguments %s, but type parameters %s are still unbound",this,types,Sets.difference(parameters.keySet(),boundParameters.keySet()));
   return boundParameters;
 }

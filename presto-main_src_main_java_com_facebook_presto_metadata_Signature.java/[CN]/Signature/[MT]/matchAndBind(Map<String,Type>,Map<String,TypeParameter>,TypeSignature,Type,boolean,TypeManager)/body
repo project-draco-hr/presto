@@ -1,44 +1,47 @@
 {
-  if (boundParameters.containsKey(signature.getBase())) {
-    checkArgument(signature.getParameters().isEmpty(),"Unexpected parameteric type");
+  if (boundParameters.containsKey(parameter.getBase())) {
+    checkArgument(parameter.getParameters().isEmpty(),"Unexpected parameteric type");
     if (allowCoercion) {
-      return canCoerce(type,boundParameters.get(signature.getBase()));
-    }
- else {
-      return type.equals(boundParameters.get(signature.getBase()));
-    }
-  }
-  if (!signature.getParameters().isEmpty()) {
-    if (type.getTypeParameters().size() != signature.getParameters().size()) {
+      if (canCoerce(type,boundParameters.get(parameter.getBase()))) {
+        return true;
+      }
+ else       if (canCoerce(boundParameters.get(parameter.getBase()),type) && typeParameters.get(parameter.getBase()).canBind(type)) {
+        boundParameters.put(parameter.getBase(),type);
+        return true;
+      }
       return false;
     }
-    for (int i=0; i < signature.getParameters().size(); i++) {
+ else {
+      return type.equals(boundParameters.get(parameter.getBase()));
+    }
+  }
+  if (!parameter.getParameters().isEmpty()) {
+    if (type.getTypeParameters().size() != parameter.getParameters().size()) {
+      return false;
+    }
+    for (int i=0; i < parameter.getParameters().size(); i++) {
       Type componentType=type.getTypeParameters().get(i);
-      TypeSignature componentSignature=signature.getParameters().get(i);
-      if (!matchAndBind(boundParameters,unboundParameters,componentSignature,componentType,allowCoercion,typeManager)) {
+      TypeSignature componentSignature=parameter.getParameters().get(i);
+      if (!matchAndBind(boundParameters,typeParameters,componentSignature,componentType,allowCoercion,typeManager)) {
         return false;
       }
     }
   }
-  if (type.equals(UNKNOWN) && allowCoercion) {
-    return true;
-  }
-  if (unboundParameters.containsKey(signature.getBase())) {
-    TypeParameter typeParameter=unboundParameters.get(signature.getBase());
+  if (typeParameters.containsKey(parameter.getBase())) {
+    TypeParameter typeParameter=typeParameters.get(parameter.getBase());
     if (!typeParameter.canBind(type)) {
       return false;
     }
-    unboundParameters.remove(signature.getBase());
-    boundParameters.put(signature.getBase(),type);
+    boundParameters.put(parameter.getBase(),type);
     return true;
   }
-  if (!signature.getParameters().isEmpty()) {
-    return type.getTypeSignature().getBase().equals(signature.getBase());
+  if (!parameter.getParameters().isEmpty()) {
+    return type.getTypeSignature().getBase().equals(parameter.getBase());
   }
   if (allowCoercion) {
-    return canCoerce(type,typeManager.getType(parseTypeSignature(signature.getBase())));
+    return canCoerce(type,typeManager.getType(parseTypeSignature(parameter.getBase())));
   }
  else {
-    return type.equals(typeManager.getType(parseTypeSignature(signature.getBase())));
+    return type.equals(typeManager.getType(parseTypeSignature(parameter.getBase())));
   }
 }
