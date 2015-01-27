@@ -1,0 +1,49 @@
+{
+  StringJoiner predicate=new StringJoiner(" AND ").setEmptyValue("true");
+  ImmutableList.Builder<JDBCType> types=ImmutableList.builder();
+  ImmutableList.Builder<Object> values=ImmutableList.builder();
+  for (  Entry<RaptorColumnHandle,Domain> entry : tupleDomain.getDomains().entrySet()) {
+    Domain domain=entry.getValue();
+    if (domain.isNullAllowed() || domain.isAll()) {
+      continue;
+    }
+    RaptorColumnHandle handle=entry.getKey();
+    Type type=handle.getColumnType();
+    JDBCType jdbcType=jdbcType(type);
+    if (jdbcType == null) {
+      continue;
+    }
+    SortedRangeSet ranges=domain.getRanges();
+    if (ranges.getRangeCount() != 1) {
+      continue;
+    }
+    Range range=getOnlyElement(ranges.getRanges());
+    Object minValue=null;
+    Object maxValue=null;
+    if (range.isSingleValue()) {
+      minValue=range.getSingleValue();
+      maxValue=range.getSingleValue();
+    }
+ else {
+      if (!range.getLow().isLowerUnbounded()) {
+        minValue=range.getLow().getValue();
+      }
+      if (!range.getHigh().isUpperUnbounded()) {
+        maxValue=range.getHigh().getValue();
+      }
+    }
+    String min=minColumn(handle.getColumnId());
+    String max=maxColumn(handle.getColumnId());
+    if (minValue != null) {
+      predicate.add(format("(%s >= ? OR %s IS NULL)",max,max));
+      types.add(jdbcType);
+      values.add(minValue);
+    }
+    if (maxValue != null) {
+      predicate.add(format("(%s <= ? OR %s IS NULL)",min,min));
+      types.add(jdbcType);
+      values.add(maxValue);
+    }
+  }
+  return new ShardPredicate(predicate.toString(),types.build(),values.build());
+}

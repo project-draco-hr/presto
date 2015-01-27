@@ -1,0 +1,30 @@
+{
+  ImmutableList.Builder<ColumnInfo> columnBuilder=ImmutableList.builder();
+  ImmutableMap.Builder<Long,Integer> indexBuilder=ImmutableMap.builder();
+  ImmutableMap.Builder<Long,JDBCType> typeBuilder=ImmutableMap.builder();
+  StringJoiner nameJoiner=new StringJoiner(", ",", ","").setEmptyValue("");
+  StringJoiner valueJoiner=new StringJoiner(", ",", ","").setEmptyValue("");
+  int index=1;
+  nameJoiner.add("shard_id").add("shard_uuid");
+  valueJoiner.add("?").add("?");
+  index+=2;
+  for (  ColumnInfo column : columns) {
+    JDBCType jdbcType=jdbcType(column.getType());
+    if (jdbcType == null) {
+      continue;
+    }
+    columnBuilder.add(column);
+    long columnId=column.getColumnId();
+    nameJoiner.add(minColumn(columnId));
+    nameJoiner.add(maxColumn(columnId));
+    valueJoiner.add("?").add("?");
+    indexBuilder.put(columnId,index);
+    index+=2;
+    typeBuilder.put(columnId,jdbcType);
+  }
+  this.columns=columnBuilder.build();
+  this.indexes=indexBuilder.build();
+  this.types=typeBuilder.build();
+  String sql="" + "INSERT INTO " + shardIndexTable(tableId) + "\n"+ "("+ nameJoiner+ ")\n"+ "VALUES ("+ valueJoiner+ ")";
+  this.statement=connection.prepareStatement(sql);
+}

@@ -1,0 +1,24 @@
+{
+  if (value == null) {
+    statement.setNull(index,type.getVendorTypeNumber());
+    return;
+  }
+switch (type) {
+case BOOLEAN:
+    statement.setBoolean(index,(boolean)value);
+  return;
+case INTEGER:
+statement.setInt(index,((Number)value).intValue());
+return;
+case BIGINT:
+statement.setLong(index,((Number)value).longValue());
+return;
+case DOUBLE:
+statement.setDouble(index,((Number)value).doubleValue());
+return;
+case VARBINARY:
+statement.setBytes(index,truncateIndexValue((Slice)value).getBytes());
+return;
+}
+throw new PrestoException(INTERNAL_ERROR,"Unhandled type: " + type);
+}

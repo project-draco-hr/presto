@@ -1,2 +1,10 @@
 {
+  flushPages(pageBuffer.getPages());
+  List<ShardInfo> shards=storagePageSink.commit();
+  ImmutableList.Builder<Slice> fragments=ImmutableList.builder();
+  for (  ShardInfo shard : shards) {
+    ShardInfo updated=new ShardInfo(shard.getShardUuid(),ImmutableSet.of(nodeId),shard.getColumns());
+    fragments.add(Slices.wrappedBuffer(shardInfoCodec.toJsonBytes(updated)));
+  }
+  return fragments.build();
 }

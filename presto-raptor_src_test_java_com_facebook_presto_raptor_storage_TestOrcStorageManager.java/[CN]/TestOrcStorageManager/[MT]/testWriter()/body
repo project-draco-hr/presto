@@ -3,11 +3,11 @@
   List<Long> columnIds=ImmutableList.of(3L,7L);
   List<Type> columnTypes=ImmutableList.<Type>of(BIGINT,VARCHAR);
   StoragePageSink sink=manager.createStoragePageSink(columnIds,columnTypes);
-  List<Page> pages=RowPagesBuilder.rowPagesBuilder(columnTypes).row(123,"hello").row(456,"bye").build();
+  List<Page> pages=rowPagesBuilder(columnTypes).row(123,"hello").row(456,"bye").build();
   sink.appendPages(pages);
-  List<UUID> uuids=sink.commit();
-  assertEquals(uuids.size(),1);
-  UUID shardUuid=Iterables.getOnlyElement(uuids);
+  List<ShardInfo> shards=sink.commit();
+  assertEquals(shards.size(),1);
+  UUID shardUuid=Iterables.getOnlyElement(shards).getShardUuid();
   File file=storageService.getStorageFile(shardUuid);
   File backupFile=storageService.getBackupFile(shardUuid);
   assertFile(file,"primary shard");

@@ -1,11 +1,13 @@
 {
   long tableId=1;
   UUID shard=UUID.randomUUID();
-  List<ShardNode> shardNodes=ImmutableList.of(new ShardNode(shard,"node1"));
-  shardManager.commitTable(tableId,shardNodes,Optional.empty());
-  ShardNodes actual=Iterables.getOnlyElement(shardManager.getShardNodes(tableId));
+  List<ShardInfo> shardNodes=ImmutableList.of(shardInfo(shard,"node1"));
+  List<ColumnInfo> columns=ImmutableList.of(new ColumnInfo(1,BIGINT));
+  shardManager.createTable(tableId,columns);
+  shardManager.commitShards(tableId,columns,shardNodes,Optional.empty());
+  ShardNodes actual=getOnlyElement(shardManager.getShardNodes(tableId,TupleDomain.all()));
   assertEquals(actual,new ShardNodes(shard,ImmutableSet.of("node1")));
   shardManager.assignShard(shard,"node2");
-  actual=Iterables.getOnlyElement(shardManager.getShardNodes(tableId));
+  actual=getOnlyElement(shardManager.getShardNodes(tableId,TupleDomain.all()));
   assertEquals(actual,new ShardNodes(shard,ImmutableSet.of("node1","node2")));
 }

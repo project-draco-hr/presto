@@ -1,11 +1,13 @@
 {
   long tableId=1;
   Optional<String> externalBatchId=Optional.of("foo");
-  List<ShardNode> shards=ImmutableList.of(new ShardNode(UUID.randomUUID(),"node1"));
-  shardManager.commitTable(tableId,shards,externalBatchId);
-  shards=ImmutableList.of(new ShardNode(UUID.randomUUID(),"node1"));
+  List<ShardInfo> shards=ImmutableList.of(shardInfo(UUID.randomUUID(),"node1"));
+  List<ColumnInfo> columns=ImmutableList.of(new ColumnInfo(1,BIGINT));
+  shardManager.createTable(tableId,columns);
+  shardManager.commitShards(tableId,columns,shards,externalBatchId);
+  shards=ImmutableList.of(shardInfo(UUID.randomUUID(),"node1"));
   try {
-    shardManager.commitTable(tableId,shards,externalBatchId);
+    shardManager.commitShards(tableId,columns,shards,externalBatchId);
     fail("expected external batch exception");
   }
  catch (  PrestoException e) {

@@ -1,7 +1,9 @@
 {
   if (writer != null) {
     writer.close();
-    shardUuids.add(shardUuid);
+    File stagingFile=storageService.getStagingFile(shardUuid);
+    List<ColumnStats> columns=computeShardStats(stagingFile,columnIds,columnTypes);
+    shards.add(new ShardInfo(shardUuid,ImmutableSet.of(),columns));
     writer=null;
     shardUuid=null;
   }
