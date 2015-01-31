@@ -1,2 +1,7 @@
 {
+  RaptorTableHandle raptorTableHandle=checkType(tableHandle,RaptorTableHandle.class,"tableHandle");
+  checkArgument(partitions.size() == 1,"expected exactly one partition");
+  RaptorPartition partition=checkType(getOnlyElement(partitions),RaptorPartition.class,"partition");
+  TupleDomain<RaptorColumnHandle> effectivePredicate=toRaptorTupleDomain(partition.getEffectivePredicate());
+  return new RaptorSplitSource(raptorTableHandle.getTableId(),effectivePredicate);
 }

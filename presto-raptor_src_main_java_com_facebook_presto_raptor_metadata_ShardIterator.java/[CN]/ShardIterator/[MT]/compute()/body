@@ -1,0 +1,26 @@
+{
+  if (done) {
+    return endOfData();
+  }
+  while (resultSet.next()) {
+    UUID shardId=uuidFromBytes(resultSet.getBytes("shard_uuid"));
+    String nodeId=resultSet.getString("node_identifier");
+    ShardNodes value=null;
+    if ((currentShardId != null) && !shardId.equals(currentShardId)) {
+      value=new ShardNodes(currentShardId,nodes.build());
+      nodes=ImmutableSet.builder();
+    }
+    currentShardId=shardId;
+    if (nodeId != null) {
+      nodes.add(nodeId);
+    }
+    if (value != null) {
+      return value;
+    }
+  }
+  done=true;
+  if (currentShardId != null) {
+    return new ShardNodes(currentShardId,nodes.build());
+  }
+  return endOfData();
+}
