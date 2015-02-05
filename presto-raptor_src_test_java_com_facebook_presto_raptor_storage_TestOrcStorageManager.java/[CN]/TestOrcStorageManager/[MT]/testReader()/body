@@ -5,12 +5,12 @@
   byte[] bytes1=octets(0x00,0xFE,0xFF);
   byte[] bytes3=octets(0x01,0x02,0x19,0x80);
   StoragePageSink sink=manager.createStoragePageSink(columnIds,columnTypes);
-  List<Page> pages=RowPagesBuilder.rowPagesBuilder(columnTypes).row(123,"hello",wrappedBuffer(bytes1),dateValue(new DateTime(2001,8,22,0,0,0,0,UTC)),true,123.45).row(null,null,null,null,null,null).row(456,"bye",wrappedBuffer(bytes3),dateValue(new DateTime(2005,4,22,0,0,0,0,UTC)),false,987.65).build();
+  List<Page> pages=RowPagesBuilder.rowPagesBuilder(columnTypes).row(123,"hello",wrappedBuffer(bytes1),dateValue(new DateTime(2001,8,22,0,0,0,0,UTC)),true,123.45).row(null,null,null,null,null,null).row(456,"bye",wrappedBuffer(bytes3),dateValue(new DateTime(2005,4,22,0,0,0,0,UTC)),false,987.65).row(881,"-inf",null,null,null,Double.NEGATIVE_INFINITY).row(882,"+inf",null,null,null,Double.POSITIVE_INFINITY).row(883,"nan",null,null,null,Double.NaN).row(884,"min",null,null,null,Double.MIN_VALUE).row(885,"max",null,null,null,Double.MAX_VALUE).build();
   sink.appendPages(pages);
   List<UUID> uuids=sink.commit();
   assertEquals(uuids.size(),1);
   UUID uuid=Iterables.getOnlyElement(uuids);
-  MaterializedResult expected=resultBuilder(SESSION,columnTypes).row(123,"hello",sqlBinary(bytes1),sqlDate(2001,8,22),true,123.45).row(null,null,null,null,null,null).row(456,"bye",sqlBinary(bytes3),sqlDate(2005,4,22),false,987.65).build();
+  MaterializedResult expected=resultBuilder(SESSION,columnTypes).row(123,"hello",sqlBinary(bytes1),sqlDate(2001,8,22),true,123.45).row(null,null,null,null,null,null).row(456,"bye",sqlBinary(bytes3),sqlDate(2005,4,22),false,987.65).row(881,"-inf",null,null,null,Double.NEGATIVE_INFINITY).row(882,"+inf",null,null,null,Double.POSITIVE_INFINITY).row(883,"nan",null,null,null,Double.NaN).row(884,"min",null,null,null,Double.MIN_VALUE).row(885,"max",null,null,null,Double.MAX_VALUE).build();
   TupleDomain<RaptorColumnHandle> tupleDomain=TupleDomain.all();
   try (ConnectorPageSource pageSource=manager.getPageSource(uuid,columnIds,columnTypes,tupleDomain)){
     MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,columnTypes);
