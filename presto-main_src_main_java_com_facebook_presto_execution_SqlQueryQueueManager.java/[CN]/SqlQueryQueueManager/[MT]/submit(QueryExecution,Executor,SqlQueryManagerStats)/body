@@ -1,0 +1,9 @@
+{
+  List<QueryQueue> queues=selectQueues(queryExecution.getQueryInfo().getSession(),executor);
+  for (  QueryQueue queue : queues) {
+    if (!queue.reserve(queryExecution)) {
+      return false;
+    }
+  }
+  return queues.get(0).enqueue(createQueuedExecution(queryExecution,queues.subList(1,queues.size()),executor,stats));
+}

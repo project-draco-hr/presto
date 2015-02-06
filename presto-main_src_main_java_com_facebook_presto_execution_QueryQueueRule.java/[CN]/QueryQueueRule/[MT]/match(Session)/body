@@ -1,0 +1,18 @@
+{
+  if (userRegex != null && !userRegex.matcher(session.getUser()).matches()) {
+    return null;
+  }
+  if (sourceRegex != null) {
+    String source=session.getSource();
+    if (!sourceRegex.matcher(nullToEmpty(source)).matches()) {
+      return null;
+    }
+  }
+  for (  Map.Entry<String,Pattern> entry : sessionPropertyRegexes.entrySet()) {
+    String value=session.getSystemProperties().getOrDefault(entry.getKey(),"");
+    if (!entry.getValue().matcher(value).matches()) {
+      return null;
+    }
+  }
+  return queues;
+}

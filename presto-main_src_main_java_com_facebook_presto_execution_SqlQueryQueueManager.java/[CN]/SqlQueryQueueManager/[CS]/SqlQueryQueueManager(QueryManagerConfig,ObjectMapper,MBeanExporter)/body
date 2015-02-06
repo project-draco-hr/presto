@@ -1,0 +1,29 @@
+{
+  checkNotNull(config,"config is null");
+  this.mbeanExporter=checkNotNull(mbeanExporter,"mbeanExporter is null");
+  ImmutableList.Builder<QueryQueueRule> rules=ImmutableList.builder();
+  if (config.getQueueConfigFile() == null) {
+    QueryQueueDefinition global=new QueryQueueDefinition("global",config.getMaxConcurrentQueries(),config.getMaxQueuedQueries());
+    QueryQueueDefinition big=new QueryQueueDefinition("big",config.getMaxConcurrentBigQueries(),config.getMaxQueuedBigQueries());
+    rules.add(new QueryQueueRule(null,null,ImmutableMap.of(BIG_QUERY,Pattern.compile("true",Pattern.CASE_INSENSITIVE)),ImmutableList.of(big)));
+    rules.add(new QueryQueueRule(null,null,ImmutableMap.of(),ImmutableList.of(global)));
+  }
+ else {
+    File file=new File(config.getQueueConfigFile());
+    ManagerSpec managerSpec;
+    try {
+      managerSpec=mapper.readValue(file,ManagerSpec.class);
+    }
+ catch (    IOException e) {
+      throw Throwables.propagate(e);
+    }
+    Map<String,QueryQueueDefinition> definitions=new HashMap<>();
+    for (    Map.Entry<String,QueueSpec> queue : managerSpec.getQueues().entrySet()) {
+      definitions.put(queue.getKey(),new QueryQueueDefinition(queue.getKey(),queue.getValue().getMaxConcurrent(),queue.getValue().getMaxQueued()));
+    }
+    for (    RuleSpec rule : managerSpec.getRules()) {
+      rules.add(QueryQueueRule.createRule(rule.getUserRegex(),rule.getSourceRegex(),rule.getSessionPropertyRegexes(),rule.getQueues(),definitions));
+    }
+  }
+  this.rules=rules.build();
+}
