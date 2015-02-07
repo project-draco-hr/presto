@@ -1,6 +1,15 @@
 {
-  ByteCodeNode castByteCode=new CastCodeGenerator().generateExpression(signature,generatorContext,returnType,arguments);
   CompilerContext context=generatorContext.getContext();
-  Block catchBlock=new Block(context).comment("propagate InterruptedException").invokeStatic(CompilerOperations.class,"propagateInterruptedException",void.class,Throwable.class).comment("wasNull = true;").putVariable("wasNull",true).comment("restore stack after exception").getVariable("output").comment("return dummy value for null").pushJavaDefault(returnType.getJavaType());
-  return new TryCatch(context,"TRY_CAST",castByteCode,catchBlock,type(Exception.class));
+  RowExpression argument=arguments.get(0);
+  Class<?> argumentType=argument.getType().getJavaType();
+  Class<?> unboxedReturnType=returnType.getJavaType();
+  Class<?> boxedReturnType=Primitives.wrap(unboxedReturnType);
+  if (argument.getType().equals(UNKNOWN)) {
+    return new Block(context).putVariable("wasNull",true).pushJavaDefault(unboxedReturnType);
+  }
+  MethodHandle function=generatorContext.getRegistry().getCoercion(argument.getType(),returnType).getMethodHandle().asType(methodType(boxedReturnType,argumentType));
+  MethodHandle tryCast=exceptionToNull(function,boxedReturnType,RuntimeException.class);
+  Binding tryCastBinding=generatorContext.getCallSiteBinder().bind(tryCast);
+  LabelNode end=new LabelNode("end");
+  return new Block(context).comment("call tryCast method").append(generatorContext.generate(argument)).append(ifWasNullPopAndGoto(context,end,unboxedReturnType,argumentType)).append(invoke(generatorContext.getContext(),tryCastBinding,"tryCast")).append(unboxPrimitiveIfNecessary(context,boxedReturnType)).visitLabel(end);
 }
