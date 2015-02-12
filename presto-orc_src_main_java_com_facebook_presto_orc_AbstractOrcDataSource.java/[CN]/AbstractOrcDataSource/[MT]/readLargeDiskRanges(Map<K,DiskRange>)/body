@@ -1,0 +1,11 @@
+{
+  if (diskRanges.isEmpty()) {
+    return ImmutableMap.of();
+  }
+  ImmutableMap.Builder<K,FixedLengthSliceInput> slices=ImmutableMap.builder();
+  for (  Entry<K,DiskRange> entry : diskRanges.entrySet()) {
+    ChunkedSliceInput sliceInput=new ChunkedSliceInput(new HdfsSliceLoader(entry.getValue()),Ints.checkedCast(streamBufferSize.toBytes()));
+    slices.put(entry.getKey(),sliceInput);
+  }
+  return slices.build();
+}

@@ -1,0 +1,17 @@
+{
+  if (diskRanges.isEmpty()) {
+    return ImmutableMap.of();
+  }
+  Iterable<DiskRange> mergedRanges=mergeAdjacentDiskRanges(diskRanges.values(),maxMergeDistance,maxBufferSize);
+  Map<DiskRange,byte[]> buffers=new LinkedHashMap<>();
+  for (  DiskRange mergedRange : mergedRanges) {
+    byte[] buffer=new byte[mergedRange.getLength()];
+    readFully(mergedRange.getOffset(),buffer);
+    buffers.put(mergedRange,buffer);
+  }
+  ImmutableMap.Builder<K,FixedLengthSliceInput> slices=ImmutableMap.builder();
+  for (  Entry<K,DiskRange> entry : diskRanges.entrySet()) {
+    slices.put(entry.getKey(),getDiskRangeSlice(entry.getValue(),buffers).getInput());
+  }
+  return slices.build();
+}
