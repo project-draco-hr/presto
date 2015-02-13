@@ -9,7 +9,8 @@
   HiveCluster hiveCluster=new TestingHiveCluster(hiveClientConfig,host,port);
   HiveMetastore metastoreClient=new CachingHiveMetastore(hiveCluster,executor,Duration.valueOf("1m"),Duration.valueOf("15s"));
   HiveConnectorId connectorId=new HiveConnectorId(connectorName);
-  hdfsEnvironment=new HdfsEnvironment(new HdfsConfiguration(hiveClientConfig));
+  HdfsConfiguration hdfsConfiguration=new HiveHdfsConfiguration(new HdfsConfigurationUpdater(hiveClientConfig));
+  hdfsEnvironment=new HdfsEnvironment(hdfsConfiguration,hiveClientConfig);
   metadata=new HiveMetadata(connectorId,metastoreClient,hdfsEnvironment,timeZone,true,true,true,hiveClientConfig.getHiveStorageFormat(),new TypeRegistry());
   splitManager=new HiveSplitManager(connectorId,metastoreClient,new NamenodeStats(),hdfsEnvironment,new HadoopDirectoryLister(),timeZone,newDirectExecutorService(),maxOutstandingSplits,maxThreads,hiveClientConfig.getMinPartitionBatchSize(),hiveClientConfig.getMaxPartitionBatchSize(),hiveClientConfig.getMaxSplitSize(),hiveClientConfig.getMaxInitialSplitSize(),hiveClientConfig.getMaxInitialSplits(),false,false,false);
   recordSinkProvider=new HiveRecordSinkProvider(hdfsEnvironment);
