@@ -3,11 +3,10 @@
   try (SetThreadName setThreadName=new SetThreadName("Stage-%s",stageId)){
     doUpdateState();
 synchronized (this) {
-      if (stageState.get().isDone()) {
-        return;
+      if (!stageState.get().isDone()) {
+        log.debug("Cancelling stage %s",stageId);
+        stageState.set(StageState.CANCELED);
       }
-      log.debug("Cancelling stage %s",stageId);
-      stageState.set(StageState.CANCELED);
     }
     for (    RemoteTask task : tasks.values()) {
       task.cancel();
