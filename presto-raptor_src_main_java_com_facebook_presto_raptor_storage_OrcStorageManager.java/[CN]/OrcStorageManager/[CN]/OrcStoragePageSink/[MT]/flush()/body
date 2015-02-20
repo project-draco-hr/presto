@@ -3,7 +3,10 @@
     writer.close();
     File stagingFile=storageService.getStagingFile(shardUuid);
     List<ColumnStats> columns=computeShardStats(stagingFile,columnIds,columnTypes);
-    shards.add(new ShardInfo(shardUuid,ImmutableSet.of(nodeId),columns));
+    Set<String> nodes=ImmutableSet.of(nodeId);
+    long rowCount=writer.getRowCount();
+    long dataSize=stagingFile.length();
+    shards.add(new ShardInfo(shardUuid,nodes,columns,rowCount,dataSize));
     writer=null;
     shardUuid=null;
   }
