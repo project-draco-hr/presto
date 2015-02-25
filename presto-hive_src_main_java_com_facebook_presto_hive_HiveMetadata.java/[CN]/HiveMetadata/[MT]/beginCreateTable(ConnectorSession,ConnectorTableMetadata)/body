@@ -4,35 +4,11 @@
   HiveStorageFormat hiveStorageFormat=getHiveStorageFormat(session,this.hiveStorageFormat);
   ImmutableList.Builder<String> columnNames=ImmutableList.builder();
   ImmutableList.Builder<Type> columnTypes=ImmutableList.builder();
-  for (  ColumnMetadata column : tableMetadata.getColumns()) {
-    if (!HiveRecordSink.isTypeSupported(column.getType())) {
-      throw new PrestoException(NOT_SUPPORTED,format("Cannot create table with unsupported type: %s",column.getType().getDisplayName()));
-    }
-    columnNames.add(column.getName());
-    columnTypes.add(column.getType());
-  }
-  if (tableMetadata.isSampled()) {
-    columnNames.add(SAMPLE_WEIGHT_COLUMN_NAME);
-    columnTypes.add(BIGINT);
-  }
-  SchemaTableName table=tableMetadata.getTable();
-  String schemaName=table.getSchemaName();
-  String tableName=table.getTableName();
-  String location=getDatabase(schemaName).getLocationUri();
-  if (isNullOrEmpty(location)) {
-    throw new RuntimeException(format("Database '%s' location is not set",schemaName));
-  }
-  Path databasePath=new Path(location);
-  if (!pathExists(databasePath)) {
-    throw new RuntimeException(format("Database '%s' location does not exist: %s",schemaName,databasePath));
-  }
-  if (!isDirectory(databasePath)) {
-    throw new RuntimeException(format("Database '%s' location is not a directory: %s",schemaName,databasePath));
-  }
-  Path targetPath=new Path(databasePath,tableName);
-  if (pathExists(targetPath)) {
-    throw new RuntimeException(format("Target directory for table '%s' already exists: %s",table,targetPath));
-  }
+  SchemaTableName schemaTableName=tableMetadata.getTable();
+  String schemaName=schemaTableName.getSchemaName();
+  String tableName=schemaTableName.getTableName();
+  buildColumnInfo(tableMetadata,columnNames,columnTypes);
+  Path targetPath=getTargetPath(schemaName,tableName,schemaTableName);
   if (!useTemporaryDirectory(targetPath)) {
     return new HiveOutputTableHandle(connectorId,schemaName,tableName,columnNames.build(),columnTypes.build(),tableMetadata.getOwner(),targetPath.toString(),targetPath.toString(),session,hiveStorageFormat);
   }

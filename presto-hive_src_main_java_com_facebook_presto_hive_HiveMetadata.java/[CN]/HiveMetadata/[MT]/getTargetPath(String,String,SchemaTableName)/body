@@ -1,0 +1,18 @@
+{
+  String location=getDatabase(schemaName).getLocationUri();
+  if (isNullOrEmpty(location)) {
+    throw new RuntimeException(format("Database '%s' location is not set",schemaName));
+  }
+  Path databasePath=new Path(location);
+  if (!pathExists(databasePath)) {
+    throw new RuntimeException(format("Database '%s' location does not exist: %s",schemaName,databasePath));
+  }
+  if (!isDirectory(databasePath)) {
+    throw new RuntimeException(format("Database '%s' location is not a directory: %s",schemaName,databasePath));
+  }
+  Path targetPath=new Path(databasePath,tableName);
+  if (pathExists(targetPath)) {
+    throw new RuntimeException(format("Target directory for table '%s' already exists: %s",schemaTableName,targetPath));
+  }
+  return targetPath;
+}
