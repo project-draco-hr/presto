@@ -17,12 +17,7 @@
   int maxConnections=conf.getInt(S3_MAX_CONNECTIONS,defaults.getS3MaxConnections());
   long minFileSize=conf.getLong(S3_MULTIPART_MIN_FILE_SIZE,defaults.getS3MultipartMinFileSize().toBytes());
   long minPartSize=conf.getLong(S3_MULTIPART_MIN_PART_SIZE,defaults.getS3MultipartMinPartSize().toBytes());
-  ClientConfiguration configuration=new ClientConfiguration();
-  configuration.setMaxErrorRetry(maxErrorRetries);
-  configuration.setProtocol(sslEnabled ? Protocol.HTTPS : Protocol.HTTP);
-  configuration.setConnectionTimeout(Ints.checkedCast(connectTimeout.toMillis()));
-  configuration.setSocketTimeout(Ints.checkedCast(socketTimeout.toMillis()));
-  configuration.setMaxConnections(maxConnections);
+  ClientConfiguration configuration=new ClientConfiguration().withMaxErrorRetry(maxErrorRetries).withProtocol(sslEnabled ? Protocol.HTTPS : Protocol.HTTP).withConnectionTimeout(Ints.checkedCast(connectTimeout.toMillis())).withSocketTimeout(Ints.checkedCast(socketTimeout.toMillis())).withMaxConnections(maxConnections);
   this.s3=new AmazonS3Client(getAwsCredentials(uri,conf),configuration);
   transferConfig.setMultipartUploadThreshold(minFileSize);
   transferConfig.setMinimumUploadPartSize(minPartSize);
