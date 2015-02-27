@@ -1,12 +1,12 @@
 {
   for (  FunctionCall call : node.getAggregations().values()) {
     if (!ALLOWED_FUNCTIONS.contains(call.getName().toString()) && !call.isDistinct()) {
-      return null;
+      return context.defaultRewrite(node);
     }
   }
   Optional<TableScanNode> result=findTableScan(node.getSource());
   if (!result.isPresent()) {
-    return null;
+    return context.defaultRewrite(node);
   }
   TableScanNode tableScan=result.get();
   ImmutableMap.Builder<Symbol,Type> typesBuilder=ImmutableMap.builder();
@@ -16,7 +16,7 @@
     ColumnHandle column=tableScan.getAssignments().get(symbol);
     ColumnMetadata columnMetadata=metadata.getColumnMetadata(tableScan.getTable(),column);
     if (!columnMetadata.isPartitionKey()) {
-      return null;
+      return context.defaultRewrite(node);
     }
     typesBuilder.put(symbol,columnMetadata.getType());
     columnBuilder.put(symbol,column);
@@ -39,7 +39,7 @@
       Type type=types.get(input);
       SerializableNativeValue value=entries.get(column);
       if (value == null) {
-        return null;
+        return context.defaultRewrite(node);
       }
  else {
         rowBuilder.add(LiteralInterpreter.toExpression(value.getValue(),type));
