@@ -1,0 +1,17 @@
+{
+  if (state.isNull()) {
+    state.setNull(false);
+    state.setLong(value);
+    return;
+  }
+  try {
+    if ((boolean)methodHandle.invokeExact(value,state.getLong())) {
+      state.setLong(value);
+    }
+  }
+ catch (  Throwable t) {
+    Throwables.propagateIfInstanceOf(t,Error.class);
+    Throwables.propagateIfInstanceOf(t,PrestoException.class);
+    throw new PrestoException(INTERNAL_ERROR,t);
+  }
+}

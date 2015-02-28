@@ -1,0 +1,16 @@
+{
+  if (state.getSlice() == null) {
+    state.setSlice(value);
+    return;
+  }
+  try {
+    if ((boolean)methodHandle.invokeExact(value,state.getSlice())) {
+      state.setSlice(value);
+    }
+  }
+ catch (  Throwable t) {
+    Throwables.propagateIfInstanceOf(t,Error.class);
+    Throwables.propagateIfInstanceOf(t,PrestoException.class);
+    throw new PrestoException(INTERNAL_ERROR,t);
+  }
+}
