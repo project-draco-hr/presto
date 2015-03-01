@@ -1,24 +1,2 @@
 {
-  final String schemaName=viewName.getSchemaName();
-  final String tableName=viewName.getTableName();
-  if (replace) {
-    dbi.inTransaction(new VoidTransactionCallback(){
-      @Override protected void execute(      Handle handle,      TransactionStatus status) throws Exception {
-        MetadataDao dao=handle.attach(MetadataDao.class);
-        dao.dropView(connectorId,schemaName,tableName);
-        dao.insertView(connectorId,schemaName,tableName,viewData);
-      }
-    }
-);
-    return;
-  }
-  try {
-    dao.insertView(connectorId,schemaName,tableName,viewData);
-  }
- catch (  UnableToExecuteStatementException e) {
-    if (viewExists(session,viewName)) {
-      throw new PrestoException(ALREADY_EXISTS,"View already exists: " + viewName);
-    }
-    throw e;
-  }
 }
