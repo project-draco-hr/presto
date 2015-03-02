@@ -16,10 +16,7 @@
         blocks[fieldId]=new LazyBlock(batchSize,new OrcBlockLoader(hiveColumnIndexes[fieldId],type));
       }
     }
-    Page page=new Page(batchSize,blocks);
-    long newCompletedBytes=(long)(recordReader.getSplitLength() * recordReader.getProgress());
-    completedBytes=min(recordReader.getSplitLength(),max(completedBytes,newCompletedBytes));
-    return page;
+    return new Page(batchSize,blocks);
   }
  catch (  PrestoException e) {
     closeWithSuppression(e);
