@@ -1,0 +1,20 @@
+{
+  Block elementsBlock=readStructuralBlock(jsonArray);
+  if (elementsBlock.getPositionCount() == 0) {
+    return jsonArray;
+  }
+  GroupByHash groupByHash=new GroupByHash(ImmutableList.of(type),new int[]{0},Optional.empty(),elementsBlock.getPositionCount());
+  groupByHash.getGroupIds(new Page(elementsBlock));
+  PageBuilder pageBuilder=new PageBuilder(groupByHash.getTypes());
+  for (int i=0; i < groupByHash.getGroupCount(); i++) {
+    pageBuilder.declarePosition();
+    groupByHash.appendValuesTo(i,pageBuilder,0);
+  }
+  BlockBuilder fixedWidthResultBlockBuilder=pageBuilder.getBlockBuilder(0);
+  Block fixedWidthResultBlock=fixedWidthResultBlockBuilder.build();
+  BlockBuilder variableWidthBlockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),fixedWidthResultBlock.getSizeInBytes());
+  for (int i=0; i < fixedWidthResultBlock.getPositionCount(); i++) {
+    type.appendTo(fixedWidthResultBlock,i,variableWidthBlockBuilder);
+  }
+  return buildStructuralSlice(variableWidthBlockBuilder);
+}

@@ -1,0 +1,54 @@
+{
+  BlockBuilder elementsBlockBuilder;
+  if (type instanceof AbstractFixedWidthType) {
+    elementsBlockBuilder=((AbstractFixedWidthType)type).createFixedSizeBlockBuilder(elements.size());
+  }
+ else {
+    elementsBlockBuilder=type.createBlockBuilder(new BlockBuilderStatus(),elements.size());
+  }
+  Class<?> javaType=type.getJavaType();
+  if (javaType == boolean.class) {
+    for (    Object e : elements) {
+      if (e == null) {
+        elementsBlockBuilder.appendNull();
+      }
+ else {
+        type.writeBoolean(elementsBlockBuilder,(boolean)e);
+      }
+    }
+  }
+ else   if (javaType == long.class) {
+    for (    Object e : elements) {
+      if (e == null) {
+        elementsBlockBuilder.appendNull();
+      }
+ else {
+        type.writeLong(elementsBlockBuilder,((Number)e).longValue());
+      }
+    }
+  }
+ else   if (javaType == double.class) {
+    for (    Object e : elements) {
+      if (e == null) {
+        elementsBlockBuilder.appendNull();
+      }
+ else {
+        type.writeDouble(elementsBlockBuilder,(double)e);
+      }
+    }
+  }
+ else   if (javaType == Slice.class) {
+    for (    Object e : elements) {
+      if (e == null) {
+        elementsBlockBuilder.appendNull();
+      }
+ else {
+        type.writeSlice(elementsBlockBuilder,utf8Slice((String)e));
+      }
+    }
+  }
+ else {
+    throw new PrestoException(INVALID_FUNCTION_ARGUMENT,format("Unexpected type %s",javaType.getName()));
+  }
+  return elementsBlockBuilder.build();
+}
