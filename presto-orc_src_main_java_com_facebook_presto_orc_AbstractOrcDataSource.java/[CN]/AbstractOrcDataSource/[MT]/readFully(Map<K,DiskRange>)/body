@@ -1,2 +1,23 @@
 {
+  checkNotNull(diskRanges,"diskRanges is null");
+  if (diskRanges.isEmpty()) {
+    return ImmutableMap.of();
+  }
+  long maxReadSizeBytes=maxBufferSize.toBytes();
+  ImmutableMap.Builder<K,DiskRange> smallRangesBuilder=ImmutableMap.builder();
+  ImmutableMap.Builder<K,DiskRange> largeRangesBuilder=ImmutableMap.builder();
+  for (  Entry<K,DiskRange> entry : diskRanges.entrySet()) {
+    if (entry.getValue().getLength() <= maxReadSizeBytes) {
+      smallRangesBuilder.put(entry);
+    }
+ else {
+      largeRangesBuilder.put(entry);
+    }
+  }
+  Map<K,DiskRange> smallRanges=smallRangesBuilder.build();
+  Map<K,DiskRange> largeRanges=largeRangesBuilder.build();
+  ImmutableMap.Builder<K,FixedLengthSliceInput> slices=ImmutableMap.builder();
+  slices.putAll(readSmallDiskRanges(smallRanges));
+  slices.putAll(readLargeDiskRanges(largeRanges));
+  return slices.build();
 }
