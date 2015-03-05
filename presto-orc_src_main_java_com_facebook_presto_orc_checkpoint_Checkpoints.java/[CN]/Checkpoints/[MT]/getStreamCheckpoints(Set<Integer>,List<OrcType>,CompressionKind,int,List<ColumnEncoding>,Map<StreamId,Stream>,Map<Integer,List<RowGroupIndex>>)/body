@@ -50,7 +50,9 @@ case VARCHAR:
 case UNION:
 throw new IllegalArgumentException("Unsupported column type " + columnType);
 }
-checkState(!columnPositionsList.hasNextPosition() || Iterables.all(positionsList,equalTo(0)),"Column %s, of type %s, contains %s offset positions, but only %s positions were consumed",column,columnType,positionsList.size(),columnPositionsList.getIndex());
+if (columnPositionsList.hasNextPosition() && !Iterables.all(positionsList,equalTo(0))) {
+throw new InvalidCheckpointException(format("Column %s, of type %s, contains %s offset positions, but only %s positions were consumed",column,columnType,positionsList.size(),columnPositionsList.getIndex()));
+}
 }
 return checkpoints.build();
 }
