@@ -1,0 +1,29 @@
+{
+  Inflater inflater=new Inflater(true);
+  try {
+    inflater.setInput((byte[])in.getBase(),(int)(in.getAddress() - ARRAY_BYTE_BASE_OFFSET),in.length());
+    allocateOrGrowBuffer(in.length() * EXPECTED_COMPRESSION_RATIO,false);
+    int uncompressedLength=0;
+    while (true) {
+      uncompressedLength+=inflater.inflate(buffer,uncompressedLength,buffer.length - uncompressedLength);
+      if (inflater.finished() || buffer.length >= maxBufferSize) {
+        break;
+      }
+      int oldBufferSize=buffer.length;
+      allocateOrGrowBuffer(buffer.length * 2,true);
+      if (buffer.length <= oldBufferSize) {
+        throw new IllegalStateException(String.format("Buffer failed to grow. Old size %d, current size %d",oldBufferSize,buffer.length));
+      }
+    }
+    if (!inflater.finished()) {
+      throw new OrcCorruptionException("Could not decompress all input (output buffer too small?)");
+    }
+    return uncompressedLength;
+  }
+ catch (  DataFormatException e) {
+    throw new OrcCorruptionException(e,"Invalid compressed stream");
+  }
+ finally {
+    inflater.end();
+  }
+}

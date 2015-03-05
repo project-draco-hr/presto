@@ -1,0 +1,9 @@
+{
+  byte[] inArray=(byte[])in.getBase();
+  int inOffset=(int)(in.getAddress() - ARRAY_BYTE_BASE_OFFSET);
+  int inLength=in.length();
+  int uncompressedLength=Snappy.getUncompressedLength(inArray,inOffset);
+  checkArgument(uncompressedLength <= maxBufferSize,"Snappy requires buffer (%d) larger than max size (%d)",uncompressedLength,maxBufferSize);
+  allocateOrGrowBuffer(uncompressedLength,false);
+  return Snappy.uncompress(inArray,inOffset,inLength,buffer,0);
+}

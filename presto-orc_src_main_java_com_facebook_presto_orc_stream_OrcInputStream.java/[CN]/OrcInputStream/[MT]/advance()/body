@@ -14,16 +14,13 @@
     current=chunk.getInput();
   }
  else {
-    if (buffer == null) {
-      buffer=Slices.allocate(bufferSize);
-    }
     int uncompressedSize;
     if (compressionKind == ZLIB) {
-      uncompressedSize=decompressZip(chunk,buffer);
+      uncompressedSize=decompressZip(chunk);
     }
  else {
-      uncompressedSize=decompressSnappy(chunk,buffer);
+      uncompressedSize=decompressSnappy(chunk);
     }
-    current=buffer.slice(0,uncompressedSize).getInput();
+    current=Slices.wrappedBuffer(buffer,0,uncompressedSize).getInput();
   }
 }
