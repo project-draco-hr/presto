@@ -1,22 +1,2 @@
 {
-  StripeFooter stripeFooter=readStripeFooter(stripe);
-  List<ColumnEncoding> columnEncodings=stripeFooter.getColumnEncodings();
-  Map<StreamId,Stream> streams=new HashMap<>();
-  for (  Stream stream : stripeFooter.getStreams()) {
-    if (includedOrcColumns.contains(stream.getColumn())) {
-      streams.put(new StreamId(stream),stream);
-    }
-  }
-  Map<StreamId,DiskRange> diskRanges=getDiskRanges(stripeFooter.getStreams());
-  diskRanges=Maps.filterKeys(diskRanges,Predicates.in(streams.keySet()));
-  Map<StreamId,OrcInputStream> streamsData=readDiskRanges(stripe.getOffset(),diskRanges);
-  Map<Integer,List<RowGroupIndex>> columnIndexes=readColumnIndexes(streams,streamsData);
-  Set<Integer> selectedRowGroups=selectRowGroups(stripe,columnIndexes);
-  if (selectedRowGroups.isEmpty()) {
-    return null;
-  }
-  Map<StreamId,ValueStream<?>> valueStreams=createValueStreams(streams,streamsData,columnEncodings);
-  StreamSources dictionaryStreamSources=createDictionaryStreamSources(streams,valueStreams,columnEncodings);
-  List<RowGroup> rowGroups=createRowGroups(stripe.getNumberOfRows(),streams,valueStreams,columnIndexes,selectedRowGroups,columnEncodings);
-  return new Stripe(stripe.getNumberOfRows(),columnEncodings,rowGroups,dictionaryStreamSources);
 }
