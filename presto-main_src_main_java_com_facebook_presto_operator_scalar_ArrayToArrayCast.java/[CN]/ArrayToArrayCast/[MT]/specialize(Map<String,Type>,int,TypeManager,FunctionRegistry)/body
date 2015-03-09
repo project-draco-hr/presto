@@ -1,0 +1,14 @@
+{
+  checkArgument(arity == 1,"Expected arity to be 1");
+  Type fromType=types.get("F");
+  Type toType=types.get("T");
+  ArrayType fromArrayType=(ArrayType)typeManager.getParameterizedType(StandardTypes.ARRAY,ImmutableList.of(fromType.getTypeSignature()),ImmutableList.of());
+  ArrayType toArrayType=(ArrayType)typeManager.getParameterizedType(StandardTypes.ARRAY,ImmutableList.of(toType.getTypeSignature()),ImmutableList.of());
+  FunctionInfo functionInfo=functionRegistry.getExactFunction(internalOperator(CAST.name(),toType.getTypeSignature(),ImmutableList.of(fromType.getTypeSignature())));
+  if (functionInfo == null) {
+    throw new PrestoException(FUNCTION_NOT_FOUND,format("Can not cast %s to %s",fromArrayType,toArrayType));
+  }
+  Class<?> castOperatorClass=generateArrayCast(typeManager,functionInfo);
+  MethodHandle methodHandle=methodHandle(castOperatorClass,"castArray",ConnectorSession.class,Slice.class);
+  return operatorInfo(CAST,toArrayType.getTypeSignature(),ImmutableList.of(fromArrayType.getTypeSignature()),methodHandle,false,ImmutableList.of(false));
+}
