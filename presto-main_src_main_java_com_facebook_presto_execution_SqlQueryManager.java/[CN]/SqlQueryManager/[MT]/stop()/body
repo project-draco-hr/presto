@@ -1,4 +1,22 @@
 {
+  boolean queryCancelled=false;
+  for (  QueryExecution queryExecution : queries.values()) {
+    QueryInfo queryInfo=queryExecution.getQueryInfo();
+    if (queryInfo.getState().isDone()) {
+      continue;
+    }
+    log.info("Server shutting down. Query %s has been cancelled",queryExecution.getQueryInfo().getQueryId());
+    queryExecution.fail(new PrestoException(SERVER_SHUTTING_DOWN,"Server is shutting down. Query " + queryInfo.getQueryId() + " has been cancelled"));
+    queryCancelled=true;
+  }
+  if (queryCancelled) {
+    try {
+      TimeUnit.SECONDS.sleep(5);
+    }
+ catch (    InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+  }
   queryManagementExecutor.shutdownNow();
   queryExecutor.shutdownNow();
 }
