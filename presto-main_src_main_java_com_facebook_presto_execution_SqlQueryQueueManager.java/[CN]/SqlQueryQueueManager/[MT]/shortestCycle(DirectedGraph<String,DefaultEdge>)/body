@@ -1,0 +1,28 @@
+{
+  FloydWarshallShortestPaths<String,DefaultEdge> floyd=new FloydWarshallShortestPaths<>(graph);
+  int minDistance=Integer.MAX_VALUE;
+  String minSource=null;
+  String minDestination=null;
+  for (  DefaultEdge edge : graph.edgeSet()) {
+    String src=graph.getEdgeSource(edge);
+    String dst=graph.getEdgeTarget(edge);
+    int dist=(int)Math.round(floyd.shortestDistance(dst,src));
+    if (dist < 0) {
+      continue;
+    }
+    if (dist < minDistance) {
+      minDistance=dist;
+      minSource=src;
+      minDestination=dst;
+    }
+  }
+  if (minSource == null) {
+    return null;
+  }
+  GraphPath<String,DefaultEdge> shortestPath=floyd.getShortestPath(minDestination,minSource);
+  List<String> pathVertexList=Graphs.getPathVertexList(shortestPath);
+  if (shortestPath.getStartVertex() != shortestPath.getEndVertex()) {
+    pathVertexList.add(pathVertexList.get(0));
+  }
+  return pathVertexList;
+}
