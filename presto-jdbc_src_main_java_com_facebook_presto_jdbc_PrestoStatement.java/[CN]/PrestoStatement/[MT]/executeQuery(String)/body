@@ -1,12 +1,6 @@
 {
-  try {
-    StatementClient client=connection().startQuery(sql);
-    ResultSet result=new PrestoResultSet(client);
-    checkSetOrResetSession(client);
-    currentResult.set(result);
-    return result;
+  if (!execute(sql)) {
+    throw new SQLException("SQL statement is not a query: " + sql);
   }
- catch (  RuntimeException e) {
-    throw new SQLException("Error executing query",e);
-  }
+  return currentResult.get();
 }

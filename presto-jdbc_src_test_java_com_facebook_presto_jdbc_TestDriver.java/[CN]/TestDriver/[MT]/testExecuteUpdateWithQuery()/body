@@ -1,0 +1,14 @@
+{
+  try (Connection connection=createConnection("blackhole","blackhole")){
+    try (Statement statement=connection.createStatement()){
+      String sql="SELECT 123 x, 'foo' y, CAST(NULL AS bigint) z";
+      try {
+        statement.executeUpdate(sql);
+        fail("expected exception");
+      }
+ catch (      SQLException e) {
+        assertEquals(e.getMessage(),"SQL is not an update statement: " + sql);
+      }
+    }
+   }
+ }

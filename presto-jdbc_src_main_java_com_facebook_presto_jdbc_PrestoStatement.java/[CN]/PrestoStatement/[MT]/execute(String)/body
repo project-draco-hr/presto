@@ -1,5 +1,36 @@
 {
+  clearCurrentResults();
   checkOpen();
-  currentResult.set(executeQuery(sql));
-  return true;
+  StatementClient client=null;
+  ResultSet resultSet=null;
+  try {
+    client=connection().startQuery(sql);
+    if (client.isFailed()) {
+      throw resultsException(client.finalResults());
+    }
+    resultSet=new PrestoResultSet(client);
+    checkSetOrResetSession(client);
+    if (client.current().getUpdateType() == null) {
+      currentResult.set(resultSet);
+      return true;
+    }
+    while (resultSet.next()) {
+    }
+    Long updateCount=client.finalResults().getUpdateCount();
+    currentUpdateCount.set((updateCount != null) ? updateCount : 0);
+    return false;
+  }
+ catch (  RuntimeException e) {
+    throw new SQLException("Error executing query",e);
+  }
+ finally {
+    if (currentResult.get() == null) {
+      if (resultSet != null) {
+        resultSet.close();
+      }
+      if (client != null) {
+        client.close();
+      }
+    }
+  }
 }
