@@ -1,13 +1,7 @@
 {
-  if (storagePageSink.isFull()) {
+  if (shouldFlush(rowsToAdd)) {
     flushPages(pageBuffer.getPages());
     pageBuffer.reset();
     storagePageSink.flush();
-    return;
-  }
-  int maxRemainingRows=Integer.MAX_VALUE - Ints.checkedCast(pageBuffer.getRowCount());
-  if (pageBuffer.isFull() || (!sortFields.isEmpty() && (rowsToAdd > maxRemainingRows))) {
-    flushPages(pageBuffer.getPages());
-    pageBuffer.reset();
   }
 }
