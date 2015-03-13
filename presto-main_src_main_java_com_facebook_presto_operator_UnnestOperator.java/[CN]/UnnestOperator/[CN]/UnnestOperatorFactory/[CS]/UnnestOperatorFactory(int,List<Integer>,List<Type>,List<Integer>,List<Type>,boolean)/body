@@ -6,5 +6,10 @@
   this.unnestChannels=ImmutableList.copyOf(checkNotNull(unnestChannels,"unnestChannels is null"));
   this.unnestTypes=ImmutableList.copyOf(checkNotNull(unnestTypes,"unnestTypes is null"));
   checkArgument(unnestChannels.size() == unnestTypes.size(),"unnestChannels and unnestTypes do not match");
-  types=ImmutableList.<Type>builder().addAll(replicateTypes).addAll(getUnnestedTypes(unnestTypes)).build();
+  this.withOrdinality=withOrdinality;
+  ImmutableList.Builder<Type> typesBuilder=ImmutableList.<Type>builder().addAll(replicateTypes).addAll(getUnnestedTypes(unnestTypes));
+  if (withOrdinality) {
+    typesBuilder.add(BIGINT);
+  }
+  this.types=typesBuilder.build();
 }

@@ -1,28 +1,2 @@
 {
-  PhysicalOperation source=node.getSource().accept(this,context);
-  ImmutableList.Builder<Type> replicateTypes=ImmutableList.builder();
-  for (  Symbol symbol : node.getReplicateSymbols()) {
-    replicateTypes.add(context.getTypes().get(symbol));
-  }
-  List<Symbol> unnestSymbols=ImmutableList.copyOf(node.getUnnestSymbols().keySet());
-  ImmutableList.Builder<Type> unnestTypes=ImmutableList.builder();
-  for (  Symbol symbol : unnestSymbols) {
-    unnestTypes.add(context.getTypes().get(symbol));
-  }
-  List<Integer> replicateChannels=getChannelsForSymbols(node.getReplicateSymbols(),source.getLayout());
-  List<Integer> unnestChannels=getChannelsForSymbols(unnestSymbols,source.getLayout());
-  ImmutableMap.Builder<Symbol,Integer> outputMappings=ImmutableMap.builder();
-  int channel=0;
-  for (  Symbol symbol : node.getReplicateSymbols()) {
-    outputMappings.put(symbol,channel);
-    channel++;
-  }
-  for (  Symbol symbol : unnestSymbols) {
-    for (    Symbol unnestedSymbol : node.getUnnestSymbols().get(symbol)) {
-      outputMappings.put(unnestedSymbol,channel);
-      channel++;
-    }
-  }
-  OperatorFactory operatorFactory=new UnnestOperatorFactory(context.getNextOperatorId(),replicateChannels,replicateTypes.build(),unnestChannels,unnestTypes.build());
-  return new PhysicalOperation(operatorFactory,outputMappings.build(),source);
 }
