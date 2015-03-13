@@ -34,7 +34,17 @@
     checkArgument(field == rowType.getFields().size(),"Expected %d fields for type %s",rowType.getFields().size(),type);
     return Collections.unmodifiableList(list);
   }
-  BlockBuilder blockBuilder=type.createBlockBuilder(new BlockBuilderStatus());
+  Slice sliceValue=null;
+  if (type.getJavaType() == Slice.class) {
+    sliceValue=Slices.utf8Slice(parser.getValueAsString());
+  }
+  BlockBuilder blockBuilder;
+  if (type instanceof FixedWidthType) {
+    blockBuilder=type.createBlockBuilder(new BlockBuilderStatus(),1);
+  }
+ else {
+    blockBuilder=type.createBlockBuilder(new BlockBuilderStatus(),1,checkNotNull(sliceValue,"sliceValue is null").length());
+  }
   if (type.getJavaType() == boolean.class) {
     type.writeBoolean(blockBuilder,parser.getBooleanValue());
   }
@@ -45,7 +55,7 @@
     type.writeDouble(blockBuilder,getDoubleValue(parser));
   }
  else   if (type.getJavaType() == Slice.class) {
-    type.writeSlice(blockBuilder,Slices.utf8Slice(parser.getValueAsString()));
+    type.writeSlice(blockBuilder,checkNotNull(sliceValue,"sliceValue is null"));
   }
   return type.getObjectValue(session,blockBuilder.build(),0);
 }

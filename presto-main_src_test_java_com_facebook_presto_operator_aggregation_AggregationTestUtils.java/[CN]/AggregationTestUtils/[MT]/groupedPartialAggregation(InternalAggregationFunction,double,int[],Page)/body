@@ -4,12 +4,12 @@
   for (  Page page : pages) {
     partialAggregation.addInput(createGroupByIdBlock(0,page.getPositionCount()),page);
   }
-  BlockBuilder partialOut=partialAggregation.getIntermediateType().createBlockBuilder(new BlockBuilderStatus());
+  BlockBuilder partialOut=partialAggregation.getIntermediateType().createBlockBuilder(new BlockBuilderStatus(),1);
   partialAggregation.evaluateIntermediate(0,partialOut);
   Block partialBlock=partialOut.build();
   GroupedAccumulator finalAggregation=factory.createGroupedIntermediateAccumulator();
   GroupedAccumulator emptyAggregation=factory.createGroupedAccumulator();
-  BlockBuilder emptyOut=emptyAggregation.getIntermediateType().createBlockBuilder(new BlockBuilderStatus());
+  BlockBuilder emptyOut=emptyAggregation.getIntermediateType().createBlockBuilder(new BlockBuilderStatus(),1);
   emptyAggregation.evaluateIntermediate(0,emptyOut);
   Block emptyBlock=emptyOut.build();
   finalAggregation.addIntermediate(createGroupByIdBlock(0,emptyBlock.getPositionCount()),emptyBlock);
