@@ -9,12 +9,12 @@
   HttpPageBufferClient client=new HttpPageBufferClient(new TestingHttpClient(processor,executor),new DataSize(10,Unit.MEGABYTE),new Duration(1,TimeUnit.MINUTES),location,callback,createTestingBlockEncodingManager(),executor,Stopwatch.createUnstarted());
   assertStatus(client,location,"queued",0,0,0,0,"not scheduled");
   client.scheduleRequest();
-  beforeRequest.await(1,TimeUnit.SECONDS);
+  beforeRequest.await(10,TimeUnit.SECONDS);
   assertStatus(client,location,"running",0,1,0,0,"PROCESSING_REQUEST");
   assertEquals(client.isRunning(),true);
   client.close();
   try {
-    requestComplete.await(1,TimeUnit.SECONDS);
+    requestComplete.await(10,TimeUnit.SECONDS);
   }
  catch (  BrokenBarrierException ignored) {
   }
