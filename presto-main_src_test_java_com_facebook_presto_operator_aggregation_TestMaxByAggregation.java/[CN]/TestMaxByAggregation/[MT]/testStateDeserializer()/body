@@ -1,16 +1,16 @@
 {
   String[] keys=new String[]{"loooooong string","short string"};
   double[] values=new double[]{3.14,2.71};
-  MaxOrMinByStateSerializer serializer=new MaxOrMinByStateSerializer();
+  MaxOrMinByStateSerializer serializer=new MaxOrMinByStateSerializer(DOUBLE,VARCHAR);
   BlockBuilder builder=new VariableWidthBlockBuilder(new BlockBuilderStatus());
   for (int i=0; i < keys.length; i++) {
     serializer.serialize(makeState(keys[i],values[i]),builder);
   }
   Block serialized=builder.build();
   for (int i=0; i < keys.length; i++) {
-    MaxOrMinByState deserialized=new MaxOrMinByStateFactory(DoubleType.DOUBLE,VarcharType.VARCHAR).createSingleState();
+    MaxOrMinByState deserialized=new MaxOrMinByStateFactory().createSingleState();
     serializer.deserialize(serialized,i,deserialized);
-    assertEquals(VarcharType.VARCHAR.getSlice(deserialized.getKey(),0),Slices.utf8Slice(keys[i]));
-    assertEquals(DoubleType.DOUBLE.getDouble(deserialized.getValue(),0),values[i]);
+    assertEquals(VARCHAR.getSlice(deserialized.getKey(),0),Slices.utf8Slice(keys[i]));
+    assertEquals(DOUBLE.getDouble(deserialized.getValue(),0),values[i]);
   }
 }
