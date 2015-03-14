@@ -1,0 +1,18 @@
+{
+  checkState(hasNext(),"No more rows in partition");
+  pageBuilder.declarePosition();
+  int channel=0;
+  while (channel < outputChannels.length) {
+    pagesIndex.appendTo(outputChannels[channel],currentPosition,pageBuilder.getBlockBuilder(channel));
+    channel++;
+  }
+  if (currentPosition == peerGroupEnd) {
+    updatePeerGroup();
+  }
+  updateFrame();
+  for (  WindowFunction function : windowFunctions) {
+    function.processRow(pageBuilder.getBlockBuilder(channel),peerGroupStart - partitionStart,peerGroupEnd - partitionStart - 1,frameStart,frameEnd);
+    channel++;
+  }
+  currentPosition++;
+}
