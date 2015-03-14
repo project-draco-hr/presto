@@ -1,31 +1,31 @@
 {
   int rowPosition=currentPosition - partitionStart;
   int endPosition=partitionEnd - partitionStart - 1;
-  if (frameStartType == UNBOUNDED_PRECEDING) {
+  if (frameInfo.getStartType() == UNBOUNDED_PRECEDING) {
     frameStart=0;
   }
- else   if (frameStartType == PRECEDING) {
+ else   if (frameInfo.getStartType() == PRECEDING) {
     frameStart=preceding(rowPosition,getStartValue());
   }
- else   if (frameStartType == FOLLOWING) {
+ else   if (frameInfo.getStartType() == FOLLOWING) {
     frameStart=following(rowPosition,endPosition,getStartValue());
   }
- else   if (frameRange) {
+ else   if (frameInfo.getType() == RANGE) {
     frameStart=peerGroupStart - partitionStart;
   }
  else {
     frameStart=rowPosition;
   }
-  if (frameEndType == UNBOUNDED_FOLLOWING) {
+  if (frameInfo.getEndType() == UNBOUNDED_FOLLOWING) {
     frameEnd=endPosition;
   }
- else   if (frameEndType == PRECEDING) {
+ else   if (frameInfo.getEndType() == PRECEDING) {
     frameEnd=preceding(rowPosition,getEndValue());
   }
- else   if (frameEndType == FOLLOWING) {
+ else   if (frameInfo.getEndType() == FOLLOWING) {
     frameEnd=following(rowPosition,endPosition,getEndValue());
   }
- else   if (frameRange) {
+ else   if (frameInfo.getType() == RANGE) {
     frameEnd=peerGroupEnd - partitionStart - 1;
   }
  else {
