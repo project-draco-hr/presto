@@ -1,8 +1,12 @@
 {
+  checkState(!connectors.containsKey(connectorId),"A connector %s already exists",connectorId);
+  connectors.put(connectorId,connector);
   ConnectorMetadata connectorMetadata=connector.getMetadata();
   checkState(connectorMetadata != null,"Connector %s can not provide metadata",connectorId);
   ConnectorSplitManager connectorSplitManager=connector.getSplitManager();
   checkState(connectorSplitManager != null,"Connector %s does not have a split manager",connectorId);
+  Set<SystemTable> systemTables=connector.getSystemTables();
+  checkNotNull(systemTables,"Connector %s returned a null system tables set");
   ConnectorPageSourceProvider connectorPageSourceProvider=null;
   try {
     connectorPageSourceProvider=connector.getPageSourceProvider();
@@ -51,6 +55,10 @@
   metadataManager.addInformationSchemaMetadata(makeInformationSchemaConnectorId(connectorId),catalogName,new InformationSchemaMetadata(catalogName));
   splitManager.addConnectorSplitManager(makeInformationSchemaConnectorId(connectorId),new InformationSchemaSplitManager(nodeManager));
   pageSourceManager.addConnectorPageSourceProvider(makeInformationSchemaConnectorId(connectorId),new InformationSchemaPageSourceProvider(metadataManager,splitManager));
+  Connector systemConnector=new SystemConnector(nodeManager,systemTables);
+  metadataManager.addSystemTablesMetadata(makeSystemTablesConnectorId(connectorId),catalogName,systemConnector.getMetadata());
+  splitManager.addConnectorSplitManager(makeSystemTablesConnectorId(connectorId),systemConnector.getSplitManager());
+  pageSourceManager.addConnectorPageSourceProvider(makeSystemTablesConnectorId(connectorId),new RecordPageSourceProvider(systemConnector.getRecordSetProvider()));
   splitManager.addConnectorSplitManager(connectorId,connectorSplitManager);
   handleResolver.addHandleResolver(connectorId,connectorHandleResolver);
   pageSourceManager.addConnectorPageSourceProvider(connectorId,connectorPageSourceProvider);

@@ -7,15 +7,11 @@
   this.typeRegistry=new TypeRegistry();
   this.indexManager=new IndexManager();
   this.pageSinkManager=new PageSinkManager();
-  SystemTablesMetadata systemTablesMetadata=new SystemTablesMetadata();
-  SystemSplitManager systemSplitManager=new SystemSplitManager(nodeManager);
-  SystemRecordSetProvider systemRecordSetProvider=new SystemRecordSetProvider();
-  this.metadata=new MetadataManager(new FeaturesConfig().setExperimentalSyntaxEnabled(true),typeRegistry,systemTablesMetadata);
-  this.splitManager=new SplitManager(systemSplitManager);
-  this.pageSourceManager=new PageSourceManager(systemRecordSetProvider);
-  SystemTablesManager systemTablesManager=new SystemTablesManager(systemTablesMetadata,systemSplitManager,systemRecordSetProvider,ImmutableSet.<SystemTable>of());
-  systemTablesManager.addTable(new NodesSystemTable(nodeManager));
-  systemTablesManager.addTable(new CatalogSystemTable(metadata));
+  this.metadata=new MetadataManager(new FeaturesConfig().setExperimentalSyntaxEnabled(true),typeRegistry);
+  this.splitManager=new SplitManager();
+  this.pageSourceManager=new PageSourceManager();
   this.compiler=new ExpressionCompiler(metadata);
   this.connectorManager=new ConnectorManager(metadata,splitManager,pageSourceManager,indexManager,pageSinkManager,new HandleResolver(),ImmutableMap.<String,ConnectorFactory>of(),nodeManager);
+  Connector systemConnector=new SystemConnector(nodeManager,ImmutableSet.of(new NodeSystemTable(nodeManager),new CatalogSystemTable(metadata)));
+  connectorManager.createConnection(SystemConnector.NAME,systemConnector);
 }

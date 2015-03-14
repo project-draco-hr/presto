@@ -1,11 +1,12 @@
 {
   String catalog=name.getCatalogName();
   String schema=name.getSchemaName();
-  if (schema.equals(SYS_SCHEMA_NAME)) {
-    return new ConnectorMetadataEntry(SystemTablesManager.CONNECTOR_ID,systemMetadata);
-  }
- else   if (schema.equals(INFORMATION_SCHEMA_NAME)) {
+  if (schema.equals(INFORMATION_SCHEMA_NAME)) {
     return informationSchemasByCatalog.get(catalog);
+  }
+  ConnectorMetadataEntry entry=systemTablesByCatalog.get(catalog);
+  if ((entry != null) && (entry.getMetadata().getTableHandle(null,name.asSchemaTableName()) != null)) {
+    return entry;
   }
   return connectorsByCatalog.get(catalog);
 }

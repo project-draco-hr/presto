@@ -1,7 +1,7 @@
 {
   checkNotNull(partitions,"partitions is null");
   if (partitions.isEmpty()) {
-    return new FixedSplitSource(SystemTablesManager.CONNECTOR_ID,ImmutableList.<ConnectorSplit>of());
+    return new FixedSplitSource(SystemConnector.NAME,ImmutableList.<ConnectorSplit>of());
   }
   ConnectorPartition partition=Iterables.getOnlyElement(partitions);
   SystemPartition systemPartition=checkType(partition,SystemPartition.class,"partition");
@@ -12,9 +12,9 @@
     for (    Node node : nodeManager.getActiveNodes()) {
       splits.add(new SystemSplit(systemPartition.getTableHandle(),node.getHostAndPort()));
     }
-    return new FixedSplitSource(SystemTablesManager.CONNECTOR_ID,splits.build());
+    return new FixedSplitSource(SystemConnector.NAME,splits.build());
   }
   HostAddress address=nodeManager.getCurrentNode().getHostAndPort();
   ConnectorSplit split=new SystemSplit(systemPartition.getTableHandle(),address);
-  return new FixedSplitSource(SystemTablesManager.CONNECTOR_ID,ImmutableList.of(split));
+  return new FixedSplitSource(SystemConnector.NAME,ImmutableList.of(split));
 }
