@@ -1,0 +1,31 @@
+{
+  checkState(partition == null,"Operator is already processing output");
+  if (pendingInput != null) {
+    if (pagesIndex.getPositionCount() > 0 && pagesIndex.positionEqualsRow(partitionHashStrategy,0,pendingInput.getPositionCount() - 1,pendingInput.getBlocks())) {
+      pagesIndex.addPage(pendingInput);
+      pendingInput=null;
+    }
+ else     if (pagesIndex.getPositionCount() == 0 || pagesIndex.positionEqualsRow(partitionHashStrategy,0,0,pendingInput.getBlocks())) {
+      int partitionEnd=1;
+      while (partitionEnd < pendingInput.getPositionCount() && partitionHashStrategy.rowEqualsRow(partitionEnd - 1,pendingInput.getBlocks(),partitionEnd,pendingInput.getBlocks())) {
+        partitionEnd++;
+      }
+      pagesIndex.addPage(pendingInput.getRegion(0,partitionEnd));
+      if (pendingInput.getPositionCount() - partitionEnd > 0) {
+        pendingInput=pendingInput.getRegion(partitionEnd,pendingInput.getPositionCount() - partitionEnd);
+      }
+ else {
+        pendingInput=null;
+      }
+    }
+  }
+  if ((pendingInput != null || state == State.FINISHING) && (pagesIndex.getPositionCount() != 0)) {
+    if (!sortChannels.isEmpty()) {
+      pagesIndex.sort(sortChannels,sortOrder);
+    }
+    partition=new WindowPartition(pagesIndex,0,pagesIndex.getPositionCount(),outputChannels,windowFunctions,frameInfo,peerGroupHashStrategy);
+    if (state == State.NEEDS_INPUT) {
+      state=State.HAS_OUTPUT;
+    }
+  }
+}

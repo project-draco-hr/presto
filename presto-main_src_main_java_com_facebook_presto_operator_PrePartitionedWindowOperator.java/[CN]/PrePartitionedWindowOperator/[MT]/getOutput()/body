@@ -1,0 +1,23 @@
+{
+  if (state == State.NEEDS_INPUT || state == State.FINISHED) {
+    return null;
+  }
+  pageBuilder.reset();
+  while (!pageBuilder.isFull() && partition != null && partition.hasNext()) {
+    partition.processNextRow(pageBuilder);
+  }
+  if (!pageBuilder.isEmpty()) {
+    return pageBuilder.build();
+  }
+  partition=null;
+  pagesIndex.clear();
+  operatorContext.setMemoryReservation(pagesIndex.getEstimatedSize().toBytes());
+  if (state == State.HAS_OUTPUT) {
+    state=State.NEEDS_INPUT;
+  }
+  processPendingInput();
+  if (partition == null && state == State.FINISHING) {
+    state=State.FINISHED;
+  }
+  return null;
+}
