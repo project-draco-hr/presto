@@ -27,6 +27,11 @@
   assertEquals(hashStrategy.getChannelCount(),types.size());
   for (int leftBlockIndex=0; leftBlockIndex < varcharChannel.size(); leftBlockIndex++) {
     PageBuilder pageBuilder=new PageBuilder(types);
+    Block[] leftBlocks=new Block[4];
+    leftBlocks[0]=varcharChannel.get(leftBlockIndex);
+    leftBlocks[1]=longChannel.get(leftBlockIndex);
+    leftBlocks[2]=doubleChannel.get(leftBlockIndex);
+    leftBlocks[3]=booleanChannel.get(leftBlockIndex);
     int leftPositionCount=varcharChannel.get(leftBlockIndex).getPositionCount();
     for (int leftBlockPosition=0; leftBlockPosition < leftPositionCount; leftBlockPosition++) {
       assertEquals(hashStrategy.hashPosition(leftBlockIndex,leftBlockPosition),expectedHashStrategy.hashPosition(leftBlockIndex,leftBlockPosition));
@@ -45,7 +50,10 @@
         rightBlocks[3]=booleanChannel.get(rightBlockIndex);
         int rightPositionCount=varcharChannel.get(rightBlockIndex).getPositionCount();
         for (int rightPosition=0; rightPosition < rightPositionCount; rightPosition++) {
-          assertEquals(hashStrategy.positionEqualsRow(leftBlockIndex,leftBlockPosition,rightPosition,rightBlocks),expectedHashStrategy.positionEqualsRow(leftBlockIndex,leftBlockPosition,rightPosition,rightBlocks));
+          boolean expected=expectedHashStrategy.positionEqualsRow(leftBlockIndex,leftBlockPosition,rightPosition,rightBlocks);
+          assertEquals(hashStrategy.positionEqualsRow(leftBlockIndex,leftBlockPosition,rightPosition,rightBlocks),expected);
+          assertEquals(hashStrategy.rowEqualsRow(leftBlockPosition,leftBlocks,rightPosition,rightBlocks),expected);
+          assertEquals(hashStrategy.positionEqualsRow(leftBlockIndex,leftBlockPosition,rightPosition,rightBlocks),expected);
         }
       }
       pageBuilder.declarePosition();
