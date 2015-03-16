@@ -1,0 +1,16 @@
+{
+  ActualProperties properties=Iterables.getOnlyElement(inputProperties);
+  if (properties.isHashPartitioned()) {
+    Optional<List<Symbol>> translated=translate(properties.getHashPartitioningColumns().get(),computeIdentityTranslations(node.getAssignments()));
+    if (translated.isPresent()) {
+      return ActualProperties.builder().coordinatorOnly(properties).hashPartitioned(translated.get()).build();
+    }
+  }
+  if (properties.hasKnownPartitioningScheme()) {
+    Optional<List<Symbol>> translated=translate(properties.getPartitioningColumns().get(),computeIdentityTranslations(node.getAssignments()));
+    if (translated.isPresent()) {
+      return ActualProperties.builder().coordinatorOnly(properties).partitioned(ImmutableSet.copyOf(translated.get())).build();
+    }
+  }
+  return ActualProperties.builder().coordinatorOnly(properties).partitioned().build();
+}

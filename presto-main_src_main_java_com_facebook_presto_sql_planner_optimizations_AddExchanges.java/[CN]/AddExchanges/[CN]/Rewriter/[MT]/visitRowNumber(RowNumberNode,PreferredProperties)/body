@@ -1,0 +1,14 @@
+{
+  if (node.getPartitionBy().isEmpty()) {
+    PlanWithProperties child=planChild(node,PreferredProperties.unpartitioned());
+    if (child.getProperties().isPartitioned()) {
+      child=withDerivedProperties(gatheringExchange(idAllocator.getNextId(),child.getNode()),child.getProperties());
+    }
+    return rebaseAndDeriveProperties(node,child);
+  }
+  PlanWithProperties child=planChild(node,determineChildPreferences(preferred,node.getPartitionBy(),node.getPartitionBy()));
+  if (!child.getProperties().isPartitionedOn(node.getPartitionBy())) {
+    child=withDerivedProperties(partitionedExchange(idAllocator.getNextId(),child.getNode(),node.getPartitionBy(),node.getHashSymbol()),child.getProperties());
+  }
+  return rebaseAndDeriveProperties(node,child);
+}
