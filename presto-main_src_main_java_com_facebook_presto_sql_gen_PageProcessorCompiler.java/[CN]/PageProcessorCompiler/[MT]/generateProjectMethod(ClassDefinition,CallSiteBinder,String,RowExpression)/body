@@ -5,7 +5,7 @@
   Variable positionVariable=context.getVariable("position");
   Variable outputVariable=context.getVariable("output");
   Variable wasNullVariable=context.declareVariable(type(boolean.class),"wasNull");
-  Block body=method.getBody().comment("boolean wasNull = false;").putVariable(wasNullVariable,projection.getType().getJavaType() == void.class);
+  Block body=method.getBody().comment("boolean wasNull = false;").putVariable(wasNullVariable,false);
   ByteCodeExpressionVisitor visitor=new ByteCodeExpressionVisitor(callSiteBinder,fieldReferenceCompiler(callSiteBinder,positionVariable,wasNullVariable),metadata.getFunctionRegistry());
   body.getVariable(outputVariable).comment("evaluate projection: " + projection.toString()).append(projection.accept(visitor,context)).append(generateWrite(callSiteBinder,context,wasNullVariable,projection.getType())).ret();
 }
