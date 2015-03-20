@@ -1,0 +1,29 @@
+{
+  RedisTableHandle redisTableHandle=handleResolver.convertLayout(layout).getTable();
+  List<HostAddress> nodes=new ArrayList<>(redisConnectorConfig.getNodes());
+  Collections.shuffle(nodes);
+  checkState(!nodes.isEmpty(),"No Redis nodes available");
+  ImmutableList.Builder<ConnectorSplit> builder=ImmutableList.builder();
+  long numberOfKeys=1;
+  if (redisTableHandle.getKeyDataFormat().equals("zset")) {
+    try (Jedis jedis=jedisManager.getJedisPool(nodes.get(0)).getResource()){
+      numberOfKeys=jedis.zcount(redisTableHandle.getKeyName(),"-inf","+inf");
+    }
+ catch (    Exception e) {
+      throw Throwables.propagate(e);
+    }
+  }
+  long stride=REDIS_STRIDE_SPLITS;
+  if (numberOfKeys / stride > REDIS_MAX_SPLITS) {
+    stride=numberOfKeys / REDIS_MAX_SPLITS;
+  }
+  for (long startIndex=0; startIndex < numberOfKeys; startIndex=startIndex + stride) {
+    long endIndex=startIndex + stride - 1;
+    if (endIndex >= numberOfKeys) {
+      endIndex=-1;
+    }
+    RedisSplit split=new RedisSplit(connectorId,redisTableHandle.getSchemaName(),redisTableHandle.getTableName(),redisTableHandle.getKeyDataFormat(),redisTableHandle.getValueDataFormat(),redisTableHandle.getKeyName(),startIndex,endIndex,nodes);
+    builder.add(split);
+  }
+  return new FixedSplitSource(connectorId,builder.build());
+}

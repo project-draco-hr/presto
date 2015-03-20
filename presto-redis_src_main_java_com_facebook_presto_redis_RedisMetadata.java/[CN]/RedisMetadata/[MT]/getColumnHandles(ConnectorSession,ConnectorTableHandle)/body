@@ -1,0 +1,32 @@
+{
+  RedisTableHandle redisTableHandle=handleResolver.convertTableHandle(tableHandle);
+  RedisTableDescription redisTableDescription=getDefinedTables().get(redisTableHandle.toSchemaTableName());
+  if (redisTableDescription == null) {
+    throw new TableNotFoundException(redisTableHandle.toSchemaTableName());
+  }
+  ImmutableMap.Builder<String,ColumnHandle> columnHandles=ImmutableMap.builder();
+  int index=0;
+  RedisTableFieldGroup key=redisTableDescription.getKey();
+  if (key != null) {
+    List<RedisTableFieldDescription> fields=key.getFields();
+    if (fields != null) {
+      for (      RedisTableFieldDescription redisTableFieldDescription : fields) {
+        columnHandles.put(redisTableFieldDescription.getName(),redisTableFieldDescription.getColumnHandle(connectorId,true,index++));
+      }
+    }
+  }
+  RedisTableFieldGroup value=redisTableDescription.getValue();
+  if (value != null) {
+    List<RedisTableFieldDescription> fields=value.getFields();
+    if (fields != null) {
+      for (      RedisTableFieldDescription redisTableFieldDescription : fields) {
+        columnHandles.put(redisTableFieldDescription.getName(),redisTableFieldDescription.getColumnHandle(connectorId,false,index++));
+      }
+    }
+  }
+  for (  RedisInternalFieldDescription redisInternalFieldDescription : internalFieldDescriptions) {
+    RedisColumnHandle columnHandle=redisInternalFieldDescription.getColumnHandle(connectorId,index++,redisConnectorConfig.isHideInternalColumns());
+    columnHandles.put(redisInternalFieldDescription.getName(),columnHandle);
+  }
+  return columnHandles.build();
+}

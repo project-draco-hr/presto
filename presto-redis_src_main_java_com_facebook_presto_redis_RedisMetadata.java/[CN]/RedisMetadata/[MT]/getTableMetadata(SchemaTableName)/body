@@ -1,0 +1,30 @@
+{
+  RedisTableDescription table=getDefinedTables().get(schemaTableName);
+  if (table == null) {
+    throw new TableNotFoundException(schemaTableName);
+  }
+  ImmutableList.Builder<ColumnMetadata> builder=ImmutableList.builder();
+  int index=0;
+  RedisTableFieldGroup key=table.getKey();
+  if (key != null) {
+    List<RedisTableFieldDescription> fields=key.getFields();
+    if (fields != null) {
+      for (      RedisTableFieldDescription fieldDescription : fields) {
+        builder.add(fieldDescription.getColumnMetadata(index++));
+      }
+    }
+  }
+  RedisTableFieldGroup value=table.getValue();
+  if (value != null) {
+    List<RedisTableFieldDescription> fields=value.getFields();
+    if (fields != null) {
+      for (      RedisTableFieldDescription fieldDescription : fields) {
+        builder.add(fieldDescription.getColumnMetadata(index++));
+      }
+    }
+  }
+  for (  RedisInternalFieldDescription fieldDescription : internalFieldDescriptions) {
+    builder.add(fieldDescription.getColumnMetadata(index++,redisConnectorConfig.isHideInternalColumns()));
+  }
+  return new ConnectorTableMetadata(schemaTableName,builder.build());
+}

@@ -1,0 +1,24 @@
+{
+  DistributedQueryRunner queryRunner=null;
+  try {
+    queryRunner=new DistributedQueryRunner(createSession(),2);
+    queryRunner.installPlugin(new TpchPlugin());
+    queryRunner.createCatalog("tpch","tpch");
+    embeddedRedis.start();
+    Map<SchemaTableName,RedisTableDescription> tableDescriptions=createTpchTableDescriptions(queryRunner.getCoordinator().getMetadata(),tables,dataFormat);
+    installRedisPlugin(embeddedRedis,queryRunner,tableDescriptions);
+    TestingPrestoClient prestoClient=queryRunner.getClient();
+    log.info("Loading data...");
+    long startTime=System.nanoTime();
+    for (    TpchTable<?> table : tables) {
+      loadTpchTable(embeddedRedis,prestoClient,table,dataFormat);
+    }
+    log.info("Loading complete in %s",nanosSince(startTime).toString(SECONDS));
+    embeddedRedis.destroyJedisPool();
+    return queryRunner;
+  }
+ catch (  Throwable e) {
+    closeAllSuppress(e,queryRunner,embeddedRedis);
+    throw e;
+  }
+}

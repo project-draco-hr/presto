@@ -1,0 +1,31 @@
+{
+  try (Jedis jedis=jedisPool.getResource()){
+switch (split.getKeyDataType()) {
+case STRING:
+{
+        String cursor=SCAN_POINTER_START;
+        if (redisCursor != null) {
+          cursor=redisCursor.getStringCursor();
+        }
+        log.debug("Scanning new Redis keys from cursor %s . %d values read so far",cursor,totalValues);
+        redisCursor=jedis.scan(cursor,scanParms);
+        List<String> keys=redisCursor.getResult();
+        keysIterator=keys.iterator();
+      }
+    break;
+case ZSET:
+{
+    Set<String> keys=jedis.zrange(split.getKeyName(),split.getStart(),split.getEnd());
+    keysIterator=keys.iterator();
+  }
+break;
+default :
+log.debug("Redis type of key %s is unsupported",split.getKeyDataFormat());
+return false;
+}
+}
+ catch (Exception e) {
+throw Throwables.propagate(e);
+}
+return true;
+}

@@ -1,0 +1,40 @@
+{
+  if (types.get() == null && results.getColumns() != null) {
+    types.set(getTypes(results.getColumns()));
+  }
+  if (results.getData() != null) {
+    checkState(types.get() != null,"Data without types received!");
+    List<Column> columns=results.getColumns();
+    for (    List<Object> fields : results.getData()) {
+      String redisKey=tableName + ":" + count.getAndIncrement();
+      try (Jedis jedis=jedisPool.getResource()){
+switch (dataFormat) {
+case "string":
+{
+            ImmutableMap.Builder<String,Object> builder=ImmutableMap.builder();
+            for (int i=0; i < fields.size(); i++) {
+              Type type=types.get().get(i);
+              Object value=convertValue(fields.get(i),type);
+              if (value != null) {
+                builder.put(columns.get(i).getName(),value);
+              }
+            }
+            jedis.set(redisKey,jsonEncoder.toString(builder.build()));
+          }
+        break;
+case "hash":
+{
+        String redisZset="keyset:" + tableName;
+        jedis.zadd(redisZset,count.get(),redisKey);
+        for (int i=0; i < fields.size(); i++) {
+          jedis.hset(redisKey,columns.get(i).getName(),fields.get(i).toString());
+        }
+      }
+    break;
+default :
+  throw new AssertionError("unhandled value type: " + dataFormat);
+}
+}
+ }
+}
+}

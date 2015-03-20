@@ -1,0 +1,14 @@
+{
+  JsonEncoder jsonEncoder=new JsonEncoder();
+  try {
+    for (long i=0; i < count; i++) {
+      Object value=ImmutableMap.of("id",Long.toString(i),"value",UUID.randomUUID().toString());
+      try (Jedis jedis=embeddedRedis.getJedisPool().getResource()){
+        jedis.set(tableName + ":" + i,jsonEncoder.toString(value));
+      }
+     }
+  }
+ catch (  Exception e) {
+    throw Throwables.propagate(e);
+  }
+}

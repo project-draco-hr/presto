@@ -1,0 +1,16 @@
+{
+  if (split.getKeyDataType() == RedisDataType.STRING) {
+    ScanParams scanParms=new ScanParams();
+    scanParms.count(redisJedisManager.getRedisConnectorConfig().getRedisScanCount());
+    if (redisJedisManager.getRedisConnectorConfig().isKeyPrefixSchemaTable()) {
+      String keyMatch="";
+      if (!split.getSchemaName().equals("default")) {
+        keyMatch=split.getSchemaName() + Character.toString(redisJedisManager.getRedisConnectorConfig().getRedisKeyDelimiter());
+      }
+      keyMatch=keyMatch + split.getTableName() + Character.toString(redisJedisManager.getRedisConnectorConfig().getRedisKeyDelimiter())+ "*";
+      scanParms.match(keyMatch);
+    }
+    return scanParms;
+  }
+  return null;
+}

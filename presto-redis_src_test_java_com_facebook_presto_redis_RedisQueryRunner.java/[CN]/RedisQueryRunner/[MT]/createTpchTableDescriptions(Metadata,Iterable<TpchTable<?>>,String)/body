@@ -1,0 +1,10 @@
+{
+  JsonCodec<RedisTableDescription> tableDescriptionJsonCodec=new CodecSupplier<>(RedisTableDescription.class,metadata).get();
+  ImmutableMap.Builder<SchemaTableName,RedisTableDescription> tableDescriptions=ImmutableMap.builder();
+  for (  TpchTable<?> table : tables) {
+    String tableName=table.getTableName();
+    SchemaTableName tpchTable=new SchemaTableName(TPCH_SCHEMA,tableName);
+    tableDescriptions.put(loadTpchTableDescription(tableDescriptionJsonCodec,tpchTable,dataFormat));
+  }
+  return tableDescriptions.build();
+}

@@ -1,0 +1,18 @@
+{
+  requireNonNull(prefix,"prefix is null");
+  ImmutableMap.Builder<SchemaTableName,List<ColumnMetadata>> columns=ImmutableMap.builder();
+  List<SchemaTableName> tableNames;
+  if (prefix.getSchemaName() == null) {
+    tableNames=listTables(session,null);
+  }
+ else {
+    tableNames=ImmutableList.of(new SchemaTableName(prefix.getSchemaName(),prefix.getTableName()));
+  }
+  for (  SchemaTableName tableName : tableNames) {
+    ConnectorTableMetadata tableMetadata=getTableMetadata(tableName);
+    if (tableMetadata != null) {
+      columns.put(tableName,tableMetadata.getColumns());
+    }
+  }
+  return columns.build();
+}

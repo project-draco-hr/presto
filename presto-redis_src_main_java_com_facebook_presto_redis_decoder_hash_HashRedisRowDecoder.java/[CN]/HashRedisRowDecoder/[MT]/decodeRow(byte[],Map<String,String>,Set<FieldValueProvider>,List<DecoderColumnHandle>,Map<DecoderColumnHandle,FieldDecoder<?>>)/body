@@ -1,0 +1,18 @@
+{
+  if (dataMap == null) {
+    return false;
+  }
+  for (  DecoderColumnHandle columnHandle : columnHandles) {
+    if (columnHandle.isInternal()) {
+      continue;
+    }
+    String mapping=columnHandle.getMapping();
+    checkState(mapping != null,"No mapping for column handle %s!",columnHandle);
+    String valueField=dataMap.get(mapping);
+    @SuppressWarnings("unchecked") FieldDecoder<String> decoder=(FieldDecoder<String>)fieldDecoders.get(columnHandle);
+    if (decoder != null) {
+      fieldValueProviders.add(decoder.decode(valueField,columnHandle));
+    }
+  }
+  return false;
+}

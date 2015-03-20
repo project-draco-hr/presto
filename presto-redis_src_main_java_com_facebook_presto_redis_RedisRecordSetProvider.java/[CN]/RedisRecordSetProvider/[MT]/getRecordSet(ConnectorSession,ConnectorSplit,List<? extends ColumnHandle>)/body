@@ -1,0 +1,26 @@
+{
+  RedisSplit redisSplit=handleResolver.convertSplit(split);
+  ImmutableList.Builder<DecoderColumnHandle> handleBuilder=ImmutableList.builder();
+  ImmutableMap.Builder<DecoderColumnHandle,FieldDecoder<?>> keyFieldDecoderBuilder=ImmutableMap.builder();
+  ImmutableMap.Builder<DecoderColumnHandle,FieldDecoder<?>> valueFieldDecoderBuilder=ImmutableMap.builder();
+  RowDecoder keyDecoder=registry.getRowDecoder(redisSplit.getKeyDataFormat());
+  RowDecoder valueDecoder=registry.getRowDecoder(redisSplit.getValueDataFormat());
+  for (  ColumnHandle handle : columns) {
+    RedisColumnHandle columnHandle=handleResolver.convertColumnHandle(handle);
+    handleBuilder.add(columnHandle);
+    if (!columnHandle.isInternal()) {
+      if (columnHandle.isKeyDecoder()) {
+        FieldDecoder<?> fieldDecoder=registry.getFieldDecoder(redisSplit.getKeyDataFormat(),columnHandle.getType().getJavaType(),columnHandle.getDataFormat());
+        keyFieldDecoderBuilder.put(columnHandle,fieldDecoder);
+      }
+ else {
+        FieldDecoder<?> fieldDecoder=registry.getFieldDecoder(redisSplit.getValueDataFormat(),columnHandle.getType().getJavaType(),columnHandle.getDataFormat());
+        valueFieldDecoderBuilder.put(columnHandle,fieldDecoder);
+      }
+    }
+  }
+  ImmutableList<DecoderColumnHandle> handles=handleBuilder.build();
+  ImmutableMap<DecoderColumnHandle,FieldDecoder<?>> keyFieldDecoders=keyFieldDecoderBuilder.build();
+  ImmutableMap<DecoderColumnHandle,FieldDecoder<?>> valueFieldDecoders=valueFieldDecoderBuilder.build();
+  return new RedisRecordSet(redisSplit,jedisManager,handles,keyDecoder,valueDecoder,keyFieldDecoders,valueFieldDecoders);
+}

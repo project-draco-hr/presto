@@ -1,0 +1,27 @@
+{
+  if (value == null) {
+    return null;
+  }
+  if (BOOLEAN.equals(type) || VARCHAR.equals(type)) {
+    return value;
+  }
+  if (BIGINT.equals(type)) {
+    return ((Number)value).longValue();
+  }
+  if (DOUBLE.equals(type)) {
+    return ((Number)value).doubleValue();
+  }
+  if (DATE.equals(type)) {
+    return value;
+  }
+  if (TIME.equals(type)) {
+    return ISO8601_FORMATTER.print(parseTime(timeZoneKey,(String)value));
+  }
+  if (TIMESTAMP.equals(type)) {
+    return ISO8601_FORMATTER.print(parseTimestampWithoutTimeZone(timeZoneKey,(String)value));
+  }
+  if (TIME_WITH_TIME_ZONE.equals(type) || TIMESTAMP_WITH_TIME_ZONE.equals(type)) {
+    return ISO8601_FORMATTER.print(unpackMillisUtc(parseTimestampWithTimeZone(timeZoneKey,(String)value)));
+  }
+  throw new AssertionError("unhandled type: " + type);
+}

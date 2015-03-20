@@ -1,0 +1,15 @@
+{
+  binder.bind(RedisConnector.class).in(Scopes.SINGLETON);
+  binder.bind(RedisHandleResolver.class).in(Scopes.SINGLETON);
+  binder.bind(RedisMetadata.class).in(Scopes.SINGLETON);
+  binder.bind(RedisSplitManager.class).in(Scopes.SINGLETON);
+  binder.bind(RedisRecordSetProvider.class).in(Scopes.SINGLETON);
+  binder.bind(RedisJedisManager.class).in(Scopes.SINGLETON);
+  configBinder(binder).bindConfig(RedisConnectorConfig.class);
+  jsonBinder(binder).addDeserializerBinding(Type.class).to(TypeDeserializer.class);
+  jsonCodecBinder(binder).bindJsonCodec(RedisTableDescription.class);
+  binder.install(new RedisDecoderModule());
+  for (  RedisInternalFieldDescription internalFieldDescription : RedisInternalFieldDescription.getInternalFields()) {
+    bindInternalColumn(binder,internalFieldDescription);
+  }
+}
