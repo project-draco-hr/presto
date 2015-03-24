@@ -1,10 +1,7 @@
 {
   int positionCount=page.getPositionCount();
   BlockBuilder blockBuilder=BIGINT.createFixedSizeBlockBuilder(positionCount);
-  Block[] hashBlocks=new Block[channels.length];
-  for (int i=0; i < channels.length; i++) {
-    hashBlocks[i]=page.getBlock(channels[i]);
-  }
+  Block[] hashBlocks=extractHashColumns(page);
   for (int position=0; position < positionCount; position++) {
     int groupId=putIfAbsent(position,page,hashBlocks);
     BIGINT.writeLong(blockBuilder,groupId);
