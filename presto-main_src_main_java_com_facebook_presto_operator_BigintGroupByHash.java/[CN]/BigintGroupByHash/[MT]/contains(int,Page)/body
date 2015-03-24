@@ -1,0 +1,18 @@
+{
+  Block block=page.getBlock(hashChannel);
+  if (block.isNull(position)) {
+    return nullGroupId >= 0;
+  }
+  long value=BIGINT.getLong(block,position);
+  int hashPosition=getHashPosition(value,mask);
+  while (true) {
+    int groupId=groupIds.get(hashPosition);
+    if (groupId == -1) {
+      return false;
+    }
+ else     if (value == values.get(hashPosition)) {
+      return true;
+    }
+    hashPosition=(hashPosition + 1) & mask;
+  }
+}

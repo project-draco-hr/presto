@@ -1,0 +1,22 @@
+{
+  if (block.isNull(position)) {
+    if (nullGroupId < 0) {
+      int groupId=nextGroupId++;
+      nullGroupId=groupId;
+    }
+    return nullGroupId;
+  }
+  long value=BIGINT.getLong(block,position);
+  int hashPosition=getHashPosition(value,mask);
+  while (true) {
+    int groupId=groupIds.get(hashPosition);
+    if (groupId == -1) {
+      break;
+    }
+    if (value == values.get(hashPosition)) {
+      return groupId;
+    }
+    hashPosition=(hashPosition + 1) & mask;
+  }
+  return addNewGroup(hashPosition,value);
+}

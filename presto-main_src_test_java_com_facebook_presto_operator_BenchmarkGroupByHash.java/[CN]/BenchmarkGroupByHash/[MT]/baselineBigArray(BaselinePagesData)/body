@@ -1,0 +1,23 @@
+{
+  int hashSize=arraySize(GROUP_COUNT,0.9f);
+  int mask=hashSize - 1;
+  LongBigArray table=new LongBigArray(-1);
+  table.ensureCapacity(hashSize);
+  long groupIds=0;
+  for (  Page page : data.getPages()) {
+    Block block=page.getBlocks()[0];
+    int positionCount=block.getPositionCount();
+    for (int position=0; position < positionCount; position++) {
+      long value=BIGINT.getLong(block,position);
+      int tablePosition=(int)XxHash64.hash(value) & mask;
+      while (table.get(tablePosition) != -1 && table.get(tablePosition) != value) {
+        tablePosition++;
+      }
+      if (table.get(tablePosition) == -1) {
+        table.set(tablePosition,value);
+        groupIds++;
+      }
+    }
+  }
+  return groupIds;
+}

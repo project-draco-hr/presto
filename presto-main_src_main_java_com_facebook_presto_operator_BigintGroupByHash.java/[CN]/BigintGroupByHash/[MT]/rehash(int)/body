@@ -1,0 +1,22 @@
+{
+  int newSize=arraySize(size + 1,FILL_RATIO);
+  int newMask=newSize - 1;
+  LongBigArray newValues=new LongBigArray();
+  newValues.ensureCapacity(newSize);
+  IntBigArray newGroupIds=new IntBigArray(-1);
+  newGroupIds.ensureCapacity(newSize);
+  for (int groupId=0; groupId < nextGroupId; groupId++) {
+    long value=valuesByGroupId.get(groupId);
+    int hashPosition=getHashPosition(value,newMask);
+    while (newGroupIds.get(hashPosition) != -1) {
+      hashPosition=(hashPosition + 1) & newMask;
+    }
+    newValues.set(hashPosition,value);
+    newGroupIds.set(hashPosition,groupId);
+  }
+  mask=newMask;
+  maxFill=calculateMaxFill(newSize);
+  values=newValues;
+  groupIds=newGroupIds;
+  this.valuesByGroupId.ensureCapacity(maxFill);
+}

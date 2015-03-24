@@ -1,0 +1,24 @@
+{
+  int channelCount=types.size();
+  ImmutableList.Builder<Page> pages=ImmutableList.builder();
+  if (hashEnabled) {
+    types=ImmutableList.copyOf(Iterables.concat(types,ImmutableList.of(BIGINT)));
+  }
+  PageBuilder pageBuilder=new PageBuilder(types);
+  for (int position=0; position < positionCount; position++) {
+    int rand=ThreadLocalRandom.current().nextInt(groupCount);
+    pageBuilder.declarePosition();
+    for (int numChannel=0; numChannel < channelCount; numChannel++) {
+      BIGINT.writeLong(pageBuilder.getBlockBuilder(numChannel),rand);
+    }
+    if (hashEnabled) {
+      BIGINT.writeLong(pageBuilder.getBlockBuilder(channelCount),BigintOperators.hashCode(rand));
+    }
+    if (pageBuilder.isFull()) {
+      pages.add(pageBuilder.build());
+      pageBuilder.reset();
+    }
+  }
+  pages.add(pageBuilder.build());
+  return pages.build();
+}
