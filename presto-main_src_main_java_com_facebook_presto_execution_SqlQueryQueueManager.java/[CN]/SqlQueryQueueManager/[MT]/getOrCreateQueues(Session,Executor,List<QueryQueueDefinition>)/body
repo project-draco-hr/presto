@@ -2,14 +2,15 @@
   ImmutableList.Builder<QueryQueue> queues=ImmutableList.builder();
   for (  QueryQueueDefinition definition : definitions) {
     String expandedName=definition.getExpandedTemplate(session);
-    if (!queryQueues.containsKey(expandedName)) {
+    QueueKey key=new QueueKey(definition,expandedName);
+    if (!queryQueues.containsKey(key)) {
       QueryQueue queue=new QueryQueue(executor,definition.getMaxQueued(),definition.getMaxConcurrent());
-      if (queryQueues.putIfAbsent(expandedName,queue) == null) {
-        String objectName=ObjectNames.builder(QueryQueue.class,expandedName).build();
+      if (queryQueues.putIfAbsent(key,queue) == null) {
+        String objectName=ObjectNames.builder(QueryQueue.class,definition.getTemplate()).withProperty("expansion",expandedName).build();
         mbeanExporter.export(objectName,queue);
       }
     }
-    queues.add(queryQueues.get(expandedName));
+    queues.add(queryQueues.get(key));
   }
   return queues.build();
 }
