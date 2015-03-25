@@ -1,17 +1,26 @@
 {
+  List<PrioritizedSplitRunner> splitsToDestroy=new ArrayList<>();
   List<ListenableFuture<?>> finishedFutures=new ArrayList<>(taskSplits.size());
-  for (  SplitRunner taskSplit : taskSplits) {
-    PrioritizedSplitRunner prioritizedSplitRunner=new PrioritizedSplitRunner(taskHandle,taskSplit,ticker);
-    if (forceStart) {
-      startSplit(prioritizedSplitRunner);
-      taskHandle.recordForcedRunningSplit(prioritizedSplitRunner);
-    }
+synchronized (this) {
+    for (    SplitRunner taskSplit : taskSplits) {
+      PrioritizedSplitRunner prioritizedSplitRunner=new PrioritizedSplitRunner(taskHandle,taskSplit,ticker);
+      if (taskHandle.isDestroyed()) {
+        splitsToDestroy.add(prioritizedSplitRunner);
+      }
+ else       if (forceStart) {
+        startSplit(prioritizedSplitRunner);
+        taskHandle.recordForcedRunningSplit(prioritizedSplitRunner);
+      }
  else {
-      taskHandle.enqueueSplit(prioritizedSplitRunner);
-      scheduleTaskIfNecessary(taskHandle);
-      addNewEntrants();
+        taskHandle.enqueueSplit(prioritizedSplitRunner);
+        scheduleTaskIfNecessary(taskHandle);
+        addNewEntrants();
+      }
+      finishedFutures.add(prioritizedSplitRunner.getFinishedFuture());
     }
-    finishedFutures.add(prioritizedSplitRunner.getFinishedFuture());
+  }
+  for (  PrioritizedSplitRunner split : splitsToDestroy) {
+    split.destroy();
   }
   return finishedFutures;
 }

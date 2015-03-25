@@ -3,6 +3,9 @@
 synchronized (this) {
     tasks.remove(taskHandle);
     splits=taskHandle.destroy();
+    allSplits.removeAll(splits);
+    blockedSplits.removeAll(splits);
+    pendingSplits.removeAll(splits);
   }
   for (  PrioritizedSplitRunner split : splits) {
     split.destroy();
@@ -10,4 +13,5 @@ synchronized (this) {
   long threadUsageNanos=taskHandle.getThreadUsageNanos();
   int priorityLevel=calculatePriorityLevel(threadUsageNanos);
   completedTasksPerLevel.incrementAndGet(priorityLevel);
+  addNewEntrants();
 }
