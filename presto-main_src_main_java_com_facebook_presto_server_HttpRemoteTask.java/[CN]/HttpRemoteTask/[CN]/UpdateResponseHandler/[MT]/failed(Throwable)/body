@@ -1,7 +1,9 @@
 {
   try (SetThreadName ignored=new SetThreadName("UpdateResponseHandler-%s",taskId)){
     try {
-      currentRequest=null;
+synchronized (HttpRemoteTask.this) {
+        currentRequest=null;
+      }
       needsUpdate.set(true);
       TaskInfo taskInfo=getTaskInfo();
       if (!taskInfo.getState().isDone()) {
