@@ -15,8 +15,8 @@
   if (!subplan.getChildren().isEmpty()) {
     throw new AssertionError("Expected subplan to have no children");
   }
-  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(metadata,sqlParser,pageSourceManager,indexManager,pageSinkManager,null,compiler,new IndexJoinLookupStats(),new CompilerConfig().setInterpreterEnabled(false),new TaskManagerConfig());
-  LocalExecutionPlan localExecutionPlan=executionPlanner.plan(session,subplan.getFragment().getRoot(),subplan.getFragment().getOutputLayout(),plan.getTypes(),outputFactory);
+  LocalExecutionPlanner executionPlanner=new LocalExecutionPlanner(metadata,sqlParser,pageSourceManager,indexManager,pageSinkManager,null,compiler,new IndexJoinLookupStats(),new CompilerConfig().setInterpreterEnabled(false),new TaskManagerConfig().setTaskDefaultConcurrency(4));
+  LocalExecutionPlan localExecutionPlan=executionPlanner.plan(session,subplan.getFragment().getRoot(),subplan.getFragment().getOutputLayout(),plan.getTypes(),subplan.getFragment().getDistribution(),outputFactory);
   List<TaskSource> sources=new ArrayList<>();
   long sequenceId=0;
   for (  TableScanNode tableScan : findTableScanNodes(subplan.getFragment().getRoot())) {
@@ -39,11 +39,13 @@
   List<Driver> drivers=new ArrayList<>();
   Map<PlanNodeId,Driver> driversBySource=new HashMap<>();
   for (  DriverFactory driverFactory : localExecutionPlan.getDriverFactories()) {
-    DriverContext driverContext=taskContext.addPipelineContext(driverFactory.isInputDriver(),driverFactory.isOutputDriver()).addDriverContext();
-    Driver driver=driverFactory.createDriver(driverContext);
-    drivers.add(driver);
-    for (    PlanNodeId sourceId : driver.getSourceIds()) {
-      driversBySource.put(sourceId,driver);
+    for (int i=0; i < driverFactory.getDriverInstances(); i++) {
+      DriverContext driverContext=taskContext.addPipelineContext(driverFactory.isInputDriver(),driverFactory.isOutputDriver()).addDriverContext();
+      Driver driver=driverFactory.createDriver(driverContext);
+      drivers.add(driver);
+      for (      PlanNodeId sourceId : driver.getSourceIds()) {
+        driversBySource.put(sourceId,driver);
+      }
     }
     driverFactory.close();
   }

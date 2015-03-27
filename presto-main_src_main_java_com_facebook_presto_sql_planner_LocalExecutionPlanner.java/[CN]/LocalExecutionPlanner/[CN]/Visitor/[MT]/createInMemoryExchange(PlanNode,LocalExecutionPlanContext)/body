@@ -1,11 +1,5 @@
 {
   LocalExecutionPlanContext subContext=context.createSubContext();
   PhysicalOperation source=node.accept(this,subContext);
-  InMemoryExchange exchange=new InMemoryExchange(getSourceOperatorTypes(node,context.getTypes()));
-  List<OperatorFactory> factories=ImmutableList.<OperatorFactory>builder().addAll(source.getOperatorFactories()).add(exchange.createSinkFactory(subContext.getNextOperatorId())).build();
-  context.addDriverFactory(new DriverFactory(subContext.isInputDriver(),false,factories));
-  exchange.noMoreSinkFactories();
-  context.setInputDriver(false);
-  OperatorFactory factory=new InMemoryExchangeSourceOperatorFactory(context.getNextOperatorId(),exchange);
-  return new PhysicalOperation(factory,makeLayout(node));
+  return addInMemoryExchange(context,source,subContext);
 }
