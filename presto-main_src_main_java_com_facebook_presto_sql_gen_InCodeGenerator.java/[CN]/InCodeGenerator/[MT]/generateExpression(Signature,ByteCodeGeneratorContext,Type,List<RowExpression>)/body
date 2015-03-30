@@ -39,7 +39,7 @@
   CompilerContext context=generatorContext.getContext();
   ByteCodeNode switchBlock;
   if (constantValues.size() < 1000) {
-    Block switchCaseBlocks=new Block(context);
+    Block switchCaseBlocks=new Block();
     LookupSwitch.LookupSwitchBuilder switchBuilder=lookupSwitchBuilder();
     for (    Map.Entry<Integer,Collection<ByteCodeNode>> bucket : hashBuckets.asMap().entrySet()) {
       LabelNode label=new LabelNode("inHash" + bucket.getKey());
@@ -50,17 +50,17 @@
     }
     switchBuilder.defaultCase(defaultLabel);
     Binding hashCodeBinding=generatorContext.getCallSiteBinder().bind(hashCodeFunction.getMethodHandle());
-    switchBlock=new Block(context).comment("lookupSwitch(hashCode(<stackValue>))").dup(javaType).append(invoke(hashCodeBinding,hashCodeFunction.getSignature())).longToInt().append(switchBuilder.build()).append(switchCaseBlocks);
+    switchBlock=new Block().comment("lookupSwitch(hashCode(<stackValue>))").dup(javaType).append(invoke(hashCodeBinding,hashCodeFunction.getSignature())).longToInt().append(switchBuilder.build()).append(switchCaseBlocks);
   }
  else {
     Binding constant=generatorContext.getCallSiteBinder().bind(constantValues,Set.class);
-    switchBlock=new Block(context).comment("inListSet.contains(<stackValue>)").append(new IfStatement().condition(new Block().comment("value (+boxing if necessary)").dup(javaType).append(ByteCodeUtils.boxPrimitive(context,javaType)).comment("set").append(loadConstant(constant)).invokeStatic(CompilerOperations.class,"in",boolean.class,Object.class,Set.class)).ifTrue(jump(match)));
+    switchBlock=new Block().comment("inListSet.contains(<stackValue>)").append(new IfStatement().condition(new Block().comment("value (+boxing if necessary)").dup(javaType).append(ByteCodeUtils.boxPrimitive(javaType)).comment("set").append(loadConstant(constant)).invokeStatic(CompilerOperations.class,"in",boolean.class,Object.class,Set.class)).ifTrue(jump(match)));
   }
   Block defaultCaseBlock=buildInCase(generatorContext,context,type,defaultLabel,match,noMatch,defaultBucket.build(),true).setDescription("default");
-  Block block=new Block(context).comment("IN").append(value).append(ifWasNullPopAndGoto(context,end,boolean.class,javaType)).append(switchBlock).append(defaultCaseBlock);
-  Block matchBlock=new Block(context).setDescription("match").visitLabel(match).pop(javaType).append(generatorContext.wasNull().set(constantFalse())).push(true).gotoLabel(end);
+  Block block=new Block().comment("IN").append(value).append(ifWasNullPopAndGoto(context,end,boolean.class,javaType)).append(switchBlock).append(defaultCaseBlock);
+  Block matchBlock=new Block().setDescription("match").visitLabel(match).pop(javaType).append(generatorContext.wasNull().set(constantFalse())).push(true).gotoLabel(end);
   block.append(matchBlock);
-  Block noMatchBlock=new Block(context).setDescription("noMatch").visitLabel(noMatch).pop(javaType).push(false).gotoLabel(end);
+  Block noMatchBlock=new Block().setDescription("noMatch").visitLabel(noMatch).pop(javaType).push(false).gotoLabel(end);
   block.append(noMatchBlock);
   block.visitLabel(end);
   return block;

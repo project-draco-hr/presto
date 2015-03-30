@@ -7,7 +7,7 @@
   RowExpression last=arguments.get(arguments.size() - 1);
   if (last instanceof CallExpression && ((CallExpression)last).getSignature().getName().equals("WHEN")) {
     whenClauses=arguments.subList(1,arguments.size());
-    elseValue=new Block(context).append(generatorContext.wasNull().set(constantTrue())).pushJavaDefault(returnType.getJavaType());
+    elseValue=new Block().append(generatorContext.wasNull().set(constantTrue())).pushJavaDefault(returnType.getJavaType());
   }
  else {
     whenClauses=arguments.subList(1,arguments.size() - 1);
@@ -16,16 +16,16 @@
   Class<?> valueType=value.getType().getJavaType();
   LabelNode nullValue=new LabelNode("nullCondition");
   Variable tempVariable=context.createTempVariable(valueType);
-  Block block=new Block(context).append(valueBytecode).append(ByteCodeUtils.ifWasNullClearPopAndGoto(context,nullValue,void.class,valueType)).putVariable(tempVariable);
+  Block block=new Block().append(valueBytecode).append(ByteCodeUtils.ifWasNullClearPopAndGoto(context,nullValue,void.class,valueType)).putVariable(tempVariable);
   ByteCodeNode getTempVariableNode=VariableInstruction.loadVariable(tempVariable);
-  elseValue=new Block(context).visitLabel(nullValue).append(elseValue);
+  elseValue=new Block().visitLabel(nullValue).append(elseValue);
   for (  RowExpression clause : Lists.reverse(whenClauses)) {
     Preconditions.checkArgument(clause instanceof CallExpression && ((CallExpression)clause).getSignature().getName().equals("WHEN"));
     RowExpression operand=((CallExpression)clause).getArguments().get(0);
     RowExpression result=((CallExpression)clause).getArguments().get(1);
     FunctionInfo equalsFunction=generatorContext.getRegistry().resolveOperator(OperatorType.EQUAL,ImmutableList.of(value.getType(),operand.getType()));
     ByteCodeNode equalsCall=generatorContext.generateCall(equalsFunction,ImmutableList.of(generatorContext.generate(operand),getTempVariableNode));
-    Block condition=new Block(context).append(equalsCall).append(generatorContext.wasNull().set(constantFalse()));
+    Block condition=new Block().append(equalsCall).append(generatorContext.wasNull().set(constantFalse()));
     elseValue=new IfStatement("when").condition(condition).ifTrue(generatorContext.generate(result)).ifFalse(elseValue);
   }
   return block.append(elseValue);

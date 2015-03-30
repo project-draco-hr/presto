@@ -3,9 +3,8 @@
   for (  RowExpression expression : arguments) {
     operands.add(generatorContext.generate(expression));
   }
-  CompilerContext context=generatorContext.getContext();
   Variable wasNull=generatorContext.wasNull();
-  ByteCodeNode nullValue=new Block(context).append(wasNull.set(constantTrue())).pushJavaDefault(returnType.getJavaType());
+  ByteCodeNode nullValue=new Block().append(wasNull.set(constantTrue())).pushJavaDefault(returnType.getJavaType());
   for (  ByteCodeNode operand : Lists.reverse(operands)) {
     IfStatement ifStatement=new IfStatement();
     ifStatement.condition().append(operand).append(wasNull);
