@@ -51,6 +51,9 @@
     if (!(optimizedExpression instanceof Expression)) {
       throw new SemanticException(TYPE_MISMATCH,node,"Join clause must be a boolean expression");
     }
+    analyzer=new ExpressionAnalyzer(analysis,session,metadata,sqlParser,experimentalSyntaxEnabled);
+    analyzer.analyze((Expression)optimizedExpression,output,context);
+    analysis.addCoercions(analyzer.getExpressionCoercions());
     for (    Expression conjunct : ExpressionUtils.extractConjuncts((Expression)optimizedExpression)) {
       if (!(conjunct instanceof ComparisonExpression)) {
         throw new SemanticException(NOT_SUPPORTED,node,"Non-equi joins not supported: %s",conjunct);
