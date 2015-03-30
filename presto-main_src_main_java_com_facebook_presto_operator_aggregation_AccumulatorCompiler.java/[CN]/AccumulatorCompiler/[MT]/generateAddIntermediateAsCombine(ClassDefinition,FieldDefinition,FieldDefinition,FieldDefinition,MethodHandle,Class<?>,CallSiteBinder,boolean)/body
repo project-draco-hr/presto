@@ -4,16 +4,16 @@
   Variable block=context.getVariable("block");
   Variable scratchState=context.declareVariable(singleStateClass,"scratchState");
   Variable position=context.declareVariable(int.class,"position");
-  body.comment("scratchState = stateFactory.createSingleState();").append(context.getVariable("this").getField(stateFactoryField)).invokeInterface(AccumulatorStateFactory.class,"createSingleState",Object.class).checkCast(scratchState.getType()).putVariable(scratchState);
+  body.comment("scratchState = stateFactory.createSingleState();").append(context.getThis().getField(stateFactoryField)).invokeInterface(AccumulatorStateFactory.class,"createSingleState",Object.class).checkCast(scratchState.getType()).putVariable(scratchState);
   if (grouped) {
     generateEnsureCapacity(context,stateField,body);
   }
   Block loopBody=new Block(context);
   if (grouped) {
     Variable groupIdsBlock=context.getVariable("groupIdsBlock");
-    loopBody.append(context.getVariable("this").getField(stateField).invoke("setGroupId",void.class,groupIdsBlock.invoke("getGroupId",long.class,position)));
+    loopBody.append(context.getThis().getField(stateField).invoke("setGroupId",void.class,groupIdsBlock.invoke("getGroupId",long.class,position)));
   }
-  loopBody.append(context.getVariable("this").getField(stateSerializerField).invoke("deserialize",void.class,block,position,scratchState.cast(Object.class)));
-  loopBody.comment("combine(state, scratchState)").append(context.getVariable("this").getField(stateField)).append(scratchState).append(invoke(context,callSiteBinder.bind(combineFunction),"combine"));
+  loopBody.append(context.getThis().getField(stateSerializerField).invoke("deserialize",void.class,block,position,scratchState.cast(Object.class)));
+  loopBody.comment("combine(state, scratchState)").append(context.getThis().getField(stateField)).append(scratchState).append(invoke(callSiteBinder.bind(combineFunction),"combine"));
   body.append(generateBlockNonNullPositionForLoop(context,position,loopBody)).ret();
 }

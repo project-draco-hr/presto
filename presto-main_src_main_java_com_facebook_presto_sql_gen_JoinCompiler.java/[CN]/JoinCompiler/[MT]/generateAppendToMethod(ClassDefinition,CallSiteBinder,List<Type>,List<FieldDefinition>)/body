@@ -1,11 +1,11 @@
 {
-  CompilerContext compilerContext=new CompilerContext();
-  Block appendToBody=classDefinition.declareMethod(compilerContext,a(PUBLIC),"appendTo",type(void.class),arg("blockIndex",int.class),arg("blockPosition",int.class),arg("pageBuilder",PageBuilder.class),arg("outputChannelOffset",int.class)).getBody();
+  CompilerContext context=new CompilerContext();
+  Block appendToBody=classDefinition.declareMethod(context,a(PUBLIC),"appendTo",type(void.class),arg("blockIndex",int.class),arg("blockPosition",int.class),arg("pageBuilder",PageBuilder.class),arg("outputChannelOffset",int.class)).getBody();
   for (int index=0; index < channelFields.size(); index++) {
     Type type=types.get(index);
-    ByteCodeExpression typeExpression=constantType(compilerContext,callSiteBinder,type);
-    ByteCodeExpression block=compilerContext.getVariable("this").getField(channelFields.get(index)).invoke("get",Object.class,compilerContext.getVariable("blockIndex")).cast(com.facebook.presto.spi.block.Block.class);
-    appendToBody.comment("%s.appendTo(channel_%s.get(blockIndex), blockPosition, pageBuilder.getBlockBuilder(outputChannelOffset + %s));",type.getClass(),index,index).append(typeExpression).append(block).getVariable("blockPosition").getVariable("pageBuilder").getVariable("outputChannelOffset").push(index).append(OpCode.IADD).invokeVirtual(PageBuilder.class,"getBlockBuilder",BlockBuilder.class,int.class).invokeInterface(Type.class,"appendTo",void.class,com.facebook.presto.spi.block.Block.class,int.class,BlockBuilder.class);
+    ByteCodeExpression typeExpression=constantType(callSiteBinder,type);
+    ByteCodeExpression block=context.getThis().getField(channelFields.get(index)).invoke("get",Object.class,context.getVariable("blockIndex")).cast(com.facebook.presto.spi.block.Block.class);
+    appendToBody.comment("%s.appendTo(channel_%s.get(blockIndex), blockPosition, pageBuilder.getBlockBuilder(outputChannelOffset + %s));",type.getClass(),index,index).append(typeExpression).append(block).append(context.getVariable("blockPosition")).append(context.getVariable("pageBuilder")).append(context.getVariable("outputChannelOffset")).push(index).append(OpCode.IADD).invokeVirtual(PageBuilder.class,"getBlockBuilder",BlockBuilder.class,int.class).invokeInterface(Type.class,"appendTo",void.class,com.facebook.presto.spi.block.Block.class,int.class,BlockBuilder.class);
   }
   appendToBody.ret();
 }

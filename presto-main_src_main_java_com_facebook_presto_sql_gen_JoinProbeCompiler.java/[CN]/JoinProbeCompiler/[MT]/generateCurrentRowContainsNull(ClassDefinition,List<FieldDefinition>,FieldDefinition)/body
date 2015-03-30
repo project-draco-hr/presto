@@ -1,9 +1,9 @@
 {
-  CompilerContext context=new CompilerContext();
-  Block body=classDefinition.declareMethod(context,a(PRIVATE),"currentRowContainsNull",type(boolean.class)).getBody();
+  MethodDefinition method=classDefinition.declareMethod(a(PRIVATE),"currentRowContainsNull",type(boolean.class));
+  Variable thisVariable=method.getThis();
   for (  FieldDefinition probeBlockField : probeBlockFields) {
     LabelNode checkNextField=new LabelNode("checkNextField");
-    body.append(context.getVariable("this").getField(probeBlockField).invoke("isNull",boolean.class,context.getVariable("this").getField(positionField))).ifFalseGoto(checkNextField).push(true).retBoolean().visitLabel(checkNextField);
+    method.getBody().append(thisVariable.getField(probeBlockField).invoke("isNull",boolean.class,thisVariable.getField(positionField))).ifFalseGoto(checkNextField).push(true).retBoolean().visitLabel(checkNextField);
   }
-  body.push(false).retInt();
+  method.getBody().push(false).retInt();
 }

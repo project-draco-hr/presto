@@ -2,7 +2,7 @@
   MethodDefinition method=definition.declareMethod(a(PUBLIC),"evaluateFinal",type(void.class),arg("out",BlockBuilder.class));
   Block body=method.getBody();
   CompilerContext context=method.getCompilerContext();
-  Variable thisVariable=context.getVariable("this");
+  Variable thisVariable=method.getThis();
   Variable out=context.getVariable("out");
   ByteCodeExpression state=thisVariable.getField(stateField);
   if (outputFunction != null) {
@@ -13,7 +13,7 @@
       body.append(thisVariable.getField(confidenceField));
     }
     body.append(out);
-    body.append(invoke(context,callSiteBinder.bind(outputFunction),"output"));
+    body.append(invoke(callSiteBinder.bind(outputFunction),"output"));
   }
  else {
     checkArgument(!approximate,"Approximate aggregations must specify an output function");

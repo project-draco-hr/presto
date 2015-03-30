@@ -22,7 +22,7 @@
     Type sortType=sortTypes.get(i);
     ByteCodeExpression leftBlock=context.getVariable("pagesIndex").invoke("getChannel",ObjectArrayList.class,constantInt(sortChannel)).invoke("get",Object.class,leftBlockIndex).cast(com.facebook.presto.spi.block.Block.class);
     ByteCodeExpression rightBlock=context.getVariable("pagesIndex").invoke("getChannel",ObjectArrayList.class,constantInt(sortChannel)).invoke("get",Object.class,rightBlockIndex).cast(com.facebook.presto.spi.block.Block.class);
-    block.append(getStatic(SortOrder.class,sortOrder.name()).invoke("compareBlockValue",int.class,ImmutableList.of(Type.class,com.facebook.presto.spi.block.Block.class,int.class,com.facebook.presto.spi.block.Block.class,int.class),constantType(context,callSiteBinder,sortType),leftBlock,leftBlockPosition,rightBlock,rightBlockPosition));
+    block.append(getStatic(SortOrder.class,sortOrder.name()).invoke("compareBlockValue",int.class,ImmutableList.of(Type.class,com.facebook.presto.spi.block.Block.class,int.class,com.facebook.presto.spi.block.Block.class,int.class),constantType(callSiteBinder,sortType),leftBlock,leftBlockPosition,rightBlock,rightBlockPosition));
     LabelNode equal=new LabelNode("equal");
     block.comment("if (compare != 0) return compare").dup().ifZeroGoto(equal).retInt().visitLabel(equal).pop(int.class);
     compareToMethod.getBody().append(block);

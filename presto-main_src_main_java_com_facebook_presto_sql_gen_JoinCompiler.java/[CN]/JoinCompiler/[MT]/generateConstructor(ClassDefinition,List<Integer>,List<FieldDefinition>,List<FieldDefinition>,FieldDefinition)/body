@@ -1,18 +1,19 @@
 {
   CompilerContext compilerContext=new CompilerContext();
-  Block constructor=classDefinition.declareConstructor(compilerContext,a(PUBLIC),arg("channels",type(List.class,type(List.class,com.facebook.presto.spi.block.Block.class))),arg("hashChannel",type(Optional.class,Integer.class))).getBody().comment("super();").pushThis().invokeConstructor(Object.class);
+  Block constructor=classDefinition.declareConstructor(compilerContext,a(PUBLIC),arg("channels",type(List.class,type(List.class,com.facebook.presto.spi.block.Block.class))),arg("hashChannel",type(Optional.class,Integer.class))).getBody().comment("super();").append(compilerContext.getThis()).invokeConstructor(Object.class);
   constructor.comment("Set channel fields");
+  Variable thisVariable=compilerContext.getThis();
   for (int index=0; index < channelFields.size(); index++) {
     ByteCodeExpression channel=compilerContext.getVariable("channels").invoke("get",Object.class,constantInt(index)).cast(type(List.class,com.facebook.presto.spi.block.Block.class));
-    constructor.append(compilerContext.getVariable("this").setField(channelFields.get(index),channel));
+    constructor.append(thisVariable.setField(channelFields.get(index),channel));
   }
   constructor.comment("Set join channel fields");
   for (int index=0; index < joinChannelFields.size(); index++) {
     ByteCodeExpression joinChannel=compilerContext.getVariable("channels").invoke("get",Object.class,constantInt(joinChannels.get(index))).cast(type(List.class,com.facebook.presto.spi.block.Block.class));
-    constructor.append(compilerContext.getVariable("this").setField(joinChannelFields.get(index),joinChannel));
+    constructor.append(thisVariable.setField(joinChannelFields.get(index),joinChannel));
   }
   constructor.comment("Set hashChannel");
   Variable hashChannel=compilerContext.getVariable("hashChannel");
-  constructor.append(new IfStatement().condition(hashChannel.invoke("isPresent",boolean.class)).ifTrue(compilerContext.getVariable("this").setField(hashChannelField,compilerContext.getVariable("channels").invoke("get",Object.class,hashChannel.invoke("get",Object.class).cast(Integer.class).cast(int.class)))).ifFalse(compilerContext.getVariable("this").setField(hashChannelField,constantNull(hashChannelField.getType()))));
+  constructor.append(new IfStatement().condition(hashChannel.invoke("isPresent",boolean.class)).ifTrue(thisVariable.setField(hashChannelField,compilerContext.getVariable("channels").invoke("get",Object.class,hashChannel.invoke("get",Object.class).cast(Integer.class).cast(int.class)))).ifFalse(thisVariable.setField(hashChannelField,constantNull(hashChannelField.getType()))));
   constructor.ret();
 }

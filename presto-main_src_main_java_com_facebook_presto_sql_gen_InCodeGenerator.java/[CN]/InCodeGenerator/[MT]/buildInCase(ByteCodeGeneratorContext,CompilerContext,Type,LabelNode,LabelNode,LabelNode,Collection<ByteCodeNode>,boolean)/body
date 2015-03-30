@@ -9,8 +9,9 @@
   }
   LabelNode elseLabel=new LabelNode("else");
   Block elseBlock=new Block(context).visitLabel(elseLabel);
+  Variable wasNull=generatorContext.wasNull();
   if (checkForNulls) {
-    elseBlock.getVariable(caseWasNull).putVariable("wasNull");
+    elseBlock.append(wasNull.set(caseWasNull));
   }
   elseBlock.gotoLabel(noMatchLabel);
   FunctionInfo operator=generatorContext.getRegistry().resolveOperator(OperatorType.EQUAL,ImmutableList.of(type,type));
@@ -21,9 +22,9 @@
     IfStatement test=new IfStatement();
     test.condition().visitLabel(testLabel).dup(type.getJavaType()).append(testNode);
     if (checkForNulls) {
-      test.condition().append(context.getVariable("wasNull")).putVariable(caseWasNull).append(ifWasNullPopAndGoto(context,elseLabel,void.class,type.getJavaType(),type.getJavaType()));
+      test.condition().append(wasNull).putVariable(caseWasNull).append(ifWasNullPopAndGoto(context,elseLabel,void.class,type.getJavaType(),type.getJavaType()));
     }
-    test.condition().append(invoke(generatorContext.getContext(),equalsFunction,operator.getSignature()));
+    test.condition().append(invoke(equalsFunction,operator.getSignature()));
     test.ifTrue().gotoLabel(matchLabel);
     test.ifFalse(elseNode);
     elseNode=test;

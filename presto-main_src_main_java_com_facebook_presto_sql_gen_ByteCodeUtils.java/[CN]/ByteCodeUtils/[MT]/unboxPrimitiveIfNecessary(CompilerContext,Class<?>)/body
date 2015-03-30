@@ -2,12 +2,13 @@
   Block block=new Block(context);
   LabelNode end=new LabelNode("end");
   Class<?> unboxedType=Primitives.unwrap(boxedType);
+  Variable wasNull=context.getVariable("wasNull");
   if (unboxedType.isPrimitive() && unboxedType != void.class) {
     LabelNode notNull=new LabelNode("notNull");
-    block.dup(boxedType).ifNotNullGoto(notNull).putVariable("wasNull",true).comment("swap boxed null with unboxed default").pop(boxedType).pushJavaDefault(unboxedType).gotoLabel(end).visitLabel(notNull).append(unboxPrimitive(context,unboxedType));
+    block.dup(boxedType).ifNotNullGoto(notNull).append(wasNull.set(constantTrue())).comment("swap boxed null with unboxed default").pop(boxedType).pushJavaDefault(unboxedType).gotoLabel(end).visitLabel(notNull).append(unboxPrimitive(context,unboxedType));
   }
  else {
-    block.dup(boxedType).ifNotNullGoto(end).putVariable("wasNull",true);
+    block.dup(boxedType).ifNotNullGoto(end).append(wasNull.set(constantTrue()));
   }
   block.visitLabel(end);
   return block;

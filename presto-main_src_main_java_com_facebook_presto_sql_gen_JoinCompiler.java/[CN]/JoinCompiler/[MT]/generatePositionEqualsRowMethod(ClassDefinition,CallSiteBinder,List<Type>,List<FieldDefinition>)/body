@@ -2,8 +2,8 @@
   CompilerContext compilerContext=new CompilerContext();
   MethodDefinition hashPositionMethod=classDefinition.declareMethod(compilerContext,a(PUBLIC),"positionEqualsRow",type(boolean.class),arg("leftBlockIndex",int.class),arg("leftBlockPosition",int.class),arg("rightPosition",int.class),arg("rightBlocks",com.facebook.presto.spi.block.Block[].class));
   for (int index=0; index < joinChannelTypes.size(); index++) {
-    ByteCodeExpression type=constantType(compilerContext,callSiteBinder,joinChannelTypes.get(index));
-    ByteCodeExpression leftBlock=compilerContext.getVariable("this").getField(joinChannelFields.get(index)).invoke("get",Object.class,compilerContext.getVariable("leftBlockIndex")).cast(com.facebook.presto.spi.block.Block.class);
+    ByteCodeExpression type=constantType(callSiteBinder,joinChannelTypes.get(index));
+    ByteCodeExpression leftBlock=compilerContext.getThis().getField(joinChannelFields.get(index)).invoke("get",Object.class,compilerContext.getVariable("leftBlockIndex")).cast(com.facebook.presto.spi.block.Block.class);
     ByteCodeExpression rightBlock=compilerContext.getVariable("rightBlocks").getElement(index);
     LabelNode checkNextField=new LabelNode("checkNextField");
     hashPositionMethod.getBody().append(typeEquals(type,leftBlock,compilerContext.getVariable("leftBlockPosition"),rightBlock,compilerContext.getVariable("rightPosition"))).ifTrueGoto(checkNextField).push(false).retBoolean().visitLabel(checkNextField);

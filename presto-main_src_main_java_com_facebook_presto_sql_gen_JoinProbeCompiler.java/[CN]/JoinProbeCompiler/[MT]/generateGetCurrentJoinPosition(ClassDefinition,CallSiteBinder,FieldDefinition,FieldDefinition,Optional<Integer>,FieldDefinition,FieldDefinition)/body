@@ -1,13 +1,14 @@
 {
-  CompilerContext context=new CompilerContext();
-  Block body=classDefinition.declareMethod(context,a(PUBLIC),"getCurrentJoinPosition",type(long.class)).getBody().append(new IfStatement().condition(context.getVariable("this").invoke("currentRowContainsNull",boolean.class)).ifTrue(constantLong(-1).ret()));
-  ByteCodeExpression position=context.getVariable("this").getField(positionField);
-  ByteCodeExpression page=context.getVariable("this").getField(probePageField);
-  ByteCodeExpression probeHashBlock=context.getVariable("this").getField(probeHashBlockField);
+  MethodDefinition method=classDefinition.declareMethod(a(PUBLIC),"getCurrentJoinPosition",type(long.class));
+  Variable thisVariable=method.getThis();
+  Block body=method.getBody().append(new IfStatement().condition(thisVariable.invoke("currentRowContainsNull",boolean.class)).ifTrue(constantLong(-1).ret()));
+  ByteCodeExpression position=thisVariable.getField(positionField);
+  ByteCodeExpression page=thisVariable.getField(probePageField);
+  ByteCodeExpression probeHashBlock=thisVariable.getField(probeHashBlockField);
   if (probeHashChannel.isPresent()) {
-    body.append(context.getVariable("this").getField(lookupSourceField).invoke("getJoinPosition",long.class,position,page,constantType(context,callSiteBinder,BigintType.BIGINT).invoke("getLong",long.class,probeHashBlock,position).cast(int.class))).retLong();
+    body.append(thisVariable.getField(lookupSourceField).invoke("getJoinPosition",long.class,position,page,constantType(callSiteBinder,BigintType.BIGINT).invoke("getLong",long.class,probeHashBlock,position).cast(int.class))).retLong();
   }
  else {
-    body.append(context.getVariable("this").getField(lookupSourceField).invoke("getJoinPosition",long.class,position,page)).retLong();
+    body.append(thisVariable.getField(lookupSourceField).invoke("getJoinPosition",long.class,position,page)).retLong();
   }
 }

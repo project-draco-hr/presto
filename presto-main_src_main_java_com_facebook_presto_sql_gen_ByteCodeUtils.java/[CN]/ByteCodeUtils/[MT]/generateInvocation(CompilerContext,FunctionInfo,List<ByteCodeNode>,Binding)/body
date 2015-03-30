@@ -10,7 +10,7 @@
   for (  Class<?> type : methodType.parameterArray()) {
     stackTypes.add(type);
     if (type == ConnectorSession.class) {
-      block.getVariable("session");
+      block.append(context.getVariable("session"));
     }
  else {
       block.append(arguments.get(index));
@@ -19,12 +19,12 @@
       }
  else {
         block.append(boxPrimitiveIfNecessary(context,type));
-        block.putVariable("wasNull",false);
+        block.append(context.getVariable("wasNull").set(constantFalse()));
       }
       index++;
     }
   }
-  block.append(invoke(context,binding,function.getSignature()));
+  block.append(invoke(binding,function.getSignature()));
   if (function.isNullable()) {
     block.append(unboxPrimitiveIfNecessary(context,returnType));
   }

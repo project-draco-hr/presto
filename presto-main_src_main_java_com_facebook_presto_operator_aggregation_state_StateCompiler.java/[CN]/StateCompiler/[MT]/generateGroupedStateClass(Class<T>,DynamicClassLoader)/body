@@ -2,7 +2,7 @@
   ClassDefinition definition=new ClassDefinition(a(PUBLIC,FINAL),makeClassName("Grouped" + clazz.getSimpleName()),type(AbstractGroupedAccumulatorState.class),type(clazz),type(GroupedAccumulator.class));
   List<StateField> fields=enumerateFields(clazz);
   MethodDefinition constructor=definition.declareConstructor(a(PUBLIC));
-  constructor.getBody().append(constructor.getCompilerContext().getVariable("this")).invokeConstructor(AbstractGroupedAccumulatorState.class);
+  constructor.getBody().append(constructor.getThis()).invokeConstructor(AbstractGroupedAccumulatorState.class);
   MethodDefinition ensureCapacity=definition.declareMethod(a(PUBLIC),"ensureCapacity",type(void.class),arg("size",long.class));
   List<FieldDefinition> fieldDefinitions=new ArrayList<>();
   for (  StateField field : fields) {
@@ -15,7 +15,7 @@
   Variable size=getEstimatedSize.getCompilerContext().declareVariable(long.class,"size");
   body.append(size.set(constantLong(0)));
   for (  FieldDefinition field : fieldDefinitions) {
-    body.append(size.set(add(size,getEstimatedSize.getCompilerContext().getVariable("this").getField(field).invoke("sizeOf",long.class))));
+    body.append(size.set(add(size,getEstimatedSize.getThis().getField(field).invoke("sizeOf",long.class))));
   }
   body.append(size.ret());
   return defineClass(definition,clazz,classLoader);

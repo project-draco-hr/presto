@@ -3,13 +3,13 @@
   FieldDefinition field=definition.declareField(a(PRIVATE),UPPER_CAMEL.to(LOWER_CAMEL,stateField.getName()) + "Values",bigArrayType);
   MethodDefinition getter=definition.declareMethod(a(PUBLIC),stateField.getGetterName(),type(stateField.getType()));
   CompilerContext getterContext=getter.getCompilerContext();
-  getter.getBody().append(getterContext.getVariable("this").getField(field).invoke("get",stateField.getType(),getterContext.getVariable("this").invoke("getGroupId",long.class)).ret());
+  getter.getBody().append(getterContext.getThis().getField(field).invoke("get",stateField.getType(),getterContext.getThis().invoke("getGroupId",long.class)).ret());
   MethodDefinition setter=definition.declareMethod(a(PUBLIC),stateField.getSetterName(),type(void.class),arg("value",stateField.getType()));
   CompilerContext setterContext=setter.getCompilerContext();
-  setter.getBody().append(setterContext.getVariable("this").getField(field).invoke("set",void.class,setterContext.getVariable("this").invoke("getGroupId",long.class),setterContext.getVariable("value"))).ret();
+  setter.getBody().append(setterContext.getThis().getField(field).invoke("set",void.class,setterContext.getThis().invoke("getGroupId",long.class),setterContext.getVariable("value"))).ret();
   CompilerContext ensureCapacityContext=ensureCapacity.getCompilerContext();
-  ensureCapacity.getBody().append(ensureCapacityContext.getVariable("this").getField(field).invoke("ensureCapacity",void.class,ensureCapacityContext.getVariable("size")));
+  ensureCapacity.getBody().append(ensureCapacityContext.getThis().getField(field).invoke("ensureCapacity",void.class,ensureCapacityContext.getVariable("size")));
   CompilerContext constructorContext=constructor.getCompilerContext();
-  constructor.getBody().append(constructorContext.getVariable("this").setField(field,newInstance(field.getType(),stateField.initialValueExpression())));
+  constructor.getBody().append(constructorContext.getThis().setField(field,newInstance(field.getType(),stateField.initialValueExpression())));
   return field;
 }
