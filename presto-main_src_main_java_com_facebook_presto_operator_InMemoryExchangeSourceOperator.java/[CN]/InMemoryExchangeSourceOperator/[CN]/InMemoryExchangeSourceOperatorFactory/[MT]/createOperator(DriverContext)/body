@@ -1,5 +1,10 @@
 {
   checkState(!closed,"Factory is already closed");
+  checkState(bufferIndex < inMemoryExchange.getBufferCount(),"All operators already created");
   OperatorContext operatorContext=driverContext.addOperatorContext(operatorId,InMemoryExchangeSourceOperator.class.getSimpleName());
-  return new InMemoryExchangeSourceOperator(operatorContext,inMemoryExchange);
+  Operator operator=new InMemoryExchangeSourceOperator(operatorContext,inMemoryExchange,bufferIndex);
+  if (broadcast) {
+    bufferIndex++;
+  }
+  return operator;
 }

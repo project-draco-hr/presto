@@ -1,9 +1,9 @@
 {
   InMemoryExchange exchange=new InMemoryExchange(source.getTypes());
   List<OperatorFactory> factories=ImmutableList.<OperatorFactory>builder().addAll(source.getOperatorFactories()).add(exchange.createSinkFactory(sourceContext.getNextOperatorId())).build();
-  context.addDriverFactory(new DriverFactory(sourceContext.isInputDriver(),false,factories));
+  context.addDriverFactory(new DriverFactory(sourceContext.isInputDriver(),false,factories,sourceContext.getDriverInstanceCount()));
   exchange.noMoreSinkFactories();
   context.setInputDriver(false);
-  OperatorFactory factory=new InMemoryExchangeSourceOperatorFactory(context.getNextOperatorId(),exchange);
+  OperatorFactory factory=createRandomDistribution(context.getNextOperatorId(),exchange);
   return new PhysicalOperation(factory,source.getLayout());
 }

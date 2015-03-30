@@ -1,0 +1,34 @@
+{
+  checkNotNull(page,"page is null");
+  checkState(!finishing,"Operator is finishing");
+  checkState(outputPage == null,"Operator still has pending output");
+  BlockBuilder activePositions=BOOLEAN.createBlockBuilder(new BlockBuilderStatus(),page.getPositionCount());
+  BlockBuilder[] maskBuilders=new BlockBuilder[maskChannels.length];
+  for (int i=0; i < maskBuilders.length; i++) {
+    maskBuilders[i]=BOOLEAN.createBlockBuilder(new BlockBuilderStatus(),page.getPositionCount());
+  }
+  for (int position=0; position < page.getPositionCount(); position++) {
+    int rawHash=hashGenerator.hashPosition(position,page);
+    rawHash=abs((int)XxHash64.hash(Integer.reverse(rawHash)));
+    boolean active=(rawHash % partitionCount == partition);
+    BOOLEAN.writeBoolean(activePositions,active);
+    for (int i=0; i < maskBuilders.length; i++) {
+      Block maskBlock=page.getBlock(maskChannels[i]);
+      if (maskBlock.isNull(position)) {
+        maskBuilders[i].appendNull();
+      }
+ else {
+        boolean maskValue=active && BOOLEAN.getBoolean(maskBlock,position);
+        BOOLEAN.writeBoolean(maskBuilders[i],maskValue);
+      }
+    }
+  }
+  Block[] sourceBlocks=page.getBlocks();
+  Block[] outputBlocks=new Block[sourceBlocks.length + 1];
+  System.arraycopy(sourceBlocks,0,outputBlocks,0,sourceBlocks.length);
+  outputBlocks[sourceBlocks.length]=activePositions.build();
+  for (int i=0; i < maskBuilders.length; i++) {
+    outputBlocks[maskChannels[i]]=maskBuilders[i].build();
+  }
+  outputPage=new Page(outputBlocks);
+}

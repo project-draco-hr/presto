@@ -17,5 +17,9 @@
   }
   loopBody.append(thisVariable.getField(stateSerializerField).invoke("deserialize",void.class,block,position,scratchState.cast(Object.class)));
   loopBody.comment("combine(state, scratchState)").append(thisVariable.getField(stateField)).append(scratchState).append(invoke(callSiteBinder.bind(combineFunction),"combine"));
+  if (grouped) {
+    IfStatement ifStatement=new IfStatement("if (!groupIdsBlock.isNull(position))").condition(not(scope.getVariable("groupIdsBlock").invoke("isNull",boolean.class,position))).ifTrue(loopBody);
+    loopBody=new Block().append(ifStatement);
+  }
   body.append(generateBlockNonNullPositionForLoop(scope,position,loopBody)).ret();
 }

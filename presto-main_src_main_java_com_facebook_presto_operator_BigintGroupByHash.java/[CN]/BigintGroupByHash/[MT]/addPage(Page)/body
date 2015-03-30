@@ -1,7 +1,14 @@
 {
   int positionCount=page.getPositionCount();
+  Block maskBlock=null;
+  if (maskChannel >= 0) {
+    maskBlock=page.getBlock(maskChannel);
+  }
   Block block=page.getBlock(hashChannel);
   for (int position=0; position < positionCount; position++) {
+    if (maskBlock != null && !BOOLEAN.getBoolean(maskBlock,position)) {
+      continue;
+    }
     putIfAbsent(position,block);
   }
 }

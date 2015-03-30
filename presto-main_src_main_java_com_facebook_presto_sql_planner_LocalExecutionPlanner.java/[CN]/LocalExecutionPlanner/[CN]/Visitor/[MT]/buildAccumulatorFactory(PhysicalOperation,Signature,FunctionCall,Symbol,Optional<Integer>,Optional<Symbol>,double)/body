@@ -1,0 +1,16 @@
+{
+  List<Integer> arguments=new ArrayList<>();
+  for (  Expression argument : call.getArguments()) {
+    Symbol argumentSymbol=Symbol.fromQualifiedName(((QualifiedNameReference)argument).getName());
+    arguments.add(source.getLayout().get(argumentSymbol));
+  }
+  Optional<Integer> maskChannel=defaultMaskChannel;
+  if (mask != null) {
+    maskChannel=Optional.of(source.getLayout().get(mask));
+  }
+  Optional<Integer> sampleWeightChannel=Optional.empty();
+  if (sampleWeight.isPresent()) {
+    sampleWeightChannel=Optional.of(source.getLayout().get(sampleWeight.get()));
+  }
+  return metadata.getExactFunction(function).getAggregationFunction().bind(arguments,maskChannel,sampleWeightChannel,confidence);
+}
