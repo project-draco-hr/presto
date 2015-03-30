@@ -1,6 +1,7 @@
 {
-  CompilerContext compilerContext=new CompilerContext();
-  Block constructor=classDefinition.declareConstructor(compilerContext,a(PUBLIC),arg("channels",type(List.class,type(List.class,com.facebook.presto.spi.block.Block.class))),arg("hashChannel",type(Optional.class,Integer.class))).getBody().comment("super();").append(compilerContext.getThis()).invokeConstructor(Object.class);
+  MethodDefinition constructorDefinition=classDefinition.declareConstructor(a(PUBLIC),arg("channels",type(List.class,type(List.class,com.facebook.presto.spi.block.Block.class))),arg("hashChannel",type(Optional.class,Integer.class)));
+  CompilerContext compilerContext=constructorDefinition.getCompilerContext();
+  Block constructor=constructorDefinition.getBody().comment("super();").append(compilerContext.getThis()).invokeConstructor(Object.class);
   constructor.comment("Set channel fields");
   Variable thisVariable=compilerContext.getThis();
   for (int index=0; index < channelFields.size(); index++) {
