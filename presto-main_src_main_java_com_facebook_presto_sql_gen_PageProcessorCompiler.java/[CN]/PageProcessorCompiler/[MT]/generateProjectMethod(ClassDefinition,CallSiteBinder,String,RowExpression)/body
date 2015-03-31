@@ -1,11 +1,13 @@
 {
-  MethodDefinition method=classDefinition.declareMethod(a(PUBLIC),methodName,type(void.class),ImmutableList.<Parameter>builder().add(arg("session",ConnectorSession.class)).addAll(toBlockParameters(getInputChannels(projection))).add(arg("position",int.class)).add(arg("output",BlockBuilder.class)).build());
+  Parameter session=arg("session",ConnectorSession.class);
+  List<Parameter> inputs=toBlockParameters(getInputChannels(projection));
+  Parameter position=arg("position",int.class);
+  Parameter output=arg("output",BlockBuilder.class);
+  MethodDefinition method=classDefinition.declareMethod(a(PUBLIC),methodName,type(void.class),ImmutableList.<Parameter>builder().add(session).addAll(inputs).add(position).add(output).build());
   method.comment("Projection: %s",projection.toString());
   CompilerContext context=method.getCompilerContext();
-  Variable positionVariable=context.getVariable("position");
-  Variable outputVariable=context.getVariable("output");
   Variable wasNullVariable=context.declareVariable(type(boolean.class),"wasNull");
   Block body=method.getBody().comment("boolean wasNull = false;").putVariable(wasNullVariable,false);
-  ByteCodeExpressionVisitor visitor=new ByteCodeExpressionVisitor(callSiteBinder,fieldReferenceCompiler(callSiteBinder,positionVariable,wasNullVariable),metadata.getFunctionRegistry());
-  body.getVariable(outputVariable).comment("evaluate projection: " + projection.toString()).append(projection.accept(visitor,context)).append(generateWrite(callSiteBinder,context,wasNullVariable,projection.getType())).ret();
+  ByteCodeExpressionVisitor visitor=new ByteCodeExpressionVisitor(callSiteBinder,fieldReferenceCompiler(callSiteBinder,position,wasNullVariable),metadata.getFunctionRegistry());
+  body.getVariable(output).comment("evaluate projection: " + projection.toString()).append(projection.accept(visitor,context)).append(generateWrite(callSiteBinder,context,wasNullVariable,projection.getType())).ret();
 }

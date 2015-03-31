@@ -1,16 +1,15 @@
 {
-  MethodDefinition method=definition.declareMethod(a(PUBLIC),"serialize",type(void.class),arg("state",Object.class),arg("out",BlockBuilder.class));
-  CompilerContext compilerContext=method.getCompilerContext();
+  Parameter state=arg("state",Object.class);
+  Parameter out=arg("out",BlockBuilder.class);
+  MethodDefinition method=definition.declareMethod(a(PUBLIC),"serialize",type(void.class),state,out);
   Block serializerBody=method.getBody();
-  Variable state=compilerContext.getVariable("state");
-  Variable out=compilerContext.getVariable("out");
   if (fields.size() == 1) {
     Method getter=getGetter(clazz,fields.get(0));
     Method append=getBlockBuilderAppend(getter.getReturnType());
     serializerBody.append(invokeStatic(append,out,state.cast(getter.getDeclaringClass()).invoke(getter)));
   }
  else {
-    Variable slice=compilerContext.declareVariable(Slice.class,"slice");
+    Variable slice=method.getCompilerContext().declareVariable(Slice.class,"slice");
     ByteCodeExpression size=constantInt(serializedSizeOf(clazz));
     serializerBody.append(slice.set(invokeStatic(Slices.class,"allocate",Slice.class,size)));
     for (    StateField field : fields) {

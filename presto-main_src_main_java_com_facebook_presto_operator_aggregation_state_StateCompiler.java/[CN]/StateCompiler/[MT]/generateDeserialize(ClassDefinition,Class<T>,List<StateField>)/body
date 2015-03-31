@@ -1,9 +1,8 @@
 {
-  MethodDefinition method=definition.declareMethod(a(PUBLIC),"deserialize",type(void.class),arg("block",com.facebook.presto.spi.block.Block.class),arg("index",int.class),arg("state",Object.class));
-  CompilerContext compilerContext=method.getCompilerContext();
-  Variable block=compilerContext.getVariable("block");
-  Variable index=compilerContext.getVariable("index");
-  Variable state=compilerContext.getVariable("state");
+  Parameter block=arg("block",com.facebook.presto.spi.block.Block.class);
+  Parameter index=arg("index",int.class);
+  Parameter state=arg("state",Object.class);
+  MethodDefinition method=definition.declareMethod(a(PUBLIC),"deserialize",type(void.class),block,index,state);
   Block deserializerBody=method.getBody();
   if (fields.size() == 1) {
     Method setter=getSetter(clazz,fields.get(0));
@@ -11,7 +10,7 @@
     deserializerBody.append(state.cast(setter.getDeclaringClass()).invoke(setter,invokeStatic(blockGetter,block,index)));
   }
  else {
-    Variable slice=compilerContext.declareVariable(Slice.class,"slice");
+    Variable slice=method.getCompilerContext().declareVariable(Slice.class,"slice");
     deserializerBody.append(slice.set(block.invoke("getSlice",Slice.class,index,constantInt(0),block.invoke("getLength",int.class,index))));
     for (    StateField field : fields) {
       Method setter=getSetter(clazz,field);

@@ -1,13 +1,14 @@
 {
-  MethodDefinition constructorDefinition=classDefinition.declareConstructor(a(PUBLIC),arg("lookupSource",LookupSource.class),arg("page",Page.class));
-  CompilerContext context=constructorDefinition.getCompilerContext();
-  Variable thisVariable=context.getThis();
+  Parameter lookupSource=arg("lookupSource",LookupSource.class);
+  Parameter page=arg("page",Page.class);
+  MethodDefinition constructorDefinition=classDefinition.declareConstructor(a(PUBLIC),lookupSource,page);
+  Variable thisVariable=constructorDefinition.getThis();
   Block constructor=constructorDefinition.getBody().comment("super();").append(thisVariable).invokeConstructor(Object.class);
-  constructor.comment("this.lookupSource = lookupSource;").append(thisVariable.setField(lookupSourceField,context.getVariable("lookupSource")));
-  constructor.comment("this.positionCount = page.getPositionCount();").append(thisVariable.setField(positionCountField,context.getVariable("page").invoke("getPositionCount",int.class)));
+  constructor.comment("this.lookupSource = lookupSource;").append(thisVariable.setField(lookupSourceField,lookupSource));
+  constructor.comment("this.positionCount = page.getPositionCount();").append(thisVariable.setField(positionCountField,page.invoke("getPositionCount",int.class)));
   constructor.comment("Set block fields");
   for (int index=0; index < blockFields.size(); index++) {
-    constructor.append(thisVariable.setField(blockFields.get(index),context.getVariable("page").invoke("getBlock",com.facebook.presto.spi.block.Block.class,constantInt(index))));
+    constructor.append(thisVariable.setField(blockFields.get(index),page.invoke("getBlock",com.facebook.presto.spi.block.Block.class,constantInt(index))));
   }
   constructor.comment("Set probe channel fields");
   for (int index=0; index < probeChannelFields.size(); index++) {
@@ -18,8 +19,7 @@
   for (int index=0; index < probeChannelFields.size(); index++) {
     constructor.append(thisVariable).getField(probeBlocksArrayField).push(index).append(thisVariable).getField(probeChannelFields.get(index)).putObjectArrayElement();
   }
-  ByteCodeExpression page=newInstance(Page.class,thisVariable.getField(probeBlocksArrayField));
-  constructor.comment("this.probePage = new Page(probeBlocks)").append(thisVariable.setField(probePageField,page));
+  constructor.comment("this.probePage = new Page(probeBlocks)").append(thisVariable.setField(probePageField,newInstance(Page.class,thisVariable.getField(probeBlocksArrayField))));
   if (probeHashChannel.isPresent()) {
     Integer index=probeHashChannel.get();
     constructor.comment("this.probeHashBlock = blocks[hashChannel.get()]").append(thisVariable.setField(probeHashBlockField,thisVariable.getField(blockFields.get(index))));

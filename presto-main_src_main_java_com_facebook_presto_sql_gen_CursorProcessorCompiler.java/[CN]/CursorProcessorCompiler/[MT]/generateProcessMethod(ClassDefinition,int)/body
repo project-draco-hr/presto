@@ -1,22 +1,23 @@
 {
-  MethodDefinition method=classDefinition.declareMethod(a(PUBLIC),"process",type(int.class),arg("session",ConnectorSession.class),arg("cursor",RecordCursor.class),arg("count",int.class),arg("pageBuilder",PageBuilder.class));
+  Parameter session=arg("session",ConnectorSession.class);
+  Parameter cursor=arg("cursor",RecordCursor.class);
+  Parameter count=arg("count",int.class);
+  Parameter pageBuilder=arg("pageBuilder",PageBuilder.class);
+  MethodDefinition method=classDefinition.declareMethod(a(PUBLIC),"process",type(int.class),session,cursor,count,pageBuilder);
   CompilerContext context=method.getCompilerContext();
-  Variable sessionVariable=context.getVariable("session");
-  Variable cursorVariable=context.getVariable("cursor");
-  Variable countVariable=context.getVariable("count");
-  Variable pageBuilderVariable=context.getVariable("pageBuilder");
+  Variable thisVariable=method.getThis();
   Variable completedPositionsVariable=context.declareVariable(int.class,"completedPositions");
   method.getBody().comment("int completedPositions = 0;").putVariable(completedPositionsVariable,0);
   LabelNode done=new LabelNode("done");
-  ForLoop forLoop=new ForLoop().initialize(NOP).condition(new Block().comment("completedPositions < count").getVariable(completedPositionsVariable).getVariable(countVariable).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new Block().comment("completedPositions++").incrementVariable(completedPositionsVariable,(byte)1));
-  Block forLoopBody=new Block().comment("if (pageBuilder.isFull()) break;").append(new Block().getVariable(pageBuilderVariable).invokeVirtual(PageBuilder.class,"isFull",boolean.class).ifTrueGoto(done)).comment("if (!cursor.advanceNextPosition()) break;").append(new Block().getVariable(cursorVariable).invokeInterface(RecordCursor.class,"advanceNextPosition",boolean.class).ifFalseGoto(done));
+  ForLoop forLoop=new ForLoop().initialize(NOP).condition(new Block().comment("completedPositions < count").getVariable(completedPositionsVariable).getVariable(count).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new Block().comment("completedPositions++").incrementVariable(completedPositionsVariable,(byte)1));
+  Block forLoopBody=new Block().comment("if (pageBuilder.isFull()) break;").append(new Block().getVariable(pageBuilder).invokeVirtual(PageBuilder.class,"isFull",boolean.class).ifTrueGoto(done)).comment("if (!cursor.advanceNextPosition()) break;").append(new Block().getVariable(cursor).invokeInterface(RecordCursor.class,"advanceNextPosition",boolean.class).ifFalseGoto(done));
   forLoop.body(forLoopBody);
   IfStatement ifStatement=new IfStatement();
-  ifStatement.condition().append(method.getThis()).getVariable(sessionVariable).getVariable(cursorVariable).invokeVirtual(classDefinition.getType(),"filter",type(boolean.class),type(ConnectorSession.class),type(RecordCursor.class));
-  ifStatement.ifTrue().getVariable(pageBuilderVariable).invokeVirtual(PageBuilder.class,"declarePosition",void.class);
+  ifStatement.condition().append(method.getThis()).getVariable(session).getVariable(cursor).invokeVirtual(classDefinition.getType(),"filter",type(boolean.class),type(ConnectorSession.class),type(RecordCursor.class));
+  ifStatement.ifTrue().getVariable(pageBuilder).invokeVirtual(PageBuilder.class,"declarePosition",void.class);
   for (int projectionIndex=0; projectionIndex < projections; projectionIndex++) {
-    ifStatement.ifTrue().append(method.getThis()).getVariable(sessionVariable).getVariable(cursorVariable);
-    ifStatement.ifTrue().getVariable(pageBuilderVariable).push(projectionIndex).invokeVirtual(PageBuilder.class,"getBlockBuilder",BlockBuilder.class,int.class);
+    ifStatement.ifTrue().append(method.getThis()).getVariable(session).getVariable(cursor);
+    ifStatement.ifTrue().getVariable(pageBuilder).push(projectionIndex).invokeVirtual(PageBuilder.class,"getBlockBuilder",BlockBuilder.class,int.class);
     ifStatement.ifTrue().invokeVirtual(classDefinition.getType(),"project_" + projectionIndex,type(void.class),type(ConnectorSession.class),type(RecordCursor.class),type(BlockBuilder.class));
   }
   forLoopBody.append(ifStatement);

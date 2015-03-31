@@ -1,14 +1,16 @@
 {
-  MethodDefinition hashPositionMethod=classDefinition.declareMethod(a(PUBLIC),"positionEqualsPosition",type(boolean.class),arg("leftBlockIndex",int.class),arg("leftBlockPosition",int.class),arg("rightBlockIndex",int.class),arg("rightBlockPosition",int.class));
-  CompilerContext compilerContext=hashPositionMethod.getCompilerContext();
+  Parameter leftBlockIndex=arg("leftBlockIndex",int.class);
+  Parameter leftBlockPosition=arg("leftBlockPosition",int.class);
+  Parameter rightBlockIndex=arg("rightBlockIndex",int.class);
+  Parameter rightBlockPosition=arg("rightBlockPosition",int.class);
+  MethodDefinition hashPositionMethod=classDefinition.declareMethod(a(PUBLIC),"positionEqualsPosition",type(boolean.class),leftBlockIndex,leftBlockPosition,rightBlockIndex,rightBlockPosition);
   Variable thisVariable=hashPositionMethod.getThis();
   for (int index=0; index < joinChannelTypes.size(); index++) {
     ByteCodeExpression type=constantType(callSiteBinder,joinChannelTypes.get(index));
-    Variable blockIndex=compilerContext.getVariable("leftBlockIndex");
-    ByteCodeExpression leftBlock=thisVariable.getField(joinChannelFields.get(index)).invoke("get",Object.class,blockIndex).cast(com.facebook.presto.spi.block.Block.class);
-    ByteCodeExpression rightBlock=thisVariable.getField(joinChannelFields.get(index)).invoke("get",Object.class,compilerContext.getVariable("rightBlockIndex")).cast(com.facebook.presto.spi.block.Block.class);
+    ByteCodeExpression leftBlock=thisVariable.getField(joinChannelFields.get(index)).invoke("get",Object.class,leftBlockIndex).cast(com.facebook.presto.spi.block.Block.class);
+    ByteCodeExpression rightBlock=thisVariable.getField(joinChannelFields.get(index)).invoke("get",Object.class,rightBlockIndex).cast(com.facebook.presto.spi.block.Block.class);
     LabelNode checkNextField=new LabelNode("checkNextField");
-    hashPositionMethod.getBody().append(typeEquals(type,leftBlock,compilerContext.getVariable("leftBlockPosition"),rightBlock,compilerContext.getVariable("rightBlockPosition"))).ifTrueGoto(checkNextField).push(false).retBoolean().visitLabel(checkNextField);
+    hashPositionMethod.getBody().append(typeEquals(type,leftBlock,leftBlockPosition,rightBlock,rightBlockPosition)).ifTrueGoto(checkNextField).push(false).retBoolean().visitLabel(checkNextField);
   }
   hashPositionMethod.getBody().push(true).retInt();
 }
