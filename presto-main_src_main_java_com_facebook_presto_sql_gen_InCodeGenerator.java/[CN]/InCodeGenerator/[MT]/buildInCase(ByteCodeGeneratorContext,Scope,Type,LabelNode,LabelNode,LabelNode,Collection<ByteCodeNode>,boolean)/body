@@ -1,0 +1,35 @@
+{
+  Variable caseWasNull=null;
+  if (checkForNulls) {
+    caseWasNull=scope.createTempVariable(boolean.class);
+  }
+  Block caseBlock=new Block().visitLabel(caseLabel);
+  if (checkForNulls) {
+    caseBlock.putVariable(caseWasNull,false);
+  }
+  LabelNode elseLabel=new LabelNode("else");
+  Block elseBlock=new Block().visitLabel(elseLabel);
+  Variable wasNull=generatorContext.wasNull();
+  if (checkForNulls) {
+    elseBlock.append(wasNull.set(caseWasNull));
+  }
+  elseBlock.gotoLabel(noMatchLabel);
+  FunctionInfo operator=generatorContext.getRegistry().resolveOperator(OperatorType.EQUAL,ImmutableList.of(type,type));
+  Binding equalsFunction=generatorContext.getCallSiteBinder().bind(operator.getMethodHandle());
+  ByteCodeNode elseNode=elseBlock;
+  for (  ByteCodeNode testNode : testValues) {
+    LabelNode testLabel=new LabelNode("test");
+    IfStatement test=new IfStatement();
+    test.condition().visitLabel(testLabel).dup(type.getJavaType()).append(testNode);
+    if (checkForNulls) {
+      test.condition().append(wasNull).putVariable(caseWasNull).append(ifWasNullPopAndGoto(scope,elseLabel,void.class,type.getJavaType(),type.getJavaType()));
+    }
+    test.condition().append(invoke(equalsFunction,operator.getSignature()));
+    test.ifTrue().gotoLabel(matchLabel);
+    test.ifFalse(elseNode);
+    elseNode=test;
+    elseLabel=testLabel;
+  }
+  caseBlock.append(elseNode);
+  return caseBlock;
+}

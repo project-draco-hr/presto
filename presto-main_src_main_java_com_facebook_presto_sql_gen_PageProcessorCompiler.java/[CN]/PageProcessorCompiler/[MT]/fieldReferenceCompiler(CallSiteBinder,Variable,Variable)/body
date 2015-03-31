@@ -1,9 +1,9 @@
 {
-  return new RowExpressionVisitor<CompilerContext,ByteCodeNode>(){
-    @Override public ByteCodeNode visitInputReference(    InputReferenceExpression node,    CompilerContext context){
+  return new RowExpressionVisitor<Scope,ByteCodeNode>(){
+    @Override public ByteCodeNode visitInputReference(    InputReferenceExpression node,    Scope scope){
       int field=node.getField();
       Type type=node.getType();
-      Variable block=context.getVariable("block_" + field);
+      Variable block=scope.getVariable("block_" + field);
       Class<?> javaType=type.getJavaType();
       IfStatement ifStatement=new IfStatement();
       ifStatement.condition().setDescription(format("block_%d.get%s()",field,type)).append(block).getVariable(positionVariable).invokeInterface(com.facebook.presto.spi.block.Block.class,"isNull",boolean.class,int.class);
@@ -12,10 +12,10 @@
       ifStatement.ifFalse().append(loadConstant(callSiteBinder.bind(type,Type.class))).append(block).getVariable(positionVariable).invokeInterface(Type.class,methodName,javaType,com.facebook.presto.spi.block.Block.class,int.class);
       return ifStatement;
     }
-    @Override public ByteCodeNode visitCall(    CallExpression call,    CompilerContext context){
+    @Override public ByteCodeNode visitCall(    CallExpression call,    Scope scope){
       throw new UnsupportedOperationException("not yet implemented");
     }
-    @Override public ByteCodeNode visitConstant(    ConstantExpression literal,    CompilerContext context){
+    @Override public ByteCodeNode visitConstant(    ConstantExpression literal,    Scope scope){
       throw new UnsupportedOperationException("not yet implemented");
     }
   }

@@ -6,8 +6,8 @@
   Parameter value=arg("value",stateField.getType());
   MethodDefinition setter=definition.declareMethod(a(PUBLIC),stateField.getSetterName(),type(void.class),value);
   setter.getBody().append(setter.getThis().getField(field).invoke("set",void.class,setter.getThis().invoke("getGroupId",long.class),value)).ret();
-  CompilerContext ensureCapacityContext=ensureCapacity.getCompilerContext();
-  ensureCapacity.getBody().append(ensureCapacity.getThis().getField(field).invoke("ensureCapacity",void.class,ensureCapacityContext.getVariable("size")));
+  Scope ensureCapacityScope=ensureCapacity.getScope();
+  ensureCapacity.getBody().append(ensureCapacity.getThis().getField(field).invoke("ensureCapacity",void.class,ensureCapacityScope.getVariable("size")));
   constructor.getBody().append(constructor.getThis().setField(field,newInstance(field.getType(),stateField.initialValueExpression())));
   return field;
 }

@@ -1,21 +1,21 @@
 {
   MethodDefinition method=declareAddIntermediate(definition,grouped);
-  CompilerContext context=method.getCompilerContext();
+  Scope scope=method.getScope();
   Block body=method.getBody();
   Variable thisVariable=method.getThis();
-  Variable block=context.getVariable("block");
-  Variable scratchState=context.declareVariable(singleStateClass,"scratchState");
-  Variable position=context.declareVariable(int.class,"position");
+  Variable block=scope.getVariable("block");
+  Variable scratchState=scope.declareVariable(singleStateClass,"scratchState");
+  Variable position=scope.declareVariable(int.class,"position");
   body.comment("scratchState = stateFactory.createSingleState();").append(thisVariable.getField(stateFactoryField)).invokeInterface(AccumulatorStateFactory.class,"createSingleState",Object.class).checkCast(scratchState.getType()).putVariable(scratchState);
   if (grouped) {
-    generateEnsureCapacity(context,stateField,body);
+    generateEnsureCapacity(scope,stateField,body);
   }
   Block loopBody=new Block();
   if (grouped) {
-    Variable groupIdsBlock=context.getVariable("groupIdsBlock");
+    Variable groupIdsBlock=scope.getVariable("groupIdsBlock");
     loopBody.append(thisVariable.getField(stateField).invoke("setGroupId",void.class,groupIdsBlock.invoke("getGroupId",long.class,position)));
   }
   loopBody.append(thisVariable.getField(stateSerializerField).invoke("deserialize",void.class,block,position,scratchState.cast(Object.class)));
   loopBody.comment("combine(state, scratchState)").append(thisVariable.getField(stateField)).append(scratchState).append(invoke(callSiteBinder.bind(combineFunction),"combine"));
-  body.append(generateBlockNonNullPositionForLoop(context,position,loopBody)).ret();
+  body.append(generateBlockNonNullPositionForLoop(scope,position,loopBody)).ret();
 }

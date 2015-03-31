@@ -36,7 +36,7 @@
   LabelNode match=new LabelNode("match");
   LabelNode noMatch=new LabelNode("noMatch");
   LabelNode defaultLabel=new LabelNode("default");
-  CompilerContext context=generatorContext.getContext();
+  Scope scope=generatorContext.getScope();
   ByteCodeNode switchBlock;
   if (constantValues.size() < 1000) {
     Block switchCaseBlocks=new Block();
@@ -45,7 +45,7 @@
       LabelNode label=new LabelNode("inHash" + bucket.getKey());
       switchBuilder.addCase(bucket.getKey(),label);
       Collection<ByteCodeNode> testValues=bucket.getValue();
-      Block caseBlock=buildInCase(generatorContext,context,type,label,match,defaultLabel,testValues,false);
+      Block caseBlock=buildInCase(generatorContext,scope,type,label,match,defaultLabel,testValues,false);
       switchCaseBlocks.append(caseBlock.setDescription("case " + bucket.getKey()));
     }
     switchBuilder.defaultCase(defaultLabel);
@@ -56,8 +56,8 @@
     Binding constant=generatorContext.getCallSiteBinder().bind(constantValues,Set.class);
     switchBlock=new Block().comment("inListSet.contains(<stackValue>)").append(new IfStatement().condition(new Block().comment("value (+boxing if necessary)").dup(javaType).append(ByteCodeUtils.boxPrimitive(javaType)).comment("set").append(loadConstant(constant)).invokeStatic(CompilerOperations.class,"in",boolean.class,Object.class,Set.class)).ifTrue(jump(match)));
   }
-  Block defaultCaseBlock=buildInCase(generatorContext,context,type,defaultLabel,match,noMatch,defaultBucket.build(),true).setDescription("default");
-  Block block=new Block().comment("IN").append(value).append(ifWasNullPopAndGoto(context,end,boolean.class,javaType)).append(switchBlock).append(defaultCaseBlock);
+  Block defaultCaseBlock=buildInCase(generatorContext,scope,type,defaultLabel,match,noMatch,defaultBucket.build(),true).setDescription("default");
+  Block block=new Block().comment("IN").append(value).append(ifWasNullPopAndGoto(scope,end,boolean.class,javaType)).append(switchBlock).append(defaultCaseBlock);
   Block matchBlock=new Block().setDescription("match").visitLabel(match).pop(javaType).append(generatorContext.wasNull().set(constantFalse())).push(true).gotoLabel(end);
   block.append(matchBlock);
   Block noMatchBlock=new Block().setDescription("noMatch").visitLabel(noMatch).pop(javaType).push(false).gotoLabel(end);

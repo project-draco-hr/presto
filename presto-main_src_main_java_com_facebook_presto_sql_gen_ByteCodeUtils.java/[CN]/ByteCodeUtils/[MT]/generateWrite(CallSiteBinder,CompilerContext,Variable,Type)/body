@@ -1,9 +1,0 @@
-{
-  if (type.getJavaType() == void.class) {
-    return new Block().comment("output.appendNull();").invokeInterface(BlockBuilder.class,"appendNull",BlockBuilder.class).pop();
-  }
-  String methodName="write" + Primitives.wrap(type.getJavaType()).getSimpleName();
-  Variable tempValue=context.createTempVariable(type.getJavaType());
-  Variable tempOutput=context.createTempVariable(BlockBuilder.class);
-  return new Block().comment("if (wasNull)").append(new IfStatement().condition(wasNullVariable).ifTrue(new Block().comment("output.appendNull();").pop(type.getJavaType()).invokeInterface(BlockBuilder.class,"appendNull",BlockBuilder.class).pop()).ifFalse(new Block().comment(type.getTypeSignature() + "." + methodName+ "(output, "+ type.getJavaType().getSimpleName()+ ")").putVariable(tempValue).putVariable(tempOutput).append(loadConstant(callSiteBinder.bind(type,Type.class))).getVariable(tempOutput).getVariable(tempValue).invokeInterface(Type.class,methodName,void.class,BlockBuilder.class,type.getJavaType())));
-}

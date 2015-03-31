@@ -3,9 +3,9 @@
   Parameter cursor=arg("cursor",RecordCursor.class);
   MethodDefinition method=classDefinition.declareMethod(a(PUBLIC),"filter",type(boolean.class),session,cursor);
   method.comment("Filter: %s",filter);
-  CompilerContext context=method.getCompilerContext();
-  Variable wasNullVariable=context.declareVariable(type(boolean.class),"wasNull");
+  Scope scope=method.getScope();
+  Variable wasNullVariable=scope.declareVariable(type(boolean.class),"wasNull");
   ByteCodeExpressionVisitor visitor=new ByteCodeExpressionVisitor(callSiteBinder,fieldReferenceCompiler(cursor,wasNullVariable),metadata.getFunctionRegistry());
   LabelNode end=new LabelNode("end");
-  method.getBody().comment("boolean wasNull = false;").putVariable(wasNullVariable,false).comment("evaluate filter: " + filter).append(filter.accept(visitor,context)).comment("if (wasNull) return false;").getVariable(wasNullVariable).ifFalseGoto(end).pop(boolean.class).push(false).visitLabel(end).retBoolean();
+  method.getBody().comment("boolean wasNull = false;").putVariable(wasNullVariable,false).comment("evaluate filter: " + filter).append(filter.accept(visitor,scope)).comment("if (wasNull) return false;").getVariable(wasNullVariable).ifFalseGoto(end).pop(boolean.class).push(false).visitLabel(end).retBoolean();
 }

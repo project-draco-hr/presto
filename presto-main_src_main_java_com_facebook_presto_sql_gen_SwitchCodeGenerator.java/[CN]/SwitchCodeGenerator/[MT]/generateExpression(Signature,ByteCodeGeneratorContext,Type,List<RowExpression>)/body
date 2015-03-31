@@ -1,5 +1,5 @@
 {
-  CompilerContext context=generatorContext.getContext();
+  Scope scope=generatorContext.getScope();
   RowExpression value=arguments.get(0);
   ByteCodeNode valueBytecode=generatorContext.generate(value);
   ByteCodeNode elseValue;
@@ -15,8 +15,8 @@
   }
   Class<?> valueType=value.getType().getJavaType();
   LabelNode nullValue=new LabelNode("nullCondition");
-  Variable tempVariable=context.createTempVariable(valueType);
-  Block block=new Block().append(valueBytecode).append(ByteCodeUtils.ifWasNullClearPopAndGoto(context,nullValue,void.class,valueType)).putVariable(tempVariable);
+  Variable tempVariable=scope.createTempVariable(valueType);
+  Block block=new Block().append(valueBytecode).append(ByteCodeUtils.ifWasNullClearPopAndGoto(scope,nullValue,void.class,valueType)).putVariable(tempVariable);
   ByteCodeNode getTempVariableNode=VariableInstruction.loadVariable(tempVariable);
   elseValue=new Block().visitLabel(nullValue).append(elseValue);
   for (  RowExpression clause : Lists.reverse(whenClauses)) {

@@ -4,10 +4,10 @@
   Parameter position=arg("position",int.class);
   MethodDefinition method=classDefinition.declareMethod(a(PUBLIC),"filter",type(boolean.class),ImmutableList.<Parameter>builder().add(session).addAll(blocks).add(position).build());
   method.comment("Filter: %s",filter.toString());
-  CompilerContext context=method.getCompilerContext();
-  Variable wasNullVariable=context.declareVariable(type(boolean.class),"wasNull");
+  Scope scope=method.getScope();
+  Variable wasNullVariable=scope.declareVariable(type(boolean.class),"wasNull");
   ByteCodeExpressionVisitor visitor=new ByteCodeExpressionVisitor(callSiteBinder,fieldReferenceCompiler(callSiteBinder,position,wasNullVariable),metadata.getFunctionRegistry());
-  ByteCodeNode body=filter.accept(visitor,context);
+  ByteCodeNode body=filter.accept(visitor,scope);
   LabelNode end=new LabelNode("end");
   method.getBody().comment("boolean wasNull = false;").putVariable(wasNullVariable,false).append(body).getVariable(wasNullVariable).ifFalseGoto(end).pop(boolean.class).push(false).visitLabel(end).retBoolean();
 }
