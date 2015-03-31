@@ -1,4 +1,10 @@
 {
+  if (lookupSource == null) {
+    lookupSource=tryGetUnchecked(lookupSourceFuture);
+    if (lookupSource == null) {
+      return null;
+    }
+  }
   if (probe != null) {
     while (joinCurrentPosition()) {
       if (!advanceProbePosition()) {
@@ -8,6 +14,9 @@
         break;
       }
     }
+  }
+  if (joinType == FULL_OUTER && finishing && probe == null) {
+    buildSideOuterJoinUnvisitedPositions();
   }
   if (pageBuilder.isFull() || (finishing && !pageBuilder.isEmpty() && probe == null)) {
     Page page=pageBuilder.build();
