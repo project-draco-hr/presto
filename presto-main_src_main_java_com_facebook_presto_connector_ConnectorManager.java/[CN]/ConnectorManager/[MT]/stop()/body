@@ -1,0 +1,14 @@
+{
+  if (stopped.compareAndSet(false,true)) {
+    return;
+  }
+  for (  Map.Entry<String,Connector> entry : connectors.entrySet()) {
+    Connector connector=entry.getValue();
+    try (ThreadContextClassLoader ignored=new ThreadContextClassLoader(connector.getClass().getClassLoader())){
+      connector.shutdown();
+    }
+ catch (    Throwable t) {
+      log.error(t,"Error shutting down connector: %s",entry.getKey());
+    }
+  }
+}
