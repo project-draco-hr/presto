@@ -5,7 +5,7 @@
   }
   List<CassandraColumnHandle> partitionKeyColumns=table.getPartitionKeyColumns();
   ByteBuffer buffer=ByteBuffer.allocate(1000);
-  HashMap<ConnectorColumnHandle,Comparable<?>> map=new HashMap<>();
+  HashMap<ColumnHandle,Comparable<?>> map=new HashMap<>();
   Set<String> uniquePartitionIds=new HashSet<>();
   StringBuilder stringBuilder=new StringBuilder();
   boolean isComposite=partitionKeyColumns.size() > 1;
@@ -38,7 +38,7 @@
     buffer.flip();
     byte[] key=new byte[buffer.limit()];
     buffer.get(key);
-    TupleDomain<ConnectorColumnHandle> tupleDomain=TupleDomain.withFixedValues(map);
+    TupleDomain<ColumnHandle> tupleDomain=TupleDomain.withFixedValues(map);
     String partitionId=stringBuilder.toString();
     if (uniquePartitionIds.add(partitionId)) {
       partitions.add(new CassandraPartition(key,partitionId,tupleDomain,false));

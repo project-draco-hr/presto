@@ -1,11 +1,11 @@
 {
-  ConnectorPartitionResult partitionResult=raptorSplitManager.getPartitions(tableHandle,TupleDomain.<ConnectorColumnHandle>all());
+  ConnectorPartitionResult partitionResult=raptorSplitManager.getPartitions(tableHandle,TupleDomain.<ColumnHandle>all());
   assertEquals(partitionResult.getPartitions().size(),1);
   assertTrue(partitionResult.getUndeterminedTupleDomain().isAll());
   List<ConnectorPartition> partitions=partitionResult.getPartitions();
   ConnectorPartition partition=Iterables.getOnlyElement(partitions);
-  TupleDomain<ConnectorColumnHandle> columnUnionedTupleDomain=TupleDomain.columnWiseUnion(partition.getTupleDomain(),partition.getTupleDomain());
-  assertEquals(columnUnionedTupleDomain,TupleDomain.<ConnectorColumnHandle>all());
+  TupleDomain<ColumnHandle> columnUnionedTupleDomain=TupleDomain.columnWiseUnion(partition.getTupleDomain(),partition.getTupleDomain());
+  assertEquals(columnUnionedTupleDomain,TupleDomain.<ColumnHandle>all());
   ConnectorSplitSource splitSource=raptorSplitManager.getPartitionSplits(tableHandle,partitions);
   int splitCount=0;
   while (!splitSource.isFinished()) {
