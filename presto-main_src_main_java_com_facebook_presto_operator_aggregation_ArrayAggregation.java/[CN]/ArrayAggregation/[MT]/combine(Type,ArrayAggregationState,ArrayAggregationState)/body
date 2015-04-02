@@ -1,0 +1,17 @@
+{
+  BlockBuilder stateBlockBuilder=state.getBlockBuilder();
+  BlockBuilder otherStateBlockBuilder=otherState.getBlockBuilder();
+  if (otherStateBlockBuilder == null) {
+    return;
+  }
+  if (stateBlockBuilder == null) {
+    state.setBlockBuilder(otherStateBlockBuilder);
+    return;
+  }
+  int otherPositionCount=otherStateBlockBuilder.getPositionCount();
+  long startSize=stateBlockBuilder.getSizeInBytes();
+  for (int i=0; i < otherPositionCount; i++) {
+    type.appendTo(otherStateBlockBuilder,i,stateBlockBuilder);
+  }
+  state.addMemoryUsage(stateBlockBuilder.getSizeInBytes() - startSize);
+}
