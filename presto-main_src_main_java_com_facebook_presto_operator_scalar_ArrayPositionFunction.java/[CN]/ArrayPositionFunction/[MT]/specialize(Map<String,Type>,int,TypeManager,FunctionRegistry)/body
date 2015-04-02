@@ -1,0 +1,21 @@
+{
+  Type type=types.get("E");
+  MethodHandle equalMethodHandle=functionRegistry.resolveOperator(OperatorType.EQUAL,ImmutableList.of(type,type)).getMethodHandle();
+  MethodHandle arrayPositionMethodHandle;
+  if (type.getJavaType() == boolean.class) {
+    arrayPositionMethodHandle=METHOD_HANDLE_BOOLEAN;
+  }
+ else   if (type.getJavaType() == long.class) {
+    arrayPositionMethodHandle=METHOD_HANDLE_LONG;
+  }
+ else   if (type.getJavaType() == double.class) {
+    arrayPositionMethodHandle=METHOD_HANDLE_DOUBLE;
+  }
+ else   if (type.getJavaType() == Slice.class) {
+    arrayPositionMethodHandle=METHOD_HANDLE_SLICE;
+  }
+ else {
+    throw new PrestoException(INVALID_FUNCTION_ARGUMENT,"Argument type to array_position unsupported");
+  }
+  return new FunctionInfo(new Signature("array_position",parseTypeSignature(StandardTypes.BIGINT),parameterizedTypeName("array",type.getTypeSignature()),type.getTypeSignature()),getDescription(),isHidden(),arrayPositionMethodHandle.bindTo(type).bindTo(equalMethodHandle),isDeterministic(),false,ImmutableList.of(false,false));
+}
