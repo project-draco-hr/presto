@@ -26,6 +26,7 @@
       ExpressionAnalysis rightExpressionAnalysis=analyzeExpression(rightExpression,right,context);
       checkState(leftExpressionAnalysis.getSubqueryInPredicates().isEmpty(),"INVARIANT");
       checkState(rightExpressionAnalysis.getSubqueryInPredicates().isEmpty(),"INVARIANT");
+      addCoercionForJoinCriteria(node,leftExpression,rightExpression);
       expressions.add(new ComparisonExpression(EQUAL,leftExpression,rightExpression));
     }
     analysis.setJoinCriteria(node,ExpressionUtils.and(expressions));
@@ -73,6 +74,7 @@
       }
       ExpressionAnalysis leftExpressionAnalysis=analyzeExpression(leftExpression,left,context);
       ExpressionAnalysis rightExpressionAnalysis=analyzeExpression(rightExpression,right,context);
+      addCoercionForJoinCriteria(node,leftExpression,rightExpression);
       analysis.addJoinInPredicates(node,new Analysis.JoinInPredicates(leftExpressionAnalysis.getSubqueryInPredicates(),rightExpressionAnalysis.getSubqueryInPredicates()));
     }
     analysis.setJoinCriteria(node,(Expression)optimizedExpression);
