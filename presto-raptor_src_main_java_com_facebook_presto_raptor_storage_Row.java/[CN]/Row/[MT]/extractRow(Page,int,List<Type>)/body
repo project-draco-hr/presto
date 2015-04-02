@@ -1,0 +1,32 @@
+{
+  checkArgument(page.getChannelCount() == types.size(),"channelCount does not match");
+  checkArgument(position < page.getPositionCount(),"Requested position %s from a page with positionCount %s ",position,page.getPositionCount());
+  RowBuilder rowBuilder=new RowBuilder();
+  for (int channel=0; channel < page.getChannelCount(); channel++) {
+    Block block=page.getBlock(channel);
+    Type type=types.get(channel);
+    if (block.isNull(position)) {
+      rowBuilder.add(null,SIZE_OF_BYTE);
+    }
+ else     if (type.getJavaType() == boolean.class) {
+      rowBuilder.add(type.getBoolean(block,position),SIZE_OF_BYTE);
+    }
+ else     if (type.getJavaType() == long.class) {
+      rowBuilder.add(type.getLong(block,position),SIZE_OF_LONG);
+    }
+ else     if (type.getJavaType() == double.class) {
+      rowBuilder.add(type.getDouble(block,position),SIZE_OF_DOUBLE);
+    }
+ else     if (type.getJavaType() == Slice.class) {
+      byte[] bytes=type.getSlice(block,position).getBytes();
+      Object value=type.equals(VarcharType.VARCHAR) ? new String(bytes) : bytes;
+      rowBuilder.add(value,bytes.length);
+    }
+ else {
+      throw new AssertionError("unimplemented type: " + type);
+    }
+  }
+  Row row=rowBuilder.build();
+  verify(row.getColumns().size() == types.size(),"Column count in row: %s Expected column count: %s",row.getColumns().size(),types.size());
+  return row;
+}

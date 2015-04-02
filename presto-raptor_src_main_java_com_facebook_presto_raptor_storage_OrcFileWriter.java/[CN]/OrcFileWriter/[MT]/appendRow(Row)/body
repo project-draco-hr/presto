@@ -1,0 +1,15 @@
+{
+  List<Object> columns=row.getColumns();
+  checkArgument(columns.size() == columnTypes.size());
+  for (int channel=0; channel < columns.size(); channel++) {
+    tableInspector.setStructFieldData(orcRow,structFields.get(channel),columns.get(channel));
+  }
+  try {
+    recordWriter.write(serializer.serialize(orcRow,tableInspector));
+  }
+ catch (  IOException e) {
+    throw new PrestoException(RAPTOR_ERROR,"Failed to write record",e);
+  }
+  rowCount++;
+  uncompressedSize+=row.getSizeInBytes();
+}

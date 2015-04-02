@@ -1,0 +1,14 @@
+{
+  ImmutableSet.Builder<ShardMetadata> shards=ImmutableSet.builder();
+  long maxShardSizeBytes=maxShardSize.toBytes();
+  long consumedBytes=0;
+  for (  ShardMetadata shard : shardMetadata) {
+    long uncompressedSize=shard.getUncompressedSize();
+    if (consumedBytes + uncompressedSize > maxShardSizeBytes) {
+      break;
+    }
+    consumedBytes+=uncompressedSize;
+    shards.add(shard);
+  }
+  return shards.build();
+}

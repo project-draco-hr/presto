@@ -1,0 +1,11 @@
+{
+  while (!Thread.currentThread().isInterrupted() && !shutdown.get()) {
+    try {
+      CompactionSet compactionSet=compactionQueue.take();
+      compactionService.submit(new CompactionJob(compactionSet));
+    }
+ catch (    InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+  }
+}
