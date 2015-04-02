@@ -1,15 +1,2 @@
 {
-  final SuspendingExecutor suspendingExecutor=new SuspendingExecutor(new BoundedExecutor(executor,maxThreads));
-  final HiveSplitSource splitSource=new HiveSplitSource(connectorId,maxOutstandingSplits,suspendingExecutor);
-  FutureTask<?> producer=new FutureTask<>(new Runnable(){
-    @Override public void run(){
-      try (SetThreadName ignored=new SetThreadName("HiveSplitProducer")){
-        loadPartitionSplits(splitSource,suspendingExecutor,session);
-      }
-     }
-  }
-,null);
-  executor.execute(producer);
-  splitSource.setProducerFuture(producer);
-  return splitSource;
 }
