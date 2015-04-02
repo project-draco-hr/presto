@@ -1,3 +1,7 @@
 {
-  throw new PrestoException(NOT_SUPPORTED,"This connector does not support dropping tables");
+  if (!allowDropTable) {
+    throw new PrestoException(PERMISSION_DENIED,"DROP TABLE is disabled in this catalog");
+  }
+  JdbcTableHandle handle=checkType(tableHandle,JdbcTableHandle.class,"tableHandle");
+  jdbcClient.dropTable(handle);
 }
