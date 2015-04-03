@@ -1,0 +1,22 @@
+{
+  try {
+    if (remoteIterator == null) {
+      remoteIterator=getLocatedFileStatusRemoteIterator(path);
+    }
+    while (remoteIterator.hasNext()) {
+      LocatedFileStatus status=getLocatedFileStatus(remoteIterator);
+      String fileName=status.getPath().getName();
+      if (fileName.startsWith("_") || fileName.startsWith(".")) {
+        continue;
+      }
+      return status;
+    }
+    return endOfData();
+  }
+ catch (  FileNotFoundException e) {
+    throw new PrestoException(HIVE_FILE_NOT_FOUND,"Partition location does not exist: " + path);
+  }
+catch (  IOException e) {
+    throw new PrestoException(HIVE_FILESYSTEM_ERROR,e);
+  }
+}

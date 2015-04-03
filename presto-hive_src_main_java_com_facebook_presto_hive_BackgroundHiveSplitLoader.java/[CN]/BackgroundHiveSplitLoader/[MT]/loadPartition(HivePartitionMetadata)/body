@@ -1,0 +1,37 @@
+{
+  String partitionName=partition.getHivePartition().getPartitionId();
+  Properties schema=getPartitionSchema(table,partition.getPartition());
+  List<HivePartitionKey> partitionKeys=getPartitionKeys(table,partition.getPartition());
+  TupleDomain<HiveColumnHandle> effectivePredicate=partition.getHivePartition().getEffectivePredicate();
+  Path path=new Path(getPartitionLocation(table,partition.getPartition()));
+  Configuration configuration=hdfsEnvironment.getConfiguration(path);
+  InputFormat<?,?> inputFormat=getInputFormat(configuration,schema,false);
+  if (inputFormat instanceof SymlinkTextInputFormat) {
+    JobConf jobConf=new JobConf(configuration);
+    FileInputFormat.setInputPaths(jobConf,path);
+    InputSplit[] splits=inputFormat.getSplits(jobConf,0);
+    for (    InputSplit rawSplit : splits) {
+      FileSplit split=((SymlinkTextInputFormat.SymlinkTextInputSplit)rawSplit).getTargetSplit();
+      FileSystem targetFilesystem=hdfsEnvironment.getFileSystem(split.getPath());
+      FileStatus file=targetFilesystem.getFileStatus(split.getPath());
+      hiveSplitSource.addToQueue(createHiveSplits(partitionName,file,targetFilesystem.getFileBlockLocations(file,split.getStart(),split.getLength()),split.getStart(),split.getLength(),schema,partitionKeys,false,session,effectivePredicate));
+      if (stopped) {
+        return;
+      }
+    }
+    return;
+  }
+  FileSystem fs=hdfsEnvironment.getFileSystem(path);
+  if (bucket.isPresent()) {
+    Optional<FileStatus> bucketFile=getBucketFile(bucket.get(),fs,path);
+    if (bucketFile.isPresent()) {
+      FileStatus file=bucketFile.get();
+      BlockLocation[] blockLocations=fs.getFileBlockLocations(file,0,file.getLen());
+      boolean splittable=isSplittable(inputFormat,fs,file.getPath());
+      hiveSplitSource.addToQueue(createHiveSplits(partitionName,file,blockLocations,0,file.getLen(),schema,partitionKeys,splittable,session,effectivePredicate));
+      return;
+    }
+  }
+  HiveFileIterator iterator=new HiveFileIterator(path,fs,directoryLister,namenodeStats,partitionName,inputFormat,schema,partitionKeys,effectivePredicate);
+  fileIterators.addLast(iterator);
+}

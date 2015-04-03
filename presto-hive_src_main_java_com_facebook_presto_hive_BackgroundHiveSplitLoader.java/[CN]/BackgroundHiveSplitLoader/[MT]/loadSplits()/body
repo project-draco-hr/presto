@@ -1,0 +1,27 @@
+{
+  HiveFileIterator files=fileIterators.poll();
+  if (files == null) {
+    HivePartitionMetadata partition=partitions.poll();
+    if (partition != null) {
+      loadPartition(partition);
+    }
+    return;
+  }
+  while (files.hasNext() && !stopped) {
+    LocatedFileStatus file=files.next();
+    if (isDirectory(file)) {
+      if (recursiveDirWalkerEnabled) {
+        HiveFileIterator fileIterator=new HiveFileIterator(file.getPath(),files.getFileSystem(),files.getDirectoryLister(),files.getNamenodeStats(),files.getPartitionName(),files.getInputFormat(),files.getSchema(),files.getPartitionKeys(),files.getEffectivePredicate());
+        fileIterators.add(fileIterator);
+      }
+    }
+ else {
+      boolean splittable=isSplittable(files.getInputFormat(),hdfsEnvironment.getFileSystem(file.getPath()),file.getPath());
+      hiveSplitSource.addToQueue(createHiveSplits(files.getPartitionName(),file,file.getBlockLocations(),0,file.getLen(),files.getSchema(),files.getPartitionKeys(),splittable,session,files.getEffectivePredicate()));
+      if (hiveSplitSource.isQueueFull()) {
+        fileIterators.addFirst(files);
+        return;
+      }
+    }
+  }
+}
