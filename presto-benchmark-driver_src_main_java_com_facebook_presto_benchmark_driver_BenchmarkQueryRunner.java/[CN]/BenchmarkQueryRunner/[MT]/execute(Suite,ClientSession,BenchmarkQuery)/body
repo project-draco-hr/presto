@@ -2,11 +2,14 @@
   failures=0;
   for (int i=0; i < warm; ) {
     try {
-      execute(session,query.getSql());
+      execute(session,query.getName(),query.getSql());
       i++;
       failures=0;
     }
- catch (    Exception e) {
+ catch (    BenchmarkDriverExecutionException e) {
+      return failResult(suite,query,e.getCause().getMessage());
+    }
+catch (    Exception e) {
       handleFailure(e);
     }
   }
@@ -17,7 +20,7 @@
     try {
       long startCpuTime=getTotalCpuTime();
       long startWallTime=System.nanoTime();
-      StatementStats statementStats=execute(session,query.getSql());
+      StatementStats statementStats=execute(session,query.getName(),query.getSql());
       long endWallTime=System.nanoTime();
       long endCpuTime=getTotalCpuTime();
       wallTimeNanos[i]=endWallTime - startWallTime;
@@ -26,9 +29,12 @@
       i++;
       failures=0;
     }
- catch (    Exception e) {
+ catch (    BenchmarkDriverExecutionException e) {
+      return failResult(suite,query,e.getCause().getMessage());
+    }
+catch (    Exception e) {
       handleFailure(e);
     }
   }
-  return new BenchmarkQueryResult(suite,query,new Stat(wallTimeNanos),new Stat(processCpuTimeNanos),new Stat(queryCpuTimeNanos));
+  return passResult(suite,query,new Stat(wallTimeNanos),new Stat(processCpuTimeNanos),new Stat(queryCpuTimeNanos));
 }
