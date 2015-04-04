@@ -8,10 +8,10 @@
   Variable completedPositionsVariable=context.declareVariable(int.class,"completedPositions");
   method.getBody().comment("int completedPositions = 0;").putVariable(completedPositionsVariable,0);
   LabelNode done=new LabelNode("done");
-  ForLoopBuilder forLoop=ForLoop.forLoopBuilder(context).initialize(NOP).condition(new Block(context).comment("completedPositions < count").getVariable(completedPositionsVariable).getVariable(countVariable).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new Block(context).comment("completedPositions++").incrementVariable(completedPositionsVariable,(byte)1));
+  ForLoopBuilder forLoop=ForLoop.forLoopBuilder().initialize(NOP).condition(new Block(context).comment("completedPositions < count").getVariable(completedPositionsVariable).getVariable(countVariable).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new Block(context).comment("completedPositions++").incrementVariable(completedPositionsVariable,(byte)1));
   Block forLoopBody=new Block(context).comment("if (pageBuilder.isFull()) break;").append(new Block(context).getVariable(pageBuilderVariable).invokeVirtual(PageBuilder.class,"isFull",boolean.class).ifTrueGoto(done)).comment("if (!cursor.advanceNextPosition()) break;").append(new Block(context).getVariable(cursorVariable).invokeInterface(RecordCursor.class,"advanceNextPosition",boolean.class).ifFalseGoto(done));
   forLoop.body(forLoopBody);
-  IfStatementBuilder ifStatement=new IfStatementBuilder(context);
+  IfStatementBuilder ifStatement=new IfStatementBuilder();
   ifStatement.condition(new Block(context).pushThis().getVariable(sessionVariable).getVariable(cursorVariable).invokeVirtual(classDefinition.getType(),"filter",type(boolean.class),type(ConnectorSession.class),type(RecordCursor.class)));
   Block trueBlock=new Block(context);
   ifStatement.ifTrue(trueBlock);
