@@ -4,12 +4,11 @@
       int field=node.getField();
       Type type=node.getType();
       Class<?> javaType=type.getJavaType();
-      Block isNullCheck=new Block(context).setDescription(format("cursor.get%s(%d)",type,field)).getVariable(cursorVariable).push(field).invokeInterface(RecordCursor.class,"isNull",boolean.class,int.class);
-      Block isNull=new Block(context).putVariable(wasNullVariable,true).pushJavaDefault(javaType);
-      Block isNotNull=new Block(context).getVariable(cursorVariable).push(field);
-      String methodName="get" + Primitives.wrap(javaType).getSimpleName();
-      isNotNull.invokeInterface(RecordCursor.class,methodName,javaType,int.class);
-      return new IfStatement(isNullCheck,isNull,isNotNull);
+      IfStatement ifStatement=new IfStatement();
+      ifStatement.condition().setDescription(format("cursor.get%s(%d)",type,field)).getVariable(cursorVariable).push(field).invokeInterface(RecordCursor.class,"isNull",boolean.class,int.class);
+      ifStatement.ifTrue().putVariable(wasNullVariable,true).pushJavaDefault(javaType);
+      ifStatement.ifFalse().getVariable(cursorVariable).push(field).invokeInterface(RecordCursor.class,"get" + Primitives.wrap(javaType).getSimpleName(),javaType,int.class);
+      return ifStatement;
     }
     @Override public ByteCodeNode visitCall(    CallExpression call,    CompilerContext context){
       throw new UnsupportedOperationException("not yet implemented");

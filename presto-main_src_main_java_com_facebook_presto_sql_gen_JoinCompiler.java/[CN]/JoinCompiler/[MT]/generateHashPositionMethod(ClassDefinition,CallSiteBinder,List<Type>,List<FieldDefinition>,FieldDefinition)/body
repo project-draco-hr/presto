@@ -6,16 +6,16 @@
   ByteCodeExpression bigintType=constantType(compilerContext,callSiteBinder,BigintType.BIGINT);
   Variable blockIndex=compilerContext.getVariable("blockIndex");
   Variable blockPosition=compilerContext.getVariable("blockPosition");
-  IfStatementBuilder ifStatementBuilder=new IfStatementBuilder();
-  ifStatementBuilder.condition(notEqual(hashChannel,constantNull(hashChannelField.getType())));
-  ifStatementBuilder.ifTrue(bigintType.invoke("getLong",long.class,hashChannel.invoke("get",Object.class,blockIndex).cast(com.facebook.presto.spi.block.Block.class),blockPosition).cast(int.class).ret());
-  hashPositionMethod.getBody().append(ifStatementBuilder.build());
+  IfStatement ifStatement=new IfStatement();
+  ifStatement.condition(notEqual(hashChannel,constantNull(hashChannelField.getType())));
+  ifStatement.ifTrue(bigintType.invoke("getLong",long.class,hashChannel.invoke("get",Object.class,blockIndex).cast(com.facebook.presto.spi.block.Block.class),blockPosition).cast(int.class).ret());
+  hashPositionMethod.getBody().append(ifStatement);
   Variable resultVariable=hashPositionMethod.getCompilerContext().declareVariable(int.class,"result");
   hashPositionMethod.getBody().push(0).putVariable(resultVariable);
   for (int index=0; index < joinChannelTypes.size(); index++) {
     ByteCodeExpression type=constantType(compilerContext,callSiteBinder,joinChannelTypes.get(index));
     ByteCodeExpression block=compilerContext.getVariable("this").getField(joinChannelFields.get(index)).invoke("get",Object.class,compilerContext.getVariable("blockIndex")).cast(com.facebook.presto.spi.block.Block.class);
-    hashPositionMethod.getBody().getVariable(resultVariable).push(31).append(OpCode.IMUL).append(typeHashCode(compilerContext,type,block,compilerContext.getVariable("blockPosition"))).append(OpCode.IADD).putVariable(resultVariable);
+    hashPositionMethod.getBody().getVariable(resultVariable).push(31).append(OpCode.IMUL).append(typeHashCode(type,block,compilerContext.getVariable("blockPosition"))).append(OpCode.IADD).putVariable(resultVariable);
   }
   hashPositionMethod.getBody().getVariable(resultVariable).retInt();
 }

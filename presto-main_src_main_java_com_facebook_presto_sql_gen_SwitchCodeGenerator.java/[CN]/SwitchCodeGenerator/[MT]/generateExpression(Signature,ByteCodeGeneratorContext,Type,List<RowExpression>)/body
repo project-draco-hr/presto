@@ -26,7 +26,7 @@
     FunctionInfo equalsFunction=generatorContext.getRegistry().resolveOperator(OperatorType.EQUAL,ImmutableList.of(value.getType(),operand.getType()));
     ByteCodeNode equalsCall=generatorContext.generateCall(equalsFunction,ImmutableList.of(generatorContext.generate(operand),getTempVariableNode));
     Block condition=new Block(context).append(equalsCall).putVariable("wasNull",false);
-    elseValue=new IfStatement("when",condition,generatorContext.generate(result),elseValue);
+    elseValue=new IfStatement("when").condition(condition).ifTrue(generatorContext.generate(result)).ifFalse(elseValue);
   }
   return block.append(elseValue);
 }

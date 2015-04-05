@@ -5,17 +5,17 @@
   ByteCodeNode left=generator.generate(arguments.get(0));
   ByteCodeNode right=generator.generate(arguments.get(1));
   block.append(left);
-  IfStatement.IfStatementBuilder ifLeftIsNull=ifStatementBuilder().comment("if left wasNull...").condition(new Block(context).getVariable("wasNull"));
+  IfStatement ifLeftIsNull=new IfStatement("if left wasNull...").condition(new Block(context).getVariable("wasNull"));
   LabelNode end=new LabelNode("end");
   ifLeftIsNull.ifTrue(new Block(context).comment("clear the null flag, pop left value off stack, and push left null flag on the stack (true)").putVariable("wasNull",false).pop(arguments.get(0).getType().getJavaType()).push(true));
   LabelNode leftIsFalse=new LabelNode("leftIsFalse");
   ifLeftIsNull.ifFalse(new Block(context).comment("if left is true, push true, and goto end").ifFalseGoto(leftIsFalse).push(true).gotoLabel(end).comment("left was false; push left null flag on the stack (false)").visitLabel(leftIsFalse).push(false));
-  block.append(ifLeftIsNull.build());
+  block.append(ifLeftIsNull);
   block.append(right);
-  IfStatement.IfStatementBuilder ifRightIsNull=ifStatementBuilder().comment("if right wasNull...").condition(new Block(context).getVariable("wasNull"));
-  ifRightIsNull.ifTrue(new Block(context).comment("right was null, pop the right value off the stack; wasNull flag remains set to TRUE").pop(arguments.get(1).getType().getJavaType()));
+  IfStatement ifRightIsNull=new IfStatement("if right wasNull...").condition(new Block(context).getVariable("wasNull"));
+  ifRightIsNull.ifTrue().comment("right was null, pop the right value off the stack; wasNull flag remains set to TRUE").pop(arguments.get(1).getType().getJavaType());
   LabelNode rightIsTrue=new LabelNode("rightIsTrue");
-  ifRightIsNull.ifFalse(new Block(context).comment("if right is true, pop left null flag off stack, push true and goto end").ifFalseGoto(rightIsTrue).pop(boolean.class).push(true).gotoLabel(end).comment("right was false; store left null flag (on stack) in wasNull variable, and push false").visitLabel(rightIsTrue).putVariable("wasNull").push(false));
-  block.append(ifRightIsNull.build()).visitLabel(end);
+  ifRightIsNull.ifFalse().comment("if right is true, pop left null flag off stack, push true and goto end").ifFalseGoto(rightIsTrue).pop(boolean.class).push(true).gotoLabel(end).comment("right was false; store left null flag (on stack) in wasNull variable, and push false").visitLabel(rightIsTrue).putVariable(context.getVariable("wasNull")).push(false);
+  block.append(ifRightIsNull).visitLabel(end);
   return block;
 }

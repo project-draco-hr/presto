@@ -11,16 +11,14 @@
   ForLoopBuilder forLoop=ForLoop.forLoopBuilder().initialize(NOP).condition(new Block(context).comment("completedPositions < count").getVariable(completedPositionsVariable).getVariable(countVariable).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new Block(context).comment("completedPositions++").incrementVariable(completedPositionsVariable,(byte)1));
   Block forLoopBody=new Block(context).comment("if (pageBuilder.isFull()) break;").append(new Block(context).getVariable(pageBuilderVariable).invokeVirtual(PageBuilder.class,"isFull",boolean.class).ifTrueGoto(done)).comment("if (!cursor.advanceNextPosition()) break;").append(new Block(context).getVariable(cursorVariable).invokeInterface(RecordCursor.class,"advanceNextPosition",boolean.class).ifFalseGoto(done));
   forLoop.body(forLoopBody);
-  IfStatementBuilder ifStatement=new IfStatementBuilder();
-  ifStatement.condition(new Block(context).pushThis().getVariable(sessionVariable).getVariable(cursorVariable).invokeVirtual(classDefinition.getType(),"filter",type(boolean.class),type(ConnectorSession.class),type(RecordCursor.class)));
-  Block trueBlock=new Block(context);
-  ifStatement.ifTrue(trueBlock);
-  trueBlock.getVariable(pageBuilderVariable).invokeVirtual(PageBuilder.class,"declarePosition",void.class);
+  IfStatement ifStatement=new IfStatement();
+  ifStatement.condition().append(context.getVariable("this")).getVariable(sessionVariable).getVariable(cursorVariable).invokeVirtual(classDefinition.getType(),"filter",type(boolean.class),type(ConnectorSession.class),type(RecordCursor.class));
+  ifStatement.ifTrue().getVariable(pageBuilderVariable).invokeVirtual(PageBuilder.class,"declarePosition",void.class);
   for (int projectionIndex=0; projectionIndex < projections; projectionIndex++) {
-    trueBlock.pushThis().getVariable(sessionVariable).getVariable(cursorVariable);
-    trueBlock.getVariable(pageBuilderVariable).push(projectionIndex).invokeVirtual(PageBuilder.class,"getBlockBuilder",BlockBuilder.class,int.class);
-    trueBlock.invokeVirtual(classDefinition.getType(),"project_" + projectionIndex,type(void.class),type(ConnectorSession.class),type(RecordCursor.class),type(BlockBuilder.class));
+    ifStatement.ifTrue().append(context.getVariable("this")).getVariable(sessionVariable).getVariable(cursorVariable);
+    ifStatement.ifTrue().getVariable(pageBuilderVariable).push(projectionIndex).invokeVirtual(PageBuilder.class,"getBlockBuilder",BlockBuilder.class,int.class);
+    ifStatement.ifTrue().invokeVirtual(classDefinition.getType(),"project_" + projectionIndex,type(void.class),type(ConnectorSession.class),type(RecordCursor.class),type(BlockBuilder.class));
   }
-  forLoopBody.append(ifStatement.build());
+  forLoopBody.append(ifStatement);
   method.getBody().append(forLoop.build()).visitLabel(done).comment("return completedPositions;").getVariable(completedPositionsVariable).retInt();
 }

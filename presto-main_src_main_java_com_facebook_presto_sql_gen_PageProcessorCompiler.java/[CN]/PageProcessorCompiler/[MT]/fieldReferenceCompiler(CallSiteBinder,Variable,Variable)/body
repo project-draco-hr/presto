@@ -4,11 +4,12 @@
       int field=node.getField();
       Type type=node.getType();
       Class<?> javaType=type.getJavaType();
-      Block isNullCheck=new Block(context).setDescription(format("block_%d.get%s()",field,type)).getVariable("block_" + field).getVariable(positionVariable).invokeInterface(com.facebook.presto.spi.block.Block.class,"isNull",boolean.class,int.class);
-      Block isNull=new Block(context).putVariable(wasNullVariable,true).pushJavaDefault(javaType);
+      IfStatement ifStatement=new IfStatement();
+      ifStatement.condition().setDescription(format("block_%d.get%s()",field,type)).append(context.getVariable("block_" + field)).getVariable(positionVariable).invokeInterface(com.facebook.presto.spi.block.Block.class,"isNull",boolean.class,int.class);
+      ifStatement.ifTrue().putVariable(wasNullVariable,true).pushJavaDefault(javaType);
       String methodName="get" + Primitives.wrap(javaType).getSimpleName();
-      Block isNotNull=new Block(context).append(loadConstant(context,callSiteBinder.bind(type,Type.class))).getVariable("block_" + field).getVariable(positionVariable).invokeInterface(Type.class,methodName,javaType,com.facebook.presto.spi.block.Block.class,int.class);
-      return new IfStatement(isNullCheck,isNull,isNotNull);
+      ifStatement.ifFalse().append(loadConstant(context,callSiteBinder.bind(type,Type.class))).append(context.getVariable("block_" + field)).getVariable(positionVariable).invokeInterface(Type.class,methodName,javaType,com.facebook.presto.spi.block.Block.class,int.class);
+      return ifStatement;
     }
     @Override public ByteCodeNode visitCall(    CallExpression call,    CompilerContext context){
       throw new UnsupportedOperationException("not yet implemented");
