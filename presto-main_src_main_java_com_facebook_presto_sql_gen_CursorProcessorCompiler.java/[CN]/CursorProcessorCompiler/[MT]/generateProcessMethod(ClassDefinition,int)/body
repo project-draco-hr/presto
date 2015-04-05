@@ -8,7 +8,7 @@
   Variable completedPositionsVariable=context.declareVariable(int.class,"completedPositions");
   method.getBody().comment("int completedPositions = 0;").putVariable(completedPositionsVariable,0);
   LabelNode done=new LabelNode("done");
-  ForLoopBuilder forLoop=ForLoop.forLoopBuilder().initialize(NOP).condition(new Block(context).comment("completedPositions < count").getVariable(completedPositionsVariable).getVariable(countVariable).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new Block(context).comment("completedPositions++").incrementVariable(completedPositionsVariable,(byte)1));
+  ForLoop forLoop=new ForLoop().initialize(NOP).condition(new Block(context).comment("completedPositions < count").getVariable(completedPositionsVariable).getVariable(countVariable).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new Block(context).comment("completedPositions++").incrementVariable(completedPositionsVariable,(byte)1));
   Block forLoopBody=new Block(context).comment("if (pageBuilder.isFull()) break;").append(new Block(context).getVariable(pageBuilderVariable).invokeVirtual(PageBuilder.class,"isFull",boolean.class).ifTrueGoto(done)).comment("if (!cursor.advanceNextPosition()) break;").append(new Block(context).getVariable(cursorVariable).invokeInterface(RecordCursor.class,"advanceNextPosition",boolean.class).ifFalseGoto(done));
   forLoop.body(forLoopBody);
   IfStatement ifStatement=new IfStatement();
@@ -20,5 +20,5 @@
     ifStatement.ifTrue().invokeVirtual(classDefinition.getType(),"project_" + projectionIndex,type(void.class),type(ConnectorSession.class),type(RecordCursor.class),type(BlockBuilder.class));
   }
   forLoopBody.append(ifStatement);
-  method.getBody().append(forLoop.build()).visitLabel(done).comment("return completedPositions;").getVariable(completedPositionsVariable).retInt();
+  method.getBody().append(forLoop).visitLabel(done).comment("return completedPositions;").getVariable(completedPositionsVariable).retInt();
 }

@@ -1,8 +1,9 @@
 {
-  Block block=new Block().append(initialize).visitLabel(beginLabel).append(condition).ifZeroGoto(endLabel);
-  if (body != null) {
-    block.append(body);
-  }
-  block.visitLabel(continueLabel).append(update).gotoLabel(beginLabel).visitLabel(endLabel);
+  checkState(!condition.isEmpty(),"ForLoop does not have a condition set");
+  Block block=new Block();
+  block.append(new Block().setDescription("initialize").append(initialize));
+  block.visitLabel(beginLabel).append(new Block().setDescription("condition").append(condition)).ifFalseGoto(endLabel);
+  block.append(new Block().setDescription("body").append(body));
+  block.visitLabel(continueLabel).append(new Block().setDescription("update").append(update)).gotoLabel(beginLabel).visitLabel(endLabel);
   block.accept(visitor,generationContext);
 }

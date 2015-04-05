@@ -15,7 +15,7 @@
   }
   LabelNode done=new LabelNode("done");
   Block loopBody=new Block(context);
-  ForLoopBuilder loop=ForLoop.forLoopBuilder().initialize(NOP).condition(new Block(context).comment("position < end").getVariable(positionVariable).getVariable(endVariable).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new Block(context).comment("position++").incrementVariable(positionVariable,(byte)1)).body(loopBody);
+  ForLoop loop=new ForLoop().initialize(NOP).condition(new Block(context).comment("position < end").getVariable(positionVariable).getVariable(endVariable).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new Block(context).comment("position++").incrementVariable(positionVariable,(byte)1)).body(loopBody);
   loopBody.comment("if (pageBuilder.isFull()) break;").getVariable(pageBuilderVariable).invokeVirtual(PageBuilder.class,"isFull",boolean.class).ifTrueGoto(done);
   IfStatement filterBlock=new IfStatement();
   filterBlock.condition().append(context.getVariable("this")).getVariable(sessionVariable).append(pushBlockVariables(context,getInputChannels(filter))).getVariable(positionVariable).invokeVirtual(classDefinition.getType(),"filter",type(boolean.class),ImmutableList.<ParameterizedType>builder().add(type(ConnectorSession.class)).addAll(nCopies(getInputChannels(filter).size(),type(com.facebook.presto.spi.block.Block.class))).add(type(int.class)).build());
@@ -27,5 +27,5 @@
     filterBlock.ifTrue().comment("project_" + projectionIndex + "(session, block_"+ inputChannels+ ", position, blockBuilder)").invokeVirtual(classDefinition.getType(),"project_" + projectionIndex,type(void.class),ImmutableList.<ParameterizedType>builder().add(type(ConnectorSession.class)).addAll(nCopies(inputChannels.size(),type(com.facebook.presto.spi.block.Block.class))).add(type(int.class)).add(type(BlockBuilder.class)).build());
   }
   loopBody.append(filterBlock);
-  method.getBody().append(loop.build()).visitLabel(done).comment("return position;").getVariable(positionVariable).retInt();
+  method.getBody().append(loop).visitLabel(done).comment("return position;").getVariable(positionVariable).retInt();
 }
