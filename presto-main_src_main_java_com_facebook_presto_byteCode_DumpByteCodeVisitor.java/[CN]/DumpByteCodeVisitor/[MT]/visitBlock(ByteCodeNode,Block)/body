@@ -1,13 +1,22 @@
 {
+  boolean indented;
   if (block.getDescription() != null) {
     line().add(block.getDescription()).add("{").print();
+    indentLevel++;
+    indented=true;
+  }
+ else   if (block.getChildNodes().size() > 1) {
+    printLine("{");
+    indentLevel++;
+    indented=true;
   }
  else {
-    printLine("{");
+    indented=false;
   }
-  indentLevel++;
   visitBlockContents(block);
-  indentLevel--;
-  printLine("}");
+  if (indented) {
+    indentLevel--;
+    printLine("}");
+  }
   return null;
 }
