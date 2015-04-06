@@ -1,0 +1,10 @@
+{
+  FieldDefinition field=definition.declareField(a(PRIVATE),UPPER_CAMEL.to(LOWER_CAMEL,stateField.getName()) + "Value",stateField.getType());
+  MethodDefinition getter=definition.declareMethod(a(PUBLIC),stateField.getGetterName(),type(stateField.getType()));
+  CompilerContext getterContext=getter.getCompilerContext();
+  getter.getBody().append(getterContext.getVariable("this").getField(field).ret());
+  MethodDefinition setter=definition.declareMethod(a(PUBLIC),stateField.getSetterName(),type(void.class),arg("value",stateField.getType()));
+  CompilerContext setterContext=setter.getCompilerContext();
+  setter.getBody().append(setterContext.getVariable("this").setField(field,setterContext.getVariable("value"))).ret();
+  constructor.getBody().append(constructor.getCompilerContext().getVariable("this").setField(field,stateField.initialValueExpression()));
+}

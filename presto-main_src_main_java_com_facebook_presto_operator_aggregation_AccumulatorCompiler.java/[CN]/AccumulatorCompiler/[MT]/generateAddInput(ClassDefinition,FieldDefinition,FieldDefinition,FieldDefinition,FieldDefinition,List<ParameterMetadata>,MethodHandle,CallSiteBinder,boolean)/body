@@ -1,13 +1,16 @@
 {
-  CompilerContext context=new CompilerContext();
   ImmutableList.Builder<NamedParameterDefinition> parameters=ImmutableList.builder();
   if (grouped) {
     parameters.add(arg("groupIdsBlock",GroupByIdBlock.class));
   }
   parameters.add(arg("page",Page.class));
-  Block body=definition.declareMethod(context,a(PUBLIC),"addInput",type(void.class),parameters.build()).getBody();
+  MethodDefinition method=definition.declareMethod(a(PUBLIC),"addInput",type(void.class),parameters.build());
+  CompilerContext context=method.getCompilerContext();
+  Variable thisVariable=context.getVariable("this");
+  Variable page=context.getVariable("page");
+  Block body=method.getBody();
   if (grouped) {
-    generateEnsureCapacity(stateField,body);
+    generateEnsureCapacity(context,stateField,body);
   }
   List<Variable> parameterVariables=new ArrayList<>();
   for (int i=0; i < countInputChannels(parameterMetadatas); i++) {
@@ -18,13 +21,14 @@
   if (sampleWeightChannelField != null) {
     sampleWeightsBlock=context.declareVariable(com.facebook.presto.spi.block.Block.class,"sampleWeightsBlock");
   }
-  body.comment("masksBlock = maskChannel.map(page.blockGetter()).orElse(null);").pushThis().getField(maskChannelField).getVariable("page").invokeStatic(type(AggregationUtils.class),"pageBlockGetter",type(Function.class,Integer.class,com.facebook.presto.spi.block.Block.class),type(Page.class)).invokeVirtual(Optional.class,"map",Optional.class,Function.class).pushNull().invokeVirtual(Optional.class,"orElse",Object.class,Object.class).checkCast(com.facebook.presto.spi.block.Block.class).putVariable(masksBlock);
+  body.comment("masksBlock = maskChannel.map(page.blockGetter()).orElse(null);").append(thisVariable.getField(maskChannelField)).append(page).invokeStatic(type(AggregationUtils.class),"pageBlockGetter",type(Function.class,Integer.class,com.facebook.presto.spi.block.Block.class),type(Page.class)).invokeVirtual(Optional.class,"map",Optional.class,Function.class).pushNull().invokeVirtual(Optional.class,"orElse",Object.class,Object.class).checkCast(com.facebook.presto.spi.block.Block.class).putVariable(masksBlock);
   if (sampleWeightChannelField != null) {
-    body.comment("sampleWeightsBlock = sampleWeightChannel.map(page.blockGetter()).get();").pushThis().getField(sampleWeightChannelField).getVariable("page").invokeStatic(type(AggregationUtils.class),"pageBlockGetter",type(Function.class,Integer.class,com.facebook.presto.spi.block.Block.class),type(Page.class)).invokeVirtual(Optional.class,"map",Optional.class,Function.class).invokeVirtual(Optional.class,"get",Object.class).checkCast(com.facebook.presto.spi.block.Block.class).putVariable(sampleWeightsBlock);
+    body.comment("sampleWeightsBlock = sampleWeightChannel.map(page.blockGetter()).get();").append(thisVariable.getField(sampleWeightChannelField)).append(page).invokeStatic(type(AggregationUtils.class),"pageBlockGetter",type(Function.class,Integer.class,com.facebook.presto.spi.block.Block.class),type(Page.class)).invokeVirtual(Optional.class,"map",Optional.class,Function.class).invokeVirtual(Optional.class,"get",Object.class).checkCast(com.facebook.presto.spi.block.Block.class).putVariable(sampleWeightsBlock);
   }
   for (int i=0; i < countInputChannels(parameterMetadatas); i++) {
-    body.comment("%s = page.getBlock(inputChannels.get(%d));",parameterVariables.get(i).getName(),i).getVariable("page").pushThis().getField(inputChannelsField).push(i).invokeInterface(List.class,"get",Object.class,int.class).checkCast(Integer.class).invokeVirtual(Integer.class,"intValue",int.class).invokeVirtual(Page.class,"getBlock",com.facebook.presto.spi.block.Block.class,int.class).putVariable(parameterVariables.get(i));
+    body.comment("%s = page.getBlock(inputChannels.get(%d));",parameterVariables.get(i).getName(),i).append(page).append(thisVariable.getField(inputChannelsField)).push(i).invokeInterface(List.class,"get",Object.class,int.class).checkCast(Integer.class).invokeVirtual(Integer.class,"intValue",int.class).invokeVirtual(Page.class,"getBlock",com.facebook.presto.spi.block.Block.class,int.class).putVariable(parameterVariables.get(i));
   }
   Block block=generateInputForLoop(stateField,parameterMetadatas,inputFunction,context,parameterVariables,masksBlock,sampleWeightsBlock,callSiteBinder,grouped);
-  body.append(block).ret();
+  body.append(block);
+  body.ret();
 }

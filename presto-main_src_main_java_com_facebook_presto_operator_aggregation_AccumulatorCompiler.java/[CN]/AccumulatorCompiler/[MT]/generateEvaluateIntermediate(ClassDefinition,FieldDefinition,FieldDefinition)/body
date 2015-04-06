@@ -1,4 +1,9 @@
 {
-  CompilerContext context=new CompilerContext();
-  definition.declareMethod(context,a(PUBLIC),"evaluateIntermediate",type(void.class),arg("out",BlockBuilder.class)).getBody().comment("stateSerializer.serialize(state, out)").pushThis().getField(stateSerializerField).pushThis().getField(stateField).getVariable("out").invokeInterface(AccumulatorStateSerializer.class,"serialize",void.class,Object.class,BlockBuilder.class).ret();
+  MethodDefinition method=definition.declareMethod(a(PUBLIC),"evaluateIntermediate",type(void.class),arg("out",BlockBuilder.class));
+  CompilerContext context=method.getCompilerContext();
+  Variable thisVariable=context.getVariable("this");
+  Variable out=context.getVariable("out");
+  ByteCodeExpression stateSerializer=thisVariable.getField(stateSerializerField);
+  ByteCodeExpression state=thisVariable.getField(stateField);
+  method.getBody().append(stateSerializer.invoke("serialize",void.class,state.cast(Object.class),out)).ret();
 }

@@ -1,17 +1,19 @@
 {
   CompilerContext context=new CompilerContext();
   Block body=declareAddIntermediate(definition,grouped,context);
-  Variable scratchStateVariable=context.declareVariable(singleStateClass,"scratchState");
-  Variable positionVariable=context.declareVariable(int.class,"position");
-  body.comment("scratchState = stateFactory.createSingleState();").pushThis().getField(stateFactoryField).invokeInterface(AccumulatorStateFactory.class,"createSingleState",Object.class).checkCast(scratchStateVariable.getType()).putVariable(scratchStateVariable);
+  Variable block=context.getVariable("block");
+  Variable scratchState=context.declareVariable(singleStateClass,"scratchState");
+  Variable position=context.declareVariable(int.class,"position");
+  body.comment("scratchState = stateFactory.createSingleState();").append(context.getVariable("this").getField(stateFactoryField)).invokeInterface(AccumulatorStateFactory.class,"createSingleState",Object.class).checkCast(scratchState.getType()).putVariable(scratchState);
   if (grouped) {
-    generateEnsureCapacity(stateField,body);
+    generateEnsureCapacity(context,stateField,body);
   }
   Block loopBody=new Block(context);
   if (grouped) {
-    generateSetGroupIdFromGroupIdsBlock(stateField,positionVariable,loopBody);
+    Variable groupIdsBlock=context.getVariable("groupIdsBlock");
+    loopBody.append(context.getVariable("this").getField(stateField).invoke("setGroupId",void.class,groupIdsBlock.invoke("getGroupId",long.class,position)));
   }
-  loopBody.comment("stateSerializer.deserialize(block, position, scratchState)").pushThis().getField(stateSerializerField).getVariable("block").getVariable(positionVariable).getVariable(scratchStateVariable).invokeInterface(AccumulatorStateSerializer.class,"deserialize",void.class,com.facebook.presto.spi.block.Block.class,int.class,Object.class);
-  loopBody.comment("combine(state, scratchState)").pushThis().getField(stateField).getVariable("scratchState").append(invoke(context,callSiteBinder.bind(combineFunction),"combine"));
-  body.append(generateBlockNonNullPositionForLoop(context,positionVariable,loopBody)).ret();
+  loopBody.append(context.getVariable("this").getField(stateSerializerField).invoke("deserialize",void.class,block,position,scratchState.cast(Object.class)));
+  loopBody.comment("combine(state, scratchState)").append(context.getVariable("this").getField(stateField)).append(scratchState).append(invoke(context,callSiteBinder.bind(combineFunction),"combine"));
+  body.append(generateBlockNonNullPositionForLoop(context,position,loopBody)).ret();
 }

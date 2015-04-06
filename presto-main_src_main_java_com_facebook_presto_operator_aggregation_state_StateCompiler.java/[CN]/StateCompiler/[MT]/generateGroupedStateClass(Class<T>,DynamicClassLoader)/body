@@ -1,19 +1,22 @@
 {
   ClassDefinition definition=new ClassDefinition(a(PUBLIC,FINAL),makeClassName("Grouped" + clazz.getSimpleName()),type(AbstractGroupedAccumulatorState.class),type(clazz),type(GroupedAccumulator.class));
   List<StateField> fields=enumerateFields(clazz);
-  Block constructor=definition.declareConstructor(a(PUBLIC)).getBody().pushThis().invokeConstructor(AbstractGroupedAccumulatorState.class);
-  Block ensureCapacity=definition.declareMethod(a(PUBLIC),"ensureCapacity",type(void.class),arg("size",long.class)).getBody();
+  MethodDefinition constructor=definition.declareConstructor(a(PUBLIC));
+  constructor.getBody().append(constructor.getCompilerContext().getVariable("this")).invokeConstructor(AbstractGroupedAccumulatorState.class);
+  MethodDefinition ensureCapacity=definition.declareMethod(a(PUBLIC),"ensureCapacity",type(void.class),arg("size",long.class));
   List<FieldDefinition> fieldDefinitions=new ArrayList<>();
   for (  StateField field : fields) {
     fieldDefinitions.add(generateGroupedField(definition,constructor,ensureCapacity,field));
   }
-  constructor.ret();
-  ensureCapacity.ret();
-  Block getEstimatedSize=definition.declareMethod(a(PUBLIC),"getEstimatedSize",type(long.class)).getBody().comment("long size = 0;").push(0L);
+  constructor.getBody().ret();
+  ensureCapacity.getBody().ret();
+  MethodDefinition getEstimatedSize=definition.declareMethod(a(PUBLIC),"getEstimatedSize",type(long.class));
+  Block body=getEstimatedSize.getBody();
+  Variable size=getEstimatedSize.getCompilerContext().declareVariable(long.class,"size");
+  body.append(size.set(constantLong(0)));
   for (  FieldDefinition field : fieldDefinitions) {
-    getEstimatedSize.comment("size += %s.sizeOf();",field.getName()).pushThis().getField(field).invokeVirtual(field.getType(),"sizeOf",type(long.class)).longAdd();
+    body.append(size.set(add(size,getEstimatedSize.getCompilerContext().getVariable("this").getField(field).invoke("sizeOf",long.class))));
   }
-  getEstimatedSize.comment("return size;");
-  getEstimatedSize.retLong();
+  body.append(size.ret());
   return defineClass(definition,clazz,classLoader);
 }

@@ -1,11 +1,21 @@
 {
-  Block body=definition.declareConstructor(a(PUBLIC),arg("stateSerializer",AccumulatorStateSerializer.class),arg("stateFactory",AccumulatorStateFactory.class),arg("inputChannels",type(List.class,Integer.class)),arg("maskChannel",type(Optional.class,Integer.class)),arg("sampleWeightChannel",type(Optional.class,Integer.class)),arg("confidence",double.class)).getBody().comment("super();").pushThis().invokeConstructor(Object.class);
-  generateCastCheckNotNullAndAssign(body,stateSerializerField,"stateSerializer");
-  generateCastCheckNotNullAndAssign(body,stateFactoryField,"stateFactory");
-  generateCastCheckNotNullAndAssign(body,inputChannelsField,"inputChannels");
-  generateCastCheckNotNullAndAssign(body,maskChannelField,"maskChannel");
+  MethodDefinition method=definition.declareConstructor(a(PUBLIC),arg("stateSerializer",AccumulatorStateSerializer.class),arg("stateFactory",AccumulatorStateFactory.class),arg("inputChannels",type(List.class,Integer.class)),arg("maskChannel",type(Optional.class,Integer.class)),arg("sampleWeightChannel",type(Optional.class,Integer.class)),arg("confidence",double.class));
+  Block body=method.getBody();
+  CompilerContext context=method.getCompilerContext();
+  Variable thisVariable=context.getVariable("this");
+  Variable stateSerializer=context.getVariable("stateSerializer");
+  Variable stateFactory=context.getVariable("stateFactory");
+  Variable inputChannels=context.getVariable("inputChannels");
+  Variable maskChannel=context.getVariable("maskChannel");
+  Variable sampleWeightChannel=context.getVariable("sampleWeightChannel");
+  Variable confidence=context.getVariable("confidence");
+  body.comment("super();").append(thisVariable).invokeConstructor(Object.class);
+  body.append(thisVariable.setField(stateSerializerField,generateRequireNotNull(stateSerializer)));
+  body.append(thisVariable.setField(stateFactoryField,generateRequireNotNull(stateFactory)));
+  body.append(thisVariable.setField(inputChannelsField,generateRequireNotNull(inputChannels)));
+  body.append(thisVariable.setField(maskChannelField,generateRequireNotNull(maskChannel)));
   if (sampleWeightChannelField != null) {
-    generateCastCheckNotNullAndAssign(body,sampleWeightChannelField,"sampleWeightChannel");
+    body.append(thisVariable.setField(sampleWeightChannelField,generateRequireNotNull(sampleWeightChannel)));
   }
   String createState;
   if (grouped) {
@@ -15,7 +25,8 @@
     createState="createSingleState";
   }
   if (confidenceField != null) {
-    body.comment("this.confidence = confidence").pushThis().getVariable("confidence").putField(confidenceField);
+    body.append(thisVariable.setField(confidenceField,confidence));
   }
-  body.comment("this.state = stateFactory.%s()",createState).pushThis().getVariable("stateFactory").invokeInterface(AccumulatorStateFactory.class,createState,Object.class).checkCast(stateField.getType()).putField(stateField).ret();
+  body.append(thisVariable.setField(stateField,stateFactory.invoke(createState,Object.class).cast(stateField.getType())));
+  body.ret();
 }

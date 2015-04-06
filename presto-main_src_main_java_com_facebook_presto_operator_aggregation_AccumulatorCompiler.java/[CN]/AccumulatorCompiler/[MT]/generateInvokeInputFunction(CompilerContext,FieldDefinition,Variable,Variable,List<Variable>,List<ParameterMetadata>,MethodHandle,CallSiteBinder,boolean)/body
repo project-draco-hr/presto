@@ -1,7 +1,7 @@
 {
   Block block=new Block(context);
   if (grouped) {
-    generateSetGroupIdFromGroupIdsBlock(stateField,position,block);
+    generateSetGroupIdFromGroupIdsBlock(context,stateField,block);
   }
   block.comment("Call input function with unpacked Block arguments");
   Class<?>[] parameters=inputFunction.type().parameterArray();
@@ -10,7 +10,7 @@
     ParameterMetadata parameterMetadata=parameterMetadatas.get(i);
 switch (parameterMetadata.getParameterType()) {
 case STATE:
-      block.pushThis().getField(stateField);
+      block.append(context.getVariable("this").getField(stateField));
     break;
 case BLOCK_INDEX:
   block.getVariable(position);
@@ -25,7 +25,7 @@ inputChannel++;
 break;
 case INPUT_CHANNEL:
 Block getBlockByteCode=new Block(context).getVariable(parameterVariables.get(inputChannel));
-pushStackType(block,parameterMetadata.getSqlType(),getBlockByteCode,parameters[i],callSiteBinder);
+pushStackType(context,block,parameterMetadata.getSqlType(),getBlockByteCode,parameters[i],callSiteBinder);
 inputChannel++;
 break;
 default :

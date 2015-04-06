@@ -1,17 +1,24 @@
 {
-  CompilerContext compilerContext=new CompilerContext();
-  Block serializerBody=definition.declareMethod(compilerContext,a(PUBLIC),"serialize",type(void.class),arg("state",Object.class),arg("out",BlockBuilder.class)).getBody();
+  MethodDefinition method=definition.declareMethod(a(PUBLIC),"serialize",type(void.class),arg("state",Object.class),arg("out",BlockBuilder.class));
+  CompilerContext compilerContext=method.getCompilerContext();
+  Block serializerBody=method.getBody();
+  Variable state=compilerContext.getVariable("state");
+  Variable out=compilerContext.getVariable("out");
   if (fields.size() == 1) {
-    generatePrimitiveSerializer(serializerBody,getGetter(clazz,fields.get(0)));
+    Method getter=getGetter(clazz,fields.get(0));
+    Method append=getBlockBuilderAppend(getter.getReturnType());
+    serializerBody.append(invokeStatic(append,out,state.cast(getter.getDeclaringClass()).invoke(getter)));
   }
  else {
     Variable slice=compilerContext.declareVariable(Slice.class,"slice");
-    int size=serializedSizeOf(clazz);
-    serializerBody.comment("Slice slice = Slices.allocate(%d);",size).push(size).invokeStatic(Slices.class,"allocate",Slice.class,int.class).putVariable(slice);
+    ByteCodeExpression size=constantInt(serializedSizeOf(clazz));
+    serializerBody.append(slice.set(invokeStatic(Slices.class,"allocate",Slice.class,size)));
     for (    StateField field : fields) {
-      generateSerializeFieldToSlice(serializerBody,slice,getGetter(clazz,field),offsetOfField(field,fields));
+      Method getter=getGetter(clazz,field);
+      Method sliceSetter=getSliceSetter(getter.getReturnType());
+      serializerBody.append(invokeStatic(sliceSetter,slice,constantInt(offsetOfField(field,fields)),state.cast(getter.getDeclaringClass()).invoke(getter)));
     }
-    serializerBody.comment("out.appendSlice(slice);").getVariable("out").getVariable(slice).push(0).push(size).invokeInterface(BlockBuilder.class,"writeBytes",BlockBuilder.class,Slice.class,int.class,int.class).invokeInterface(BlockBuilder.class,"closeEntry",BlockBuilder.class).pop();
+    serializerBody.append(out.invoke("writeBytes",BlockBuilder.class,slice,constantInt(0),size).invoke("closeEntry",BlockBuilder.class).pop());
   }
   serializerBody.ret();
 }

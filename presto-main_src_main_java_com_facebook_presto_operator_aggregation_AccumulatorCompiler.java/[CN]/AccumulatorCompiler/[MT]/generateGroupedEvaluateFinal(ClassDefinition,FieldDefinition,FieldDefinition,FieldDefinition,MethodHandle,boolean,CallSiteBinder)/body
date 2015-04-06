@@ -1,17 +1,26 @@
 {
-  CompilerContext context=new CompilerContext();
-  Block body=definition.declareMethod(a(PUBLIC),"evaluateFinal",type(void.class),arg("groupId",int.class),arg("out",BlockBuilder.class)).getBody().comment("state.setGroupId(groupId)").pushThis().getField(stateField).getVariable("groupId").intToLong().invokeVirtual(stateField.getType(),"setGroupId",type(void.class),type(long.class));
+  MethodDefinition method=definition.declareMethod(a(PUBLIC),"evaluateFinal",type(void.class),arg("groupId",int.class),arg("out",BlockBuilder.class));
+  Block body=method.getBody();
+  CompilerContext context=method.getCompilerContext();
+  Variable thisVariable=context.getVariable("this");
+  Variable groupId=context.getVariable("groupId");
+  Variable out=context.getVariable("out");
+  ByteCodeExpression state=thisVariable.getField(stateField);
+  body.append(state.invoke("setGroupId",void.class,groupId.cast(long.class)));
   if (outputFunction != null) {
-    body.comment("output(state, out)").pushThis().getField(stateField);
+    body.comment("output(state, out)");
+    body.append(state);
     if (approximate) {
       checkNotNull(confidenceField,"confidenceField is null");
-      body.pushThis().getField(confidenceField);
+      body.append(thisVariable.getField(confidenceField));
     }
-    body.getVariable("out").append(invoke(context,callSiteBinder.bind(outputFunction),"output"));
+    body.append(out);
+    body.append(invoke(context,callSiteBinder.bind(outputFunction),"output"));
   }
  else {
     checkArgument(!approximate,"Approximate aggregations must specify an output function");
-    body.comment("stateSerializer.serialize(state, out)").pushThis().getField(stateSerializerField).pushThis().getField(stateField).getVariable("out").invokeInterface(AccumulatorStateSerializer.class,"serialize",void.class,Object.class,BlockBuilder.class);
+    ByteCodeExpression stateSerializer=thisVariable.getField(stateSerializerField);
+    body.append(stateSerializer.invoke("serialize",void.class,state.cast(Object.class),out));
   }
   body.ret();
 }

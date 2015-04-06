@@ -1,14 +1,23 @@
 {
-  CompilerContext compilerContext=new CompilerContext();
-  Block deserializerBody=definition.declareMethod(compilerContext,a(PUBLIC),"deserialize",type(void.class),arg("block",com.facebook.presto.spi.block.Block.class),arg("index",int.class),arg("state",Object.class)).getBody();
+  MethodDefinition method=definition.declareMethod(a(PUBLIC),"deserialize",type(void.class),arg("block",com.facebook.presto.spi.block.Block.class),arg("index",int.class),arg("state",Object.class));
+  CompilerContext compilerContext=method.getCompilerContext();
+  Variable block=compilerContext.getVariable("block");
+  Variable index=compilerContext.getVariable("index");
+  Variable state=compilerContext.getVariable("state");
+  Block deserializerBody=method.getBody();
   if (fields.size() == 1) {
-    generatePrimitiveDeserializer(deserializerBody,getSetter(clazz,fields.get(0)));
+    Method setter=getSetter(clazz,fields.get(0));
+    Method blockGetter=getBlockGetter(setter.getParameterTypes()[0]);
+    deserializerBody.append(state.cast(setter.getDeclaringClass()).invoke(setter,invokeStatic(blockGetter,block,index)));
   }
  else {
     Variable slice=compilerContext.declareVariable(Slice.class,"slice");
-    deserializerBody.comment("Slice slice = block.getSlice(index, 0, block.getLength(index));").getVariable("block").getVariable("index").push(0).getVariable("block").getVariable("index").invokeInterface(com.facebook.presto.spi.block.Block.class,"getLength",int.class,int.class).invokeInterface(com.facebook.presto.spi.block.Block.class,"getSlice",Slice.class,int.class,int.class,int.class).putVariable(slice);
+    deserializerBody.append(slice.set(block.invoke("getSlice",Slice.class,index,constantInt(0),block.invoke("getLength",int.class,index))));
     for (    StateField field : fields) {
-      generateDeserializeFromSlice(deserializerBody,slice,getSetter(clazz,field),offsetOfField(field,fields));
+      Method setter=getSetter(clazz,field);
+      Method getter=getSliceGetter(setter.getParameterTypes()[0]);
+      int offset=offsetOfField(field,fields);
+      deserializerBody.append(state.cast(setter.getDeclaringClass()).invoke(setter,invokeStatic(getter,slice,constantInt(offset))));
     }
   }
   deserializerBody.ret();

@@ -2,12 +2,13 @@
   ClassDefinition definition=new ClassDefinition(a(PUBLIC,FINAL),makeClassName("Single" + clazz.getSimpleName()),type(Object.class),type(clazz));
   FieldDefinition classSize=definition.declareField(a(PRIVATE,STATIC,FINAL),"CLASS_SIZE",long.class);
   definition.getClassInitializer().getBody().comment("CLASS_SIZE = ClassLayout.parseClass(%s.class).instanceSize()",definition.getName()).push(definition.getType()).invokeStatic(ClassLayout.class,"parseClass",ClassLayout.class,Class.class).invokeVirtual(ClassLayout.class,"instanceSize",int.class).intToLong().putStaticField(classSize);
-  definition.declareMethod(new CompilerContext(),a(PUBLIC),"getEstimatedSize",type(long.class)).getBody().getStaticField(classSize).retLong();
-  Block constructor=definition.declareConstructor(a(PUBLIC)).getBody().pushThis().invokeConstructor(Object.class);
+  definition.declareMethod(a(PUBLIC),"getEstimatedSize",type(long.class)).getBody().getStaticField(classSize).retLong();
+  MethodDefinition constructor=definition.declareConstructor(a(PUBLIC));
+  constructor.getBody().append(constructor.getCompilerContext().getVariable("this")).invokeConstructor(Object.class);
   List<StateField> fields=enumerateFields(clazz);
   for (  StateField field : fields) {
     generateField(definition,constructor,field);
   }
-  constructor.ret();
+  constructor.getBody().ret();
   return defineClass(definition,clazz,classLoader);
 }
