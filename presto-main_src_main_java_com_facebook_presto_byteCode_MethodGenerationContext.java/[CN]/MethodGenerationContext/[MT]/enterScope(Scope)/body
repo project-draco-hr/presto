@@ -1,0 +1,13 @@
+{
+  requireNonNull(scope,"scope is null");
+  checkArgument(!allEnteredScopes.contains(scope),"scope has already been entered");
+  allEnteredScopes.add(scope);
+  ScopeContext scopeContext=new ScopeContext(scope);
+  scopes.addLast(scopeContext);
+  for (  Variable variable : scopeContext.getVariables()) {
+    checkArgument(!"this".equals(variable.getName()) || nextSlot == 0,"The 'this' variable must be in slot 0");
+    variableSlots.put(variable,nextSlot);
+    nextSlot+=Type.getType(variable.getType().getType()).getSize();
+  }
+  scopeContext.getStartLabel().accept(methodVisitor,this);
+}

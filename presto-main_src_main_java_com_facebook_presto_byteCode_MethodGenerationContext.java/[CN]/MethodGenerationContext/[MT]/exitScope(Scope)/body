@@ -1,0 +1,10 @@
+{
+  checkArgument(allEnteredScopes.contains(scope),"scope has not been entered");
+  checkArgument(!scopes.isEmpty() && scope == scopes.peekLast().getScope(),"Scope is not top of the stack");
+  ScopeContext scopeContext=scopes.removeLast();
+  scopeContext.getEndLabel().accept(methodVisitor,this);
+  for (  Variable variable : scopeContext.getVariables()) {
+    new LocalVariableNode(variable,scopeContext.getStartLabel(),scopeContext.getEndLabel()).accept(methodVisitor,this);
+  }
+  variableSlots.keySet().removeAll(scopeContext.getVariables());
+}

@@ -17,14 +17,13 @@
     }
   }
   methodVisitor.visitCode();
-  MethodGenerationContext generationContext=new MethodGenerationContext(scope.getVariables());
+  MethodGenerationContext generationContext=new MethodGenerationContext(methodVisitor);
+  generationContext.enterScope(scope);
   body.accept(methodVisitor,generationContext);
   if (addReturn) {
     new InsnNode(RETURN).accept(methodVisitor);
   }
-  for (  LocalVariableNode localVariableNode : localVariableNodes) {
-    localVariableNode.accept(methodVisitor,generationContext);
-  }
+  generationContext.exitScope(scope);
   methodVisitor.visitMaxs(-1,-1);
   methodVisitor.visitEnd();
 }
