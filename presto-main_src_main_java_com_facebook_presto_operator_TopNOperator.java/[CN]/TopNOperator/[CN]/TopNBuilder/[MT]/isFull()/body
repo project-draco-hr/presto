@@ -1,3 +1,7 @@
 {
-  return memoryManager.canUse(memorySize);
+  long memorySize=this.memorySize - operatorContext.getOperatorPreAllocatedMemory().toBytes();
+  if (memorySize < 0) {
+    memorySize=0;
+  }
+  return operatorContext.setMemoryReservation(memorySize,true) != memorySize;
 }
