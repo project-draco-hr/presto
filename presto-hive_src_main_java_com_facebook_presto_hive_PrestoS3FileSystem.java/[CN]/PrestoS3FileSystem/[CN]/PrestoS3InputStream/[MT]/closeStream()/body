@@ -1,9 +1,14 @@
 {
   if (in != null) {
     try {
-      in.abort();
+      if (in instanceof S3ObjectInputStream) {
+        ((S3ObjectInputStream)in).abort();
+      }
+ else {
+        in.close();
+      }
     }
- catch (    AbortedException ignored) {
+ catch (    IOException|AbortedException ignored) {
     }
     in=null;
     STATS.connectionReleased();
