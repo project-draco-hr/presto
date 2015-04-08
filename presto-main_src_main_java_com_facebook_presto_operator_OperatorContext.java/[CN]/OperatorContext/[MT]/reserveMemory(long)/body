@@ -1,5 +1,8 @@
 {
-  driverContext.reserveMemory(bytes);
+  ListenableFuture<?> future=driverContext.reserveMemory(bytes);
+  if (!future.isDone()) {
+    memoryFuture.set(future);
+  }
   long newReservation=memoryReservation.getAndAdd(bytes);
   if (newReservation > maxMemoryReservation) {
     memoryReservation.getAndAdd(-bytes);
