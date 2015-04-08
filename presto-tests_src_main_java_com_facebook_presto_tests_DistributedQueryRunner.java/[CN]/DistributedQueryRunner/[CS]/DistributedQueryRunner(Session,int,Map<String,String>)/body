@@ -1,0 +1,32 @@
+{
+  checkNotNull(defaultSession,"defaultSession is null");
+  try {
+    long start=System.nanoTime();
+    discoveryServer=closer.register(new TestingDiscoveryServer(ENVIRONMENT));
+    log.info("Created TestingDiscoveryServer in %s",nanosSince(start).convertToMostSuccinctTimeUnit());
+    ImmutableList.Builder<TestingPrestoServer> servers=ImmutableList.builder();
+    coordinator=closer.register(createTestingPrestoServer(discoveryServer.getBaseUrl(),true,extraProperties));
+    servers.add(coordinator);
+    for (int i=1; i < workersCount; i++) {
+      TestingPrestoServer worker=closer.register(createTestingPrestoServer(discoveryServer.getBaseUrl(),false,extraProperties));
+      servers.add(worker);
+    }
+    this.servers=servers.build();
+  }
+ catch (  Exception e) {
+    close();
+    throw e;
+  }
+  this.prestoClient=closer.register(new TestingPrestoClient(coordinator,defaultSession));
+  long start=System.nanoTime();
+  while (!allNodesGloballyVisible()) {
+    Assertions.assertLessThan(nanosSince(start),new Duration(10,SECONDS));
+    MILLISECONDS.sleep(10);
+  }
+  log.info("Announced servers in %s",nanosSince(start).convertToMostSuccinctTimeUnit());
+  start=System.nanoTime();
+  for (  TestingPrestoServer server : servers) {
+    server.getMetadata().addFunctions(AbstractTestQueries.CUSTOM_FUNCTIONS);
+  }
+  log.info("Added functions in %s",nanosSince(start).convertToMostSuccinctTimeUnit());
+}

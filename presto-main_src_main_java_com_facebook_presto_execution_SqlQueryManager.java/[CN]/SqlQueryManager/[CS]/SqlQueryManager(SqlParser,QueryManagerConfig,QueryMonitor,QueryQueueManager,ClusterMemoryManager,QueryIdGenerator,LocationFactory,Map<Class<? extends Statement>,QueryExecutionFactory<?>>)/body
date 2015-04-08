@@ -5,6 +5,7 @@
   this.queryExecutorMBean=new ThreadPoolExecutorMBean((ThreadPoolExecutor)queryExecutor);
   checkNotNull(config,"config is null");
   this.queueManager=checkNotNull(queueManager,"queueManager is null");
+  this.memoryManager=requireNonNull(memoryManager,"memoryManager is null");
   this.queryMonitor=checkNotNull(queryMonitor,"queryMonitor is null");
   this.locationFactory=checkNotNull(locationFactory,"locationFactory is null");
   this.queryIdGenerator=checkNotNull(queryIdGenerator,"queryIdGenerator is null");
@@ -20,6 +21,12 @@
       }
  catch (      Throwable e) {
         log.warn(e,"Error cancelling abandoned queries");
+      }
+      try {
+        enforceMemoryLimits();
+      }
+ catch (      Throwable e) {
+        log.warn(e,"Error enforcing memory limits");
       }
       try {
         removeExpiredQueries();

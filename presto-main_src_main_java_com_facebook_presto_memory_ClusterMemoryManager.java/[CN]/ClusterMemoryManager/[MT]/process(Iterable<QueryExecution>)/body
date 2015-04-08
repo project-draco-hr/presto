@@ -1,0 +1,14 @@
+{
+  if (!enabled) {
+    return;
+  }
+  long totalBytes=0;
+  for (  QueryExecution query : queries) {
+    long bytes=query.getQueryInfo().getQueryStats().getTotalMemoryReservation().toBytes();
+    totalBytes+=bytes;
+    if (bytes > maxQueryMemory.toBytes()) {
+      query.fail(new ExceededMemoryLimitException("Query",maxQueryMemory));
+    }
+  }
+  clusterMemoryUsageBytes.set(totalBytes);
+}
