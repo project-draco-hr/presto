@@ -3,6 +3,9 @@
   if (memoryReservation.get() + bytes > maxMemory) {
     return false;
   }
-  memoryReservation.getAndAdd(bytes);
-  return true;
+  if (queryContext.tryReserveMemory(bytes)) {
+    memoryReservation.getAndAdd(bytes);
+    return true;
+  }
+  return false;
 }

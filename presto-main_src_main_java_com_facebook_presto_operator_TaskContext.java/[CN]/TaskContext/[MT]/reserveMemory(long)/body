@@ -3,6 +3,7 @@
   if (memoryReservation.get() + bytes > maxMemory) {
     throw new ExceededMemoryLimitException(getMaxMemorySize());
   }
+  ListenableFuture<?> future=queryContext.reserveMemory(bytes);
   memoryReservation.getAndAdd(bytes);
-  return NOT_BLOCKED;
+  return future;
 }
