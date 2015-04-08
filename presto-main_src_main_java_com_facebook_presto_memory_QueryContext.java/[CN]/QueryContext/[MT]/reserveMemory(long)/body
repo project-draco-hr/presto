@@ -3,6 +3,7 @@
   if (reserved + bytes > maxMemory && enforceLimit) {
     throw new PrestoException(EXCEEDED_MEMORY_LIMIT,"Query exceeded local memory limit of " + new DataSize(maxMemory,DataSize.Unit.BYTE).convertToMostSuccinctDataSize());
   }
+  ListenableFuture<?> future=memoryPool.reserve(bytes);
   reserved+=bytes;
-  return Operator.NOT_BLOCKED;
+  return future;
 }

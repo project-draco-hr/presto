@@ -1,0 +1,23 @@
+{
+  LocalQueryRunner localQueryRunner=new LocalQueryRunner(TEST_SESSION);
+  InMemoryNodeManager nodeManager=localQueryRunner.getNodeManager();
+  localQueryRunner.createCatalog("tpch",new TpchConnectorFactory(nodeManager,1),ImmutableMap.<String,String>of());
+  MemoryPool pool=new MemoryPool(new MemoryPoolId("test"),new DataSize(10,MEGABYTE),true);
+  assertTrue(pool.tryReserve(TEN_MEGABYTES));
+  QueryContext queryContext=new QueryContext(true,new DataSize(10,MEGABYTE),pool,localQueryRunner.getExecutor());
+  LocalQueryRunner.MaterializedOutputFactory outputFactory=new LocalQueryRunner.MaterializedOutputFactory();
+  TaskContext taskContext=createTaskContext(queryContext,localQueryRunner.getExecutor(),TEST_SESSION,new DataSize(10,MEGABYTE),new DataSize(0,BYTE));
+  Driver driver=Iterables.getOnlyElement(localQueryRunner.createDrivers("SELECT COUNT(*), clerk FROM orders GROUP BY clerk",outputFactory,taskContext));
+  while (!driver.isFinished()) {
+    if (!driver.process().isDone()) {
+      break;
+    }
+  }
+  assertFalse(driver.isFinished());
+  assertTrue(pool.getFreeBytes() <= 0);
+  pool.free(TEN_MEGABYTES);
+  do {
+    assertTrue(driver.process().isDone());
+  }
+ while (!driver.isFinished());
+}
