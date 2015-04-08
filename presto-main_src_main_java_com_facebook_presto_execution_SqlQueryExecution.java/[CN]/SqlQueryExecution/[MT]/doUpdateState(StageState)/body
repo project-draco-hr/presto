@@ -2,10 +2,9 @@
   if (stateMachine.isDone()) {
     return;
   }
-  StageState outputStageState=outputStageInfo.getState();
   if (outputStageState.isDone()) {
     if (outputStageState.isFailure()) {
-      stateMachine.fail(failureCause(outputStageInfo));
+      stateMachine.fail(failureCause(outputStage.get().getStageInfo()));
     }
  else     if (outputStageState == StageState.CANCELED) {
       stateMachine.fail(new PrestoException(USER_CANCELED,"Query was canceled"));
@@ -15,7 +14,7 @@
     }
   }
  else   if (stateMachine.getQueryState() == QueryState.STARTING) {
-    if (!outputStageInfo.getTasks().isEmpty()) {
+    if (!outputStage.get().getStageInfo().getTasks().isEmpty()) {
       stateMachine.running();
       stateMachine.recordExecutionStart();
     }
