@@ -1,0 +1,18 @@
+{
+  long newReservation=memoryReservation.getAndAdd(bytes);
+  if (newReservation > maxMemoryReservation) {
+    memoryReservation.getAndAdd(-bytes);
+    if (!noFail) {
+      throw new ExceededMemoryLimitException(getMaxMemorySize());
+    }
+    return false;
+  }
+  boolean result=driverContext.reserveMemory(bytes);
+  if (!result) {
+    memoryReservation.getAndAdd(-bytes);
+    if (!noFail) {
+      throw new ExceededMemoryLimitException(getMaxMemorySize());
+    }
+  }
+  return result;
+}

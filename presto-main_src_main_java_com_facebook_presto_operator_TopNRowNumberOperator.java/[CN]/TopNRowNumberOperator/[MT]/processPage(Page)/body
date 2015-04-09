@@ -4,9 +4,7 @@
     GroupByHash hash=groupByHash.get();
     long groupByHashSize=hash.getEstimatedSize();
     partitionIds=Optional.of(hash.getGroupIds(page));
-    if (!memoryManager.canUseDelta(hash.getEstimatedSize() - groupByHashSize)) {
-      throw new ExceededMemoryLimitException(memoryManager.getMaxMemorySize());
-    }
+    operatorContext.reserveMemory(hash.getEstimatedSize() - groupByHashSize);
   }
   long sizeDelta=0;
   Block[] blocks=page.getBlocks();
@@ -25,7 +23,5 @@
       sizeDelta+=partitionBuilder.replaceRow(row);
     }
   }
-  if (!memoryManager.canUseDelta(sizeDelta)) {
-    throw new ExceededMemoryLimitException(memoryManager.getMaxMemorySize());
-  }
+  operatorContext.reserveMemory(sizeDelta);
 }
