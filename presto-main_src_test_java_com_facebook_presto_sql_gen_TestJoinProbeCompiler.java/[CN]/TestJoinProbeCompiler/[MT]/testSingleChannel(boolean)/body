@@ -1,6 +1,5 @@
 {
   DriverContext driverContext=taskContext.addPipelineContext(true,true).addDriverContext();
-  OperatorContext operatorContext=driverContext.addOperatorContext(0,ValuesOperator.class.getSimpleName());
   ImmutableList<Type> types=ImmutableList.<Type>of(VARCHAR);
   LookupSourceFactory lookupSourceFactoryFactory=joinCompiler.compileLookupSourceFactory(types,Ints.asList(0));
   List<Block> channel=ImmutableList.of(BlockAssertions.createStringSequenceBlock(10,20),BlockAssertions.createStringSequenceBlock(20,30),BlockAssertions.createStringSequenceBlock(15,25));
@@ -22,7 +21,7 @@
     hashChannel=Optional.of(1);
     channels=ImmutableList.of(channel,hashChannelBuilder.build());
   }
-  LookupSource lookupSource=lookupSourceFactoryFactory.createLookupSource(addresses,types,channels,hashChannel,operatorContext);
+  LookupSource lookupSource=lookupSourceFactoryFactory.createLookupSource(addresses,types,channels,hashChannel);
   JoinProbeCompiler joinProbeCompiler=new JoinProbeCompiler();
   JoinProbeFactory probeFactory=joinProbeCompiler.internalCompileJoinProbe(types,Ints.asList(0),hashChannel);
   Page page=SequencePageBuilder.createSequencePage(types,10,10);
