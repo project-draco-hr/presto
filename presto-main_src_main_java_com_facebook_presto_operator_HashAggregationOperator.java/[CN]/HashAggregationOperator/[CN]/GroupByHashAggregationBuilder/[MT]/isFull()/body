@@ -3,5 +3,9 @@
   for (  Aggregator aggregator : aggregators) {
     memorySize+=aggregator.getEstimatedSize();
   }
-  return !memoryManager.canUse(memorySize);
+  memorySize-=operatorContext.getOperatorPreAllocatedMemory().toBytes();
+  if (memorySize < 0) {
+    memorySize=0;
+  }
+  return operatorContext.setMemoryReservation(memorySize,true) != memorySize;
 }
