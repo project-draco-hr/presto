@@ -1,3 +1,9 @@
 {
-  return Iterables.getOnlyElement(inputProperties);
+  ActualProperties properties=Iterables.getOnlyElement(inputProperties);
+  ImmutableList.Builder<LocalProperty<Symbol>> localProperties=ImmutableList.builder();
+  localProperties.add(new GroupingProperty<>(node.getPartitionBy()));
+  for (  Symbol column : node.getOrderBy()) {
+    localProperties.add(new SortingProperty<>(column,node.getOrderings().get(column)));
+  }
+  return ActualProperties.builder().partitioned(properties).coordinatorOnly(properties).local(localProperties.build()).build();
 }
