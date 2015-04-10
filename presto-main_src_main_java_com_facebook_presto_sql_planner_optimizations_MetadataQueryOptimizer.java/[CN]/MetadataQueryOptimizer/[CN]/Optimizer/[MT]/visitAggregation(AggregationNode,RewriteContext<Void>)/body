@@ -23,16 +23,22 @@
   }
   Map<Symbol,ColumnHandle> columns=columnBuilder.build();
   Map<Symbol,Type> types=typesBuilder.build();
-  List<Partition> partitions;
-  if (tableScan.getGeneratedPartitions().isPresent()) {
-    partitions=tableScan.getGeneratedPartitions().get().getPartitions();
+  TableLayout layout=null;
+  if (!tableScan.getLayout().isPresent()) {
+    List<TableLayoutResult> layouts=metadata.getLayouts(tableScan.getTable(),Optional.empty(),Constraint.<ColumnHandle>alwaysTrue());
+    if (layouts.size() == 1) {
+      layout=Iterables.getOnlyElement(layouts).getLayout();
+    }
   }
  else {
-    partitions=splitManager.getPartitions(result.get().getTable(),Optional.of(tableScan.getPartitionsDomainSummary())).getPartitions();
+    layout=metadata.getLayout(tableScan.getLayout().get());
+  }
+  if (layout == null || !layout.getDiscretePredicates().isPresent()) {
+    return context.defaultRewrite(node);
   }
   ImmutableList.Builder<List<Expression>> rowsBuilder=ImmutableList.builder();
-  for (  Partition partition : partitions) {
-    Map<ColumnHandle,SerializableNativeValue> entries=partition.getTupleDomain().extractNullableFixedValues();
+  for (  TupleDomain<ColumnHandle> domain : layout.getDiscretePredicates().get()) {
+    Map<ColumnHandle,SerializableNativeValue> entries=domain.extractNullableFixedValues();
     ImmutableList.Builder<Expression> rowBuilder=ImmutableList.builder();
     for (    Symbol input : inputs) {
       ColumnHandle column=columns.get(input);

@@ -1,8 +1,10 @@
 {
-  if (!bindings.containsKey(symbol)) {
+  ColumnHandle column=assignments.get(symbol);
+  checkArgument(column != null,"Missing column assignment for %s",symbol);
+  if (!bindings.containsKey(column)) {
     return new QualifiedNameReference(symbol.toQualifiedName());
   }
-  Object value=bindings.get(symbol);
+  Object value=bindings.get(column);
   if (value instanceof String) {
     return Slices.wrappedBuffer(((String)value).getBytes(UTF_8));
   }

@@ -1,20 +1,2 @@
 {
-  TupleDomain<ColumnHandle> partitionsDomainSummary=node.getPartitionsDomainSummary();
-  print(indent,"- TableScan[%s, original constraint=%s] => [%s]",node.getTable(),node.getOriginalConstraint(),formatOutputs(node.getOutputSymbols()));
-  Set<Symbol> outputs=ImmutableSet.copyOf(node.getOutputSymbols());
-  for (  Map.Entry<Symbol,ColumnHandle> entry : node.getAssignments().entrySet()) {
-    boolean isOutputSymbol=outputs.contains(entry.getKey());
-    boolean isInOriginalConstraint=node.getOriginalConstraint() == null ? false : DependencyExtractor.extractUnique(node.getOriginalConstraint()).contains(entry.getKey());
-    boolean isInDomainSummary=!partitionsDomainSummary.isNone() && partitionsDomainSummary.getDomains().keySet().contains(entry.getValue());
-    if (isOutputSymbol || isInOriginalConstraint || isInDomainSummary) {
-      print(indent + 2,"%s := %s",entry.getKey(),entry.getValue());
-      if (isInDomainSummary) {
-        print(indent + 3,":: %s",formatDomain(node.getTable(),entry.getValue(),simplifyDomain(partitionsDomainSummary.getDomains().get(entry.getValue()))));
-      }
- else       if (partitionsDomainSummary.isNone()) {
-        print(indent + 3,":: NONE");
-      }
-    }
-  }
-  return null;
 }

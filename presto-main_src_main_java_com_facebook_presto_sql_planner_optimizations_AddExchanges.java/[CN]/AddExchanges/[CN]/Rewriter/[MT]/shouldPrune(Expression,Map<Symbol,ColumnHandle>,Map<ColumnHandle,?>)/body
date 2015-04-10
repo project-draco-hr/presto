@@ -1,0 +1,13 @@
+{
+  List<Expression> conjuncts=extractConjuncts(predicate);
+  IdentityHashMap<Expression,Type> expressionTypes=getExpressionTypes(session,metadata,parser,symbolAllocator.getTypes(),predicate);
+  LookupSymbolResolver inputs=new LookupSymbolResolver(assignments,bindings);
+  for (  Expression expression : conjuncts) {
+    ExpressionInterpreter optimizer=ExpressionInterpreter.expressionOptimizer(expression,metadata,session,expressionTypes);
+    Object optimized=optimizer.optimize(inputs);
+    if (Boolean.FALSE.equals(optimized) || optimized == null || optimized instanceof NullLiteral) {
+      return true;
+    }
+  }
+  return false;
+}

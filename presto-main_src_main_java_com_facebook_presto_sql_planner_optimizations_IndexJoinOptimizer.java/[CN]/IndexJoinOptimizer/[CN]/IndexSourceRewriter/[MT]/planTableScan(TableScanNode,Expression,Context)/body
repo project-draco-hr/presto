@@ -1,0 +1,18 @@
+{
+  TupleDomain<ColumnHandle> constraint=node.getCurrentConstraint().intersect(DomainTranslator.fromPredicate(metadata,session,predicate,symbolAllocator.getTypes(),node.getAssignments()).getTupleDomain());
+  checkState(node.getOutputSymbols().containsAll(context.getLookupSymbols()));
+  Set<ColumnHandle> lookupColumns=FluentIterable.from(context.getLookupSymbols()).transform(Functions.forMap(node.getAssignments())).toSet();
+  Optional<ResolvedIndex> optionalResolvedIndex=indexManager.resolveIndex(node.getTable(),lookupColumns,constraint);
+  if (!optionalResolvedIndex.isPresent()) {
+    return node;
+  }
+  ResolvedIndex resolvedIndex=optionalResolvedIndex.get();
+  Map<ColumnHandle,Symbol> inverseAssignments=ImmutableBiMap.copyOf(node.getAssignments()).inverse();
+  Expression unresolvedExpression=DomainTranslator.toPredicate(resolvedIndex.getUnresolvedTupleDomain(),inverseAssignments,symbolAllocator.getTypes());
+  PlanNode source=new IndexSourceNode(idAllocator.getNextId(),resolvedIndex.getIndexHandle(),node.getTable(),context.getLookupSymbols(),node.getOutputSymbols(),node.getAssignments(),constraint);
+  if (!unresolvedExpression.equals(TRUE_LITERAL)) {
+    source=new FilterNode(idAllocator.getNextId(),source,unresolvedExpression);
+  }
+  context.markSuccess();
+  return source;
+}

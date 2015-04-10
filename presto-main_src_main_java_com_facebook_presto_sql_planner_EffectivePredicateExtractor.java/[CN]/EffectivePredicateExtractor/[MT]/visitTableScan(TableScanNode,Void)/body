@@ -1,9 +1,3 @@
 {
-  if (!node.getGeneratedPartitions().isPresent()) {
-    return BooleanLiteral.TRUE_LITERAL;
-  }
-  TupleDomain<ColumnHandle> tupleDomain=node.getPartitionsDomainSummary().intersect(node.getGeneratedPartitions().get().getTupleDomainInput());
-  tupleDomain=spanTupleDomain(tupleDomain);
-  Expression partitionPredicate=DomainTranslator.toPredicate(tupleDomain,ImmutableBiMap.copyOf(node.getAssignments()).inverse(),symbolTypes);
-  return pullExpressionThroughSymbols(partitionPredicate,node.getOutputSymbols());
+  return DomainTranslator.toPredicate(spanTupleDomain(node.getCurrentConstraint()),ImmutableBiMap.copyOf(node.getAssignments()).inverse(),symbolTypes);
 }

@@ -1,27 +1,18 @@
 {
   Map<Symbol,ColumnHandle> assignments=Maps.filterKeys(scanAssignments,Predicates.in(ImmutableList.of(A,B,C,D)));
-  PlanNode node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(assignments.keySet()),assignments,null,Optional.empty());
+  PlanNode node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(assignments.keySet()),assignments,Optional.empty(),TupleDomain.all(),null);
   Expression effectivePredicate=EffectivePredicateExtractor.extract(node,TYPES);
   Assert.assertEquals(effectivePredicate,BooleanLiteral.TRUE_LITERAL);
-  node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(assignments.keySet()),assignments,null,Optional.<GeneratedPartitions>of(new GeneratedPartitions(TupleDomain.withColumnDomains(ImmutableMap.<ColumnHandle,Domain>of(scanAssignments.get(A),Domain.singleValue(1L))),ImmutableList.<Partition>of())));
+  node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(assignments.keySet()),assignments,Optional.empty(),TupleDomain.none(),null);
   effectivePredicate=EffectivePredicateExtractor.extract(node,TYPES);
   Assert.assertEquals(effectivePredicate,BooleanLiteral.FALSE_LITERAL);
-  node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(assignments.keySet()),assignments,null,Optional.<GeneratedPartitions>of(new GeneratedPartitions(TupleDomain.withColumnDomains(ImmutableMap.<ColumnHandle,Domain>of(scanAssignments.get(A),Domain.singleValue(1L))),ImmutableList.of(new Partition("test",new TestingPartition())))));
+  node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(assignments.keySet()),assignments,Optional.empty(),TupleDomain.withColumnDomains(ImmutableMap.of(scanAssignments.get(A),Domain.singleValue(1L))),null);
   effectivePredicate=EffectivePredicateExtractor.extract(node,TYPES);
   Assert.assertEquals(normalizeConjuncts(effectivePredicate),normalizeConjuncts(equals(number(1L),AE)));
-  node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(assignments.keySet()),assignments,null,Optional.<GeneratedPartitions>of(new GeneratedPartitions(TupleDomain.withColumnDomains(ImmutableMap.<ColumnHandle,Domain>of(scanAssignments.get(A),Domain.singleValue(1L))),ImmutableList.<Partition>of(tupleDomainPartition("test",TupleDomain.withColumnDomains(ImmutableMap.<ColumnHandle,Domain>of(scanAssignments.get(A),Domain.singleValue(1L),scanAssignments.get(B),Domain.singleValue(2L))))))));
+  node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(assignments.keySet()),assignments,Optional.empty(),TupleDomain.withColumnDomains(ImmutableMap.of(scanAssignments.get(A),Domain.singleValue(1L),scanAssignments.get(B),Domain.singleValue(2L))),null);
   effectivePredicate=EffectivePredicateExtractor.extract(node,TYPES);
   Assert.assertEquals(normalizeConjuncts(effectivePredicate),normalizeConjuncts(equals(number(2L),BE),equals(number(1L),AE)));
-  node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(assignments.keySet()),assignments,null,Optional.<GeneratedPartitions>of(new GeneratedPartitions(TupleDomain.<ColumnHandle>all(),ImmutableList.<Partition>of())));
-  effectivePredicate=EffectivePredicateExtractor.extract(node,TYPES);
-  Assert.assertEquals(effectivePredicate,BooleanLiteral.FALSE_LITERAL);
-  node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(assignments.keySet()),assignments,null,Optional.<GeneratedPartitions>of(new GeneratedPartitions(TupleDomain.<ColumnHandle>all(),ImmutableList.of(new Partition("test",new TestingPartition())))));
+  node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(assignments.keySet()),assignments,Optional.empty(),TupleDomain.all(),null);
   effectivePredicate=EffectivePredicateExtractor.extract(node,TYPES);
   Assert.assertEquals(effectivePredicate,BooleanLiteral.TRUE_LITERAL);
-  node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(assignments.keySet()),assignments,null,Optional.<GeneratedPartitions>of(new GeneratedPartitions(TupleDomain.<ColumnHandle>all(),ImmutableList.of(tupleDomainPartition("test",TupleDomain.withColumnDomains(ImmutableMap.<ColumnHandle,Domain>of(scanAssignments.get(A),Domain.singleValue(1L),scanAssignments.get(B),Domain.singleValue(2L))))))));
-  effectivePredicate=EffectivePredicateExtractor.extract(node,TYPES);
-  Assert.assertEquals(normalizeConjuncts(effectivePredicate),normalizeConjuncts(equals(number(2L),BE),equals(number(1L),AE)));
-  node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.of(A),assignments,null,Optional.<GeneratedPartitions>of(new GeneratedPartitions(TupleDomain.withColumnDomains(ImmutableMap.<ColumnHandle,Domain>of(scanAssignments.get(A),Domain.singleValue(1L),scanAssignments.get(D),Domain.singleValue(3L))),ImmutableList.of(tupleDomainPartition("test",TupleDomain.withColumnDomains(ImmutableMap.<ColumnHandle,Domain>of(scanAssignments.get(A),Domain.singleValue(1L),scanAssignments.get(C),Domain.singleValue(2L))))))));
-  effectivePredicate=EffectivePredicateExtractor.extract(node,TYPES);
-  Assert.assertEquals(normalizeConjuncts(effectivePredicate),normalizeConjuncts(equals(number(1L),AE)));
 }
