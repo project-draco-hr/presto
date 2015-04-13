@@ -1,5 +1,8 @@
 {
-  char[] utf16=codePointChars(codepoint);
-  ByteBuffer utf8=UTF_8.encode(CharBuffer.wrap(utf16));
-  return Slices.wrappedBuffer(utf8.array(),0,utf8.limit());
+  try {
+    return SliceUtf8.codePointToUtf8(Ints.saturatedCast(codepoint));
+  }
+ catch (  InvalidCodePointException e) {
+    throw new PrestoException(INVALID_FUNCTION_ARGUMENT,"Not a valid Unicode code point: " + codepoint,e);
+  }
 }

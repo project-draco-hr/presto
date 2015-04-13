@@ -1,21 +1,32 @@
 {
-  if ((start == 0) || (length <= 0)) {
+  if (start == 0 || (length <= 0) || (utf8.length() == 0)) {
     return Slices.EMPTY_SLICE;
   }
-  if (start > 0) {
-    start--;
-  }
- else {
-    start+=slice.length();
-    if (start < 0) {
+  int startCodePoint=Ints.saturatedCast(start);
+  int lengthCodePoints=Ints.saturatedCast(length);
+  if (startCodePoint > 0) {
+    int indexStart=offsetOfCodePoint(utf8,startCodePoint - 1);
+    if (indexStart < 0) {
       return Slices.EMPTY_SLICE;
     }
+    int indexEnd=offsetOfCodePoint(utf8,indexStart,lengthCodePoints);
+    if (indexEnd < 0) {
+      indexEnd=utf8.length();
+    }
+    return utf8.slice(indexStart,indexEnd - indexStart);
   }
-  if ((start + length) > slice.length()) {
-    length=slice.length() - start;
-  }
-  if (start >= slice.length()) {
+  int codePoints=countCodePoints(utf8);
+  startCodePoint+=codePoints;
+  if (startCodePoint < 0) {
     return Slices.EMPTY_SLICE;
   }
-  return slice.slice((int)start,(int)length);
+  int indexStart=offsetOfCodePoint(utf8,startCodePoint);
+  int indexEnd;
+  if (startCodePoint + lengthCodePoints < codePoints) {
+    indexEnd=offsetOfCodePoint(utf8,indexStart,lengthCodePoints);
+  }
+ else {
+    indexEnd=utf8.length();
+  }
+  return utf8.slice(indexStart,indexEnd - indexStart);
 }

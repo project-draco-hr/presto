@@ -1,3 +1,22 @@
 {
-  return substr(slice,start,slice.length());
+  if ((start == 0) || utf8.length() == 0) {
+    return Slices.EMPTY_SLICE;
+  }
+  int startCodePoint=Ints.saturatedCast(start);
+  if (startCodePoint > 0) {
+    int indexStart=offsetOfCodePoint(utf8,startCodePoint - 1);
+    if (indexStart < 0) {
+      return Slices.EMPTY_SLICE;
+    }
+    int indexEnd=utf8.length();
+    return utf8.slice(indexStart,indexEnd - indexStart);
+  }
+  int codePoints=countCodePoints(utf8);
+  startCodePoint+=codePoints;
+  if (startCodePoint < 0) {
+    return Slices.EMPTY_SLICE;
+  }
+  int indexStart=offsetOfCodePoint(utf8,startCodePoint);
+  int indexEnd=utf8.length();
+  return utf8.slice(indexStart,indexEnd - indexStart);
 }

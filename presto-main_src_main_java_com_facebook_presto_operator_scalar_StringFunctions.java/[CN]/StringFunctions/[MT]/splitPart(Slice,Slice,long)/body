@@ -1,22 +1,28 @@
 {
   checkCondition(index > 0,INVALID_FUNCTION_ARGUMENT,"Index must be greater than zero");
   if (delimiter.length() == 0) {
-    if (index > string.length()) {
+    int startCodePoint=Ints.checkedCast(index);
+    int indexStart=offsetOfCodePoint(string,startCodePoint - 1);
+    if (indexStart < 0) {
       return null;
     }
-    return string.slice((int)(index - 1),1);
-  }
-  int previousIndex=0;
-  int matchCount=0;
-  for (int i=0; i <= (string.length() - delimiter.length()); i++) {
-    if (string.equals(i,delimiter.length(),delimiter,0,delimiter.length())) {
-      matchCount++;
-      if (matchCount == index) {
-        return string.slice(previousIndex,i - previousIndex);
-      }
-      i+=(delimiter.length() - 1);
-      previousIndex=i + 1;
+    int length=lengthOfCodePoint(string,indexStart);
+    if (indexStart + length > string.length()) {
+      throw new PrestoException(INVALID_FUNCTION_ARGUMENT,"Invalid UTF-8 encoding");
     }
+    return string.slice(indexStart,length);
+  }
+  int matchCount=0;
+  int previousIndex=0;
+  while (previousIndex < string.length()) {
+    int matchIndex=string.indexOf(delimiter,previousIndex);
+    if (matchIndex < 0) {
+      break;
+    }
+    if (++matchCount == index) {
+      return string.slice(previousIndex,matchIndex - previousIndex);
+    }
+    previousIndex=matchIndex + delimiter.length();
   }
   if (matchCount == index - 1) {
     return string.slice(previousIndex,string.length() - previousIndex);

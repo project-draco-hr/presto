@@ -29,6 +29,14 @@
   assertFunction("SPLIT_PART('abcdddddef', 'dd', 3)",VARCHAR,"def");
   assertFunction("SPLIT_PART('a/b/c', '/', 4)",VARCHAR,null);
   assertFunction("SPLIT_PART('a/b/c/', '/', 4)",VARCHAR,"");
+  assertFunction("SPLIT_PART('\u4FE1\u5FF5,\u7231,\u5E0C\u671B', ',', 1)",VARCHAR,"\u4FE1\u5FF5");
+  assertFunction("SPLIT_PART('\u4FE1\u5FF5,\u7231,\u5E0C\u671B', ',', 2)",VARCHAR,"\u7231");
+  assertFunction("SPLIT_PART('\u4FE1\u5FF5,\u7231,\u5E0C\u671B', ',', 3)",VARCHAR,"\u5E0C\u671B");
+  assertFunction("SPLIT_PART('\u4FE1\u5FF5,\u7231,\u5E0C\u671B', ',', 4)",VARCHAR,null);
+  assertFunction("SPLIT_PART('\u8B49\u8BC1\u8A3C', '\u8BC1', 1)",VARCHAR,"\u8B49");
+  assertFunction("SPLIT_PART('\u8B49\u8BC1\u8A3C', '\u8BC1', 2)",VARCHAR,"\u8A3C");
+  assertFunction("SPLIT_PART('\u8B49\u8BC1\u8A3C', '\u8BC1', 3)",VARCHAR,null);
   assertInvalidFunction("SPLIT_PART('abc', '', 0)","Index must be greater than zero");
   assertInvalidFunction("SPLIT_PART('abc', '', -1)","Index must be greater than zero");
+  assertInvalidFunction("SPLIT_PART(utf8(from_hex('CE')), '', 1)","Invalid UTF-8 encoding");
 }

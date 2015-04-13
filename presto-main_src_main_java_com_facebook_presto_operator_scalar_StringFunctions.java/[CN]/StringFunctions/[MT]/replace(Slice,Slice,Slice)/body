@@ -1,4 +1,43 @@
 {
-  String replaced=str.toString(UTF_8).replace(search.toString(UTF_8),replace.toString(UTF_8));
-  return Slices.copiedBuffer(replaced,UTF_8);
+  if (search.length() == 0) {
+    Slice buffer=Slices.allocate((countCodePoints(str) + 1) * replace.length() + str.length());
+    buffer.setBytes(0,replace);
+    int indexBuffer=replace.length();
+    int index=0;
+    while (index < str.length()) {
+      int startByte=str.getUnsignedByte(index);
+      int codePointLength=lengthOfCodePoint(startByte);
+      buffer.setBytes(indexBuffer,str,index,codePointLength);
+      indexBuffer+=codePointLength;
+      buffer.setBytes(indexBuffer,replace);
+      indexBuffer+=replace.length();
+      index+=codePointLength;
+    }
+    return buffer;
+  }
+  Slice buffer=Slices.allocate(str.length());
+  int index=0;
+  int indexBuffer=0;
+  while (index < str.length()) {
+    int matchIndex=str.indexOf(search,index);
+    if (matchIndex < 0) {
+      int bytesToCopy=str.length() - index;
+      buffer=Slices.ensureSize(buffer,indexBuffer + bytesToCopy);
+      buffer.setBytes(indexBuffer,str,index,bytesToCopy);
+      indexBuffer+=bytesToCopy;
+      break;
+    }
+    int bytesToCopy=matchIndex - index;
+    buffer=Slices.ensureSize(buffer,indexBuffer + bytesToCopy + replace.length());
+    if (bytesToCopy > 0) {
+      buffer.setBytes(indexBuffer,str,index,bytesToCopy);
+      indexBuffer+=bytesToCopy;
+    }
+    if (replace.length() > 0) {
+      buffer.setBytes(indexBuffer,replace);
+      indexBuffer+=replace.length();
+    }
+    index=matchIndex + search.length();
+  }
+  return buffer.slice(0,indexBuffer);
 }
