@@ -11,7 +11,6 @@
   }
   Symbol symbol=Symbol.fromQualifiedName(((QualifiedNameReference)node.getLeft()).getName());
   Type columnType=checkedTypeLookup(symbol);
-  ColumnHandle columnHandle=checkedColumnHandleLookup(symbol);
   Object value=LiteralInterpreter.evaluate(metadata,session,node.getRight());
   if (value instanceof Double && columnType.equals(BIGINT)) {
     return process(coerceDoubleToLongComparison(node),complement);
@@ -20,5 +19,5 @@
     value=((Long)value).doubleValue();
   }
   verifyType(columnType,value);
-  return createComparisonExtractionResult(node.getType(),columnHandle,columnType,objectToComparable(value),complement);
+  return createComparisonExtractionResult(node.getType(),symbol,columnType,objectToComparable(value),complement);
 }
