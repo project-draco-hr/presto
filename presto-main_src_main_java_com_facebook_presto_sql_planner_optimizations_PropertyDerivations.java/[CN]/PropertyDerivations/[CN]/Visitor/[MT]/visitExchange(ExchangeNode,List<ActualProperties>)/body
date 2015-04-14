@@ -2,11 +2,11 @@
   ActualProperties properties=inputProperties.get(0);
 switch (node.getType()) {
 case GATHER:
-    return ActualProperties.unpartitioned();
+    return ActualProperties.builder().unpartitioned().constants(properties).build();
 case REPARTITION:
-  return ActualProperties.hashPartitioned(node.getPartitionKeys());
+  return ActualProperties.builder().hashPartitioned(node.getPartitionKeys()).constants(properties).build();
 case REPLICATE:
-return ActualProperties.partitioned(properties);
+return ActualProperties.builder().partitioned(properties).constants(properties).build();
 }
 throw new UnsupportedOperationException("not yet implemented");
 }
