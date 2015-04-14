@@ -3,5 +3,14 @@
   if (memorySize < 0) {
     memorySize=0;
   }
-  return operatorContext.setMemoryReservation(memorySize,true) != memorySize;
+  try {
+    operatorContext.setMemoryReservation(memorySize);
+    return false;
+  }
+ catch (  ExceededMemoryLimitException e) {
+    if (partial) {
+      return true;
+    }
+    throw e;
+  }
 }

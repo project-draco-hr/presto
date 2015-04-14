@@ -1,3 +1,8 @@
 {
-  return reserveMemory(bytes,false);
+  driverContext.reserveMemory(bytes);
+  long newReservation=memoryReservation.getAndAdd(bytes);
+  if (newReservation > maxMemoryReservation) {
+    memoryReservation.getAndAdd(-bytes);
+    throw new ExceededMemoryLimitException(getMaxMemorySize());
+  }
 }
