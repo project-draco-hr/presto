@@ -1,0 +1,9 @@
+{
+  if (useParquetColumnNames) {
+    return messageType.getType(column.getName());
+  }
+  if (column.getHiveColumnIndex() >= messageType.getFieldCount()) {
+    throw new PrestoException(HIVE_BAD_DATA,format("Hive column index (%s) should be in Parquet field range (%s)",column.getHiveColumnIndex(),messageType.getFieldCount()));
+  }
+  return messageType.getType(column.getHiveColumnIndex());
+}
