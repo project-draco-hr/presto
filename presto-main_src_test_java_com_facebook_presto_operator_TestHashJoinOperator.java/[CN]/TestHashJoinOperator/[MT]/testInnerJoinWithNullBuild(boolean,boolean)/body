@@ -1,19 +1,12 @@
 {
-  DriverContext driverContext=taskContext.addPipelineContext(true,true).addDriverContext();
-  OperatorContext operatorContext=driverContext.addOperatorContext(0,ValuesOperator.class.getSimpleName());
+  TaskContext taskContext=createTaskContext();
   List<Type> buildTypes=ImmutableList.<Type>of(VARCHAR);
-  RowPagesBuilder buildPages=rowPagesBuilder(buildHashEnabled,Ints.asList(0),buildTypes);
-  Operator buildOperator=new ValuesOperator(operatorContext,buildTypes,buildPages.row("a").row((String)null).row((String)null).row("a").row("b").build());
-  HashBuilderOperatorFactory hashBuilderOperatorFactory=new HashBuilderOperatorFactory(1,buildPages.getTypes(),Ints.asList(0),buildPages.getHashChannel(),100);
-  Operator sourceHashProvider=hashBuilderOperatorFactory.createOperator(driverContext);
-  Driver driver=new Driver(driverContext,buildOperator,sourceHashProvider);
-  while (!driver.isFinished()) {
-    driver.process();
-  }
+  RowPagesBuilder buildPages=rowPagesBuilder(buildHashEnabled,Ints.asList(0),buildTypes).row("a").row((String)null).row((String)null).row("a").row("b");
+  LookupSourceSupplier lookupSourceSupplier=buildHash(taskContext,Ints.asList(0),buildPages);
   List<Type> probeTypes=ImmutableList.<Type>of(VARCHAR);
   RowPagesBuilder probePages=rowPagesBuilder(probeHashEnabled,Ints.asList(0),probeTypes);
   List<Page> probeInput=probePages.row("a").row("b").row("c").build();
-  OperatorFactory joinOperatorFactory=LookupJoinOperators.innerJoin(0,hashBuilderOperatorFactory.getLookupSourceSupplier(),probePages.getTypes(),Ints.asList(0),probePages.getHashChannel());
+  OperatorFactory joinOperatorFactory=LookupJoinOperators.innerJoin(0,lookupSourceSupplier,probePages.getTypes(),Ints.asList(0),probePages.getHashChannel());
   Operator joinOperator=joinOperatorFactory.createOperator(taskContext.addPipelineContext(true,true).addDriverContext());
   MaterializedResult expected=MaterializedResult.resultBuilder(taskContext.getSession(),concat(probeTypes,buildTypes)).row("a","a").row("a","a").row("b","b").build();
   assertOperatorEquals(joinOperator,probeInput,expected,true,getHashChannels(probePages,buildPages));
