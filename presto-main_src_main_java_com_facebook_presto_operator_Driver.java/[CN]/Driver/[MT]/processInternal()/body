@@ -4,6 +4,21 @@
     if (!newSources.isEmpty()) {
       processNewSources();
     }
+    if (operators.size() == 1) {
+      if (driverContext.isDone()) {
+        return NOT_BLOCKED;
+      }
+      Operator current=operators.get(0);
+      ListenableFuture<?> blocked=isBlocked(current);
+      if (!blocked.isDone()) {
+        current.getOperatorContext().recordBlocked(blocked);
+        return blocked;
+      }
+      current.getOperatorContext().startIntervalTimer();
+      current.finish();
+      current.getOperatorContext().recordFinish();
+      return NOT_BLOCKED;
+    }
     boolean movedPage=false;
     for (int i=0; i < operators.size() - 1 && !driverContext.isDone(); i++) {
       Operator current=operators.get(i);

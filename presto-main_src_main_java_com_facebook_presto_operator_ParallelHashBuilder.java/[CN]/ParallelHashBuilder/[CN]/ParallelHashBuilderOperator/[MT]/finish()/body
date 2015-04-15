@@ -1,0 +1,10 @@
+{
+  if (finished) {
+    return;
+  }
+  PagesIndex pagesIndex=Futures.getUnchecked(pagesIndexFuture);
+  LookupSource lookupSource=pagesIndex.createLookupSource(hashChannels,hashChannel);
+  operatorContext.setMemoryReservation(pagesIndex.getEstimatedSize().toBytes() + lookupSource.getInMemorySizeInBytes());
+  lookupSourceFuture.set(lookupSource);
+  finished=true;
+}

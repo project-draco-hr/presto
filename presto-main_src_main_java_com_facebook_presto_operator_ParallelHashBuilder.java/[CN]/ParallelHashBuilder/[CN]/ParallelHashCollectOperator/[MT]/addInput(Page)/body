@@ -1,0 +1,19 @@
+{
+  checkNotNull(page,"page is null");
+  checkState(!isFinished(),"Operator is already finished");
+  BlockBuilder blockBuilder=BIGINT.createBlockBuilder(new BlockBuilderStatus(),page.getPositionCount());
+  for (int position=0; position < page.getPositionCount(); position++) {
+    int rawHash=hashGenerator.hashPosition(position,page);
+    int partition=murmurHash3(rawHash) & parallelStreamMask;
+    BIGINT.writeLong(blockBuilder,partition);
+  }
+  Block partitionIds=blockBuilder.build();
+  long size=0;
+  for (int partition=0; partition < partitions.length; partition++) {
+    PagesIndex index=partitions[partition];
+    index.addPage(page,partition,partitionIds);
+    size+=index.getEstimatedSize().toBytes();
+  }
+  operatorContext.setMemoryReservation(size);
+  operatorContext.recordGeneratedOutput(page.getSizeInBytes(),page.getPositionCount());
+}
