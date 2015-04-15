@@ -1,6 +1,13 @@
 {
-  checkState(state == State.NEEDS_INPUT,"Operator is already finishing");
-  checkNotNull(page,"page is null");
-  pagesIndex.addPage(page);
+  checkState(state == State.NEEDS_INPUT,"Operator can not take input at this time");
+  requireNonNull(page,"page is null");
+  checkState(pendingInput == null,"Operator already has pending input");
+  if (page.getPositionCount() == 0) {
+    return;
+  }
+  pendingInput=page;
+  if (processPendingInput()) {
+    state=State.HAS_OUTPUT;
+  }
   operatorContext.setMemoryReservation(pagesIndex.getEstimatedSize().toBytes());
 }

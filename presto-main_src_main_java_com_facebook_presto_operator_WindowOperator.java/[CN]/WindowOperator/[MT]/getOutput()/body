@@ -1,26 +1,8 @@
 {
-  if (state != State.HAS_OUTPUT) {
+  if (state == State.NEEDS_INPUT || state == State.FINISHED) {
     return null;
   }
-  pageBuilder.reset();
-  while (!pageBuilder.isFull()) {
-    if (partition == null || !partition.hasNext()) {
-      int partitionStart=partition == null ? 0 : partition.getPartitionEnd();
-      if (partitionStart >= pagesIndex.getPositionCount()) {
-        break;
-      }
-      int partitionEnd=partitionStart + 1;
-      while ((partitionEnd < pagesIndex.getPositionCount()) && pagesIndex.positionEqualsPosition(partitionHashStrategy,partitionStart,partitionEnd)) {
-        partitionEnd++;
-      }
-      partition=new WindowPartition(pagesIndex,partitionStart,partitionEnd,outputChannels,windowFunctions,frameInfo,peerGroupHashStrategy);
-    }
-    partition.processNextRow(pageBuilder);
-  }
-  if (pageBuilder.isEmpty()) {
-    state=State.FINISHED;
-    return null;
-  }
-  Page page=pageBuilder.build();
+  Page page=extractOutput();
+  operatorContext.setMemoryReservation(pagesIndex.getEstimatedSize().toBytes());
   return page;
 }

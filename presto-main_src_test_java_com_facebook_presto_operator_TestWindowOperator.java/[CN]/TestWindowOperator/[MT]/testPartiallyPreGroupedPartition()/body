@@ -1,0 +1,7 @@
+{
+  List<Page> input=rowPagesBuilder(BIGINT,VARCHAR,BIGINT,VARCHAR).pageBreak().row(1,"a",100,"A").row(2,"a",101,"B").pageBreak().row(3,"b",102,"E").row(1,"b",103,"D").pageBreak().row(3,"b",104,"C").row(1,"c",105,"F").pageBreak().build();
+  WindowOperatorFactory operatorFactory=createFactoryUnbounded(ImmutableList.of(BIGINT,VARCHAR,BIGINT,VARCHAR),Ints.asList(0,1,2,3),ROW_NUMBER,Ints.asList(0,1),Ints.asList(1),Ints.asList(3),ImmutableList.of(SortOrder.ASC_NULLS_LAST),0);
+  Operator operator=operatorFactory.createOperator(driverContext);
+  MaterializedResult expected=resultBuilder(driverContext.getSession(),BIGINT,VARCHAR,BIGINT,VARCHAR,BIGINT).row(1,"a",100,"A",1).row(2,"a",101,"B",1).row(3,"b",104,"C",1).row(3,"b",102,"E",2).row(1,"b",103,"D",1).row(1,"c",105,"F",1).build();
+  assertOperatorEqualsIgnoreOrder(operator,input,expected);
+}
