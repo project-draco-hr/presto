@@ -1,5 +1,5 @@
 {
-  Type type=metadata.getType(parseTypeSignature(node.getType()));
+  Type type=typeManager.getType(parseTypeSignature(node.getType()));
   if (type == null) {
     throw new SemanticException(TYPE_MISMATCH,node,"Unknown type: " + node.getType());
   }
@@ -9,7 +9,7 @@
   Type value=process(node.getExpression(),context);
   if (!value.equals(UNKNOWN)) {
     try {
-      metadata.getFunctionRegistry().getCoercion(value,type);
+      functionRegistry.getCoercion(value,type);
     }
  catch (    OperatorNotFoundException e) {
       throw new SemanticException(TYPE_MISMATCH,node,"Cannot cast %s to %s",value,type);

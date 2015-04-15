@@ -5,17 +5,17 @@
   }
   FunctionInfo operatorInfo;
   try {
-    operatorInfo=metadata.resolveOperator(operatorType,argumentTypes.build());
+    operatorInfo=functionRegistry.resolveOperator(operatorType,argumentTypes.build());
   }
  catch (  OperatorNotFoundException e) {
     throw new SemanticException(TYPE_MISMATCH,node,e.getMessage());
   }
   for (int i=0; i < arguments.length; i++) {
     Expression expression=arguments[i];
-    Type type=metadata.getType(operatorInfo.getArgumentTypes().get(i));
+    Type type=typeManager.getType(operatorInfo.getArgumentTypes().get(i));
     coerceType(context,expression,type,String.format("Operator %s argument %d",operatorInfo,i));
   }
-  Type type=metadata.getType(operatorInfo.getReturnType());
+  Type type=typeManager.getType(operatorInfo.getReturnType());
   expressionTypes.put(node,type);
   return type;
 }
