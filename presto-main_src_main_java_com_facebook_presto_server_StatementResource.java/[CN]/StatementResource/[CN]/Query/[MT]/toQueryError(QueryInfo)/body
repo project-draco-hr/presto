@@ -8,13 +8,13 @@
     log.warn("Query %s in state %s has no failure info",queryInfo.getQueryId(),state);
     failure=toFailure(new RuntimeException(format("Query is %s (reason unknown)",state))).toFailureInfo();
   }
-  int errorCode;
+  ErrorCode errorCode;
   if (queryInfo.getErrorCode() != null) {
-    errorCode=queryInfo.getErrorCode().getCode();
+    errorCode=queryInfo.getErrorCode();
   }
  else {
-    errorCode=INTERNAL_ERROR.toErrorCode().getCode();
+    errorCode=INTERNAL_ERROR.toErrorCode();
     log.warn("Failed query %s has no error code",queryInfo.getQueryId());
   }
-  return new QueryError(failure.getMessage(),null,errorCode,failure.getErrorLocation(),failure);
+  return new QueryError(failure.getMessage(),null,errorCode.getCode(),errorCode.getName(),toErrorType(errorCode.getCode()).toString(),failure.getErrorLocation(),failure);
 }
