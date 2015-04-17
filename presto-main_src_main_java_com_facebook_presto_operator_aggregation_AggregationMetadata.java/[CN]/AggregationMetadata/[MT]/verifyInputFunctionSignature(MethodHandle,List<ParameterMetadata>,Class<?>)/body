@@ -2,15 +2,17 @@
   Class<?>[] parameters=method.type().parameterArray();
   checkArgument(stateInterface == parameters[0],"First argument of aggregation input function must be %s",stateInterface.getSimpleName());
   checkArgument(parameters.length > 0,"Aggregation input function must have at least one parameter");
-  checkArgument(parameterMetadatas.get(0).getParameterType() == ParameterMetadata.ParameterType.STATE,"First parameter must be state");
+  checkArgument(parameterMetadatas.get(0).getParameterType() == STATE,"First parameter must be state");
   for (int i=1; i < parameters.length; i++) {
     ParameterMetadata metadata=parameterMetadatas.get(i);
 switch (metadata.getParameterType()) {
+case BLOCK_INPUT_CHANNEL:
 case NULLABLE_BLOCK_INPUT_CHANNEL:
-      checkArgument(parameters[i] == Block.class,"Parameter must be Block if it has @Nullable");
+      checkArgument(parameters[i] == Block.class,"Parameter must be Block if it has @BlockPosition");
     break;
 case INPUT_CHANNEL:
   checkArgument(SUPPORTED_PARAMETER_TYPES.contains(parameters[i]),"Unsupported type: %s",parameters[i].getSimpleName());
+checkArgument(parameters[i] == metadata.getSqlType().getJavaType(),"Expected method %s parameter %s type to be %s (%s)",method,i,metadata.getSqlType().getJavaType().getName(),metadata.getSqlType());
 break;
 case BLOCK_INDEX:
 checkArgument(parameters[i] == int.class,"Block index parameter must be an int");
