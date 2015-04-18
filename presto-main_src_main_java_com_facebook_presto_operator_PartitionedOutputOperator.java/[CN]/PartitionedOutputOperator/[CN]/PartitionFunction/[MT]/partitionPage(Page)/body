@@ -1,0 +1,13 @@
+{
+  requireNonNull(page,"page is null");
+  for (int position=0; position < page.getPositionCount(); position++) {
+    int partitionHashBucket=hashGenerator.getPartitionHashBucket(partitionCount,position,page);
+    PageBuilder pageBuilder=pageBuilders.get(partitionHashBucket);
+    pageBuilder.declarePosition();
+    for (int channel=0; channel < sourceTypes.size(); channel++) {
+      Type type=sourceTypes.get(channel);
+      type.appendTo(page.getBlock(channel),position,pageBuilder.getBlockBuilder(channel));
+    }
+  }
+  return flush(false);
+}

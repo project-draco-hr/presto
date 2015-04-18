@@ -9,7 +9,17 @@
   try (SetThreadName ignored=new SetThreadName("Task-%s",taskId)){
     List<DriverFactory> driverFactories;
     try {
-      LocalExecutionPlan localExecutionPlan=planner.plan(taskContext.getSession(),fragment.getRoot(),fragment.getOutputLayout(),fragment.getSymbols(),fragment.getDistribution(),new TaskOutputFactory(sharedBuffer));
+      OutputFactory outputOperatorFactory;
+      if (fragment.getOutputPartitioning() == OutputPartitioning.NONE) {
+        outputOperatorFactory=new TaskOutputFactory(sharedBuffer);
+      }
+ else       if (fragment.getOutputPartitioning() == OutputPartitioning.HASH) {
+        outputOperatorFactory=new PartitionedOutputFactory(sharedBuffer);
+      }
+ else {
+        throw new PrestoException(NOT_SUPPORTED,format("OutputPartitioning %s is not supported",fragment.getOutputPartitioning()));
+      }
+      LocalExecutionPlan localExecutionPlan=planner.plan(taskContext.getSession(),fragment.getRoot(),fragment.getOutputLayout(),fragment.getSymbols(),fragment.getDistribution(),outputOperatorFactory);
       driverFactories=localExecutionPlan.getDriverFactories();
     }
  catch (    Throwable e) {

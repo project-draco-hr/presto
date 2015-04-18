@@ -1,0 +1,16 @@
+{
+  List<ListenableFuture<?>> blockedFutures=new ArrayList<>();
+  for (int partition=0; partition < partitionCount; partition++) {
+    PageBuilder partitionPageBuilder=pageBuilders.get(partition);
+    if (!partitionPageBuilder.isEmpty() && (force || partitionPageBuilder.isFull())) {
+      Page pagePartition=partitionPageBuilder.build();
+      partitionPageBuilder.reset();
+      blockedFutures.add(sharedBuffer.enqueue(pagePartition));
+    }
+  }
+  ListenableFuture<?> future=Futures.allAsList(blockedFutures);
+  if (future.isDone()) {
+    return NOT_BLOCKED;
+  }
+  return future;
+}
