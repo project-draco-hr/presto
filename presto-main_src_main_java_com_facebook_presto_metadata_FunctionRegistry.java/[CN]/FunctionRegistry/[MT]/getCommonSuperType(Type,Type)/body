@@ -17,5 +17,11 @@
   if ((firstType.equals(TIMESTAMP) || firstType.equals(TIMESTAMP_WITH_TIME_ZONE)) && (secondType.equals(TIMESTAMP) || secondType.equals(TIMESTAMP_WITH_TIME_ZONE))) {
     return Optional.<Type>of(TIMESTAMP_WITH_TIME_ZONE);
   }
+  if (firstType instanceof ArrayType && secondType instanceof ArrayType) {
+    Optional<Type> elementType=getCommonSuperType(((ArrayType)firstType).getElementType(),((ArrayType)secondType).getElementType());
+    if (elementType.isPresent()) {
+      return Optional.of(new ArrayType(elementType.get()));
+    }
+  }
   return Optional.empty();
 }
