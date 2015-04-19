@@ -11,8 +11,9 @@
   ImmutableMap.Builder<Symbol,List<Symbol>> unnestSymbols=ImmutableMap.builder();
   Iterator<Symbol> unnestedSymbolsIterator=unnestedSymbols.iterator();
   for (  Expression expression : node.getExpressions()) {
-    values.add(evaluateConstantExpression(expression));
+    Object constantValue=evaluateConstantExpression(expression);
     Type type=analysis.getType(expression);
+    values.add(LiteralInterpreter.toExpression(constantValue,type));
     Symbol inputSymbol=symbolAllocator.newSymbol(expression,type);
     argumentSymbols.add(inputSymbol);
     if (type instanceof ArrayType) {
