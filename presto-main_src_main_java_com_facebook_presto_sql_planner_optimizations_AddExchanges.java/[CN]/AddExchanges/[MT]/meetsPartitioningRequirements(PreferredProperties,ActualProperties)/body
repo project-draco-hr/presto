@@ -1,0 +1,13 @@
+{
+  if (!preferred.getPartitioningProperties().isPresent()) {
+    return true;
+  }
+  PartitioningPreferences partitioningPreferences=preferred.getPartitioningProperties().get();
+  if (!partitioningPreferences.isPartitioned()) {
+    return !actual.isPartitioned();
+  }
+  if (!partitioningPreferences.getPartitioningColumns().isPresent()) {
+    return actual.isPartitioned();
+  }
+  return actual.isPartitionedOn(partitioningPreferences.getPartitioningColumns().get());
+}
