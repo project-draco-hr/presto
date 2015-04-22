@@ -1,0 +1,15 @@
+{
+  PeekingIterator<LocalProperty<T>> actualIterator=peekingIterator(normalizeAndPrune(actuals).iterator());
+  Set<T> constants=new HashSet<>();
+  boolean consumeMoreActuals=true;
+  List<Optional<LocalProperty<T>>> result=new ArrayList<>(desired.size());
+  for (  LocalProperty<T> desiredProperty : desired) {
+    while (consumeMoreActuals && actualIterator.hasNext() && desiredProperty.isSimplifiedBy(actualIterator.peek())) {
+      constants.addAll(actualIterator.next().getColumns());
+    }
+    Optional<LocalProperty<T>> simplifiedDesired=desiredProperty.withConstants(constants);
+    consumeMoreActuals&=!simplifiedDesired.isPresent();
+    result.add(simplifiedDesired);
+  }
+  return result;
+}

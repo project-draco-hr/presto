@@ -1,0 +1,12 @@
+{
+  List<LocalProperty<String>> actual=builder().sorted("a",SortOrder.ASC_NULLS_FIRST).grouped("b","c").sorted("d",SortOrder.ASC_NULLS_FIRST).build();
+  assertMatch(actual,builder().grouped("a","b","c","d","e").build(),Optional.of(grouped("e")));
+  assertMatch(actual,builder().grouped("a","b","c","d").build(),Optional.empty());
+  assertMatch(actual,builder().grouped("a","b","c").build(),Optional.empty());
+  assertMatch(actual,builder().grouped("a","b").build(),Optional.of(grouped("b")));
+  assertMatch(actual,builder().grouped("a").build(),Optional.empty());
+  assertMatch(actual,builder().grouped("b").build(),Optional.of(grouped("b")));
+  assertMatch(actual,builder().grouped("d").build(),Optional.of(grouped("d")));
+  assertMatch(actual,builder().sorted("a",SortOrder.ASC_NULLS_FIRST).sorted("b",SortOrder.ASC_NULLS_FIRST).build(),Optional.empty(),Optional.of(sorted("b",SortOrder.ASC_NULLS_FIRST)));
+  assertMatch(actual,builder().sorted("a",SortOrder.ASC_NULLS_FIRST).grouped("b","c","d").grouped("e","a").build(),Optional.empty(),Optional.empty(),Optional.of(grouped("e")));
+}
