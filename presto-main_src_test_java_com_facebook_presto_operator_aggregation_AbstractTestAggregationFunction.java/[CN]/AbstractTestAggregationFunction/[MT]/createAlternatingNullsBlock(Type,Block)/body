@@ -1,8 +1,13 @@
 {
-  BlockBuilder blockBuilder=type.createBlockBuilder(new BlockBuilderStatus(),sequenceBlock.getPositionCount() * 2);
-  for (int position=0; position < sequenceBlock.getPositionCount(); position++) {
-    blockBuilder.appendNull();
-    type.appendTo(sequenceBlock,position,blockBuilder);
+  Block[] alternatingNullsBlocks=new Block[sequenceBlocks.length];
+  for (int i=0; i < sequenceBlocks.length; i++) {
+    int positionCount=sequenceBlocks[i].getPositionCount();
+    BlockBuilder blockBuilder=type.createBlockBuilder(new BlockBuilderStatus(),positionCount);
+    for (int position=0; position < positionCount; position++) {
+      blockBuilder.appendNull();
+      type.appendTo(sequenceBlocks[i],position,blockBuilder);
+    }
+    alternatingNullsBlocks[i]=blockBuilder.build();
   }
-  return blockBuilder.build();
+  return alternatingNullsBlocks;
 }
