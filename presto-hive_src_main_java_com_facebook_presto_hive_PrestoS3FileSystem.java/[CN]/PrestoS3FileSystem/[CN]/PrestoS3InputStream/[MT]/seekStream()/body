@@ -1,0 +1,17 @@
+{
+  if ((in != null) && (nextReadPosition == streamPosition)) {
+    return;
+  }
+  if ((in != null) && (nextReadPosition > streamPosition)) {
+    long skip=nextReadPosition - streamPosition;
+    if (skip <= max(in.available(),MAX_SKIP_SIZE.toBytes())) {
+      if (in.skip(skip) == skip) {
+        streamPosition=nextReadPosition;
+        return;
+      }
+    }
+  }
+  streamPosition=nextReadPosition;
+  closeStream();
+  openStream();
+}
