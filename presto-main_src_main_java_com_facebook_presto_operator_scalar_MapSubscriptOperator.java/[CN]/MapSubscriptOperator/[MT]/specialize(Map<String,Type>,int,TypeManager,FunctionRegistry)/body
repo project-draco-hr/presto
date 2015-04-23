@@ -1,9 +1,9 @@
 {
   Type keyType=types.get("K");
   Type valueType=types.get("V");
+  MethodHandle keyEqualsMethod=functionRegistry.resolveOperator(OperatorType.EQUAL,ImmutableList.of(keyType,keyType)).getMethodHandle();
   MethodHandle methodHandle=lookupMethod(keyType,valueType);
-  methodHandle=methodHandle.bindTo(keyType);
-  methodHandle=methodHandle.bindTo(valueType);
+  methodHandle=methodHandle.bindTo(keyEqualsMethod).bindTo(keyType).bindTo(valueType);
   Signature signature=new Signature(SUBSCRIPT.name(),valueType.getTypeSignature(),parameterizedTypeName("map",keyType.getTypeSignature(),valueType.getTypeSignature()),keyType.getTypeSignature());
   return new FunctionInfo(signature,"Map subscript",true,methodHandle,true,true,ImmutableList.of(false,false));
 }
