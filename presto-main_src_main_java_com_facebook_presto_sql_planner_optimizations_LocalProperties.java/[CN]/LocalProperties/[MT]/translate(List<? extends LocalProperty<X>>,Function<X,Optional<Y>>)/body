@@ -1,0 +1,14 @@
+{
+  properties=normalizeAndPrune(properties);
+  ImmutableList.Builder<LocalProperty<Y>> builder=ImmutableList.builder();
+  for (  LocalProperty<X> property : properties) {
+    Optional<LocalProperty<Y>> translated=property.translate(translator);
+    if (translated.isPresent()) {
+      builder.add(translated.get());
+    }
+ else     if (!(property instanceof ConstantProperty)) {
+      break;
+    }
+  }
+  return builder.build();
+}
