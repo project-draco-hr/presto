@@ -1,3 +1,31 @@
 {
-  throw new UnsupportedOperationException("rename");
+  boolean srcDirectory;
+  try {
+    srcDirectory=directory(src);
+  }
+ catch (  FileNotFoundException e) {
+    return false;
+  }
+  try {
+    if (!directory(dst)) {
+      return keysEqual(src,dst);
+    }
+    dst=new Path(dst,src.getName());
+  }
+ catch (  FileNotFoundException e) {
+  }
+  if (keysEqual(src,dst)) {
+    return true;
+  }
+  if (srcDirectory) {
+    for (    FileStatus file : listStatus(src)) {
+      rename(file.getPath(),new Path(dst,file.getPath().getName()));
+    }
+    deleteObject(keyFromPath(src) + DIRECTORY_SUFFIX);
+  }
+ else {
+    s3.copyObject(uri.getHost(),keyFromPath(src),uri.getHost(),keyFromPath(dst));
+    delete(src,true);
+  }
+  return true;
 }

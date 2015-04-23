@@ -1,3 +1,18 @@
 {
-  throw new UnsupportedOperationException("delete");
+  try {
+    if (!directory(path)) {
+      return deleteObject(keyFromPath(path));
+    }
+  }
+ catch (  FileNotFoundException e) {
+    return false;
+  }
+  if (!recursive) {
+    throw new IOException("Directory " + path + " is not empty");
+  }
+  for (  FileStatus file : listStatus(path)) {
+    delete(file.getPath(),true);
+  }
+  deleteObject(keyFromPath(path) + DIRECTORY_SUFFIX);
+  return true;
 }
