@@ -1,2 +1,13 @@
 {
+  AbstractVariableWidthBlock variableWidthBlock=(AbstractVariableWidthBlock)block;
+  int positionCount=variableWidthBlock.getPositionCount();
+  sliceOutput.appendInt(positionCount);
+  int totalLength=0;
+  for (int position=0; position < positionCount; position++) {
+    int length=variableWidthBlock.getLength(position);
+    sliceOutput.appendInt(length);
+    totalLength+=length;
+  }
+  encodeNullsAsBits(sliceOutput,variableWidthBlock);
+  sliceOutput.appendInt(totalLength).writeBytes(variableWidthBlock.getRawSlice(0),variableWidthBlock.getPositionOffset(0),totalLength);
 }
