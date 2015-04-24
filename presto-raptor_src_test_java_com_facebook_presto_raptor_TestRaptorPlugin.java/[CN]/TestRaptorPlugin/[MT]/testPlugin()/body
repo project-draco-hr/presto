@@ -1,8 +1,9 @@
 {
   RaptorPlugin plugin=loadPlugin(RaptorPlugin.class);
   plugin.setNodeManager(new InMemoryNodeManager());
-  plugin.setBlockEncodingSerde(createTestingBlockEncodingManager());
-  plugin.setTypeManager(new TypeRegistry());
+  TypeRegistry typeRegistry=new TypeRegistry();
+  plugin.setTypeManager(typeRegistry);
+  plugin.setBlockEncodingSerde(new BlockEncodingManager(typeRegistry));
   plugin.setPageSorter(new PagesIndexPageSorter());
   List<ConnectorFactory> factories=plugin.getServices(ConnectorFactory.class);
   ConnectorFactory factory=getOnlyElement(factories);
