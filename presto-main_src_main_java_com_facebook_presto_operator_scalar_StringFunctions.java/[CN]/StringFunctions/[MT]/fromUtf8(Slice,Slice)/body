@@ -1,0 +1,19 @@
+{
+  int count=countCodePoints(replacementCharacter);
+  if (count > 1) {
+    throw new PrestoException(INVALID_FUNCTION_ARGUMENT,"Replacement character string must empty or a single character");
+  }
+  OptionalInt replacementCodePoint;
+  if (count == 1) {
+    try {
+      replacementCodePoint=OptionalInt.of(SliceUtf8.getCodePointAt(replacementCharacter,0));
+    }
+ catch (    InvalidUtf8Exception e) {
+      throw new PrestoException(INVALID_FUNCTION_ARGUMENT,"Invalid replacement character");
+    }
+  }
+ else {
+    replacementCodePoint=OptionalInt.empty();
+  }
+  return SliceUtf8.fixInvalidUtf8(slice,replacementCodePoint);
+}
