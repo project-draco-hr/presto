@@ -1,12 +1,9 @@
 {
-  if (positions + 1 >= offsets.length) {
-    offsets=Arrays.copyOf(offsets,offsets.length * 2);
-  }
-  valueIsNull.appendByte(isNull ? 1 : 0);
   positions++;
-  offsets[positions]=sliceOutput.size();
+  valueIsNull.appendByte(isNull ? 1 : 0);
+  offsets.appendInt(sliceOutput.size());
   blockBuilderStatus.addBytes(SIZE_OF_BYTE + SIZE_OF_INT + bytesWritten);
-  if (sliceOutput.size() + ((SIZE_OF_BYTE + SIZE_OF_INT) * positions) >= blockBuilderStatus.getMaxBlockSizeInBytes()) {
+  if (sliceOutput.size() + valueIsNull.size() + offsets.size() >= blockBuilderStatus.getMaxBlockSizeInBytes()) {
     blockBuilderStatus.setFull();
   }
 }
