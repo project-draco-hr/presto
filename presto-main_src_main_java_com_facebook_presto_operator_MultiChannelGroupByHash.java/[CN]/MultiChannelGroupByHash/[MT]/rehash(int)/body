@@ -6,21 +6,21 @@
   int[] newValue=new int[newSize];
   int oldIndex=0;
   for (int groupId=0; groupId < nextGroupId; groupId++) {
-    while (key[oldIndex] == -1) {
+    while (groupAddressByHash[oldIndex] == -1) {
       oldIndex++;
     }
-    long address=key[oldIndex];
+    long address=groupAddressByHash[oldIndex];
     int pos=getHashPosition(hashPosition(address),newMask);
     while (newKey[pos] != -1) {
       pos=(pos + 1) & newMask;
     }
     newKey[pos]=address;
-    newValue[pos]=value[oldIndex];
+    newValue[pos]=groupIdsByHash[oldIndex];
     oldIndex++;
   }
   this.mask=newMask;
   this.maxFill=calculateMaxFill(newSize);
-  this.key=newKey;
-  this.value=newValue;
-  groupAddress.ensureCapacity(maxFill);
+  this.groupAddressByHash=newKey;
+  this.groupIdsByHash=newValue;
+  groupAddressByGroupId.ensureCapacity(maxFill);
 }
