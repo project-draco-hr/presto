@@ -5,6 +5,11 @@
     state.set(pairs);
   }
   long startSize=pairs.estimatedInMemorySize();
-  pairs.add(key,value,position,position);
+  try {
+    pairs.add(key,value,position,position);
+  }
+ catch (  ExceededMemoryLimitException e) {
+    throw new PrestoException(INVALID_FUNCTION_ARGUMENT,format("The result of map_agg may not exceed %s",e.getMaxMemory()));
+  }
   state.addMemoryUsage(pairs.estimatedInMemorySize() - startSize);
 }

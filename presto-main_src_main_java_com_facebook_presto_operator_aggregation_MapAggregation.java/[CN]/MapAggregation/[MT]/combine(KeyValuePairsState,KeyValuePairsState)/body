@@ -5,7 +5,12 @@
     KeyValuePairs pairs=state.get();
     long startSize=pairs.estimatedInMemorySize();
     for (int i=0; i < keys.getPositionCount(); i++) {
-      pairs.add(keys,values,i,i);
+      try {
+        pairs.add(keys,values,i,i);
+      }
+ catch (      ExceededMemoryLimitException e) {
+        throw new PrestoException(INVALID_FUNCTION_ARGUMENT,format("The result of map_agg may not exceed %s",e.getMaxMemory()));
+      }
     }
     state.addMemoryUsage(pairs.estimatedInMemorySize() - startSize);
   }
