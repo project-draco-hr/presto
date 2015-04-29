@@ -1,0 +1,23 @@
+{
+  Matcher matcher=pattern.matcher(source.getBytes());
+  BlockBuilder blockBuilder=VARCHAR.createBlockBuilder(new BlockBuilderStatus(),32);
+  int lastEnd=0;
+  int nextStart=0;
+  while (true) {
+    int offset=matcher.search(nextStart,source.length(),Option.DEFAULT);
+    if (offset == -1) {
+      break;
+    }
+    if (matcher.getEnd() == matcher.getBegin()) {
+      nextStart=matcher.getEnd() + 1;
+    }
+ else {
+      nextStart=matcher.getEnd();
+    }
+    Slice slice=source.slice(lastEnd,matcher.getBegin() - lastEnd);
+    lastEnd=matcher.getEnd();
+    VARCHAR.writeSlice(blockBuilder,slice);
+  }
+  VARCHAR.writeSlice(blockBuilder,source.slice(lastEnd,source.length() - lastEnd));
+  return buildStructuralSlice(blockBuilder);
+}

@@ -1,0 +1,24 @@
+{
+  Matcher matcher=pattern.matcher(source.getBytes());
+  SliceOutput sliceOutput=new DynamicSliceOutput(source.length() + replacement.length() * 5);
+  int lastEnd=0;
+  int nextStart=0;
+  while (true) {
+    int offset=matcher.search(nextStart,source.length(),Option.DEFAULT);
+    if (offset == -1) {
+      break;
+    }
+    if (matcher.getEnd() == matcher.getBegin()) {
+      nextStart=matcher.getEnd() + 1;
+    }
+ else {
+      nextStart=matcher.getEnd();
+    }
+    Slice sliceBetweenReplacements=source.slice(lastEnd,matcher.getBegin() - lastEnd);
+    lastEnd=matcher.getEnd();
+    sliceOutput.appendBytes(sliceBetweenReplacements);
+    appendReplacement(sliceOutput,source,pattern,matcher.getEagerRegion(),replacement);
+  }
+  sliceOutput.appendBytes(source.slice(lastEnd,source.length() - lastEnd));
+  return sliceOutput.slice();
+}

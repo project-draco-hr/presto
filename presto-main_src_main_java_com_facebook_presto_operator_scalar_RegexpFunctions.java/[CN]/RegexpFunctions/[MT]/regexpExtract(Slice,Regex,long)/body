@@ -1,0 +1,17 @@
+{
+  Matcher matcher=pattern.matcher(source.getBytes());
+  validateGroup(groupIndex,matcher.getEagerRegion());
+  int group=Ints.checkedCast(groupIndex);
+  int offset=matcher.search(0,source.length(),Option.DEFAULT);
+  if (offset == -1) {
+    return null;
+  }
+  Region region=matcher.getEagerRegion();
+  int beg=region.beg[group];
+  int end=region.end[group];
+  if (beg == -1) {
+    return null;
+  }
+  Slice slice=source.slice(beg,end - beg);
+  return slice;
+}

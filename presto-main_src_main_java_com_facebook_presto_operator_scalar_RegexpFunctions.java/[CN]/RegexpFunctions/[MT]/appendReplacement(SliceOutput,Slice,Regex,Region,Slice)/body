@@ -1,0 +1,71 @@
+{
+  int idx=0;
+  while (idx < replacement.length()) {
+    byte nextByte=replacement.getByte(idx);
+    if (nextByte == '$') {
+      idx++;
+      if (idx == replacement.length()) {
+        throw new PrestoException(INVALID_FUNCTION_ARGUMENT,"Illegal replacement sequence: " + replacement.toStringUtf8());
+      }
+      nextByte=replacement.getByte(idx);
+      int backref;
+      if (nextByte == '{') {
+        idx++;
+        int startCursor=idx;
+        while (idx < replacement.length()) {
+          nextByte=replacement.getByte(idx);
+          if (nextByte == '}') {
+            break;
+          }
+          idx++;
+        }
+        byte[] groupName=replacement.getBytes(startCursor,idx - startCursor);
+        try {
+          backref=pattern.nameToBackrefNumber(groupName,0,groupName.length,region);
+        }
+ catch (        ValueException e) {
+          throw new PrestoException(INVALID_FUNCTION_ARGUMENT,"Illegal replacement sequence: unknown group { " + new String(groupName,StandardCharsets.UTF_8) + " }");
+        }
+        idx++;
+      }
+ else {
+        backref=nextByte - '0';
+        if (backref < 0 || backref > 9) {
+          throw new PrestoException(INVALID_FUNCTION_ARGUMENT,"Illegal replacement sequence: " + replacement.toStringUtf8());
+        }
+        if (region.numRegs <= backref) {
+          throw new PrestoException(INVALID_FUNCTION_ARGUMENT,"Illegal replacement sequence: unknown group " + backref);
+        }
+        idx++;
+        while (idx < replacement.length()) {
+          int nextDigit=replacement.getByte(idx) - '0';
+          if (nextDigit < 0 || nextDigit > 9) {
+            break;
+          }
+          int newBackref=(backref * 10) + nextDigit;
+          if (region.numRegs <= newBackref) {
+            break;
+          }
+          backref=newBackref;
+          idx++;
+        }
+      }
+      int beg=region.beg[backref];
+      int end=region.end[backref];
+      if (beg != -1 && end != -1) {
+        result.appendBytes(source.slice(beg,end - beg));
+      }
+    }
+ else {
+      if (nextByte == '\\') {
+        idx++;
+        if (idx == replacement.length()) {
+          throw new PrestoException(INVALID_FUNCTION_ARGUMENT,"Illegal replacement sequence: " + replacement.toStringUtf8());
+        }
+        nextByte=replacement.getByte(idx);
+      }
+      result.appendByte(nextByte);
+      idx++;
+    }
+  }
+}

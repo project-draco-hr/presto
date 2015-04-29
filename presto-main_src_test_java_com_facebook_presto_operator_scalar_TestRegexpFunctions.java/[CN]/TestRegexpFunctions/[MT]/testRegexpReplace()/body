@@ -3,4 +3,25 @@
   assertFunction("REGEXP_REPLACE('fun stuff.', '[a-z]', '*')",VARCHAR,"*** *****.");
   assertFunction("REGEXP_REPLACE('call 555.123.4444 now', '(\\d{3})\\.(\\d{3}).(\\d{4})')",VARCHAR,"call  now");
   assertFunction("REGEXP_REPLACE('call 555.123.4444 now', '(\\d{3})\\.(\\d{3}).(\\d{4})', '($1) $2-$3')",VARCHAR,"call (555) 123-4444 now");
+  assertFunction("REGEXP_REPLACE('xxx xxx xxx', 'x', 'x')",VARCHAR,"xxx xxx xxx");
+  assertFunction("REGEXP_REPLACE('xxx xxx xxx', 'x', '\\x')",VARCHAR,"xxx xxx xxx");
+  assertFunction("REGEXP_REPLACE('xxx', '', 'y')",VARCHAR,"yxyxyxy");
+  assertInvalidFunction("REGEXP_REPLACE('xxx', 'x', '\\')",INVALID_FUNCTION_ARGUMENT);
+  assertFunction("REGEXP_REPLACE('xxx xxx xxx', 'x', '$0')",VARCHAR,"xxx xxx xxx");
+  assertFunction("REGEXP_REPLACE('xxx', '(x)', '$01')",VARCHAR,"xxx");
+  assertFunction("REGEXP_REPLACE('xxx', 'x', '$05')",VARCHAR,"x5x5x5");
+  assertFunction("REGEXP_REPLACE('123456789', '(1)(2)(3)(4)(5)(6)(7)(8)(9)', '$10')",VARCHAR,"10");
+  assertFunction("REGEXP_REPLACE('1234567890', '(1)(2)(3)(4)(5)(6)(7)(8)(9)(0)', '$10')",VARCHAR,"0");
+  assertFunction("REGEXP_REPLACE('1234567890', '(1)(2)(3)(4)(5)(6)(7)(8)(9)(0)', '$11')",VARCHAR,"11");
+  assertFunction("REGEXP_REPLACE('1234567890', '(1)(2)(3)(4)(5)(6)(7)(8)(9)(0)', '$1a')",VARCHAR,"1a");
+  assertInvalidFunction("REGEXP_REPLACE('xxx', 'x', '$1')",INVALID_FUNCTION_ARGUMENT);
+  assertInvalidFunction("REGEXP_REPLACE('xxx', 'x', '$a')",INVALID_FUNCTION_ARGUMENT);
+  assertInvalidFunction("REGEXP_REPLACE('xxx', 'x', '$')",INVALID_FUNCTION_ARGUMENT);
+  assertFunction("REGEXP_REPLACE('wxyz', '(?<xyz>[xyz])', '${xyz}${xyz}')",VARCHAR,"wxxyyzz");
+  assertFunction("REGEXP_REPLACE('wxyz', '(?<w>w)|(?<xyz>[xyz])', '[${w}](${xyz})')",VARCHAR,"[w]()[](x)[](y)[](z)");
+  assertFunction("REGEXP_REPLACE('xyz', '(?<xyz>[xyz])+', '${xyz}')",VARCHAR,"z");
+  assertFunction("REGEXP_REPLACE('xyz', '(?<xyz>[xyz]+)', '${xyz}')",VARCHAR,"xyz");
+  assertInvalidFunction("REGEXP_REPLACE('xxx', '(?<name>x)', '${}')",INVALID_FUNCTION_ARGUMENT);
+  assertInvalidFunction("REGEXP_REPLACE('xxx', '(?<name>x)', '${0}')",INVALID_FUNCTION_ARGUMENT);
+  assertInvalidFunction("REGEXP_REPLACE('xxx', '(?<name>x)', '${nam}')",INVALID_FUNCTION_ARGUMENT);
 }

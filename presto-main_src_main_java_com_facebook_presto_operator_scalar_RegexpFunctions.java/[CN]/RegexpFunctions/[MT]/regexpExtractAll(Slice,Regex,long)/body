@@ -1,0 +1,30 @@
+{
+  Matcher matcher=pattern.matcher(source.getBytes());
+  validateGroup(groupIndex,matcher.getEagerRegion());
+  BlockBuilder blockBuilder=VARCHAR.createBlockBuilder(new BlockBuilderStatus(),32);
+  int group=Ints.checkedCast(groupIndex);
+  int nextStart=0;
+  while (true) {
+    int offset=matcher.search(nextStart,source.length(),Option.DEFAULT);
+    if (offset == -1) {
+      break;
+    }
+    if (matcher.getEnd() == matcher.getBegin()) {
+      nextStart=matcher.getEnd() + 1;
+    }
+ else {
+      nextStart=matcher.getEnd();
+    }
+    Region region=matcher.getEagerRegion();
+    int beg=region.beg[group];
+    int end=region.end[group];
+    if (beg == -1 || end == -1) {
+      blockBuilder.appendNull();
+    }
+ else {
+      Slice slice=source.slice(beg,end - beg);
+      VARCHAR.writeSlice(blockBuilder,slice);
+    }
+  }
+  return buildStructuralSlice(blockBuilder);
+}
