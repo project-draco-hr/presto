@@ -5,6 +5,14 @@
     if (finished || !waitUntilFinished) {
       return;
     }
-    waitForNewExchangesOrBuffers();
+synchronized (this) {
+      try {
+        TimeUnit.MILLISECONDS.timedWait(this,100);
+      }
+ catch (      InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw Throwables.propagate(e);
+      }
+    }
   }
 }
