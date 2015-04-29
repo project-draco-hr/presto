@@ -4,13 +4,18 @@
   }
   long totalBytes=0;
   for (  QueryExecution query : queries) {
-    long bytes=query.getQueryInfo().getQueryStats().getTotalMemoryReservation().toBytes();
+    long bytes=query.getTotalMemoryReservation();
     totalBytes+=bytes;
     if (bytes > maxQueryMemory.toBytes()) {
       query.fail(new ExceededMemoryLimitException("Query",maxQueryMemory));
     }
   }
   clusterMemoryUsageBytes.set(totalBytes);
-  updateNodes();
-  updatePools();
+  Map<MemoryPoolId,Integer> countByPool=new HashMap<>();
+  for (  QueryExecution query : queries) {
+    MemoryPoolId id=query.getMemoryPool().getId();
+    countByPool.put(id,countByPool.getOrDefault(id,0) + 1);
+  }
+  updatePools(countByPool);
+  updateNodes(updateAssignments(queries));
 }

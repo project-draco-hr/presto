@@ -1,7 +1,26 @@
 {
   ListenableFuture<?> future=driverContext.reserveMemory(bytes);
   if (!future.isDone()) {
-    memoryFuture.set(future);
+    SettableFuture<?> currentMemoryFuture=memoryFuture.get();
+    while (currentMemoryFuture.isDone()) {
+      SettableFuture<?> settableFuture=SettableFuture.create();
+      if (memoryFuture.compareAndSet(currentMemoryFuture,settableFuture)) {
+        currentMemoryFuture=settableFuture;
+      }
+ else {
+        currentMemoryFuture=memoryFuture.get();
+      }
+    }
+    SettableFuture<?> finalMemoryFuture=currentMemoryFuture;
+    Futures.addCallback(future,new FutureCallback<Object>(){
+      @Override public void onSuccess(      Object result){
+        finalMemoryFuture.set(null);
+      }
+      @Override public void onFailure(      Throwable t){
+        finalMemoryFuture.set(null);
+      }
+    }
+);
   }
   long newReservation=memoryReservation.getAndAdd(bytes);
   if (newReservation > maxMemoryReservation) {

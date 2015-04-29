@@ -1,0 +1,28 @@
+{
+  ClusterMemoryPool reservedPool=pools.get(RESERVED_POOL);
+  ClusterMemoryPool generalPool=pools.get(GENERAL_POOL);
+  long version=memoryPoolAssignmentsVersion.incrementAndGet();
+  if (reservedPool != null && generalPool != null && allAssignmentsHavePropagated(queries)) {
+    if (reservedPool.getQueries() == 0 && generalPool.getBlockedNodes() > 0) {
+      QueryExecution biggestQuery=null;
+      long maxMemory=-1;
+      for (      QueryExecution queryExecution : queries) {
+        long bytesUsed=queryExecution.getTotalMemoryReservation();
+        if (bytesUsed > maxMemory) {
+          biggestQuery=queryExecution;
+          maxMemory=bytesUsed;
+        }
+      }
+      for (      QueryExecution queryExecution : queries) {
+        if (queryExecution.getQueryId().equals(biggestQuery.getQueryId())) {
+          queryExecution.setMemoryPool(new VersionedMemoryPoolId(RESERVED_POOL,version));
+        }
+      }
+    }
+  }
+  ImmutableList.Builder<MemoryPoolAssignment> assignments=ImmutableList.builder();
+  for (  QueryExecution queryExecution : queries) {
+    assignments.add(new MemoryPoolAssignment(queryExecution.getQueryId(),queryExecution.getMemoryPool().getId()));
+  }
+  return new MemoryPoolAssignmentsRequest(version,assignments.build());
+}

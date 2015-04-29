@@ -17,6 +17,7 @@
   long finishCpu=this.finishCpu.roundTo(NANOSECONDS);
   long finishUser=this.finishUser.roundTo(NANOSECONDS);
   long memoryReservation=this.memoryReservation.toBytes();
+  Optional<BlockedReason> blockedReason=this.blockedReason;
   Mergeable<?> base=null;
   if (info instanceof Mergeable) {
     base=(Mergeable<?>)info;
@@ -41,10 +42,13 @@
     finishUser+=operator.getFinishUser().roundTo(NANOSECONDS);
     blockedWall+=operator.getBlockedWall().roundTo(NANOSECONDS);
     memoryReservation+=operator.getMemoryReservation().toBytes();
+    if (operator.getBlockedReason().isPresent()) {
+      blockedReason=operator.getBlockedReason();
+    }
     Object info=operator.getInfo();
     if (base != null && info != null && base.getClass() == info.getClass()) {
       base=mergeInfo(base,info);
     }
   }
-  return new OperatorStats(operatorId,operatorType,addInputCalls,new Duration(addInputWall,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(addInputCpu,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(addInputUser,NANOSECONDS).convertToMostSuccinctTimeUnit(),new DataSize(inputDataSize,BYTE).convertToMostSuccinctDataSize(),inputPositions,getOutputCalls,new Duration(getOutputWall,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(getOutputCpu,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(getOutputUser,NANOSECONDS).convertToMostSuccinctTimeUnit(),new DataSize(outputDataSize,BYTE).convertToMostSuccinctDataSize(),outputPositions,new Duration(blockedWall,NANOSECONDS).convertToMostSuccinctTimeUnit(),finishCalls,new Duration(finishWall,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(finishCpu,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(finishUser,NANOSECONDS).convertToMostSuccinctTimeUnit(),new DataSize(memoryReservation,BYTE).convertToMostSuccinctDataSize(),base);
+  return new OperatorStats(operatorId,operatorType,addInputCalls,new Duration(addInputWall,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(addInputCpu,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(addInputUser,NANOSECONDS).convertToMostSuccinctTimeUnit(),new DataSize(inputDataSize,BYTE).convertToMostSuccinctDataSize(),inputPositions,getOutputCalls,new Duration(getOutputWall,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(getOutputCpu,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(getOutputUser,NANOSECONDS).convertToMostSuccinctTimeUnit(),new DataSize(outputDataSize,BYTE).convertToMostSuccinctDataSize(),outputPositions,new Duration(blockedWall,NANOSECONDS).convertToMostSuccinctTimeUnit(),finishCalls,new Duration(finishWall,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(finishCpu,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(finishUser,NANOSECONDS).convertToMostSuccinctTimeUnit(),new DataSize(memoryReservation,BYTE).convertToMostSuccinctDataSize(),blockedReason,base);
 }
