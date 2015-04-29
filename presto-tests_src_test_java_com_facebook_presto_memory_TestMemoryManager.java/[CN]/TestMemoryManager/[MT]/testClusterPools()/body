@@ -1,0 +1,18 @@
+{
+  Map<String,String> properties=ImmutableMap.<String,String>builder().put("experimental.cluster-memory-manager-enabled","true").build();
+  try (DistributedQueryRunner queryRunner=createQueryRunner(SESSION,properties)){
+    ClusterMemoryManager memoryManager=queryRunner.getCoordinator().getClusterMemoryManager();
+    ClusterMemoryPool reservedPool=null;
+    while (reservedPool == null) {
+      reservedPool=memoryManager.getPools().get(RESERVED_POOL);
+      MILLISECONDS.sleep(100);
+    }
+    while (reservedPool.getNodes() == 0) {
+      MILLISECONDS.sleep(100);
+    }
+    assertTrue(reservedPool.getNodes() > 0);
+    assertTrue(reservedPool.getBlockedNodes() == 0);
+    assertTrue(reservedPool.getTotalDistributedBytes() > 0);
+    assertTrue(reservedPool.getFreeDistributedBytes() > 0);
+  }
+ }
