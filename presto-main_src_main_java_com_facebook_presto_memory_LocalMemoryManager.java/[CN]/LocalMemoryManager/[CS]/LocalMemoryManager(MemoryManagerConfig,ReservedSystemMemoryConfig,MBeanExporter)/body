@@ -1,6 +1,8 @@
 {
   this.exporter=requireNonNull(exporter,"exporter is null");
-  maxMemory=new DataSize(Runtime.getRuntime().maxMemory() - config.getReservedSystemMemory().toBytes(),BYTE);
+  requireNonNull(config,"config is null");
+  requireNonNull(systemMemoryConfig,"systemMemoryConfig is null");
+  maxMemory=new DataSize(Runtime.getRuntime().maxMemory() - systemMemoryConfig.getReservedSystemMemory().toBytes(),BYTE);
   ImmutableMap.Builder<MemoryPoolId,MemoryPool> builder=ImmutableMap.builder();
   builder.put(RESERVED_POOL,createPool(RESERVED_POOL,config.getMaxQueryMemoryPerNode(),exporter));
   DataSize generalPoolSize=new DataSize(maxMemory.toBytes() - config.getMaxQueryMemoryPerNode().toBytes(),BYTE);
