@@ -1,3 +1,19 @@
 {
+  try {
+    metadata.dropTable(tableHandle);
+    fail("expected exception");
+  }
+ catch (  PrestoException e) {
+    assertEquals(e.getErrorCode(),PERMISSION_DENIED.toErrorCode());
+  }
+  BaseJdbcConfig config=new BaseJdbcConfig().setAllowDropTable(true);
+  metadata=new JdbcMetadata(new JdbcConnectorId(CONNECTOR_ID),database.getJdbcClient(),config);
   metadata.dropTable(tableHandle);
+  try {
+    metadata.getTableMetadata(tableHandle);
+    fail("expected exception");
+  }
+ catch (  PrestoException e) {
+    assertEquals(e.getErrorCode(),NOT_FOUND.toErrorCode());
+  }
 }
