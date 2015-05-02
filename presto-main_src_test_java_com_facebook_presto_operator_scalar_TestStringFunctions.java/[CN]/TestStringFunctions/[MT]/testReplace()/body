@@ -17,4 +17,8 @@
   assertFunction("REPLACE('\u4FE1\u5FF5,\u7231,\u5E0C\u671B', ',', '\u2014')",VARCHAR,"\u4FE1\u5FF5\u2014\u7231\u2014\u5E0C\u671B");
   assertFunction("REPLACE('::\uD801\uDC2D::', ':', '')",VARCHAR,"\uD801\uDC2D");
   assertFunction("REPLACE('\u00D6sterreich', '\u00D6', 'Oe')",VARCHAR,"Oesterreich");
+  assertFunction("CAST(REPLACE(utf8(from_hex('CE')), '', 'X') AS VARBINARY)",VARBINARY,new SqlVarbinary(new byte[]{'X',(byte)0xCE,'X'}));
+  assertFunction("CAST(REPLACE('abc' || utf8(from_hex('CE')), '', 'X') AS VARBINARY)",VARBINARY,new SqlVarbinary(new byte[]{'X','a','X','b','X','c','X',(byte)0xCE,'X'}));
+  assertFunction("CAST(REPLACE(utf8(from_hex('CE')) || 'xyz', '', 'X') AS VARBINARY)",VARBINARY,new SqlVarbinary(new byte[]{'X',(byte)0xCE,'X','x','X','y','X','z','X'}));
+  assertFunction("CAST(REPLACE('abc' || utf8(from_hex('CE')) || 'xyz', '', 'X') AS VARBINARY)",VARBINARY,new SqlVarbinary(new byte[]{'X','a','X','b','X','c','X',(byte)0xCE,'X','x','X','y','X','z','X'}));
 }

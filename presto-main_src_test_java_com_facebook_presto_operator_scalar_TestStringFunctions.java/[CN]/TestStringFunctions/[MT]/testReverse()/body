@@ -7,6 +7,6 @@
   assertFunction("REVERSE('\u00D6sterreich')",VARCHAR,"hcierrets\u00D6");
   assertFunction("REVERSE('na\u00EFve')",VARCHAR,"ev\u00EFan");
   assertFunction("REVERSE('\uD801\uDC2Dend')",VARCHAR,"dne\uD801\uDC2D");
-  assertInvalidFunction("REVERSE(utf8(from_hex('CE')))","UTF-8 is not well formed");
-  assertInvalidFunction("REVERSE(utf8(from_hex('68656C6C6FCE')))","UTF-8 is not well formed");
+  assertFunction("CAST(REVERSE(utf8(from_hex('CE'))) AS VARBINARY)",VARBINARY,new SqlVarbinary(new byte[]{(byte)0xCE}));
+  assertFunction("CAST(REVERSE('hello' || utf8(from_hex('CE'))) AS VARBINARY)",VARBINARY,new SqlVarbinary(new byte[]{(byte)0xCE,'o','l','l','e','h'}));
 }

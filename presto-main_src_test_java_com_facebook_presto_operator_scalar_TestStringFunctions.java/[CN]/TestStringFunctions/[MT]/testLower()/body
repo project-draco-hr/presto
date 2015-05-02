@@ -4,4 +4,7 @@
   assertFunction("LOWER('WHAT!!')",VARCHAR,"what!!");
   assertFunction("LOWER('\u00D6STERREICH')",VARCHAR,lowerByCodePoint("\u00D6sterreich"));
   assertFunction("LOWER('From\uD801\uDC2DTo')",VARCHAR,lowerByCodePoint("from\uD801\uDC2Dto"));
+  assertFunction("CAST(LOWER(utf8(from_hex('CE'))) AS VARBINARY)",VARBINARY,new SqlVarbinary(new byte[]{(byte)0xCE}));
+  assertFunction("CAST(LOWER('HELLO' || utf8(from_hex('CE'))) AS VARBINARY)",VARBINARY,new SqlVarbinary(new byte[]{'h','e','l','l','o',(byte)0xCE}));
+  assertFunction("CAST(LOWER(utf8(from_hex('CE')) || 'HELLO') AS VARBINARY)",VARBINARY,new SqlVarbinary(new byte[]{(byte)0xCE,'h','e','l','l','o'}));
 }
