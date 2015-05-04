@@ -5,7 +5,7 @@
   if (size <= 0) {
     throw new OrcCorruptionException("Malformed ORC file %s. Invalid file size %s",orcDataSource,size);
   }
-  byte[] buffer=new byte[(int)Math.min(size,EXPECTED_FOOTER_SIZE)];
+  byte[] buffer=new byte[Ints.checkedCast(min(size,EXPECTED_FOOTER_SIZE))];
   orcDataSource.readFully(size - buffer.length,buffer);
   int postScriptSize=buffer[buffer.length - SIZE_OF_BYTE] & 0xff;
   verifyOrcFooter(orcDataSource,postScriptSize,buffer);
