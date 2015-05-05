@@ -1,18 +1,2 @@
 {
-  checkState(!Thread.holdsLock(this),"Can not abort while holding a lock on this");
-  try (SetThreadName setThreadName=new SetThreadName("Stage-%s",stageId)){
-    doUpdateState();
-synchronized (this) {
-      if (!stageState.get().isDone()) {
-        log.debug("Aborting stage %s",stageId);
-        stageState.set(StageState.ABORTED);
-      }
-    }
-    for (    RemoteTask task : tasks.values()) {
-      task.abort();
-    }
-    for (    StageExecutionNode subStage : subStages.values()) {
-      subStage.abort();
-    }
-  }
- }
+}

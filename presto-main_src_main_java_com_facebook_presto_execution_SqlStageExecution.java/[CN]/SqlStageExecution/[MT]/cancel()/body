@@ -1,18 +1,2 @@
 {
-  checkState(!Thread.holdsLock(this),"Can not cancel while holding a lock on this");
-  try (SetThreadName setThreadName=new SetThreadName("Stage-%s",stageId)){
-    doUpdateState();
-synchronized (this) {
-      if (!stageState.get().isDone()) {
-        log.debug("Cancelling stage %s",stageId);
-        stageState.set(StageState.CANCELED);
-      }
-    }
-    for (    RemoteTask task : tasks.values()) {
-      task.cancel();
-    }
-    for (    StageExecutionNode subStage : subStages.values()) {
-      subStage.cancel();
-    }
-  }
- }
+}

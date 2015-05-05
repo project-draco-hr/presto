@@ -1,19 +1,2 @@
 {
-  Set<PlanNodeId> completeSources=updateCompleteSources();
-  boolean allSourceComplete=completeSources.containsAll(allSources);
-  Multimap<PlanNodeId,URI> newExchangeLocations=getNewExchangeLocations();
-  exchangeLocations.set(ImmutableMultimap.<PlanNodeId,URI>builder().putAll(exchangeLocations.get()).putAll(newExchangeLocations).build());
-  OutputBuffers outputBuffers=updateToNextOutputBuffers();
-  boolean finished=allSourceComplete && outputBuffers.isNoMoreBufferIds();
-  for (  RemoteTask task : tasks.values()) {
-    for (    Entry<PlanNodeId,URI> entry : newExchangeLocations.entries()) {
-      Split remoteSplit=createRemoteSplitFor(task.getTaskInfo().getTaskId(),entry.getValue());
-      task.addSplits(entry.getKey(),ImmutableList.of(remoteSplit));
-    }
-    task.setOutputBuffers(outputBuffers);
-    for (    PlanNodeId completeSource : completeSources) {
-      task.noMoreSplits(completeSource);
-    }
-  }
-  return finished;
 }
