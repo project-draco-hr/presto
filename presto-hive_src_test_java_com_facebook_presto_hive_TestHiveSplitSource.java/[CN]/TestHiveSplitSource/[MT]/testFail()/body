@@ -4,16 +4,16 @@
     hiveSplitSource.addToQueue(new TestSplit(i));
     assertEquals(hiveSplitSource.getOutstandingSplitCount(),i + 1);
   }
-  assertEquals(hiveSplitSource.getNextBatch(1).size(),1);
+  assertEquals(getFutureValue(hiveSplitSource.getNextBatch(1)).size(),1);
   assertEquals(hiveSplitSource.getOutstandingSplitCount(),4);
   hiveSplitSource.fail(new RuntimeException("test"));
   assertEquals(hiveSplitSource.getOutstandingSplitCount(),4);
   try {
-    hiveSplitSource.getNextBatch(1);
+    getFutureValue(hiveSplitSource.getNextBatch(1));
     fail("expected RuntimeException");
   }
  catch (  RuntimeException e) {
-    assertEquals(e.getCause().getMessage(),"test");
+    assertEquals(e.getMessage(),"test");
   }
   assertEquals(hiveSplitSource.getOutstandingSplitCount(),4);
   hiveSplitSource.addToQueue(new TestSplit(99));
@@ -21,10 +21,10 @@
   hiveSplitSource.fail(new RuntimeException("another failure"));
   assertEquals(hiveSplitSource.getOutstandingSplitCount(),4);
   try {
-    hiveSplitSource.getNextBatch(1);
+    getFutureValue(hiveSplitSource.getNextBatch(1));
     fail("expected RuntimeException");
   }
  catch (  RuntimeException e) {
-    assertEquals(e.getCause().getMessage(),"test");
+    assertEquals(e.getMessage(),"test");
   }
 }

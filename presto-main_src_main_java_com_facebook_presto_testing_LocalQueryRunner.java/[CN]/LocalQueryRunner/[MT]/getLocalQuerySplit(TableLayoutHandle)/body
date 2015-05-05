@@ -1,14 +1,10 @@
 {
-  try {
-    SplitSource splitSource=splitManager.getSplits(handle);
-    Split split=Iterables.getOnlyElement(splitSource.getNextBatch(1000));
-    while (!splitSource.isFinished()) {
-      checkState(splitSource.getNextBatch(1000).isEmpty(),"Expected only one split for a local query");
-    }
-    return split;
+  SplitSource splitSource=splitManager.getSplits(handle);
+  List<Split> splits=new ArrayList<>();
+  splits.addAll(getFutureValue(splitSource.getNextBatch(1000)));
+  while (!splitSource.isFinished()) {
+    splits.addAll(getFutureValue(splitSource.getNextBatch(1000)));
   }
- catch (  InterruptedException e) {
-    Thread.currentThread().interrupt();
-    throw Throwables.propagate(e);
-  }
+  checkArgument(splits.size() == 1,"Expected only one split for a local query, but got %s splits",splits.size());
+  return splits.get(0);
 }

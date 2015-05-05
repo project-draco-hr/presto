@@ -2,5 +2,6 @@
   deleteShardNodes();
   RaptorSplitManager raptorSplitManagerWithBackup=new RaptorSplitManager(new RaptorConnectorId("fbraptor"),new InMemoryNodeManager(),shardManager,storageManagerWithBackup);
   ConnectorPartitionResult result=raptorSplitManagerWithBackup.getPartitions(tableHandle,TupleDomain.<ColumnHandle>all());
-  raptorSplitManagerWithBackup.getPartitionSplits(tableHandle,result.getPartitions()).getNextBatch(1000);
+  ConnectorSplitSource splitSource=raptorSplitManagerWithBackup.getPartitionSplits(tableHandle,result.getPartitions());
+  getFutureValue(splitSource.getNextBatch(1000),PrestoException.class);
 }

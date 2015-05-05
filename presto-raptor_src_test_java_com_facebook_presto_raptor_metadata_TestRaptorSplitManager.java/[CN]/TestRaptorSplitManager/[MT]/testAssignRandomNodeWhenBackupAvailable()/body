@@ -6,5 +6,6 @@
   deleteShardNodes();
   ConnectorPartitionResult result=raptorSplitManagerWithBackup.getPartitions(tableHandle,TupleDomain.<ColumnHandle>all());
   ConnectorSplitSource partitionSplit=raptorSplitManagerWithBackup.getPartitionSplits(tableHandle,result.getPartitions());
-  assertEquals(Iterables.getOnlyElement(Iterables.getOnlyElement(partitionSplit.getNextBatch(1)).getAddresses()),node.getHostAndPort());
+  List<ConnectorSplit> batch=getFutureValue(partitionSplit.getNextBatch(1),PrestoException.class);
+  assertEquals(getOnlyElement(getOnlyElement(batch).getAddresses()),node.getHostAndPort());
 }

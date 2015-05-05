@@ -1,7 +1,7 @@
 {
   ConnectorPartitionResult partitions=jdbcClient.getPartitions(jdbcTableHandle,domain);
-  ConnectorSplitSource splits=jdbcClient.getPartitionSplits((JdbcPartition)Iterables.getOnlyElement(partitions.getPartitions()));
-  JdbcSplit split=(JdbcSplit)Iterables.getOnlyElement(splits.getNextBatch(1000));
+  ConnectorSplitSource splits=jdbcClient.getPartitionSplits((JdbcPartition)getOnlyElement(partitions.getPartitions()));
+  JdbcSplit split=(JdbcSplit)getOnlyElement(getFutureValue(splits.getNextBatch(1000)));
   JdbcRecordSetProvider recordSetProvider=new JdbcRecordSetProvider(jdbcClient);
   RecordSet recordSet=recordSetProvider.getRecordSet(split,columns);
   return recordSet.cursor();
