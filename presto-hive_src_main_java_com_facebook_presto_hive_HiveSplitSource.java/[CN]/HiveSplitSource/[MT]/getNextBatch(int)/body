@@ -1,13 +1,6 @@
 {
   checkState(!closed,"Provider is already closed");
-  List<ConnectorSplit> splits=new ArrayList<>(maxSize);
-  splits.add(queue.take());
-  queue.drainTo(splits,maxSize - 1);
-  int finishedIndex=splits.indexOf(FINISHED_MARKER);
-  if (finishedIndex >= 0) {
-    queue.add(FINISHED_MARKER);
-    splits=splits.subList(0,finishedIndex);
-  }
+  List<ConnectorSplit> splits=getFutureValue(queue.getBatchAsync(maxSize));
   if (throwable.get() != null) {
     throw propagatePrestoException(throwable.get());
   }

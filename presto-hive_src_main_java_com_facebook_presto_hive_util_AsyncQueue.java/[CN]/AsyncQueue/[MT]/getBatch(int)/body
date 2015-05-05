@@ -1,0 +1,16 @@
+{
+  List<Object> elements=new ArrayList<>(maxSize);
+  queue.drainTo(elements,maxSize);
+  int finishedIndex=elements.indexOf(FinishedMarker.FINISHED);
+  if (finishedIndex >= 0) {
+    queue.add(FinishedMarker.FINISHED);
+    elements=elements.subList(0,finishedIndex);
+  }
+  if (queue.isEmpty()) {
+    CompletableFuture<?> future=futureReference.get();
+    if (!future.isDone()) {
+      futureReference.compareAndSet(future,new CompletableFuture<>());
+    }
+  }
+  return ImmutableList.copyOf((Collection<T>)elements);
+}
