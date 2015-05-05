@@ -1,0 +1,17 @@
+{
+  String args=Joiner.on(",").join(nCopies(shardIds.size(),"?"));
+  String where=" WHERE shard_id IN (" + args + ")";
+  String deleteFromShardNodes="DELETE FROM shard_nodes " + where;
+  String deleteFromShards="DELETE FROM shards " + where;
+  String deleteFromShardIndex="DELETE FROM " + shardIndexTable(tableId) + where;
+  for (  String sql : asList(deleteFromShardNodes,deleteFromShards,deleteFromShardIndex)) {
+    try (PreparedStatement statement=handle.getConnection().prepareStatement(sql)){
+      int i=1;
+      for (      long shardId : shardIds) {
+        statement.setLong(i,shardId);
+        i++;
+      }
+      statement.executeUpdate();
+    }
+   }
+}
