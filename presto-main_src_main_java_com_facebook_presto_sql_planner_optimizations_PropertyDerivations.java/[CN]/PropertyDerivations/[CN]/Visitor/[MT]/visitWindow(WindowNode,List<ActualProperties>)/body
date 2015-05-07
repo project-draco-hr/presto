@@ -1,6 +1,7 @@
 {
+  ActualProperties properties=Iterables.getOnlyElement(inputProperties);
   if (ImmutableSet.copyOf(node.getPartitionBy()).equals(node.getPrePartitionedInputs()) && node.getPreSortedOrderPrefix() == node.getOrderBy().size()) {
-    return Iterables.getOnlyElement(inputProperties);
+    return properties;
   }
   ImmutableList.Builder<LocalProperty<Symbol>> localProperties=ImmutableList.builder();
   if (!node.getPartitionBy().isEmpty()) {
@@ -9,6 +10,5 @@
   for (  Symbol column : node.getOrderBy()) {
     localProperties.add(new SortingProperty<>(column,node.getOrderings().get(column)));
   }
-  ActualProperties properties=Iterables.getOnlyElement(inputProperties);
-  return ActualProperties.builder().partitioned(properties).coordinatorOnly(properties).local(localProperties.build()).constants(properties).build();
+  return ActualProperties.builderFrom(properties).local(localProperties.build()).build();
 }

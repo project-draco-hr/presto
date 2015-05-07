@@ -7,7 +7,7 @@
     List<PlanNode> sources=node.getSources();
     for (int i=0; i < sources.size(); i++) {
       PlanWithProperties child=sources.get(i).accept(this,PreferredProperties.any());
-      if (!child.getProperties().isPartitioned()) {
+      if (!child.getProperties().isDistributed()) {
         unpartitionedChildren.add(child.getNode());
         unpartitionedOutputLayouts.add(node.sourceOutputLayout(i));
       }
@@ -31,7 +31,7 @@
       }
       result=new UnionNode(node.getId(),unpartitionedChildren,mappings.build());
     }
-    return new PlanWithProperties(result,ActualProperties.unpartitioned());
+    return new PlanWithProperties(result,ActualProperties.undistributed());
   }
   List<Symbol> hashingColumns=preferred.getPartitioningProperties().get().getHashPartitioningColumns().get();
   ImmutableList.Builder<PlanNode> partitionedSources=ImmutableList.builder();

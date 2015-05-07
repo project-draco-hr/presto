@@ -1,7 +1,7 @@
 {
   PreferredProperties preferredChildProperties=PreferredProperties.derivePreferences(preferred,ImmutableSet.copyOf(node.getDistinctSymbols()),Optional.of(node.getDistinctSymbols()),grouped(node.getDistinctSymbols()));
   PlanWithProperties child=node.getSource().accept(this,preferredChildProperties);
-  if ((!child.getProperties().isPartitioned() && isBigQueryEnabled(session,false)) || !child.getProperties().isPartitionedOn(node.getDistinctSymbols())) {
+  if ((!child.getProperties().isDistributed() && isBigQueryEnabled(session,false)) || !child.getProperties().isPartitionedOn(node.getDistinctSymbols())) {
     child=withDerivedProperties(partitionedExchange(idAllocator.getNextId(),child.getNode(),node.getDistinctSymbols(),node.getHashSymbol()),child.getProperties());
   }
   return rebaseAndDeriveProperties(node,child);

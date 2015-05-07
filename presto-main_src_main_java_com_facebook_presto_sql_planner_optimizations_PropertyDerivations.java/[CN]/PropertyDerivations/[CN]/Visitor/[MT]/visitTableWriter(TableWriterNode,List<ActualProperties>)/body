@@ -1,11 +1,7 @@
 {
   ActualProperties properties=Iterables.getOnlyElement(inputProperties);
-  ActualProperties.Builder derived=ActualProperties.builder().coordinatorOnly(properties);
-  if (properties.isPartitioned()) {
-    derived.partitioned();
+  if (properties.isCoordinatorOnly()) {
+    return ActualProperties.builder().global(coordinatorOnly()).build();
   }
- else {
-    derived.unpartitioned();
-  }
-  return derived.build();
+  return properties.isDistributed() ? ActualProperties.distributed() : ActualProperties.undistributed();
 }
