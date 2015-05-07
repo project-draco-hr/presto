@@ -1,0 +1,26 @@
+{
+  if (object instanceof OrcStruct) {
+    OrcStruct struct=(OrcStruct)object;
+    int size=0;
+    for (int i=0; i < struct.getNumFields(); i++) {
+      size+=uncompressedSize(getFieldValue(struct,i));
+    }
+    return size;
+  }
+  if ((object == null) || (object instanceof BooleanWritable)) {
+    return SIZE_OF_BYTE;
+  }
+  if (object instanceof LongWritable) {
+    return SIZE_OF_LONG;
+  }
+  if (object instanceof DoubleWritable) {
+    return SIZE_OF_DOUBLE;
+  }
+  if (object instanceof Text) {
+    return ((Text)object).getLength();
+  }
+  if (object instanceof BytesWritable) {
+    return ((BytesWritable)object).getLength();
+  }
+  throw new IOException("Unhandled ORC object: " + object.getClass().getName());
+}

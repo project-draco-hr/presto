@@ -1,0 +1,13 @@
+{
+  List<Long> columnIds=ImmutableList.of(1L,2L,3L,4L,5L);
+  List<Type> columnTypes=ImmutableList.of(BOOLEAN,BIGINT,DOUBLE,VARCHAR,VARBINARY);
+  File file=new File(temporary,randomUUID().toString());
+  try (OrcFileWriter writer=new OrcFileWriter(columnIds,columnTypes,file)){
+    List<Page> pages=rowPagesBuilder(columnTypes).row(true,123,98.7,"hello",utf8Slice("abc")).row(false,456,65.4,"world",utf8Slice("xyz")).row(null,null,null,null,null).build();
+    writer.appendPages(pages);
+  }
+   File newFile=new File(temporary,randomUUID().toString());
+  OrcFileInfo info=OrcFileRewriter.rewrite(file,newFile,new BitSet());
+  assertEquals(info.getRowCount(),3);
+  assertEquals(info.getUncompressedSize(),55);
+}

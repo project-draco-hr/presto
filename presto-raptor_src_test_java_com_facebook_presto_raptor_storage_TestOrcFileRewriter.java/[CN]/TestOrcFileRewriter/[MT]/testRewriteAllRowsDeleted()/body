@@ -1,0 +1,16 @@
+{
+  List<Long> columnIds=ImmutableList.of(3L);
+  List<Type> columnTypes=ImmutableList.of(BIGINT);
+  File file=new File(temporary,randomUUID().toString());
+  try (OrcFileWriter writer=new OrcFileWriter(columnIds,columnTypes,file)){
+    writer.appendPages(rowPagesBuilder(columnTypes).row(123).row(456).build());
+  }
+   BitSet rowsToDelete=new BitSet();
+  rowsToDelete.set(0);
+  rowsToDelete.set(1);
+  File newFile=new File(temporary,randomUUID().toString());
+  OrcFileInfo info=OrcFileRewriter.rewrite(file,newFile,rowsToDelete);
+  assertEquals(info.getRowCount(),0);
+  assertEquals(info.getUncompressedSize(),0);
+  assertFalse(newFile.exists());
+}

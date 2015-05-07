@@ -1,0 +1,61 @@
+{
+  List<Long> columnIds=ImmutableList.of(3L,7L);
+  List<Type> columnTypes=ImmutableList.of(BIGINT,VARCHAR);
+  File file=new File(temporary,randomUUID().toString());
+  try (OrcFileWriter writer=new OrcFileWriter(columnIds,columnTypes,file)){
+    List<Page> pages=rowPagesBuilder(columnTypes).row(123,"hello").row(777,"sky").row(456,"bye").row(888,"world").row(999,"done").build();
+    writer.appendPages(pages);
+  }
+   try (OrcDataSource dataSource=fileOrcDataSource(file)){
+    OrcRecordReader reader=createReader(dataSource,columnIds,columnTypes);
+    assertEquals(reader.getTotalRowCount(),5);
+    assertEquals(reader.getFileRowCount(),5);
+    assertEquals(reader.getSplitLength(),file.length());
+    assertEquals(reader.nextBatch(),5);
+    LongVector longVector=new LongVector(5);
+    reader.readVector(0,longVector);
+    for (int i=0; i < 5; i++) {
+      assertEquals(longVector.isNull[i],false);
+    }
+    assertEquals(longVector.vector[0],123L);
+    assertEquals(longVector.vector[1],777L);
+    assertEquals(longVector.vector[2],456L);
+    assertEquals(longVector.vector[3],888L);
+    assertEquals(longVector.vector[4],999L);
+    SliceVector stringVector=new SliceVector(5);
+    reader.readVector(1,stringVector);
+    assertEquals(stringVector.vector[0],utf8Slice("hello"));
+    assertEquals(stringVector.vector[1],utf8Slice("sky"));
+    assertEquals(stringVector.vector[2],utf8Slice("bye"));
+    assertEquals(stringVector.vector[3],utf8Slice("world"));
+    assertEquals(stringVector.vector[4],utf8Slice("done"));
+    assertEquals(reader.nextBatch(),-1);
+  }
+   BitSet rowsToDelete=new BitSet(5);
+  rowsToDelete.set(1);
+  rowsToDelete.set(3);
+  rowsToDelete.set(4);
+  File newFile=new File(temporary,randomUUID().toString());
+  OrcFileInfo info=OrcFileRewriter.rewrite(file,newFile,rowsToDelete);
+  assertEquals(info.getRowCount(),2);
+  assertEquals(info.getUncompressedSize(),24);
+  try (OrcDataSource dataSource=fileOrcDataSource(newFile)){
+    OrcRecordReader reader=createReader(dataSource,columnIds,columnTypes);
+    assertEquals(reader.getTotalRowCount(),2);
+    assertEquals(reader.getFileRowCount(),2);
+    assertEquals(reader.getSplitLength(),newFile.length());
+    assertEquals(reader.nextBatch(),2);
+    LongVector longVector=new LongVector(2);
+    reader.readVector(0,longVector);
+    for (int i=0; i < 2; i++) {
+      assertEquals(longVector.isNull[i],false);
+    }
+    assertEquals(longVector.vector[0],123L);
+    assertEquals(longVector.vector[1],456L);
+    SliceVector stringVector=new SliceVector(2);
+    reader.readVector(1,stringVector);
+    assertEquals(stringVector.vector[0],utf8Slice("hello"));
+    assertEquals(stringVector.vector[1],utf8Slice("bye"));
+    assertEquals(reader.nextBatch(),-1);
+  }
+ }

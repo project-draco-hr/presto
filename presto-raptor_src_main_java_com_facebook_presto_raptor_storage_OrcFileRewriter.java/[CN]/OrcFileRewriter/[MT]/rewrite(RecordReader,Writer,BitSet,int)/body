@@ -1,0 +1,18 @@
+{
+  Object object=null;
+  int row=0;
+  long rowCount=0;
+  long uncompressedSize=0;
+  while (true) {
+    row=rowsToDelete.nextClearBit(row);
+    if (row >= inputRowCount) {
+      return new OrcFileInfo(rowCount,uncompressedSize);
+    }
+    reader.seekToRow(row);
+    object=reader.next(object);
+    writer.addRow(object);
+    row++;
+    rowCount++;
+    uncompressedSize+=uncompressedSize(object);
+  }
+}
