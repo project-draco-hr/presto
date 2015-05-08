@@ -1,0 +1,11 @@
+{
+  try (PrestoS3FileSystem fs=new PrestoS3FileSystem()){
+    MockAmazonS3 s3=new MockAmazonS3();
+    s3.setGetObjectHttpErrorCode(SC_FORBIDDEN);
+    fs.initialize(new URI("s3n://test-bucket/"),new Configuration());
+    fs.setS3Client(s3);
+    try (FSDataInputStream inputStream=fs.open(new Path("s3n://test-bucket/test"))){
+      inputStream.read();
+    }
+   }
+ }

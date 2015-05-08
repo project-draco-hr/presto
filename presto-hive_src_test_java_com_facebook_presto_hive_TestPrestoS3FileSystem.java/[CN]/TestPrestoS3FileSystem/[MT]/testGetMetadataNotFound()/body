@@ -1,0 +1,9 @@
+{
+  try (PrestoS3FileSystem fs=new PrestoS3FileSystem()){
+    MockAmazonS3 s3=new MockAmazonS3();
+    s3.setGetObjectMetadataHttpCode(SC_NOT_FOUND);
+    fs.initialize(new URI("s3n://test-bucket/"),new Configuration());
+    fs.setS3Client(s3);
+    assertEquals(fs.getS3ObjectMetadata(new Path("s3n://test-bucket/test")),null);
+  }
+ }
