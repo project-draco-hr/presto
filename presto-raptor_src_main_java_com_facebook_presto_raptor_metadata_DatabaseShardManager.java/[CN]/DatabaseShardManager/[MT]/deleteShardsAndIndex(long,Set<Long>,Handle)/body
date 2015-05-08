@@ -4,14 +4,16 @@
   String deleteFromShardNodes="DELETE FROM shard_nodes " + where;
   String deleteFromShards="DELETE FROM shards " + where;
   String deleteFromShardIndex="DELETE FROM " + shardIndexTable(tableId) + where;
-  for (  String sql : asList(deleteFromShardNodes,deleteFromShards,deleteFromShardIndex)) {
+  try (PreparedStatement statement=handle.getConnection().prepareStatement(deleteFromShardNodes)){
+    bindLongs(statement,shardIds);
+    statement.executeUpdate();
+  }
+   for (  String sql : asList(deleteFromShards,deleteFromShardIndex)) {
     try (PreparedStatement statement=handle.getConnection().prepareStatement(sql)){
-      int i=1;
-      for (      long shardId : shardIds) {
-        statement.setLong(i,shardId);
-        i++;
+      bindLongs(statement,shardIds);
+      if (statement.executeUpdate() != shardIds.size()) {
+        throw new PrestoException(TRANSACTION_CONFLICT,"Shard was updated by a different transaction. Please retry the operation.");
       }
-      statement.executeUpdate();
     }
    }
 }
