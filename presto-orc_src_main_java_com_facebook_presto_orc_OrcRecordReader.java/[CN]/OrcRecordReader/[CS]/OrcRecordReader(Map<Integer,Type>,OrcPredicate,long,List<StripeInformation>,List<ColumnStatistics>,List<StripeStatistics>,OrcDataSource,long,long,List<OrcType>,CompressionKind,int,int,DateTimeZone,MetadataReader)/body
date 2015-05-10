@@ -8,10 +8,12 @@
   checkNotNull(compressionKind,"compressionKind is null");
   checkNotNull(hiveStorageTimeZone,"hiveStorageTimeZone is null");
   ImmutableSet.Builder<Integer> presentColumns=ImmutableSet.builder();
+  ImmutableMap.Builder<Integer,Type> presentColumnsAndTypes=ImmutableMap.builder();
   OrcType root=types.get(0);
-  for (  int includedColumn : includedColumns) {
-    if (includedColumn < root.getFieldCount()) {
-      presentColumns.add(includedColumn);
+  for (  Map.Entry<Integer,Type> entry : includedColumns.entrySet()) {
+    if (entry.getKey() < root.getFieldCount()) {
+      presentColumns.add(entry.getKey());
+      presentColumnsAndTypes.put(entry.getKey(),entry.getValue());
     }
   }
   this.presentColumns=presentColumns.build();
@@ -32,5 +34,5 @@
   this.totalRowCount=totalRowCount;
   this.stripes=stripes.build();
   stripeReader=new StripeReader(orcDataSource,compressionKind,types,bufferSize,this.presentColumns,rowsInRowGroup,predicate,metadataReader);
-  streamReaders=createStreamReaders(orcDataSource,types,hiveStorageTimeZone,this.presentColumns);
+  streamReaders=createStreamReaders(orcDataSource,types,hiveStorageTimeZone,presentColumnsAndTypes.build());
 }
