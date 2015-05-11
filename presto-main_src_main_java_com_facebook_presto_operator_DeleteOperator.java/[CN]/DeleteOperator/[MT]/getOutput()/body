@@ -1,0 +1,20 @@
+{
+  if (state != State.FINISHING) {
+    return null;
+  }
+  state=State.FINISHED;
+  Collection<Slice> fragments=pageSource().commit();
+  committed=true;
+  PageBuilder page=new PageBuilder(TYPES);
+  BlockBuilder rowsBuilder=page.getBlockBuilder(0);
+  BlockBuilder fragmentBuilder=page.getBlockBuilder(1);
+  page.declarePosition();
+  BIGINT.writeLong(rowsBuilder,rowCount);
+  fragmentBuilder.appendNull();
+  for (  Slice fragment : fragments) {
+    page.declarePosition();
+    rowsBuilder.appendNull();
+    VARBINARY.writeSlice(fragmentBuilder,fragment);
+  }
+  return page.build();
+}

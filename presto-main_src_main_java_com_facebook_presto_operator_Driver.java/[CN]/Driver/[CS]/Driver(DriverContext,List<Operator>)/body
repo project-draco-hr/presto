@@ -3,11 +3,17 @@
   this.operators=ImmutableList.copyOf(checkNotNull(operators,"operators is null"));
   checkArgument(!operators.isEmpty(),"There must be at least one operator");
   ImmutableMap.Builder<PlanNodeId,SourceOperator> sourceOperators=ImmutableMap.builder();
+  Optional<DeleteOperator> deleteOperator=Optional.empty();
   for (  Operator operator : operators) {
     if (operator instanceof SourceOperator) {
       SourceOperator sourceOperator=(SourceOperator)operator;
       sourceOperators.put(sourceOperator.getSourceId(),sourceOperator);
     }
+ else     if (operator instanceof DeleteOperator) {
+      checkArgument(!deleteOperator.isPresent(),"There must be at most one DeleteOperator");
+      deleteOperator=Optional.of((DeleteOperator)operator);
+    }
   }
   this.sourceOperators=sourceOperators.build();
+  this.deleteOperator=deleteOperator;
 }

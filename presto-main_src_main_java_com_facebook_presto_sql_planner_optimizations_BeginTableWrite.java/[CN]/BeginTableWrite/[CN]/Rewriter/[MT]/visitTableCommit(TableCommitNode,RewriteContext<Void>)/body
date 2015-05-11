@@ -1,6 +1,14 @@
 {
   PlanNode child=node.getSource().accept(this,context);
-  TableWriterNode tableWriter=Types.checkType(child,TableWriterNode.class,"table commit node must be preceeded by table writer node");
-  TableWriterNode.WriterTarget target=tableWriter.getTarget();
+  TableWriterNode.WriterTarget target;
+  if (child instanceof TableWriterNode) {
+    target=((TableWriterNode)child).getTarget();
+  }
+ else   if (child instanceof DeleteNode) {
+    target=((DeleteNode)child).getTarget();
+  }
+ else {
+    throw new IllegalArgumentException("Invalid child for TableCommitNode: " + child.getClass().getSimpleName());
+  }
   return new TableCommitNode(node.getId(),child,target,node.getOutputSymbols());
 }

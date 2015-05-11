@@ -18,7 +18,10 @@
     Split split=newSplit.getSplit();
     SourceOperator sourceOperator=sourceOperators.get(source.getPlanNodeId());
     if (sourceOperator != null) {
-      sourceOperator.addSplit(split);
+      Supplier<Optional<UpdatablePageSource>> pageSource=sourceOperator.addSplit(split);
+      if (deleteOperator.isPresent()) {
+        deleteOperator.get().setPageSource(pageSource);
+      }
     }
   }
   if (source.isNoMoreSplits()) {

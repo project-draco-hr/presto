@@ -1,0 +1,7 @@
+{
+  QueryPlanner planner=new QueryPlanner(analysis,symbolAllocator,idAllocator,metadata,session);
+  DeleteNode deleteNode=planner.planDelete(analysis.getDelete().get());
+  List<Symbol> outputs=ImmutableList.of(symbolAllocator.newSymbol("rows",BIGINT));
+  TableCommitNode commitNode=new TableCommitNode(idAllocator.getNextId(),deleteNode,deleteNode.getTarget(),outputs);
+  return new RelationPlan(commitNode,analysis.getOutputDescriptor(),commitNode.getOutputSymbols(),Optional.empty());
+}
