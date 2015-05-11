@@ -1,11 +1,10 @@
 {
-  if (!subStages.isEmpty()) {
+  if (!fragment.getRemoteSourceNodes().isEmpty()) {
     nodeSelector.lockDownNodes();
     for (    Node node : Sets.difference(new HashSet<>(nodeSelector.allNodes()),localNodeTaskMap.keySet())) {
-      RemoteTask remoteTask=scheduleTask(nextTaskId.getAndIncrement(),node);
-      addStageNode(remoteTask.getTaskInfo().getTaskId());
+      scheduleTask(nextTaskId.getAndIncrement(),node);
     }
-    setNoMoreStageNodes();
+    stateMachine.transitionToSchedulingSplits();
   }
 synchronized (this) {
     try {

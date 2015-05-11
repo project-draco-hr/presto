@@ -1,13 +1,8 @@
 {
   List<Node> nodes=nodeSelector.selectRandomNodes(nodeCount);
   checkCondition(!nodes.isEmpty(),NO_NODES_AVAILABLE,"No worker nodes available");
-  ImmutableList.Builder<TaskId> tasks=ImmutableList.builder();
   for (int taskId=0; taskId < nodes.size(); taskId++) {
     Node node=nodes.get(taskId);
-    RemoteTask task=scheduleTask(taskId,node);
-    tasks.add(task.getTaskInfo().getTaskId());
-  }
-  for (  SqlStageExecution subStage : subStages.values()) {
-    subStage.parentTasksAdded(tasks.build(),true);
+    scheduleTask(taskId,node);
   }
 }

@@ -1,0 +1,14 @@
+{
+  OutputBuffers newOutputBuffers;
+synchronized (this) {
+    if (outputBuffers.isNoMoreBufferIds()) {
+      return;
+    }
+    newOutputBuffers=outputBuffers.withBuffer(bufferId,new UnpartitionedPagePartitionFunction());
+    if (newOutputBuffers == outputBuffers) {
+      return;
+    }
+    outputBuffers=newOutputBuffers;
+  }
+  outputBufferTarget.accept(newOutputBuffers);
+}
