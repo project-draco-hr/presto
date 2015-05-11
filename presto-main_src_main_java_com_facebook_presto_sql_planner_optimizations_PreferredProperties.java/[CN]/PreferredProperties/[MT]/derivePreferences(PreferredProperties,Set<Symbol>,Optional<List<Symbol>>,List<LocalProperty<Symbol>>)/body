@@ -1,0 +1,25 @@
+{
+  if (hashingColumns.isPresent()) {
+    checkState(partitioningColumns.equals(ImmutableSet.copyOf(hashingColumns.get())),"hashingColumns and partitioningColumns must be the same");
+  }
+  List<LocalProperty<Symbol>> local=ImmutableList.<LocalProperty<Symbol>>builder().addAll(localProperties).addAll(parentProperties.getLocalProperties()).build();
+  if (hashingColumns.isPresent()) {
+    return hashPartitionedWithLocal(hashingColumns.get(),local);
+  }
+  if (parentProperties.getPartitioningProperties().isPresent()) {
+    PartitioningPreferences parentPartitioning=parentProperties.getPartitioningProperties().get();
+    if (parentPartitioning.isHashPartitioned() && partitioningColumns.equals(ImmutableSet.copyOf(parentPartitioning.getHashPartitioningColumns().get()))) {
+      List<Symbol> hashingSymbols=parentPartitioning.getHashPartitioningColumns().get();
+      return hashPartitionedWithLocal(hashingSymbols,local);
+    }
+    if (parentPartitioning.isPartitioned()) {
+      Set<Symbol> parentPartitioningColumns=parentPartitioning.getPartitioningColumns().get();
+      Set<Symbol> common=Sets.intersection(partitioningColumns,parentPartitioningColumns);
+      if (!common.isEmpty()) {
+        return partitionedWithLocal(common,local);
+      }
+      return partitionedWithLocal(partitioningColumns,local);
+    }
+  }
+  return partitionedWithLocal(partitioningColumns,local);
+}
