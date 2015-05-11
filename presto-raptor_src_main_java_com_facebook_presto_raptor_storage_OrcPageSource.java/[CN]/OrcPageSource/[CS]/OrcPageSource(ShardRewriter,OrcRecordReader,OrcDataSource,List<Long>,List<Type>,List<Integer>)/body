@@ -1,0 +1,18 @@
+{
+  this.shardRewriter=checkNotNull(shardRewriter,"shardRewriter is null");
+  this.recordReader=checkNotNull(recordReader,"recordReader is null");
+  this.orcDataSource=checkNotNull(orcDataSource,"orcDataSource is null");
+  checkArgument(columnIds.size() == columnTypes.size(),"ids and types mismatch");
+  checkArgument(columnIds.size() == columnIndexes.size(),"ids and indexes mismatch");
+  int size=columnIds.size();
+  this.columnIds=ImmutableList.copyOf(columnIds);
+  this.types=ImmutableList.copyOf(columnTypes);
+  this.constantBlocks=new Block[size];
+  this.columnIndexes=new int[size];
+  for (int i=0; i < size; i++) {
+    this.columnIndexes[i]=columnIndexes.get(i);
+    if (this.columnIndexes[i] == NULL_COLUMN) {
+      constantBlocks[i]=buildNullBlock(columnTypes.get(i));
+    }
+  }
+}

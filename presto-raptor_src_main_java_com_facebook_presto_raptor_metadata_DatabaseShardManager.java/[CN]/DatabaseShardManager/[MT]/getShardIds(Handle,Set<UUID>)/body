@@ -1,0 +1,11 @@
+{
+  String args=Joiner.on(",").join(nCopies(shardUuids.size(),"?"));
+  String sql="SELECT shard_id FROM shards WHERE shard_uuid IN (" + args + ")";
+  Query<Map<String,Object>> query=handle.createQuery(sql);
+  int i=0;
+  for (  UUID uuid : shardUuids) {
+    query.bind(i,new UuidArgument(uuid));
+    i++;
+  }
+  return ImmutableSet.copyOf(query.map(LongMapper.FIRST).list());
+}

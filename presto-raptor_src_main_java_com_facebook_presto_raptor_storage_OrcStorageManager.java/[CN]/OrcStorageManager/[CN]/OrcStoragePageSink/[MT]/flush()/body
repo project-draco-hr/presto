@@ -2,11 +2,10 @@
   if (writer != null) {
     writer.close();
     File stagingFile=storageService.getStagingFile(shardUuid);
-    List<ColumnStats> columns=computeShardStats(stagingFile,columnIds,columnTypes);
     Set<String> nodes=ImmutableSet.of(nodeId);
     long rowCount=writer.getRowCount();
-    long compressedSize=stagingFile.length();
-    shards.add(new ShardInfo(shardUuid,nodes,columns,rowCount,compressedSize,writer.getUncompressedSize()));
+    long uncompressedSize=writer.getUncompressedSize();
+    shards.add(createShardInfo(shardUuid,stagingFile,nodes,rowCount,uncompressedSize));
     writer=null;
     shardUuid=null;
   }
