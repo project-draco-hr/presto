@@ -2,8 +2,8 @@
   checkState(!Thread.holdsLock(SharedBuffer.this),"Thread must NOT hold a lock on the %s",SharedBuffer.class.getSimpleName());
   long sequenceId=this.sequenceId.get();
   if (finished.get()) {
-    return new BufferInfo(bufferId,true,0,sequenceId);
+    return new BufferInfo(bufferId,true,0,sequenceId,partitionBuffer.getInfo());
   }
-  int size=Math.max(Ints.checkedCast(pagesAdded.get() + queuedPages.size() - sequenceId),0);
-  return new BufferInfo(bufferId,finished.get(),size,sequenceId);
+  int bufferedPages=Math.max(Ints.checkedCast(partitionBuffer.getPageCount() - sequenceId),0);
+  return new BufferInfo(bufferId,finished.get(),bufferedPages,sequenceId,partitionBuffer.getInfo());
 }

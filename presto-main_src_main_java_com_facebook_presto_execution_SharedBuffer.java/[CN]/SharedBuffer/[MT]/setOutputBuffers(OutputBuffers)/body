@@ -1,27 +1,2 @@
 {
-  checkNotNull(newOutputBuffers,"newOutputBuffers is null");
-  if (state.get().isTerminal() || outputBuffers.getVersion() >= newOutputBuffers.getVersion()) {
-    return;
-  }
-  SetView<TaskId> missingBuffers=Sets.difference(outputBuffers.getBuffers().keySet(),newOutputBuffers.getBuffers().keySet());
-  checkArgument(missingBuffers.isEmpty(),"newOutputBuffers does not have existing buffers %s",missingBuffers);
-  checkArgument(!outputBuffers.isNoMoreBufferIds() || newOutputBuffers.isNoMoreBufferIds(),"Expected newOutputBuffers to have noMoreBufferIds set");
-  outputBuffers=newOutputBuffers;
-  for (  Entry<TaskId,PagePartitionFunction> entry : outputBuffers.getBuffers().entrySet()) {
-    TaskId bufferId=entry.getKey();
-    if (!namedBuffers.containsKey(bufferId)) {
-      checkState(state.get().canAddBuffers(),"Cannot add buffers to %s",SharedBuffer.class.getSimpleName());
-      NamedBuffer namedBuffer=new NamedBuffer(bufferId,entry.getValue());
-      if (abortedBuffers.contains(bufferId)) {
-        namedBuffer.abort();
-      }
-      namedBuffers.put(bufferId,namedBuffer);
-    }
-  }
-  if (outputBuffers.isNoMoreBufferIds()) {
-    state.compareAndSet(OPEN,NO_MORE_BUFFERS);
-    state.compareAndSet(NO_MORE_PAGES,FLUSHING);
-    finalOutputBuffers.set(outputBuffers);
-  }
-  updateState();
 }
