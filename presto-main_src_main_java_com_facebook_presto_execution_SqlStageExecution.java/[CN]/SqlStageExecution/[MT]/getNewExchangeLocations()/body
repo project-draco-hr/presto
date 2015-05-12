@@ -1,16 +1,10 @@
 {
-  Multimap<PlanNodeId,URI> exchangeLocations=this.exchangeLocations.get();
+  @SuppressWarnings("MismatchedQueryAndUpdateOfCollection") List<ExchangeLocation> exchangeLocations=new ArrayList<>();
+  this.pendingExchangeLocations.drainTo(exchangeLocations);
   ImmutableMultimap.Builder<PlanNodeId,URI> newExchangeLocations=ImmutableMultimap.builder();
-  for (  RemoteSourceNode remoteSourceNode : fragment.getRemoteSourceNodes()) {
-    for (    PlanFragmentId planFragmentId : remoteSourceNode.getSourceFragmentIds()) {
-      SqlStageExecution subStage=subStages.get(planFragmentId);
-      checkState(subStage != null,"Unknown sub stage %s, known stages %s",planFragmentId,subStages.keySet());
-      for (      URI taskLocation : subStage.getTaskLocations()) {
-        if (!exchangeLocations.containsEntry(remoteSourceNode.getId(),taskLocation)) {
-          newExchangeLocations.putAll(remoteSourceNode.getId(),taskLocation);
-        }
-      }
-    }
+  for (  ExchangeLocation exchangeLocation : exchangeLocations) {
+    RemoteSourceNode remoteSource=exchangeSources.get(exchangeLocation.getPlanFragmentId());
+    newExchangeLocations.put(remoteSource.getId(),exchangeLocation.getUri());
   }
   return newExchangeLocations.build();
 }
