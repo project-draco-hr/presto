@@ -10,7 +10,14 @@
   long attempts=0;
   do {
     if (attempts > 0) {
-      sleepUninterruptibly(attempts * 100,MILLISECONDS);
+      try {
+        MILLISECONDS.sleep(attempts * 100);
+      }
+ catch (      InterruptedException e) {
+        close();
+        Thread.currentThread().isInterrupted();
+        throw new RuntimeException("StatementClient thread was interrupted");
+      }
     }
     attempts++;
     JsonResponse<QueryResults> response;
