@@ -1,17 +1,16 @@
 {
-  try {
-    Table table=metastore.getTable(tableName.getSchemaName(),tableName.getTableName());
-    String protectMode=table.getParameters().get(ProtectMode.PARAMETER_NAME);
-    if (protectMode != null && getProtectModeFromString(protectMode).offline) {
-      throw new TableOfflineException(tableName);
-    }
-    String prestoOffline=table.getParameters().get(PRESTO_OFFLINE);
-    if (!isNullOrEmpty(prestoOffline)) {
-      throw new TableOfflineException(tableName,format("Table '%s' is offline for Presto: %s",tableName,prestoOffline));
-    }
-    return table;
-  }
- catch (  NoSuchObjectException e) {
+  Optional<Table> target=metastore.getTable(tableName.getSchemaName(),tableName.getTableName());
+  if (!target.isPresent()) {
     throw new TableNotFoundException(tableName);
   }
+  Table table=target.get();
+  String protectMode=table.getParameters().get(ProtectMode.PARAMETER_NAME);
+  if (protectMode != null && getProtectModeFromString(protectMode).offline) {
+    throw new TableOfflineException(tableName);
+  }
+  String prestoOffline=table.getParameters().get(PRESTO_OFFLINE);
+  if (!isNullOrEmpty(prestoOffline)) {
+    throw new TableOfflineException(tableName,format("Table '%s' is offline for Presto: %s",tableName,prestoOffline));
+  }
+  return table;
 }

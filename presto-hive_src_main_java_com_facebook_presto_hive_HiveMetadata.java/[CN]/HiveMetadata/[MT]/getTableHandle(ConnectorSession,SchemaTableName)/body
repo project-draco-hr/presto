@@ -1,10 +1,7 @@
 {
   checkNotNull(tableName,"tableName is null");
-  try {
-    metastore.getTable(tableName.getSchemaName(),tableName.getTableName());
-    return new HiveTableHandle(connectorId,tableName.getSchemaName(),tableName.getTableName());
-  }
- catch (  NoSuchObjectException e) {
+  if (!metastore.getTable(tableName.getSchemaName(),tableName.getTableName()).isPresent()) {
     return null;
   }
+  return new HiveTableHandle(connectorId,tableName.getSchemaName(),tableName.getTableName());
 }

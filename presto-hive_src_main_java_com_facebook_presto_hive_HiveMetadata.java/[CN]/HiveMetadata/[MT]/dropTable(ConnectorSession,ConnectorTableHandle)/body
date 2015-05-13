@@ -4,14 +4,13 @@
   if (!allowDropTable) {
     throw new PrestoException(PERMISSION_DENIED,"DROP TABLE is disabled in this Hive catalog");
   }
-  try {
-    Table table=metastore.getTable(handle.getSchemaName(),handle.getTableName());
-    if (!session.getUser().equals(table.getOwner())) {
-      throw new PrestoException(PERMISSION_DENIED,format("Unable to drop table '%s': owner of the table is different from session user",table));
-    }
-    metastore.dropTable(handle.getSchemaName(),handle.getTableName());
-  }
- catch (  NoSuchObjectException e) {
+  Optional<Table> target=metastore.getTable(handle.getSchemaName(),handle.getTableName());
+  if (!target.isPresent()) {
     throw new TableNotFoundException(tableName);
   }
+  Table table=target.get();
+  if (!session.getUser().equals(table.getOwner())) {
+    throw new PrestoException(PERMISSION_DENIED,format("Unable to drop table '%s': owner of the table is different from session user",table));
+  }
+  metastore.dropTable(handle.getSchemaName(),handle.getTableName());
 }

@@ -1,14 +1,9 @@
 {
-  try {
-    Table table=metastore.getTable(tableName.getSchemaName(),tableName.getTableName());
-    if (table.getTableType().equals(TableType.VIRTUAL_VIEW.name())) {
-      throw new TableNotFoundException(tableName);
-    }
-    List<HiveColumnHandle> handles=hiveColumnHandles(typeManager,connectorId,table,false);
-    List<ColumnMetadata> columns=ImmutableList.copyOf(transform(handles,columnMetadataGetter(table,typeManager)));
-    return new ConnectorTableMetadata(tableName,columns,table.getOwner());
-  }
- catch (  NoSuchObjectException e) {
+  Optional<Table> table=metastore.getTable(tableName.getSchemaName(),tableName.getTableName());
+  if (!table.isPresent() || table.get().getTableType().equals(TableType.VIRTUAL_VIEW.name())) {
     throw new TableNotFoundException(tableName);
   }
+  List<HiveColumnHandle> handles=hiveColumnHandles(typeManager,connectorId,table.get(),false);
+  List<ColumnMetadata> columns=ImmutableList.copyOf(transform(handles,columnMetadataGetter(table.get(),typeManager)));
+  return new ConnectorTableMetadata(tableName,columns,table.get().getOwner());
 }

@@ -8,13 +8,9 @@
     tableNames=listViews(session,prefix.getSchemaName());
   }
   for (  SchemaTableName schemaTableName : tableNames) {
-    try {
-      Table table=metastore.getTable(schemaTableName.getSchemaName(),schemaTableName.getTableName());
-      if (HiveUtil.isPrestoView(table)) {
-        views.put(schemaTableName,decodeViewData(table.getViewOriginalText()));
-      }
-    }
- catch (    NoSuchObjectException ignored) {
+    Optional<Table> table=metastore.getTable(schemaTableName.getSchemaName(),schemaTableName.getTableName());
+    if (table.isPresent() && HiveUtil.isPrestoView(table.get())) {
+      views.put(schemaTableName,decodeViewData(table.get().getViewOriginalText()));
     }
   }
   return views.build();

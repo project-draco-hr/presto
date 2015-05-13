@@ -1,9 +1,12 @@
 {
   try {
-    Table table=getTable(databaseName,tableName);
-    table.getSd().setLocation("/");
+    Optional<Table> table=getTable(databaseName,tableName);
+    if (!table.isPresent()) {
+      throw new TableNotFoundException(new SchemaTableName(databaseName,tableName));
+    }
+    table.get().getSd().setLocation("/");
     try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
-      client.alter_table(databaseName,tableName,table);
+      client.alter_table(databaseName,tableName,table.get());
       client.drop_table(databaseName,tableName,false);
     }
    }

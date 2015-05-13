@@ -1,14 +1,12 @@
 {
   SchemaTableName tableName=schemaTableName(tableHandle);
-  try {
-    Table table=metastore.getTable(tableName.getSchemaName(),tableName.getTableName());
-    ImmutableMap.Builder<String,ColumnHandle> columnHandles=ImmutableMap.builder();
-    for (    HiveColumnHandle columnHandle : hiveColumnHandles(typeManager,connectorId,table,false)) {
-      columnHandles.put(columnHandle.getName(),columnHandle);
-    }
-    return columnHandles.build();
-  }
- catch (  NoSuchObjectException e) {
+  Optional<Table> table=metastore.getTable(tableName.getSchemaName(),tableName.getTableName());
+  if (!table.isPresent()) {
     throw new TableNotFoundException(tableName);
   }
+  ImmutableMap.Builder<String,ColumnHandle> columnHandles=ImmutableMap.builder();
+  for (  HiveColumnHandle columnHandle : hiveColumnHandles(typeManager,connectorId,table.get(),false)) {
+    columnHandles.put(columnHandle.getName(),columnHandle);
+  }
+  return columnHandles.build();
 }
