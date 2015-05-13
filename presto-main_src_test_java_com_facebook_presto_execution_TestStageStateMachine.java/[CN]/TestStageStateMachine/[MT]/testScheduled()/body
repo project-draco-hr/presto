@@ -1,0 +1,27 @@
+{
+  StageStateMachine stateMachine=createStageStateMachine();
+  assertTrue(stateMachine.transitionToScheduled());
+  assertState(stateMachine,StageState.SCHEDULED);
+  assertFalse(stateMachine.transitionToScheduling());
+  assertState(stateMachine,StageState.SCHEDULED);
+  assertFalse(stateMachine.transitionToScheduled());
+  assertState(stateMachine,StageState.SCHEDULED);
+  assertTrue(stateMachine.transitionToRunning());
+  assertState(stateMachine,StageState.RUNNING);
+  stateMachine=createStageStateMachine();
+  stateMachine.transitionToScheduled();
+  assertTrue(stateMachine.transitionToFinished());
+  assertState(stateMachine,StageState.FINISHED);
+  stateMachine=createStageStateMachine();
+  stateMachine.transitionToScheduled();
+  assertTrue(stateMachine.transitionToFailed(FAILED_CAUSE));
+  assertState(stateMachine,StageState.FAILED);
+  stateMachine=createStageStateMachine();
+  stateMachine.transitionToScheduled();
+  assertTrue(stateMachine.transitionToAborted());
+  assertState(stateMachine,StageState.ABORTED);
+  stateMachine=createStageStateMachine();
+  stateMachine.transitionToScheduled();
+  assertTrue(stateMachine.transitionToCanceled());
+  assertState(stateMachine,StageState.CANCELED);
+}

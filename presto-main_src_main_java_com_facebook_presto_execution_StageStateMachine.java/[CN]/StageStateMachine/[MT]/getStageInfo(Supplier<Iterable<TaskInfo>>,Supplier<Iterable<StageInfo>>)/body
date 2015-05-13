@@ -1,0 +1,59 @@
+{
+  StageState state=stageState.get();
+  List<TaskInfo> taskInfos=ImmutableList.copyOf(taskInfosSupplier.get());
+  List<StageInfo> subStageInfos=ImmutableList.copyOf(subStageInfosSupplier.get());
+  int totalTasks=taskInfos.size();
+  int runningTasks=0;
+  int completedTasks=0;
+  int totalDrivers=0;
+  int queuedDrivers=0;
+  int runningDrivers=0;
+  int completedDrivers=0;
+  long totalMemoryReservation=0;
+  long totalScheduledTime=0;
+  long totalCpuTime=0;
+  long totalUserTime=0;
+  long totalBlockedTime=0;
+  long rawInputDataSize=0;
+  long rawInputPositions=0;
+  long processedInputDataSize=0;
+  long processedInputPositions=0;
+  long outputDataSize=0;
+  long outputPositions=0;
+  boolean fullyBlocked=true;
+  Set<BlockedReason> blockedReasons=new HashSet<>();
+  for (  TaskInfo taskInfo : taskInfos) {
+    if (taskInfo.getState().isDone()) {
+      completedTasks++;
+    }
+ else {
+      runningTasks++;
+    }
+    TaskStats taskStats=taskInfo.getStats();
+    totalDrivers+=taskStats.getTotalDrivers();
+    queuedDrivers+=taskStats.getQueuedDrivers();
+    runningDrivers+=taskStats.getRunningDrivers();
+    completedDrivers+=taskStats.getCompletedDrivers();
+    totalMemoryReservation+=taskStats.getMemoryReservation().toBytes();
+    totalScheduledTime+=taskStats.getTotalScheduledTime().roundTo(NANOSECONDS);
+    totalCpuTime+=taskStats.getTotalCpuTime().roundTo(NANOSECONDS);
+    totalUserTime+=taskStats.getTotalUserTime().roundTo(NANOSECONDS);
+    totalBlockedTime+=taskStats.getTotalBlockedTime().roundTo(NANOSECONDS);
+    if (!taskInfo.getState().isDone()) {
+      fullyBlocked&=taskStats.isFullyBlocked();
+      blockedReasons.addAll(taskStats.getBlockedReasons());
+    }
+    rawInputDataSize+=taskStats.getRawInputDataSize().toBytes();
+    rawInputPositions+=taskStats.getRawInputPositions();
+    processedInputDataSize+=taskStats.getProcessedInputDataSize().toBytes();
+    processedInputPositions+=taskStats.getProcessedInputPositions();
+    outputDataSize+=taskStats.getOutputDataSize().toBytes();
+    outputPositions+=taskStats.getOutputPositions();
+  }
+  StageStats stageStats=new StageStats(schedulingComplete.get(),getSplitDistribution.snapshot(),scheduleTaskDistribution.snapshot(),addSplitDistribution.snapshot(),totalTasks,runningTasks,completedTasks,totalDrivers,queuedDrivers,runningDrivers,completedDrivers,succinctDataSize(totalMemoryReservation,BYTE),succinctDuration(totalScheduledTime,NANOSECONDS),succinctDuration(totalCpuTime,NANOSECONDS),succinctDuration(totalUserTime,NANOSECONDS),succinctDuration(totalBlockedTime,NANOSECONDS),fullyBlocked && runningTasks > 0,blockedReasons,succinctDataSize(rawInputDataSize,BYTE),rawInputPositions,succinctDataSize(processedInputDataSize,BYTE),processedInputPositions,succinctDataSize(outputDataSize,BYTE),outputPositions);
+  ExecutionFailureInfo failureInfo=null;
+  if (state == FAILED) {
+    failureInfo=failureCause.get();
+  }
+  return new StageInfo(stageId,state,location,fragment,fragment.getTypes(),stageStats,taskInfos,subStageInfos,failureInfo == null ? ImmutableList.of() : ImmutableList.of(failureInfo));
+}

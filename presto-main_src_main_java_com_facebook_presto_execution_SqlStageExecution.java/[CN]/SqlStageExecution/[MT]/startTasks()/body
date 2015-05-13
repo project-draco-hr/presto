@@ -1,2 +1,39 @@
 {
-}
+  try (SetThreadName ignored=new SetThreadName("Stage-%s",stateMachine.getStageId())){
+    try {
+      checkState(!Thread.holdsLock(this),"Can not start while holding a lock on this");
+      if (!stateMachine.transitionToScheduling()) {
+        return;
+      }
+      if (fragment.getDistribution() == PlanDistribution.SINGLE) {
+        scheduleFixedNodeCount(1);
+      }
+ else       if (fragment.getDistribution() == PlanDistribution.FIXED) {
+        scheduleFixedNodeCount(initialHashPartitions);
+      }
+ else       if (fragment.getDistribution() == PlanDistribution.SOURCE) {
+        scheduleSourcePartitionedNodes();
+      }
+ else       if (fragment.getDistribution() == PlanDistribution.COORDINATOR_ONLY) {
+        scheduleOnCurrentNode();
+      }
+ else {
+        throw new IllegalStateException("Unsupported partitioning: " + fragment.getDistribution());
+      }
+      stateMachine.transitionToScheduled();
+      updateNewExchangesAndBuffers(true);
+    }
+ catch (    Throwable e) {
+      if (e instanceof InterruptedException) {
+        Thread.currentThread().interrupt();
+      }
+      if (stateMachine.transitionToFailed(e)) {
+        throw Throwables.propagate(e);
+      }
+      Throwables.propagateIfInstanceOf(e,Error.class);
+    }
+ finally {
+      doUpdateState();
+    }
+  }
+ }

@@ -7,7 +7,7 @@
       }
       long start=System.nanoTime();
       Set<Split> pendingSplits=ImmutableSet.copyOf(getFutureValue(splitSource.getNextBatch(splitBatchSize)));
-      getSplitDistribution.add(System.nanoTime() - start);
+      stateMachine.recordGetSplitTime(start);
       while (!pendingSplits.isEmpty() && !getState().isDone()) {
         Multimap<Node,Split> splitAssignment=nodeSelector.computeAssignments(pendingSplits,tasks.values());
         pendingSplits=ImmutableSet.copyOf(Sets.difference(pendingSplits,ImmutableSet.copyOf(splitAssignment.values())));
