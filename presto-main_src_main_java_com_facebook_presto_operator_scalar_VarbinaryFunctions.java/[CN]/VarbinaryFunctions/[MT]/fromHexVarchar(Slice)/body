@@ -1,3 +1,10 @@
 {
-  return Slices.wrappedBuffer(BaseEncoding.base16().decode(slice.toStringUtf8()));
+  if (slice.length() % 2 != 0) {
+    throw new PrestoException(INVALID_FUNCTION_ARGUMENT,"invalid input length " + slice.length());
+  }
+  byte[] result=new byte[slice.length() / 2];
+  for (int i=0; i < slice.length(); i+=2) {
+    result[i / 2]=(byte)((hexDigitCharToInt(slice.getByte(i)) << 4) | hexDigitCharToInt(slice.getByte(i + 1)));
+  }
+  return Slices.wrappedBuffer(result);
 }
