@@ -1,18 +1,20 @@
 {
+  Thread clientThread=Thread.currentThread();
   SignalHandler oldHandler=Signal.handle(SIGINT,new SignalHandler(){
     @Override public void handle(    Signal signal){
       if (ignoreUserInterrupt.get() || client.isClosed()) {
         return;
       }
       try {
-        if (!client.cancelLeafStage()) {
-          client.close();
+        if (client.cancelLeafStage(new Duration(1,SECONDS))) {
+          return;
         }
       }
  catch (      RuntimeException e) {
         log.debug(e,"error canceling leaf stage");
-        client.close();
       }
+      client.close();
+      clientThread.interrupt();
     }
   }
 );
@@ -21,5 +23,6 @@
   }
   finally {
     Signal.handle(SIGINT,oldHandler);
+    Thread.interrupted();
   }
 }

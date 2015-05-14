@@ -1,0 +1,23 @@
+{
+  checkState(!isClosed(),"client is closed");
+  URI uri=current().getPartialCancelUri();
+  if (uri == null) {
+    return false;
+  }
+  Request request=prepareDelete().setHeader(USER_AGENT,USER_AGENT_VALUE).setUri(uri).build();
+  HttpResponseFuture<StatusResponse> response=httpClient.executeAsync(request,createStatusResponseHandler());
+  try {
+    StatusResponse status=response.get(timeout.toMillis(),MILLISECONDS);
+    return familyForStatusCode(status.getStatusCode()) == Family.SUCCESSFUL;
+  }
+ catch (  InterruptedException e) {
+    Thread.currentThread().interrupt();
+    throw Throwables.propagate(e);
+  }
+catch (  ExecutionException e) {
+    throw Throwables.propagate(e.getCause());
+  }
+catch (  TimeoutException e) {
+    return false;
+  }
+}
