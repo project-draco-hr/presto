@@ -3,18 +3,13 @@
   if (elementsBlock.getPositionCount() == 0) {
     return array;
   }
-  GroupByHash groupByHash=createGroupByHash(ImmutableList.of(type),new int[]{0},Optional.<Integer>empty(),Optional.empty(),elementsBlock.getPositionCount());
-  groupByHash.getGroupIds(new Page(elementsBlock));
-  PageBuilder pageBuilder=new PageBuilder(groupByHash.getTypes());
-  for (int i=0; i < groupByHash.getGroupCount(); i++) {
-    pageBuilder.declarePosition();
-    groupByHash.appendValuesTo(i,pageBuilder,0);
+  TypedSet typedSet=new SimpleTypedSet(type,elementsBlock.getPositionCount());
+  BlockBuilder distinctElementBlockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),elementsBlock.getPositionCount());
+  for (int i=0; i < elementsBlock.getPositionCount(); i++) {
+    if (!typedSet.contains(elementsBlock,i)) {
+      typedSet.add(elementsBlock,i);
+      type.appendTo(elementsBlock,i,distinctElementBlockBuilder);
+    }
   }
-  BlockBuilder fixedWidthResultBlockBuilder=pageBuilder.getBlockBuilder(0);
-  Block fixedWidthResultBlock=fixedWidthResultBlockBuilder.build();
-  BlockBuilder variableWidthBlockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),fixedWidthResultBlock.getSizeInBytes());
-  for (int i=0; i < fixedWidthResultBlock.getPositionCount(); i++) {
-    type.appendTo(fixedWidthResultBlock,i,variableWidthBlockBuilder);
-  }
-  return buildStructuralSlice(variableWidthBlockBuilder);
+  return buildStructuralSlice(distinctElementBlockBuilder);
 }
