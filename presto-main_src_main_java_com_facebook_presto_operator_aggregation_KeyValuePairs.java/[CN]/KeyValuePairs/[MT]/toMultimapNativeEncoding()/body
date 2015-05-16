@@ -1,0 +1,28 @@
+{
+  if (!isMultiValue) {
+    throw new PrestoException(INTERNAL_ERROR,"This KeyValuePairs is not multimap.");
+  }
+  Block keys=keyBlockBuilder.build();
+  Block values=valueBlockBuilder.build();
+  BlockBuilder distinctKeyBlockBuilder=keyType.createBlockBuilder(new BlockBuilderStatus(),keys.getPositionCount(),expectedValueSize(keyType,EXPECTED_ENTRY_SIZE));
+  ObjectBigArray<BlockBuilder> valueArrayBlockBuilders=new ObjectBigArray<>();
+  valueArrayBlockBuilders.ensureCapacity(keys.getPositionCount());
+  TypedSet keySet=new TypedSet(keyType,keys.getPositionCount());
+  for (int keyValueIndex=0; keyValueIndex < keys.getPositionCount(); keyValueIndex++) {
+    if (!keySet.contains(keys,keyValueIndex)) {
+      keySet.add(keys,keyValueIndex);
+      keyType.appendTo(keys,keyValueIndex,distinctKeyBlockBuilder);
+      BlockBuilder valueArrayBuilder=valueType.createBlockBuilder(new BlockBuilderStatus(),10,expectedValueSize(valueType,EXPECTED_ENTRY_SIZE));
+      valueArrayBlockBuilders.set(keySet.positionOf(keys,keyValueIndex),valueArrayBuilder);
+    }
+    valueType.appendTo(values,keyValueIndex,valueArrayBlockBuilders.get(keySet.positionOf(keys,keyValueIndex)));
+  }
+  Block distinctKeys=distinctKeyBlockBuilder.build();
+  Type valueArrayType=new ArrayType(valueType);
+  BlockBuilder multimapBlockBuilder=new InterleavedBlockBuilder(ImmutableList.of(keyType,valueArrayType),new BlockBuilderStatus(),distinctKeyBlockBuilder.getSizeInBytes() + Ints.checkedCast(valueArrayBlockBuilders.sizeOf()));
+  for (int i=0; i < distinctKeys.getPositionCount(); i++) {
+    keyType.appendTo(distinctKeys,i,multimapBlockBuilder);
+    valueArrayType.writeObject(multimapBlockBuilder,valueArrayBlockBuilders.get(i).build());
+  }
+  return multimapBlockBuilder.build();
+}

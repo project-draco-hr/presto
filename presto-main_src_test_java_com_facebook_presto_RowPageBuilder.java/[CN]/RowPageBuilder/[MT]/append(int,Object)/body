@@ -5,6 +5,30 @@
   if (value == null) {
     builder.appendNull();
   }
+ else   if (type.getTypeSignature().getBase().equals(StandardTypes.ARRAY) && value instanceof Iterable<?>) {
+    BlockBuilder subBlockBuilder=((ArrayType)type).getElementType().createBlockBuilder(new BlockBuilderStatus(),100);
+    for (    Object subElement : (Iterable<?>)value) {
+      appendToBlockBuilder(type.getTypeParameters().get(0),subElement,subBlockBuilder);
+    }
+    type.writeObject(builder,subBlockBuilder);
+  }
+ else   if (type.getTypeSignature().getBase().equals(StandardTypes.ROW) && value instanceof Iterable<?>) {
+    BlockBuilder subBlockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus());
+    int field=0;
+    for (    Object subElement : (Iterable<?>)value) {
+      appendToBlockBuilder(type.getTypeParameters().get(field),subElement,subBlockBuilder);
+      field++;
+    }
+    type.writeObject(builder,subBlockBuilder);
+  }
+ else   if (type.getTypeSignature().getBase().equals(StandardTypes.MAP) && value instanceof Map<?,?>) {
+    BlockBuilder subBlockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus());
+    for (    Map.Entry<?,?> entry : ((Map<?,?>)value).entrySet()) {
+      appendToBlockBuilder(type.getTypeParameters().get(0),entry.getKey(),subBlockBuilder);
+      appendToBlockBuilder(type.getTypeParameters().get(1),entry.getValue(),subBlockBuilder);
+    }
+    type.writeObject(builder,subBlockBuilder);
+  }
  else   if (javaType == boolean.class) {
     type.writeBoolean(builder,(Boolean)value);
   }
