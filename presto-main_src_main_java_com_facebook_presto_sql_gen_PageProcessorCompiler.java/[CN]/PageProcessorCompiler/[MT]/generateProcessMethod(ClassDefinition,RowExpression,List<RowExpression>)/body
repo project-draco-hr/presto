@@ -24,8 +24,8 @@
   for (int projectionIndex=0; projectionIndex < projections.size(); projectionIndex++) {
     List<Integer> inputChannels=getInputChannels(projections.get(projectionIndex));
     filterBlock.ifTrue().append(thisVariable).append(session).append(pushBlockVariables(scope,inputChannels)).getVariable(position);
-    filterBlock.ifTrue().comment("pageBuilder.getBlockBuilder(" + projectionIndex + ")").append(pageBuilder).push(projectionIndex).invokeVirtual(PageBuilder.class,"getBlockBuilder",BlockBuilder.class,int.class);
-    filterBlock.ifTrue().comment("project_" + projectionIndex + "(session, block_"+ inputChannels+ ", position, blockBuilder)").invokeVirtual(classDefinition.getType(),"project_" + projectionIndex,type(void.class),ImmutableList.<ParameterizedType>builder().add(type(ConnectorSession.class)).addAll(nCopies(inputChannels.size(),type(com.facebook.presto.spi.block.Block.class))).add(type(int.class)).add(type(BlockBuilder.class)).build());
+    filterBlock.ifTrue().comment("pageBuilder.getBlockBuilder(%d)",projectionIndex).append(pageBuilder).push(projectionIndex).invokeVirtual(PageBuilder.class,"getBlockBuilder",BlockBuilder.class,int.class);
+    filterBlock.ifTrue().comment("project_%d(session, block_%s, position, blockBuilder)",projectionIndex,inputChannels).invokeVirtual(classDefinition.getType(),"project_" + projectionIndex,type(void.class),ImmutableList.<ParameterizedType>builder().add(type(ConnectorSession.class)).addAll(nCopies(inputChannels.size(),type(com.facebook.presto.spi.block.Block.class))).add(type(int.class)).add(type(BlockBuilder.class)).build());
   }
   loopBody.append(filterBlock);
   method.getBody().append(loop).visitLabel(done).comment("return position;").getVariable(position).retInt();
