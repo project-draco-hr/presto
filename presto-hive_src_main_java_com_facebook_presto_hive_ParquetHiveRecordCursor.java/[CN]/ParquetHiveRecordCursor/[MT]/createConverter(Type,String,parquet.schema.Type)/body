@@ -1,15 +1,6 @@
 {
-  if (type.isPrimitive()) {
+  if (parquetType.isPrimitive()) {
     return new ParquetPrimitiveConverter();
   }
- else   if (type.getOriginalType() == LIST) {
-    return new ParquetListConverter(prestoType,columnName,type.asGroupType());
-  }
- else   if (type.getOriginalType() == MAP) {
-    return new ParquetMapConverter(prestoType,columnName,type.asGroupType());
-  }
- else   if (type.getOriginalType() == null) {
-    return new ParquetStructConverter(prestoType,columnName,type.asGroupType());
-  }
-  throw new IllegalArgumentException("Unsupported type " + type);
+  return createGroupConverter(prestoType,columnName,parquetType);
 }

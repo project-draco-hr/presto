@@ -3,8 +3,9 @@
     ParquetMetadata parquetMetadata=ParquetFileReader.readFooter(configuration,path);
     List<BlockMetaData> blocks=parquetMetadata.getBlocks();
     FileMetaData fileMetaData=parquetMetadata.getFileMetaData();
-    PrestoReadSupport readSupport=new PrestoReadSupport(useParquetColumnNames,columns,fileMetaData.getSchema());
-    ReadContext readContext=readSupport.init(configuration,fileMetaData.getKeyValueMetaData(),fileMetaData.getSchema());
+    MessageType schema=fileMetaData.getSchema();
+    PrestoReadSupport readSupport=new PrestoReadSupport(useParquetColumnNames,columns,schema);
+    ReadContext readContext=readSupport.init(configuration,fileMetaData.getKeyValueMetaData(),schema);
     List<BlockMetaData> splitGroup=new ArrayList<>();
     long splitStart=start;
     long splitLength=length;
@@ -14,8 +15,7 @@
         splitGroup.add(block);
       }
     }
-    ParquetInputSplit split;
-    split=new ParquetInputSplit(path,splitStart,splitLength,null,splitGroup,readContext.getRequestedSchema().toString(),fileMetaData.getSchema().toString(),fileMetaData.getKeyValueMetaData(),readContext.getReadSupportMetadata());
+    ParquetInputSplit split=new ParquetInputSplit(path,splitStart,splitLength,null,splitGroup,readContext.getRequestedSchema().toString(),schema.toString(),fileMetaData.getKeyValueMetaData(),readContext.getReadSupportMetadata());
     TaskAttemptContext taskContext=ContextUtil.newTaskAttemptContext(configuration,new TaskAttemptID());
     ParquetRecordReader<FakeParquetRecord> realReader=new PrestoParquetRecordReader(readSupport);
     realReader.initialize(split,taskContext);
