@@ -1,7 +1,7 @@
 {
   int firstPartition=0;
   int secondPartition=1;
-  SharedBuffer sharedBuffer=new SharedBuffer(TASK_ID,stateNotificationExecutor,sizeOfPages(10));
+  SharedBuffer sharedBuffer=new SharedBuffer(TASK_ID,stateNotificationExecutor,sizeOfPages(20));
   for (int i=0; i < 3; i++) {
     addPage(sharedBuffer,createPage(i),firstPartition);
     addPage(sharedBuffer,createPage(i),secondPartition);
@@ -37,8 +37,8 @@
   assertQueueState(sharedBuffer,SECOND,secondPartition,0,10,0,10,0);
   addPage(sharedBuffer,createPage(11),firstPartition);
   addPage(sharedBuffer,createPage(12),firstPartition);
-  future=enqueuePage(sharedBuffer,createPage(13),firstPartition);
-  assertQueueState(sharedBuffer,FIRST,firstPartition,10,3,10,13,1);
+  addPage(sharedBuffer,createPage(13),firstPartition);
+  assertQueueState(sharedBuffer,FIRST,firstPartition,11,3,11,14,0);
   assertQueueState(sharedBuffer,SECOND,secondPartition,0,10,0,10,0);
   assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,FIRST,4,sizeOfPages(1),NO_WAIT),bufferResult(4,createPage(4)));
   future.get(1,TimeUnit.SECONDS);
