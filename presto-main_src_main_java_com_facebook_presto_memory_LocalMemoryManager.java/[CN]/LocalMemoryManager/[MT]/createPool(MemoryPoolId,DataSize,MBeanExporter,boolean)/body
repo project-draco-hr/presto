@@ -1,6 +1,11 @@
 {
   MemoryPool pool=new MemoryPool(id,size,enableBlocking);
-  String objectName=ObjectNames.builder(MemoryPool.class,pool.getId().toString()).build();
-  exporter.export(objectName,pool);
+  try {
+    String objectName=ObjectNames.builder(MemoryPool.class,pool.getId().toString()).build();
+    exporter.export(objectName,pool);
+  }
+ catch (  JmxException e) {
+    log.warn(e,"Unable to export memory pool %s",id);
+  }
   return pool;
 }

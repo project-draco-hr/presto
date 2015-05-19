@@ -1,6 +1,11 @@
 {
   for (  MemoryPool pool : pools.values()) {
     String objectName=ObjectNames.builder(MemoryPool.class,pool.getId().toString()).build();
-    exporter.unexport(objectName);
+    try {
+      exporter.unexport(objectName);
+    }
+ catch (    JmxException e) {
+      log.warn(e,"Unable to unexport memory pool %s",pool.getId());
+    }
   }
 }
