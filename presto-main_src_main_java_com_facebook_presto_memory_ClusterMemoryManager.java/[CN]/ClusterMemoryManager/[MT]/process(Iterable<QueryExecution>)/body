@@ -5,9 +5,11 @@
   long totalBytes=0;
   for (  QueryExecution query : queries) {
     long bytes=query.getTotalMemoryReservation();
+    DataSize sessionMaxQueryMemory=getQueryMaxMemory(query.getSession(),maxQueryMemory);
+    long queryMemoryLimit=Math.min(maxQueryMemory.toBytes(),sessionMaxQueryMemory.toBytes());
     totalBytes+=bytes;
-    if (bytes > maxQueryMemory.toBytes()) {
-      query.fail(new ExceededMemoryLimitException("Query",maxQueryMemory));
+    if (bytes > queryMemoryLimit) {
+      query.fail(new ExceededMemoryLimitException("Query",DataSize.succinctDataSize(queryMemoryLimit,Unit.BYTE)));
     }
   }
   clusterMemoryUsageBytes.set(totalBytes);
