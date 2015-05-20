@@ -1,25 +1,2 @@
 {
-  checkNotNull(callableName,"callableName is null");
-  checkNotNull(callable,"callable is null");
-  long startTime=System.nanoTime();
-  int attempt=0;
-  while (true) {
-    attempt++;
-    try {
-      return callable.call();
-    }
- catch (    Exception e) {
-      for (      Class<? extends Exception> clazz : exceptionWhiteList) {
-        if (clazz.isInstance(e)) {
-          throw e;
-        }
-      }
-      if (attempt >= maxAttempts || Duration.nanosSince(startTime).compareTo(maxRetryTime) >= 0) {
-        throw e;
-      }
-      log.debug("Failed on executing %s with attempt %d, will retry. Exception: %s",callableName,attempt,e.getMessage());
-      int delayInMs=(int)Math.min(minSleepTime.toMillis() * Math.pow(scaleFactor,attempt - 1),maxSleepTime.toMillis());
-      TimeUnit.MILLISECONDS.sleep(delayInMs);
-    }
-  }
 }
