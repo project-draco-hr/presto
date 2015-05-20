@@ -1,12 +1,12 @@
 {
   File storageFile=storageService.getStorageFile(shardUuid);
-  File backupFile=storageService.getBackupFile(shardUuid);
-  if (!backupFile.exists()) {
+  OptionalLong backupSize=backupStore.get().shardSize(shardUuid);
+  if (!backupSize.isPresent()) {
     stats.incrementShardRecoveryBackupNotFound();
     throw new PrestoException(RAPTOR_RECOVERY_ERROR,"No backup file found for shard: " + shardUuid);
   }
   if (storageFile.exists()) {
-    if (storageFile.length() == backupFile.length()) {
+    if (storageFile.length() == backupSize.getAsLong()) {
       return;
     }
     log.warn("Local shard file is corrupt. Deleting local file: %s",shardUuid);
@@ -17,11 +17,11 @@
   log.info("Copying shard %s from backup...",shardUuid);
   long start=System.nanoTime();
   try {
-    copyFile(backupFile.toPath(),stagingFile.toPath());
+    backupStore.get().restoreShard(shardUuid,stagingFile);
   }
- catch (  IOException e) {
+ catch (  PrestoException e) {
     stats.incrementShardRecoveryFailure();
-    throw new PrestoException(RAPTOR_RECOVERY_ERROR,"Failed to copy backup shard: " + shardUuid,e);
+    throw e;
   }
   Duration duration=nanosSince(start);
   DataSize size=new DataSize(stagingFile.length(),BYTE);
@@ -38,7 +38,7 @@ catch (  IOException e) {
     stats.incrementShardRecoveryFailure();
     throw new PrestoException(RAPTOR_RECOVERY_ERROR,"Failed to move shard: " + shardUuid,e);
   }
-  if (!storageFile.exists() || (storageFile.length() != backupFile.length())) {
+  if (!storageFile.exists() || (storageFile.length() != backupSize.getAsLong())) {
     stats.incrementShardRecoveryFailure();
     log.info("Files do not match after recovery. Deleting local file: " + shardUuid);
     storageFile.delete();

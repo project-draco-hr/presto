@@ -1,0 +1,16 @@
+{
+  configBinder(binder).bindConfig(BackupConfig.class);
+  String provider=buildConfigObject(BackupConfig.class).getProvider();
+  if (provider == null) {
+    binder.bind(BackupStore.class).toProvider(Providers.of(null));
+  }
+ else {
+switch (provider) {
+case "file":
+      binder.install(new FileBackupModule());
+    break;
+default :
+  binder.addError("Unknown backup provider: %s",provider);
+}
+}
+}

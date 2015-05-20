@@ -1,19 +1,16 @@
 {
-  List<Long> columnIds=ImmutableList.of(3L,7L);
-  List<Type> columnTypes=ImmutableList.of(BIGINT,VARCHAR);
   UUID shardUuid=UUID.randomUUID();
   File file=storageService.getStorageFile(shardUuid);
-  File backupFile=storageService.getBackupFile(shardUuid);
-  try (OrcFileWriter writer=new OrcFileWriter(columnIds,columnTypes,backupFile)){
-    List<Page> pages=RowPagesBuilder.rowPagesBuilder(columnTypes).row(123,"hello").row(456,"bye").build();
-    writer.appendPages(pages);
-  }
-   try (OrcFileWriter writer=new OrcFileWriter(columnIds,columnTypes,file)){
-  }
-   assertTrue(backupFile.exists());
+  storageService.createParents(file);
+  File tempFile=createTempFile("tmp",null,temporary);
+  Files.write("test data",tempFile,UTF_8);
+  Files.write("bad data",file,UTF_8);
+  backupStore.backupShard(shardUuid,tempFile);
+  long backupSize=backupStore.shardSize(shardUuid).getAsLong();
+  assertEquals(backupSize,tempFile.length());
   assertTrue(file.exists());
+  assertNotEquals(file.length(),backupSize);
   recoveryManager.restoreFromBackup(shardUuid);
-  assertTrue(backupFile.exists());
   assertTrue(file.exists());
-  assertTrue(file.length() == backupFile.length());
+  assertEquals(file.length(),backupSize);
 }

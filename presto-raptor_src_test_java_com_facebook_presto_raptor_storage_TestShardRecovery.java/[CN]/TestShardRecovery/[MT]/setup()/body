@@ -2,10 +2,12 @@
   temporary=createTempDir();
   File directory=new File(temporary,"data");
   File backupDirectory=new File(temporary,"backup");
-  storageService=new FileStorageService(directory,Optional.of(backupDirectory));
+  backupStore=new FileBackupStore(backupDirectory);
+  backupStore.start();
+  storageService=new FileStorageService(directory);
   storageService.start();
   IDBI dbi=new DBI("jdbc:h2:mem:test" + System.nanoTime());
   dummyHandle=dbi.open();
   ShardManager shardManager=new DatabaseShardManager(dbi);
-  recoveryManager=new ShardRecoveryManager(storageService,new InMemoryNodeManager(),shardManager,new Duration(5,TimeUnit.MINUTES),10);
+  recoveryManager=createShardRecoveryManager(storageService,Optional.of(backupStore),shardManager);
 }

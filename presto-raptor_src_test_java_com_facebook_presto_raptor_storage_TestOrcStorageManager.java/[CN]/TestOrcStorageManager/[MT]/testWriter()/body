@@ -1,5 +1,5 @@
 {
-  OrcStorageManager manager=createOrcStorageManager(storageService,recoveryManager);
+  OrcStorageManager manager=createOrcStorageManager();
   List<Long> columnIds=ImmutableList.of(3L,7L);
   List<Type> columnTypes=ImmutableList.<Type>of(BIGINT,VARCHAR);
   StoragePageSink sink=manager.createStoragePageSink(columnIds,columnTypes);
@@ -10,7 +10,7 @@
   ShardInfo shardInfo=Iterables.getOnlyElement(shards);
   UUID shardUuid=shardInfo.getShardUuid();
   File file=storageService.getStorageFile(shardUuid);
-  File backupFile=storageService.getBackupFile(shardUuid);
+  File backupFile=fileBackupStore.getBackupFile(shardUuid);
   assertEquals(shardInfo.getRowCount(),2);
   assertEquals(shardInfo.getCompressedSize(),file.length());
   assertFile(file,"primary shard");

@@ -1,15 +1,12 @@
 {
-  List<Long> columnIds=ImmutableList.of(3L,7L);
-  List<Type> columnTypes=ImmutableList.of(BIGINT,VARCHAR);
   UUID shardUuid=UUID.randomUUID();
   File file=storageService.getStorageFile(shardUuid);
-  File backupFile=storageService.getBackupFile(shardUuid);
-  try (OrcFileWriter ignored=new OrcFileWriter(columnIds,columnTypes,backupFile)){
-  }
-   assertTrue(backupFile.exists());
-  assertFalse(file.exists());
+  File tempFile=createTempFile("tmp",null,temporary);
+  Files.write("test data",tempFile,UTF_8);
+  backupStore.backupShard(shardUuid,tempFile);
+  assertTrue(backupStore.getBackupFile(shardUuid).exists());
+  assertEquals(backupStore.shardSize(shardUuid).getAsLong(),tempFile.length());
   recoveryManager.restoreFromBackup(shardUuid);
-  assertTrue(backupFile.exists());
   assertTrue(file.exists());
-  assertEquals(file.length(),backupFile.length());
+  assertEquals(file.length(),tempFile.length());
 }

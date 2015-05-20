@@ -9,17 +9,8 @@
     throw new PrestoException(RAPTOR_ERROR,"Failed to move shard file",e);
   }
   if (isBackupAvailable()) {
-    File backupFile=storageService.getBackupFile(shardUuid);
     long start=System.nanoTime();
-    storageService.createParents(backupFile);
-    stats.addCreateParentsTime(Duration.nanosSince(start));
-    try {
-      start=System.nanoTime();
-      copyFile(storageFile.toPath(),backupFile.toPath());
-    }
- catch (    IOException e) {
-      throw new PrestoException(RAPTOR_ERROR,"Failed to create backup shard file",e);
-    }
+    backupStore.get().backupShard(shardUuid,storageFile);
     stats.addCopyShardDataRate(new DataSize(storageFile.length(),BYTE),nanosSince(start));
   }
 }

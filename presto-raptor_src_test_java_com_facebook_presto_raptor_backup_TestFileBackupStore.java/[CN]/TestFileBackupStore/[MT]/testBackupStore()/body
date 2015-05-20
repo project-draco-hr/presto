@@ -1,0 +1,23 @@
+{
+  File file1=new File(temporary,"file1");
+  Files.write("hello world",file1,UTF_8);
+  UUID uuid1=randomUUID();
+  assertFalse(store.shardSize(uuid1).isPresent());
+  store.backupShard(uuid1,file1);
+  assertTrue(store.shardSize(uuid1).isPresent());
+  assertEquals(store.shardSize(uuid1).getAsLong(),file1.length());
+  File file2=new File(temporary,"file2");
+  Files.write("bye bye",file2,UTF_8);
+  UUID uuid2=randomUUID();
+  assertFalse(store.shardSize(uuid2).isPresent());
+  store.backupShard(uuid2,file2);
+  assertTrue(store.shardSize(uuid2).isPresent());
+  assertEquals(store.shardSize(uuid2).getAsLong(),file2.length());
+  File restore1=new File(temporary,"restore1");
+  store.restoreShard(uuid1,restore1);
+  assertEquals(Files.toByteArray(file1),Files.toByteArray(restore1));
+  File restore2=new File(temporary,"restore2");
+  store.restoreShard(uuid2,restore2);
+  assertEquals(Files.toByteArray(file2),Files.toByteArray(restore2));
+  assertFalse(store.shardSize(randomUUID()).isPresent());
+}
