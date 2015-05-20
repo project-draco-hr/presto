@@ -10,9 +10,11 @@
   FailureInfo failureInfo=null;
   ErrorCode errorCode=null;
   if (state != FINISHED) {
-    Throwable failureCause=this.failureCause.get();
-    failureInfo=failureCause == null ? null : toFailure(failureCause).toFailureInfo();
-    errorCode=ErrorCodes.toErrorCode(failureCause);
+    ExecutionFailureInfo failureCause=this.failureCause.get();
+    if (failureCause != null) {
+      failureInfo=failureCause.toFailureInfo();
+      errorCode=failureCause.getErrorCode();
+    }
   }
   int totalTasks=0;
   int runningTasks=0;
