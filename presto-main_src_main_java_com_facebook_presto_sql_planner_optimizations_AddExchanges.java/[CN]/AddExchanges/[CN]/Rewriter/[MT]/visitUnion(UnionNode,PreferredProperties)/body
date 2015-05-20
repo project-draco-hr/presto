@@ -1,5 +1,5 @@
 {
-  if (!preferred.getPartitioningProperties().isPresent() || !preferred.getPartitioningProperties().get().isHashPartitioned()) {
+  if (!preferred.getGlobalProperties().isPresent() || !preferred.getGlobalProperties().get().isHashPartitioned()) {
     List<PlanNode> unpartitionedChildren=new ArrayList<>();
     List<List<Symbol>> unpartitionedOutputLayouts=new ArrayList<>();
     List<PlanNode> partitionedChildren=new ArrayList<>();
@@ -33,7 +33,7 @@
     }
     return new PlanWithProperties(result,ActualProperties.undistributed());
   }
-  List<Symbol> hashingColumns=preferred.getPartitioningProperties().get().getHashPartitioningColumns().get();
+  List<Symbol> hashingColumns=preferred.getGlobalProperties().get().getPartitioningProperties().get().getHashingOrder().get();
   ImmutableList.Builder<PlanNode> partitionedSources=ImmutableList.builder();
   ImmutableListMultimap.Builder<Symbol,Symbol> outputToSourcesMapping=ImmutableListMultimap.builder();
   for (int sourceIndex=0; sourceIndex < node.getSources().size(); sourceIndex++) {

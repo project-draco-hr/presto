@@ -1,13 +1,13 @@
 {
-  if (!preferred.getPartitioningProperties().isPresent()) {
+  if (!preferred.getGlobalProperties().isPresent()) {
     return true;
   }
-  PartitioningPreferences partitioningPreferences=preferred.getPartitioningProperties().get();
-  if (!partitioningPreferences.isPartitioned()) {
+  PreferredProperties.Global preferredGlobal=preferred.getGlobalProperties().get();
+  if (!preferredGlobal.isDistributed()) {
     return !actual.isDistributed();
   }
-  if (!partitioningPreferences.getPartitioningColumns().isPresent()) {
+  if (!preferredGlobal.getPartitioningProperties().isPresent()) {
     return actual.isDistributed();
   }
-  return actual.isPartitionedOn(partitioningPreferences.getPartitioningColumns().get());
+  return actual.isPartitionedOn(preferredGlobal.getPartitioningProperties().get().getPartitioningColumns());
 }

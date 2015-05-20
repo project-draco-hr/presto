@@ -6,14 +6,15 @@
   if (hashingColumns.isPresent()) {
     return hashPartitionedWithLocal(hashingColumns.get(),local);
   }
-  if (parentProperties.getPartitioningProperties().isPresent()) {
-    PartitioningPreferences parentPartitioning=parentProperties.getPartitioningProperties().get();
-    if (parentPartitioning.isHashPartitioned() && partitioningColumns.equals(ImmutableSet.copyOf(parentPartitioning.getHashPartitioningColumns().get()))) {
-      List<Symbol> hashingSymbols=parentPartitioning.getHashPartitioningColumns().get();
-      return hashPartitionedWithLocal(hashingSymbols,local);
-    }
-    if (parentPartitioning.isPartitioned()) {
-      Set<Symbol> parentPartitioningColumns=parentPartitioning.getPartitioningColumns().get();
+  if (parentProperties.getGlobalProperties().isPresent()) {
+    Global global=parentProperties.getGlobalProperties().get();
+    if (global.getPartitioningProperties().isPresent()) {
+      Partitioning partitioning=global.getPartitioningProperties().get();
+      if (partitioning.getHashingOrder().isPresent() && partitioningColumns.equals(ImmutableSet.copyOf(partitioning.getHashingOrder().get()))) {
+        List<Symbol> hashingSymbols=partitioning.getHashingOrder().get();
+        return hashPartitionedWithLocal(hashingSymbols,local);
+      }
+      Set<Symbol> parentPartitioningColumns=partitioning.getPartitioningColumns();
       Set<Symbol> common=Sets.intersection(partitioningColumns,parentPartitioningColumns);
       if (!common.isEmpty()) {
         return partitionedWithLocal(common,local);
