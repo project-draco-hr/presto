@@ -1,0 +1,18 @@
+{
+  ByteBuffer buf=ByteBuffer.allocate(100);
+  buf.putDouble(Math.PI);
+  buf.putFloat((float)Math.E);
+  buf.putDouble(Math.E);
+  byte[] row=new byte[buf.position()];
+  System.arraycopy(buf.array(),0,row,0,buf.position());
+  RawRowDecoder rowDecoder=new RawRowDecoder();
+  DecoderTestColumnHandle row1=new DecoderTestColumnHandle("",0,"row1",VarcharType.VARCHAR,null,"DOUBLE",null,false,false,false);
+  DecoderTestColumnHandle row2=new DecoderTestColumnHandle("",1,"row2",VarcharType.VARCHAR,"8","FLOAT",null,false,false,false);
+  List<DecoderColumnHandle> columns=ImmutableList.of(row1,row2);
+  Set<FieldValueProvider> providers=new HashSet<>();
+  boolean corrupt=rowDecoder.decodeRow(row,null,providers,columns,buildMap(columns));
+  assertFalse(corrupt);
+  assertEquals(providers.size(),columns.size());
+  checkValue(providers,row1,Math.PI);
+  checkValue(providers,row2,Math.E);
+}

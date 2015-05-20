@@ -1,0 +1,25 @@
+{
+  String csv="True,False,0,1,\"0\",\"1\",\"true\",\"false\"";
+  CsvRowDecoder rowDecoder=new CsvRowDecoder();
+  DecoderTestColumnHandle row1=new DecoderTestColumnHandle("",0,"row1",BooleanType.BOOLEAN,"0",null,null,false,false,false);
+  DecoderTestColumnHandle row2=new DecoderTestColumnHandle("",1,"row2",BooleanType.BOOLEAN,"1",null,null,false,false,false);
+  DecoderTestColumnHandle row3=new DecoderTestColumnHandle("",2,"row3",BooleanType.BOOLEAN,"2",null,null,false,false,false);
+  DecoderTestColumnHandle row4=new DecoderTestColumnHandle("",3,"row4",BooleanType.BOOLEAN,"3",null,null,false,false,false);
+  DecoderTestColumnHandle row5=new DecoderTestColumnHandle("",4,"row5",BooleanType.BOOLEAN,"4",null,null,false,false,false);
+  DecoderTestColumnHandle row6=new DecoderTestColumnHandle("",5,"row6",BooleanType.BOOLEAN,"5",null,null,false,false,false);
+  DecoderTestColumnHandle row7=new DecoderTestColumnHandle("",6,"row7",BooleanType.BOOLEAN,"6",null,null,false,false,false);
+  DecoderTestColumnHandle row8=new DecoderTestColumnHandle("",7,"row8",BooleanType.BOOLEAN,"7",null,null,false,false,false);
+  List<DecoderColumnHandle> columns=ImmutableList.of(row1,row2,row3,row4,row5,row6,row7,row8);
+  Set<FieldValueProvider> providers=new HashSet<>();
+  boolean corrupt=rowDecoder.decodeRow(csv.getBytes(StandardCharsets.UTF_8),null,providers,columns,buildMap(columns));
+  assertFalse(corrupt);
+  assertEquals(providers.size(),columns.size());
+  checkValue(providers,row1,true);
+  checkValue(providers,row2,false);
+  checkValue(providers,row3,false);
+  checkValue(providers,row4,false);
+  checkValue(providers,row5,false);
+  checkValue(providers,row6,false);
+  checkValue(providers,row7,true);
+  checkValue(providers,row8,false);
+}

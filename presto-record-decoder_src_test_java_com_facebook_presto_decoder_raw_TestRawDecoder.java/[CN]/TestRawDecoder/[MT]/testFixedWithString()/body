@@ -1,0 +1,18 @@
+{
+  String str="Ich bin zwei Oeltanks";
+  byte[] row=str.getBytes(StandardCharsets.UTF_8);
+  RawRowDecoder rowDecoder=new RawRowDecoder();
+  DecoderTestColumnHandle row1=new DecoderTestColumnHandle("",0,"row1",VarcharType.VARCHAR,null,null,null,false,false,false);
+  DecoderTestColumnHandle row2=new DecoderTestColumnHandle("",1,"row2",VarcharType.VARCHAR,"0",null,null,false,false,false);
+  DecoderTestColumnHandle row3=new DecoderTestColumnHandle("",2,"row3",VarcharType.VARCHAR,"0:4",null,null,false,false,false);
+  DecoderTestColumnHandle row4=new DecoderTestColumnHandle("",3,"row4",VarcharType.VARCHAR,"5:8",null,null,false,false,false);
+  List<DecoderColumnHandle> columns=ImmutableList.of(row1,row2,row3,row4);
+  Set<FieldValueProvider> providers=new HashSet<>();
+  boolean corrupt=rowDecoder.decodeRow(row,null,providers,columns,buildMap(columns));
+  assertFalse(corrupt);
+  assertEquals(providers.size(),columns.size());
+  checkValue(providers,row1,str);
+  checkValue(providers,row2,str);
+  checkValue(providers,row3,str.substring(0,4));
+  checkValue(providers,row4,str.substring(5,8));
+}

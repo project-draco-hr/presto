@@ -1,0 +1,24 @@
+{
+  requireNonNull(columnHandle,"columnHandle is null");
+  return new FieldValueProvider(){
+    @Override public boolean accept(    DecoderColumnHandle handle){
+      return columnHandle.equals(handle);
+    }
+    @Override public boolean isNull(){
+      return (value == null) || value.isEmpty();
+    }
+    @SuppressWarnings("SimplifiableConditionalExpression") @Override public boolean getBoolean(){
+      return isNull() ? false : Boolean.parseBoolean(value.trim());
+    }
+    @Override public long getLong(){
+      return isNull() ? 0L : Long.parseLong(value.trim());
+    }
+    @Override public double getDouble(){
+      return isNull() ? 0.0d : Double.parseDouble(value.trim());
+    }
+    @Override public Slice getSlice(){
+      return isNull() ? EMPTY_SLICE : utf8Slice(value);
+    }
+  }
+;
+}

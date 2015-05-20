@@ -1,0 +1,26 @@
+{
+  ByteBuffer buf=ByteBuffer.allocate(100);
+  buf.putLong(4815162342L);
+  buf.putInt(12345678);
+  buf.putShort((short)4567);
+  buf.put((byte)123);
+  buf.put("Ich bin zwei Oeltanks".getBytes(StandardCharsets.UTF_8));
+  byte[] row=new byte[buf.position()];
+  System.arraycopy(buf.array(),0,row,0,buf.position());
+  RawRowDecoder rowDecoder=new RawRowDecoder();
+  DecoderTestColumnHandle row1=new DecoderTestColumnHandle("",0,"row1",BigintType.BIGINT,"0","LONG",null,false,false,false);
+  DecoderTestColumnHandle row2=new DecoderTestColumnHandle("",1,"row2",BigintType.BIGINT,"8","INT",null,false,false,false);
+  DecoderTestColumnHandle row3=new DecoderTestColumnHandle("",2,"row3",BigintType.BIGINT,"12","SHORT",null,false,false,false);
+  DecoderTestColumnHandle row4=new DecoderTestColumnHandle("",3,"row4",BigintType.BIGINT,"14","BYTE",null,false,false,false);
+  DecoderTestColumnHandle row5=new DecoderTestColumnHandle("",4,"row5",VarcharType.VARCHAR,"15",null,null,false,false,false);
+  List<DecoderColumnHandle> columns=ImmutableList.of(row1,row2,row3,row4,row5);
+  Set<FieldValueProvider> providers=new HashSet<>();
+  boolean corrupt=rowDecoder.decodeRow(row,null,providers,columns,buildMap(columns));
+  assertFalse(corrupt);
+  assertEquals(providers.size(),columns.size());
+  checkValue(providers,row1,4815162342L);
+  checkValue(providers,row2,12345678);
+  checkValue(providers,row3,4567);
+  checkValue(providers,row4,123);
+  checkValue(providers,row5,"Ich bin zwei Oeltanks");
+}

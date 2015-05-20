@@ -1,0 +1,17 @@
+{
+  String csv=",,,";
+  CsvRowDecoder rowDecoder=new CsvRowDecoder();
+  DecoderTestColumnHandle row1=new DecoderTestColumnHandle("",0,"row1",VarcharType.VARCHAR,"0",null,null,false,false,false);
+  DecoderTestColumnHandle row2=new DecoderTestColumnHandle("",1,"row2",BigintType.BIGINT,"1",null,null,false,false,false);
+  DecoderTestColumnHandle row3=new DecoderTestColumnHandle("",2,"row3",DoubleType.DOUBLE,"2",null,null,false,false,false);
+  DecoderTestColumnHandle row4=new DecoderTestColumnHandle("",3,"row4",BooleanType.BOOLEAN,"3",null,null,false,false,false);
+  List<DecoderColumnHandle> columns=ImmutableList.of(row1,row2,row3,row4);
+  Set<FieldValueProvider> providers=new HashSet<>();
+  boolean corrupt=rowDecoder.decodeRow(csv.getBytes(StandardCharsets.UTF_8),null,providers,columns,buildMap(columns));
+  assertFalse(corrupt);
+  assertEquals(providers.size(),columns.size());
+  checkValue(providers,row1,"");
+  checkValue(providers,row2,0);
+  checkValue(providers,row3,0.0d);
+  checkValue(providers,row4,false);
+}

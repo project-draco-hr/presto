@@ -1,0 +1,17 @@
+{
+  byte[] json="{}".getBytes(StandardCharsets.UTF_8);
+  JsonRowDecoder rowDecoder=new JsonRowDecoder(PROVIDER.get());
+  DecoderTestColumnHandle row1=new DecoderTestColumnHandle("",0,"row1",VarcharType.VARCHAR,"very/deep/varchar",null,null,false,false,false);
+  DecoderTestColumnHandle row2=new DecoderTestColumnHandle("",1,"row2",BigintType.BIGINT,"no_bigint",null,null,false,false,false);
+  DecoderTestColumnHandle row3=new DecoderTestColumnHandle("",2,"row3",DoubleType.DOUBLE,"double/is_missing",null,null,false,false,false);
+  DecoderTestColumnHandle row4=new DecoderTestColumnHandle("",3,"row4",BooleanType.BOOLEAN,"hello",null,null,false,false,false);
+  List<DecoderColumnHandle> columns=ImmutableList.of(row1,row2,row3,row4);
+  Set<FieldValueProvider> providers=new HashSet<>();
+  boolean corrupt=rowDecoder.decodeRow(json,null,providers,columns,buildMap(columns));
+  assertFalse(corrupt);
+  assertEquals(providers.size(),columns.size());
+  checkIsNull(providers,row1);
+  checkIsNull(providers,row2);
+  checkIsNull(providers,row3);
+  checkIsNull(providers,row4);
+}

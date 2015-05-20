@@ -1,0 +1,20 @@
+{
+  JsonNode tree;
+  try {
+    tree=objectMapper.readTree(data);
+  }
+ catch (  Exception e) {
+    return true;
+  }
+  for (  DecoderColumnHandle columnHandle : columnHandles) {
+    if (columnHandle.isInternal()) {
+      continue;
+    }
+    @SuppressWarnings("unchecked") FieldDecoder<JsonNode> decoder=(FieldDecoder<JsonNode>)fieldDecoders.get(columnHandle);
+    if (decoder != null) {
+      JsonNode node=locateNode(tree,columnHandle);
+      fieldValueProviders.add(decoder.decode(node,columnHandle));
+    }
+  }
+  return false;
+}
