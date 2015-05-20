@@ -6,6 +6,16 @@ synchronized (this) {
     }
     SettableFuture<T> futureStateChange=SettableFuture.create();
     futureStateChanges.add(futureStateChange);
+    Futures.addCallback(futureStateChange,new FutureCallback<T>(){
+      @Override public void onSuccess(      T result){
+      }
+      @Override public void onFailure(      Throwable t){
+synchronized (StateMachine.this) {
+          futureStateChanges.remove(futureStateChange);
+        }
+      }
+    }
+);
     return futureStateChange;
   }
 }
