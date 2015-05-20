@@ -1,15 +1,16 @@
 {
   QueryState state=queryState.get();
   Duration elapsedTime;
-  if (endTime != null) {
-    elapsedTime=new Duration(endTime.getMillis() - createTime.getMillis(),MILLISECONDS);
+  if (endTime.get() != null) {
+    elapsedTime=new Duration(endTime.get().getMillis() - createTime.getMillis(),MILLISECONDS);
   }
  else {
-    elapsedTime=Duration.nanosSince(createNanos);
+    elapsedTime=nanosSince(createNanos);
   }
   FailureInfo failureInfo=null;
   ErrorCode errorCode=null;
   if (state != FINISHED) {
+    Throwable failureCause=this.failureCause.get();
     failureInfo=failureCause == null ? null : toFailure(failureCause).toFailureInfo();
     errorCode=ErrorCodes.toErrorCode(failureCause);
   }
@@ -52,7 +53,8 @@
         fullyBlocked&=stageStats.isFullyBlocked();
         blockedReasons.addAll(stageStats.getBlockedReasons());
       }
-      if (stageInfo.getPlan().getPartitionedSourceNode() instanceof TableScanNode) {
+      PlanFragment plan=stageInfo.getPlan();
+      if (plan != null && plan.getPartitionedSourceNode() instanceof TableScanNode) {
         rawInputDataSize+=stageStats.getRawInputDataSize().toBytes();
         rawInputPositions+=stageStats.getRawInputPositions();
         processedInputDataSize+=stageStats.getProcessedInputDataSize().toBytes();
@@ -63,6 +65,6 @@
     outputDataSize+=outputStageStats.getOutputDataSize().toBytes();
     outputPositions+=outputStageStats.getOutputPositions();
   }
-  QueryStats queryStats=new QueryStats(createTime,executionStartTime,lastHeartbeat,endTime,elapsedTime.convertToMostSuccinctTimeUnit(),queuedTime,analysisTime,distributedPlanningTime,totalPlanningTime,totalTasks,runningTasks,completedTasks,totalDrivers,queuedDrivers,runningDrivers,completedDrivers,new DataSize(totalMemoryReservation,BYTE).convertToMostSuccinctDataSize(),new Duration(totalScheduledTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalCpuTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalUserTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalBlockedTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),fullyBlocked,blockedReasons,new DataSize(rawInputDataSize,BYTE).convertToMostSuccinctDataSize(),rawInputPositions,new DataSize(processedInputDataSize,BYTE).convertToMostSuccinctDataSize(),processedInputPositions,new DataSize(outputDataSize,BYTE).convertToMostSuccinctDataSize(),outputPositions);
-  return new QueryInfo(queryId,session,state,memoryPool.getId(),isScheduled(rootStage),self,outputFieldNames,query,queryStats,setSessionProperties,resetSessionProperties,updateType,rootStage,failureInfo,errorCode,inputs);
+  QueryStats queryStats=new QueryStats(createTime,executionStartTime.get(),lastHeartbeat.get(),endTime.get(),elapsedTime.convertToMostSuccinctTimeUnit(),queuedTime.get(),analysisTime.get(),distributedPlanningTime.get(),totalPlanningTime.get(),totalTasks,runningTasks,completedTasks,totalDrivers,queuedDrivers,runningDrivers,completedDrivers,new DataSize(totalMemoryReservation,BYTE).convertToMostSuccinctDataSize(),new Duration(totalScheduledTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalCpuTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalUserTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),new Duration(totalBlockedTime,NANOSECONDS).convertToMostSuccinctTimeUnit(),fullyBlocked,blockedReasons,new DataSize(rawInputDataSize,BYTE).convertToMostSuccinctDataSize(),rawInputPositions,new DataSize(processedInputDataSize,BYTE).convertToMostSuccinctDataSize(),processedInputPositions,new DataSize(outputDataSize,BYTE).convertToMostSuccinctDataSize(),outputPositions);
+  return new QueryInfo(queryId,session,state,memoryPool.get().getId(),isScheduled(rootStage),self,outputFieldNames.get(),query,queryStats,setSessionProperties,resetSessionProperties,updateType.get(),rootStage,failureInfo,errorCode,inputs.get());
 }

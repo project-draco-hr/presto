@@ -1,12 +1,12 @@
 {
   try (SetThreadName ignored=new SetThreadName("Query-%s",stateMachine.getQueryId())){
     try {
-      if (!stateMachine.beginPlanning()) {
+      if (!stateMachine.transitionToPlanning()) {
         return;
       }
       SubPlan subplan=analyzeQuery();
       planDistribution(subplan);
-      if (!stateMachine.starting()) {
+      if (!stateMachine.transitionToStarting()) {
         return;
       }
       SqlStageExecution stage=outputStage.get();
