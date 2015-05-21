@@ -3,8 +3,11 @@
     return;
   }
   PagesIndex pagesIndex=Futures.getUnchecked(pagesIndexFuture);
-  LookupSource lookupSource=pagesIndex.createLookupSource(hashChannels,hashChannel);
-  operatorContext.setMemoryReservation(pagesIndex.getEstimatedSize().toBytes() + lookupSource.getInMemorySizeInBytes());
-  lookupSourceFuture.set(lookupSource);
+  operatorContext.setMemoryReservation(0);
+  SharedLookupSource sharedLookupSource=new SharedLookupSource(pagesIndex.createLookupSource(hashChannels,hashChannel),operatorContext.getDriverContext().getPipelineContext().getTaskContext());
+  if (!lookupSourceFuture.set(sharedLookupSource)) {
+    sharedLookupSource.freeMemory();
+    sharedLookupSource.close();
+  }
   finished=true;
 }
