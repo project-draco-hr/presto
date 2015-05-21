@@ -9,14 +9,14 @@
   try {
     NamedBuffer namedBuffer=namedBuffers.get(outputId);
     if (state.get() == FINISHED) {
-      future.set(emptyResults(namedBuffer == null ? 0 : namedBuffer.getSequenceId(),true));
+      future.complete(emptyResults(namedBuffer == null ? 0 : namedBuffer.getSequenceId(),true));
       return true;
     }
     if (namedBuffer == null) {
       return false;
     }
     if (startingSequenceId < namedBuffer.getSequenceId()) {
-      future.set(emptyResults(startingSequenceId,false));
+      future.complete(emptyResults(startingSequenceId,false));
       return true;
     }
     BufferResult bufferResult=namedBuffer.getPages(startingSequenceId,maxSize);
@@ -24,10 +24,10 @@
     if (bufferResult.isEmpty() && !bufferResult.isBufferClosed()) {
       return false;
     }
-    future.set(bufferResult);
+    future.complete(bufferResult);
   }
  catch (  Throwable throwable) {
-    future.setException(throwable);
+    future.completeExceptionally(throwable);
   }
   return true;
 }

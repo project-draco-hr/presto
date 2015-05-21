@@ -1,7 +1,7 @@
 {
   SqlTask sqlTask=createInitialTask();
   updateTask(sqlTask,EMPTY_SOURCES,INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffer(OUT,new UnpartitionedPagePartitionFunction()));
-  ListenableFuture<BufferResult> bufferResult=sqlTask.getTaskResults(OUT,0,new DataSize(1,MEGABYTE));
+  CompletableFuture<BufferResult> bufferResult=sqlTask.getTaskResults(OUT,0,new DataSize(1,MEGABYTE));
   assertFalse(bufferResult.isDone());
   sqlTask.cancel();
   assertEquals(sqlTask.getTaskInfo().getState(),TaskState.CANCELED);

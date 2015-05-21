@@ -2,7 +2,7 @@
   SqlTask sqlTask=createInitialTask();
   OutputBuffers outputBuffers=INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffer(OUT,new UnpartitionedPagePartitionFunction()).withNoMoreBufferIds();
   updateTask(sqlTask,EMPTY_SOURCES,outputBuffers);
-  ListenableFuture<BufferResult> bufferResult=sqlTask.getTaskResults(OUT,0,new DataSize(1,MEGABYTE));
+  CompletableFuture<BufferResult> bufferResult=sqlTask.getTaskResults(OUT,0,new DataSize(1,MEGABYTE));
   assertFalse(bufferResult.isDone());
   updateTask(sqlTask,ImmutableList.of(new TaskSource(TABLE_SCAN_NODE_ID,ImmutableSet.<ScheduledSplit>of(),true)),outputBuffers);
   assertEquals(sqlTask.getTaskInfo().getState(),TaskState.FINISHED);
