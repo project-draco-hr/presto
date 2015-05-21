@@ -1,8 +1,7 @@
 {
   StageExecutionPlan tableScanPlan=createTableScanPlan("test",15,splitFactory);
   SqlStageExecution sqlStageExecution1=createSqlStageExecution(nodeScheduler,2,tableScanPlan);
-  Future<?> future1=sqlStageExecution1.start();
-  future1.get(10,TimeUnit.SECONDS);
+  sqlStageExecution1.startTasks();
   for (  RemoteTask remoteTask : sqlStageExecution1.getAllTasks()) {
     assertEquals(remoteTask.getPartitionedSplitCount(),5);
   }
@@ -10,8 +9,7 @@
   nodeManager.addNode("foo",additionalNode);
   StageExecutionPlan tableScanPlan2=createTableScanPlan("test",5,splitFactory);
   SqlStageExecution sqlStageExecution2=createSqlStageExecution(nodeScheduler,5,tableScanPlan2);
-  Future<?> future2=sqlStageExecution2.start();
-  future2.get(10,TimeUnit.SECONDS);
+  sqlStageExecution2.startTasks();
   List<RemoteTask> tasks2=sqlStageExecution2.getTasks(additionalNode);
   RemoteTask task=Iterables.getFirst(tasks2,null);
   assertNotNull(task);

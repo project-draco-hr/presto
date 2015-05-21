@@ -1,7 +1,6 @@
 {
-  ExecutorService remoteTaskExecutor=newCachedThreadPool(daemonThreadsNamed("remoteTaskExecutor-%s"));
-  MockRemoteTaskFactory remoteTaskFactory=new MockRemoteTaskFactory(remoteTaskExecutor);
-  ExecutorService executor=newCachedThreadPool(daemonThreadsNamed("stageExecutor-%s"));
-  OutputBuffers outputBuffers=INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffer(OUT,new UnpartitionedPagePartitionFunction()).withNoMoreBufferIds();
-  return new SqlStageExecution(new QueryId("query"),locationFactory,tableScanPlan,nodeScheduler,remoteTaskFactory,TEST_SESSION,splitBatchSize,8,executor,nodeTaskMap,outputBuffers);
+  StageId stageId=new StageId(new QueryId("query"),"stage");
+  SqlStageExecution stage=new SqlStageExecution(stageId,locationFactory.createStageLocation(stageId),tableScanPlan.getFragment(),tableScanPlan.getDataSource(),nodeScheduler,new MockRemoteTaskFactory(executor),TEST_SESSION,splitBatchSize,8,nodeTaskMap,executor);
+  stage.setOutputBuffers(INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffer(OUT,new UnpartitionedPagePartitionFunction()).withNoMoreBufferIds());
+  return stage;
 }

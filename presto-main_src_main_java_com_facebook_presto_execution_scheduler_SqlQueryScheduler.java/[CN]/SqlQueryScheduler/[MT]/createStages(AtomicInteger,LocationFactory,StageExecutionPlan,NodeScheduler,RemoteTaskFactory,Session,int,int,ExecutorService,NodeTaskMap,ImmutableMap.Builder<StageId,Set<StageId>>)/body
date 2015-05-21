@@ -1,0 +1,16 @@
+{
+  ImmutableList.Builder<SqlStageExecution> stages=ImmutableList.builder();
+  StageId stageId=new StageId(queryStateMachine.getQueryId(),String.valueOf(nextStageId.getAndIncrement()));
+  SqlStageExecution stage=new SqlStageExecution(stageId,locationFactory.createStageLocation(stageId),plan.getFragment(),plan.getDataSource(),nodeScheduler,remoteTaskFactory,session,splitBatchSize,initialHashPartitions,nodeTaskMap,executor);
+  stages.add(stage);
+  ImmutableSet.Builder<StageId> childStages=ImmutableSet.builder();
+  for (  StageExecutionPlan subStagePlan : plan.getSubStages()) {
+    List<SqlStageExecution> subTree=createStages(nextStageId,locationFactory,subStagePlan,nodeScheduler,remoteTaskFactory,session,splitBatchSize,initialHashPartitions,executor,nodeTaskMap,stageChildren);
+    stages.addAll(subTree);
+    SqlStageExecution childStage=subTree.get(0);
+    linkParentChildStages(stage,childStage);
+    childStages.add(childStage.getStageId());
+  }
+  stageChildren.put(stageId,childStages.build());
+  return stages.build();
+}

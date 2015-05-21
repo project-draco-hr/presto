@@ -1,2 +1,16 @@
 {
+  long distributedPlanningStart=System.nanoTime();
+  DistributedExecutionPlanner distributedPlanner=new DistributedExecutionPlanner(splitManager);
+  StageExecutionPlan outputStageExecutionPlan=distributedPlanner.plan(subplan,session);
+  stateMachine.recordDistributedPlanningTime(distributedPlanningStart);
+  if (stateMachine.isDone()) {
+    return;
+  }
+  stateMachine.setOutputFieldNames(outputStageExecutionPlan.getFieldNames());
+  SqlQueryScheduler scheduler=new SqlQueryScheduler(stateMachine,locationFactory,outputStageExecutionPlan,nodeScheduler,remoteTaskFactory,stateMachine.getSession(),scheduleSplitBatchSize,initialHashPartitions,queryExecutor,ROOT_OUTPUT_BUFFERS,nodeTaskMap);
+  queryScheduler.set(scheduler);
+  if (stateMachine.isDone()) {
+    scheduler.abort();
+    queryScheduler.set(null);
+  }
 }
