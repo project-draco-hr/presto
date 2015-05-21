@@ -1,0 +1,10 @@
+{
+  assertThatNoTableIsCreated();
+  SchemaTableName schemaTableName=new SchemaTableName("default","temp_table");
+  ConnectorOutputTableHandle table=metadata.beginCreateTable(connectorSession,new ConnectorTableMetadata(schemaTableName,ImmutableList.of()));
+  assertThatNoTableIsCreated();
+  metadata.commitCreateTable(table,ImmutableList.of());
+  List<SchemaTableName> tables=metadata.listTables(connectorSession,null);
+  assertTrue(tables.size() == 1,"Expected only one table.");
+  assertTrue(tables.get(0).getTableName().equals("temp_table"),"Expected table with name 'temp_table'");
+}

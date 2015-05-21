@@ -1,0 +1,12 @@
+{
+  assertThatNoBlackHoleTableIsCreated();
+  assertThatQueryReturnsValue("CREATE TABLE nation as SELECT * FROM tpch.tiny.nation",25L);
+  List<QualifiedTableName> tableNames=listBlackHoleTables();
+  assertTrue(tableNames.size() == 1,"Expected only one table.");
+  assertTrue(tableNames.get(0).getTableName().equals("nation"),"Expected 'nation' table.");
+  assertThatQueryReturnsValue("INSERT INTO nation SELECT * FROM tpch.tiny.nation",25L);
+  assertThatQueryReturnsValue("INSERT INTO nation SELECT * FROM tpch.tiny.nation",25L);
+  assertThatQueryReturnsValue("SELECT count(*) FROM nation",0L);
+  assertThatQueryReturnsValue("DROP TABLE nation",true);
+  assertThatNoBlackHoleTableIsCreated();
+}
