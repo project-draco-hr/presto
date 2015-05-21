@@ -1,2 +1,10 @@
 {
+  checkState(!Thread.holdsLock(lock),"Can not wait for state change while holding the lock");
+  requireNonNull(currentState,"currentState is null");
+synchronized (lock) {
+    if (!isPossibleStateChange(currentState)) {
+      return CompletableFuture.completedFuture(state);
+    }
+    return futureStateChange.get().getUnmodifiableFutureStateChange();
+  }
 }

@@ -2,7 +2,7 @@
   checkState(!Thread.holdsLock(lock),"Can not set state while holding the lock");
   requireNonNull(expectedState,"expectedState is null");
   requireNonNull(newState,"newState is null");
-  ImmutableList<CompletableFuture<T>> futureStateChanges;
+  FutureStateChange<T> futureStateChange;
   ImmutableList<StateChangeListener<T>> stateChangeListeners;
 synchronized (lock) {
     if (!state.equals(expectedState)) {
@@ -13,14 +13,13 @@ synchronized (lock) {
     }
     checkState(!isTerminalState(state),"%s can not transition from %s to %s",name,state,newState);
     state=newState;
-    futureStateChanges=ImmutableList.copyOf(this.futureStateChanges);
-    this.futureStateChanges.clear();
+    futureStateChange=this.futureStateChange.getAndSet(new FutureStateChange<>());
     stateChangeListeners=ImmutableList.copyOf(this.stateChangeListeners);
     if (isTerminalState(state)) {
       this.stateChangeListeners.clear();
     }
     lock.notifyAll();
   }
-  fireStateChanged(newState,futureStateChanges,stateChangeListeners);
+  fireStateChanged(newState,futureStateChange,stateChangeListeners);
   return true;
 }
