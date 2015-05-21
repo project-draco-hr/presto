@@ -2,5 +2,8 @@
   requireNonNull(exchangeLocation,"exchangeLocation is null");
   RemoteSourceNode remoteSource=exchangeSources.get(exchangeLocation.getPlanFragmentId());
   checkArgument(remoteSource != null,"Unknown remote source %s. Known sources are %s",exchangeLocation.getPlanFragmentId(),exchangeSources.keySet());
-  pendingExchangeLocations.add(exchangeLocation);
+  exchangeLocations.put(remoteSource.getId(),exchangeLocation.getUri());
+  for (  RemoteTask task : getAllTasks()) {
+    task.addSplits(remoteSource.getId(),ImmutableList.of(createRemoteSplitFor(task.getTaskInfo().getTaskId(),exchangeLocation.getUri())));
+  }
 }

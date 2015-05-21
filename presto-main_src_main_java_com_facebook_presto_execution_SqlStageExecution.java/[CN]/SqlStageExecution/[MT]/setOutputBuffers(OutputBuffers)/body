@@ -1,7 +1,15 @@
 {
-  OutputBuffers startingOutputBuffers=nextOutputBuffers != null ? nextOutputBuffers : currentOutputBuffers;
-  if (newOutputBuffers.getVersion() != startingOutputBuffers.getVersion()) {
-    this.nextOutputBuffers=newOutputBuffers;
-    this.notifyAll();
+  requireNonNull(outputBuffers,"outputBuffers is null");
+  while (true) {
+    OutputBuffers currentOutputBuffers=this.outputBuffers.get();
+    if (outputBuffers.getVersion() <= currentOutputBuffers.getVersion()) {
+      return;
+    }
+    if (this.outputBuffers.compareAndSet(currentOutputBuffers,outputBuffers)) {
+      for (      RemoteTask task : getAllTasks()) {
+        task.setOutputBuffers(outputBuffers);
+      }
+      return;
+    }
   }
 }

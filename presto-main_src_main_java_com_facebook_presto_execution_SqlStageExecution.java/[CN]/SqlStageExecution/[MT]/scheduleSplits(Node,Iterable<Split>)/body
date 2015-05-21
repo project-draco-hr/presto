@@ -1,0 +1,16 @@
+{
+  requireNonNull(node,"node is null");
+  requireNonNull(splits,"splits is null");
+  PlanNodeId partitionedSource=stateMachine.getFragment().getPartitionedSource();
+  checkState(partitionedSource != null,"Partitioned source is null");
+  ImmutableSet.Builder<RemoteTask> newTasks=ImmutableSet.builder();
+  Collection<RemoteTask> tasks=this.tasks.get(node);
+  if (tasks == null) {
+    newTasks.add(scheduleTask(node,partitionedSource,splits));
+  }
+ else {
+    RemoteTask task=tasks.iterator().next();
+    task.addSplits(partitionedSource,splits);
+  }
+  return newTasks.build();
+}
