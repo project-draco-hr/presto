@@ -4,8 +4,14 @@
     checkNotNull(splits,"splits is null");
     checkState(!noMoreSplits.contains(sourceId),"noMoreSplits has already been set for %s",sourceId);
     if (!getTaskInfo().getState().isDone()) {
+      int added=0;
       for (      Split split : splits) {
-        pendingSplits.put(sourceId,new ScheduledSplit(nextSplitId.getAndIncrement(),split));
+        if (pendingSplits.put(sourceId,new ScheduledSplit(nextSplitId.getAndIncrement(),split))) {
+          added++;
+        }
+      }
+      if (sourceId.equals(planFragment.getPartitionedSource())) {
+        pendingSourceSplitCount+=added;
       }
       needsUpdate.set(true);
     }
