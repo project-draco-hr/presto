@@ -13,9 +13,5 @@
     bytesRemoved+=page.getSizeInBytes();
   }
   updateMemoryUsage(-bytesRemoved);
-  while (!queuedPages.isEmpty() && !memoryManager.isFull()) {
-    QueuedPage queuedPage=queuedPages.remove();
-    addToMasterBuffer(queuedPage.getPage());
-    queuedPage.getFuture().set(null);
-  }
+  dequeuePages();
 }
