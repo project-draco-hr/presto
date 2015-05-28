@@ -1,7 +1,8 @@
 {
   checkState(!Thread.holdsLock(lock),"Can not wait for state change while holding the lock");
+  requireNonNull(currentState,"currentState is null");
 synchronized (lock) {
-    if (!Objects.equals(state,currentState)) {
+    if (!state.equals(currentState)) {
       return Futures.immediateFuture(state);
     }
     SettableFuture<T> futureStateChange=SettableFuture.create();
