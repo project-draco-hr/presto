@@ -1,7 +1,7 @@
 {
   checkState(!Thread.holdsLock(this),"Can not set state while holding a lock on this");
-  checkNotNull(expectedState,"expectedState is null");
-  checkNotNull(newState,"newState is null");
+  requireNonNull(expectedState,"expectedState is null");
+  requireNonNull(newState,"newState is null");
   ImmutableList<SettableFuture<T>> futureStateChanges;
   ImmutableList<StateChangeListener<T>> stateChangeListeners;
 synchronized (this) {
@@ -9,7 +9,7 @@ synchronized (this) {
       return false;
     }
     if (Objects.equals(state,newState)) {
-      return true;
+      return false;
     }
     state=newState;
     futureStateChanges=ImmutableList.copyOf(this.futureStateChanges);
