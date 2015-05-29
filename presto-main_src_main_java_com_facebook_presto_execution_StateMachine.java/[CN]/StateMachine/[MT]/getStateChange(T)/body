@@ -1,6 +1,6 @@
 {
-  checkState(!Thread.holdsLock(this),"Can not wait for state change while holding a lock on this");
-synchronized (this) {
+  checkState(!Thread.holdsLock(lock),"Can not wait for state change while holding the lock");
+synchronized (lock) {
     if (!Objects.equals(state,currentState)) {
       return Futures.immediateFuture(state);
     }
@@ -10,7 +10,7 @@ synchronized (this) {
       @Override public void onSuccess(      T result){
       }
       @Override public void onFailure(      Throwable t){
-synchronized (StateMachine.this) {
+synchronized (lock) {
           futureStateChanges.remove(futureStateChange);
         }
       }
