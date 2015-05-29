@@ -1,6 +1,13 @@
 {
   requireNonNull(stateChangeListener,"stateChangeListener is null");
+  boolean inTerminalState;
 synchronized (lock) {
-    stateChangeListeners.add(stateChangeListener);
+    inTerminalState=isTerminalState(state);
+    if (!inTerminalState) {
+      stateChangeListeners.add(stateChangeListener);
+    }
+  }
+  if (inTerminalState) {
+    stateChangeListener.stateChanged(state);
   }
 }

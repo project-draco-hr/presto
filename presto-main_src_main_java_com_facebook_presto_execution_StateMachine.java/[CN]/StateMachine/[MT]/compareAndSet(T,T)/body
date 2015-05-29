@@ -11,10 +11,14 @@ synchronized (lock) {
     if (state.equals(newState)) {
       return false;
     }
+    checkState(!isTerminalState(state),"%s can not transition from %s to %s",name,state,newState);
     state=newState;
     futureStateChanges=ImmutableList.copyOf(this.futureStateChanges);
     this.futureStateChanges.clear();
     stateChangeListeners=ImmutableList.copyOf(this.stateChangeListeners);
+    if (isTerminalState(state)) {
+      this.stateChangeListeners.clear();
+    }
     lock.notifyAll();
   }
   fireStateChanged(newState,futureStateChanges,stateChangeListeners);
