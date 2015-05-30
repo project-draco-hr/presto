@@ -5,12 +5,12 @@
     binder.bind(BackupStore.class).toProvider(Providers.of(null));
   }
  else {
-switch (provider) {
-case "file":
-      binder.install(new FileBackupModule());
-    break;
-default :
-  binder.addError("Unknown backup provider: %s",provider);
-}
-}
+    Module module=providers.get(provider);
+    if (module == null) {
+      binder.addError("Unknown backup provider: %s",provider);
+    }
+ else {
+      binder.install(module);
+    }
+  }
 }
