@@ -1,0 +1,10 @@
+{
+  String queryId;
+  if (queryResult.getJdbcResultSet().isPresent() && queryResult.getJdbcResultSet().get().isWrapperFor(PrestoResultSet.class)) {
+    queryId=queryResult.getJdbcResultSet().get().unwrap(PrestoResultSet.class).getQueryId();
+  }
+ else {
+    queryId=(String)query(format("select query_id from system.runtime.queries where query = '%s'",sqlStatement)).row(0).get(0);
+  }
+  return queryStatsClient.getQueryStats(queryId).get().getRawInputPositions();
+}

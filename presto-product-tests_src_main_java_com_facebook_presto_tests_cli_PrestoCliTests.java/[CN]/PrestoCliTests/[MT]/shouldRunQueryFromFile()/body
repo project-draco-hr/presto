@@ -1,0 +1,7 @@
+{
+  File temporayFile=File.createTempFile("test-sql",null);
+  temporayFile.deleteOnExit();
+  Files.write("select * from hive.default.nation;\n",temporayFile,UTF_8);
+  launchPrestoCliWithServerArgument("--file",temporayFile.getAbsolutePath());
+  assertThat(trimLines(presto.readRemainingOutputLines())).containsAll(nationTableBatchLines);
+}

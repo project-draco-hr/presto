@@ -1,0 +1,20 @@
+{
+  if (response.getStatusCode() == HttpStatus.GONE.code()) {
+    return Optional.empty();
+  }
+ else   if (response.getStatusCode() != HttpStatus.OK.code()) {
+    throw new RuntimeException("unexpected error code " + response.getStatusCode() + "; reason="+ response.getStatusMessage());
+  }
+  try {
+    JsonNode rootNode=objectMapper.readTree(response.getInputStream());
+    JsonNode queryStatsNode=rootNode.get("queryStats");
+    if (queryStatsNode == null) {
+      return Optional.empty();
+    }
+    QueryStats queryStats=objectMapper.treeToValue(queryStatsNode,QueryStats.class);
+    return Optional.of(queryStats);
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+}

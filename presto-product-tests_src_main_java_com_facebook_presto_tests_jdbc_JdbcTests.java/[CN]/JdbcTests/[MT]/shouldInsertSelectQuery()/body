@@ -1,0 +1,8 @@
+{
+  String tableNameInDatabase=mutableTablesState().get(TABLE_NAME).getNameInDatabase();
+  assertThat(query("SELECT * FROM " + tableNameInDatabase)).hasNoRows();
+  try (Statement statement=connection.createStatement()){
+    assertThat(statement.executeUpdate("insert into " + tableNameInDatabase + " select * from nation")).isEqualTo(25);
+  }
+   assertThat(query("SELECT * FROM " + tableNameInDatabase)).matches(PRESTO_NATION_RESULT);
+}

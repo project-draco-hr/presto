@@ -1,0 +1,14 @@
+{
+  String nullTable="\"blackhole\".default.nation_" + UUID.randomUUID().toString().replace("-","");
+  String table="tpch.tiny.nation";
+  assertThat(query(format("SELECT count(*) from %s",table))).containsExactly(row(25));
+  QueryResult result=query(format("CREATE TABLE %s AS SELECT * FROM %s",nullTable,table));
+  try {
+    assertThat(result).updatedRowsCountIsEqualTo(25);
+    assertThat(query(format("INSERT INTO %s SELECT * FROM %s",nullTable,table))).updatedRowsCountIsEqualTo(25);
+    assertThat(query(format("SELECT * FROM %s",nullTable))).hasNoRows();
+  }
+  finally {
+    query(format("DROP TABLE %s",nullTable));
+  }
+}
