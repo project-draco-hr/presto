@@ -1,13 +1,12 @@
 {
-  this.exporter=requireNonNull(exporter,"exporter is null");
   requireNonNull(config,"config is null");
   requireNonNull(systemMemoryConfig,"systemMemoryConfig is null");
   long maxHeap=Runtime.getRuntime().maxMemory();
   checkArgument(systemMemoryConfig.getReservedSystemMemory().toBytes() < maxHeap,"Reserved memory %s is greater than available heap %s",systemMemoryConfig.getReservedSystemMemory(),new DataSize(maxHeap,BYTE));
   maxMemory=new DataSize(maxHeap - systemMemoryConfig.getReservedSystemMemory().toBytes(),BYTE);
   ImmutableMap.Builder<MemoryPoolId,MemoryPool> builder=ImmutableMap.builder();
-  builder.put(RESERVED_POOL,createPool(RESERVED_POOL,config.getMaxQueryMemoryPerNode(),exporter,config.isClusterMemoryManagerEnabled()));
+  builder.put(RESERVED_POOL,new MemoryPool(RESERVED_POOL,config.getMaxQueryMemoryPerNode(),config.isClusterMemoryManagerEnabled()));
   DataSize generalPoolSize=new DataSize(Math.max(0,maxMemory.toBytes() - config.getMaxQueryMemoryPerNode().toBytes()),BYTE);
-  builder.put(GENERAL_POOL,createPool(GENERAL_POOL,generalPoolSize,exporter,config.isClusterMemoryManagerEnabled()));
+  builder.put(GENERAL_POOL,new MemoryPool(GENERAL_POOL,generalPoolSize,config.isClusterMemoryManagerEnabled()));
   this.pools=builder.build();
 }
