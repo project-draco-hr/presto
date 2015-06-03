@@ -2,6 +2,10 @@
   if (!enabled) {
     return;
   }
+  if (!isClusterOutOfMemory()) {
+    lastTimeNotOutOfMemory=System.nanoTime();
+  }
+  boolean queryKilled=false;
   long totalBytes=0;
   for (  QueryExecution query : queries) {
     long bytes=query.getTotalMemoryReservation();
@@ -11,9 +15,36 @@
     if (bytes > queryMemoryLimit) {
       DataSize maxMemory=succinctDataSize(queryMemoryLimit,BYTE);
       query.fail(exceededGlobalLimit(maxMemory));
+      queryKilled=true;
     }
   }
   clusterMemoryUsageBytes.set(totalBytes);
+  if (killOnOutOfMemory) {
+    boolean shouldKillQuery=nanosSince(lastTimeNotOutOfMemory).compareTo(killOnOutOfMemoryDelay) > 0 && isClusterOutOfMemory();
+    boolean lastKilledQueryIsGone=(lastKilledQuery == null);
+    if (!lastKilledQueryIsGone) {
+      ClusterMemoryPool generalPool=pools.get(GENERAL_POOL);
+      if (generalPool != null) {
+        lastKilledQueryIsGone=generalPool.getQueryMemoryReservations().containsKey(lastKilledQuery);
+      }
+    }
+    if (shouldKillQuery && lastKilledQueryIsGone && !queryKilled) {
+      QueryExecution biggestQuery=null;
+      long maxMemory=-1;
+      for (      QueryExecution query : queries) {
+        long bytesUsed=query.getTotalMemoryReservation();
+        if (bytesUsed > maxMemory && query.getMemoryPool().getId().equals(GENERAL_POOL)) {
+          biggestQuery=query;
+          maxMemory=bytesUsed;
+        }
+      }
+      if (biggestQuery != null) {
+        biggestQuery.fail(new PrestoException(CLUSTER_OUT_OF_MEMORY,"The cluster is out of memory, and your query was killed. Please try again in a few minutes."));
+        queriesKilledDueToOutOfMemory.incrementAndGet();
+        lastKilledQuery=biggestQuery.getQueryId();
+      }
+    }
+  }
   Map<MemoryPoolId,Integer> countByPool=new HashMap<>();
   for (  QueryExecution query : queries) {
     MemoryPoolId id=query.getMemoryPool().getId();

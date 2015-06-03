@@ -1,0 +1,22 @@
+{
+  checkArgument(bytes >= 0,"bytes is negative");
+  checkArgument(freeBytes + bytes <= maxBytes,"tried to free more memory than is reserved");
+  if (bytes == 0) {
+    return;
+  }
+  Long queryReservation=queryMemoryReservations.get(queryId);
+  requireNonNull(queryReservation,"queryReservation is null");
+  checkArgument(queryReservation - bytes >= 0,"tried to free more memory than is reserved by query");
+  queryReservation-=bytes;
+  if (queryReservation == 0) {
+    queryMemoryReservations.remove(queryId);
+  }
+ else {
+    queryMemoryReservations.put(queryId,queryReservation);
+  }
+  freeBytes+=bytes;
+  if (freeBytes > 0 && future != null) {
+    future.set(null);
+    future=null;
+  }
+}
