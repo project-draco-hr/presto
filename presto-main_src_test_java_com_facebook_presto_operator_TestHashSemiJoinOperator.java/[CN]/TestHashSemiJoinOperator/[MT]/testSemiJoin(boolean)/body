@@ -12,7 +12,7 @@
   List<Type> probeTypes=ImmutableList.<Type>of(BIGINT,BIGINT);
   RowPagesBuilder rowPagesBuilderProbe=rowPagesBuilder(hashEnabled,Ints.asList(0),BIGINT,BIGINT);
   List<Page> probeInput=rowPagesBuilderProbe.addSequencePage(10,30,0).build();
-  HashSemiJoinOperatorFactory joinOperatorFactory=new HashSemiJoinOperatorFactory(2,setBuilderOperatorFactory.getSetProvider(),rowPagesBuilderProbe.getTypes(),0,rowPagesBuilderProbe.getHashChannel());
+  HashSemiJoinOperatorFactory joinOperatorFactory=new HashSemiJoinOperatorFactory(2,setBuilderOperatorFactory.getSetProvider(),rowPagesBuilderProbe.getTypes(),0);
   Operator joinOperator=joinOperatorFactory.createOperator(driverContext);
   MaterializedResult expected=resultBuilder(driverContext.getSession(),concat(probeTypes,ImmutableList.of(BOOLEAN))).row(30,0,true).row(31,1,false).row(32,2,false).row(33,3,false).row(34,4,false).row(35,5,true).row(36,6,true).row(37,7,true).row(38,8,false).row(39,9,false).build();
   OperatorAssertion.assertOperatorEquals(joinOperator,probeInput,expected,hashEnabled,ImmutableList.of(probeTypes.size()));
