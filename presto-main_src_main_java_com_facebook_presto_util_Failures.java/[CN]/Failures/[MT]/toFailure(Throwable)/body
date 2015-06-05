@@ -9,12 +9,5 @@
  else {
     type=failure.getClass().getCanonicalName();
   }
-  ErrorCode errorCode=null;
-  if (failure instanceof PrestoException) {
-    errorCode=((PrestoException)failure).getErrorCode();
-  }
- else   if (failure instanceof Failure) {
-    errorCode=((Failure)failure).getErrorCode();
-  }
-  return new ExecutionFailureInfo(type,failure.getMessage(),toFailure(failure.getCause()),toFailures(asList(failure.getSuppressed())),Lists.transform(asList(failure.getStackTrace()),toStringFunction()),getErrorLocation(failure),errorCode);
+  return new ExecutionFailureInfo(type,failure.getMessage(),toFailure(failure.getCause()),toFailures(asList(failure.getSuppressed())),Lists.transform(asList(failure.getStackTrace()),toStringFunction()),getErrorLocation(failure),toErrorCode(failure));
 }
