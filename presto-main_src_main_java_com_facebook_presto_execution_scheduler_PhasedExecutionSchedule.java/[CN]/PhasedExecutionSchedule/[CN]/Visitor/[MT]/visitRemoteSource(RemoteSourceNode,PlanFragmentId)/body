@@ -1,0 +1,12 @@
+{
+  ImmutableSet.Builder<PlanFragmentId> sources=ImmutableSet.builder();
+  Set<PlanFragmentId> previousFragmentSources=ImmutableSet.of();
+  for (  PlanFragmentId remoteFragment : node.getSourceFragmentIds()) {
+    graph.addEdge(currentFragmentId,remoteFragment);
+    Set<PlanFragmentId> remoteFragmentSources=processFragment(remoteFragment);
+    sources.addAll(remoteFragmentSources);
+    addEdges(previousFragmentSources,remoteFragmentSources);
+    previousFragmentSources=remoteFragmentSources;
+  }
+  return sources.build();
+}

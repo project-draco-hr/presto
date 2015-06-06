@@ -1,0 +1,11 @@
+{
+  ImmutableSet.Builder<PlanFragmentId> allSources=ImmutableSet.builder();
+  Set<PlanFragmentId> previousSources=ImmutableSet.of();
+  for (  PlanNode subPlanNode : node.getSources()) {
+    Set<PlanFragmentId> currentSources=subPlanNode.accept(this,currentFragmentId);
+    allSources.addAll(currentSources);
+    addEdges(previousSources,currentSources);
+    previousSources=currentSources;
+  }
+  return allSources.build();
+}
