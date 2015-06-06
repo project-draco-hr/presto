@@ -1,0 +1,21 @@
+{
+  Slice[] expectedValues=createExpectedValuesWithNulls(7,Ints.asList(3));
+  int[] ids=new int[]{0,2,1,0,0,0,1,1,1,0,1,2};
+  boolean[] isNull=new boolean[ids.length];
+  isNull[3]=true;
+  TestDictionaryLazySliceArrayBlockLoader loader=new TestDictionaryLazySliceArrayBlockLoader(expectedValues,ids,isNull);
+  LazySliceArrayBlock lazySliceArrayBlock=new LazySliceArrayBlock(ids.length,loader);
+  lazySliceArrayBlock.assureLoaded();
+  assertTrue(loader.loaded);
+  BlockEncoding blockEncoding=new LazySliceArrayBlockEncoding();
+  DynamicSliceOutput sliceOutput=new DynamicSliceOutput(1024);
+  blockEncoding.writeBlock(sliceOutput,lazySliceArrayBlock);
+  Block actualBlock=blockEncoding.readBlock(sliceOutput.slice().getInput());
+  assertTrue(actualBlock instanceof DictionaryBlock);
+  DictionaryBlock dictionaryBlock=(DictionaryBlock)actualBlock;
+  Block dictionary=dictionaryBlock.getDictionary();
+  assertTrue(dictionary instanceof SliceArrayBlock);
+  SliceArrayBlock dictionarySliceArrayBlock=(SliceArrayBlock)dictionary;
+  assertEquals(dictionarySliceArrayBlock.getValues(),Arrays.copyOfRange(expectedValues,0,3));
+  assertEquals(dictionaryBlock.getIds(),Slices.wrappedIntArray(ids));
+}

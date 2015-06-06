@@ -1,0 +1,14 @@
+{
+  Slice[] expectedValues=createExpectedValues(10);
+  TestDirectLazySliceArrayBlockLoader loader=new TestDirectLazySliceArrayBlockLoader(expectedValues);
+  LazySliceArrayBlock lazySliceArrayBlock=new LazySliceArrayBlock(10,loader);
+  lazySliceArrayBlock.assureLoaded();
+  assertTrue(loader.loaded);
+  BlockEncoding blockEncoding=new LazySliceArrayBlockEncoding();
+  DynamicSliceOutput sliceOutput=new DynamicSliceOutput(1024);
+  blockEncoding.writeBlock(sliceOutput,lazySliceArrayBlock);
+  Block actualBlock=blockEncoding.readBlock(sliceOutput.slice().getInput());
+  assertTrue(actualBlock instanceof SliceArrayBlock);
+  SliceArrayBlock sliceArrayBlock=(SliceArrayBlock)actualBlock;
+  assertEquals(sliceArrayBlock.getValues(),expectedValues);
+}

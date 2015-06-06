@@ -1,18 +1,6 @@
 {
   LazySliceArrayBlock sliceArrayBlock=(LazySliceArrayBlock)block;
-  int positionCount=sliceArrayBlock.getPositionCount();
-  sliceOutput.appendInt(positionCount);
-  for (int position=0; position < positionCount; position++) {
-    int length=0;
-    if (!sliceArrayBlock.isNull(position)) {
-      length=sliceArrayBlock.getLength(position);
-    }
-    sliceOutput.appendInt(length);
-  }
-  encodeNullsAsBits(sliceOutput,sliceArrayBlock);
-  for (  Slice value : sliceArrayBlock.getValues()) {
-    if (value != null) {
-      sliceOutput.writeBytes(value);
-    }
-  }
+  sliceOutput.writeBoolean(sliceArrayBlock.isDictionary());
+  Block transformed=transformToNonLazyBlock(sliceArrayBlock);
+  transformed.getEncoding().writeBlock(sliceOutput,transformed);
 }

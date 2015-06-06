@@ -1,0 +1,36 @@
+{
+  int dictionarySize=dictionary.getPositionCount();
+  boolean[] isReferenced=new boolean[dictionarySize];
+  for (int i=0; i < this.positionCount; i++) {
+    isReferenced[getIndex(i)]=true;
+  }
+  List<Integer> dictionaryPositionsToCopy=new ArrayList<>(dictionarySize);
+  int[] remapIndex=new int[dictionarySize];
+  Arrays.fill(remapIndex,-1);
+  int newIndex=0;
+  for (int i=0; i < dictionarySize; i++) {
+    if (isReferenced[i]) {
+      dictionaryPositionsToCopy.add(i);
+      remapIndex[i]=newIndex;
+      newIndex++;
+    }
+  }
+  if (dictionaryPositionsToCopy.size() == dictionarySize) {
+    return this;
+  }
+  int[] newIds=new int[positionCount];
+  for (int i=0; i < positionCount; i++) {
+    int newId=remapIndex[getIndex(i)];
+    if (newId == -1) {
+      throw new IllegalStateException("reference to a non-existent key");
+    }
+    newIds[i]=newId;
+  }
+  try {
+    Block compactDictionary=dictionary.copyPositions(dictionaryPositionsToCopy);
+    return new DictionaryBlock(positionCount,compactDictionary,wrappedIntArray(newIds));
+  }
+ catch (  UnsupportedOperationException e) {
+    return this;
+  }
+}
