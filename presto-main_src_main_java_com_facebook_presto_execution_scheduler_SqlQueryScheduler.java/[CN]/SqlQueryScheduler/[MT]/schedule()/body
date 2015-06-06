@@ -1,2 +1,41 @@
 {
+  try (SetThreadName ignored=new SetThreadName("Query-%s",queryStateMachine.getQueryId())){
+    ExecutionSchedule executionSchedule=executionPolicy.createExecutionSchedule(stages.values());
+    while (!executionSchedule.isFinished()) {
+      List<CompletableFuture<?>> blockedStages=new ArrayList<>();
+      for (      SqlStageExecution stage : executionSchedule.getStagesToSchedule()) {
+        stage.beginScheduling();
+        ScheduleResult result=stageSchedulers.get(stage.getStageId()).schedule();
+        if (result.isFinished()) {
+          stage.schedulingComplete();
+        }
+ else         if (!result.getBlocked().isDone()) {
+          blockedStages.add(result.getBlocked());
+        }
+        stageLinkages.get(stage.getStageId()).processScheduleResults(stage.getState(),result.getNewTasks());
+      }
+      if (!blockedStages.isEmpty()) {
+        tryGetFutureValue(firstCompletedFuture(blockedStages),100,MILLISECONDS);
+      }
+    }
+  }
+ catch (  Throwable t) {
+    queryStateMachine.transitionToFailed(t);
+    throw Throwables.propagate(t);
+  }
+ finally {
+    RuntimeException closeError=new RuntimeException();
+    for (    StageScheduler scheduler : stageSchedulers.values()) {
+      try {
+        scheduler.close();
+      }
+ catch (      Throwable t) {
+        queryStateMachine.transitionToFailed(t);
+        closeError.addSuppressed(t);
+      }
+    }
+    if (closeError.getSuppressed().length > 0) {
+      throw closeError;
+    }
+  }
 }
