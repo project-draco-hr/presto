@@ -1,0 +1,13 @@
+{
+  MapType innerMapType=new MapType(VARCHAR,VARCHAR);
+  MapType mapType=new MapType(innerMapType,BIGINT);
+  InternalAggregationFunction aggregationFunction=metadata.getExactFunction(new Signature(NAME,mapType.getTypeSignature().toString(),innerMapType.getTypeSignature().toString())).getAggregationFunction();
+  PageBuilder builder=new PageBuilder(ImmutableList.of(innerMapType));
+  builder.declarePosition();
+  innerMapType.writeSlice(builder.getBlockBuilder(0),MapType.toStackRepresentation(ImmutableMap.of("a","b"),VARCHAR,VARCHAR));
+  builder.declarePosition();
+  innerMapType.writeSlice(builder.getBlockBuilder(0),MapType.toStackRepresentation(ImmutableMap.of("c","d"),VARCHAR,VARCHAR));
+  builder.declarePosition();
+  innerMapType.writeSlice(builder.getBlockBuilder(0),MapType.toStackRepresentation(ImmutableMap.of("e","f"),VARCHAR,VARCHAR));
+  assertAggregation(aggregationFunction,1.0,ImmutableMap.of(ImmutableMap.of("a","b"),1L,ImmutableMap.of("c","d"),1L,ImmutableMap.of("e","f"),1L),builder.build());
+}
