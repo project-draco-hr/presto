@@ -1,0 +1,5 @@
+{
+  MaterializedResult actual=computeActual("" + "SELECT * FROM (\n" + "   SELECT row_number() OVER (ORDER BY orderkey) rn, orderkey, orderstatus\n"+ "   FROM orders\n"+ ") WHERE rn = 1 OR rn IN (3, 4) OR rn BETWEEN 6 AND 7\n");
+  MaterializedResult expected=resultBuilder(getSession(),BIGINT,BIGINT,VARCHAR).row(1,1,"O").row(3,3,"F").row(4,4,"O").row(6,6,"F").row(7,7,"O").build();
+  assertEqualsIgnoreOrder(actual.getMaterializedRows(),expected.getMaterializedRows());
+}
