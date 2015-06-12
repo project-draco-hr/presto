@@ -1,0 +1,13 @@
+{
+  QueryResults results=client.finalResults();
+  QueryError error=results.getError();
+  checkState(error != null);
+  out.printf("Query %s failed: %s%n",results.getId(),error.getMessage());
+  if (client.isDebug() && (error.getFailureInfo() != null)) {
+    error.getFailureInfo().toException().printStackTrace(out);
+  }
+  if (error.getErrorLocation() != null) {
+    renderErrorLocation(client.getQuery(),error.getErrorLocation(),out);
+  }
+  out.println();
+}
