@@ -1,0 +1,13 @@
+{
+  checkArgument(types.size() == 1,"Expected one type, got %s",types);
+  Type elementType=types.get("E");
+  checkArgument(elementType.isOrderable(),"Type must be orderable");
+  MethodHandle compareMethodHandle=functionRegistry.resolveOperator(operatorType,ImmutableList.of(elementType,elementType)).getMethodHandle();
+  MethodHandle methodHandle=METHOD_HANDLES.get(elementType.getJavaType());
+  if (methodHandle == null) {
+    throw new PrestoException(INVALID_FUNCTION_ARGUMENT,String.format("%s is not supported in array_min/max",elementType.getJavaType()));
+  }
+  methodHandle=methodHandle.bindTo(compareMethodHandle).bindTo(elementType);
+  Signature signature=new Signature(functionName,elementType.getTypeSignature(),parameterizedTypeName(StandardTypes.ARRAY,elementType.getTypeSignature()));
+  return new FunctionInfo(signature,getDescription(),isHidden(),methodHandle,isDeterministic(),true,ImmutableList.of(false));
+}
