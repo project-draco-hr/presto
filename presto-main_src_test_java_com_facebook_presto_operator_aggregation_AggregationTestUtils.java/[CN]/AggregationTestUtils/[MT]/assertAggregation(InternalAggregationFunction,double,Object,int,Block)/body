@@ -2,7 +2,17 @@
   if (positions == 0) {
     assertAggregation(function,confidence,expectedValue);
   }
- else {
+ else   if (positions == 1) {
     assertAggregation(function,confidence,expectedValue,new Page(positions,blocks));
+  }
+ else {
+    int split=positions / 2;
+    Block[] blockArray1=new Block[blocks.length];
+    Block[] blockArray2=new Block[blocks.length];
+    for (int i=0; i < blocks.length; i++) {
+      blockArray1[i]=blocks[i].getRegion(0,split);
+      blockArray2[i]=blocks[i].getRegion(split,positions - split);
+    }
+    assertAggregation(function,confidence,expectedValue,new Page(blockArray1),new Page(blockArray2));
   }
 }

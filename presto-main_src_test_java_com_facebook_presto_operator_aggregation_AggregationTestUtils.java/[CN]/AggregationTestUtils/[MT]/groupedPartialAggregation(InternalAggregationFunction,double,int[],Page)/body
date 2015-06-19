@@ -1,19 +1,15 @@
 {
   AccumulatorFactory factory=function.bind(Ints.asList(args),Optional.empty(),Optional.empty(),confidence);
-  GroupedAccumulator partialAggregation=factory.createGroupedAccumulator();
-  for (  Page page : pages) {
-    partialAggregation.addInput(createGroupByIdBlock(0,page.getPositionCount()),page);
-  }
-  BlockBuilder partialOut=partialAggregation.getIntermediateType().createBlockBuilder(new BlockBuilderStatus(),1);
-  partialAggregation.evaluateIntermediate(0,partialOut);
-  Block partialBlock=partialOut.build();
   GroupedAccumulator finalAggregation=factory.createGroupedIntermediateAccumulator();
   GroupedAccumulator emptyAggregation=factory.createGroupedAccumulator();
-  BlockBuilder emptyOut=emptyAggregation.getIntermediateType().createBlockBuilder(new BlockBuilderStatus(),1);
-  emptyAggregation.evaluateIntermediate(0,emptyOut);
-  Block emptyBlock=emptyOut.build();
+  Block emptyBlock=getIntermediateBlock(emptyAggregation);
   finalAggregation.addIntermediate(createGroupByIdBlock(0,emptyBlock.getPositionCount()),emptyBlock);
-  finalAggregation.addIntermediate(createGroupByIdBlock(0,partialBlock.getPositionCount()),partialBlock);
+  for (  Page page : pages) {
+    GroupedAccumulator partialAggregation=factory.createGroupedAccumulator();
+    partialAggregation.addInput(createGroupByIdBlock(0,page.getPositionCount()),page);
+    Block partialBlock=getIntermediateBlock(partialAggregation);
+    finalAggregation.addIntermediate(createGroupByIdBlock(0,partialBlock.getPositionCount()),partialBlock);
+  }
   finalAggregation.addIntermediate(createGroupByIdBlock(0,emptyBlock.getPositionCount()),emptyBlock);
   return getGroupValue(finalAggregation,0);
 }
