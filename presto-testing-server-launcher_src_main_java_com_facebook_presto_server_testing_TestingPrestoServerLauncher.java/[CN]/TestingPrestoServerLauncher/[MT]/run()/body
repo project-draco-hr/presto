@@ -1,0 +1,13 @@
+{
+  try (TestingPrestoServer server=new TestingPrestoServer()){
+    for (    String pluginClass : options.getPluginClassNames()) {
+      Plugin plugin=(Plugin)Class.forName(pluginClass).newInstance();
+      server.installPlugin(plugin);
+    }
+    for (    Catalog catalog : options.getCatalogs()) {
+      server.createCatalog(catalog.getCatalogName(),catalog.getConnectorName());
+    }
+    System.out.println(server.getAddress());
+    waitForInterruption();
+  }
+ }
