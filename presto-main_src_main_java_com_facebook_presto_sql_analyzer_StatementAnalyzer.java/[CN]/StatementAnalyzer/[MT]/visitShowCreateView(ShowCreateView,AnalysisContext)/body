@@ -1,0 +1,13 @@
+{
+  QualifiedObjectName viewName=createQualifiedObjectName(session,node,node.getView());
+  Optional<ViewDefinition> view=metadata.getView(session,viewName);
+  if (!view.isPresent()) {
+    if (metadata.getTableHandle(session,viewName).isPresent()) {
+      throw new SemanticException(NOT_SUPPORTED,node,"Relation '%s' is a table, not a view",viewName);
+    }
+    throw new SemanticException(MISSING_TABLE,node,"View '%s' does not exist",viewName);
+  }
+  Query query=parseView(view.get().getOriginalSql(),viewName,node);
+  String sql=formatSql(new CreateView(createQualifiedName(viewName),query,false)).trim();
+  return process(singleValueQuery("Create View",sql),context);
+}

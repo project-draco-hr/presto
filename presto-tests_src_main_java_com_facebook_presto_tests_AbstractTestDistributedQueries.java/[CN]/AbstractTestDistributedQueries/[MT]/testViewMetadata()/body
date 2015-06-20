@@ -12,10 +12,13 @@
   expected=builder.build();
   assertContains(actual,expected);
   actual=computeActual(format("SELECT table_name, view_definition FROM information_schema.views WHERE table_schema = '%s'",getSession().getSchema().get()));
-  expected=resultBuilder(getSession(),actual.getTypes()).row("meta_test_view",formatSql(new SqlParser().createStatement(query))).build();
+  expected=resultBuilder(getSession(),actual.getTypes()).row("meta_test_view",formatSqlText(query)).build();
   assertContains(actual,expected);
   actual=computeActual("SHOW COLUMNS FROM meta_test_view");
   expected=resultBuilder(getSession(),VARCHAR,VARCHAR,VARCHAR).row("x","bigint","").row("y","varchar(3)","").build();
   assertEquals(actual,expected);
+  String expectedSql=formatSqlText(format("CREATE VIEW %s.%s.%s AS %s",getSession().getCatalog().get(),getSession().getSchema().get(),"meta_test_view",query)).trim();
+  actual=computeActual("SHOW CREATE VIEW meta_test_view");
+  assertEquals(getOnlyElement(actual.getOnlyColumnAsSet()),expectedSql);
   assertUpdate("DROP VIEW meta_test_view");
 }
