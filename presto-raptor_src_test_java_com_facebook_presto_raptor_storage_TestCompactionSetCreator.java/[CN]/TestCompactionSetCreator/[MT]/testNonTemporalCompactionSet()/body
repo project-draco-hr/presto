@@ -1,0 +1,9 @@
+{
+  CompactionSetCreator compactionSetCreator=new FileCompactionSetCreator(new DataSize(100,BYTE));
+  long tableId=1L;
+  List<ShardMetadata> inputShards=ImmutableList.of(shardWithSize(70),shardWithSize(20),shardWithSize(30),shardWithSize(120));
+  Set<CompactionSet> compactionSets=compactionSetCreator.createCompactionSets(tableId,ImmutableSet.copyOf(inputShards));
+  assertEquals(compactionSets.size(),2);
+  Set<CompactionSet> expected=ImmutableSet.of(new CompactionSet(tableId,ImmutableSet.of(inputShards.get(0),inputShards.get(2))),new CompactionSet(tableId,ImmutableSet.of(inputShards.get(1))));
+  assertEquals(compactionSets,expected);
+}
