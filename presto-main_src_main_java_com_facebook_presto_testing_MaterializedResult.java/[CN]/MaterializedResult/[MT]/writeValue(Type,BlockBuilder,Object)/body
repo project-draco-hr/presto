@@ -1,0 +1,65 @@
+{
+  if (value == null) {
+    blockBuilder.appendNull();
+  }
+ else   if (BIGINT.equals(type)) {
+    type.writeLong(blockBuilder,((Number)value).longValue());
+  }
+ else   if (DOUBLE.equals(type)) {
+    type.writeDouble(blockBuilder,((Number)value).doubleValue());
+  }
+ else   if (BOOLEAN.equals(type)) {
+    type.writeBoolean(blockBuilder,(Boolean)value);
+  }
+ else   if (VARCHAR.equals(type)) {
+    type.writeSlice(blockBuilder,Slices.utf8Slice((String)value));
+  }
+ else   if (VARBINARY.equals(type)) {
+    type.writeSlice(blockBuilder,Slices.wrappedBuffer((byte[])value));
+  }
+ else   if (DATE.equals(type)) {
+    int days=((SqlDate)value).getDays();
+    type.writeLong(blockBuilder,days);
+  }
+ else   if (TIME.equals(type)) {
+    long millisUtc=((SqlTime)value).getMillisUtc();
+    type.writeLong(blockBuilder,millisUtc);
+  }
+ else   if (TIME_WITH_TIME_ZONE.equals(type)) {
+    long millisUtc=((SqlTimeWithTimeZone)value).getMillisUtc();
+    TimeZoneKey timeZoneKey=((SqlTimeWithTimeZone)value).getTimeZoneKey();
+    type.writeLong(blockBuilder,packDateTimeWithZone(millisUtc,timeZoneKey));
+  }
+ else   if (TIMESTAMP.equals(type)) {
+    long millisUtc=((SqlTimestamp)value).getMillisUtc();
+    type.writeLong(blockBuilder,millisUtc);
+  }
+ else   if (TIMESTAMP_WITH_TIME_ZONE.equals(type)) {
+    long millisUtc=((SqlTimestampWithTimeZone)value).getMillisUtc();
+    TimeZoneKey timeZoneKey=((SqlTimestampWithTimeZone)value).getTimeZoneKey();
+    type.writeLong(blockBuilder,packDateTimeWithZone(millisUtc,timeZoneKey));
+  }
+ else   if (ARRAY.equals(type.getTypeSignature().getBase())) {
+    List<Object> list=(List<Object>)value;
+    Type elementType=((ArrayType)type).getElementType();
+    BlockBuilder arrayBlockBuilder=blockBuilder.beginBlockEntry();
+    for (    Object element : list) {
+      writeValue(elementType,arrayBlockBuilder,element);
+    }
+    blockBuilder.closeEntry();
+  }
+ else   if (MAP.equals(type.getTypeSignature().getBase())) {
+    Map<Object,Object> map=(Map<Object,Object>)value;
+    Type keyType=((MapType)type).getKeyType();
+    Type valueType=((MapType)type).getValueType();
+    BlockBuilder mapBlockBuilder=blockBuilder.beginBlockEntry();
+    for (    Entry<Object,Object> entry : map.entrySet()) {
+      writeValue(keyType,mapBlockBuilder,entry.getKey());
+      writeValue(valueType,mapBlockBuilder,entry.getValue());
+    }
+    blockBuilder.closeEntry();
+  }
+ else {
+    throw new IllegalArgumentException("Unsupported type " + type);
+  }
+}
