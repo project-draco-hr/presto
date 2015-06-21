@@ -5,8 +5,10 @@
     throw new TableNotFoundException(tableName);
   }
   ImmutableMap.Builder<String,ColumnHandle> columnHandles=ImmutableMap.builder();
-  for (  HiveColumnHandle columnHandle : hiveColumnHandles(typeManager,connectorId,table.get(),false)) {
-    columnHandles.put(columnHandle.getName(),columnHandle);
+  for (  HiveColumnHandle columnHandle : hiveColumnHandles(connectorId,table.get())) {
+    if (!columnHandle.getName().equals(SAMPLE_WEIGHT_COLUMN_NAME)) {
+      columnHandles.put(columnHandle.getName(),columnHandle);
+    }
   }
   return columnHandles.build();
 }

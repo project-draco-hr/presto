@@ -59,6 +59,15 @@
     }
     blockBuilder.closeEntry();
   }
+ else   if (type instanceof RowType) {
+    List<Object> row=(List<Object>)value;
+    List<Type> fieldTypes=type.getTypeParameters();
+    BlockBuilder rowBlockBuilder=blockBuilder.beginBlockEntry();
+    for (int field=0; field < row.size(); field++) {
+      writeValue(fieldTypes.get(field),rowBlockBuilder,row.get(field));
+    }
+    blockBuilder.closeEntry();
+  }
  else {
     throw new IllegalArgumentException("Unsupported type " + type);
   }

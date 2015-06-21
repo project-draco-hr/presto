@@ -1,11 +1,18 @@
 {
   try {
     ConnectorTableHandle handle=metadata.getTableHandle(SESSION,table);
-    if (handle != null) {
+    if (handle == null) {
+      return;
+    }
+    metadata.dropTable(SESSION,handle);
+    try {
       metadata.dropTable(SESSION,handle);
+      fail("expected NotFoundException");
+    }
+ catch (    TableNotFoundException expected) {
     }
   }
- catch (  RuntimeException e) {
+ catch (  Exception e) {
     Logger.get(getClass()).warn(e,"failed to drop table");
   }
 }

@@ -1,0 +1,14 @@
+{
+  ImmutableList.Builder<HiveColumnHandle> columns=ImmutableList.builder();
+  int hiveColumnIndex=0;
+  for (  FieldSchema field : table.getSd().getCols()) {
+    TypeInfo typeInfo=getTypeInfoFromTypeString(field.getType());
+    if (HiveType.isSupportedType(typeInfo)) {
+      HiveType hiveType=toHiveType(typeInfo);
+      columns.add(new HiveColumnHandle(connectorId,field.getName(),hiveColumnIndex,hiveType,hiveType.getTypeSignature(),hiveColumnIndex,false));
+    }
+    hiveColumnIndex++;
+  }
+  columns.addAll(getPartitionKeyColumnHandles(connectorId,table,hiveColumnIndex));
+  return columns.build();
+}

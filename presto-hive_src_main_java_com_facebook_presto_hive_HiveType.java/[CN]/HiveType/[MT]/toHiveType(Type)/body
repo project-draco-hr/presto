@@ -1,33 +1,4 @@
 {
-  if (BOOLEAN.equals(type)) {
-    return HIVE_BOOLEAN;
-  }
-  if (BIGINT.equals(type)) {
-    return HIVE_LONG;
-  }
-  if (DOUBLE.equals(type)) {
-    return HIVE_DOUBLE;
-  }
-  if (VARCHAR.equals(type)) {
-    return HIVE_STRING;
-  }
-  if (VARBINARY.equals(type)) {
-    return HIVE_BINARY;
-  }
-  if (DATE.equals(type)) {
-    return HIVE_DATE;
-  }
-  if (TIMESTAMP.equals(type)) {
-    return HIVE_TIMESTAMP;
-  }
-  if (isArrayType(type)) {
-    HiveType hiveElementType=toHiveType(type.getTypeParameters().get(0));
-    return new HiveType(format("array<%s>",hiveElementType.getHiveTypeName()));
-  }
-  if (isMapType(type)) {
-    HiveType hiveKeyType=toHiveType(type.getTypeParameters().get(0));
-    HiveType hiveValueType=toHiveType(type.getTypeParameters().get(1));
-    return new HiveType(format("map<%s,%s>",hiveKeyType.getHiveTypeName(),hiveValueType.getHiveTypeName()));
-  }
-  throw new PrestoException(NOT_SUPPORTED,"unsupported type: " + type);
+  requireNonNull(type,"type is null");
+  return new HiveType(toTypeInfo(type));
 }

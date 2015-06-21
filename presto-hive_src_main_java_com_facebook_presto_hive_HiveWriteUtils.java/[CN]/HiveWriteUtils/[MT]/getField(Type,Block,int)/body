@@ -28,12 +28,12 @@
   if (isArrayType(type)) {
     Type elementType=type.getTypeParameters().get(0);
     Block arrayBlock=block.getObject(position,Block.class);
-    List<Object> values=new ArrayList<>(arrayBlock.getPositionCount());
+    List<Object> list=new ArrayList<>(arrayBlock.getPositionCount());
     for (int i=0; i < arrayBlock.getPositionCount(); i++) {
       Object element=getField(elementType,arrayBlock,i);
-      values.add(element);
+      list.add(element);
     }
-    return Collections.unmodifiableList(values);
+    return Collections.unmodifiableList(list);
   }
   if (isMapType(type)) {
     Type keyType=type.getTypeParameters().get(0);
@@ -46,6 +46,17 @@
       map.put(key,value);
     }
     return Collections.unmodifiableMap(map);
+  }
+  if (isRowType(type)) {
+    Block rowBlock=block.getObject(position,Block.class);
+    List<Type> fieldTypes=type.getTypeParameters();
+    checkCondition(fieldTypes.size() == rowBlock.getPositionCount(),StandardErrorCode.INTERNAL_ERROR,"Expected row value field count does not match type field count");
+    List<Object> row=new ArrayList<>(rowBlock.getPositionCount());
+    for (int i=0; i < rowBlock.getPositionCount(); i++) {
+      Object element=getField(fieldTypes.get(i),rowBlock,i);
+      row.add(element);
+    }
+    return Collections.unmodifiableList(row);
   }
   throw new PrestoException(NOT_SUPPORTED,"unsupported type: " + type);
 }
