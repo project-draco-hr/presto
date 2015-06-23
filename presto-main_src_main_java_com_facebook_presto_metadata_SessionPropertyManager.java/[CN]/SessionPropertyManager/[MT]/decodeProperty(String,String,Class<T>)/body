@@ -1,0 +1,25 @@
+{
+  requireNonNull(name,"name is null");
+  requireNonNull(type,"type is null");
+  SessionProperty<?> sessionProperty=allSessionProperties.get(name);
+  if (sessionProperty == null) {
+    throw new PrestoException(INVALID_SESSION_PROPERTY,"Unknown session property " + name);
+  }
+  SessionPropertyMetadata<?> metadata=sessionProperty.getMetadata();
+  if (metadata.getJavaType() != type) {
+    throw new PrestoException(INVALID_SESSION_PROPERTY,format("Property %s is type %s, but requested type was %s",name,metadata.getJavaType().getName(),type.getName()));
+  }
+  if (value == null) {
+    return type.cast(metadata.getDefaultValue());
+  }
+  Object objectValue=deserializeSessionProperty(metadata.getSqlType(),value);
+  try {
+    return type.cast(metadata.decode(objectValue));
+  }
+ catch (  PrestoException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    throw new PrestoException(INVALID_SESSION_PROPERTY,format("%s is invalid: %s",name,value),e);
+  }
+}

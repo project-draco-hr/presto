@@ -1,0 +1,9 @@
+{
+  requireNonNull(catalog,"catalog is null");
+  checkArgument(!catalog.isEmpty() && catalog.trim().toLowerCase(ENGLISH).equals(catalog),"Invalid catalog name '%s'",catalog);
+  requireNonNull(sessionProperties,"sessionProperties is null");
+  checkState(catalogSessionProperties.putIfAbsent(catalog,sessionProperties) == null,"SessionProperties for catalog '%s' are already registered",catalog);
+  for (  SessionPropertyMetadata<?> sessionProperty : sessionProperties) {
+    addSessionPropertyInternal(Optional.of(catalog),sessionProperty);
+  }
+}

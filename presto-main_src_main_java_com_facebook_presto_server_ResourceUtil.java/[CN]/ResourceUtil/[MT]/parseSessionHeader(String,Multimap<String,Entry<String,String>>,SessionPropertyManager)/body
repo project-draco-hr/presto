@@ -1,0 +1,30 @@
+{
+  List<String> nameValue=Splitter.on('=').limit(2).trimResults().splitToList(header);
+  assertRequest(nameValue.size() == 2,"Invalid %s header",PRESTO_SESSION);
+  String fullPropertyName=nameValue.get(0);
+  String catalog;
+  String name;
+  List<String> nameParts=Splitter.on('.').splitToList(fullPropertyName);
+  if (nameParts.size() == 1) {
+    catalog=null;
+    name=nameParts.get(0);
+  }
+ else   if (nameParts.size() == 2) {
+    catalog=nameParts.get(0);
+    name=nameParts.get(1);
+  }
+ else {
+    throw badRequest(format("Invalid %s header",PRESTO_SESSION));
+  }
+  assertRequest(catalog == null || !catalog.isEmpty(),"Invalid %s header",PRESTO_SESSION);
+  assertRequest(!name.isEmpty(),"Invalid %s header",PRESTO_SESSION);
+  String value=nameValue.get(1);
+  SessionPropertyMetadata<?> metadata=sessionPropertyManager.getSessionPropertyMetadata(fullPropertyName);
+  try {
+    sessionPropertyManager.decodeProperty(fullPropertyName,value,metadata.getJavaType());
+  }
+ catch (  RuntimeException e) {
+    throw badRequest(format("Invalid %s header",PRESTO_SESSION));
+  }
+  sessionPropertiesByCatalog.put(catalog,Maps.immutableEntry(name,value));
+}

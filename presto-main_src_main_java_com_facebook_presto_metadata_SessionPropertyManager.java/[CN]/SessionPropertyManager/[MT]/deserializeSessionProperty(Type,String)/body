@@ -1,0 +1,21 @@
+{
+  if (value == null) {
+    throw new PrestoException(INVALID_SESSION_PROPERTY,"Session property can not be null");
+  }
+  if (VarcharType.VARCHAR.equals(type)) {
+    return value;
+  }
+  if (BooleanType.BOOLEAN.equals(type)) {
+    return Boolean.valueOf(value);
+  }
+  if (BigintType.BIGINT.equals(type)) {
+    return Long.valueOf(value);
+  }
+  if (DoubleType.DOUBLE.equals(type)) {
+    return Double.valueOf(value);
+  }
+  if (type instanceof ArrayType || type instanceof MapType) {
+    return getJsonCodecForType(type).fromJson(value);
+  }
+  throw new PrestoException(INVALID_SESSION_PROPERTY,format("Session property type %s is not supported",type));
+}

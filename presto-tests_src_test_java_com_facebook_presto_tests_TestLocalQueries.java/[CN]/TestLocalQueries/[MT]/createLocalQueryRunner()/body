@@ -1,8 +1,11 @@
 {
-  Session defaultSession=Session.builder().setUser("user").setSource("test").setCatalog("local").setSchema(TINY_SCHEMA_NAME).setTimeZoneKey(UTC_KEY).setLocale(ENGLISH).build();
+  Session defaultSession=testSessionBuilder().setCatalog("local").setSchema(TINY_SCHEMA_NAME).build();
   LocalQueryRunner localQueryRunner=new LocalQueryRunner(defaultSession);
   localQueryRunner.createCatalog(defaultSession.getCatalog(),new TpchConnectorFactory(localQueryRunner.getNodeManager(),1),ImmutableMap.<String,String>of());
   localQueryRunner.createCatalog(TPCH_SAMPLED_SCHEMA,new SampledTpchConnectorFactory(localQueryRunner.getNodeManager(),1,2),ImmutableMap.<String,String>of());
   localQueryRunner.getMetadata().addFunctions(CUSTOM_FUNCTIONS);
+  SessionPropertyManager sessionPropertyManager=localQueryRunner.getMetadata().getSessionPropertyManager();
+  sessionPropertyManager.addSystemSessionProperties(AbstractTestQueries.TEST_SYSTEM_PROPERTIES);
+  sessionPropertyManager.addConnectorSessionProperties("connector",AbstractTestQueries.TEST_CATALOG_PROPERTIES);
   return localQueryRunner;
 }

@@ -1,15 +1,13 @@
 {
   ImmutableList.Builder<Expression> rows=ImmutableList.builder();
-  for (  Entry<String,String> property : new TreeMap<>(session.getSystemProperties()).entrySet()) {
-    rows.add(row(new StringLiteral(property.getKey()),new StringLiteral(property.getValue()),TRUE_LITERAL));
+  List<SessionPropertyValue> sessionProperties=metadata.getSessionPropertyManager().getAllSessionProperties(session);
+  for (  SessionPropertyValue sessionProperty : sessionProperties) {
+    String value=sessionProperty.getValue();
+    String defaultValue=sessionProperty.getDefaultValue();
+    rows.add(row(new StringLiteral(sessionProperty.getFullyQualifiedName()),new StringLiteral(nullToEmpty(value)),new StringLiteral(nullToEmpty(defaultValue)),new StringLiteral(sessionProperty.getType()),new StringLiteral(sessionProperty.getDescription()),TRUE_LITERAL));
   }
-  for (  Entry<String,Map<String,String>> entry : new TreeMap<>(session.getCatalogProperties()).entrySet()) {
-    String catalog=entry.getKey();
-    for (    Entry<String,String> property : new TreeMap<>(entry.getValue()).entrySet()) {
-      rows.add(row(new StringLiteral(catalog + "." + property.getKey()),new StringLiteral(property.getValue()),TRUE_LITERAL));
-    }
-  }
-  rows.add(row(new StringLiteral(""),new StringLiteral(""),FALSE_LITERAL));
-  Query query=simpleQuery(selectList(aliasedName("name","Name"),aliasedName("value","Value")),aliased(new Values(rows.build()),"session",ImmutableList.of("name","value","include")),nameReference("include"));
+  StringLiteral empty=new StringLiteral("");
+  rows.add(row(empty,empty,empty,empty,empty,FALSE_LITERAL));
+  Query query=simpleQuery(selectList(aliasedName("name","Name"),aliasedName("value","Value"),aliasedName("default","Default"),aliasedName("type","Type"),aliasedName("description","Description")),aliased(new Values(rows.build()),"session",ImmutableList.of("name","value","default","type","description","include")),nameReference("include"));
   return process(query,context);
 }

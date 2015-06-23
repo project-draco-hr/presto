@@ -1,0 +1,24 @@
+{
+  if (VarcharType.VARCHAR.equals(type)) {
+    return (JsonCodec<T>)JSON_CODEC_FACTORY.jsonCodec(String.class);
+  }
+  if (BooleanType.BOOLEAN.equals(type)) {
+    return (JsonCodec<T>)JSON_CODEC_FACTORY.jsonCodec(Boolean.class);
+  }
+  if (BigintType.BIGINT.equals(type)) {
+    return (JsonCodec<T>)JSON_CODEC_FACTORY.jsonCodec(Long.class);
+  }
+  if (DoubleType.DOUBLE.equals(type)) {
+    return (JsonCodec<T>)JSON_CODEC_FACTORY.jsonCodec(Double.class);
+  }
+  if (type instanceof ArrayType) {
+    Type elementType=((ArrayType)type).getElementType();
+    return (JsonCodec<T>)JSON_CODEC_FACTORY.listJsonCodec(getJsonCodecForType(elementType));
+  }
+  if (type instanceof MapType) {
+    Type keyType=((MapType)type).getKeyType();
+    Type valueType=((MapType)type).getValueType();
+    return (JsonCodec<T>)JSON_CODEC_FACTORY.mapJsonCodec(getMapKeyType(keyType),getJsonCodecForType(valueType));
+  }
+  throw new PrestoException(INVALID_SESSION_PROPERTY,format("Session property type %s is not supported",type));
+}
