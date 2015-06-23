@@ -1,0 +1,9 @@
+{
+  Block values=valueBlockEncoding.readBlock(sliceInput);
+  int offsetBase=sliceInput.readInt();
+  int positionCount=sliceInput.readInt();
+  byte[] offsets=new byte[positionCount * 4];
+  sliceInput.readBytes(offsets);
+  boolean[] valueIsNull=EncoderUtil.decodeNullBits(sliceInput,positionCount);
+  return new ArrayBlock(values,Slices.wrappedBuffer(offsets),offsetBase,Slices.wrappedBooleanArray(valueIsNull));
+}

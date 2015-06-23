@@ -1,0 +1,13 @@
+{
+  InterleavedBlockBuilder blockBuilder=new InterleavedBlockBuilder(ImmutableList.of(VARCHAR,BIGINT),new BlockBuilderStatus(),10);
+  for (  Slice expectedValue : expectedValues) {
+    if (expectedValue == null) {
+      blockBuilder.appendNull();
+    }
+ else {
+      blockBuilder.writeBytes(expectedValue,0,expectedValue.length()).closeEntry();
+    }
+  }
+  assertBlock(blockBuilder,expectedValues);
+  assertBlock(blockBuilder.build(),expectedValues);
+}

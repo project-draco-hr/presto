@@ -1,0 +1,29 @@
+{
+  int positionCount=getPositionCount();
+  if (position < 0 || length < 0 || position + length > positionCount) {
+    throw new IndexOutOfBoundsException("Invalid position (" + position + "), length ("+ length+ ") in block with "+ positionCount+ " positions");
+  }
+  if (length <= 1) {
+    int positionInBlock=position / columns;
+    if (compact) {
+      return getBlock(position % columns).copyRegion(positionInBlock,length);
+    }
+ else {
+      return getBlock(position % columns).getRegion(positionInBlock,length);
+    }
+  }
+ else {
+    Block[] resultBlocks=new Block[Math.min(columns,length)];
+    for (int newBlockIndex=0; newBlockIndex < resultBlocks.length; newBlockIndex++) {
+      int positionInBlock=(position + newBlockIndex) / columns;
+      int subBlockLength=(length + columns - 1 - newBlockIndex) / columns;
+      if (compact) {
+        resultBlocks[newBlockIndex]=getBlock((newBlockIndex + position) % columns).copyRegion(positionInBlock,subBlockLength);
+      }
+ else {
+        resultBlocks[newBlockIndex]=getBlock((newBlockIndex + position) % columns).getRegion(positionInBlock,subBlockLength);
+      }
+    }
+    return new InterleavedBlock(resultBlocks);
+  }
+}

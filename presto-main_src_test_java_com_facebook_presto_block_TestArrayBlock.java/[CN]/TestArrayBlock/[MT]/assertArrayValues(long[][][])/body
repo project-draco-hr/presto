@@ -1,0 +1,26 @@
+{
+  BlockBuilder blockBuilder=new ArrayBlockBuilder(new ArrayBlockBuilder(BIGINT,new BlockBuilderStatus(),100,100),new BlockBuilderStatus(),100);
+  for (int i=0; i < expectedValues.length; i++) {
+    if (expectedValues[i] == null) {
+      blockBuilder.appendNull();
+    }
+ else {
+      BlockBuilder intermediateBlockBuilder=new ArrayBlockBuilder(BIGINT,new BlockBuilderStatus(),100,100);
+      for (int j=0; j < expectedValues[i].length; j++) {
+        if (expectedValues[i][j] == null) {
+          intermediateBlockBuilder.appendNull();
+        }
+ else {
+          BlockBuilder innerMostBlockBuilder=BIGINT.createBlockBuilder(new BlockBuilderStatus(),expectedValues[i].length);
+          for (          long v : expectedValues[i][j]) {
+            BIGINT.writeLong(innerMostBlockBuilder,v);
+          }
+          intermediateBlockBuilder.writeObject(innerMostBlockBuilder.build()).closeEntry();
+        }
+      }
+      blockBuilder.writeObject(intermediateBlockBuilder.build()).closeEntry();
+    }
+  }
+  assertBlock(blockBuilder,expectedValues);
+  assertBlock(blockBuilder.build(),expectedValues);
+}

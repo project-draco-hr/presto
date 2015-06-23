@@ -1,0 +1,13 @@
+{
+  BlockBuilder blockBuilder=new ArrayBlockBuilder(BIGINT,pageBuilderStatus.createBlockBuilderStatus(),EXPECTED_ENTRY_COUNT);
+  assertTrue(pageBuilderStatus.isEmpty());
+  while (!pageBuilderStatus.isFull()) {
+    BlockBuilder elementBuilder=blockBuilder.beginBlockEntry();
+    BIGINT.writeLong(elementBuilder,12);
+    elementBuilder.appendNull();
+    BIGINT.writeLong(elementBuilder,34);
+    blockBuilder.closeEntry();
+  }
+  assertEquals(blockBuilder.getPositionCount(),EXPECTED_ENTRY_COUNT);
+  assertEquals(pageBuilderStatus.isFull(),true);
+}

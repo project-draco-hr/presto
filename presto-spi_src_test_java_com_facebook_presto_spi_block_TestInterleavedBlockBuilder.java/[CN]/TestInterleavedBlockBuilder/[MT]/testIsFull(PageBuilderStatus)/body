@@ -1,0 +1,10 @@
+{
+  BlockBuilder blockBuilder=new InterleavedBlockBuilder(ImmutableList.of(BIGINT,VARCHAR),pageBuilderStatus.createBlockBuilderStatus(),EXPECTED_ENTRY_COUNT);
+  assertTrue(pageBuilderStatus.isEmpty());
+  while (!pageBuilderStatus.isFull()) {
+    BIGINT.writeLong(blockBuilder,12);
+    VARCHAR.writeSlice(blockBuilder,Slices.allocate(VARCHAR_VALUE_SIZE));
+  }
+  assertEquals(blockBuilder.getPositionCount(),EXPECTED_ENTRY_COUNT);
+  assertEquals(pageBuilderStatus.isFull(),true);
+}

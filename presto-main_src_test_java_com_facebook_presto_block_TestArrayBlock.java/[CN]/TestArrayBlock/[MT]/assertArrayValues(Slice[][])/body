@@ -1,0 +1,17 @@
+{
+  BlockBuilder blockBuilder=new ArrayBlockBuilder(VARCHAR,new BlockBuilderStatus(),100,100);
+  for (int i=0; i < expectedValues.length; i++) {
+    if (expectedValues[i] == null) {
+      blockBuilder.appendNull();
+    }
+ else {
+      BlockBuilder elementBlockBuilder=VARCHAR.createBlockBuilder(new BlockBuilderStatus(),expectedValues[i].length);
+      for (      Slice v : expectedValues[i]) {
+        VARCHAR.writeSlice(elementBlockBuilder,v);
+      }
+      blockBuilder.writeObject(elementBlockBuilder.build()).closeEntry();
+    }
+  }
+  assertBlock(blockBuilder,expectedValues);
+  assertBlock(blockBuilder.build(),expectedValues);
+}
