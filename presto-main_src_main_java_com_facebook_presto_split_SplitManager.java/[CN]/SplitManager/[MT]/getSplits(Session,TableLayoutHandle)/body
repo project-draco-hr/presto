@@ -1,0 +1,17 @@
+{
+  String connectorId=layout.getConnectorId();
+  ConnectorSplitManager splitManager=getConnectorSplitManager(connectorId);
+  ConnectorSession connectorSession=session.toConnectorSession(connectorId);
+  ConnectorSplitSource source;
+  if (layout.getConnectorHandle() instanceof LegacyTableLayoutHandle) {
+    LegacyTableLayoutHandle handle=(LegacyTableLayoutHandle)layout.getConnectorHandle();
+    if (handle.getPartitions().isEmpty()) {
+      return new ConnectorAwareSplitSource(connectorId,new FixedSplitSource(connectorId,ImmutableList.<ConnectorSplit>of()));
+    }
+    source=splitManager.getPartitionSplits(connectorSession,handle.getTable(),handle.getPartitions());
+  }
+ else {
+    source=splitManager.getSplits(connectorSession,layout.getConnectorHandle());
+  }
+  return new ConnectorAwareSplitSource(connectorId,source);
+}

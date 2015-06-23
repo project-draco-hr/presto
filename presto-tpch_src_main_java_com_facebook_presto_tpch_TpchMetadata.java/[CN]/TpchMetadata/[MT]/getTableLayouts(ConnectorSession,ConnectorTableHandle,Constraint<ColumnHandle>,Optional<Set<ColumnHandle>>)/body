@@ -1,0 +1,16 @@
+{
+  TpchTableHandle tableHandle=checkType(table,TpchTableHandle.class,"table");
+  Optional<Set<ColumnHandle>> partitioningColumns=Optional.empty();
+  List<LocalProperty<ColumnHandle>> localProperties=ImmutableList.of();
+  Map<String,ColumnHandle> columns=getColumnHandles(session,tableHandle);
+  if (tableHandle.getTableName().equals(TpchTable.ORDERS.getTableName())) {
+    partitioningColumns=Optional.of(ImmutableSet.of(columns.get(OrderColumn.ORDER_KEY.getColumnName())));
+    localProperties=ImmutableList.of(new SortingProperty<>(columns.get(OrderColumn.ORDER_KEY.getColumnName()),SortOrder.ASC_NULLS_FIRST));
+  }
+ else   if (tableHandle.getTableName().equals(TpchTable.LINE_ITEM.getTableName())) {
+    partitioningColumns=Optional.of(ImmutableSet.of(columns.get(LineItemColumn.ORDER_KEY.getColumnName())));
+    localProperties=ImmutableList.of(new SortingProperty<>(columns.get(LineItemColumn.ORDER_KEY.getColumnName()),SortOrder.ASC_NULLS_FIRST),new SortingProperty<>(columns.get(LineItemColumn.LINE_NUMBER.getColumnName()),SortOrder.ASC_NULLS_FIRST));
+  }
+  ConnectorTableLayout layout=new ConnectorTableLayout(new TpchTableLayoutHandle(tableHandle),Optional.<List<ColumnHandle>>empty(),TupleDomain.<ColumnHandle>all(),partitioningColumns,Optional.empty(),localProperties);
+  return ImmutableList.of(new ConnectorTableLayoutResult(layout,constraint.getSummary()));
+}

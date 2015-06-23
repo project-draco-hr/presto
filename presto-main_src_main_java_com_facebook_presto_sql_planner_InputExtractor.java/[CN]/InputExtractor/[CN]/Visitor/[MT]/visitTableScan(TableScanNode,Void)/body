@@ -1,12 +1,12 @@
 {
   TableHandle tableHandle=node.getTable();
-  Optional<ColumnHandle> sampleWeightColumn=metadata.getSampleWeightColumnHandle(tableHandle);
+  Optional<ColumnHandle> sampleWeightColumn=metadata.getSampleWeightColumnHandle(session,tableHandle);
   Set<Column> columns=new HashSet<>();
   for (  ColumnHandle columnHandle : node.getAssignments().values()) {
     if (!columnHandle.equals(sampleWeightColumn.orElse(null))) {
-      columns.add(createColumnEntry(metadata.getColumnMetadata(tableHandle,columnHandle)));
+      columns.add(createColumnEntry(metadata.getColumnMetadata(session,tableHandle,columnHandle)));
     }
   }
-  inputs.put(createTableEntry(metadata.getTableMetadata(tableHandle)),columns);
+  inputs.put(createTableEntry(metadata.getTableMetadata(session,tableHandle)),columns);
   return null;
 }

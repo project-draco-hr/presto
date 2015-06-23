@@ -1,0 +1,34 @@
+{
+  WriterTarget target=node.getTarget();
+  return new TableCommitter(){
+    @Override public void commitTable(    Collection<Slice> fragments){
+      if (target instanceof CreateHandle) {
+        metadata.commitCreateTable(session,((CreateHandle)target).getHandle(),fragments);
+      }
+ else       if (target instanceof InsertHandle) {
+        metadata.commitInsert(session,((InsertHandle)target).getHandle(),fragments);
+      }
+ else       if (target instanceof DeleteHandle) {
+        metadata.commitDelete(session,((DeleteHandle)target).getHandle(),fragments);
+      }
+ else {
+        throw new AssertionError("Unhandled target type: " + target.getClass().getName());
+      }
+    }
+    @Override public void rollbackTable(){
+      if (target instanceof CreateHandle) {
+        metadata.rollbackCreateTable(session,((CreateHandle)target).getHandle());
+      }
+ else       if (target instanceof InsertHandle) {
+        metadata.rollbackInsert(session,((InsertHandle)target).getHandle());
+      }
+ else       if (target instanceof DeleteHandle) {
+        metadata.rollbackDelete(session,((DeleteHandle)target).getHandle());
+      }
+ else {
+        throw new AssertionError("Unhandled target type: " + target.getClass().getName());
+      }
+    }
+  }
+;
+}

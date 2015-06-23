@@ -1,19 +1,19 @@
 {
   TableHandle tableHandle=metadata.getTableHandle(session,new QualifiedTableName(session.getCatalog(),session.getSchema(),tableName)).orElse(null);
   checkArgument(tableHandle != null,"Table %s does not exist",tableName);
-  Map<String,ColumnHandle> allColumnHandles=metadata.getColumnHandles(tableHandle);
+  Map<String,ColumnHandle> allColumnHandles=metadata.getColumnHandles(session,tableHandle);
   ImmutableList.Builder<ColumnHandle> columnHandlesBuilder=ImmutableList.builder();
   ImmutableList.Builder<Type> columnTypesBuilder=ImmutableList.builder();
   for (  String columnName : columnNames) {
     ColumnHandle columnHandle=allColumnHandles.get(columnName);
     checkArgument(columnHandle != null,"Table %s does not have a column %s",tableName,columnName);
     columnHandlesBuilder.add(columnHandle);
-    ColumnMetadata columnMetadata=metadata.getColumnMetadata(tableHandle,columnHandle);
+    ColumnMetadata columnMetadata=metadata.getColumnMetadata(session,tableHandle,columnHandle);
     columnTypesBuilder.add(columnMetadata.getType());
   }
   List<ColumnHandle> columnHandles=columnHandlesBuilder.build();
   List<Type> columnTypes=columnTypesBuilder.build();
-  List<TableLayoutResult> layouts=metadata.getLayouts(tableHandle,Constraint.alwaysTrue(),Optional.empty());
+  List<TableLayoutResult> layouts=metadata.getLayouts(session,tableHandle,Constraint.alwaysTrue(),Optional.empty());
   Split split=getLocalQuerySplit(layouts.get(0).getLayout().getHandle());
   return new OperatorFactory(){
     @Override public List<Type> getTypes(){
@@ -21,7 +21,7 @@
     }
     @Override public Operator createOperator(    DriverContext driverContext){
       OperatorContext operatorContext=driverContext.addOperatorContext(operatorId,"BenchmarkSource");
-      ConnectorPageSource pageSource=pageSourceManager.createPageSource(split,columnHandles);
+      ConnectorPageSource pageSource=pageSourceManager.createPageSource(session,split,columnHandles);
       return new PageSourceOperator(pageSource,columnTypes,operatorContext);
     }
     @Override public void close(){

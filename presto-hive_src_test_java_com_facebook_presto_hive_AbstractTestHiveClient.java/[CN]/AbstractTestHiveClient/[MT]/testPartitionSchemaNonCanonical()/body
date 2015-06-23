@@ -1,14 +1,14 @@
 {
   ConnectorTableHandle table=getTableHandle(tablePartitionSchemaChangeNonCanonical);
-  ColumnHandle column=metadata.getColumnHandles(table).get("t_boolean");
+  ColumnHandle column=metadata.getColumnHandles(SESSION,table).get("t_boolean");
   assertNotNull(column);
-  ConnectorPartitionResult partitionResult=splitManager.getPartitions(table,TupleDomain.withFixedValues(ImmutableMap.of(column,false)));
+  ConnectorPartitionResult partitionResult=splitManager.getPartitions(SESSION,table,TupleDomain.withFixedValues(ImmutableMap.of(column,false)));
   assertEquals(partitionResult.getPartitions().size(),1);
   assertEquals(partitionResult.getPartitions().get(0).getPartitionId(),"t_boolean=0");
-  ConnectorSplitSource splitSource=splitManager.getPartitionSplits(table,partitionResult.getPartitions());
+  ConnectorSplitSource splitSource=splitManager.getPartitionSplits(SESSION,table,partitionResult.getPartitions());
   ConnectorSplit split=getOnlyElement(getAllSplits(splitSource));
   ImmutableList<ColumnHandle> columnHandles=ImmutableList.of(column);
-  try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(split,columnHandles)){
+  try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(SESSION,split,columnHandles)){
     fail("expected exception");
   }
  catch (  PrestoException e) {

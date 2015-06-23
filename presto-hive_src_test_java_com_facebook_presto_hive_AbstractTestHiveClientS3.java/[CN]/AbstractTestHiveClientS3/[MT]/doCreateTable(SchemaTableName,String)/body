@@ -2,7 +2,7 @@
   List<ColumnMetadata> columns=ImmutableList.<ColumnMetadata>builder().add(new ColumnMetadata("id",BIGINT,false)).build();
   ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(tableName,columns,tableOwner);
   HiveOutputTableHandle outputHandle=metadata.beginCreateTable(SESSION,tableMetadata);
-  RecordSink sink=recordSinkProvider.getRecordSink(outputHandle);
+  RecordSink sink=recordSinkProvider.getRecordSink(SESSION,outputHandle);
   sink.beginRecord(1);
   sink.appendLong(1);
   sink.finishRecord();
@@ -13,15 +13,15 @@
   sink.appendLong(2);
   sink.finishRecord();
   Collection<Slice> fragments=sink.commit();
-  metadata.commitCreateTable(outputHandle,fragments);
+  metadata.commitCreateTable(SESSION,outputHandle,fragments);
   metastoreClient.updateTableLocation(database,tableName.getTableName(),outputHandle.getTargetPath());
   ConnectorTableHandle tableHandle=getTableHandle(tableName);
-  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(tableHandle).values());
-  ConnectorPartitionResult partitionResult=splitManager.getPartitions(tableHandle,TupleDomain.<ColumnHandle>all());
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(SESSION,tableHandle).values());
+  ConnectorPartitionResult partitionResult=splitManager.getPartitions(SESSION,tableHandle,TupleDomain.<ColumnHandle>all());
   assertEquals(partitionResult.getPartitions().size(),1);
-  ConnectorSplitSource splitSource=splitManager.getPartitionSplits(tableHandle,partitionResult.getPartitions());
+  ConnectorSplitSource splitSource=splitManager.getPartitionSplits(SESSION,tableHandle,partitionResult.getPartitions());
   ConnectorSplit split=getOnlyElement(getAllSplits(splitSource));
-  try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(split,columnHandles)){
+  try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(SESSION,split,columnHandles)){
     MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,getTypes(columnHandles));
     assertEquals(result.getRowCount(),3);
     MaterializedRow row;

@@ -1,16 +1,16 @@
 {
   ConnectorTableHandle tableHandle=getTableHandle(tableBucketedStringInt);
-  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(tableHandle).values());
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(SESSION,tableHandle).values());
   Map<String,Integer> columnIndex=indexColumns(columnHandles);
   assertTableIsBucketed(tableHandle);
   String testString="test";
   Long testInt=13L;
   Long testSmallint=12L;
   ImmutableMap<ColumnHandle,SerializableNativeValue> bindings=ImmutableMap.<ColumnHandle,SerializableNativeValue>builder().put(columnHandles.get(columnIndex.get("t_int")),new SerializableNativeValue(Long.class,testInt)).put(columnHandles.get(columnIndex.get("t_string")),new SerializableNativeValue(Slice.class,utf8Slice(testString))).put(columnHandles.get(columnIndex.get("t_smallint")),new SerializableNativeValue(Long.class,testSmallint)).build();
-  ConnectorPartitionResult partitionResult=splitManager.getPartitions(tableHandle,TupleDomain.withNullableFixedValues(bindings));
-  List<ConnectorSplit> splits=getAllSplits(splitManager.getPartitionSplits(tableHandle,partitionResult.getPartitions()));
+  ConnectorPartitionResult partitionResult=splitManager.getPartitions(SESSION,tableHandle,TupleDomain.withNullableFixedValues(bindings));
+  List<ConnectorSplit> splits=getAllSplits(splitManager.getPartitionSplits(SESSION,tableHandle,partitionResult.getPartitions()));
   assertEquals(splits.size(),1);
-  try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(splits.get(0),columnHandles)){
+  try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(SESSION,splits.get(0),columnHandles)){
     MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,getTypes(columnHandles));
     boolean rowFound=false;
     for (    MaterializedRow row : result) {

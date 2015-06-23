@@ -14,7 +14,7 @@
   List<Symbol> inputs=tableScan.getOutputSymbols();
   for (  Symbol symbol : inputs) {
     ColumnHandle column=tableScan.getAssignments().get(symbol);
-    ColumnMetadata columnMetadata=metadata.getColumnMetadata(tableScan.getTable(),column);
+    ColumnMetadata columnMetadata=metadata.getColumnMetadata(session,tableScan.getTable(),column);
     if (!columnMetadata.isPartitionKey()) {
       return context.defaultRewrite(node);
     }
@@ -25,13 +25,13 @@
   Map<Symbol,Type> types=typesBuilder.build();
   TableLayout layout=null;
   if (!tableScan.getLayout().isPresent()) {
-    List<TableLayoutResult> layouts=metadata.getLayouts(tableScan.getTable(),Constraint.<ColumnHandle>alwaysTrue(),Optional.empty());
+    List<TableLayoutResult> layouts=metadata.getLayouts(session,tableScan.getTable(),Constraint.<ColumnHandle>alwaysTrue(),Optional.empty());
     if (layouts.size() == 1) {
       layout=Iterables.getOnlyElement(layouts).getLayout();
     }
   }
  else {
-    layout=metadata.getLayout(tableScan.getLayout().get());
+    layout=metadata.getLayout(session,tableScan.getLayout().get());
   }
   if (layout == null || !layout.getDiscretePredicates().isPresent()) {
     return context.defaultRewrite(node);

@@ -1,15 +1,15 @@
 {
   ConnectorTableHandle tableHandle=getTableHandle(tableBucketedDoubleFloat);
-  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(tableHandle).values());
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(SESSION,tableHandle).values());
   Map<String,Integer> columnIndex=indexColumns(columnHandles);
   assertTableIsBucketed(tableHandle);
   ImmutableMap<ColumnHandle,SerializableNativeValue> bindings=ImmutableMap.<ColumnHandle,SerializableNativeValue>builder().put(columnHandles.get(columnIndex.get("t_float")),new SerializableNativeValue(Double.class,87.1)).put(columnHandles.get(columnIndex.get("t_double")),new SerializableNativeValue(Double.class,88.2)).build();
-  ConnectorPartitionResult partitionResult=splitManager.getPartitions(tableHandle,TupleDomain.withNullableFixedValues(bindings));
-  List<ConnectorSplit> splits=getAllSplits(splitManager.getPartitionSplits(tableHandle,partitionResult.getPartitions()));
+  ConnectorPartitionResult partitionResult=splitManager.getPartitions(SESSION,tableHandle,TupleDomain.withNullableFixedValues(bindings));
+  List<ConnectorSplit> splits=getAllSplits(splitManager.getPartitionSplits(SESSION,tableHandle,partitionResult.getPartitions()));
   assertEquals(splits.size(),32);
   int count=0;
   for (  ConnectorSplit split : splits) {
-    try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(split,columnHandles)){
+    try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(SESSION,split,columnHandles)){
       MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,getTypes(columnHandles));
       count+=result.getRowCount();
     }

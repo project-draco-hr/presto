@@ -1,0 +1,12 @@
+{
+  ConnectorIndexResolver resolver=resolvers.get(tableHandle.getConnectorId());
+  if (resolver == null) {
+    return Optional.empty();
+  }
+  ConnectorSession connectorSession=session.toConnectorSession(tableHandle.getConnectorId());
+  ConnectorResolvedIndex resolved=resolver.resolveIndex(connectorSession,tableHandle.getConnectorHandle(),indexableColumns,outputColumns,tupleDomain);
+  if (resolved == null) {
+    return Optional.empty();
+  }
+  return Optional.of(new ResolvedIndex(tableHandle.getConnectorId(),resolved));
+}
