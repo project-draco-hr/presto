@@ -13,7 +13,7 @@
   }
   updateErrorTracker.acquireRequestPermit();
   List<TaskSource> sources=getSources();
-  TaskUpdateRequest updateRequest=new TaskUpdateRequest(session,planFragment,sources,outputBuffers.get());
+  TaskUpdateRequest updateRequest=new TaskUpdateRequest(session.toSessionRepresentation(),planFragment,sources,outputBuffers.get());
   Request request=preparePost().setUri(uriBuilderFrom(taskInfo.get().getSelf()).addParameter("summarize").build()).setHeader(HttpHeaders.CONTENT_TYPE,MediaType.JSON_UTF_8.toString()).setBodyGenerator(jsonBodyGenerator(taskUpdateRequestCodec,updateRequest)).build();
   ListenableFuture<JsonResponse<TaskInfo>> future=httpClient.executeAsync(request,createFullJsonResponseHandler(taskInfoCodec));
   currentRequest=future;
