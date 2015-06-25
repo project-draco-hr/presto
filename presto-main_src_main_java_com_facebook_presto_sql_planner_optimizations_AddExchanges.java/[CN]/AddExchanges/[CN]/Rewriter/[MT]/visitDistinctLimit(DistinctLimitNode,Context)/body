@@ -1,0 +1,8 @@
+{
+  PlanWithProperties child=planChild(node,context.withPreferredProperties(PreferredProperties.any()));
+  if (child.getProperties().isDistributed()) {
+    child=withDerivedProperties(new DistinctLimitNode(idAllocator.getNextId(),child.getNode(),node.getLimit(),node.getHashSymbol()),child.getProperties());
+    child=withDerivedProperties(gatheringExchange(idAllocator.getNextId(),new DistinctLimitNode(idAllocator.getNextId(),child.getNode(),node.getLimit(),node.getHashSymbol())),child.getProperties());
+  }
+  return rebaseAndDeriveProperties(node,child);
+}

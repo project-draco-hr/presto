@@ -1,0 +1,11 @@
+{
+  PlanWithProperties source=node.getSource().accept(this,context.withPreferredProperties(PreferredProperties.any()));
+  PlanWithProperties filteringSource=node.getFilteringSource().accept(this,context.withPreferredProperties(PreferredProperties.any()));
+  if (source.getProperties().isDistributed()) {
+    filteringSource=withDerivedProperties(new ExchangeNode(idAllocator.getNextId(),ExchangeNode.Type.REPLICATE,Optional.empty(),Optional.<Symbol>empty(),ImmutableList.of(filteringSource.getNode()),filteringSource.getNode().getOutputSymbols(),ImmutableList.of(filteringSource.getNode().getOutputSymbols())),filteringSource.getProperties());
+  }
+ else {
+    filteringSource=withDerivedProperties(gatheringExchange(idAllocator.getNextId(),filteringSource.getNode()),filteringSource.getProperties());
+  }
+  return rebaseAndDeriveProperties(node,ImmutableList.of(source,filteringSource));
+}
