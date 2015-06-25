@@ -1,9 +1,15 @@
 {
   try {
-    TIMESTAMP_WITH_TIME_ZONE_FORMATTER.parseMillis(value);
-    return true;
+    try {
+      TIMESTAMP_WITH_TIME_ZONE_FORMATTER.parseMillis(value);
+      return true;
+    }
+ catch (    Exception e) {
+      TIMESTAMP_WITHOUT_TIME_ZONE_FORMATTER.parseMillis(value);
+      return false;
+    }
   }
  catch (  Exception e) {
-    return false;
+    throw new IllegalArgumentException(format("Invalid timestamp '%s'",value));
   }
 }
