@@ -2,8 +2,9 @@
   ImmutableList.Builder<RowGroup> rowGroupBuilder=ImmutableList.builder();
   for (  int rowGroupId : selectedRowGroups) {
     Map<StreamId,StreamCheckpoint> checkpoints=getStreamCheckpoints(includedOrcColumns,types,compressionKind,rowGroupId,encodings,streams,columnIndexes);
-    int rowsInGroup=Math.min(rowsInStripe - (rowGroupId * rowsInRowGroup),rowsInRowGroup);
-    rowGroupBuilder.add(createRowGroup(rowGroupId,rowsInGroup,valueStreams,checkpoints));
+    int rowOffset=rowGroupId * rowsInRowGroup;
+    int rowsInGroup=Math.min(rowsInStripe - rowOffset,rowsInRowGroup);
+    rowGroupBuilder.add(createRowGroup(rowGroupId,rowOffset,rowsInGroup,valueStreams,checkpoints));
   }
   return rowGroupBuilder.build();
 }

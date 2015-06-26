@@ -2,18 +2,19 @@
   try (TempFile tempFile=new TempFile("test","orc")){
     createMultiStripeFile(tempFile.getFile());
     OrcRecordReader reader=createCustomOrcRecordReader(tempFile,new OrcMetadataReader(),OrcPredicate.TRUE,BIGINT);
-    assertEquals(reader.getFileRowCount(),100);
-    assertEquals(reader.getTotalRowCount(),100);
-    assertEquals(reader.getPosition(),0);
+    assertEquals(reader.getReaderRowCount(),100);
+    assertEquals(reader.getReaderPosition(),0);
+    assertEquals(reader.getFileRowCount(),reader.getReaderRowCount());
+    assertEquals(reader.getFilePosition(),reader.getReaderPosition());
     for (int i=0; i < 5; i++) {
       assertEquals(reader.nextBatch(),20);
-      assertEquals(reader.getPosition(),(i + 1) * 20L);
-      assertEquals(reader.getFilePosition(),reader.getPosition());
+      assertEquals(reader.getReaderPosition(),i * 20L);
+      assertEquals(reader.getFilePosition(),reader.getReaderPosition());
       assertCurrentBatch(reader,i);
     }
     assertEquals(reader.nextBatch(),-1);
-    assertEquals(reader.getPosition(),100);
-    assertEquals(reader.getFilePosition(),reader.getPosition());
+    assertEquals(reader.getReaderPosition(),100);
+    assertEquals(reader.getFilePosition(),reader.getReaderPosition());
     reader.close();
   }
  }

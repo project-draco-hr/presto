@@ -1,17 +1,19 @@
 {
+  filePosition+=currentBatchSize;
+  currentPosition+=currentBatchSize;
   if (nextRowInGroup >= currentGroupRowCount) {
     if (!advanceToNextRowGroup()) {
+      filePosition=fileRowCount;
+      currentPosition=totalRowCount;
       return -1;
     }
   }
-  int batchSize=Ints.checkedCast(Math.min(Vector.MAX_VECTOR_LENGTH,currentGroupRowCount - nextRowInGroup));
+  currentBatchSize=Ints.checkedCast(Math.min(Vector.MAX_VECTOR_LENGTH,currentGroupRowCount - nextRowInGroup));
   for (  StreamReader column : streamReaders) {
     if (column != null) {
-      column.prepareNextRead(batchSize);
+      column.prepareNextRead(currentBatchSize);
     }
   }
-  filePosition+=batchSize;
-  nextRowInGroup+=batchSize;
-  currentPosition+=batchSize;
-  return batchSize;
+  nextRowInGroup+=currentBatchSize;
+  return currentBatchSize;
 }

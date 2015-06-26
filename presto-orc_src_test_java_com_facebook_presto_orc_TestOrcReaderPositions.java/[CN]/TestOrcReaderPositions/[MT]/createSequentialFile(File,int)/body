@@ -1,0 +1,13 @@
+{
+  FileSinkOperator.RecordWriter writer=createOrcRecordWriter(file,ORC_12,OrcTester.Compression.NONE,javaLongObjectInspector);
+  @SuppressWarnings("deprecation") Serializer serde=new OrcSerde();
+  SettableStructObjectInspector objectInspector=createSettableStructObjectInspector("test",javaLongObjectInspector);
+  Object row=objectInspector.create();
+  StructField field=objectInspector.getAllStructFieldRefs().get(0);
+  for (int i=0; i < count; i++) {
+    objectInspector.setStructFieldData(row,field,(long)i);
+    Writable record=serde.serialize(row,objectInspector);
+    writer.write(record);
+  }
+  writer.close(false);
+}
