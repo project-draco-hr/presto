@@ -4,13 +4,18 @@
     if (!table.isPresent()) {
       throw new TableNotFoundException(new SchemaTableName(databaseName,tableName));
     }
+    Path path=new Path(table.get().getSd().getLocation());
     table.get().getSd().setLocation("/");
     try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
       client.alter_table(databaseName,tableName,table.get());
       client.drop_table(databaseName,tableName,false);
     }
-   }
- catch (  TException e) {
+     hdfsEnvironment.getFileSystem(path).delete(path,true);
+  }
+ catch (  Exception e) {
     throw Throwables.propagate(e);
+  }
+ finally {
+    invalidateTable(databaseName,tableName);
   }
 }

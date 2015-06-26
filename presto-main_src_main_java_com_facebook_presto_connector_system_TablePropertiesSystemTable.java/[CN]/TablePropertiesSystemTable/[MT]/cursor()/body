@@ -1,0 +1,12 @@
+{
+  Builder table=InMemoryRecordSet.builder(TABLE_PROPERTIES_TABLE);
+  Map<String,Map<String,PropertyMetadata<?>>> tableProperties=new TreeMap<>(metadata.getTablePropertyManager().getAllTableProperties());
+  for (  Entry<String,Map<String,PropertyMetadata<?>>> entry : tableProperties.entrySet()) {
+    String catalog=entry.getKey();
+    Map<String,PropertyMetadata<?>> properties=new TreeMap<>(entry.getValue());
+    for (    PropertyMetadata<?> propertyMetadata : properties.values()) {
+      table.addRow(catalog,propertyMetadata.getName(),firstNonNull(propertyMetadata.getDefaultValue(),"").toString(),propertyMetadata.getSqlType().toString(),propertyMetadata.getDescription());
+    }
+  }
+  return table.build().cursor();
+}

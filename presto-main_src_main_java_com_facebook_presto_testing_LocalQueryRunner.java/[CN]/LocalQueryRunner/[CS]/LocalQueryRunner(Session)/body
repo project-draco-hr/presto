@@ -8,11 +8,11 @@
   this.pageSinkManager=new PageSinkManager();
   this.splitManager=new SplitManager();
   this.blockEncodingSerde=new BlockEncodingManager(typeRegistry);
-  this.metadata=new MetadataManager(new FeaturesConfig().setExperimentalSyntaxEnabled(true),typeRegistry,splitManager,blockEncodingSerde,new SessionPropertyManager());
+  this.metadata=new MetadataManager(new FeaturesConfig().setExperimentalSyntaxEnabled(true),typeRegistry,splitManager,blockEncodingSerde,new SessionPropertyManager(),new TablePropertyManager());
   this.pageSourceManager=new PageSourceManager();
   this.compiler=new ExpressionCompiler(metadata);
   this.connectorManager=new ConnectorManager(metadata,splitManager,pageSourceManager,indexManager,pageSinkManager,new HandleResolver(),ImmutableMap.<String,ConnectorFactory>of(),nodeManager);
-  Connector systemConnector=new SystemConnector(nodeManager,ImmutableSet.of(new NodeSystemTable(nodeManager),new CatalogSystemTable(metadata)));
+  Connector systemConnector=new SystemConnector(nodeManager,ImmutableSet.of(new NodeSystemTable(nodeManager),new CatalogSystemTable(metadata),new TablePropertiesSystemTable(metadata)));
   connectorManager.createConnection(SystemConnector.NAME,systemConnector);
   this.defaultSession=new Session(defaultSession.getUser(),defaultSession.getSource(),defaultSession.getCatalog(),defaultSession.getSchema(),defaultSession.getTimeZoneKey(),defaultSession.getLocale(),defaultSession.getRemoteUserAddress(),defaultSession.getUserAgent(),defaultSession.getStartTime(),defaultSession.getSystemProperties(),defaultSession.getCatalogProperties(),metadata.getSessionPropertyManager());
 }

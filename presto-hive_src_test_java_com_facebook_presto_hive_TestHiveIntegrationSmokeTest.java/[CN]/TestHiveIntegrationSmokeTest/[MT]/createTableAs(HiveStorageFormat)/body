@@ -1,0 +1,10 @@
+{
+  String select="SELECT" + " 'foo' _varchar" + ", 1 _bigint"+ ", 3.14 _double"+ ", true _boolean";
+  String createTableAs=String.format("CREATE TABLE test_format_table WITH (%s = '%s') AS %s",STORAGE_FORMAT_PROPERTY,storageFormat,select);
+  assertQuery(createTableAs,"SELECT 1");
+  TableMetadata tableMetadata=getTableMetadata("test_format_table");
+  assertEquals(tableMetadata.getMetadata().getProperties().get(STORAGE_FORMAT_PROPERTY),storageFormat);
+  assertQuery("SELECT * from test_format_table",select);
+  assertQueryTrue("DROP TABLE test_format_table");
+  assertFalse(queryRunner.tableExists(getSession(),"test_format_table"));
+}

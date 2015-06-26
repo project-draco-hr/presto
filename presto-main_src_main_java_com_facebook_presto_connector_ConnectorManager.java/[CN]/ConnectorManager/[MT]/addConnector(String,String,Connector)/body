@@ -52,6 +52,8 @@
   }
  catch (  UnsupportedOperationException ignored) {
   }
+  List<PropertyMetadata<?>> tableProperties=connector.getTableProperties();
+  checkNotNull(tableProperties,"Connector %s returned null table properties",connectorId);
   metadataManager.addConnectorMetadata(connectorId,catalogName,connectorMetadata);
   metadataManager.addInformationSchemaMetadata(makeInformationSchemaConnectorId(connectorId),catalogName,new InformationSchemaMetadata(catalogName));
   splitManager.addConnectorSplitManager(makeInformationSchemaConnectorId(connectorId),new InformationSchemaSplitManager(nodeManager));
@@ -64,6 +66,7 @@
   handleResolver.addHandleResolver(connectorId,connectorHandleResolver);
   pageSourceManager.addConnectorPageSourceProvider(connectorId,connectorPageSourceProvider);
   metadataManager.getSessionPropertyManager().addConnectorSessionProperties(catalogName,connector.getSessionProperties());
+  metadataManager.getTablePropertyManager().addTableProperties(catalogName,tableProperties);
   if (connectorPageSinkProvider != null) {
     pageSinkManager.addConnectorPageSinkProvider(connectorId,connectorPageSinkProvider);
   }

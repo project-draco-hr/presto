@@ -1,0 +1,36 @@
+{
+  List<ColumnMetadata> columns=ImmutableList.<ColumnMetadata>builder().add(new ColumnMetadata("id",BIGINT,false)).build();
+  Map<String,Object> properties=ImmutableMap.of(STORAGE_FORMAT_PROPERTY,storageFormat);
+  ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(tableName,columns,properties,tableOwner);
+  HiveOutputTableHandle outputHandle=metadata.beginCreateTable(SESSION,tableMetadata);
+  RecordSink sink=recordSinkProvider.getRecordSink(SESSION,outputHandle);
+  sink.beginRecord(1);
+  sink.appendLong(1);
+  sink.finishRecord();
+  sink.beginRecord(1);
+  sink.appendLong(3);
+  sink.finishRecord();
+  sink.beginRecord(1);
+  sink.appendLong(2);
+  sink.finishRecord();
+  Collection<Slice> fragments=sink.commit();
+  metadata.commitCreateTable(SESSION,outputHandle,fragments);
+  metastoreClient.updateTableLocation(database,tableName.getTableName(),outputHandle.getTargetPath());
+  ConnectorTableHandle tableHandle=getTableHandle(tableName);
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(SESSION,tableHandle).values());
+  ConnectorPartitionResult partitionResult=splitManager.getPartitions(SESSION,tableHandle,TupleDomain.<ColumnHandle>all());
+  assertEquals(partitionResult.getPartitions().size(),1);
+  ConnectorSplitSource splitSource=splitManager.getPartitionSplits(SESSION,tableHandle,partitionResult.getPartitions());
+  ConnectorSplit split=getOnlyElement(getAllSplits(splitSource));
+  try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(SESSION,split,columnHandles)){
+    MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,getTypes(columnHandles));
+    assertEquals(result.getRowCount(),3);
+    MaterializedRow row;
+    row=result.getMaterializedRows().get(0);
+    assertEquals(row.getField(0),1L);
+    row=result.getMaterializedRows().get(1);
+    assertEquals(row.getField(0),3L);
+    row=result.getMaterializedRows().get(2);
+    assertEquals(row.getField(0),2L);
+  }
+ }

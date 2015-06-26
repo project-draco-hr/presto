@@ -1,0 +1,22 @@
+{
+  Map<String,PropertyMetadata<?>> tableProperties=catalogTableProperties.get(catalog);
+  if (tableProperties == null) {
+    throw new PrestoException(NOT_FOUND,"Catalog not found: " + catalog);
+  }
+  ImmutableMap.Builder<String,Object> properties=ImmutableMap.builder();
+  for (  PropertyMetadata<?> tableProperty : tableProperties.values()) {
+    Expression expression=sqlPropertyValues.get(tableProperty.getName());
+    Object value;
+    if (expression != null) {
+      Object sqlObjectValue=evaluatePropertyValue(expression,tableProperty.getSqlType(),session,metadata);
+      value=tableProperty.decode(sqlObjectValue);
+    }
+ else {
+      value=tableProperty.getDefaultValue();
+    }
+    if (value != null) {
+      properties.put(tableProperty.getName(),value);
+    }
+  }
+  return properties.build();
+}

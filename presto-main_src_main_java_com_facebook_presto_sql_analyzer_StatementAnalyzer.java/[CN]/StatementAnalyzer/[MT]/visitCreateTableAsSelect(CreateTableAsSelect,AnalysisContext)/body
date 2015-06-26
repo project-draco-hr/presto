@@ -2,6 +2,10 @@
   analysis.setUpdateType("CREATE TABLE");
   QualifiedTableName targetTable=MetadataUtil.createQualifiedTableName(session,node.getName());
   analysis.setCreateTableDestination(targetTable);
+  for (  Expression expression : node.getProperties().values()) {
+    createConstantAnalyzer(metadata,session).analyze(expression,new TupleDescriptor(),context);
+  }
+  analysis.setCreateTableProperties(node.getProperties());
   Optional<TableHandle> targetTableHandle=metadata.getTableHandle(session,targetTable);
   if (targetTableHandle.isPresent()) {
     throw new SemanticException(TABLE_ALREADY_EXISTS,node,"Destination table '%s' already exists",targetTable);
