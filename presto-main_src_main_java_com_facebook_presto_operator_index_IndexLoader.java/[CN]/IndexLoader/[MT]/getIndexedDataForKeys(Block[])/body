@@ -7,13 +7,21 @@ synchronized (this) {
       initializeStateIfNecessary();
       List<UpdateRequest> requests=new ArrayList<>();
       updateRequests.drainTo(requests);
-      long initialCacheSizeInBytes=indexSnapshotLoader.getCacheSizeInBytes();
-      if (indexSnapshotLoader.load(requests)) {
-        return myUpdateRequest.getFinishedIndexSnapshot();
+      try {
+        long initialCacheSizeInBytes=indexSnapshotLoader.getCacheSizeInBytes();
+        if (indexSnapshotLoader.load(requests)) {
+          return myUpdateRequest.getFinishedIndexSnapshot();
+        }
+        if (initialCacheSizeInBytes > 0 && indexSnapshotLoader.load(requests)) {
+          stats.recordSuccessfulIndexJoinLookupByCacheReset();
+          return myUpdateRequest.getFinishedIndexSnapshot();
+        }
       }
-      if (initialCacheSizeInBytes > 0 && indexSnapshotLoader.load(requests)) {
-        stats.recordSuccessfulIndexJoinLookupByCacheReset();
-        return myUpdateRequest.getFinishedIndexSnapshot();
+ catch (      Throwable t) {
+        for (        UpdateRequest request : requests) {
+          request.failed(t);
+        }
+        Throwables.propagate(t);
       }
       if (requests.size() > 1) {
         Iterables.addAll(updateRequests,filter(requests,not(equalTo(myUpdateRequest))));
