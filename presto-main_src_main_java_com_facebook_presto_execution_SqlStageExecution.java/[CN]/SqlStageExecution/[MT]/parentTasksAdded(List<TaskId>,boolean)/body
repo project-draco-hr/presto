@@ -17,7 +17,16 @@
     ImmutableMap.Builder<TaskId,PagePartitionFunction> buffers=ImmutableMap.builder();
     for (int nodeIndex=0; nodeIndex < parentTasks.size(); nodeIndex++) {
       TaskId taskId=parentTasks.get(nodeIndex);
-      buffers.put(taskId,new HashPagePartitionFunction(nodeIndex,parentTasks.size(),getPartitioningChannels(fragment),getHashChannel(fragment),fragment.getTypes()));
+      buffers.put(taskId,new HashPagePartitionFunction(nodeIndex,parentTasks.size(),getPartitioningChannels(fragment).get(),getHashChannel(fragment),fragment.getTypes()));
+    }
+    newOutputBuffers=startingOutputBuffers.withBuffers(buffers.build()).withNoMoreBufferIds();
+  }
+ else   if (fragment.getOutputPartitioning() == OutputPartitioning.ROUND_ROBIN) {
+    checkArgument(noMoreParentNodes,"Round-robin partitioned output requires all parent nodes be added in a single call");
+    ImmutableMap.Builder<TaskId,PagePartitionFunction> buffers=ImmutableMap.builder();
+    for (int nodeIndex=0; nodeIndex < parentTasks.size(); nodeIndex++) {
+      TaskId taskId=parentTasks.get(nodeIndex);
+      buffers.put(taskId,new PartitionedPagePartitionFunction(nodeIndex,parentTasks.size()));
     }
     newOutputBuffers=startingOutputBuffers.withBuffers(buffers.build()).withNoMoreBufferIds();
   }

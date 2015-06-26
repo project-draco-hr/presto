@@ -10,46 +10,48 @@
     List<DriverFactory> driverFactories;
     try {
       OutputFactory outputOperatorFactory;
-      if (fragment.getOutputPartitioning() == OutputPartitioning.NONE) {
+switch (fragment.getOutputPartitioning()) {
+case NONE:
         outputOperatorFactory=new TaskOutputFactory(sharedBuffer);
-      }
- else       if (fragment.getOutputPartitioning() == OutputPartitioning.HASH) {
-        outputOperatorFactory=new PartitionedOutputFactory(sharedBuffer);
-      }
+      break;
+case HASH:
+case ROUND_ROBIN:
+    outputOperatorFactory=new PartitionedOutputFactory(sharedBuffer);
+  break;
+default :
+throw new PrestoException(NOT_SUPPORTED,format("OutputPartitioning %s is not supported",fragment.getOutputPartitioning()));
+}
+LocalExecutionPlan localExecutionPlan=planner.plan(taskContext.getSession(),fragment.getRoot(),fragment.getOutputLayout(),fragment.getSymbols(),fragment.getDistribution(),outputOperatorFactory);
+driverFactories=localExecutionPlan.getDriverFactories();
+}
+ catch (Throwable e) {
+taskStateMachine.failed(e);
+throw Throwables.propagate(e);
+}
+DriverSplitRunnerFactory partitionedDriverFactory=null;
+ImmutableList.Builder<DriverSplitRunnerFactory> unpartitionedDriverFactories=ImmutableList.builder();
+for (DriverFactory driverFactory : driverFactories) {
+if (driverFactory.getSourceIds().contains(fragment.getPartitionedSource())) {
+checkState(partitionedDriverFactory == null,"multiple partitioned sources are not supported");
+partitionedDriverFactory=new DriverSplitRunnerFactory(driverFactory);
+}
  else {
-        throw new PrestoException(NOT_SUPPORTED,format("OutputPartitioning %s is not supported",fragment.getOutputPartitioning()));
-      }
-      LocalExecutionPlan localExecutionPlan=planner.plan(taskContext.getSession(),fragment.getRoot(),fragment.getOutputLayout(),fragment.getSymbols(),fragment.getDistribution(),outputOperatorFactory);
-      driverFactories=localExecutionPlan.getDriverFactories();
-    }
- catch (    Throwable e) {
-      taskStateMachine.failed(e);
-      throw Throwables.propagate(e);
-    }
-    DriverSplitRunnerFactory partitionedDriverFactory=null;
-    ImmutableList.Builder<DriverSplitRunnerFactory> unpartitionedDriverFactories=ImmutableList.builder();
-    for (    DriverFactory driverFactory : driverFactories) {
-      if (driverFactory.getSourceIds().contains(fragment.getPartitionedSource())) {
-        checkState(partitionedDriverFactory == null,"multiple partitioned sources are not supported");
-        partitionedDriverFactory=new DriverSplitRunnerFactory(driverFactory);
-      }
+unpartitionedDriverFactories.add(new DriverSplitRunnerFactory(driverFactory));
+}
+}
+this.unpartitionedDriverFactories=unpartitionedDriverFactories.build();
+if (fragment.getDistribution() == PlanDistribution.SOURCE) {
+checkArgument(partitionedDriverFactory != null,"Fragment is partitioned, but no partitioned driver found");
+}
+this.partitionedSourceId=fragment.getPartitionedSource();
+this.partitionedDriverFactory=partitionedDriverFactory;
+if (!taskStateMachine.getState().isDone()) {
+taskHandle=taskExecutor.addTask(taskId);
+taskStateMachine.addStateChangeListener(new RemoveTaskHandleWhenDone(taskExecutor,taskHandle));
+}
  else {
-        unpartitionedDriverFactories.add(new DriverSplitRunnerFactory(driverFactory));
-      }
-    }
-    this.unpartitionedDriverFactories=unpartitionedDriverFactories.build();
-    if (fragment.getDistribution() == PlanDistribution.SOURCE) {
-      checkArgument(partitionedDriverFactory != null,"Fragment is partitioned, but no partitioned driver found");
-    }
-    this.partitionedSourceId=fragment.getPartitionedSource();
-    this.partitionedDriverFactory=partitionedDriverFactory;
-    if (!taskStateMachine.getState().isDone()) {
-      taskHandle=taskExecutor.addTask(taskId);
-      taskStateMachine.addStateChangeListener(new RemoveTaskHandleWhenDone(taskExecutor,taskHandle));
-    }
- else {
-      taskHandle=null;
-    }
-    sharedBuffer.addStateChangeListener(new CheckTaskCompletionOnBufferFinish(SqlTaskExecution.this));
-  }
+taskHandle=null;
+}
+sharedBuffer.addStateChangeListener(new CheckTaskCompletionOnBufferFinish(SqlTaskExecution.this));
+}
  }
