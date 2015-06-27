@@ -2,19 +2,17 @@
   verifyJvmTimeZone();
   checkArgument(!isNullOrEmpty(tableMetadata.getOwner()),"Table owner is null or empty");
   HiveStorageFormat hiveStorageFormat=getHiveStorageFormat(tableMetadata.getProperties());
-  ImmutableList.Builder<String> columnNames=ImmutableList.builder();
-  ImmutableList.Builder<Type> columnTypes=ImmutableList.builder();
   SchemaTableName schemaTableName=tableMetadata.getTable();
   String schemaName=schemaTableName.getSchemaName();
   String tableName=schemaTableName.getTableName();
-  buildColumnInfo(tableMetadata,columnNames,columnTypes);
-  Path targetPath=getTargetPath(schemaName,tableName,schemaTableName);
-  if (!useTemporaryDirectory(targetPath)) {
-    return new HiveOutputTableHandle(connectorId,schemaName,tableName,columnNames.build(),columnTypes.build(),tableMetadata.getOwner(),targetPath.toString(),targetPath.toString(),hiveStorageFormat);
+  List<HiveColumnHandle> columnHandles=getColumnHandles(connectorId,tableMetadata);
+  Path targetPath=getTableDefaultLocation(metastore,hdfsEnvironment,schemaName,tableName);
+  if (pathExists(hdfsEnvironment,targetPath)) {
+    throw new PrestoException(HIVE_PATH_ALREADY_EXISTS,format("Target directory for table '%s.%s' already exists: %s",schemaName,tableName,targetPath));
   }
-  String temporaryPrefix="/tmp/presto-" + StandardSystemProperty.USER_NAME.value();
-  Path temporaryRoot=new Path(targetPath,temporaryPrefix);
-  Path temporaryPath=new Path(temporaryRoot,randomUUID().toString());
-  createDirectories(temporaryPath);
-  return new HiveOutputTableHandle(connectorId,schemaName,tableName,columnNames.build(),columnTypes.build(),tableMetadata.getOwner(),targetPath.toString(),temporaryPath.toString(),hiveStorageFormat);
+  String writePath=targetPath.toString();
+  if (useTemporaryDirectory(targetPath)) {
+    writePath=createTemporaryPath(hdfsEnvironment,targetPath);
+  }
+  return new HiveOutputTableHandle(connectorId,schemaName,tableName,columnHandles,randomUUID().toString(),writePath,hiveStorageFormat,tableMetadata.getOwner());
 }

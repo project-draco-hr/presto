@@ -1,0 +1,32 @@
+{
+  if (type.equals(BooleanType.BOOLEAN)) {
+    return javaBooleanObjectInspector;
+  }
+ else   if (type.equals(BigintType.BIGINT)) {
+    return javaLongObjectInspector;
+  }
+ else   if (type.equals(DoubleType.DOUBLE)) {
+    return javaDoubleObjectInspector;
+  }
+ else   if (type.equals(VarcharType.VARCHAR)) {
+    return javaStringObjectInspector;
+  }
+ else   if (type.equals(VarbinaryType.VARBINARY)) {
+    return javaByteArrayObjectInspector;
+  }
+ else   if (type.equals(DateType.DATE)) {
+    return javaDateObjectInspector;
+  }
+ else   if (type.equals(TimestampType.TIMESTAMP)) {
+    return javaTimestampObjectInspector;
+  }
+ else   if (isArrayType(type)) {
+    return ObjectInspectorFactory.getStandardListObjectInspector(getJavaObjectInspector(type.getTypeParameters().get(0)));
+  }
+ else   if (isMapType(type)) {
+    ObjectInspector keyObjectInspector=getJavaObjectInspector(type.getTypeParameters().get(0));
+    ObjectInspector valueObjectInspector=getJavaObjectInspector(type.getTypeParameters().get(1));
+    return ObjectInspectorFactory.getStandardMapObjectInspector(keyObjectInspector,valueObjectInspector);
+  }
+  throw new PrestoException(NOT_SUPPORTED,"Unsupported type: " + type);
+}

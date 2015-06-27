@@ -1,0 +1,51 @@
+{
+  if (block.isNull(position)) {
+    return null;
+  }
+  if (BooleanType.BOOLEAN.equals(type)) {
+    return type.getBoolean(block,position);
+  }
+  if (BigintType.BIGINT.equals(type)) {
+    return type.getLong(block,position);
+  }
+  if (DoubleType.DOUBLE.equals(type)) {
+    return type.getDouble(block,position);
+  }
+  if (VarcharType.VARCHAR.equals(type)) {
+    return type.getSlice(block,position).toStringUtf8();
+  }
+  if (VarbinaryType.VARBINARY.equals(type)) {
+    return type.getSlice(block,position).getBytes();
+  }
+  if (DateType.DATE.equals(type)) {
+    long days=type.getLong(block,position);
+    return new Date(TimeUnit.DAYS.toMillis(days));
+  }
+  if (TimestampType.TIMESTAMP.equals(type)) {
+    long millisUtc=type.getLong(block,position);
+    return new Timestamp(millisUtc);
+  }
+  if (isArrayType(type)) {
+    Type elementType=type.getTypeParameters().get(0);
+    Block arrayBlock=block.getObject(position,Block.class);
+    List<Object> values=new ArrayList<>(arrayBlock.getPositionCount());
+    for (int i=0; i < arrayBlock.getPositionCount(); i++) {
+      Object element=getField(elementType,arrayBlock,i);
+      values.add(element);
+    }
+    return Collections.unmodifiableList(values);
+  }
+  if (isMapType(type)) {
+    Type keyType=type.getTypeParameters().get(0);
+    Type valueType=type.getTypeParameters().get(1);
+    Block mapBlock=block.getObject(position,Block.class);
+    Map<Object,Object> map=new HashMap<>();
+    for (int i=0; i < mapBlock.getPositionCount(); i+=2) {
+      Object key=getField(keyType,mapBlock,i);
+      Object value=getField(valueType,mapBlock,i + 1);
+      map.put(key,value);
+    }
+    return Collections.unmodifiableMap(map);
+  }
+  throw new PrestoException(NOT_SUPPORTED,"unsupported type: " + type);
+}

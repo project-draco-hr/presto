@@ -13,8 +13,9 @@
   HivePartitionManager hivePartitionManager=new HivePartitionManager(connectorId,hiveClientConfig);
   hdfsEnvironment=new HdfsEnvironment(hdfsConfiguration,hiveClientConfig);
   metastoreClient=new TestingHiveMetastore(hiveCluster,executor,hiveClientConfig,writableBucket,hdfsEnvironment);
-  metadata=new HiveMetadata(connectorId,hiveClientConfig,metastoreClient,hdfsEnvironment,hivePartitionManager,newDirectExecutorService(),new TypeRegistry());
+  TypeRegistry typeManager=new TypeRegistry();
+  metadata=new HiveMetadata(connectorId,hiveClientConfig,metastoreClient,hdfsEnvironment,hivePartitionManager,newDirectExecutorService(),typeManager);
   splitManager=new HiveSplitManager(connectorId,hiveClientConfig,metastoreClient,new NamenodeStats(),hdfsEnvironment,new HadoopDirectoryLister(),executor);
-  recordSinkProvider=new HiveRecordSinkProvider(hdfsEnvironment);
+  pageSinkProvider=new HivePageSinkProvider(hdfsEnvironment,metastoreClient,typeManager);
   pageSourceProvider=new HivePageSourceProvider(hiveClientConfig,hdfsEnvironment,DEFAULT_HIVE_RECORD_CURSOR_PROVIDER,DEFAULT_HIVE_DATA_STREAM_FACTORIES,TYPE_MANAGER);
 }

@@ -1,2 +1,23 @@
 {
+  HiveOutputTableHandle handle=checkType(tableHandle,HiveOutputTableHandle.class,"tableHandle");
+  Path targetPath=getTableDefaultLocation(metastore,hdfsEnvironment,handle.getSchemaName(),handle.getTableName());
+  Path writePath=new Path(handle.getWritePath());
+  if (!targetPath.equals(writePath)) {
+    if (pathExists(hdfsEnvironment,targetPath)) {
+      throw new PrestoException(HIVE_PATH_ALREADY_EXISTS,format("Target directory for table '%s.%s' already exists: %s",handle.getSchemaName(),handle.getTableName(),targetPath));
+    }
+    renameDirectory(hdfsEnvironment,handle.getSchemaName(),handle.getTableName(),writePath,targetPath);
+  }
+  try {
+    createTable(handle.getSchemaName(),handle.getTableName(),handle.getTableOwner(),handle.getInputColumns(),handle.getHiveStorageFormat(),targetPath);
+  }
+ catch (  Throwable throwable) {
+    try {
+      hdfsEnvironment.getFileSystem(targetPath).delete(targetPath,true);
+    }
+ catch (    IOException e) {
+      log.warn(e,"Error rolling back table creation. Cannot delete table directory %s",targetPath);
+    }
+    throw throwable;
+  }
 }

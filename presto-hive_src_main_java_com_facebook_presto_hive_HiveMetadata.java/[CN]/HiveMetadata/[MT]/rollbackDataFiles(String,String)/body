@@ -1,0 +1,19 @@
+{
+  Path targetPath=new Path(location);
+  try {
+    FileSystem fileSystem=hdfsEnvironment.getFileSystem(targetPath);
+    for (    FileStatus fileStatus : fileSystem.listStatus(targetPath)) {
+      if (HadoopFileStatus.isFile(fileStatus) && fileStatus.getPath().getName().startsWith(filePrefix)) {
+        try {
+          fileSystem.delete(fileStatus.getPath(),false);
+        }
+ catch (        IOException e) {
+          log.error(e,"Error deleting data file for rollback: %s",fileStatus.getPath());
+        }
+      }
+    }
+  }
+ catch (  IOException e) {
+    log.error(e,"Error deleting data files for rollback: %s/%s*",location,filePrefix);
+  }
+}

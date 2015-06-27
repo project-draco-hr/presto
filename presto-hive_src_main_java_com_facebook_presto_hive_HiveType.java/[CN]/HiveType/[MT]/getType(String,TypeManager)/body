@@ -1,0 +1,37 @@
+{
+switch (hiveType) {
+case BOOLEAN_TYPE_NAME:
+    return BOOLEAN;
+case TINYINT_TYPE_NAME:
+case SMALLINT_TYPE_NAME:
+case INT_TYPE_NAME:
+case BIGINT_TYPE_NAME:
+  return BIGINT;
+case FLOAT_TYPE_NAME:
+case DOUBLE_TYPE_NAME:
+return DOUBLE;
+case STRING_TYPE_NAME:
+return VARCHAR;
+case DATE_TYPE_NAME:
+return DATE;
+case TIMESTAMP_TYPE_NAME:
+return TIMESTAMP;
+case BINARY_TYPE_NAME:
+return VARBINARY;
+}
+if (typeManager != null) {
+TypeInfo typeInfo=TypeInfoUtils.getTypeInfoFromTypeString(hiveType);
+if (typeInfo.getCategory() == Category.LIST) {
+ListTypeInfo listTypeInfo=(ListTypeInfo)typeInfo;
+TypeSignature elementType=getType(listTypeInfo.getListElementTypeInfo().getTypeName(),typeManager).getTypeSignature();
+return typeManager.getParameterizedType(StandardTypes.ARRAY,ImmutableList.of(elementType),ImmutableList.of());
+}
+if (typeInfo.getCategory() == Category.MAP) {
+MapTypeInfo mapTypeInfo=(MapTypeInfo)typeInfo;
+TypeSignature keyType=getType(mapTypeInfo.getMapKeyTypeInfo().getTypeName(),typeManager).getTypeSignature();
+TypeSignature valueType=getType(mapTypeInfo.getMapValueTypeInfo().getTypeName(),typeManager).getTypeSignature();
+return typeManager.getParameterizedType(StandardTypes.MAP,ImmutableList.of(keyType,valueType),ImmutableList.of());
+}
+}
+throw new IllegalArgumentException("Unsupported hive type " + hiveType);
+}
