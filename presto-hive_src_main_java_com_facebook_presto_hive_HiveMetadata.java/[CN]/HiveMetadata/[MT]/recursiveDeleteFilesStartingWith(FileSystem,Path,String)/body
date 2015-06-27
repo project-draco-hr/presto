@@ -1,0 +1,22 @@
+{
+  FileStatus[] allFiles;
+  try {
+    allFiles=fileSystem.listStatus(directory);
+  }
+ catch (  IOException e) {
+    return ImmutableList.of(directory + "/" + filePrefix+ "*");
+  }
+  ImmutableList.Builder<String> notDeletedFiles=ImmutableList.builder();
+  for (  FileStatus fileStatus : allFiles) {
+    Path path=fileStatus.getPath();
+    if (HadoopFileStatus.isFile(fileStatus) && path.getName().startsWith(filePrefix)) {
+      if (!deleteIfExists(fileSystem,path)) {
+        notDeletedFiles.add(path.toString());
+      }
+    }
+ else     if (HadoopFileStatus.isDirectory(fileStatus)) {
+      notDeletedFiles.addAll(recursiveDeleteFilesStartingWith(fileSystem,path,filePrefix));
+    }
+  }
+  return notDeletedFiles.build();
+}

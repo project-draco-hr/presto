@@ -2,10 +2,11 @@
   verifyJvmTimeZone();
   checkArgument(!isNullOrEmpty(tableMetadata.getOwner()),"Table owner is null or empty");
   HiveStorageFormat hiveStorageFormat=getHiveStorageFormat(tableMetadata.getProperties());
+  List<String> partitionedBy=getPartitionedBy(tableMetadata.getProperties());
   SchemaTableName schemaTableName=tableMetadata.getTable();
   String schemaName=schemaTableName.getSchemaName();
   String tableName=schemaTableName.getTableName();
-  List<HiveColumnHandle> columnHandles=getColumnHandles(connectorId,tableMetadata);
+  List<HiveColumnHandle> columnHandles=getColumnHandles(connectorId,tableMetadata,ImmutableSet.copyOf(partitionedBy));
   Path targetPath=getTableDefaultLocation(metastore,hdfsEnvironment,schemaName,tableName);
   if (pathExists(hdfsEnvironment,targetPath)) {
     throw new PrestoException(HIVE_PATH_ALREADY_EXISTS,format("Target directory for table '%s.%s' already exists: %s",schemaName,tableName,targetPath));
@@ -14,5 +15,5 @@
   if (useTemporaryDirectory(targetPath)) {
     writePath=createTemporaryPath(hdfsEnvironment,targetPath);
   }
-  return new HiveOutputTableHandle(connectorId,schemaName,tableName,columnHandles,randomUUID().toString(),writePath,hiveStorageFormat,tableMetadata.getOwner());
+  return new HiveOutputTableHandle(connectorId,schemaName,tableName,columnHandles,randomUUID().toString(),writePath,hiveStorageFormat,partitionedBy,tableMetadata.getOwner());
 }

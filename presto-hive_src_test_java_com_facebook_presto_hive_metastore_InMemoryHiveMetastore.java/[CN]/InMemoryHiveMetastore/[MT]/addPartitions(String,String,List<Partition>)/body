@@ -1,0 +1,14 @@
+{
+  Optional<Table> table=getTable(databaseName,tableName);
+  if (!table.isPresent()) {
+    throw new TableNotFoundException(new SchemaTableName(databaseName,tableName));
+  }
+  for (  Partition partition : partitions) {
+    String partitionName=createPartitionName(partition,table.get());
+    partition=partition.deepCopy();
+    if (partition.getParameters() == null) {
+      partition.setParameters(ImmutableMap.of());
+    }
+    this.partitions.put(new PartitionName(databaseName,tableName,partitionName),partition);
+  }
+}

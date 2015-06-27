@@ -1,11 +1,4 @@
 {
   HiveOutputTableHandle handle=checkType(tableHandle,HiveOutputTableHandle.class,"tableHandle");
-  rollbackDataFiles(handle.getWritePath(),handle.getFilePrefix());
-  Path writePath=new Path(handle.getWritePath());
-  try {
-    hdfsEnvironment.getFileSystem(writePath).delete(writePath,true);
-  }
- catch (  IOException e) {
-    log.warn(e,"Error rolling back table creation. Cannot delete temporary data directory %s",writePath);
-  }
+  cleanupTempDirectory(handle.getWritePath().get(),handle.getFilePrefix(),"create table");
 }

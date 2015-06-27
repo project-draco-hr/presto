@@ -3,8 +3,10 @@
     throw new PrestoException(HIVE_PATH_ALREADY_EXISTS,format("Unable to commit creation of table '%s.%s': target directory already exists: %s",schemaName,tableName,target));
   }
   try {
-    if (!hdfsEnvironment.getFileSystem(source).rename(source,target)) {
-      throw new IOException("rename returned false");
+    FileSystem fileSystem=hdfsEnvironment.getFileSystem(source);
+    fileSystem.mkdirs(target.getParent());
+    if (!fileSystem.rename(source,target)) {
+      throw new PrestoException(HIVE_FILESYSTEM_ERROR,format("Failed to rename %s to %s: rename returned false",source,target));
     }
   }
  catch (  IOException e) {

@@ -1,0 +1,10 @@
+{
+  Session session=getSession();
+  Metadata metadata=((DistributedQueryRunner)queryRunner).getCoordinator().getMetadata();
+  Optional<TableHandle> tableHandle=metadata.getTableHandle(session,new QualifiedTableName(HIVE_CATALOG,TPCH_SCHEMA,tableName));
+  assertTrue(tableHandle.isPresent());
+  List<TableLayoutResult> layouts=metadata.getLayouts(session,tableHandle.get(),Constraint.alwaysTrue(),Optional.empty());
+  TableLayout layout=Iterables.getOnlyElement(layouts).getLayout();
+  List<HivePartition> partitions=((HiveTableLayoutHandle)layout.getHandle().getConnectorHandle()).getPartitions();
+  return partitions;
+}

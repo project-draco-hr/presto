@@ -3,7 +3,8 @@
   SchemaTableName schemaTableName=tableMetadata.getTable();
   String schemaName=schemaTableName.getSchemaName();
   String tableName=schemaTableName.getTableName();
-  List<HiveColumnHandle> columnHandles=getColumnHandles(connectorId,tableMetadata);
+  List<String> partitionedBy=getPartitionedBy(tableMetadata.getProperties());
+  List<HiveColumnHandle> columnHandles=getColumnHandles(connectorId,tableMetadata,ImmutableSet.copyOf(partitionedBy));
   HiveStorageFormat hiveStorageFormat=getHiveStorageFormat(tableMetadata.getProperties());
-  createTable(schemaName,tableName,tableMetadata.getOwner(),columnHandles,hiveStorageFormat);
+  createTable(schemaName,tableName,tableMetadata.getOwner(),columnHandles,hiveStorageFormat,partitionedBy);
 }

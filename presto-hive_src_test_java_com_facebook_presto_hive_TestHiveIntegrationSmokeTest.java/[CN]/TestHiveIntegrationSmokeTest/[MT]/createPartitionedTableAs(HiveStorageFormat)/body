@@ -1,0 +1,16 @@
+{
+  @Language("SQL") String createTable="" + "CREATE TABLE test_create_partitioned_table_as " + "WITH ("+ "format = '" + storageFormat + "', "+ "partitioned_by = ARRAY[ 'SHIP_PRIORITY', 'ORDER_STATUS' ]"+ ") "+ "AS "+ "SELECT orderkey AS order_key, shippriority AS ship_priority, orderstatus AS order_status "+ "FROM tpch.tiny.orders";
+  assertQuery(createTable,"SELECT count(*) from orders");
+  TableMetadata tableMetadata=getTableMetadata("test_create_partitioned_table_as");
+  assertEquals(tableMetadata.getMetadata().getProperties().get(STORAGE_FORMAT_PROPERTY),storageFormat);
+  List<String> partitionedBy=ImmutableList.of("ship_priority","order_status");
+  assertEquals(tableMetadata.getMetadata().getProperties().get(PARTITIONED_BY_PROPERTY),partitionedBy);
+  for (  ColumnMetadata columnMetadata : tableMetadata.getColumns()) {
+    assertEquals(columnMetadata.isPartitionKey(),partitionedBy.contains(columnMetadata.getName()));
+  }
+  List<HivePartition> partitions=getPartitions("test_create_partitioned_table_as");
+  assertEquals(partitions.size(),3);
+  assertQuery("SELECT * from test_create_partitioned_table_as","SELECT orderkey, shippriority, orderstatus FROM orders");
+  assertQueryTrue("DROP TABLE test_create_partitioned_table_as");
+  assertFalse(queryRunner.tableExists(getSession(),"test_create_partitioned_table_as"));
+}

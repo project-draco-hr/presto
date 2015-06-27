@@ -20,6 +20,7 @@
   binder.bind(HiveCluster.class).to(StaticHiveCluster.class).in(Scopes.SINGLETON);
   configBinder(binder).bindConfig(StaticMetastoreConfig.class);
   binder.bind(TypeManager.class).toInstance(typeManager);
+  binder.bind(PageIndexerFactory.class).toInstance(pageIndexerFactory);
   Multibinder<HiveRecordCursorProvider> recordCursorProviderBinder=Multibinder.newSetBinder(binder,HiveRecordCursorProvider.class);
   recordCursorProviderBinder.addBinding().to(OrcRecordCursorProvider.class).in(Scopes.SINGLETON);
   recordCursorProviderBinder.addBinding().to(ParquetRecordCursorProvider.class).in(Scopes.SINGLETON);
@@ -33,6 +34,7 @@
   binder.bind(ConnectorPageSourceProvider.class).to(HivePageSourceProvider.class).in(Scopes.SINGLETON);
   binder.bind(ConnectorPageSinkProvider.class).to(HivePageSinkProvider.class).in(Scopes.SINGLETON);
   binder.bind(ConnectorHandleResolver.class).to(HiveHandleResolver.class).in(Scopes.SINGLETON);
+  jsonCodecBinder(binder).bindJsonCodec(PartitionUpdate.class);
   Multibinder<HivePageSourceFactory> pageSourceFactoryBinder=Multibinder.newSetBinder(binder,HivePageSourceFactory.class);
   pageSourceFactoryBinder.addBinding().to(RcFilePageSourceFactory.class).in(Scopes.SINGLETON);
   pageSourceFactoryBinder.addBinding().to(OrcPageSourceFactory.class).in(Scopes.SINGLETON);

@@ -1,0 +1,18 @@
+{
+  Path directory=new Path(location);
+  FileSystem fileSystem;
+  try {
+    fileSystem=hdfsEnvironment.getFileSystem(directory);
+  }
+ catch (  IOException e) {
+    return fileNames;
+  }
+  ImmutableList.Builder<String> notDeletedFiles=ImmutableList.builder();
+  for (  String fileName : fileNames) {
+    Path file=new Path(directory,fileName);
+    if (!deleteIfExists(fileSystem,file)) {
+      notDeletedFiles.add(file.toString());
+    }
+  }
+  return notDeletedFiles.build();
+}

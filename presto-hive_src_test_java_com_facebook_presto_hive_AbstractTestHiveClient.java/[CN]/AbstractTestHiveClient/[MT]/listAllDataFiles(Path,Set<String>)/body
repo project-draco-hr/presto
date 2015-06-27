@@ -1,0 +1,14 @@
+{
+  FileSystem fileSystem=hdfsEnvironment.getFileSystem(path);
+  if (fileSystem.exists(path)) {
+    for (    FileStatus fileStatus : fileSystem.listStatus(path)) {
+      if (HadoopFileStatus.isFile(fileStatus)) {
+        existingFiles.add(fileStatus.getPath().toString());
+      }
+ else       if (HadoopFileStatus.isDirectory(fileStatus)) {
+        existingFiles.addAll(listAllDataFiles(fileStatus.getPath(),existingFiles));
+      }
+    }
+  }
+  return existingFiles;
+}

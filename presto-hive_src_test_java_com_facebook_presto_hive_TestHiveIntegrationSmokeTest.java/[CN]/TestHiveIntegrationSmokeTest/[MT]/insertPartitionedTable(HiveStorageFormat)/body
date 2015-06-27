@@ -1,0 +1,13 @@
+{
+  @Language("SQL") String createTable="" + "CREATE TABLE test_insert_partitioned_table " + "("+ "  ORDER_STATUS VARCHAR,"+ "  SHIP_PRIORITY BIGINT,"+ "  ORDER_KEY BIGINT"+ ") "+ "WITH ("+ "format = '" + storageFormat + "', "+ "partitioned_by = ARRAY[ 'SHIP_PRIORITY', 'ORDER_STATUS' ]"+ ") ";
+  assertQuery(createTable,"SELECT 1");
+  TableMetadata tableMetadata=getTableMetadata("test_insert_partitioned_table");
+  assertEquals(tableMetadata.getMetadata().getProperties().get(STORAGE_FORMAT_PROPERTY),storageFormat);
+  assertEquals(tableMetadata.getMetadata().getProperties().get(PARTITIONED_BY_PROPERTY),ImmutableList.of("ship_priority","order_status"));
+  assertQuery("" + "INSERT INTO test_insert_partitioned_table " + "SELECT orderkey, shippriority, orderstatus "+ "FROM tpch.tiny.orders","SELECT count(*) from orders");
+  List<HivePartition> partitions=getPartitions("test_insert_partitioned_table");
+  assertEquals(partitions.size(),3);
+  assertQuery("SELECT * from test_insert_partitioned_table","SELECT orderkey, shippriority, orderstatus FROM orders");
+  assertQueryTrue("DROP TABLE test_insert_partitioned_table");
+  assertFalse(queryRunner.tableExists(getSession(),"test_insert_partitioned_table"));
+}

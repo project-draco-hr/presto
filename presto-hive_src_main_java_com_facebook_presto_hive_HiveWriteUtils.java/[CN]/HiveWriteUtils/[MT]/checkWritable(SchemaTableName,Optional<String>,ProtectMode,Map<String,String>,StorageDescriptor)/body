@@ -1,0 +1,31 @@
+{
+  String tablePartitionDescription="Table '" + tableName + "'";
+  if (partitionName.isPresent()) {
+    tablePartitionDescription+=" partition '" + partitionName.get() + "'";
+  }
+  if (protectMode.offline) {
+    throw new TableOfflineException(tableName,format("%s is offline",tablePartitionDescription));
+  }
+  String prestoOffline=parameters.get(PRESTO_OFFLINE);
+  if (!isNullOrEmpty(prestoOffline)) {
+    throw new TableOfflineException(tableName,format("%s is offline for Presto: %s",tablePartitionDescription,prestoOffline));
+  }
+  if (protectMode.readOnly) {
+    throw new HiveReadOnlyException(tableName,partitionName);
+  }
+  if (storageDescriptor == null) {
+    throw new PrestoException(HIVE_INVALID_METADATA,format("%s does not contain a valid storage descriptor",tablePartitionDescription));
+  }
+  List<String> bucketColumns=storageDescriptor.getBucketCols();
+  if (bucketColumns != null && !bucketColumns.isEmpty()) {
+    throw new PrestoException(NOT_SUPPORTED,format("Inserting into bucketed tables is not supported. %s",tablePartitionDescription));
+  }
+  List<Order> sortColumns=storageDescriptor.getSortCols();
+  if (sortColumns != null && !sortColumns.isEmpty()) {
+    throw new PrestoException(NOT_SUPPORTED,format("Inserting into bucketed sorted tables is not supported. %s",tablePartitionDescription));
+  }
+  SkewedInfo skewedInfo=storageDescriptor.getSkewedInfo();
+  if (skewedInfo != null && skewedInfo.getSkewedColNames() != null && !skewedInfo.getSkewedColNames().isEmpty()) {
+    throw new PrestoException(NOT_SUPPORTED,format("Inserting into bucketed tables with skew is not supported. %s",tablePartitionDescription));
+  }
+}

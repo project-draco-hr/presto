@@ -3,10 +3,22 @@
     return;
   }
   Block[] dataBlocks=getDataBlocks(page,sampleWeightBlock);
-  if (writer == null) {
-    writer=createWriter();
+  Block[] partitionBlocks=getPartitionBlocks(page);
+  int[] indexes=pageIndexer.indexPage(new Page(page.getPositionCount(),partitionBlocks));
+  if (pageIndexer.getMaxIndex() >= maxWriters) {
+    throw new PrestoException(HIVE_TOO_MANY_OPEN_PARTITIONS,"Too many open partitions");
+  }
+  if (pageIndexer.getMaxIndex() >= writers.length) {
+    writers=Arrays.copyOf(writers,pageIndexer.getMaxIndex() + 1);
   }
   for (int position=0; position < page.getPositionCount(); position++) {
+    int writerIndex=indexes[position];
+    HiveRecordWriter writer=writers[writerIndex];
+    if (writer == null) {
+      buildRow(partitionColumnTypes,partitionRow,partitionBlocks,position);
+      writer=createWriter(partitionRow);
+      writers[writerIndex]=writer;
+    }
     buildRow(dataColumnTypes,dataRow,dataBlocks,position);
     writer.addRow(dataRow);
   }

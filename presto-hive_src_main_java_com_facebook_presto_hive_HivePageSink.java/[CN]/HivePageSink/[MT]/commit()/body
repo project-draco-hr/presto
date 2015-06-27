@@ -1,6 +1,11 @@
 {
-  if (writer != null) {
-    writer.commit();
+  ImmutableList.Builder<Slice> partitionUpdates=ImmutableList.builder();
+  for (  HiveRecordWriter writer : writers) {
+    if (writer != null) {
+      writer.commit();
+      PartitionUpdate partitionUpdate=writer.getPartitionUpdate();
+      partitionUpdates.add(wrappedBuffer(partitionUpdateCodec.toJsonBytes(partitionUpdate)));
+    }
   }
-  return ImmutableList.of();
+  return partitionUpdates.build();
 }

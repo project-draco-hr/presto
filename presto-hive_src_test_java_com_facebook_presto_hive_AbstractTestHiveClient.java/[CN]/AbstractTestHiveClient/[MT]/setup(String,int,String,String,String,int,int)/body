@@ -12,8 +12,9 @@
   HdfsConfiguration hdfsConfiguration=new HiveHdfsConfiguration(new HdfsConfigurationUpdater(hiveClientConfig));
   hdfsEnvironment=new HdfsEnvironment(hdfsConfiguration,hiveClientConfig);
   TypeRegistry typeManager=new TypeRegistry();
-  metadata=new HiveMetadata(connectorId,metastoreClient,hdfsEnvironment,new HivePartitionManager(connectorId,hiveClientConfig),timeZone,true,true,true,true,true,typeManager);
+  JsonCodec<PartitionUpdate> partitionUpdateCodec=JsonCodec.jsonCodec(PartitionUpdate.class);
+  metadata=new HiveMetadata(connectorId,metastoreClient,hdfsEnvironment,new HivePartitionManager(connectorId,hiveClientConfig),timeZone,10,true,true,true,true,true,typeManager,partitionUpdateCodec);
   splitManager=new HiveSplitManager(connectorId,metastoreClient,new NamenodeStats(),hdfsEnvironment,new HadoopDirectoryLister(),newDirectExecutorService(),maxOutstandingSplits,hiveClientConfig.getMinPartitionBatchSize(),hiveClientConfig.getMaxPartitionBatchSize(),hiveClientConfig.getMaxSplitSize(),hiveClientConfig.getMaxInitialSplitSize(),hiveClientConfig.getMaxInitialSplits(),false);
-  pageSinkProvider=new HivePageSinkProvider(hdfsEnvironment,metastoreClient,typeManager);
+  pageSinkProvider=new HivePageSinkProvider(hdfsEnvironment,metastoreClient,new GroupByHashPageIndexerFactory(),typeManager,partitionUpdateCodec);
   pageSourceProvider=new HivePageSourceProvider(hiveClientConfig,hdfsEnvironment,DEFAULT_HIVE_RECORD_CURSOR_PROVIDER,DEFAULT_HIVE_DATA_STREAM_FACTORIES,TYPE_MANAGER);
 }

@@ -1,0 +1,11 @@
+{
+  @Language("SQL") String createTable="" + "CREATE TABLE test_insert_format_table " + "("+ "  _varchar VARCHAR,"+ "  _bigint BIGINT,"+ "  _doube DOUBLE,"+ "  _boolean BOOLEAN"+ ") "+ "WITH (format = '" + storageFormat + "') ";
+  assertQuery(createTable,"SELECT 1");
+  TableMetadata tableMetadata=getTableMetadata("test_insert_format_table");
+  assertEquals(tableMetadata.getMetadata().getProperties().get(STORAGE_FORMAT_PROPERTY),storageFormat);
+  @Language("SQL") String select="SELECT" + " 'foo' _varchar" + ", 1 _bigint"+ ", 3.14 _double"+ ", true _boolean";
+  assertQuery("INSERT INTO test_insert_format_table " + select,"SELECT 1");
+  assertQuery("SELECT * from test_insert_format_table",select);
+  assertQueryTrue("DROP TABLE test_insert_format_table");
+  assertFalse(queryRunner.tableExists(getSession(),"test_insert_format_table"));
+}

@@ -1,16 +1,2 @@
 {
-  Optional<Table> table=metastore.getTable(tableName.getSchemaName(),tableName.getTableName());
-  if (!table.isPresent() || table.get().getTableType().equals(TableType.VIRTUAL_VIEW.name())) {
-    throw new TableNotFoundException(tableName);
-  }
-  List<HiveColumnHandle> handles=hiveColumnHandles(typeManager,connectorId,table.get(),false);
-  List<ColumnMetadata> columns=ImmutableList.copyOf(transform(handles,columnMetadataGetter(table.get(),typeManager)));
-  ImmutableMap.Builder<String,Object> properties=ImmutableMap.builder();
-  try {
-    HiveStorageFormat format=extractHiveStorageFormat(table.get());
-    properties.put(STORAGE_FORMAT_PROPERTY,format);
-  }
- catch (  PrestoException ignored) {
-  }
-  return new ConnectorTableMetadata(tableName,columns,properties.build(),table.get().getOwner());
 }

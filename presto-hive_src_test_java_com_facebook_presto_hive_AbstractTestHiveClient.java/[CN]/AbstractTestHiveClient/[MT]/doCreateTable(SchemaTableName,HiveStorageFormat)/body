@@ -1,10 +1,12 @@
 {
-  Map<String,Object> properties=ImmutableMap.of(STORAGE_FORMAT_PROPERTY,storageFormat);
-  ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(tableName,CREATE_TABLE_COLUMNS,properties,SESSION.getUser());
+  ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(tableName,CREATE_TABLE_COLUMNS,createTableProperties(storageFormat),SESSION.getUser());
   ConnectorOutputTableHandle outputHandle=metadata.beginCreateTable(SESSION,tableMetadata);
   ConnectorPageSink sink=pageSinkProvider.createPageSink(SESSION,outputHandle);
   sink.appendPage(CREATE_TABLE_DATA.toPage(),null);
   Collection<Slice> fragments=sink.commit();
+  for (  String filePath : listAllDataFiles(outputHandle)) {
+    assertTrue(new Path(filePath).getName().startsWith(getFilePrefix(outputHandle)));
+  }
   metadata.commitCreateTable(SESSION,outputHandle,fragments);
   ConnectorTableHandle tableHandle=getTableHandle(tableName);
   List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(SESSION,tableHandle).values());
