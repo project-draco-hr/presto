@@ -1,2 +1,16 @@
 {
+  Map<String,Object> properties=ImmutableMap.of(STORAGE_FORMAT_PROPERTY,storageFormat);
+  ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(tableName,CREATE_TABLE_COLUMNS,properties,SESSION.getUser());
+  ConnectorOutputTableHandle outputHandle=metadata.beginCreateTable(SESSION,tableMetadata);
+  ConnectorPageSink sink=pageSinkProvider.createPageSink(SESSION,outputHandle);
+  sink.appendPage(CREATE_TABLE_DATA.toPage(),null);
+  Collection<Slice> fragments=sink.commit();
+  metadata.commitCreateTable(SESSION,outputHandle,fragments);
+  ConnectorTableHandle tableHandle=getTableHandle(tableName);
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(SESSION,tableHandle).values());
+  tableMetadata=metadata.getTableMetadata(SESSION,getTableHandle(tableName));
+  assertEquals(tableMetadata.getOwner(),SESSION.getUser());
+  assertEquals(tableMetadata.getColumns(),CREATE_TABLE_COLUMNS);
+  MaterializedResult result=readTable(tableHandle,columnHandles,SESSION,TupleDomain.all(),OptionalInt.empty(),Optional.of(storageFormat));
+  assertEqualsIgnoreOrder(result.getMaterializedRows(),CREATE_TABLE_DATA.getMaterializedRows());
 }

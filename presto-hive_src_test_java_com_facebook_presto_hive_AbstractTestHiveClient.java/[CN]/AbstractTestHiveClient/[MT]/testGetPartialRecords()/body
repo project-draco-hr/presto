@@ -1,2 +1,28 @@
 {
+  ConnectorTableHandle tableHandle=getTableHandle(tablePartitionFormat);
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(SESSION,tableHandle).values());
+  Map<String,Integer> columnIndex=indexColumns(columnHandles);
+  List<ConnectorSplit> splits=getAllSplits(tableHandle,TupleDomain.all());
+  assertEquals(splits.size(),partitionCount);
+  for (  ConnectorSplit split : splits) {
+    HiveSplit hiveSplit=(HiveSplit)split;
+    List<HivePartitionKey> partitionKeys=hiveSplit.getPartitionKeys();
+    String ds=partitionKeys.get(0).getValue();
+    String fileFormat=partitionKeys.get(1).getValue();
+    HiveStorageFormat fileType=HiveStorageFormat.valueOf(fileFormat.toUpperCase());
+    long dummyPartition=Long.parseLong(partitionKeys.get(2).getValue());
+    long rowNumber=0;
+    try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(SESSION,hiveSplit,columnHandles)){
+      assertPageSourceType(pageSource,fileType);
+      MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,getTypes(columnHandles));
+      for (      MaterializedRow row : result) {
+        rowNumber++;
+        assertEquals(row.getField(columnIndex.get("t_double")),6.2 + rowNumber);
+        assertEquals(row.getField(columnIndex.get("ds")),ds);
+        assertEquals(row.getField(columnIndex.get("file_format")),fileFormat);
+        assertEquals(row.getField(columnIndex.get("dummy")),dummyPartition);
+      }
+    }
+     assertEquals(rowNumber,100);
+  }
 }

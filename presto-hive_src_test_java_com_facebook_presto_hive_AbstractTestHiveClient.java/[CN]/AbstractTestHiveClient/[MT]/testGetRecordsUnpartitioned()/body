@@ -1,2 +1,31 @@
 {
+  ConnectorTableHandle tableHandle=getTableHandle(tableUnpartitioned);
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(SESSION,tableHandle).values());
+  Map<String,Integer> columnIndex=indexColumns(columnHandles);
+  List<ConnectorSplit> splits=getAllSplits(tableHandle,TupleDomain.all());
+  assertEquals(splits.size(),1);
+  for (  ConnectorSplit split : splits) {
+    HiveSplit hiveSplit=(HiveSplit)split;
+    assertEquals(hiveSplit.getPartitionKeys(),ImmutableList.of());
+    long rowNumber=0;
+    try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(SESSION,split,columnHandles)){
+      assertPageSourceType(pageSource,TEXTFILE);
+      MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,getTypes(columnHandles));
+      assertEquals(pageSource.getTotalBytes(),hiveSplit.getLength());
+      for (      MaterializedRow row : result) {
+        rowNumber++;
+        if (rowNumber % 19 == 0) {
+          assertNull(row.getField(columnIndex.get("t_string")));
+        }
+ else         if (rowNumber % 19 == 1) {
+          assertEquals(row.getField(columnIndex.get("t_string")),"");
+        }
+ else {
+          assertEquals(row.getField(columnIndex.get("t_string")),"unpartitioned");
+        }
+        assertEquals(row.getField(columnIndex.get("t_tinyint")),1 + rowNumber);
+      }
+    }
+     assertEquals(rowNumber,100);
+  }
 }
