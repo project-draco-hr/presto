@@ -2,7 +2,8 @@
   Session session=Session.builder().setUser("user").setSource("source").setCatalog("catalog").setSchema("schema").setTimeZoneKey(UTC_KEY).setLocale(ENGLISH).setSystemProperties(ImmutableMap.of("optimizer.optimize-hash-generation","true")).build();
   ExecutorService executor=localQueryRunner.getExecutor();
   MemoryPool memoryPool=new MemoryPool(new MemoryPoolId("test"),new DataSize(1,GIGABYTE),false);
-  TaskContext taskContext=new QueryContext(false,new DataSize(256,MEGABYTE),memoryPool,executor).addTaskContext(new TaskStateMachine(new TaskId("query","stage","task"),executor),session,new DataSize(256,MEGABYTE),new DataSize(1,MEGABYTE),false,false);
+  MemoryPool systemMemoryPool=new MemoryPool(new MemoryPoolId("testSystem"),new DataSize(1,GIGABYTE),false);
+  TaskContext taskContext=new QueryContext(false,new DataSize(256,MEGABYTE),memoryPool,systemMemoryPool,executor).addTaskContext(new TaskStateMachine(new TaskId("query","stage","task"),executor),session,new DataSize(256,MEGABYTE),new DataSize(1,MEGABYTE),false,false);
   CpuTimer cpuTimer=new CpuTimer();
   execute(taskContext);
   CpuDuration executionTime=cpuTimer.elapsedTime();
