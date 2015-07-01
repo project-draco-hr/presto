@@ -1,0 +1,11 @@
+{
+  ImmutableList.Builder<ColumnReference<HiveColumnHandle>> columnReferences=ImmutableList.builder();
+  for (  HiveColumnHandle column : columns) {
+    if (!column.isPartitionKey()) {
+      int parquetFieldIndex=lookupParquetColumn(column,fileSchema);
+      Type type=typeManager.getType(column.getTypeSignature());
+      columnReferences.add(new ColumnReference<>(column,parquetFieldIndex,type));
+    }
+  }
+  return new TupleDomainParquetPredicate<>(effectivePredicate,columnReferences.build());
+}

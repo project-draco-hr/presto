@@ -1,0 +1,25 @@
+{
+  ParquetCodecFactory codecFactory=new ParquetCodecFactory(configuration);
+  ImmutableMap.Builder<Integer,ParquetDictionaryDescriptor> dictionaries=ImmutableMap.builder();
+  for (int ordinal=0; ordinal < blockMetadata.getColumns().size(); ordinal++) {
+    ColumnChunkMetaData columnChunkMetaData=blockMetadata.getColumns().get(ordinal);
+    for (int i=0; i < requestedSchema.getColumns().size(); i++) {
+      ColumnDescriptor columnDescriptor=requestedSchema.getColumns().get(i);
+      if (isColumnPredicate(columnDescriptor,effectivePredicate) && columnChunkMetaData.getPath().equals(ColumnPath.get(columnDescriptor.getPath())) && isOnlyDictionaryEncodingPages(columnChunkMetaData.getEncodings())) {
+        DictionaryPage dictionaryPage;
+        try (FSDataInputStream inputStream=path.getFileSystem(configuration).open(path)){
+          inputStream.seek(columnChunkMetaData.getStartingPos());
+          int totalSize=Ints.checkedCast(columnChunkMetaData.getTotalSize());
+          byte[] buffer=new byte[totalSize];
+          inputStream.readFully(buffer);
+          dictionaryPage=readDictionaryPage(buffer,codecFactory,columnChunkMetaData.getCodec());
+          dictionaries.put(ordinal,new ParquetDictionaryDescriptor(columnDescriptor,dictionaryPage));
+        }
+ catch (        IOException ignored) {
+        }
+        break;
+      }
+    }
+  }
+  return dictionaries.build();
+}

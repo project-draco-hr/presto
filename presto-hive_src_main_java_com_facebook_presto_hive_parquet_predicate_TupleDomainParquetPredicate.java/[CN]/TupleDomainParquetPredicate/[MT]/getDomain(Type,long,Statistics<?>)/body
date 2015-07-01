@@ -1,0 +1,54 @@
+{
+  Class<?> boxedJavaType=Primitives.wrap(type.getJavaType());
+  if (statistics == null || statistics.isEmpty() || !(Comparable.class.isAssignableFrom(type.getJavaType()))) {
+    return null;
+  }
+  if (statistics.getNumNulls() == rowCount) {
+    return Domain.onlyNull(boxedJavaType);
+  }
+  boolean hasNullValue=statistics.getNumNulls() != 0L;
+  if (boxedJavaType == Boolean.class && statistics instanceof BooleanStatistics) {
+    BooleanStatistics booleanStatistics=(BooleanStatistics)statistics;
+    boolean hasTrueValues=!(booleanStatistics.getMax() == false && booleanStatistics.getMin() == false);
+    boolean hasFalseValues=!(booleanStatistics.getMax() == true && booleanStatistics.getMin() == true);
+    if (hasTrueValues && hasFalseValues) {
+      return Domain.all(Boolean.class);
+    }
+    if (hasTrueValues) {
+      return Domain.create(SortedRangeSet.singleValue(true),hasNullValue);
+    }
+    if (hasFalseValues) {
+      return Domain.create(SortedRangeSet.singleValue(false),hasNullValue);
+    }
+  }
+ else   if (boxedJavaType == Long.class && (statistics instanceof LongStatistics || statistics instanceof IntStatistics)) {
+    ParquetIntegerStatistics parquetIntegerStatistics;
+    if (statistics instanceof LongStatistics) {
+      LongStatistics longStatistics=(LongStatistics)statistics;
+      parquetIntegerStatistics=new ParquetIntegerStatistics(longStatistics.genericGetMin(),longStatistics.genericGetMax());
+    }
+ else {
+      IntStatistics intStatistics=(IntStatistics)statistics;
+      parquetIntegerStatistics=new ParquetIntegerStatistics((long)intStatistics.getMin(),(long)intStatistics.getMax());
+    }
+    return createDomain(boxedJavaType,hasNullValue,parquetIntegerStatistics);
+  }
+ else   if (boxedJavaType == Double.class && (statistics instanceof DoubleStatistics || statistics instanceof FloatStatistics)) {
+    ParquetDoubleStatistics parquetDoubleStatistics;
+    if (statistics instanceof DoubleStatistics) {
+      DoubleStatistics doubleStatistics=(DoubleStatistics)statistics;
+      parquetDoubleStatistics=new ParquetDoubleStatistics(doubleStatistics.genericGetMin(),doubleStatistics.genericGetMax());
+    }
+ else {
+      FloatStatistics floatStatistics=(FloatStatistics)statistics;
+      parquetDoubleStatistics=new ParquetDoubleStatistics((double)floatStatistics.getMin(),(double)floatStatistics.getMax());
+    }
+    return createDomain(boxedJavaType,hasNullValue,parquetDoubleStatistics);
+  }
+ else   if (boxedJavaType == Slice.class && statistics instanceof BinaryStatistics) {
+    BinaryStatistics binaryStatistics=(BinaryStatistics)statistics;
+    ParquetStringStatistics parquetStringStatistics=new ParquetStringStatistics(Slices.wrappedBuffer(binaryStatistics.getMin().getBytes()),Slices.wrappedBuffer(binaryStatistics.getMax().getBytes()));
+    return createDomain(boxedJavaType,hasNullValue,parquetStringStatistics);
+  }
+  return Domain.create(SortedRangeSet.all(boxedJavaType),hasNullValue);
+}

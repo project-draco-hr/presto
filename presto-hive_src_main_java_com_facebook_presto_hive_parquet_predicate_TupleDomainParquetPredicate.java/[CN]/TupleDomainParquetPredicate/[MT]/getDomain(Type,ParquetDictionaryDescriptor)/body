@@ -1,0 +1,55 @@
+{
+  Class<?> boxedJavaType=Primitives.wrap(type.getJavaType());
+  if (dictionaryDescriptor == null) {
+    return null;
+  }
+  ColumnDescriptor columnDescriptor=dictionaryDescriptor.getColumnDescriptor();
+  DictionaryPage dictionaryPage=dictionaryDescriptor.getDictionaryPage();
+  if (dictionaryPage == null) {
+    return null;
+  }
+  Dictionary dictionary;
+  try {
+    dictionary=dictionaryPage.getEncoding().initDictionary(columnDescriptor,dictionaryPage);
+  }
+ catch (  IOException e) {
+    return null;
+  }
+  int dictionarySize=dictionaryPage.getDictionarySize();
+  if (boxedJavaType == Long.class && columnDescriptor.getType() == PrimitiveTypeName.INT64) {
+    List<Domain> domains=new ArrayList<>();
+    for (int i=0; i < dictionarySize; i++) {
+      domains.add(Domain.singleValue(dictionary.decodeToLong(i)));
+    }
+    return Domain.create(Domain.union(domains).getRanges(),true);
+  }
+ else   if (boxedJavaType == Long.class && columnDescriptor.getType() == PrimitiveTypeName.INT32) {
+    List<Domain> domains=new ArrayList<>();
+    for (int i=0; i < dictionarySize; i++) {
+      domains.add(Domain.singleValue((long)dictionary.decodeToInt(i)));
+    }
+    return Domain.create(Domain.union(domains).getRanges(),true);
+  }
+ else   if (boxedJavaType == Double.class && columnDescriptor.getType() == PrimitiveTypeName.DOUBLE) {
+    List<Domain> domains=new ArrayList<>();
+    for (int i=0; i < dictionarySize; i++) {
+      domains.add(Domain.singleValue(dictionary.decodeToDouble(i)));
+    }
+    return Domain.create(Domain.union(domains).getRanges(),true);
+  }
+ else   if (boxedJavaType == Double.class && columnDescriptor.getType() == PrimitiveTypeName.FLOAT) {
+    List<Domain> domains=new ArrayList<>();
+    for (int i=0; i < dictionarySize; i++) {
+      domains.add(Domain.singleValue((double)dictionary.decodeToFloat(i)));
+    }
+    return Domain.create(Domain.union(domains).getRanges(),true);
+  }
+ else   if (boxedJavaType == Slice.class && columnDescriptor.getType() == PrimitiveTypeName.BINARY) {
+    List<Domain> domains=new ArrayList<>();
+    for (int i=0; i < dictionarySize; i++) {
+      domains.add(Domain.singleValue(Slices.wrappedBuffer(dictionary.decodeToBinary(i).getBytes())));
+    }
+    return Domain.create(Domain.union(domains).getRanges(),true);
+  }
+  return null;
+}

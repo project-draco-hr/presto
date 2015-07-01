@@ -1,0 +1,12 @@
+{
+  ImmutableMap.Builder<C,Domain> domains=ImmutableMap.builder();
+  for (  ColumnReference<C> columnReference : columnReferences) {
+    ParquetDictionaryDescriptor dictionaryDescriptor=dictionariesByColumnIndex.get(columnReference.getOrdinal());
+    Domain domain=getDomain(columnReference.getType(),dictionaryDescriptor);
+    if (domain != null) {
+      domains.put(columnReference.getColumn(),domain);
+    }
+  }
+  TupleDomain<C> stripeDomain=TupleDomain.withColumnDomains(domains.build());
+  return effectivePredicate.overlaps(stripeDomain);
+}

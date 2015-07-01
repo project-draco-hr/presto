@@ -1,0 +1,18 @@
+{
+  final BytesInput compressedBytes;
+  if (codec == null) {
+    compressedBytes=bytes;
+  }
+ else {
+    compressedOutBuffer.reset();
+    if (compressor != null) {
+      compressor.reset();
+    }
+    CompressionOutputStream outputStream=codec.createOutputStream(compressedOutBuffer,compressor);
+    bytes.writeAllTo(outputStream);
+    outputStream.finish();
+    outputStream.close();
+    compressedBytes=BytesInput.from(compressedOutBuffer);
+  }
+  return compressedBytes;
+}
