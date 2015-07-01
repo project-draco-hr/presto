@@ -1,0 +1,29 @@
+{
+  List<DataPage> pages=new ArrayList<>();
+  DictionaryPage dictionaryPage=null;
+  long valueCount=0;
+  while (valueCount < descriptor.getColumnChunkMetaData().getValueCount()) {
+    PageHeader pageHeader=readPageHeader();
+    int uncompressedPageSize=pageHeader.getUncompressed_page_size();
+    int compressedPageSize=pageHeader.getCompressed_page_size();
+switch (pageHeader.type) {
+case DICTIONARY_PAGE:
+      if (dictionaryPage != null) {
+        throw new IOException(descriptor.getColumnDescriptor() + " has more than one dictionary page in column chunk");
+      }
+    dictionaryPage=readDictionaryPage(pageHeader,uncompressedPageSize,compressedPageSize);
+  break;
+case DATA_PAGE:
+valueCount+=readDataPageV1(pageHeader,uncompressedPageSize,compressedPageSize,pages);
+break;
+case DATA_PAGE_V2:
+valueCount+=readDataPageV2(pageHeader,uncompressedPageSize,compressedPageSize,pages);
+break;
+default :
+skip(compressedPageSize);
+break;
+}
+}
+BytesDecompressor decompressor=codecFactory.getDecompressor(descriptor.getColumnChunkMetaData().getCodec());
+return new ParquetColumnChunkPageReader(decompressor,pages,dictionaryPage);
+}

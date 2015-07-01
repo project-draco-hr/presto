@@ -1,0 +1,11 @@
+{
+  try {
+    if (maxLevel == 0) {
+      return new ParquetLevelNullReader();
+    }
+    return new ParquetLevelRLEReader(new RunLengthBitPackingHybridDecoder(BytesUtils.getWidthFromMaxInt(maxLevel),new ByteArrayInputStream(bytes.toByteArray())));
+  }
+ catch (  IOException e) {
+    throw new ParquetDecodingException("could not read levels in page for col " + columnDescriptor,e);
+  }
+}

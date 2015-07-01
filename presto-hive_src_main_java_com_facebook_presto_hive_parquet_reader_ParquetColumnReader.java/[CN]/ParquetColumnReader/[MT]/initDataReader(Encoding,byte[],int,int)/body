@@ -1,0 +1,20 @@
+{
+  pageValueCount=valueCount;
+  ValuesReader valuesReader;
+  if (dataEncoding.usesDictionary()) {
+    if (dictionary == null) {
+      throw new ParquetDecodingException("Dictionary is missing for Page");
+    }
+    valuesReader=dataEncoding.getDictionaryBasedValuesReader(columnDescriptor,ValuesType.VALUES,dictionary);
+  }
+ else {
+    valuesReader=dataEncoding.getValuesReader(columnDescriptor,ValuesType.VALUES);
+  }
+  try {
+    valuesReader.initFromPage(pageValueCount,bytes,offset);
+    return valuesReader;
+  }
+ catch (  IOException e) {
+    throw new ParquetDecodingException("Error reading parquet page in column " + columnDescriptor,e);
+  }
+}

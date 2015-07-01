@@ -1,0 +1,30 @@
+{
+  checkArgument(currentValueCount <= totalValueCount,"Already read all values in this column chunk");
+  int valueCount=0;
+  ParquetBlockBuilder blockBuilder=ParquetBlockBuilder.createBlockBuilder(vectorSize,columnDescriptor);
+  while (valueCount < vectorSize) {
+    if (this.page == null) {
+      this.page=pageReader.readPage();
+      if (this.page == null) {
+        break;
+      }
+      remainingValueCountInPage=page.getValueCount();
+      if (page instanceof DataPageV1) {
+        valuesReader=readPageV1((DataPageV1)page);
+      }
+ else {
+        valuesReader=readPageV2((DataPageV2)page);
+      }
+    }
+    int valueNumber=Math.min(this.remainingValueCountInPage,vectorSize - valueCount);
+    blockBuilder.readValues(this.valuesReader,valueNumber,definitionReader);
+    valueCount=valueCount + valueNumber;
+    if (valueNumber == remainingValueCountInPage) {
+      page=null;
+      valuesReader=null;
+    }
+    remainingValueCountInPage=remainingValueCountInPage - valueNumber;
+    currentValueCount+=valueNumber;
+  }
+  return blockBuilder.buildBlock();
+}

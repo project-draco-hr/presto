@@ -1,0 +1,17 @@
+{
+  ValuesReader rlReader=page.getRlEncoding().getValuesReader(columnDescriptor,ValuesType.REPETITION_LEVEL);
+  ValuesReader dlReader=page.getDlEncoding().getValuesReader(columnDescriptor,ValuesType.DEFINITION_LEVEL);
+  repetitionReader=new ParquetLevelValuesReader(rlReader);
+  definitionReader=new ParquetLevelValuesReader(dlReader);
+  try {
+    byte[] bytes=page.getBytes().toByteArray();
+    rlReader.initFromPage(pageValueCount,bytes,0);
+    int offset=rlReader.getNextOffset();
+    dlReader.initFromPage(pageValueCount,bytes,offset);
+    offset=dlReader.getNextOffset();
+    return initDataReader(page.getValueEncoding(),bytes,offset,page.getValueCount());
+  }
+ catch (  IOException e) {
+    throw new ParquetDecodingException("Error reading parquet page " + page + " in column "+ columnDescriptor,e);
+  }
+}

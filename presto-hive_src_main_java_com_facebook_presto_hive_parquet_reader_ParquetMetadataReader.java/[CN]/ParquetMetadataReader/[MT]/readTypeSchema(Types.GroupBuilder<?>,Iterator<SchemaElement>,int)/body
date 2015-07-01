@@ -1,0 +1,30 @@
+{
+  for (int i=0; i < typeCount; i++) {
+    SchemaElement element=schemaIterator.next();
+    Types.Builder<?,?> typeBuilder;
+    if (element.type == null) {
+      typeBuilder=builder.group(Repetition.valueOf(element.repetition_type.name()));
+      readTypeSchema((Types.GroupBuilder<?>)typeBuilder,schemaIterator,element.num_children);
+    }
+ else {
+      Types.PrimitiveBuilder<?> primitiveBuilder=builder.primitive(getTypeName(element.type),Repetition.valueOf(element.repetition_type.name()));
+      if (element.isSetType_length()) {
+        primitiveBuilder.length(element.type_length);
+      }
+      if (element.isSetPrecision()) {
+        primitiveBuilder.precision(element.precision);
+      }
+      if (element.isSetScale()) {
+        primitiveBuilder.scale(element.scale);
+      }
+      typeBuilder=primitiveBuilder;
+    }
+    if (element.isSetConverted_type()) {
+      typeBuilder.as(getOriginalType(element.converted_type));
+    }
+    if (element.isSetField_id()) {
+      typeBuilder.id(element.field_id);
+    }
+    typeBuilder.named(element.name);
+  }
+}
