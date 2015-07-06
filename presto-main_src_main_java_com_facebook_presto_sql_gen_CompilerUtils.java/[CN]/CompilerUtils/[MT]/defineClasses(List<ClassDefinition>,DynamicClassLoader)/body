@@ -11,7 +11,16 @@
   Map<String,byte[]> byteCodes=new LinkedHashMap<>();
   for (  ClassDefinition classDefinition : classDefinitions) {
     ClassWriter cw=new SmartClassWriter(classInfoLoader);
-    classDefinition.visit(cw);
+    try {
+      classDefinition.visit(cw);
+    }
+ catch (    IndexOutOfBoundsException e) {
+      Printer printer=new Textifier();
+      StringWriter stringWriter=new StringWriter();
+      TraceClassVisitor tcv=new TraceClassVisitor(null,printer,new PrintWriter(stringWriter));
+      classDefinition.visit(tcv);
+      throw new IllegalArgumentException("An error occurred while processing classDefinition:" + System.lineSeparator() + stringWriter.toString(),e);
+    }
     byte[] byteCode=cw.toByteArray();
     if (RUN_ASM_VERIFIER) {
       ClassReader reader=new ClassReader(byteCode);
