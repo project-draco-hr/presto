@@ -1,8 +1,14 @@
 {
-  try {
-    return clientFactory.create(address.getHostText(),address.getPort());
+  List<HostAndPort> metastores=new ArrayList<>(addresses);
+  Collections.shuffle(metastores.subList(1,metastores.size()));
+  TTransportException lastException=null;
+  for (  HostAndPort metastore : metastores) {
+    try {
+      return clientFactory.create(metastore.getHostText(),metastore.getPort());
+    }
+ catch (    TTransportException e) {
+      lastException=e;
+    }
   }
- catch (  TTransportException e) {
-    throw new RuntimeException("Failed connecting to Hive metastore: " + address,e);
-  }
+  throw new PrestoException(HIVE_METASTORE_ERROR,"Failed connecting to Hive metastore: " + addresses,lastException);
 }
