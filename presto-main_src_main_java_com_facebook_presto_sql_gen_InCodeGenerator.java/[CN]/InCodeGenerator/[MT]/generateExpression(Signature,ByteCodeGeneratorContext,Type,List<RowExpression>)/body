@@ -53,8 +53,9 @@
     switchBlock=new ByteCodeBlock().comment("lookupSwitch(hashCode(<stackValue>))").dup(javaType).append(invoke(hashCodeBinding,hashCodeFunction.getSignature())).longToInt().append(switchBuilder.build()).append(switchCaseBlocks);
   }
  else {
-    Binding constant=generatorContext.getCallSiteBinder().bind(constantValues,Set.class);
-    switchBlock=new ByteCodeBlock().comment("inListSet.contains(<stackValue>)").append(new IfStatement().condition(new ByteCodeBlock().comment("value (+boxing if necessary)").dup(javaType).append(ByteCodeUtils.boxPrimitive(javaType)).comment("set").append(loadConstant(constant)).invokeStatic(CompilerOperations.class,"in",boolean.class,Object.class,Set.class)).ifTrue(jump(match)));
+    Set<?> constantValuesSet=toFastutilHashSet(constantValues,javaType);
+    Binding constant=generatorContext.getCallSiteBinder().bind(constantValuesSet,constantValuesSet.getClass());
+    switchBlock=new ByteCodeBlock().comment("inListSet.contains(<stackValue>)").append(new IfStatement().condition(new ByteCodeBlock().comment("value").dup(javaType).comment("set").append(loadConstant(constant)).invokeStatic(FastutilSetHelper.class,"in",boolean.class,javaType.isPrimitive() ? javaType : Object.class,constantValuesSet.getClass())).ifTrue(jump(match)));
   }
   ByteCodeBlock defaultCaseBlock=buildInCase(generatorContext,scope,type,defaultLabel,match,noMatch,defaultBucket.build(),true).setDescription("default");
   ByteCodeBlock block=new ByteCodeBlock().comment("IN").append(value).append(ifWasNullPopAndGoto(scope,end,boolean.class,javaType)).append(switchBlock).append(defaultCaseBlock);
