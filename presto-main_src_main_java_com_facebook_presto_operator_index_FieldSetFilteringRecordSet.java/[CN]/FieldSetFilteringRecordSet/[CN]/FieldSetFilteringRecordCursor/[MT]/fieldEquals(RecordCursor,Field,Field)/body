@@ -1,0 +1,27 @@
+{
+  checkArgument(cursor.getType(field1.getField()).equals(cursor.getType(field2.getField())),"Should only be comparing fields of the same type");
+  if (cursor.isNull(field1.getField()) || cursor.isNull(field2.getField())) {
+    return false;
+  }
+  Class<?> javaType=cursor.getType(field1.getField()).getJavaType();
+  try {
+    if (javaType == long.class) {
+      return (boolean)field1.getEqualsMethodHandle().invokeExact(cursor.getLong(field1.getField()),cursor.getLong(field2.getField()));
+    }
+ else     if (javaType == double.class) {
+      return (boolean)field1.getEqualsMethodHandle().invokeExact(cursor.getDouble(field1.getField()),cursor.getDouble(field2.getField()));
+    }
+ else     if (javaType == boolean.class) {
+      return (boolean)field1.getEqualsMethodHandle().invokeExact(cursor.getBoolean(field1.getField()),cursor.getBoolean(field2.getField()));
+    }
+ else     if (javaType == Slice.class) {
+      return (boolean)field1.getEqualsMethodHandle().invokeExact(cursor.getSlice(field1.getField()),cursor.getSlice(field2.getField()));
+    }
+ else {
+      throw new IllegalArgumentException("Unknown java type: " + javaType);
+    }
+  }
+ catch (  Throwable throwable) {
+    throw Throwables.propagate(throwable);
+  }
+}
