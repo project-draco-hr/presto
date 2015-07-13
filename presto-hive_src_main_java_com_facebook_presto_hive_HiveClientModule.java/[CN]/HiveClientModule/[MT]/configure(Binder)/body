@@ -5,7 +5,6 @@
   binder.bind(HdfsEnvironment.class).in(Scopes.SINGLETON);
   binder.bind(DirectoryLister.class).to(HadoopDirectoryLister.class).in(Scopes.SINGLETON);
   configBinder(binder).bindConfig(HiveClientConfig.class);
-  configBinder(binder).bindConfig(HivePluginConfig.class);
   if (metastore != null) {
     binder.bind(HiveMetastore.class).toInstance(metastore);
   }
@@ -16,6 +15,7 @@
   binder.bind(NamenodeStats.class).in(Scopes.SINGLETON);
   newExporter(binder).export(NamenodeStats.class).as(generatedNameOf(NamenodeStats.class));
   binder.bind(HiveMetastoreClientFactory.class).in(Scopes.SINGLETON);
+  binder.bind(HiveCluster.class).to(StaticHiveCluster.class).in(Scopes.SINGLETON);
   binder.bind(TypeManager.class).toInstance(typeManager);
   Multibinder<HiveRecordCursorProvider> recordCursorProviderBinder=Multibinder.newSetBinder(binder,HiveRecordCursorProvider.class);
   recordCursorProviderBinder.addBinding().to(OrcRecordCursorProvider.class).in(Scopes.SINGLETON);
