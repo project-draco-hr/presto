@@ -1,41 +1,39 @@
 {
   DynamicClassLoader classLoader=new DynamicClassLoader(AbstractMinMaxAggregation.class.getClassLoader());
   List<Type> inputTypes=ImmutableList.of(type);
-  AccumulatorStateSerializer<?> stateSerializer;
-  AccumulatorStateFactory<?> stateFactory;
   MethodHandle inputFunction;
+  MethodHandle outputFunction;
   Class<? extends AccumulatorState> stateInterface;
   if (type.getJavaType() == long.class) {
-    stateFactory=compiler.generateStateFactory(NullableLongState.class,classLoader);
-    stateSerializer=new NullableLongStateSerializer(type);
     stateInterface=NullableLongState.class;
     inputFunction=LONG_INPUT_FUNCTION;
+    outputFunction=LONG_OUTPUT_FUNCTION;
   }
  else   if (type.getJavaType() == double.class) {
-    stateFactory=compiler.generateStateFactory(NullableDoubleState.class,classLoader);
-    stateSerializer=new NullableDoubleStateSerializer(type);
     stateInterface=NullableDoubleState.class;
     inputFunction=DOUBLE_INPUT_FUNCTION;
+    outputFunction=DOUBLE_OUTPUT_FUNCTION;
   }
  else   if (type.getJavaType() == Slice.class) {
-    stateFactory=compiler.generateStateFactory(SliceState.class,classLoader);
-    stateSerializer=new SliceStateSerializer(type);
     stateInterface=SliceState.class;
     inputFunction=SLICE_INPUT_FUNCTION;
+    outputFunction=SLICE_OUTPUT_FUNCTION;
   }
  else   if (type.getJavaType() == boolean.class) {
-    stateFactory=compiler.generateStateFactory(NullableBooleanState.class,classLoader);
-    stateSerializer=new NullableBooleanStateSerializer(type);
     stateInterface=NullableBooleanState.class;
     inputFunction=BOOLEAN_INPUT_FUNCTION;
+    outputFunction=BOOLEAN_OUTPUT_FUNCTION;
   }
  else {
     throw new PrestoException(StandardErrorCode.INVALID_FUNCTION_ARGUMENT,"Argument type to max/min unsupported");
   }
   inputFunction=inputFunction.bindTo(compareMethodHandle);
+  outputFunction=outputFunction.bindTo(type);
+  AccumulatorStateFactory<?> stateFactory=compiler.generateStateFactory(stateInterface,classLoader);
+  AccumulatorStateSerializer<?> stateSerializer=compiler.generateStateSerializer(stateInterface,classLoader);
   Type intermediateType=stateSerializer.getSerializedType();
   List<ParameterMetadata> inputParameterMetadata=createInputParameterMetadata(type);
-  AggregationMetadata metadata=new AggregationMetadata(generateAggregationName(name,type,inputTypes),inputParameterMetadata,inputFunction,inputParameterMetadata,inputFunction,null,null,stateInterface,stateSerializer,stateFactory,type,false);
+  AggregationMetadata metadata=new AggregationMetadata(generateAggregationName(name,type,inputTypes),inputParameterMetadata,inputFunction,inputParameterMetadata,inputFunction,null,outputFunction,stateInterface,stateSerializer,stateFactory,type,false);
   GenericAccumulatorFactoryBinder factory=new AccumulatorCompiler().generateAccumulatorFactoryBinder(metadata,classLoader);
   return new InternalAggregationFunction(name,inputTypes,intermediateType,type,true,false,factory);
 }

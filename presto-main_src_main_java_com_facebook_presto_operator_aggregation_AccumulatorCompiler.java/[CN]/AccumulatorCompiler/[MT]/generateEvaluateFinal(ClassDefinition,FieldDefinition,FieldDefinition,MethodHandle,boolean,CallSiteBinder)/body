@@ -1,0 +1,16 @@
+{
+  Parameter out=arg("out",BlockBuilder.class);
+  MethodDefinition method=definition.declareMethod(a(PUBLIC),"evaluateFinal",type(void.class),out);
+  Block body=method.getBody();
+  Variable thisVariable=method.getThis();
+  ByteCodeExpression state=thisVariable.getField(stateField);
+  body.comment("output(state, out)");
+  body.append(state);
+  if (approximate) {
+    checkNotNull(confidenceField,"confidenceField is null");
+    body.append(thisVariable.getField(confidenceField));
+  }
+  body.append(out);
+  body.append(invoke(callSiteBinder.bind(outputFunction),"output"));
+  body.ret();
+}
