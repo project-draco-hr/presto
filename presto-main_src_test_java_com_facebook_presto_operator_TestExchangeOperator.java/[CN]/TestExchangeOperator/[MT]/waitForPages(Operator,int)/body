@@ -1,6 +1,20 @@
 {
   long endTime=System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
   List<Page> outputPages=new ArrayList<>();
+  boolean greaterThanZero=false;
+  while (System.nanoTime() < endTime) {
+    if (operator.isFinished()) {
+      break;
+    }
+    if (operator.getOperatorContext().getOperatorStats().getSystemMemoryReservation().toBytes() > 0) {
+      greaterThanZero=true;
+      break;
+    }
+ else {
+      Thread.sleep(10);
+    }
+  }
+  assertTrue(greaterThanZero);
   while (outputPages.size() < expectedPageCount && System.nanoTime() < endTime) {
     assertEquals(operator.needsInput(),false);
     if (operator.isFinished()) {
@@ -21,5 +35,6 @@
   for (  Page page : outputPages) {
     assertPageEquals(operator.getTypes(),page,PAGE);
   }
+  assertEquals(operator.getOperatorContext().getOperatorStats().getSystemMemoryReservation().toBytes(),0);
   return outputPages;
 }

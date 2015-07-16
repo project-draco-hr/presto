@@ -1,22 +1,2 @@
 {
-  DataSize maxResponseSize=new DataSize(1,Unit.BYTE);
-  MockExchangeRequestProcessor processor=new MockExchangeRequestProcessor(maxResponseSize);
-  URI location=URI.create("http://localhost:8080");
-  processor.addPage(location,createPage(1));
-  processor.addPage(location,createPage(2));
-  processor.addPage(location,createPage(3));
-  @SuppressWarnings("resource") ExchangeClient exchangeClient=new ExchangeClient(blockEncodingManager,new DataSize(1,Unit.BYTE),maxResponseSize,1,new Duration(1,TimeUnit.MINUTES),new TestingHttpClient(processor,newCachedThreadPool(daemonThreadsNamed("test-%s"))),executor);
-  exchangeClient.addLocation(location);
-  exchangeClient.noMoreLocations();
-  assertEquals(exchangeClient.isClosed(),false);
-  assertPageEquals(exchangeClient.getNextPage(new Duration(1,TimeUnit.SECONDS)),createPage(1));
-  exchangeClient.close();
-  assertEquals(exchangeClient.isClosed(),true);
-  assertNull(exchangeClient.getNextPage(new Duration(0,TimeUnit.SECONDS)));
-  assertEquals(exchangeClient.getStatus().getBufferedPages(),0);
-  assertEquals(exchangeClient.getStatus().getBufferedBytes(),0);
-  PageBufferClientStatus clientStatus=exchangeClient.getStatus().getPageBufferClientStatuses().get(0);
-  assertEquals(clientStatus.getUri(),location);
-  assertEquals(clientStatus.getState(),"closed","status");
-  assertEquals(clientStatus.getHttpRequestState(),"not scheduled","httpRequestState");
 }
