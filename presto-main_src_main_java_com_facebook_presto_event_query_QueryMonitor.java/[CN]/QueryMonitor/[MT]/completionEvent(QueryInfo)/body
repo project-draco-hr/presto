@@ -1,20 +1,2 @@
 {
-  try {
-    QueryStats queryStats=queryInfo.getQueryStats();
-    FailureInfo failureInfo=queryInfo.getFailureInfo();
-    String failureType=failureInfo == null ? null : failureInfo.getType();
-    String failureMessage=failureInfo == null ? null : failureInfo.getMessage();
-    ImmutableMap.Builder<String,String> mergedProperties=ImmutableMap.builder();
-    mergedProperties.putAll(queryInfo.getSession().getSystemProperties());
-    for (    Map.Entry<String,Map<String,String>> catalogEntry : queryInfo.getSession().getCatalogProperties().entrySet()) {
-      for (      Map.Entry<String,String> entry : catalogEntry.getValue().entrySet()) {
-        mergedProperties.put(catalogEntry.getKey() + "." + entry.getKey(),entry.getValue());
-      }
-    }
-    eventClient.post(new QueryCompletionEvent(queryInfo.getQueryId(),queryInfo.getSession().getUser(),queryInfo.getSession().getSource(),serverVersion,environment,queryInfo.getSession().getCatalog(),queryInfo.getSession().getSchema(),queryInfo.getSession().getRemoteUserAddress(),queryInfo.getSession().getUserAgent(),queryInfo.getState(),queryInfo.getSelf(),queryInfo.getFieldNames(),queryInfo.getQuery(),queryStats.getPeakMemoryReservation().toBytes(),queryStats.getCreateTime(),queryStats.getExecutionStartTime(),queryStats.getEndTime(),queryStats.getQueuedTime(),queryStats.getAnalysisTime(),queryStats.getDistributedPlanningTime(),queryStats.getTotalScheduledTime(),queryStats.getTotalCpuTime(),queryStats.getRawInputDataSize(),queryStats.getRawInputPositions(),queryStats.getTotalDrivers(),queryInfo.getErrorCode(),failureType,failureMessage,objectMapper.writeValueAsString(queryInfo.getOutputStage()),objectMapper.writeValueAsString(queryInfo.getFailureInfo()),objectMapper.writeValueAsString(queryInfo.getInputs()),objectMapper.writeValueAsString(mergedProperties.build())));
-    logQueryTimeline(queryInfo);
-  }
- catch (  JsonProcessingException e) {
-    throw Throwables.propagate(e);
-  }
 }
