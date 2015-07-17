@@ -1,0 +1,10 @@
+{
+  DynamicClassLoader classLoader=new DynamicClassLoader(getClass().getClassLoader());
+  MaxOrMinByStateSerializer stateSerializer=new MaxOrMinByStateSerializer(valueType,keyType);
+  Type intermediateType=stateSerializer.getSerializedType();
+  List<Type> inputTypes=ImmutableList.of(valueType,keyType);
+  MaxOrMinByStateFactory stateFactory=new MaxOrMinByStateFactory();
+  AggregationMetadata metadata=new AggregationMetadata(generateAggregationName(name,valueType,inputTypes),createInputParameterMetadata(valueType,keyType),insertArguments(INPUT_FUNCTION,0,min).bindTo(keyType),null,null,insertArguments(COMBINE_FUNCTION,0,min).bindTo(keyType),OUTPUT_FUNCTION.bindTo(valueType),MaxOrMinByState.class,stateSerializer,stateFactory,valueType,false);
+  GenericAccumulatorFactoryBinder factory=new AccumulatorCompiler().generateAccumulatorFactoryBinder(metadata,classLoader);
+  return new InternalAggregationFunction(name,inputTypes,intermediateType,valueType,true,false,factory);
+}
