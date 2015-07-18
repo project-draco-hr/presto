@@ -1,23 +1,2 @@
 {
-  checkNotNull(tableName,"tableName is null");
-  if (!tableName.getSchemaName().equals(SCHEMA_NAME)) {
-    return null;
-  }
-  try {
-    ObjectName objectName=Iterables.find(mbeanServer.queryNames(WILDCARD,null),objectNameEqualsIgnoreCase(new ObjectName(tableName.getTableName())));
-    MBeanInfo mbeanInfo=mbeanServer.getMBeanInfo(objectName);
-    ImmutableList.Builder<JmxColumnHandle> columns=ImmutableList.builder();
-    int ordinalPosition=0;
-    columns.add(new JmxColumnHandle(connectorId,"node",VARCHAR,ordinalPosition++));
-    for (    MBeanAttributeInfo attribute : mbeanInfo.getAttributes()) {
-      if (!attribute.isReadable()) {
-        continue;
-      }
-      columns.add(new JmxColumnHandle(connectorId,attribute.getName(),getColumnType(attribute),ordinalPosition++));
-    }
-    return new JmxTableHandle(connectorId,objectName.toString(),columns.build());
-  }
- catch (  NoSuchElementException|JMException e) {
-    return null;
-  }
 }
