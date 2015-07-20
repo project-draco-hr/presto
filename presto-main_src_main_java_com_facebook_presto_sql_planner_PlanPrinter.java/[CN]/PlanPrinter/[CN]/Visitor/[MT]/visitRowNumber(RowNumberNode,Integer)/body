@@ -2,10 +2,10 @@
   List<String> partitionBy=Lists.transform(node.getPartitionBy(),Functions.toStringFunction());
   List<String> args=new ArrayList<>();
   if (!partitionBy.isEmpty()) {
-    args.add(format("partition by (%s) ",Joiner.on(", ").join(partitionBy)));
+    args.add(format("partition by (%s)",Joiner.on(", ").join(partitionBy)));
   }
   if (node.getMaxRowCountPerPartition().isPresent()) {
-    args.add(format("limit (%s) ",node.getMaxRowCountPerPartition().get()));
+    args.add(format("limit = %s",node.getMaxRowCountPerPartition().get()));
   }
   print(indent,"- RowNumber[%s] => [%s]",Joiner.on(", ").join(args),formatOutputs(node.getOutputSymbols()));
   print(indent + 2,"%s := %s",node.getRowNumberSymbol(),"row_number()");
