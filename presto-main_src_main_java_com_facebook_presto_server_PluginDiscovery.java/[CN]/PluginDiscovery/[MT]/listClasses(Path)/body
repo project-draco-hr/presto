@@ -1,0 +1,14 @@
+{
+  ImmutableList.Builder<String> list=ImmutableList.builder();
+  walkFileTree(base,new SimpleFileVisitor<Path>(){
+    @Override public FileVisitResult visitFile(    Path file,    BasicFileAttributes attributes) throws IOException {
+      if (file.getFileName().toString().endsWith(CLASS_FILE_SUFFIX)) {
+        String name=file.subpath(base.getNameCount(),file.getNameCount()).toString();
+        list.add(javaName(name.substring(0,name.length() - CLASS_FILE_SUFFIX.length())));
+      }
+      return FileVisitResult.CONTINUE;
+    }
+  }
+);
+  return list.build();
+}

@@ -1,4 +1,10 @@
 {
   List<Artifact> artifacts=resolver.resolvePom(pomFile);
-  return createClassLoader(artifacts,pomFile.getPath());
+  URLClassLoader classLoader=createClassLoader(artifacts,pomFile.getPath());
+  Artifact artifact=artifacts.get(0);
+  Set<String> plugins=discoverPlugins(artifact,classLoader);
+  if (!plugins.isEmpty()) {
+    writePluginServices(plugins,artifact.getFile());
+  }
+  return classLoader;
 }
