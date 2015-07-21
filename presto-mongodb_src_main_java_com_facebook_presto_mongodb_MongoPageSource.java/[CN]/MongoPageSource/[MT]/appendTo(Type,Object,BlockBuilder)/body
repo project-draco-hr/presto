@@ -1,0 +1,48 @@
+{
+  if (value == null) {
+    output.appendNull();
+    return;
+  }
+  Class<?> javaType=type.getJavaType();
+  try {
+    if (javaType == boolean.class) {
+      type.writeBoolean(output,(Boolean)value);
+    }
+ else     if (javaType == long.class) {
+      if (type.equals(BIGINT)) {
+        type.writeLong(output,((Number)value).longValue());
+      }
+ else       if (type.equals(INTEGER)) {
+        type.writeLong(output,((Number)value).intValue());
+      }
+ else       if (type.equals(DATE)) {
+        long utcMillis=((Date)value).getTime();
+        type.writeLong(output,TimeUnit.MILLISECONDS.toDays(utcMillis));
+      }
+ else       if (type.equals(TIME)) {
+        type.writeLong(output,UTC_CHRONOLOGY.millisOfDay().get(((Date)value).getTime()));
+      }
+ else       if (type.equals(TIMESTAMP)) {
+        type.writeLong(output,((Date)value).getTime());
+      }
+ else {
+        throw new PrestoException(INTERNAL_ERROR,"Unhandled type for " + javaType.getSimpleName() + ":"+ type.getTypeSignature());
+      }
+    }
+ else     if (javaType == double.class) {
+      type.writeDouble(output,((Number)value).doubleValue());
+    }
+ else     if (javaType == Slice.class) {
+      writeSlice(output,type,value);
+    }
+ else     if (javaType == Block.class) {
+      writeBlock(output,type,value);
+    }
+ else {
+      throw new PrestoException(INTERNAL_ERROR,"Unhandled type for " + javaType.getSimpleName() + ":"+ type.getTypeSignature());
+    }
+  }
+ catch (  ClassCastException ignore) {
+    output.appendNull();
+  }
+}

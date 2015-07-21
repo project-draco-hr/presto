@@ -1,0 +1,18 @@
+{
+  ImmutableList.Builder<MongodbIndexKey> builder=ImmutableList.builder();
+  for (  String name : key.keySet()) {
+    Object value=key.get(name);
+    if (value instanceof Number) {
+      int order=((Number)value).intValue();
+      checkState(order == 1 || order == -1,"Unknown index sort order");
+      builder.add(new MongodbIndexKey(name,order == 1 ? SortOrder.ASC_NULLS_LAST : SortOrder.DESC_NULLS_LAST));
+    }
+ else     if (value instanceof String) {
+      builder.add(new MongodbIndexKey(name,(String)value));
+    }
+ else {
+      throw new UnsupportedOperationException("Unknown index type: " + value.toString());
+    }
+  }
+  return builder.build();
+}

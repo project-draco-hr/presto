@@ -1,0 +1,19 @@
+{
+  PageBuilder pageBuilder=new PageBuilder(columnTypes);
+  count=0;
+  for (int i=0; i < ROWS_PER_REQUEST; i++) {
+    if (!cursor.hasNext()) {
+      finished=true;
+      break;
+    }
+    currentDoc=cursor.next();
+    count++;
+    pageBuilder.declarePosition();
+    for (int column=0; column < columnTypes.size(); column++) {
+      BlockBuilder output=pageBuilder.getBlockBuilder(column);
+      appendTo(columnTypes.get(column),currentDoc.get(columnNames.get(column)),output);
+    }
+  }
+  totalCount+=count;
+  return pageBuilder.build();
+}

@@ -1,0 +1,20 @@
+{
+  String base=type.getTypeSignature().getBase();
+  if (base.equals(StandardTypes.VARCHAR)) {
+    type.writeSlice(output,utf8Slice(value.toString()));
+  }
+ else   if (type.equals(OBJECT_ID)) {
+    type.writeSlice(output,wrappedBuffer(((ObjectId)value).toByteArray()));
+  }
+ else   if (type.equals(VARBINARY)) {
+    if (value instanceof Binary) {
+      type.writeSlice(output,wrappedBuffer(((Binary)value).getData()));
+    }
+ else {
+      output.appendNull();
+    }
+  }
+ else {
+    throw new PrestoException(INTERNAL_ERROR,"Unhandled type for Slice: " + type.getTypeSignature());
+  }
+}

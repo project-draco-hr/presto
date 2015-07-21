@@ -1,0 +1,12 @@
+{
+  requireNonNull(prefix,"prefix is null");
+  ImmutableMap.Builder<SchemaTableName,List<ColumnMetadata>> columns=ImmutableMap.builder();
+  for (  SchemaTableName tableName : listTables(session,prefix)) {
+    try {
+      columns.put(tableName,getTableMetadata(session,tableName).getColumns());
+    }
+ catch (    NotFoundException e) {
+    }
+  }
+  return columns.build();
+}

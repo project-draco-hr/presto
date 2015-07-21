@@ -1,0 +1,10 @@
+{
+  requireNonNull(config,"config is null");
+  MongoClientOptions.Builder options=MongoClientOptions.builder();
+  options.connectionsPerHost(config.getConnectionsPerHost()).connectTimeout(config.getConnectionTimeout()).socketTimeout(config.getSocketTimeout()).socketKeepAlive(config.getSocketKeepAlive()).maxWaitTime(config.getMaxWaitTime()).minConnectionsPerHost(config.getMinConnectionsPerHost()).readPreference(config.getReadPreference().getReadPreference()).writeConcern(config.getWriteConcern().getWriteConcern());
+  if (config.getRequiredReplicaSetName() != null) {
+    options.requiredReplicaSetName(config.getRequiredReplicaSetName());
+  }
+  MongoClient client=new MongoClient(config.getSeeds(),config.getCredentials(),options.build());
+  return new MongoSession(typeManager,connectorId.toString(),client,config);
+}

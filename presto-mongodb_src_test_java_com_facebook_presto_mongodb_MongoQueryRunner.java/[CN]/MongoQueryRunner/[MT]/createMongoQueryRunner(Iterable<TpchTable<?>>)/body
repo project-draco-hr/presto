@@ -1,0 +1,17 @@
+{
+  MongoQueryRunner queryRunner=null;
+  try {
+    queryRunner=new MongoQueryRunner(createSession(),3);
+    queryRunner.installPlugin(new TpchPlugin());
+    queryRunner.createCatalog("tpch","tpch");
+    Map<String,String> properties=ImmutableMap.of("mongodb.seeds",queryRunner.getAddress().getHostString() + ":" + queryRunner.getAddress().getPort(),"mongodb.socket-keep-alive","true");
+    queryRunner.installPlugin(new MongoPlugin());
+    queryRunner.createCatalog("mongodb","mongodb",properties);
+    copyTpchTables(queryRunner,"tpch",TINY_SCHEMA_NAME,createSession(),tables);
+    return queryRunner;
+  }
+ catch (  Throwable e) {
+    closeAllSuppress(e,queryRunner);
+    throw e;
+  }
+}

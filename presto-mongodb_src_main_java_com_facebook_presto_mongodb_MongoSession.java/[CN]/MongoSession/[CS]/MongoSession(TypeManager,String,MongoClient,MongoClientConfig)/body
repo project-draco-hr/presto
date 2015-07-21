@@ -1,0 +1,14 @@
+{
+  this.typeManager=requireNonNull(typeManager,"typeManager is null");
+  this.connectorId=requireNonNull(connectorId,"connectorId is null");
+  this.client=requireNonNull(client,"client is null");
+  this.schemaCollection=config.getSchemaCollection();
+  this.cursorBatchSize=config.getCursorBatchSize();
+  this.implicitPrefix=config.getImplicitRowFieldPrefix();
+  this.tableCache=CacheBuilder.newBuilder().expireAfterWrite(1,HOURS).refreshAfterWrite(1,MINUTES).build(new CacheLoader<SchemaTableName,MongoTable>(){
+    @Override public MongoTable load(    SchemaTableName key) throws TableNotFoundException {
+      return loadTableSchema(key);
+    }
+  }
+);
+}

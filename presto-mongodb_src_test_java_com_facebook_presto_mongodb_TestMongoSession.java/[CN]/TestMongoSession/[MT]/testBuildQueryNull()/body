@@ -1,0 +1,6 @@
+{
+  TupleDomain<ColumnHandle> tupleDomain=TupleDomain.withColumnDomains(ImmutableMap.of(COL1,Domain.create(ValueSet.ofRanges(greaterThan(BIGINT,200L)),true)));
+  Document query=MongoSession.buildQuery(tupleDomain);
+  Document expected=new Document("$or",asList(new Document(COL1.getName(),new Document("$gt",200L)),new Document(COL1.getName(),new Document("$exists",true).append("$eq",null))));
+  assertEquals(query,expected);
+}

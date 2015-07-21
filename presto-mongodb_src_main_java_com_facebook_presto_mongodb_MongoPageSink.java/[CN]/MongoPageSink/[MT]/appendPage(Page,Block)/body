@@ -1,0 +1,14 @@
+{
+  MongoCollection<Document> collection=mongoSession.getCollection(schemaTableName);
+  List<Document> batch=new ArrayList<>(page.getPositionCount());
+  for (int position=0; position < page.getPositionCount(); position++) {
+    Document doc=new Document();
+    for (int channel=0; channel < page.getChannelCount(); channel++) {
+      MongoColumnHandle column=columns.get(channel);
+      doc.append(column.getName(),getObjectValue(columns.get(channel).getType(),page.getBlock(channel),position,requireTranslate.get(channel)));
+    }
+    batch.add(doc);
+  }
+  collection.insertMany(batch,new InsertManyOptions().ordered(true));
+  return NOT_BLOCKED;
+}

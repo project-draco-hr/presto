@@ -1,0 +1,11 @@
+{
+  MongoTableHandle table=checkType(tableHandle,MongoTableHandle.class,"tableHandle");
+  List<MongoColumnHandle> columns=mongoSession.getTable(table.getSchemaTableName()).getColumns();
+  ImmutableMap.Builder<String,ColumnHandle> columnHandles=ImmutableMap.builder();
+  for (  MongoColumnHandle columnHandle : columns) {
+    if (includeSampleWeight || !columnHandle.getName().equals(SAMPLE_WEIGHT_COLUMN_NAME)) {
+      columnHandles.put(columnHandle.getName(),columnHandle);
+    }
+  }
+  return columnHandles.build();
+}

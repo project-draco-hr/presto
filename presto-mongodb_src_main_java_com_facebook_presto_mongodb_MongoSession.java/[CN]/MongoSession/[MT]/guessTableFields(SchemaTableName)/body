@@ -1,0 +1,25 @@
+{
+  String schemaName=schemaTableName.getSchemaName();
+  String tableName=schemaTableName.getTableName();
+  MongoDatabase db=client.getDatabase(schemaName);
+  Document doc=db.getCollection(tableName).find().first();
+  if (doc == null) {
+    return ImmutableList.of();
+  }
+  ImmutableList.Builder<Document> builder=ImmutableList.builder();
+  for (  String key : doc.keySet()) {
+    Object value=doc.get(key);
+    Optional<TypeSignature> fieldType=guessFieldType(value);
+    if (fieldType.isPresent()) {
+      Document metadata=new Document();
+      metadata.append(FIELDS_NAME_KEY,key);
+      metadata.append(FIELDS_TYPE_KEY,fieldType.get().toString());
+      metadata.append(FIELDS_HIDDEN_KEY,key.equals("_id") && fieldType.get().equals(OBJECT_ID.getTypeSignature()));
+      builder.add(metadata);
+    }
+ else {
+      log.debug("Unable to guess field type from %s : %s",value.getClass().getName(),value);
+    }
+  }
+  return builder.build();
+}

@@ -1,0 +1,19 @@
+{
+  MongoTableHandle tableHandle=checkType(table,MongoTableHandle.class,"table");
+  Optional<Set<ColumnHandle>> partitioningColumns=Optional.empty();
+  ImmutableList.Builder<LocalProperty<ColumnHandle>> localProperties=ImmutableList.builder();
+  MongoTable tableInfo=mongoSession.getTable(tableHandle.getSchemaTableName());
+  Map<String,ColumnHandle> columns=getColumnHandles(session,tableHandle);
+  for (  MongoIndex index : tableInfo.getIndexes()) {
+    for (    MongodbIndexKey key : index.getKeys()) {
+      if (!key.getSortOrder().isPresent()) {
+        continue;
+      }
+      if (columns.get(key.getName()) != null) {
+        localProperties.add(new SortingProperty<>(columns.get(key.getName()),key.getSortOrder().get()));
+      }
+    }
+  }
+  ConnectorTableLayout layout=new ConnectorTableLayout(new MongoTableLayoutHandle(tableHandle,constraint.getSummary()),Optional.empty(),TupleDomain.all(),Optional.empty(),partitioningColumns,Optional.empty(),localProperties.build());
+  return ImmutableList.of(new ConnectorTableLayoutResult(layout,constraint.getSummary()));
+}

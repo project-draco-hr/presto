@@ -1,0 +1,10 @@
+{
+  Document tableMeta=getTableMetadata(tableName);
+  ImmutableList.Builder<MongoColumnHandle> columnHandles=ImmutableList.builder();
+  for (  Document columnMetadata : getColumnMetadata(tableMeta)) {
+    MongoColumnHandle columnHandle=buildColumnHandle(columnMetadata);
+    columnHandles.add(columnHandle);
+  }
+  MongoTableHandle tableHandle=new MongoTableHandle(connectorId,tableName);
+  return new MongoTable(tableHandle,columnHandles.build(),getIndexes(tableName));
+}

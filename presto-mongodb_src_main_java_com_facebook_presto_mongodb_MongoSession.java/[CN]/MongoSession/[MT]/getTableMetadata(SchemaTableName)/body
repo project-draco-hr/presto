@@ -1,0 +1,20 @@
+{
+  String schemaName=schemaTableName.getSchemaName();
+  String tableName=schemaTableName.getTableName();
+  MongoDatabase db=client.getDatabase(schemaName);
+  MongoCollection<Document> schema=db.getCollection(schemaCollection);
+  Document doc=schema.find(new Document(TABLE_NAME_KEY,tableName)).first();
+  if (doc == null) {
+    if (!collectionExists(db,tableName)) {
+      throw new TableNotFoundException(schemaTableName);
+    }
+ else {
+      Document metadata=new Document(TABLE_NAME_KEY,tableName);
+      metadata.append(FIELDS_KEY,guessTableFields(schemaTableName));
+      schema.createIndex(new Document(TABLE_NAME_KEY,1),new IndexOptions().unique(true));
+      schema.insertOne(metadata);
+      return metadata;
+    }
+  }
+  return doc;
+}
