@@ -1,0 +1,26 @@
+{
+  if (tupleDomain.isNone()) {
+    return OptionalInt.empty();
+  }
+  Domain rowNumberDomain=tupleDomain.getDomains().get(symbol);
+  if (rowNumberDomain == null) {
+    return OptionalInt.empty();
+  }
+  SortedRangeSet ranges=rowNumberDomain.getRanges();
+  if (ranges.isAll() || ranges.isNone() || ranges.getRangeCount() <= 0) {
+    return OptionalInt.empty();
+  }
+  Range span=ranges.getSpan();
+  if (span.getHigh().isUpperUnbounded()) {
+    return OptionalInt.empty();
+  }
+  verify(rowNumberDomain.getType().equals(Long.class));
+  long upperBound=(Long)span.getHigh().getValue();
+  if (span.getHigh().getBound() == BELOW) {
+    upperBound--;
+  }
+  if (upperBound > Integer.MAX_VALUE) {
+    return OptionalInt.empty();
+  }
+  return OptionalInt.of(Ints.checkedCast(upperBound));
+}

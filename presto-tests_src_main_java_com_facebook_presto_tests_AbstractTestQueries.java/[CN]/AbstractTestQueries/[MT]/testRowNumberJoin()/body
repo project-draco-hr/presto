@@ -1,0 +1,8 @@
+{
+  MaterializedResult actual=computeActual("SELECT a, rn\n" + "FROM (\n" + "    SELECT a, row_number() OVER (ORDER BY a) rn\n"+ "    FROM (VALUES (1), (2)) t (a)\n"+ ") a\n"+ "JOIN (VALUES (2)) b (b) ON a.a = b.b\n"+ "LIMIT 1");
+  MaterializedResult expected=resultBuilder(getSession(),BIGINT,BIGINT).row(2,2).build();
+  assertEqualsIgnoreOrder(actual.getMaterializedRows(),expected.getMaterializedRows());
+  actual=computeActual("SELECT a, rn\n" + "FROM (\n" + "    SELECT a, row_number() OVER (PARTITION BY a ORDER BY a) rn\n"+ "    FROM (VALUES (1), (2), (1), (2)) t (a)\n"+ ") a\n"+ "JOIN (VALUES (2)) b (b) ON a.a = b.b\n"+ "LIMIT 2");
+  expected=resultBuilder(getSession(),BIGINT,BIGINT).row(2,1).row(2,2).build();
+  assertEqualsIgnoreOrder(actual.getMaterializedRows(),expected.getMaterializedRows());
+}

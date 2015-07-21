@@ -1,0 +1,5 @@
+{
+  MaterializedResult actual=computeActual("" + "SELECT * FROM (" + "   SELECT a, row_number() OVER (PARTITION BY a ORDER BY a) rn\n"+ "   FROM (VALUES (1), (1), (1), (2), (2), (3)) t (a)) t "+ "WHERE rn < 3 AND rn % 2 = 0 AND a = 2 LIMIT 2");
+  MaterializedResult expected=resultBuilder(getSession(),BIGINT,BIGINT).row(2,2).build();
+  assertEqualsIgnoreOrder(actual.getMaterializedRows(),expected.getMaterializedRows());
+}

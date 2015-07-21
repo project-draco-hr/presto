@@ -1,0 +1,7 @@
+{
+  PlanNode rewrittenSource=context.rewrite(node.getSource());
+  if (canReplaceWithRowNumber(node)) {
+    return new RowNumberNode(idAllocator.getNextId(),rewrittenSource,node.getPartitionBy(),getOnlyElement(node.getWindowFunctions().keySet()),Optional.empty(),Optional.empty());
+  }
+  return context.replaceChildren(node,ImmutableList.of(rewrittenSource));
+}

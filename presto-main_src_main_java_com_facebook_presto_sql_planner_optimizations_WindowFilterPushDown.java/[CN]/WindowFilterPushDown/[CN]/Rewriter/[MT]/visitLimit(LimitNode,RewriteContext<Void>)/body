@@ -1,0 +1,24 @@
+{
+  if (node.getCount() > Integer.MAX_VALUE) {
+    return context.defaultRewrite(node);
+  }
+  PlanNode source=context.rewrite(node.getSource());
+  int limit=Ints.checkedCast(node.getCount());
+  if (source instanceof RowNumberNode) {
+    RowNumberNode rowNumberNode=mergeLimit(((RowNumberNode)source),limit);
+    if (rowNumberNode.getPartitionBy().isEmpty()) {
+      return rowNumberNode;
+    }
+    source=rowNumberNode;
+  }
+ else   if (source instanceof WindowNode && canOptimizeWindowFunction((WindowNode)source)) {
+    WindowNode windowNode=(WindowNode)source;
+    verify(!windowNode.getOrderBy().isEmpty());
+    TopNRowNumberNode topNRowNumberNode=convertToTopNRowNumber(windowNode,limit);
+    if (windowNode.getPartitionBy().isEmpty()) {
+      return topNRowNumberNode;
+    }
+    source=topNRowNumberNode;
+  }
+  return context.replaceChildren(node,ImmutableList.of(source));
+}

@@ -1,0 +1,22 @@
+{
+  PlanNode source=context.rewrite(node.getSource());
+  TupleDomain<Symbol> tupleDomain=fromPredicate(metadata,session,node.getPredicate(),types).getTupleDomain();
+  if (source instanceof RowNumberNode) {
+    Symbol rowNumberSymbol=((RowNumberNode)source).getRowNumberSymbol();
+    OptionalInt upperBound=extractUpperBound(tupleDomain,rowNumberSymbol);
+    if (upperBound.isPresent()) {
+      source=mergeLimit(((RowNumberNode)source),upperBound.getAsInt());
+      return rewriteFilterSource(node,source,rowNumberSymbol,upperBound.getAsInt());
+    }
+  }
+ else   if (source instanceof WindowNode && canOptimizeWindowFunction((WindowNode)source)) {
+    WindowNode windowNode=(WindowNode)source;
+    Symbol rowNumberSymbol=getOnlyElement(windowNode.getWindowFunctions().entrySet()).getKey();
+    OptionalInt upperBound=extractUpperBound(tupleDomain,rowNumberSymbol);
+    if (upperBound.isPresent()) {
+      source=convertToTopNRowNumber(windowNode,upperBound.getAsInt());
+      return rewriteFilterSource(node,source,rowNumberSymbol,upperBound.getAsInt());
+    }
+  }
+  return context.replaceChildren(node,ImmutableList.of(source));
+}
