@@ -2,7 +2,7 @@
   PlanNode source=context.rewrite(node.getSource());
   ImmutableMap.Builder<Symbol,List<Symbol>> builder=ImmutableMap.builder();
   for (  Map.Entry<Symbol,List<Symbol>> entry : node.getUnnestSymbols().entrySet()) {
-    builder.put(canonicalize(entry.getKey()),canonicalize(entry.getValue()));
+    builder.put(canonicalize(entry.getKey()),entry.getValue());
   }
-  return new UnnestNode(node.getId(),source,canonicalize(node.getReplicateSymbols()),builder.build(),canonicalize(node.getOrdinalitySymbol()));
+  return new UnnestNode(node.getId(),source,canonicalizeAndDistinct(node.getReplicateSymbols()),builder.build(),node.getOrdinalitySymbol());
 }
