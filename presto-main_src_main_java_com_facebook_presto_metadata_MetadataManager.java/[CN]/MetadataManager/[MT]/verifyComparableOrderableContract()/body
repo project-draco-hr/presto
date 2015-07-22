@@ -1,0 +1,33 @@
+{
+  Multimap<Type,OperatorType> missingOperators=HashMultimap.create();
+  for (  Type type : typeManager.getTypes()) {
+    if (type.isComparable()) {
+      if (!operatorRegistered(HASH_CODE,BIGINT,type,1)) {
+        missingOperators.put(type,HASH_CODE);
+      }
+      if (!operatorRegistered(EQUAL,BOOLEAN,type,2)) {
+        missingOperators.put(type,EQUAL);
+      }
+      if (!operatorRegistered(NOT_EQUAL,BOOLEAN,type,2)) {
+        missingOperators.put(type,NOT_EQUAL);
+      }
+    }
+    if (type.isOrderable()) {
+      for (      OperatorType operator : ImmutableList.of(LESS_THAN,LESS_THAN_OR_EQUAL,GREATER_THAN,GREATER_THAN_OR_EQUAL)) {
+        if (!operatorRegistered(operator,BOOLEAN,type,2)) {
+          missingOperators.put(type,operator);
+        }
+      }
+      if (!operatorRegistered(BETWEEN,BOOLEAN,type,3)) {
+        missingOperators.put(type,BETWEEN);
+      }
+    }
+  }
+  if (!missingOperators.isEmpty()) {
+    List<String> messages=new ArrayList<>();
+    for (    Type type : missingOperators.keySet()) {
+      messages.add(format("%s missing for %s",missingOperators.get(type),type));
+    }
+    throw new IllegalStateException(Joiner.on(", ").join(messages));
+  }
+}
