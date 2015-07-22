@@ -1,0 +1,21 @@
+{
+  assertFunction("cast(JSON 'null' as DOUBLE)",DOUBLE,null);
+  assertFunction("cast(JSON '128' as DOUBLE)",DOUBLE,128.0);
+  assertFunction("cast(JSON '12345678901234567890' as DOUBLE)",DOUBLE,1.2345678901234567e19);
+  assertFunction("cast(JSON '128.9' as DOUBLE)",DOUBLE,128.9);
+  assertFunction("cast(JSON '1e-324' as DOUBLE)",DOUBLE,0.0);
+  assertFunction("cast(JSON '1e309' as DOUBLE)",DOUBLE,POSITIVE_INFINITY);
+  assertFunction("cast(JSON '-1e309' as DOUBLE)",DOUBLE,NEGATIVE_INFINITY);
+  assertFunction("cast(JSON 'true' as DOUBLE)",DOUBLE,1.0);
+  assertFunction("cast(JSON 'false' as DOUBLE)",DOUBLE,0.0);
+  assertFunction("cast(JSON '\"128\"' as DOUBLE)",DOUBLE,128.0);
+  assertFunction("cast(JSON '\"12345678901234567890\"' as DOUBLE)",DOUBLE,1.2345678901234567e19);
+  assertFunction("cast(JSON '\"128.9\"' as DOUBLE)",DOUBLE,128.9);
+  assertFunction("cast(JSON '\"NaN\"' as DOUBLE)",DOUBLE,Double.NaN);
+  assertFunction("cast(JSON '\"Infinity\"' as DOUBLE)",DOUBLE,POSITIVE_INFINITY);
+  assertFunction("cast(JSON '\"-Infinity\"' as DOUBLE)",DOUBLE,NEGATIVE_INFINITY);
+  assertInvalidFunction("cast(JSON '\"true\"' as DOUBLE)",INVALID_CAST_ARGUMENT);
+  assertFunction("cast(JSON ' 128.9' as DOUBLE)",DOUBLE,128.9);
+  assertFunction("cast(json_extract('{\"x\":1.23}', '$.x') as DOUBLE)",DOUBLE,1.23);
+  assertInvalidCast("cast(JSON '{ \"x\" : 123}' as DOUBLE)");
+}

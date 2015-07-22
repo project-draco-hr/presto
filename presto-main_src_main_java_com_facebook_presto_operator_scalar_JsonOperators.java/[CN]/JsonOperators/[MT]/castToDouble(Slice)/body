@@ -1,0 +1,33 @@
+{
+  try (JsonParser parser=JSON_FACTORY.createParser(json.getInput())){
+    parser.nextToken();
+    Double result;
+switch (parser.getCurrentToken()) {
+case VALUE_NULL:
+      result=null;
+    break;
+case VALUE_STRING:
+  result=VarcharOperators.castToDouble(Slices.utf8Slice(parser.getText()));
+break;
+case VALUE_NUMBER_FLOAT:
+result=parser.getDoubleValue();
+break;
+case VALUE_NUMBER_INT:
+result=parser.getDoubleValue();
+break;
+case VALUE_TRUE:
+result=BooleanOperators.castToDouble(true);
+break;
+case VALUE_FALSE:
+result=BooleanOperators.castToDouble(false);
+break;
+default :
+throw new PrestoException(INVALID_CAST_ARGUMENT,format("Cannot cast '%s' to %s",json.toStringUtf8(),DOUBLE));
+}
+checkCondition(parser.nextToken() == null,INVALID_CAST_ARGUMENT,"Cannot cast input json to DOUBLE");
+return result;
+}
+ catch (IOException e) {
+throw new PrestoException(INVALID_CAST_ARGUMENT,format("Cannot cast '%s' to %s",json.toStringUtf8(),DOUBLE));
+}
+}

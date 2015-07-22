@@ -1,0 +1,20 @@
+{
+  assertFunction("cast(JSON 'null' as BIGINT)",BIGINT,null);
+  assertFunction("cast(JSON '128' as BIGINT)",BIGINT,128);
+  assertInvalidFunction("cast(JSON '12345678901234567890' as BIGINT)",INVALID_CAST_ARGUMENT);
+  assertFunction("cast(JSON '128.9' as BIGINT)",BIGINT,129);
+  assertFunction("cast(JSON '1234567890123456789.0' as BIGINT)",BIGINT,1234567890123456768L);
+  assertFunction("cast(JSON '12345678901234567890.0' as BIGINT)",BIGINT,9223372036854775807L);
+  assertFunction("cast(JSON '1e-324' as BIGINT)",BIGINT,0);
+  assertInvalidFunction("cast(JSON '1e309' as BIGINT)",INVALID_CAST_ARGUMENT);
+  assertFunction("cast(JSON 'true' as BIGINT)",BIGINT,1);
+  assertFunction("cast(JSON 'false' as BIGINT)",BIGINT,0);
+  assertFunction("cast(JSON '\"128\"' as BIGINT)",BIGINT,128);
+  assertInvalidFunction("cast(JSON '\"12345678901234567890\"' as BIGINT)",INVALID_CAST_ARGUMENT);
+  assertInvalidFunction("cast(JSON '\"128.9\"' as BIGINT)",INVALID_CAST_ARGUMENT);
+  assertInvalidFunction("cast(JSON '\"true\"' as BIGINT)",INVALID_CAST_ARGUMENT);
+  assertInvalidFunction("cast(JSON '\"false\"' as BIGINT)",INVALID_CAST_ARGUMENT);
+  assertFunction("cast(JSON ' 128' as BIGINT)",BIGINT,128);
+  assertFunction("cast(json_extract('{\"x\":999}', '$.x') as BIGINT)",BIGINT,999);
+  assertInvalidCast("cast(JSON '{ \"x\" : 123}' as BIGINT)");
+}

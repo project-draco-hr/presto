@@ -1,0 +1,33 @@
+{
+  try (JsonParser parser=JSON_FACTORY.createParser(json.getInput())){
+    parser.nextToken();
+    Long result;
+switch (parser.getCurrentToken()) {
+case VALUE_NULL:
+      result=null;
+    break;
+case VALUE_STRING:
+  result=VarcharOperators.castToBigint(Slices.utf8Slice(parser.getText()));
+break;
+case VALUE_NUMBER_FLOAT:
+result=DoubleOperators.castToLong(parser.getDoubleValue());
+break;
+case VALUE_NUMBER_INT:
+result=parser.getLongValue();
+break;
+case VALUE_TRUE:
+result=BooleanOperators.castToBigint(true);
+break;
+case VALUE_FALSE:
+result=BooleanOperators.castToBigint(false);
+break;
+default :
+throw new PrestoException(INVALID_CAST_ARGUMENT,format("Cannot cast '%s' to %s",json.toStringUtf8(),BIGINT));
+}
+checkCondition(parser.nextToken() == null,INVALID_CAST_ARGUMENT,"Cannot cast input json to BIGINT");
+return result;
+}
+ catch (IOException e) {
+throw new PrestoException(INVALID_CAST_ARGUMENT,format("Cannot cast '%s' to %s",json.toStringUtf8(),BIGINT));
+}
+}

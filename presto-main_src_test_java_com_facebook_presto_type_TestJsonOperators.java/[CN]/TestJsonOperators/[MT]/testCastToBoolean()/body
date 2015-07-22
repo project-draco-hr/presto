@@ -1,0 +1,19 @@
+{
+  assertFunction("cast(JSON 'null' as BOOLEAN)",BOOLEAN,null);
+  assertFunction("cast(JSON '0' as BOOLEAN)",BOOLEAN,false);
+  assertFunction("cast(JSON '128' as BOOLEAN)",BOOLEAN,true);
+  assertInvalidFunction("cast(JSON '12345678901234567890' as BOOLEAN)",INVALID_CAST_ARGUMENT);
+  assertFunction("cast(JSON '128.9' as BOOLEAN)",BOOLEAN,true);
+  assertFunction("cast(JSON '1e-324' as BOOLEAN)",BOOLEAN,false);
+  assertInvalidFunction("cast(JSON '1e309' as BOOLEAN)",INVALID_CAST_ARGUMENT);
+  assertFunction("cast(JSON 'true' as BOOLEAN)",BOOLEAN,true);
+  assertFunction("cast(JSON 'false' as BOOLEAN)",BOOLEAN,false);
+  assertFunction("cast(JSON '\"True\"' as BOOLEAN)",BOOLEAN,true);
+  assertFunction("cast(JSON '\"true\"' as BOOLEAN)",BOOLEAN,true);
+  assertFunction("cast(JSON '\"false\"' as BOOLEAN)",BOOLEAN,false);
+  assertInvalidFunction("cast(JSON '\"128\"' as BOOLEAN)",INVALID_CAST_ARGUMENT);
+  assertInvalidFunction("cast(JSON '\"\"' as BOOLEAN)",INVALID_CAST_ARGUMENT);
+  assertFunction("cast(JSON ' true' as BOOLEAN)",BOOLEAN,true);
+  assertFunction("cast(json_extract('{\"x\":true}', '$.x') as BOOLEAN)",BOOLEAN,true);
+  assertInvalidCast("cast(JSON '{ \"x\" : 123}' as BOOLEAN)");
+}
