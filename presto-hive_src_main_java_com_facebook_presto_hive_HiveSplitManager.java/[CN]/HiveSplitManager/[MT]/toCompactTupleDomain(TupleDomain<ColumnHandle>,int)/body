@@ -3,8 +3,8 @@
   for (  Map.Entry<ColumnHandle,Domain> entry : effectivePredicate.getDomains().entrySet()) {
     HiveColumnHandle hiveColumnHandle=checkType(entry.getKey(),HiveColumnHandle.class,"ConnectorColumnHandle");
     SortedRangeSet ranges=entry.getValue().getRanges();
-    if (!ranges.isNone()) {
-      ranges=SortedRangeSet.of(entry.getValue().getRanges().getSpan());
+    if (ranges.getRangeCount() > threshold) {
+      ranges=SortedRangeSet.of(ranges.getSpan());
     }
     builder.put(hiveColumnHandle,new Domain(ranges,entry.getValue().isNullAllowed()));
   }
