@@ -1,3 +1,9 @@
 {
-  return new RecordPageSource(new InMemoryRecordSet(ImmutableList.of(),ImmutableList.of()));
+  BlackHoleSplit blackHoleSplit=checkType(split,BlackHoleSplit.class,"BlackHoleSplit");
+  ImmutableList.Builder<Type> builder=ImmutableList.builder();
+  for (  ColumnHandle column : columns) {
+    builder.add((checkType(column,BlackHoleColumnHandle.class,"BlackHoleColumnHandle")).getColumnType());
+  }
+  List<Type> types=builder.build();
+  return new FixedPageSource(Iterables.limit(Iterables.cycle(generateZeroPage(types,blackHoleSplit.getRowsPerPage())),blackHoleSplit.getPagesCount()));
 }

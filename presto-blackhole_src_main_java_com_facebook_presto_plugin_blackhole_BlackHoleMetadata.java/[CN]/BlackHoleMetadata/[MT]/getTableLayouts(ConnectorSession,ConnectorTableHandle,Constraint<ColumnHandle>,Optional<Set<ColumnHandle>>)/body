@@ -1,3 +1,7 @@
 {
-  return ImmutableList.of(new ConnectorTableLayoutResult(getTableLayout(session,BLACK_HOLE_TABLE_LAYOUT_HANDLE),TupleDomain.none()));
+  requireNonNull(handle,"handle is null");
+  checkArgument(handle instanceof BlackHoleTableHandle);
+  BlackHoleTableHandle blackHoleHandle=(BlackHoleTableHandle)handle;
+  BlackHoleTableLayoutHandle layoutHandle=new BlackHoleTableLayoutHandle(blackHoleHandle.getSplitsCount(),blackHoleHandle.getPagesPerSplit(),blackHoleHandle.getRowsPerPage());
+  return ImmutableList.of(new ConnectorTableLayoutResult(getTableLayout(session,layoutHandle),TupleDomain.all()));
 }

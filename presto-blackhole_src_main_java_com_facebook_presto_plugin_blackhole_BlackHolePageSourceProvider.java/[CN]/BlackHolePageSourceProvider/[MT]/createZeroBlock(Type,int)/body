@@ -1,0 +1,29 @@
+{
+  checkArgument(SUPPORTED_TYPES.contains(type),"Unsupported type [%s]",type);
+  BlockBuilder builder;
+  if (type instanceof FixedWidthType) {
+    builder=type.createBlockBuilder(new BlockBuilderStatus(),rowsCount);
+  }
+ else {
+    builder=type.createBlockBuilder(new BlockBuilderStatus(),rowsCount,CONSTANT_BYTES.length);
+  }
+  for (int i=0; i < rowsCount; i++) {
+    Class<?> javaType=type.getJavaType();
+    if (javaType == boolean.class) {
+      type.writeBoolean(builder,false);
+    }
+ else     if (javaType == long.class) {
+      type.writeLong(builder,0);
+    }
+ else     if (javaType == double.class) {
+      type.writeDouble(builder,0.0);
+    }
+ else     if (javaType == Slice.class) {
+      type.writeSlice(builder,CONSTANT_SLICE,0,CONSTANT_SLICE.length());
+    }
+ else {
+      throw new UnsupportedOperationException("Unknown javaType: " + javaType.getName());
+    }
+  }
+  return builder.build();
+}

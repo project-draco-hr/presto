@@ -1,3 +1,7 @@
 {
-  return new BlackHoleOutputTableHandle(new BlackHoleTableHandle(tableMetadata));
+  int splitsCount=(Integer)tableMetadata.getProperties().get(SPLITS_COUNT_PROPERTY);
+  int pagesPerSplit=(Integer)tableMetadata.getProperties().get(PAGES_PER_SPLIT_PROPERTY);
+  int rowsPerPage=(Integer)tableMetadata.getProperties().get(ROWS_PER_PAGE_PROPERTY);
+  checkArgument((splitsCount > 0 && pagesPerSplit > 0 && rowsPerPage > 0) || (splitsCount == 0 && pagesPerSplit == 0 && rowsPerPage == 0),"You have to set all of the properties [%s, %s and %s] or none",SPLITS_COUNT_PROPERTY,PAGES_PER_SPLIT_PROPERTY,ROWS_PER_PAGE_PROPERTY);
+  return new BlackHoleOutputTableHandle(new BlackHoleTableHandle(tableMetadata,splitsCount,pagesPerSplit,rowsPerPage));
 }
