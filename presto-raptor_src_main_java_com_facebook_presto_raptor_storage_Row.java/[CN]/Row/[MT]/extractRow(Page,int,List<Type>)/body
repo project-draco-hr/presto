@@ -5,26 +5,30 @@
   for (int channel=0; channel < page.getChannelCount(); channel++) {
     Block block=page.getBlock(channel);
     Type type=types.get(channel);
-    if (block.isNull(position)) {
-      rowBuilder.add(null,SIZE_OF_BYTE);
+    int size;
+    Object value=getNativeContainerValue(type,block,position);
+    if (value == null) {
+      size=SIZE_OF_BYTE;
     }
  else     if (type.getJavaType() == boolean.class) {
-      rowBuilder.add(type.getBoolean(block,position),SIZE_OF_BYTE);
+      size=SIZE_OF_BYTE;
     }
  else     if (type.getJavaType() == long.class) {
-      rowBuilder.add(type.getLong(block,position),SIZE_OF_LONG);
+      size=SIZE_OF_LONG;
     }
  else     if (type.getJavaType() == double.class) {
-      rowBuilder.add(type.getDouble(block,position),SIZE_OF_DOUBLE);
+      size=SIZE_OF_DOUBLE;
     }
  else     if (type.getJavaType() == Slice.class) {
-      Slice slice=type.getSlice(block,position);
-      Object value=type.equals(VARCHAR) ? slice.toStringUtf8() : slice.getBytes();
-      rowBuilder.add(value,slice.length());
+      size=((Slice)value).length();
+    }
+ else     if (type.getJavaType() == Block.class) {
+      size=((Block)value).getSizeInBytes();
     }
  else {
-      throw new AssertionError("unimplemented type: " + type);
+      throw new AssertionError("Unimplemented type: " + type);
     }
+    rowBuilder.add(nativeContainerToOrcValue(type,value),size);
   }
   Row row=rowBuilder.build();
   verify(row.getColumns().size() == types.size(),"Column count in row: %s Expected column count: %s",row.getColumns().size(),types.size());

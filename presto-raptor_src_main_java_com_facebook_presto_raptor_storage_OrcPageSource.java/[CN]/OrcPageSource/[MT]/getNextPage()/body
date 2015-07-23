@@ -31,6 +31,9 @@
  else       if (VARCHAR.equals(type) || VARBINARY.equals(type)) {
         blocks[fieldId]=new LazySliceArrayBlock(batchSize,new LazySliceBlockLoader(columnIndexes[fieldId],batchSize));
       }
+ else       if (isArrayType(type) || isMapType(type)) {
+        blocks[fieldId]=new LazyArrayBlock(new LazyStructuralBlockLoader(columnIndexes[fieldId],type));
+      }
  else {
         throw new PrestoException(NOT_SUPPORTED,"Unsupported column type: " + type);
       }

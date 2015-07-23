@@ -1,0 +1,40 @@
+{
+  if (nativeValue == null) {
+    return null;
+  }
+  if (type.getJavaType() == boolean.class) {
+    return nativeValue;
+  }
+  if (type.getJavaType() == long.class) {
+    return nativeValue;
+  }
+  if (type.getJavaType() == double.class) {
+    return nativeValue;
+  }
+  if (type.getJavaType() == Slice.class) {
+    Slice slice=(Slice)nativeValue;
+    return type.equals(VARCHAR) ? slice.toStringUtf8() : slice.getBytes();
+  }
+  if (isArrayType(type)) {
+    Block arrayBlock=(Block)nativeValue;
+    Type elementType=type.getTypeParameters().get(0);
+    List<Object> list=new ArrayList<>();
+    for (int i=0; i < arrayBlock.getPositionCount(); i++) {
+      list.add(nativeContainerToOrcValue(elementType,getNativeContainerValue(elementType,arrayBlock,i)));
+    }
+    return list;
+  }
+  if (isMapType(type)) {
+    Block mapBlock=(Block)nativeValue;
+    Type keyType=type.getTypeParameters().get(0);
+    Type valueType=type.getTypeParameters().get(1);
+    Map<Object,Object> map=new HashMap<>();
+    for (int i=0; i < mapBlock.getPositionCount(); i+=2) {
+      Object key=nativeContainerToOrcValue(keyType,getNativeContainerValue(keyType,mapBlock,i));
+      Object value=nativeContainerToOrcValue(valueType,getNativeContainerValue(valueType,mapBlock,i + 1));
+      map.put(key,value);
+    }
+    return map;
+  }
+  throw new PrestoException(INTERNAL_ERROR,"Unimplemented type: " + type);
+}

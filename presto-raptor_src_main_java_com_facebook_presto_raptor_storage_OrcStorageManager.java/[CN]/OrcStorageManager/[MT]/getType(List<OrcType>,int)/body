@@ -1,0 +1,29 @@
+{
+  OrcType type=types.get(index);
+switch (type.getOrcTypeKind()) {
+case BOOLEAN:
+    return BOOLEAN;
+case LONG:
+  return BIGINT;
+case DOUBLE:
+return DOUBLE;
+case STRING:
+return VARCHAR;
+case BINARY:
+return VARBINARY;
+case LIST:
+TypeSignature elementType=getType(types,type.getFieldTypeIndex(0)).getTypeSignature();
+return typeManager.getParameterizedType(StandardTypes.ARRAY,ImmutableList.of(elementType),ImmutableList.of());
+case MAP:
+TypeSignature keyType=getType(types,type.getFieldTypeIndex(0)).getTypeSignature();
+TypeSignature valueType=getType(types,type.getFieldTypeIndex(1)).getTypeSignature();
+return typeManager.getParameterizedType(StandardTypes.MAP,ImmutableList.of(keyType,valueType),ImmutableList.of());
+case STRUCT:
+ImmutableList.Builder<TypeSignature> fieldTypes=ImmutableList.builder();
+for (int i=0; i < type.getFieldCount(); i++) {
+fieldTypes.add(getType(types,type.getFieldTypeIndex(i)).getTypeSignature());
+}
+return typeManager.getParameterizedType(StandardTypes.ROW,fieldTypes.build(),ImmutableList.copyOf(type.getFieldNames()));
+}
+throw new PrestoException(RAPTOR_ERROR,"Unhandled ORC type: " + type);
+}

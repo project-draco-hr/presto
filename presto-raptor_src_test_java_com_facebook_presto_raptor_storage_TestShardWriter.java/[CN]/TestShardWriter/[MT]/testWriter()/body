@@ -1,10 +1,13 @@
 {
-  List<Long> columnIds=ImmutableList.of(1L,2L,4L,6L,7L);
-  List<Type> columnTypes=ImmutableList.of(BIGINT,VARCHAR,VARBINARY,DoubleType.DOUBLE,BooleanType.BOOLEAN);
+  List<Long> columnIds=ImmutableList.of(1L,2L,4L,6L,7L,8L,9L,10L);
+  ArrayType arrayType=new ArrayType(BIGINT);
+  ArrayType arrayOfArrayType=new ArrayType(arrayType);
+  MapType mapType=new MapType(VARCHAR,BOOLEAN);
+  List<Type> columnTypes=ImmutableList.of(BIGINT,VARCHAR,VARBINARY,DOUBLE,BOOLEAN,arrayType,mapType,arrayOfArrayType);
   File file=new File(directory,System.nanoTime() + ".orc");
   byte[] bytes1=octets(0x00,0xFE,0xFF);
   byte[] bytes3=octets(0x01,0x02,0x19,0x80);
-  RowPagesBuilder rowPagesBuilder=RowPagesBuilder.rowPagesBuilder(columnTypes).row(123,"hello",wrappedBuffer(bytes1),123.456,true).row(null,"world",null,Double.POSITIVE_INFINITY,null).row(456,"bye \u2603",wrappedBuffer(bytes3),Double.NaN,false);
+  RowPagesBuilder rowPagesBuilder=RowPagesBuilder.rowPagesBuilder(columnTypes).row(123,"hello",wrappedBuffer(bytes1),123.456,true,arrayBlockOf(BIGINT,1,2),mapBlockOf(VARCHAR,BOOLEAN,"k1",true),arrayBlockOf(arrayType,arrayBlockOf(BIGINT,5))).row(null,"world",null,Double.POSITIVE_INFINITY,null,arrayBlockOf(BIGINT,3,null),mapBlockOf(VARCHAR,BOOLEAN,"k2",null),arrayBlockOf(arrayType,null,arrayBlockOf(BIGINT,6,7))).row(456,"bye \u2603",wrappedBuffer(bytes3),Double.NaN,false,arrayBlockOf(BIGINT),mapBlockOf(VARCHAR,BOOLEAN,"k3",false),arrayBlockOf(arrayType,arrayBlockOf(BIGINT)));
   try (ThreadContextClassLoader ignored=new ThreadContextClassLoader(new EmptyClassLoader());OrcFileWriter writer=new OrcFileWriter(columnIds,columnTypes,file)){
     writer.appendPages(rowPagesBuilder.build());
   }
@@ -49,6 +52,27 @@
     assertEquals(booleanVector.isNull[2],false);
     assertEquals(booleanVector.vector[0],true);
     assertEquals(booleanVector.vector[2],false);
+    SingleObjectVector arrayVector=new SingleObjectVector();
+    reader.readVector(arrayType,5,arrayVector);
+    Block block=(Block)arrayVector.object;
+    assertEquals(block.getPositionCount(),3);
+    assertTrue(arrayBlocksEqual(BIGINT,arrayType.getObject(block,0),arrayBlockOf(BIGINT,1,2)));
+    assertTrue(arrayBlocksEqual(BIGINT,arrayType.getObject(block,1),arrayBlockOf(BIGINT,3,null)));
+    assertTrue(arrayBlocksEqual(BIGINT,arrayType.getObject(block,2),arrayBlockOf(BIGINT)));
+    SingleObjectVector mapVector=new SingleObjectVector();
+    reader.readVector(mapType,6,mapVector);
+    block=(Block)mapVector.object;
+    assertEquals(block.getPositionCount(),3);
+    assertTrue(mapBlocksEqual(VARCHAR,BOOLEAN,arrayType.getObject(block,0),mapBlockOf(VARCHAR,BOOLEAN,"k1",true)));
+    assertTrue(mapBlocksEqual(VARCHAR,BOOLEAN,arrayType.getObject(block,1),mapBlockOf(VARCHAR,BOOLEAN,"k2",null)));
+    assertTrue(mapBlocksEqual(VARCHAR,BOOLEAN,arrayType.getObject(block,2),mapBlockOf(VARCHAR,BOOLEAN,"k3",false)));
+    SingleObjectVector arrayOfArrayVector=new SingleObjectVector();
+    reader.readVector(arrayOfArrayType,7,arrayOfArrayVector);
+    block=(Block)arrayOfArrayVector.object;
+    assertEquals(block.getPositionCount(),3);
+    assertTrue(arrayBlocksEqual(arrayType,arrayOfArrayType.getObject(block,0),arrayBlockOf(arrayType,arrayBlockOf(BIGINT,5))));
+    assertTrue(arrayBlocksEqual(arrayType,arrayOfArrayType.getObject(block,1),arrayBlockOf(arrayType,null,arrayBlockOf(BIGINT,6,7))));
+    assertTrue(arrayBlocksEqual(arrayType,arrayOfArrayType.getObject(block,2),arrayBlockOf(arrayType,arrayBlockOf(BIGINT))));
     assertEquals(reader.nextBatch(),-1);
     assertEquals(reader.getReaderPosition(),3);
     assertEquals(reader.getFilePosition(),reader.getFilePosition());

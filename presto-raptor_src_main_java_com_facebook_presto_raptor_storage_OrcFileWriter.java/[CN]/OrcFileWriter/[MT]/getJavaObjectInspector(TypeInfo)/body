@@ -1,0 +1,15 @@
+{
+  Category category=typeInfo.getCategory();
+  if (category == PRIMITIVE) {
+    return getPrimitiveJavaObjectInspector(getPrimitiveTypeInfo(typeInfo.getTypeName()));
+  }
+  if (category == LIST) {
+    ListTypeInfo listTypeInfo=(ListTypeInfo)typeInfo;
+    return getStandardListObjectInspector(getJavaObjectInspector(listTypeInfo.getListElementTypeInfo()));
+  }
+  if (category == MAP) {
+    MapTypeInfo mapTypeInfo=(MapTypeInfo)typeInfo;
+    return getStandardMapObjectInspector(getJavaObjectInspector(mapTypeInfo.getMapKeyTypeInfo()),getJavaObjectInspector(mapTypeInfo.getMapValueTypeInfo()));
+  }
+  throw new PrestoException(INTERNAL_ERROR,"Unhandled storage type: " + category);
+}
