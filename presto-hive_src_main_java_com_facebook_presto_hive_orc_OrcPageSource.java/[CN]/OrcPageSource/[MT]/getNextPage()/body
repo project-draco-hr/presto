@@ -24,8 +24,11 @@
  else       if (DOUBLE.equals(type)) {
         blocks[fieldId]=new LazyFixedWidthBlock(DOUBLE.getFixedSize(),batchSize,new LazyDoubleBlockLoader(hiveColumnIndexes[fieldId],batchSize));
       }
- else       if (VARCHAR.equals(type) || VARBINARY.equals(type) || isStructuralType[fieldId]) {
+ else       if (VARCHAR.equals(type) || VARBINARY.equals(type)) {
         blocks[fieldId]=new LazySliceArrayBlock(batchSize,new LazySliceBlockLoader(hiveColumnIndexes[fieldId],batchSize));
+      }
+ else       if (isStructuralType[fieldId]) {
+        blocks[fieldId]=new LazyArrayBlock(new LazyStructuralBlockLoader(hiveColumnIndexes[fieldId],types.get(fieldId)));
       }
  else {
         throw new PrestoException(NOT_SUPPORTED,"Unsupported column type: " + type);

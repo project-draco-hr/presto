@@ -1,0 +1,42 @@
+{
+  int numElements=arrayBlock.getPositionCount();
+  DynamicSliceOutput sliceOutput=new DynamicSliceOutput(arrayBlock.getSizeInBytes() + delimiter.length() * arrayBlock.getPositionCount());
+  Class<?> javaType=elementType.getJavaType();
+  Class<?>[] parameters=null;
+  MethodHandle castFunctionHandle=null;
+  if (castFunction != null) {
+    parameters=castFunction.getMethodHandle().type().parameterArray();
+    castFunctionHandle=castFunction.getMethodHandle();
+  }
+  for (int i=0; i < numElements; i++) {
+    if (arrayBlock.isNull(i)) {
+      if (nullReplacement != null) {
+        sliceOutput.appendBytes(nullReplacement);
+      }
+ else {
+        continue;
+      }
+    }
+ else {
+      if (javaType == boolean.class) {
+        sliceOutput.appendBytes(invokeCast(parameters,castFunctionHandle,session,elementType.getBoolean(arrayBlock,i)));
+      }
+ else       if (javaType == double.class) {
+        sliceOutput.appendBytes(invokeCast(parameters,castFunctionHandle,session,elementType.getDouble(arrayBlock,i)));
+      }
+ else       if (javaType == long.class) {
+        sliceOutput.appendBytes(invokeCast(parameters,castFunctionHandle,session,elementType.getLong(arrayBlock,i)));
+      }
+ else       if (javaType == Slice.class) {
+        sliceOutput.appendBytes(invokeCast(parameters,castFunctionHandle,session,elementType.getSlice(arrayBlock,i)));
+      }
+ else {
+        throw new PrestoException(INVALID_FUNCTION_ARGUMENT,format("Unexpected type %s",javaType.getName()));
+      }
+    }
+    if (i != numElements - 1) {
+      sliceOutput.appendBytes(delimiter);
+    }
+  }
+  return sliceOutput.slice();
+}

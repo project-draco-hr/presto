@@ -2,7 +2,7 @@
   OrcRecordReader recordReader=createCustomOrcRecordReader(tempFile,metadataReader,createOrcPredicate(objectInspector,expectedValues),type);
   assertEquals(recordReader.getReaderPosition(),0);
   assertEquals(recordReader.getFilePosition(),0);
-  Vector vector=createResultsVector(objectInspector);
+  Object resultObject=createResultsVector(objectInspector);
   boolean isFirst=true;
   int rowsProcessed=0;
   Iterator<?> iterator=expectedValues.iterator();
@@ -15,16 +15,32 @@
       isFirst=false;
     }
  else {
-      recordReader.readVector(0,vector);
-      ObjectVector objectVector=vector.toObjectVector(batchSize);
-      for (int i=0; i < batchSize; i++) {
-        assertTrue(iterator.hasNext());
-        Object expected=iterator.next();
-        Object actual=objectVector.vector[i];
-        if (actual instanceof Slice) {
-          actual=decodeSlice(type,(Slice)actual);
+      recordReader.readVector(type,0,resultObject);
+      if (objectInspector instanceof PrimitiveObjectInspector) {
+        Vector vector=(Vector)resultObject;
+        ObjectVector objectVector=vector.toObjectVector(batchSize);
+        for (int i=0; i < batchSize; i++) {
+          assertTrue(iterator.hasNext());
+          Object expected=iterator.next();
+          Object actual=objectVector.vector[i];
+          if (actual instanceof Slice) {
+            actual=decodeObject(type,actual);
+          }
+          assertEquals(actual,expected);
         }
-        if (!Objects.equals(actual,expected)) {
+      }
+ else {
+        Block block=(Block)((SingleObjectVector)resultObject).object;
+        for (int i=0; i < batchSize; i++) {
+          assertTrue(iterator.hasNext());
+          Object expected=iterator.next();
+          Object actual;
+          if (block.isNull(i)) {
+            actual=null;
+          }
+ else {
+            actual=decodeObject(type,type.getObject(block,i));
+          }
           assertEquals(actual,expected);
         }
       }

@@ -1,0 +1,43 @@
+{
+  Map<KeyWrapper,Integer> wrappedLeftMap=new LinkedHashMap<>();
+  for (int position=0; position < leftMapBlock.getPositionCount(); position+=2) {
+    wrappedLeftMap.put(new KeyWrapper(castValue(keyType,leftMapBlock,position),keyEqualsFunction,keyHashcodeFunction),position + 1);
+  }
+  Map<KeyWrapper,Integer> wrappedRightMap=new LinkedHashMap<>();
+  for (int position=0; position < rightMapBlock.getPositionCount(); position+=2) {
+    wrappedRightMap.put(new KeyWrapper(castValue(keyType,rightMapBlock,position),keyEqualsFunction,keyHashcodeFunction),position + 1);
+  }
+  if (wrappedLeftMap.size() != wrappedRightMap.size()) {
+    return false;
+  }
+  for (  Map.Entry<KeyWrapper,Integer> entry : wrappedRightMap.entrySet()) {
+    KeyWrapper key=entry.getKey();
+    Integer leftValuePosition=wrappedLeftMap.get(key);
+    if (leftValuePosition == null) {
+      return false;
+    }
+    Object leftValue=castValue(valueType,leftMapBlock,leftValuePosition);
+    if (leftValue == null) {
+      return null;
+    }
+    Object rightValue=castValue(valueType,rightMapBlock,entry.getValue());
+    if (rightValue == null) {
+      return null;
+    }
+    try {
+      Boolean result=(Boolean)valueEqualsFunction.invoke(leftValue,rightValue);
+      if (result == null) {
+        return null;
+      }
+ else       if (!result) {
+        return false;
+      }
+    }
+ catch (    Throwable t) {
+      Throwables.propagateIfInstanceOf(t,Error.class);
+      Throwables.propagateIfInstanceOf(t,PrestoException.class);
+      throw new PrestoException(INTERNAL_ERROR,t);
+    }
+  }
+  return true;
+}

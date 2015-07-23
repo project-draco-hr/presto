@@ -2,9 +2,9 @@
   DynamicClassLoader classLoader=new DynamicClassLoader(MapAggregation.class.getClassLoader());
   List<Type> inputTypes=ImmutableList.of(keyType,valueType);
   Type outputType=new MapType(keyType,valueType);
-  KeyValuePairStateSerializer stateSerializer=new KeyValuePairStateSerializer();
+  KeyValuePairStateSerializer stateSerializer=new KeyValuePairStateSerializer(keyType,valueType);
   Type intermediateType=stateSerializer.getSerializedType();
-  AggregationMetadata metadata=new AggregationMetadata(generateAggregationName(NAME,outputType,inputTypes),createInputParameterMetadata(keyType,valueType),INPUT_FUNCTION,null,null,COMBINE_FUNCTION,OUTPUT_FUNCTION,KeyValuePairsState.class,stateSerializer,new KeyValuePairsStateFactory(keyType,valueType),outputType,false);
+  AggregationMetadata metadata=new AggregationMetadata(generateAggregationName(NAME,outputType,inputTypes),createInputParameterMetadata(keyType,valueType),INPUT_FUNCTION.bindTo(keyType).bindTo(valueType),null,null,COMBINE_FUNCTION,OUTPUT_FUNCTION,KeyValuePairsState.class,stateSerializer,new KeyValuePairsStateFactory(keyType,valueType),outputType,false);
   GenericAccumulatorFactoryBinder factory=new AccumulatorCompiler().generateAccumulatorFactoryBinder(metadata,classLoader);
   return new InternalAggregationFunction(NAME,inputTypes,intermediateType,outputType,true,false,factory);
 }

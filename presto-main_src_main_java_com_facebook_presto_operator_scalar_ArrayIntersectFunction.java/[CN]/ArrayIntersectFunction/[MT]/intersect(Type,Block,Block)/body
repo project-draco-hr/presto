@@ -1,0 +1,42 @@
+{
+  int leftPositionCount=leftArray.getPositionCount();
+  int rightPositionCount=rightArray.getPositionCount();
+  int[] leftPositions=new int[leftPositionCount];
+  int[] rightPositions=new int[rightPositionCount];
+  for (int i=0; i < leftPositionCount; i++) {
+    leftPositions[i]=i;
+  }
+  for (int i=0; i < rightPositionCount; i++) {
+    rightPositions[i]=i;
+  }
+  IntArrays.quickSort(leftPositions,IntBlockCompare(type,leftArray));
+  IntArrays.quickSort(rightPositions,IntBlockCompare(type,rightArray));
+  BlockBuilder resultBlockBuilder=type.createBlockBuilder(new BlockBuilderStatus(),Math.min(leftArray.getSizeInBytes(),rightArray.getSizeInBytes()));
+  int leftCurrentPosition=0;
+  int rightCurrentPosition=0;
+  int leftBasePosition;
+  int rightBasePosition;
+  while (leftCurrentPosition < leftPositionCount && rightCurrentPosition < rightPositionCount) {
+    leftBasePosition=leftCurrentPosition;
+    rightBasePosition=rightCurrentPosition;
+    int compareValue=type.compareTo(leftArray,leftPositions[leftCurrentPosition],rightArray,rightPositions[rightCurrentPosition]);
+    if (compareValue > 0) {
+      rightCurrentPosition++;
+    }
+ else     if (compareValue < 0) {
+      leftCurrentPosition++;
+    }
+ else {
+      type.appendTo(leftArray,leftPositions[leftCurrentPosition],resultBlockBuilder);
+      leftCurrentPosition++;
+      rightCurrentPosition++;
+      while (leftCurrentPosition < leftPositionCount && type.equalTo(leftArray,leftPositions[leftBasePosition],leftArray,leftPositions[leftCurrentPosition])) {
+        leftCurrentPosition++;
+      }
+      while (rightCurrentPosition < rightPositionCount && type.equalTo(rightArray,rightPositions[rightBasePosition],rightArray,rightPositions[rightCurrentPosition])) {
+        rightCurrentPosition++;
+      }
+    }
+  }
+  return resultBlockBuilder.build();
+}

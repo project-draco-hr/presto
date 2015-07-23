@@ -1,8 +1,8 @@
 {
-  BlockBuilder blockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),1024);
+  BlockBuilder blockBuilder=new InterleavedBlockBuilder(ImmutableList.of(keyType,valueType),new BlockBuilderStatus(),value.size() * 2,EXPECTED_BYTES_PER_ENTRY);
   for (  Map.Entry<?,?> entry : value.entrySet()) {
     appendToBlockBuilder(keyType,entry.getKey(),blockBuilder);
     appendToBlockBuilder(valueType,entry.getValue(),blockBuilder);
   }
-  return buildStructuralSlice(blockBuilder);
+  return blockBuilder.build();
 }

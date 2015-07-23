@@ -1,0 +1,19 @@
+{
+  int size=array.getPositionCount();
+  for (int i=0; i < size; i++) {
+    if (!array.isNull(i)) {
+      Object arrayValue=type.getObject(array,i);
+      try {
+        if ((boolean)equalMethodHandle.invoke(arrayValue,element)) {
+          return i + 1;
+        }
+      }
+ catch (      Throwable t) {
+        Throwables.propagateIfInstanceOf(t,Error.class);
+        Throwables.propagateIfInstanceOf(t,PrestoException.class);
+        throw new PrestoException(INTERNAL_ERROR,t);
+      }
+    }
+  }
+  return 0;
+}

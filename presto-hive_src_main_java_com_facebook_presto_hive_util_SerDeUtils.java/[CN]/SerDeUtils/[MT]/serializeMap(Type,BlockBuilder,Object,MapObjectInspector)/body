@@ -1,0 +1,34 @@
+{
+  Map<?,?> map=inspector.getMap(object);
+  if (map == null) {
+    checkNotNull(builder,"parent builder is null").appendNull();
+    return null;
+  }
+  List<Type> typeParameters=type.getTypeParameters();
+  checkArgument(typeParameters.size() == 2,"map must have exactly 2 type parameter");
+  Type keyType=typeParameters.get(0);
+  Type valueType=typeParameters.get(1);
+  ObjectInspector keyInspector=inspector.getMapKeyObjectInspector();
+  ObjectInspector valueInspector=inspector.getMapValueObjectInspector();
+  BlockBuilder currentBuilder;
+  if (builder != null) {
+    currentBuilder=builder.beginBlockEntry();
+  }
+ else {
+    currentBuilder=new InterleavedBlockBuilder(typeParameters,new BlockBuilderStatus(),map.size());
+  }
+  for (  Map.Entry<?,?> entry : map.entrySet()) {
+    if (entry.getKey() != null) {
+      serializeObject(keyType,currentBuilder,entry.getKey(),keyInspector);
+      serializeObject(valueType,currentBuilder,entry.getValue(),valueInspector);
+    }
+  }
+  if (builder != null) {
+    builder.closeEntry();
+    return null;
+  }
+ else {
+    Block resultBlock=currentBuilder.build();
+    return resultBlock;
+  }
+}

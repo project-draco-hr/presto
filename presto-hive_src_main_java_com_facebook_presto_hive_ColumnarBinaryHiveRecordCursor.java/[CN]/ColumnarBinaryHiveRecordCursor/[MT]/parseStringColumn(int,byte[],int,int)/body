@@ -1,24 +1,15 @@
 {
-  checkState(VALID_HIVE_STRING_TYPES.contains(hiveTypes[column]) || VALID_HIVE_STRING_CATEGORIES.contains(hiveTypes[column].getCategory()),"%s is not a valid STRING type",hiveTypes[column]);
+  checkState(VALID_HIVE_STRING_TYPES.contains(hiveTypes[column]),"%s is not a valid STRING type",hiveTypes[column]);
   if (length == 0) {
     nulls[column]=true;
   }
  else {
     nulls[column]=false;
-    if (isStructuralType(hiveTypes[column])) {
-      LazyBinaryObject<? extends ObjectInspector> lazyObject=LazyBinaryFactory.createLazyBinaryObject(fieldInspectors[column]);
-      ByteArrayRef byteArrayRef=new ByteArrayRef();
-      byteArrayRef.setData(bytes);
-      lazyObject.init(byteArrayRef,start,length);
-      slices[column]=getBlockSlice(lazyObject.getObject(),fieldInspectors[column]);
+    if (hiveTypes[column].equals(HiveType.HIVE_STRING) && (length == 1) && bytes[start] == HIVE_EMPTY_STRING_BYTE) {
+      slices[column]=Slices.EMPTY_SLICE;
     }
  else {
-      if (hiveTypes[column].equals(HiveType.HIVE_STRING) && (length == 1) && bytes[start] == HIVE_EMPTY_STRING_BYTE) {
-        slices[column]=Slices.EMPTY_SLICE;
-      }
- else {
-        slices[column]=Slices.wrappedBuffer(Arrays.copyOfRange(bytes,start,start + length));
-      }
+      slices[column]=Slices.wrappedBuffer(Arrays.copyOfRange(bytes,start,start + length));
     }
   }
 }

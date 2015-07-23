@@ -30,7 +30,7 @@
         fieldFromCursor=cursor.getLong(i);
       }
  else       if (isStructuralType(type)) {
-        fieldFromCursor=cursor.getSlice(i);
+        fieldFromCursor=cursor.getObject(i);
       }
  else {
         throw new RuntimeException("unknown type");
@@ -45,9 +45,9 @@
         assertEquals(fieldFromCursor,testColumn.getExpectedValue(),String.format("Wrong value for column %s",testColumn.getName()));
       }
  else {
-        Slice expected=(Slice)testColumn.getExpectedValue();
-        Slice actual=(Slice)fieldFromCursor;
-        assertEquals(actual,expected,String.format("Wrong value for column %s",testColumn.getName()));
+        Block expected=(Block)testColumn.getExpectedValue();
+        Block actual=(Block)fieldFromCursor;
+        assertBlockEquals(actual,expected,String.format("Wrong value for column %s",testColumn.getName()));
       }
     }
   }

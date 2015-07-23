@@ -1,0 +1,29 @@
+{
+  if (loaded) {
+    return;
+  }
+  try {
+    BytesRefArrayWritable columnBatch=batch.getColumn(fieldId);
+    int positionInBatch=batch.getPositionInBatch();
+    int batchSize=block.getPositionCount();
+    BlockBuilder blockBuilder=type.createBlockBuilder(new BlockBuilderStatus(),batchSize);
+    for (int i=0; i < batchSize; i++) {
+      BytesRefWritable writable=columnBatch.unCheckedGet(i + positionInBatch);
+      byte[] bytes=writable.getData();
+      int start=writable.getStart();
+      int length=writable.getLength();
+      if (!isNull(bytes,start,length)) {
+        LazyObject<? extends ObjectInspector> lazyObject=LazyFactory.createLazyObject(fieldInspector);
+        ByteArrayRef byteArrayRef=new ByteArrayRef();
+        byteArrayRef.setData(bytes);
+        lazyObject.init(byteArrayRef,start,length);
+        serializeObject(type,blockBuilder,lazyObject.getObject(),fieldInspector);
+      }
+    }
+    block.copyFromBlock(blockBuilder.build());
+    loaded=true;
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+}

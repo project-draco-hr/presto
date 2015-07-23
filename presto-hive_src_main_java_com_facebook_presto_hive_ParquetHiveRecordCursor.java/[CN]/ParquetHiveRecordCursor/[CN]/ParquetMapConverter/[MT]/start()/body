@@ -1,5 +1,12 @@
 {
-  out.reset();
-  this.currentBuilder=createBlockBuilder();
-  entryConverter.beforeValue(currentBuilder);
+  if (builder == null) {
+    if (nullBuilder == null || (nullBuilder.getPositionCount() >= NULL_BUILDER_POSITIONS_THRESHOLD && nullBuilder.getSizeInBytes() >= NULL_BUILDER_SIZE_IN_BYTES_THRESHOLD)) {
+      nullBuilder=mapType.createBlockBuilder(new BlockBuilderStatus(),NULL_BUILDER_POSITIONS_THRESHOLD);
+    }
+    currentEntryBuilder=nullBuilder.beginBlockEntry();
+  }
+ else {
+    currentEntryBuilder=builder.beginBlockEntry();
+  }
+  entryConverter.beforeValue(currentEntryBuilder);
 }

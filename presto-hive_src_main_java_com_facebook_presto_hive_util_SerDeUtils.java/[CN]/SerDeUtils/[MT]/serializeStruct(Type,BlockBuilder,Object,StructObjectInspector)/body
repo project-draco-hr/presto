@@ -1,0 +1,28 @@
+{
+  if (object == null) {
+    checkNotNull(builder,"parent builder is null").appendNull();
+    return null;
+  }
+  List<Type> typeParameters=type.getTypeParameters();
+  List<? extends StructField> allStructFieldRefs=inspector.getAllStructFieldRefs();
+  checkArgument(typeParameters.size() == allStructFieldRefs.size());
+  BlockBuilder currentBuilder;
+  if (builder != null) {
+    currentBuilder=builder.beginBlockEntry();
+  }
+ else {
+    currentBuilder=new InterleavedBlockBuilder(typeParameters,new BlockBuilderStatus(),typeParameters.size());
+  }
+  for (int i=0; i < typeParameters.size(); i++) {
+    StructField field=allStructFieldRefs.get(i);
+    serializeObject(typeParameters.get(i),currentBuilder,inspector.getStructFieldData(object,field),field.getFieldObjectInspector());
+  }
+  if (builder != null) {
+    builder.closeEntry();
+    return null;
+  }
+ else {
+    Block resultBlock=currentBuilder.build();
+    return resultBlock;
+  }
+}

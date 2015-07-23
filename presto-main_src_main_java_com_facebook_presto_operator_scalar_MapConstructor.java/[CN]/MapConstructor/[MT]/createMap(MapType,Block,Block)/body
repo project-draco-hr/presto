@@ -1,0 +1,12 @@
+{
+  BlockBuilder blockBuilder=new InterleavedBlockBuilder(mapType.getTypeParameters(),new BlockBuilderStatus(),keyBlock.getPositionCount() * 2);
+  checkCondition(keyBlock.getPositionCount() == valueBlock.getPositionCount(),INVALID_FUNCTION_ARGUMENT,"Key and value arrays must be the same length");
+  for (int i=0; i < keyBlock.getPositionCount(); i++) {
+    if (keyBlock.isNull(i)) {
+      throw new PrestoException(INVALID_FUNCTION_ARGUMENT,"map key cannot be null");
+    }
+    mapType.getKeyType().appendTo(keyBlock,i,blockBuilder);
+    mapType.getValueType().appendTo(valueBlock,i,blockBuilder);
+  }
+  return blockBuilder.build();
+}

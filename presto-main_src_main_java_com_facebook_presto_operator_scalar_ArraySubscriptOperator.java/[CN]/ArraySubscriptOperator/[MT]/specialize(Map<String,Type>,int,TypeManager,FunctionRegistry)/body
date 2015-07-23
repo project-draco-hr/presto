@@ -1,7 +1,25 @@
 {
   checkArgument(types.size() == 1,"Expected one type, got %s",types);
   Type elementType=types.get("E");
-  MethodHandle methodHandle=METHOD_HANDLES.get(elementType.getJavaType());
+  MethodHandle methodHandle;
+  if (elementType.getJavaType() == void.class) {
+    methodHandle=METHOD_HANDLE_UNKNOWN;
+  }
+ else   if (elementType.getJavaType() == boolean.class) {
+    methodHandle=METHOD_HANDLE_BOOLEAN;
+  }
+ else   if (elementType.getJavaType() == long.class) {
+    methodHandle=METHOD_HANDLE_LONG;
+  }
+ else   if (elementType.getJavaType() == double.class) {
+    methodHandle=METHOD_HANDLE_DOUBLE;
+  }
+ else   if (elementType.getJavaType() == Slice.class) {
+    methodHandle=METHOD_HANDLE_SLICE;
+  }
+ else {
+    methodHandle=METHOD_HANDLE_OBJECT;
+  }
   methodHandle=methodHandle.bindTo(elementType);
   checkNotNull(methodHandle,"methodHandle is null");
   return new FunctionInfo(Signature.internalOperator(SUBSCRIPT.name(),elementType.getTypeSignature(),parameterizedTypeName("array",elementType.getTypeSignature()),parseTypeSignature(StandardTypes.BIGINT)),"Array subscript",true,methodHandle,true,true,ImmutableList.of(false,false));

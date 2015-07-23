@@ -1,17 +1,18 @@
 {
   InternalAggregationFunction varcharAgg=metadata.getExactFunction(new Signature("array_agg","array<array<bigint>>","array<bigint>")).getAggregationFunction();
-  BlockBuilder builder=VARBINARY.createBlockBuilder(new BlockBuilderStatus(),100);
+  Type arrayType=new ArrayType(BIGINT);
+  BlockBuilder builder=arrayType.createBlockBuilder(new BlockBuilderStatus(),100);
   BlockBuilder variableWidthBlockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),100);
   BIGINT.writeLong(variableWidthBlockBuilder,1);
-  VARBINARY.writeSlice(builder,buildStructuralSlice(variableWidthBlockBuilder));
+  arrayType.writeObject(builder,variableWidthBlockBuilder);
   variableWidthBlockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),100);
   BIGINT.writeLong(variableWidthBlockBuilder,1);
   BIGINT.writeLong(variableWidthBlockBuilder,2);
-  VARBINARY.writeSlice(builder,buildStructuralSlice(variableWidthBlockBuilder));
+  arrayType.writeObject(builder,variableWidthBlockBuilder);
   variableWidthBlockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),100);
   BIGINT.writeLong(variableWidthBlockBuilder,1);
   BIGINT.writeLong(variableWidthBlockBuilder,2);
   BIGINT.writeLong(variableWidthBlockBuilder,3);
-  VARBINARY.writeSlice(builder,buildStructuralSlice(variableWidthBlockBuilder));
+  arrayType.writeObject(builder,variableWidthBlockBuilder);
   assertAggregation(varcharAgg,1.0,Arrays.asList(Arrays.asList(1L),Arrays.asList(1L,2L),Arrays.asList(1L,2L,3L)),new Page(builder.build()));
 }

@@ -11,6 +11,12 @@
   checkNotNull(returnType,"%s not found in row type %s",fieldName,type);
   signature=new Signature(mangleFieldReference(fieldName),returnType.getTypeSignature(),type.getTypeSignature());
   String stackType=returnType.getJavaType().getSimpleName().toLowerCase();
-  checkState(METHOD_HANDLE_MAP.containsKey(stackType),"method handle missing for %s stack type",stackType);
-  methodHandle=METHOD_HANDLE_MAP.get(stackType).bindTo(returnType).bindTo(index);
+  MethodHandle methodHandle;
+  if (METHOD_HANDLE_MAP.containsKey(stackType)) {
+    methodHandle=METHOD_HANDLE_MAP.get(stackType);
+  }
+ else {
+    methodHandle=METHOD_HANDLE_OBJECT;
+  }
+  this.methodHandle=methodHandle.bindTo(returnType).bindTo(index);
 }

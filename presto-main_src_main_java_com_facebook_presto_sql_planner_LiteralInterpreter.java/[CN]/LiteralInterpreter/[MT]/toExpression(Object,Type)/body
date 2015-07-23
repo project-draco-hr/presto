@@ -8,6 +8,7 @@
     }
     return new Cast(new NullLiteral(),type.getTypeSignature().toString());
   }
+  checkArgument(Primitives.wrap(type.getJavaType()).isInstance(object),"object.getClass (%s) and type.getJavaType (%s) do not agree",object.getClass(),type.getJavaType());
   if (type.equals(BIGINT)) {
     return new LongLiteral(object.toString());
   }
@@ -33,9 +34,15 @@
     if (object instanceof String) {
       return new StringLiteral((String)object);
     }
+    throw new IllegalArgumentException("object must be instance of Slice or String when type is VARCHAR");
   }
   if (type.equals(BOOLEAN)) {
     return new BooleanLiteral(object.toString());
+  }
+  if (object instanceof Block) {
+    SliceOutput output=new DynamicSliceOutput(((Block)object).getSizeInBytes());
+    BlockSerdeUtil.writeBlock(output,(Block)object);
+    object=output.slice();
   }
   if (object instanceof Slice && !type.equals(VARCHAR)) {
     FunctionCall fromBase64=new FunctionCall(new QualifiedName("from_base64"),ImmutableList.of(new StringLiteral(VarbinaryFunctions.toBase64((Slice)object).toStringUtf8())));
@@ -43,6 +50,6 @@
     return new FunctionCall(new QualifiedName(signature.getName()),ImmutableList.of(fromBase64));
   }
   Signature signature=FunctionRegistry.getMagicLiteralFunctionSignature(type);
-  Expression rawLiteral=toExpression(object,FunctionRegistry.type(type.getJavaType()));
+  Expression rawLiteral=toExpression(object,FunctionRegistry.typeForMagicLiteral(type));
   return new FunctionCall(new QualifiedName(signature.getName()),ImmutableList.of(rawLiteral));
 }

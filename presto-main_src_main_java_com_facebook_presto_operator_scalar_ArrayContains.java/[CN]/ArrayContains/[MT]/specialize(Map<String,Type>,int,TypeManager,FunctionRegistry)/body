@@ -2,7 +2,13 @@
   Type type=types.get("T");
   TypeSignature valueType=type.getTypeSignature();
   TypeSignature arrayType=parameterizedTypeName(StandardTypes.ARRAY,valueType);
-  MethodHandle methodHandle=methodHandle(ArrayContains.class,"contains",Type.class,Slice.class,type.getJavaType());
+  MethodHandle methodHandle;
+  if (type.getJavaType().isPrimitive()) {
+    methodHandle=methodHandle(ArrayContains.class,"contains",Type.class,Block.class,type.getJavaType());
+  }
+ else {
+    methodHandle=methodHandle(ArrayContains.class,"contains",Type.class,Block.class,Object.class);
+  }
   Signature signature=new Signature(FUNCTION_NAME,RETURN_TYPE,arrayType,valueType);
   return new FunctionInfo(signature,getDescription(),isHidden(),methodHandle.bindTo(type),isDeterministic(),true,ImmutableList.of(false,false));
 }

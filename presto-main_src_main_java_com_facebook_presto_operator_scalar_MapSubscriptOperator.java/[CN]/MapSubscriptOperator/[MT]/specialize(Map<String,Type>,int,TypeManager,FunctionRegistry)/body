@@ -2,8 +2,29 @@
   Type keyType=types.get("K");
   Type valueType=types.get("V");
   MethodHandle keyEqualsMethod=functionRegistry.resolveOperator(OperatorType.EQUAL,ImmutableList.of(keyType,keyType)).getMethodHandle();
-  MethodHandle methodHandle=lookupMethod(keyType,valueType);
+  MethodHandle methodHandle;
+  if (keyType.getJavaType() == boolean.class) {
+    methodHandle=METHOD_HANDLE_BOOLEAN;
+  }
+ else   if (keyType.getJavaType() == long.class) {
+    methodHandle=METHOD_HANDLE_LONG;
+  }
+ else   if (keyType.getJavaType() == double.class) {
+    methodHandle=METHOD_HANDLE_DOUBLE;
+  }
+ else   if (keyType.getJavaType() == Slice.class) {
+    methodHandle=METHOD_HANDLE_SLICE;
+  }
+ else {
+    methodHandle=METHOD_HANDLE_OBJECT;
+  }
   methodHandle=methodHandle.bindTo(keyEqualsMethod).bindTo(keyType).bindTo(valueType);
+  if (valueType.getJavaType() == void.class) {
+    methodHandle=methodHandle.asType(methodHandle.type().changeReturnType(void.class));
+  }
+ else {
+    methodHandle=methodHandle.asType(methodHandle.type().changeReturnType(Primitives.wrap(valueType.getJavaType())));
+  }
   Signature signature=new Signature(SUBSCRIPT.name(),valueType.getTypeSignature(),parameterizedTypeName("map",keyType.getTypeSignature(),valueType.getTypeSignature()),keyType.getTypeSignature());
   return new FunctionInfo(signature,"Map subscript",true,methodHandle,true,true,ImmutableList.of(false,false));
 }

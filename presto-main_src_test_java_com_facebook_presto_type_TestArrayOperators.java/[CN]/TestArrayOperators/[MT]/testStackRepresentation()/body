@@ -1,6 +1,9 @@
 {
-  Slice slice=toStackRepresentation(ImmutableList.of(toStackRepresentation(ImmutableList.of(1L,2L),BIGINT),toStackRepresentation(ImmutableList.of(3L),BIGINT)),new ArrayType(new ArrayType(BIGINT)));
-  DynamicSliceOutput output=new DynamicSliceOutput(100);
-  output.appendInt(2).appendInt(33).appendInt(21).appendByte(0).appendInt(54).appendInt(2).appendInt(8).appendInt(8).appendByte(0).appendInt(16).appendLong(1).appendLong(2).appendInt(1).appendInt(8).appendByte(0).appendInt(8).appendLong(3);
-  assertEquals(slice,output.slice());
+  Block actualBlock=toStackRepresentation(ImmutableList.of(toStackRepresentation(ImmutableList.of(1L,2L),BIGINT),toStackRepresentation(ImmutableList.of(3L),BIGINT)),new ArrayType(BIGINT));
+  DynamicSliceOutput actualSliceOutput=new DynamicSliceOutput(100);
+  writeBlock(actualSliceOutput,actualBlock);
+  Block expectedBlock=new ArrayType(BIGINT).createBlockBuilder(new BlockBuilderStatus(),3).writeObject(BIGINT.createBlockBuilder(new BlockBuilderStatus(),2).writeLong(1).closeEntry().writeLong(2).closeEntry().build()).closeEntry().writeObject(BIGINT.createBlockBuilder(new BlockBuilderStatus(),1).writeLong(3).closeEntry().build()).closeEntry().build();
+  DynamicSliceOutput expectedSliceOutput=new DynamicSliceOutput(100);
+  writeBlock(expectedSliceOutput,expectedBlock);
+  assertEquals(actualSliceOutput.slice(),expectedSliceOutput.slice());
 }

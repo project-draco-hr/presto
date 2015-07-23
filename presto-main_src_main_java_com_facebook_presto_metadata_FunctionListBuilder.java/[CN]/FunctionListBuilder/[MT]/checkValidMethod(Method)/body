@@ -1,14 +1,10 @@
 {
   String message="@ScalarFunction method %s is not valid: ";
   checkArgument(Modifier.isStatic(method.getModifiers()),message + "must be static",method);
-  checkArgument(SUPPORTED_RETURN_TYPES.contains(Primitives.unwrap(method.getReturnType())),message + "return type not supported",method);
   if (method.getAnnotation(Nullable.class) != null) {
     checkArgument(!method.getReturnType().isPrimitive(),message + "annotated with @Nullable but has primitive return type",method);
   }
  else {
     checkArgument(!Primitives.isWrapperType(method.getReturnType()),"not annotated with @Nullable but has boxed primitive return type",method);
-  }
-  for (  Class<?> type : getParameterTypes(method.getParameterTypes())) {
-    checkArgument(SUPPORTED_TYPES.contains(type),message + "parameter type [%s] not supported",method,type.getName());
   }
 }

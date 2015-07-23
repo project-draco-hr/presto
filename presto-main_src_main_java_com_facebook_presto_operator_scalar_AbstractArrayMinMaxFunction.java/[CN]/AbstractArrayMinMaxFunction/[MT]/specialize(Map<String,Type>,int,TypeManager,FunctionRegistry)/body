@@ -5,7 +5,8 @@
   MethodHandle compareMethodHandle=functionRegistry.resolveOperator(operatorType,ImmutableList.of(elementType,elementType)).getMethodHandle();
   MethodHandle methodHandle=METHOD_HANDLES.get(elementType.getJavaType());
   if (methodHandle == null) {
-    throw new PrestoException(INVALID_FUNCTION_ARGUMENT,String.format("%s is not supported in array_min/max",elementType.getJavaType()));
+    methodHandle=METHOD_HANDLE_OBJECT;
+    compareMethodHandle=compareMethodHandle.asType(compareMethodHandle.type().changeParameterType(0,Object.class).changeParameterType(1,Object.class));
   }
   methodHandle=methodHandle.bindTo(compareMethodHandle).bindTo(elementType);
   Signature signature=new Signature(functionName,elementType.getTypeSignature(),parameterizedTypeName(StandardTypes.ARRAY,elementType.getTypeSignature()));

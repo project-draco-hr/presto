@@ -1,9 +1,9 @@
 {
   Block valuesBlock=values.build();
-  BlockBuilder blockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),valuesBlock.getSizeInBytes() + (int)counts.sizeOf());
+  BlockBuilder blockBuilder=new InterleavedBlockBuilder(ImmutableList.of(type,BIGINT),new BlockBuilderStatus(),valuesBlock.getPositionCount() * 2);
   for (int i=0; i < valuesBlock.getPositionCount(); i++) {
     type.appendTo(valuesBlock,i,blockBuilder);
     BIGINT.writeLong(blockBuilder,counts.get(i));
   }
-  return buildStructuralSlice(blockBuilder);
+  return blockBuilder.build();
 }

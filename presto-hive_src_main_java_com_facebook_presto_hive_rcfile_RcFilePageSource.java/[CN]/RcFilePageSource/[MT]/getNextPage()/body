@@ -23,9 +23,13 @@
         LazyBlockLoader<LazyFixedWidthBlock> loader=blockLoader.fixedWidthBlockLoader(rcFileColumnsBatch,fieldId,hiveTypes.get(fieldId));
         blocks[fieldId]=new LazyFixedWidthBlock(((FixedWidthType)type).getFixedSize(),currentPageSize,loader);
       }
- else {
+ else       if (type instanceof VariableWidthType) {
         LazyBlockLoader<LazySliceArrayBlock> loader=blockLoader.variableWidthBlockLoader(rcFileColumnsBatch,fieldId,hiveTypes.get(fieldId),fieldInspectors[fieldId]);
         blocks[fieldId]=new LazySliceArrayBlock(currentPageSize,loader);
+      }
+ else {
+        LazyBlockLoader<LazyArrayBlock> loader=blockLoader.structuralBlockLoader(rcFileColumnsBatch,fieldId,hiveTypes.get(fieldId),fieldInspectors[fieldId],type);
+        blocks[fieldId]=new LazyArrayBlock(loader);
       }
     }
     Page page=new Page(currentPageSize,blocks);

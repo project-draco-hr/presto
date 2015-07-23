@@ -4,11 +4,11 @@
     blockBuilder.appendNull();
   }
  else   if (type.getTypeSignature().getBase().equals(StandardTypes.ARRAY) && element instanceof Iterable<?>) {
-    BlockBuilder subBlockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),EXPECTED_ARRAY_SIZE);
+    BlockBuilder subBlockBuilder=((ArrayType)type).getElementType().createBlockBuilder(new BlockBuilderStatus(),EXPECTED_ARRAY_SIZE);
     for (    Object subElement : (Iterable<?>)element) {
       appendToBlockBuilder(type.getTypeParameters().get(0),subElement,subBlockBuilder);
     }
-    type.writeSlice(blockBuilder,buildStructuralSlice(subBlockBuilder));
+    type.writeObject(blockBuilder,subBlockBuilder);
   }
  else   if (type.getTypeSignature().getBase().equals(StandardTypes.ROW) && element instanceof Iterable<?>) {
     BlockBuilder subBlockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),EXPECTED_ARRAY_SIZE);
@@ -17,7 +17,7 @@
       appendToBlockBuilder(type.getTypeParameters().get(field),subElement,subBlockBuilder);
       field++;
     }
-    type.writeSlice(blockBuilder,buildStructuralSlice(subBlockBuilder));
+    type.writeObject(blockBuilder,subBlockBuilder);
   }
  else   if (type.getTypeSignature().getBase().equals(StandardTypes.MAP) && element instanceof Map<?,?>) {
     BlockBuilder subBlockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),EXPECTED_ARRAY_SIZE);
@@ -25,7 +25,7 @@
       appendToBlockBuilder(type.getTypeParameters().get(0),entry.getKey(),subBlockBuilder);
       appendToBlockBuilder(type.getTypeParameters().get(1),entry.getValue(),subBlockBuilder);
     }
-    type.writeSlice(blockBuilder,buildStructuralSlice(subBlockBuilder));
+    type.writeObject(blockBuilder,subBlockBuilder);
   }
  else   if (javaType == boolean.class) {
     type.writeBoolean(blockBuilder,(Boolean)element);
@@ -48,6 +48,6 @@
     }
   }
  else {
-    throw new PrestoException(INVALID_FUNCTION_ARGUMENT,String.format("Unexpected type %s",javaType.getName()));
+    type.writeObject(blockBuilder,element);
   }
 }

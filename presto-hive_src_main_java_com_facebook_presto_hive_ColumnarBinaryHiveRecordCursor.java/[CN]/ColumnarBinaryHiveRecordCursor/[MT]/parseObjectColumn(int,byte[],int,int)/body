@@ -1,0 +1,14 @@
+{
+  checkState(VALID_HIVE_STRUCTURAL_CATEGORIES.contains(hiveTypes[column].getCategory()),"%s is not a valid STRUCTURAL type",hiveTypes[column]);
+  if (length == 0) {
+    nulls[column]=true;
+  }
+ else {
+    nulls[column]=false;
+    LazyBinaryObject<? extends ObjectInspector> lazyObject=LazyBinaryFactory.createLazyBinaryObject(fieldInspectors[column]);
+    ByteArrayRef byteArrayRef=new ByteArrayRef();
+    byteArrayRef.setData(bytes);
+    lazyObject.init(byteArrayRef,start,length);
+    objects[column]=getBlockObject(types[column],lazyObject.getObject(),fieldInspectors[column]);
+  }
+}

@@ -1,0 +1,13 @@
+{
+  checkArgument(ROW.equals(prestoType.getTypeSignature().getBase()));
+  List<Type> prestoTypeParameters=prestoType.getTypeParameters();
+  List<parquet.schema.Type> fieldTypes=entryType.getFields();
+  checkArgument(prestoTypeParameters.size() == fieldTypes.size());
+  this.rowType=prestoType;
+  ImmutableList.Builder<BlockConverter> converters=ImmutableList.builder();
+  for (int i=0; i < prestoTypeParameters.size(); i++) {
+    parquet.schema.Type fieldType=fieldTypes.get(i);
+    converters.add(createConverter(prestoTypeParameters.get(i),columnName + "." + fieldType.getName(),fieldType));
+  }
+  this.converters=converters.build();
+}

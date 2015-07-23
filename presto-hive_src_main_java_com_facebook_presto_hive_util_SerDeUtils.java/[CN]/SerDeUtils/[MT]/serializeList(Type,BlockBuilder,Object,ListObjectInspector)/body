@@ -1,0 +1,29 @@
+{
+  List<?> list=inspector.getList(object);
+  if (list == null) {
+    checkNotNull(builder,"parent builder is null").appendNull();
+    return null;
+  }
+  List<Type> typeParameters=type.getTypeParameters();
+  checkArgument(typeParameters.size() == 1,"list must have exactly 1 type parameter");
+  Type elementType=typeParameters.get(0);
+  ObjectInspector elementInspector=inspector.getListElementObjectInspector();
+  BlockBuilder currentBuilder;
+  if (builder != null) {
+    currentBuilder=builder.beginBlockEntry();
+  }
+ else {
+    currentBuilder=elementType.createBlockBuilder(new BlockBuilderStatus(),list.size());
+  }
+  for (  Object element : list) {
+    serializeObject(elementType,currentBuilder,element,elementInspector);
+  }
+  if (builder != null) {
+    builder.closeEntry();
+    return null;
+  }
+ else {
+    Block resultBlock=currentBuilder.build();
+    return resultBlock;
+  }
+}

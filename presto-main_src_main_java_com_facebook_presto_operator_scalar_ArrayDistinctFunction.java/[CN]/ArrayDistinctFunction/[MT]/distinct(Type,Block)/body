@@ -1,0 +1,14 @@
+{
+  if (array.getPositionCount() == 0) {
+    return array;
+  }
+  TypedSet typedSet=new SimpleTypedSet(type,array.getPositionCount());
+  BlockBuilder distinctElementBlockBuilder=type.createBlockBuilder(new BlockBuilderStatus(),array.getPositionCount());
+  for (int i=0; i < array.getPositionCount(); i++) {
+    if (!typedSet.contains(array,i)) {
+      typedSet.add(array,i);
+      type.appendTo(array,i,distinctElementBlockBuilder);
+    }
+  }
+  return distinctElementBlockBuilder.build();
+}

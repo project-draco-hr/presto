@@ -1,9 +1,9 @@
 {
-  Block block=readStructuralBlock(((Slice)value));
-  BlockBuilder blockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),block.getSizeInBytes() + 8);
+  Block block=(Block)value;
+  BlockBuilder blockBuilder=BIGINT.createBlockBuilder(new BlockBuilderStatus(),block.getPositionCount() + 1);
   for (int i=0; i < block.getPositionCount(); i++) {
     BIGINT.appendTo(block,i,blockBuilder);
   }
   BIGINT.writeLong(blockBuilder,1L);
-  return buildStructuralSlice(blockBuilder);
+  return blockBuilder.build();
 }

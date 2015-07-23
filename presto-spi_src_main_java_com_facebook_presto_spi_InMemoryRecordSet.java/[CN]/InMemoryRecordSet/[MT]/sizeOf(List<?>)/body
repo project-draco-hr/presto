@@ -1,7 +1,9 @@
 {
   long completedBytes=0;
   for (  Object value : record) {
-    if (value instanceof Boolean) {
+    if (value == null) {
+    }
+ else     if (value instanceof Boolean) {
       completedBytes++;
     }
  else     if (value instanceof Long) {
@@ -15,6 +17,12 @@
     }
  else     if (value instanceof byte[]) {
       completedBytes+=((byte[])value).length;
+    }
+ else     if (value instanceof Block) {
+      completedBytes+=((Block)value).getSizeInBytes();
+    }
+ else {
+      throw new IllegalArgumentException("Unknown type: " + value.getClass());
     }
   }
   return completedBytes;

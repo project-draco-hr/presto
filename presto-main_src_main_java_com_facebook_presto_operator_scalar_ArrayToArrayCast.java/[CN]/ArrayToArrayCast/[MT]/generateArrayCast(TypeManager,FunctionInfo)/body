@@ -3,15 +3,13 @@
   ClassDefinition definition=new ClassDefinition(a(PUBLIC,FINAL),CompilerUtils.makeClassName(Joiner.on("$").join("ArrayCast",elementCast.getArgumentTypes().get(0),elementCast.getReturnType())),type(Object.class));
   definition.declareDefaultConstructor(a(PRIVATE));
   Parameter session=arg("session",ConnectorSession.class);
-  Parameter value=arg("value",Slice.class);
-  MethodDefinition method=definition.declareMethod(a(PUBLIC,STATIC),"castArray",type(Slice.class),session,value);
+  Parameter value=arg("value",Block.class);
+  MethodDefinition method=definition.declareMethod(a(PUBLIC,STATIC),"castArray",type(Block.class),session,value);
   Scope scope=method.getScope();
   com.facebook.presto.byteCode.Block body=method.getBody();
   Variable wasNull=scope.declareVariable(boolean.class,"wasNull");
   body.append(wasNull.set(constantBoolean(false)));
-  Variable array=scope.declareVariable(Block.class,"array");
-  body.append(array.set(invokeStatic(TypeUtils.class,"readStructuralBlock",Block.class,value)));
-  ArrayMapByteCodeExpression newArray=ArrayGeneratorUtils.map(scope,binder,typeManager,array,elementCast);
-  body.append(invokeStatic(TypeUtils.class,"buildStructuralSlice",Slice.class,newArray).ret());
+  ArrayMapByteCodeExpression newArray=ArrayGeneratorUtils.map(scope,binder,typeManager,value,elementCast);
+  body.append(newArray.ret());
   return defineClass(definition,Object.class,binder.getBindings(),ArrayToArrayCast.class.getClassLoader());
 }

@@ -4,6 +4,9 @@
       int field=node.getField();
       Type type=node.getType();
       Class<?> javaType=type.getJavaType();
+      if (!javaType.isPrimitive() && javaType != Slice.class) {
+        javaType=Object.class;
+      }
       IfStatement ifStatement=new IfStatement();
       ifStatement.condition().setDescription(format("cursor.get%s(%d)",type,field)).getVariable(cursorVariable).push(field).invokeInterface(RecordCursor.class,"isNull",boolean.class,int.class);
       ifStatement.ifTrue().putVariable(wasNullVariable,true).pushJavaDefault(javaType);

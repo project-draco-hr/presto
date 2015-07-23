@@ -5,6 +5,9 @@
       Type type=node.getType();
       Variable block=scope.getVariable("block_" + field);
       Class<?> javaType=type.getJavaType();
+      if (!javaType.isPrimitive() && javaType != Slice.class) {
+        javaType=Object.class;
+      }
       IfStatement ifStatement=new IfStatement();
       ifStatement.condition().setDescription(format("block_%d.get%s()",field,type)).append(block).getVariable(positionVariable).invokeInterface(com.facebook.presto.spi.block.Block.class,"isNull",boolean.class,int.class);
       ifStatement.ifTrue().putVariable(wasNullVariable,true).pushJavaDefault(javaType);

@@ -3,14 +3,6 @@
   if (length == "\\N".length() && bytes[start] == '\\' && bytes[start + 1] == 'N') {
     wasNull=true;
   }
- else   if (isStructuralType(hiveTypes[column])) {
-    LazyObject<? extends ObjectInspector> lazyObject=LazyFactory.createLazyObject(fieldInspectors[column]);
-    ByteArrayRef byteArrayRef=new ByteArrayRef();
-    byteArrayRef.setData(bytes);
-    lazyObject.init(byteArrayRef,start,length);
-    slices[column]=getBlockSlice(lazyObject.getObject(),fieldInspectors[column]);
-    wasNull=false;
-  }
  else {
     slices[column]=Slices.wrappedBuffer(Arrays.copyOfRange(bytes,start,start + length));
     if (hiveTypes[column].equals(HiveType.HIVE_BINARY)) {

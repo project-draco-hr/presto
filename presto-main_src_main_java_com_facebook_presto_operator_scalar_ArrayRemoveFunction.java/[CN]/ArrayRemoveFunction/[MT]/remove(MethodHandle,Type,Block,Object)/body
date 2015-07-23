@@ -1,0 +1,26 @@
+{
+  int sizeAfterRemove=0;
+  List<Integer> positions=new ArrayList<>();
+  for (int i=0; i < array.getPositionCount(); i++) {
+    Object element=castValue(type,array,i);
+    try {
+      if (element == null || !(boolean)equalsFunction.invoke(element,value)) {
+        positions.add(i);
+        sizeAfterRemove+=array.getLength(i);
+      }
+    }
+ catch (    Throwable t) {
+      Throwables.propagateIfInstanceOf(t,Error.class);
+      Throwables.propagateIfInstanceOf(t,PrestoException.class);
+      throw new PrestoException(INTERNAL_ERROR,t);
+    }
+  }
+  if (array.getPositionCount() == positions.size()) {
+    return array;
+  }
+  BlockBuilder blockBuilder=type.createBlockBuilder(new BlockBuilderStatus(),sizeAfterRemove);
+  for (  int position : positions) {
+    type.appendTo(array,position,blockBuilder);
+  }
+  return blockBuilder.build();
+}

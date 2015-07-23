@@ -2,8 +2,12 @@
   if (type.getJavaType() == void.class) {
     return new Block().comment("output.appendNull();").invokeInterface(BlockBuilder.class,"appendNull",BlockBuilder.class).pop();
   }
-  String methodName="write" + Primitives.wrap(type.getJavaType()).getSimpleName();
-  Variable tempValue=scope.createTempVariable(type.getJavaType());
+  Class<?> valueJavaType=type.getJavaType();
+  if (!valueJavaType.isPrimitive() && valueJavaType != Slice.class) {
+    valueJavaType=Object.class;
+  }
+  String methodName="write" + Primitives.wrap(valueJavaType).getSimpleName();
+  Variable tempValue=scope.createTempVariable(valueJavaType);
   Variable tempOutput=scope.createTempVariable(BlockBuilder.class);
-  return new Block().comment("if (wasNull)").append(new IfStatement().condition(wasNullVariable).ifTrue(new Block().comment("output.appendNull();").pop(type.getJavaType()).invokeInterface(BlockBuilder.class,"appendNull",BlockBuilder.class).pop()).ifFalse(new Block().comment("%s.%s(output, %s)",type.getTypeSignature(),methodName,type.getJavaType().getSimpleName()).putVariable(tempValue).putVariable(tempOutput).append(loadConstant(callSiteBinder.bind(type,Type.class))).getVariable(tempOutput).getVariable(tempValue).invokeInterface(Type.class,methodName,void.class,BlockBuilder.class,type.getJavaType())));
+  return new Block().comment("if (wasNull)").append(new IfStatement().condition(wasNullVariable).ifTrue(new Block().comment("output.appendNull();").pop(valueJavaType).invokeInterface(BlockBuilder.class,"appendNull",BlockBuilder.class).pop()).ifFalse(new Block().comment("%s.%s(output, %s)",type.getTypeSignature(),methodName,valueJavaType.getSimpleName()).putVariable(tempValue).putVariable(tempOutput).append(loadConstant(callSiteBinder.bind(type,Type.class))).getVariable(tempOutput).getVariable(tempValue).invokeInterface(Type.class,methodName,void.class,BlockBuilder.class,valueJavaType)));
 }

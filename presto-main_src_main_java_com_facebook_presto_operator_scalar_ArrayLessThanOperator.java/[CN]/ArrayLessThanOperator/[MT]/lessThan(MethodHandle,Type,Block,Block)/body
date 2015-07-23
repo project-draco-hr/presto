@@ -1,0 +1,25 @@
+{
+  int len=Math.min(leftArray.getPositionCount(),rightArray.getPositionCount());
+  int index=0;
+  while (index < len) {
+    checkElementNotNull(leftArray.isNull(index),ARRAY_NULL_ELEMENT_MSG);
+    checkElementNotNull(rightArray.isNull(index),ARRAY_NULL_ELEMENT_MSG);
+    Object leftElement=castValue(type,leftArray,index);
+    Object rightElement=castValue(type,rightArray,index);
+    try {
+      if ((boolean)lessThanFunction.invoke(leftElement,rightElement)) {
+        return true;
+      }
+      if ((boolean)lessThanFunction.invoke(rightElement,leftElement)) {
+        return false;
+      }
+    }
+ catch (    Throwable t) {
+      Throwables.propagateIfInstanceOf(t,Error.class);
+      Throwables.propagateIfInstanceOf(t,PrestoException.class);
+      throw new PrestoException(INTERNAL_ERROR,t);
+    }
+    index++;
+  }
+  return leftArray.getPositionCount() < rightArray.getPositionCount();
+}
