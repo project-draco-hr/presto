@@ -1,0 +1,12 @@
+{
+  DynamicClassLoader classLoader=new DynamicClassLoader(AbstractMinMaxNAggregation.class.getClassLoader());
+  BlockComparator comparator=typeToComparator.apply(type);
+  List<Type> inputTypes=ImmutableList.of(type,BIGINT);
+  MinMaxNStateSerializer stateSerializer=new MinMaxNStateSerializer(comparator,type);
+  Type intermediateType=stateSerializer.getSerializedType();
+  ArrayType outputType=new ArrayType(type);
+  List<ParameterMetadata> inputParameterMetadata=ImmutableList.of(new ParameterMetadata(STATE),new ParameterMetadata(BLOCK_INPUT_CHANNEL,type),new ParameterMetadata(INPUT_CHANNEL,BIGINT),new ParameterMetadata(BLOCK_INDEX));
+  AggregationMetadata metadata=new AggregationMetadata(generateAggregationName(name,type,inputTypes),inputParameterMetadata,INPUT_FUNCTION.bindTo(comparator).bindTo(type),null,null,COMBINE_FUNCTION,OUTPUT_FUNCTION.bindTo(outputType),MinMaxNState.class,stateSerializer,new MinMaxNStateFactory(),outputType,false);
+  GenericAccumulatorFactoryBinder factory=new AccumulatorCompiler().generateAccumulatorFactoryBinder(metadata,classLoader);
+  return new InternalAggregationFunction(name,inputTypes,intermediateType,outputType,true,false,factory);
+}

@@ -1,0 +1,13 @@
+{
+  TypedHeap heap=state.getTypedHeap();
+  if (heap == null) {
+    if (n <= 0) {
+      throw new PrestoException(INVALID_FUNCTION_ARGUMENT,"second argument of max_n/min_n must be positive");
+    }
+    heap=new TypedHeap(comparator,type,Ints.checkedCast(n));
+    state.setTypedHeap(heap);
+  }
+  long startSize=heap.getEstimatedSize();
+  heap.add(block,blockIndex);
+  state.addMemoryUsage(heap.getEstimatedSize() - startSize);
+}

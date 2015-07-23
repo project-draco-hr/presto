@@ -1,0 +1,11 @@
+{
+  if (heapBlockBuilder.getSizeInBytes() < COMPACT_THRESHOLD_BYTES || heapBlockBuilder.getPositionCount() / positionCount < COMPACT_THRESHOLD_RATIO) {
+    return;
+  }
+  BlockBuilder newHeapBlockBuilder=type.createBlockBuilder(new BlockBuilderStatus(),heapBlockBuilder.getPositionCount());
+  for (int i=0; i < positionCount; i++) {
+    type.appendTo(heapBlockBuilder,heapIndex[i],newHeapBlockBuilder);
+    heapIndex[i]=i;
+  }
+  heapBlockBuilder=newHeapBlockBuilder;
+}
