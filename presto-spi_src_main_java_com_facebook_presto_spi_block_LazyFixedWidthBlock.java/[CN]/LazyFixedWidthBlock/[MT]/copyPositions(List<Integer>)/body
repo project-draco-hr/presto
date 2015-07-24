@@ -1,0 +1,11 @@
+{
+  checkValidPositions(positions,positionCount);
+  assureLoaded();
+  SliceOutput newSlice=new DynamicSliceOutput(positions.size() * fixedSize);
+  SliceOutput newValueIsNull=new DynamicSliceOutput(positions.size());
+  for (  int position : positions) {
+    newValueIsNull.appendByte(valueIsNull[position] ? 1 : 0);
+    newSlice.appendBytes(getRawSlice().getBytes(position * fixedSize,fixedSize));
+  }
+  return new FixedWidthBlock(fixedSize,positions.size(),newSlice.slice(),newValueIsNull.slice());
+}
