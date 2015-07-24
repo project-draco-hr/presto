@@ -1,5 +1,5 @@
 {
-  controlResult=executeQuery(controlGateway,controlUsername,controlPassword,queryPair.getControl(),controlTimeout);
+  controlResult=executeQuery(controlGateway,controlUsername,controlPassword,queryPair.getControl(),controlTimeout,sessionProperties);
   if (controlResult.getState() == State.TOO_MANY_ROWS) {
     testResult=new QueryResult(State.INVALID,null,null,ImmutableList.<List<Object>>of());
     return false;
@@ -8,7 +8,7 @@
     testResult=new QueryResult(State.INVALID,null,null,ImmutableList.<List<Object>>of());
     return true;
   }
-  testResult=executeQuery(testGateway,testUsername,testPassword,queryPair.getTest(),testTimeout);
+  testResult=executeQuery(testGateway,testUsername,testPassword,queryPair.getTest(),testTimeout,sessionProperties);
   if ((controlResult.getState() != State.SUCCESS) || (testResult.getState() != State.SUCCESS)) {
     return false;
   }
@@ -19,7 +19,7 @@
     return true;
   }
   for (int i=0; i < 3; i++) {
-    QueryResult results=executeQuery(controlGateway,controlUsername,controlPassword,queryPair.getControl(),controlTimeout);
+    QueryResult results=executeQuery(controlGateway,controlUsername,controlPassword,queryPair.getControl(),controlTimeout,sessionProperties);
     if (results.getState() != State.SUCCESS) {
       return false;
     }

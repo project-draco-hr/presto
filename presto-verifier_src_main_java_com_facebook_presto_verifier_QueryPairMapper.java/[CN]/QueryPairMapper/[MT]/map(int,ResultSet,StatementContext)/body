@@ -1,3 +1,8 @@
 {
-  return new QueryPair(rs.getString("suite"),rs.getString("name"),new Query(rs.getString("test_catalog"),rs.getString("test_schema"),rs.getString("test_query"),rs.getString("test_username"),rs.getString("test_password")),new Query(rs.getString("control_catalog"),rs.getString("control_schema"),rs.getString("control_query"),rs.getString("control_username"),rs.getString("control_password")));
+  Map<String,String> sessionProperties=ImmutableMap.of();
+  String json=resultSet.getString("session_properties_json");
+  if (json != null) {
+    sessionProperties=jsonCodec.fromJson(json);
+  }
+  return new QueryPair(resultSet.getString("suite"),resultSet.getString("name"),new Query(resultSet.getString("test_catalog"),resultSet.getString("test_schema"),resultSet.getString("test_query"),resultSet.getString("test_username"),resultSet.getString("test_password"),sessionProperties),new Query(resultSet.getString("control_catalog"),resultSet.getString("control_schema"),resultSet.getString("control_query"),resultSet.getString("control_username"),resultSet.getString("control_password"),sessionProperties));
 }

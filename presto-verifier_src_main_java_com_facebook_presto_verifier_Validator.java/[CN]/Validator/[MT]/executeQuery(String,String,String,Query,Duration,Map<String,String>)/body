@@ -1,6 +1,9 @@
 {
   try (Connection connection=DriverManager.getConnection(url,username,password)){
     trySetConnectionProperties(query,connection);
+    for (    Map.Entry<String,String> entry : sessionProperties.entrySet()) {
+      connection.unwrap(PrestoConnection.class).setSessionProperty(entry.getKey(),entry.getValue());
+    }
     long start=System.nanoTime();
     try (Statement statement=connection.createStatement()){
       TimeLimiter limiter=new SimpleTimeLimiter();
