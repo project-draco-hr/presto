@@ -1,0 +1,25 @@
+{
+  String sql="" + "INSERT INTO shards (shard_uuid, table_id, create_time, row_count, compressed_size, uncompressed_size)\n" + "VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?)";
+  try (PreparedStatement statement=connection.prepareStatement(sql,RETURN_GENERATED_KEYS)){
+    for (    ShardInfo shard : shards) {
+      statement.setBytes(1,uuidToBytes(shard.getShardUuid()));
+      statement.setLong(2,tableId);
+      statement.setLong(3,shard.getRowCount());
+      statement.setLong(4,shard.getCompressedSize());
+      statement.setLong(5,shard.getUncompressedSize());
+      statement.addBatch();
+    }
+    statement.executeBatch();
+    ImmutableList.Builder<Long> builder=ImmutableList.builder();
+    try (ResultSet keys=statement.getGeneratedKeys()){
+      while (keys.next()) {
+        builder.add(keys.getLong(1));
+      }
+    }
+     List<Long> shardIds=builder.build();
+    if (shardIds.size() != shards.size()) {
+      throw new PrestoException(RAPTOR_ERROR,"Wrong number of generated keys for inserted shards");
+    }
+    return shardIds;
+  }
+ }

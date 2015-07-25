@@ -1,0 +1,14 @@
+{
+  checkArgument(shardIds.size() == shards.size(),"lists are not the same size");
+  String sql="INSERT INTO shard_nodes (shard_id, node_id) VALUES (?, ?)";
+  try (PreparedStatement statement=connection.prepareStatement(sql)){
+    for (int i=0; i < shards.size(); i++) {
+      for (      String identifier : shards.get(i).getNodeIdentifiers()) {
+        statement.setLong(1,shardIds.get(i));
+        statement.setInt(2,nodeIds.get(identifier));
+        statement.addBatch();
+      }
+    }
+    statement.executeBatch();
+  }
+ }
