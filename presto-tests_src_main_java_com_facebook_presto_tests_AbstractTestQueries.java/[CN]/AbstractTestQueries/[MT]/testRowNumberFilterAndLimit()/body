@@ -5,5 +5,5 @@
   actual=computeActual("" + "SELECT * FROM (" + "SELECT a, row_number() OVER (PARTITION BY a) rn\n"+ "FROM (VALUES (1), (2), (1), (2), (1)) t (a)) t WHERE rn < 3 LIMIT 2");
   expected=resultBuilder(getSession(),BIGINT,BIGINT).row(1,1).row(1,2).row(2,1).row(2,2).build();
   assertEquals(actual.getMaterializedRows().size(),2);
-  assertTrue(expected.getMaterializedRows().containsAll(actual.getMaterializedRows()));
+  assertContains(expected,actual);
 }
