@@ -4,7 +4,7 @@
   try {
     for (    File file : listFiles(kafkaConnectorConfig.getTableDescriptionDir())) {
       if (file.isFile() && file.getName().endsWith(".json")) {
-        KafkaTopicDescription table=topicDescriptionCodec.fromJson(Files.toByteArray(file));
+        KafkaTopicDescription table=topicDescriptionCodec.fromJson(readAllBytes(file.toPath()));
         String schemaName=firstNonNull(table.getSchemaName(),kafkaConnectorConfig.getDefaultSchema());
         log.debug("Kafka table %s.%s: %s",schemaName,table.getTableName(),table);
         builder.put(new SchemaTableName(schemaName,table.getTableName()),table);
