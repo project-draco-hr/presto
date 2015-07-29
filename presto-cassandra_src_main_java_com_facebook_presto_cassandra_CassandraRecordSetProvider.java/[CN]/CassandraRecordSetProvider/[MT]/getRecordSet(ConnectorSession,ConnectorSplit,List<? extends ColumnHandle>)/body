@@ -1,14 +1,2 @@
 {
-  CassandraSplit cassandraSplit=checkType(split,CassandraSplit.class,"split");
-  checkNotNull(columns,"columns is null");
-  List<CassandraColumnHandle> cassandraColumns=ImmutableList.copyOf(transform(columns,CassandraColumnHandle.cassandraColumnHandle()));
-  String selectCql=CassandraCqlUtils.selectFrom(cassandraSplit.getCassandraTableHandle(),cassandraColumns).getQueryString();
-  StringBuilder sb=new StringBuilder(selectCql);
-  if (sb.charAt(sb.length() - 1) == ';') {
-    sb.setLength(sb.length() - 1);
-  }
-  sb.append(cassandraSplit.getWhereClause());
-  String cql=sb.toString();
-  log.debug("Creating record set: %s",cql);
-  return new CassandraRecordSet(cassandraSession,cassandraSplit.getSchema(),cql,cassandraColumns);
 }

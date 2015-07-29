@@ -9,11 +9,11 @@
     singlePartitionKeyColumn=partitions.get(0).getTupleDomain().getNullableColumnDomains().size() == 1;
     if (singlePartitionKeyColumn) {
       String partitionId=partitions.get(0).getPartitionId();
-      partitionKeyColumnName=partitionId.substring(0,partitionId.lastIndexOf("=") - 1);
+      partitionKeyColumnName=partitionId.substring(0,partitionId.lastIndexOf('=') - 1);
     }
   }
-  Map<Set<String>,Set<String>> hostsToPartitionKeys=Maps.newHashMap();
-  Map<Set<String>,List<HostAddress>> hostMap=Maps.newHashMap();
+  Map<Set<String>,Set<String>> hostsToPartitionKeys=new HashMap<>();
+  Map<Set<String>,List<HostAddress>> hostMap=new HashMap<>();
   for (  ConnectorPartition partition : partitions) {
     CassandraPartition cassandraPartition=checkType(partition,CassandraPartition.class,"partition");
     Set<Host> hosts=cassandraSession.getReplicas(schema,cassandraPartition.getKeyAsByteBuffer());
@@ -26,10 +26,10 @@
       Set<String> hostAddresses=sb.build();
       Set<String> values=hostsToPartitionKeys.get(hostAddresses);
       if (values == null) {
-        values=Sets.newHashSet();
+        values=new HashSet<>();
       }
       String partitionId=cassandraPartition.getPartitionId();
-      values.add(partitionId.substring(partitionId.lastIndexOf("=") + 2));
+      values.add(partitionId.substring(partitionId.lastIndexOf('=') + 2));
       hostsToPartitionKeys.put(hostAddresses,values);
       hostMap.put(hostAddresses,addresses);
     }
