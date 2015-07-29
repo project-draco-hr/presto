@@ -1,7 +1,9 @@
 {
   checkNotNull(database,"database is null");
-  File file=new File(URI.create(database.getLocationUri()));
-  file.mkdirs();
+  File directory=new File(URI.create(database.getLocationUri()));
+  checkArgument(!directory.exists(),"Database directory already exists");
+  checkArgument(isParentDir(directory,baseDirectory),"Database directory must be inside of the metastore base directory");
+  checkArgument(directory.mkdirs(),"Could not create database directory");
   if (databases.putIfAbsent(database.getName(),database) != null) {
     throw new IllegalArgumentException("Database " + database.getName() + " already exists");
   }

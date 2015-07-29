@@ -4,6 +4,10 @@
   if (tableCopy.getSd() == null) {
     tableCopy.setSd(new StorageDescriptor());
   }
+ else   if (tableCopy.getSd().getLocation() != null) {
+    File directory=new File(URI.create(tableCopy.getSd().getLocation()));
+    checkArgument(directory.exists(),"Table directory does not exist");
+  }
   if (relations.putIfAbsent(schemaTableName,tableCopy) != null) {
     throw new TableAlreadyExistsException(schemaTableName);
   }

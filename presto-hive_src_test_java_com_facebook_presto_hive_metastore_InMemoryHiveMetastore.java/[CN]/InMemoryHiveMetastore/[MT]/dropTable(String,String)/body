@@ -1,7 +1,14 @@
 {
   SchemaTableName schemaTableName=new SchemaTableName(databaseName,tableName);
-  if (relations.remove(schemaTableName) == null) {
+  Table table=relations.remove(schemaTableName);
+  if (table == null) {
     throw new TableNotFoundException(schemaTableName);
   }
   views.remove(schemaTableName);
+  String location=table.getSd().getLocation();
+  if (location != null) {
+    File directory=new File(URI.create(location));
+    checkArgument(isParentDir(directory,baseDirectory),"Table directory must be inside of the metastore base directory");
+    deleteRecursively(directory);
+  }
 }

@@ -3,9 +3,9 @@
   LocalQueryRunner localQueryRunner=new LocalQueryRunner(session);
   InMemoryNodeManager nodeManager=localQueryRunner.getNodeManager();
   localQueryRunner.createCatalog("tpch",new TpchConnectorFactory(nodeManager,1),ImmutableMap.<String,String>of());
-  InMemoryHiveMetastore metastore=new InMemoryHiveMetastore();
-  File tpchDataDir=new File(tempDir,"tpch");
-  tpchDataDir.mkdir();
+  File hiveDir=new File(tempDir,"hive_data");
+  InMemoryHiveMetastore metastore=new InMemoryHiveMetastore(hiveDir);
+  File tpchDataDir=new File(hiveDir,"tpch");
   metastore.createDatabase(new Database("tpch",null,tpchDataDir.toURI().toString(),null));
   HiveConnectorFactory hiveConnectorFactory=new HiveConnectorFactory("hive",ImmutableMap.of("node.environment","test"),HiveBenchmarkQueryRunner.class.getClassLoader(),metastore,new TypeRegistry());
   Map<String,String> hiveCatalogConfig=ImmutableMap.<String,String>builder().put("hive.metastore.uri","thrift://none.invalid:0").put("hive.max-split-size","10GB").build();
