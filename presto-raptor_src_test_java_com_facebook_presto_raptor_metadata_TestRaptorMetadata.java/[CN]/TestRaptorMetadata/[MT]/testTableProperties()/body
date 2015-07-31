@@ -1,0 +1,16 @@
+{
+  assertNull(metadata.getTableHandle(SESSION,DEFAULT_TEST_ORDERS));
+  ConnectorTableMetadata ordersTable=getOrdersTable(ImmutableMap.of(ORDERING_PROPERTY,ImmutableList.of("orderdate","custkey"),TEMPORAL_COLUMN_PROPERTY,"orderdate"));
+  metadata.createTable(SESSION,ordersTable);
+  ConnectorTableHandle tableHandle=metadata.getTableHandle(SESSION,DEFAULT_TEST_ORDERS);
+  assertInstanceOf(tableHandle,RaptorTableHandle.class);
+  RaptorTableHandle raptorTableHandle=(RaptorTableHandle)tableHandle;
+  assertEquals(raptorTableHandle.getTableId(),1);
+  long tableId=raptorTableHandle.getTableId();
+  MetadataDao metadataDao=dbi.onDemand(MetadataDao.class);
+  List<TableColumn> sortColumns=metadataDao.listSortColumns(tableId);
+  assertEquals(sortColumns.size(),2);
+  assertEquals(sortColumns,ImmutableList.of(new TableColumn(DEFAULT_TEST_ORDERS,"orderdate",VARCHAR,4),new TableColumn(DEFAULT_TEST_ORDERS,"custkey",BIGINT,2)));
+  assertEquals(metadataDao.getTemporalColumnId(tableId),Long.valueOf(4));
+  metadata.dropTable(SESSION,tableHandle);
+}
