@@ -6,10 +6,10 @@
   ByteCodeBlock block=new ByteCodeBlock().comment("check if first arg is null").append(generatorContext.generate(first)).append(ByteCodeUtils.ifWasNullPopAndGoto(scope,notMatch,void.class));
   Type firstType=first.getType();
   Type secondType=second.getType();
-  Type commonType=FunctionRegistry.getCommonSuperType(firstType,secondType).get();
+  TypeSignature commonType=getCommonSuperTypeSignature(firstType.getTypeSignature(),secondType.getTypeSignature()).get();
   Signature operatorSignature=generatorContext.getRegistry().resolveOperator(OperatorType.EQUAL,ImmutableList.of(firstType,secondType));
   ScalarFunctionImplementation equalsFunction=generatorContext.getRegistry().getScalarFunctionImplementation(operatorSignature);
-  ByteCodeNode equalsCall=generatorContext.generateCall(operatorSignature.getName(),equalsFunction,ImmutableList.of(cast(generatorContext,new ByteCodeBlock().dup(firstType.getJavaType()),firstType,commonType),cast(generatorContext,generatorContext.generate(second),secondType,commonType)));
+  ByteCodeNode equalsCall=generatorContext.generateCall(operatorSignature.getName(),equalsFunction,ImmutableList.of(cast(generatorContext,new ByteCodeBlock().dup(firstType.getJavaType()),firstType.getTypeSignature(),commonType),cast(generatorContext,generatorContext.generate(second),secondType.getTypeSignature(),commonType)));
   ByteCodeBlock conditionBlock=new ByteCodeBlock().append(equalsCall).append(ByteCodeUtils.ifWasNullClearPopAndGoto(scope,notMatch,void.class,boolean.class));
   ByteCodeBlock trueBlock=new ByteCodeBlock().append(generatorContext.wasNull().set(constantTrue())).pop(first.getType().getJavaType()).pushJavaDefault(first.getType().getJavaType());
   block.append(new IfStatement().condition(conditionBlock).ifTrue(trueBlock).ifFalse(notMatch));

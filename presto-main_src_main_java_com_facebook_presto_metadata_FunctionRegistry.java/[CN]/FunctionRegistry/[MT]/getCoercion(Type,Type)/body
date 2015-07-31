@@ -1,13 +1,3 @@
 {
-  Signature signature=internalOperator(OperatorType.CAST.name(),toType.getTypeSignature(),ImmutableList.of(fromType.getTypeSignature()));
-  try {
-    getScalarFunctionImplementation(signature);
-  }
- catch (  PrestoException e) {
-    if (e.getErrorCode().getCode() == FUNCTION_IMPLEMENTATION_MISSING.toErrorCode().getCode()) {
-      throw new OperatorNotFoundException(OperatorType.CAST,ImmutableList.of(fromType),toType);
-    }
-    throw e;
-  }
-  return signature;
+  return getCoercion(fromType.getTypeSignature(),toType.getTypeSignature());
 }

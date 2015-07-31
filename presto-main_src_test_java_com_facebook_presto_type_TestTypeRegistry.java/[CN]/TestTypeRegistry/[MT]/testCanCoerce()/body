@@ -1,0 +1,27 @@
+{
+  assertTrue(TypeRegistry.canCoerce(BIGINT,BIGINT));
+  assertTrue(TypeRegistry.canCoerce(UNKNOWN,BIGINT));
+  assertFalse(TypeRegistry.canCoerce(BIGINT,UNKNOWN));
+  assertTrue(TypeRegistry.canCoerce(BIGINT,DOUBLE));
+  assertTrue(TypeRegistry.canCoerce(DATE,TIMESTAMP));
+  assertTrue(TypeRegistry.canCoerce(DATE,TIMESTAMP_WITH_TIME_ZONE));
+  assertTrue(TypeRegistry.canCoerce(TIME,TIME_WITH_TIME_ZONE));
+  assertTrue(TypeRegistry.canCoerce(TIMESTAMP,TIMESTAMP_WITH_TIME_ZONE));
+  assertTrue(TypeRegistry.canCoerce(VARCHAR,REGEXP));
+  assertTrue(TypeRegistry.canCoerce(VARCHAR,LIKE_PATTERN));
+  assertTrue(TypeRegistry.canCoerce(VARCHAR,JSON_PATH));
+  assertFalse(TypeRegistry.canCoerce(DOUBLE,BIGINT));
+  assertFalse(TypeRegistry.canCoerce(TIMESTAMP,TIME_WITH_TIME_ZONE));
+  assertFalse(TypeRegistry.canCoerce(TIMESTAMP_WITH_TIME_ZONE,TIMESTAMP));
+  assertFalse(TypeRegistry.canCoerce(VARBINARY,VARCHAR));
+  assertTrue(TypeRegistry.canCoerce(UNKNOWN.getTypeSignature(),parseTypeSignature("array<bigint>")));
+  assertFalse(TypeRegistry.canCoerce(parseTypeSignature("array<bigint>"),UNKNOWN.getTypeSignature()));
+  assertTrue(TypeRegistry.canCoerce(parseTypeSignature("array<bigint>"),parseTypeSignature("array<double>")));
+  assertFalse(TypeRegistry.canCoerce(parseTypeSignature("array<double>"),parseTypeSignature("array<bigint>")));
+  assertTrue(TypeRegistry.canCoerce(parseTypeSignature("map<bigint,double>"),parseTypeSignature("map<bigint,double>")));
+  assertFalse(TypeRegistry.canCoerce(parseTypeSignature("map<bigint,double>"),parseTypeSignature("map<double,double>")));
+  assertTrue(TypeRegistry.canCoerce(parseTypeSignature("row<bigint,double,varchar>"),parseTypeSignature("row<bigint,double,varchar>")));
+  assertFalse(TypeRegistry.canCoerce(parseTypeSignature("row<bigint,double,varchar>('a','b','c')"),parseTypeSignature("row<bigint,double,varchar>")));
+  assertFalse(TypeRegistry.canCoerce(parseTypeSignature("row<bigint,double,varchar>"),parseTypeSignature("row<bigint,double,varchar>('a','b','c')")));
+  assertTrue(TypeRegistry.canCoerce(parseTypeSignature("row<bigint,double,varchar>('a','b','c')"),parseTypeSignature("row<bigint,double,varchar>('a','b','c')")));
+}
