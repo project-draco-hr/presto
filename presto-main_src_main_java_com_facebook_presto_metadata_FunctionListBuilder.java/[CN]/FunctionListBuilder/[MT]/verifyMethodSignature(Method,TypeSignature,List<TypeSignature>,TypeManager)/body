@@ -1,24 +1,2 @@
 {
-  Type returnType=typeManager.getType(returnTypeName);
-  checkNotNull(returnType,"returnType is null");
-  List<Type> argumentTypes=resolveTypes(argumentTypeNames,typeManager);
-  checkArgument(Primitives.unwrap(method.getReturnType()) == returnType.getJavaType(),"Expected method %s return type to be %s (%s)",method,returnType.getJavaType().getName(),returnType);
-  Class<?>[] parameterTypes=method.getParameterTypes();
-  Annotation[][] annotations=method.getParameterAnnotations();
-  if (parameterTypes.length > 0 && parameterTypes[0] == ConnectorSession.class) {
-    parameterTypes=Arrays.copyOfRange(parameterTypes,1,parameterTypes.length);
-    annotations=Arrays.copyOfRange(annotations,1,annotations.length);
-  }
-  for (int i=0; i < parameterTypes.length; i++) {
-    Class<?> actualType=parameterTypes[i];
-    Type expectedType=argumentTypes.get(i);
-    boolean nullable=!FluentIterable.from(Arrays.asList(annotations[i])).filter(Nullable.class).isEmpty();
-    if (Primitives.isWrapperType(actualType)) {
-      checkArgument(nullable,"Method %s has parameter with type %s that is missing @Nullable",method,actualType);
-    }
-    if (nullable) {
-      checkArgument(!NON_NULLABLE_ARGUMENT_TYPES.contains(actualType),"Method %s has parameter type %s, but @Nullable is not supported on this type",method,actualType);
-    }
-    checkArgument(Primitives.unwrap(actualType) == expectedType.getJavaType(),"Expected method %s parameter %s type to be %s (%s)",method,i,expectedType.getJavaType().getName(),expectedType);
-  }
 }

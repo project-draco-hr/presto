@@ -1,5 +1,5 @@
 {
   Expression underlyingPredicate=node.getSource().accept(this,context);
-  Iterable<Expression> projectionEqualities=FluentIterable.from(node.getAssignments().entrySet()).filter(not(symbolMatchesExpression())).transform(entryToEquality());
+  List<Expression> projectionEqualities=node.getAssignments().entrySet().stream().filter(SYMBOL_MATCHES_EXPRESSION.negate()).map(ENTRY_TO_EQUALITY).collect(toImmutableList());
   return pullExpressionThroughSymbols(combineConjuncts(ImmutableList.<Expression>builder().addAll(projectionEqualities).add(underlyingPredicate).build()),node.getOutputSymbols());
 }

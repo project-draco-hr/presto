@@ -2,7 +2,7 @@
   List<Set<Expression>> sourceOutputConjuncts=new ArrayList<>();
   for (int i=0; i < node.getSources().size(); i++) {
     Expression underlyingPredicate=node.getSources().get(i).accept(this,null);
-    Iterable<Expression> equalities=FluentIterable.from(mapping.apply(i)).filter(not(symbolMatchesExpression())).transform(entryToEquality());
+    List<Expression> equalities=mapping.apply(i).stream().filter(SYMBOL_MATCHES_EXPRESSION.negate()).map(ENTRY_TO_EQUALITY).collect(toImmutableList());
     sourceOutputConjuncts.add(ImmutableSet.copyOf(extractConjuncts(pullExpressionThroughSymbols(combineConjuncts(ImmutableList.<Expression>builder().addAll(equalities).add(underlyingPredicate).build()),node.getOutputSymbols()))));
   }
   Iterator<Set<Expression>> iterator=sourceOutputConjuncts.iterator();
