@@ -1,5 +1,5 @@
 {
-  Slice[] expectedValues=createExpectedValuesWithNulls(7,Ints.asList(3));
+  Slice[] expectedValues=createExpectedValues(7);
   int[] ids=new int[]{0,2,1,0,0,0,1,1,1,0,1,2};
   boolean[] isNull=new boolean[ids.length];
   isNull[3]=true;
@@ -16,6 +16,9 @@
   Block dictionary=dictionaryBlock.getDictionary();
   assertTrue(dictionary instanceof SliceArrayBlock);
   SliceArrayBlock dictionarySliceArrayBlock=(SliceArrayBlock)dictionary;
-  assertEquals(dictionarySliceArrayBlock.getValues(),Arrays.copyOfRange(expectedValues,0,3));
+  Slice[] expectedSlices=Arrays.copyOfRange(expectedValues,0,3);
+  assertEquals(dictionarySliceArrayBlock.getValues(),Arrays.copyOf(expectedSlices,expectedSlices.length + 1));
+  ids[3]=expectedSlices.length;
   assertEquals(dictionaryBlock.getIds(),Slices.wrappedIntArray(ids));
+  assertTrue(dictionaryBlock.isNull(3));
 }
