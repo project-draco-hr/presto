@@ -1,2 +1,43 @@
 {
+  int[] newIds=new int[positions.size()];
+  boolean hasNull=false;
+  int[] newDictionaryIndexes=new int[values.length];
+  Arrays.fill(newDictionaryIndexes,-1);
+  int nextIndex=0;
+  for (int i=0; i < positions.size(); i++) {
+    int position=positions.get(i);
+    if (isEntryNull(position)) {
+      hasNull=true;
+      newIds[i]=-1;
+    }
+ else {
+      int oldIndex=ids[position];
+      if (newDictionaryIndexes[oldIndex] == -1) {
+        newDictionaryIndexes[oldIndex]=nextIndex;
+        nextIndex++;
+      }
+      newIds[i]=newDictionaryIndexes[oldIndex];
+    }
+  }
+  int newDictionaryLength=nextIndex;
+  if (hasNull) {
+    newDictionaryLength++;
+  }
+  Slice[] newValues=new Slice[newDictionaryLength];
+  for (int i=0; i < values.length; i++) {
+    if (newDictionaryIndexes[i] != -1) {
+      Slice value=values[i];
+      int newIndex=newDictionaryIndexes[i];
+      newValues[newIndex]=copy ? copyOf(value) : value;
+    }
+  }
+  if (hasNull) {
+    int nullIndex=newValues.length - 1;
+    for (int i=0; i < newIds.length; i++) {
+      if (newIds[i] == -1) {
+        newIds[i]=nullIndex;
+      }
+    }
+  }
+  return new DictionaryBlock(positions.size(),new SliceArrayBlock(newValues.length,newValues),wrappedIntArray(newIds));
 }
