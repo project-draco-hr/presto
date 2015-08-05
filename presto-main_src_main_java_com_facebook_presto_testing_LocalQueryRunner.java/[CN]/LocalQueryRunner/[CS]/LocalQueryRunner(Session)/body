@@ -1,6 +1,5 @@
 {
-  this.defaultSession=checkNotNull(defaultSession,"defaultSession is null");
-  this.hashEnabled=SystemSessionProperties.isOptimizeHashGenerationEnabled(defaultSession);
+  checkNotNull(defaultSession,"defaultSession is null");
   this.executor=newCachedThreadPool(daemonThreadsNamed("local-query-runner-%s"));
   this.sqlParser=new SqlParser();
   this.nodeManager=new InMemoryNodeManager();
@@ -15,4 +14,5 @@
   this.connectorManager=new ConnectorManager(metadata,splitManager,pageSourceManager,indexManager,pageSinkManager,new HandleResolver(),ImmutableMap.<String,ConnectorFactory>of(),nodeManager);
   Connector systemConnector=new SystemConnector(nodeManager,ImmutableSet.of(new NodeSystemTable(nodeManager),new CatalogSystemTable(metadata)));
   connectorManager.createConnection(SystemConnector.NAME,systemConnector);
+  this.defaultSession=new Session(defaultSession.getUser(),defaultSession.getSource(),defaultSession.getCatalog(),defaultSession.getSchema(),defaultSession.getTimeZoneKey(),defaultSession.getLocale(),defaultSession.getRemoteUserAddress(),defaultSession.getUserAgent(),defaultSession.getStartTime(),defaultSession.getSystemProperties(),defaultSession.getCatalogProperties(),metadata.getSessionPropertyManager());
 }
