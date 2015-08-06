@@ -1,0 +1,18 @@
+{
+  SchemaTableName oldName=new SchemaTableName(databaseName,tableName);
+  SchemaTableName newName=new SchemaTableName(newTable.getDbName(),newTable.getTableName());
+  if (oldName.equals(newName)) {
+    if (relations.replace(oldName,newTable) != null) {
+      throw new TableNotFoundException(oldName);
+    }
+    return;
+  }
+  Table table=relations.get(oldName);
+  if (table == null) {
+    throw new TableNotFoundException(oldName);
+  }
+  if (relations.putIfAbsent(newName,newTable) != null) {
+    throw new TableAlreadyExistsException(newName);
+  }
+  relations.remove(oldName);
+}
