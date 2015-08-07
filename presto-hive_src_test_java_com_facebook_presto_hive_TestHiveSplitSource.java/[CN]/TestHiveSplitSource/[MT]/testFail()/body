@@ -1,5 +1,5 @@
 {
-  HiveSplitSource hiveSplitSource=new HiveSplitSource("test",10,new TestingHiveSplitLoader());
+  HiveSplitSource hiveSplitSource=new HiveSplitSource("test",10,new TestingHiveSplitLoader(),Executors.newFixedThreadPool(5));
   for (int i=0; i < 5; i++) {
     hiveSplitSource.addToQueue(new TestSplit(i));
     assertEquals(hiveSplitSource.getOutstandingSplitCount(),i + 1);
@@ -15,11 +15,11 @@
  catch (  RuntimeException e) {
     assertEquals(e.getMessage(),"test");
   }
-  assertEquals(hiveSplitSource.getOutstandingSplitCount(),4);
+  assertEquals(hiveSplitSource.getOutstandingSplitCount(),3);
   hiveSplitSource.addToQueue(new TestSplit(99));
-  assertEquals(hiveSplitSource.getOutstandingSplitCount(),4);
+  assertEquals(hiveSplitSource.getOutstandingSplitCount(),3);
   hiveSplitSource.fail(new RuntimeException("another failure"));
-  assertEquals(hiveSplitSource.getOutstandingSplitCount(),4);
+  assertEquals(hiveSplitSource.getOutstandingSplitCount(),3);
   try {
     getFutureValue(hiveSplitSource.getNextBatch(1));
     fail("expected RuntimeException");

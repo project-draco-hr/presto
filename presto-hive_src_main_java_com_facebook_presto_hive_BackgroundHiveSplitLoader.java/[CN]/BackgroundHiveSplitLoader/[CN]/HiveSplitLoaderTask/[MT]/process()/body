@@ -1,0 +1,24 @@
+{
+  while (true) {
+    if (stopped) {
+      return TaskStatus.finished();
+    }
+    try {
+      CompletableFuture<?> future;
+      taskExecutionLock.readLock().lock();
+      try {
+        future=loadSplits();
+      }
+  finally {
+        taskExecutionLock.readLock().unlock();
+      }
+      invokeFinishedIfNecessary();
+      if (!future.isDone()) {
+        return TaskStatus.continueOn(future);
+      }
+    }
+ catch (    Exception e) {
+      hiveSplitSource.fail(e);
+    }
+  }
+}

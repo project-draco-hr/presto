@@ -1,0 +1,16 @@
+{
+  requireNonNull(element);
+  if (finishing) {
+    return CompletableFuture.completedFuture(null);
+  }
+  elements.add(element);
+  int newSize=elements.size();
+  if (newSize == 1) {
+    completeAsync(executor,notEmptySignal);
+    notEmptySignal=new CompletableFuture<>();
+  }
+  if (newSize >= targetQueueSize) {
+    return notFullSignal;
+  }
+  return CompletableFuture.completedFuture(null);
+}

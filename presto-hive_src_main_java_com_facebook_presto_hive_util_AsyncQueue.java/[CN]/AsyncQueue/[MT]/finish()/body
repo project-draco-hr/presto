@@ -1,6 +1,14 @@
 {
-  finished.set(true);
-  if (queue.isEmpty()) {
-    notEmptyFuture.get().complete(null);
+  if (finishing) {
+    return;
+  }
+  finishing=true;
+  if (elements.size() == 0) {
+    completeAsync(executor,notEmptySignal);
+    notEmptySignal=new CompletableFuture<>();
+  }
+ else   if (elements.size() >= targetQueueSize) {
+    completeAsync(executor,notFullSignal);
+    notFullSignal=new CompletableFuture<>();
   }
 }
