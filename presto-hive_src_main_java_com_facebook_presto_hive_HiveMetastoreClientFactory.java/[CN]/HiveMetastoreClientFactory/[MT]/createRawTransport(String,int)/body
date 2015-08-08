@@ -1,0 +1,28 @@
+{
+  if (socksProxy == null) {
+    TTransport transport=new TSocket(host,port,timeoutMillis);
+    try {
+      transport.open();
+      return transport;
+    }
+ catch (    Throwable t) {
+      transport.close();
+      throw t;
+    }
+  }
+  Socket socks=createSocksSocket(socksProxy);
+  try {
+    try {
+      socks.connect(InetSocketAddress.createUnresolved(host,port),timeoutMillis);
+      socks.setSoTimeout(timeoutMillis);
+      return new TSocket(socks);
+    }
+ catch (    Throwable t) {
+      closeQuietly(socks);
+      throw t;
+    }
+  }
+ catch (  IOException e) {
+    throw new TTransportException(e);
+  }
+}

@@ -1,31 +1,8 @@
 {
-  if (socksProxy == null) {
-    TTransport transport=new TTransportWrapper(new TSocket(host,port,timeoutMillis),host);
-    try {
-      transport.open();
-      return transport;
-    }
- catch (    Throwable t) {
-      transport.close();
-      throw t;
-    }
-  }
-  Socket socks=createSocksSocket(socksProxy);
   try {
-    try {
-      socks.connect(InetSocketAddress.createUnresolved(host,port),timeoutMillis);
-      socks.setSoTimeout(timeoutMillis);
-      return new TTransportWrapper(new TSocket(socks),host);
-    }
- catch (    Throwable t) {
-      closeQuietly(socks);
-      throw t;
-    }
+    return new TTransportWrapper(createRawTransport(host,port),host);
   }
- catch (  IOException e) {
-    throw rewriteException(new TTransportException(e),host);
-  }
-catch (  TTransportException e) {
+ catch (  TTransportException e) {
     throw rewriteException(e,host);
   }
 }
