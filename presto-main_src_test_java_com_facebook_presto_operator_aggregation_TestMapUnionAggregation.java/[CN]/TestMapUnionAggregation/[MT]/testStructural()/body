@@ -1,0 +1,11 @@
+{
+  MapType mapType=new MapType(DOUBLE,new ArrayType(VARCHAR));
+  InternalAggregationFunction aggFunc=metadata.getFunctionRegistry().getAggregateFunctionImplementation(new Signature(NAME,AGGREGATE,mapType.getTypeSignature(),mapType.getTypeSignature()));
+  assertAggregation(aggFunc,1.0,ImmutableMap.of(1.0,ImmutableList.of("a","b"),2.0,ImmutableList.of("c","d"),3.0,ImmutableList.of("e","f"),4.0,ImmutableList.of("r","s")),arrayBlockOf(mapType,mapBlockOf(DOUBLE,new ArrayType(VARCHAR),ImmutableMap.of(1.0,ImmutableList.of("a","b"),2.0,ImmutableList.of("c","d"),3.0,ImmutableList.of("e","f"))),mapBlockOf(DOUBLE,new ArrayType(VARCHAR),ImmutableMap.of(1.0,ImmutableList.of("x","y"),4.0,ImmutableList.of("r","s"),3.0,ImmutableList.of("w","z")))));
+  mapType=new MapType(DOUBLE,new MapType(VARCHAR,VARCHAR));
+  aggFunc=metadata.getFunctionRegistry().getAggregateFunctionImplementation(new Signature(NAME,AGGREGATE,mapType.getTypeSignature(),mapType.getTypeSignature()));
+  assertAggregation(aggFunc,1.0,ImmutableMap.of(1.0,ImmutableMap.of("a","b"),2.0,ImmutableMap.of("c","d"),3.0,ImmutableMap.of("e","f")),arrayBlockOf(mapType,mapBlockOf(DOUBLE,new MapType(VARCHAR,VARCHAR),ImmutableMap.of(1.0,ImmutableMap.of("a","b"),2.0,ImmutableMap.of("c","d"))),mapBlockOf(DOUBLE,new MapType(VARCHAR,VARCHAR),ImmutableMap.of(3.0,ImmutableMap.of("e","f")))));
+  mapType=new MapType(new ArrayType(VARCHAR),DOUBLE);
+  aggFunc=metadata.getFunctionRegistry().getAggregateFunctionImplementation(new Signature(NAME,AGGREGATE,mapType.getTypeSignature(),mapType.getTypeSignature()));
+  assertAggregation(aggFunc,1.0,ImmutableMap.of(ImmutableList.of("a","b"),1.0,ImmutableList.of("c","d"),2.0,ImmutableList.of("e","f"),3.0),arrayBlockOf(mapType,mapBlockOf(new ArrayType(VARCHAR),DOUBLE,ImmutableMap.of(ImmutableList.of("a","b"),1.0,ImmutableList.of("e","f"),3.0)),mapBlockOf(new ArrayType(VARCHAR),DOUBLE,ImmutableMap.of(ImmutableList.of("c","d"),2.0))));
+}

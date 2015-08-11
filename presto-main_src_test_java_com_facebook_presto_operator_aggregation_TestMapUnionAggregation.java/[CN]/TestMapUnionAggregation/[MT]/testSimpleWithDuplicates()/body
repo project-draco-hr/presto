@@ -1,0 +1,11 @@
+{
+  MapType mapType=new MapType(DOUBLE,VARCHAR);
+  InternalAggregationFunction aggFunc=metadata.getFunctionRegistry().getAggregateFunctionImplementation(new Signature(NAME,AGGREGATE,mapType.getTypeSignature(),mapType.getTypeSignature()));
+  assertAggregation(aggFunc,1.0,ImmutableMap.of(23.0,"aaa",33.0,"bbb",43.0,"ccc",53.0,"ddd",13.0,"eee"),arrayBlockOf(mapType,mapBlockOf(DOUBLE,VARCHAR,ImmutableMap.of(23.0,"aaa",33.0,"bbb",53.0,"ddd")),mapBlockOf(DOUBLE,VARCHAR,ImmutableMap.of(43.0,"ccc",53.0,"ddd",13.0,"eee"))));
+  mapType=new MapType(DOUBLE,BIGINT);
+  aggFunc=metadata.getFunctionRegistry().getAggregateFunctionImplementation(new Signature(NAME,AGGREGATE,mapType.getTypeSignature(),mapType.getTypeSignature()));
+  assertAggregation(aggFunc,1.0,ImmutableMap.of(1.0,99L,2.0,99L,3.0,99L,4.0,44L),arrayBlockOf(mapType,mapBlockOf(DOUBLE,BIGINT,ImmutableMap.of(1.0,99L,2.0,99L,3.0,99L)),mapBlockOf(DOUBLE,BIGINT,ImmutableMap.of(1.0,44L,2.0,44L,4.0,44L))));
+  mapType=new MapType(BOOLEAN,BIGINT);
+  aggFunc=metadata.getFunctionRegistry().getAggregateFunctionImplementation(new Signature(NAME,AGGREGATE,mapType.getTypeSignature(),mapType.getTypeSignature()));
+  assertAggregation(aggFunc,1.0,ImmutableMap.of(false,12L,true,13L),arrayBlockOf(mapType,mapBlockOf(BOOLEAN,BIGINT,ImmutableMap.of(false,12L)),mapBlockOf(BOOLEAN,BIGINT,ImmutableMap.of(true,13L,false,33L))));
+}
