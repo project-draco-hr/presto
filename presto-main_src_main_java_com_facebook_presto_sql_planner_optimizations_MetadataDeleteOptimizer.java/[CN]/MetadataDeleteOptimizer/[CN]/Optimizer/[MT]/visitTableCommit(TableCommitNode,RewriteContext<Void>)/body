@@ -1,0 +1,11 @@
+{
+  Optional<DeleteNode> delete=findNode(node.getSource(),DeleteNode.class);
+  if (!delete.isPresent() || !metadata.supportsMetadataDelete(session,delete.get().getTarget().getHandle())) {
+    return context.defaultRewrite(node);
+  }
+  Optional<TableScanNode> tableScan=findNode(delete.get().getSource(),TableScanNode.class);
+  if (!tableScan.isPresent()) {
+    return context.defaultRewrite(node);
+  }
+  return new MetadataDeleteNode(idAllocator.getNextId(),delete.get().getTarget(),Iterables.getOnlyElement(node.getOutputSymbols()),tableScan.get().getLayout().get());
+}
