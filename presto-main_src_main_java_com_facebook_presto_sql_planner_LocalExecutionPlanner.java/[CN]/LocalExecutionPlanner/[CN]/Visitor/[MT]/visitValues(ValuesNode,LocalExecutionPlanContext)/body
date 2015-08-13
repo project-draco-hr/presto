@@ -14,7 +14,7 @@
     IdentityHashMap<Expression,Type> expressionTypes=getExpressionTypes(context.getSession(),metadata,sqlParser,ImmutableMap.<Symbol,Type>of(),ImmutableList.copyOf(row));
     for (int i=0; i < row.size(); i++) {
       Object result=ExpressionInterpreter.expressionInterpreter(row.get(i),metadata,context.getSession(),expressionTypes).evaluate(0);
-      BlockUtils.appendObject(outputTypes.get(i),pageBuilder.getBlockBuilder(i),result);
+      pageBuilder.getBlockBuilder(i).write(outputTypes.get(i),result);
     }
   }
   OperatorFactory operatorFactory=new ValuesOperatorFactory(context.getNextOperatorId(),outputTypes,ImmutableList.of(pageBuilder.build()));
