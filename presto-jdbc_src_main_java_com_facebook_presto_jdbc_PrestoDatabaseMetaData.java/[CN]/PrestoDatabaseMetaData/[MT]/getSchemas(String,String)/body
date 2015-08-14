@@ -1,23 +1,9 @@
 {
-  StringBuilder query=new StringBuilder(512);
-  query.append("SELECT DISTINCT schema_name TABLE_SCHEM, catalog_name TABLE_CATALOG ");
-  query.append(" FROM information_schema.schemata");
-  List<String> filters=new ArrayList<>(4);
-  if (catalog != null) {
-    if (catalog.isEmpty()) {
-      filters.add("catalog_name IS NULL");
-    }
- else {
-      filters.add(stringColumnEquals("catalog_name",catalog));
-    }
-  }
-  if (schemaPattern != null) {
-    filters.add(stringColumnLike("schema_name",schemaPattern));
-  }
-  if (!filters.isEmpty()) {
-    query.append(" WHERE ");
-    Joiner.on(" AND ").appendTo(query,filters);
-  }
-  query.append(" ORDER BY TABLE_CATALOG, TABLE_SCHEM");
+  StringBuilder query=new StringBuilder("" + "SELECT TABLE_SCHEM, TABLE_CATALOG\n" + "FROM system.jdbc.schemas");
+  List<String> filters=new ArrayList<>();
+  emptyStringEqualsFilter(filters,"TABLE_CATALOG",catalog);
+  optionalStringLikeFilter(filters,"TABLE_SCHEM",schemaPattern);
+  buildFilters(query,filters);
+  query.append("\nORDER BY TABLE_CATALOG, TABLE_SCHEM");
   return select(query.toString());
 }

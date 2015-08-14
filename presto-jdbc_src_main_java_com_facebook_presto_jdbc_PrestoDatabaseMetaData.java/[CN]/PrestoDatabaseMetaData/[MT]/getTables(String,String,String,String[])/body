@@ -1,54 +1,11 @@
 {
-  StringBuilder query=new StringBuilder(1024);
-  query.append("SELECT");
-  query.append(" table_catalog AS TABLE_CAT");
-  query.append(", table_schema AS TABLE_SCHEM");
-  query.append(", table_name AS TABLE_NAME");
-  query.append(", table_type AS TABLE_TYPE");
-  query.append(", '' AS REMARKS");
-  query.append(", '' AS TYPE_CAT");
-  query.append(", '' AS TYPE_SCHEM");
-  query.append(", '' AS TYPE_NAME");
-  query.append(", '' AS SELF_REFERENCING_COL_NAME");
-  query.append(", '' AS REF_GENERATION");
-  query.append(" FROM information_schema.tables ");
-  List<String> filters=new ArrayList<>(4);
-  if (catalog != null) {
-    if (catalog.isEmpty()) {
-      filters.add("table_catalog IS NULL");
-    }
- else {
-      filters.add(stringColumnEquals("table_catalog",catalog));
-    }
-  }
-  if (schemaPattern != null) {
-    if (schemaPattern.isEmpty()) {
-      filters.add("table_schema IS NULL");
-    }
- else {
-      filters.add(stringColumnLike("table_schema",schemaPattern));
-    }
-  }
-  if (tableNamePattern != null) {
-    filters.add(stringColumnLike("table_name",tableNamePattern));
-  }
-  if (types != null && types.length > 0) {
-    StringBuilder filter=new StringBuilder();
-    filter.append("table_type in (");
-    for (int i=0; i < types.length; i++) {
-      String type=types[i];
-      if (i > 0) {
-        filter.append(" ,");
-      }
-      quoteStringLiteral(filter,type);
-    }
-    filter.append(")");
-    filters.add(filter.toString());
-  }
-  if (!filters.isEmpty()) {
-    query.append(" WHERE ");
-    Joiner.on(" AND ").appendTo(query,filters);
-  }
-  query.append(" ORDER BY TABLE_TYPE, TABLE_CAT, TABLE_SCHEM, TABLE_NAME");
+  StringBuilder query=new StringBuilder("" + "SELECT TABLE_CAT, TABLE_SCHEM, TABLE_NAME, TABLE_TYPE, REMARKS,\n" + "  TYPE_CAT, TYPE_SCHEM, TYPE_NAME, "+ "  SELF_REFERENCING_COL_NAME, REF_GENERATION\n"+ "FROM system.jdbc.tables");
+  List<String> filters=new ArrayList<>();
+  emptyStringEqualsFilter(filters,"TABLE_CAT",catalog);
+  emptyStringLikeFilter(filters,"TABLE_SCHEM",schemaPattern);
+  optionalStringLikeFilter(filters,"TABLE_NAME",tableNamePattern);
+  optionalStringInFilter(filters,"TABLE_TYPE",types);
+  buildFilters(query,filters);
+  query.append("\nORDER BY TABLE_TYPE, TABLE_CAT, TABLE_SCHEM, TABLE_NAME");
   return select(query.toString());
 }
