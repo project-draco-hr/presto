@@ -1,9 +1,11 @@
 {
   Set<String> expectedTables=ImmutableSet.copyOf(transform(TpchTable.getTables(),tableNameGetter()));
-  MaterializedResult result=computeActual("SHOW TABLES FROM " + getSession().getSchema());
+  String catalog=getSession().getCatalog().get();
+  String schema=getSession().getSchema().get();
+  MaterializedResult result=computeActual("SHOW TABLES FROM " + schema);
   Set<String> tableNames=ImmutableSet.copyOf(transform(result.getMaterializedRows(),onlyColumnGetter()));
   assertTrue(tableNames.containsAll(expectedTables));
-  result=computeActual("SHOW TABLES FROM " + getSession().getCatalog() + "."+ getSession().getSchema());
+  result=computeActual("SHOW TABLES FROM " + catalog + "."+ schema);
   tableNames=ImmutableSet.copyOf(transform(result.getMaterializedRows(),onlyColumnGetter()));
   assertTrue(tableNames.containsAll(expectedTables));
   try {

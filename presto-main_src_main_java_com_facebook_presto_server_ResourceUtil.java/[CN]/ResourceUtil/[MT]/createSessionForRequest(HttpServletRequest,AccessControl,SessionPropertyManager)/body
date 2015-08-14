@@ -1,5 +1,9 @@
 {
-  String user=getRequiredHeader(servletRequest,PRESTO_USER,"User");
+  String catalog=trimEmptyToNull(servletRequest.getHeader(PRESTO_CATALOG));
+  String schema=trimEmptyToNull(servletRequest.getHeader(PRESTO_SCHEMA));
+  assertRequest((catalog != null) || (schema == null),"Schema is set but catalog is not");
+  String user=trimEmptyToNull(servletRequest.getHeader(PRESTO_USER));
+  assertRequest(user != null,"User must be set");
   Principal principal=servletRequest.getUserPrincipal();
   try {
     accessControl.checkCanSetUser(principal,user);
@@ -8,7 +12,7 @@
     throw new WebApplicationException(e.getMessage(),Status.FORBIDDEN);
   }
   Identity identity=new Identity(user,Optional.ofNullable(principal));
-  SessionBuilder sessionBuilder=Session.builder(sessionPropertyManager).setIdentity(identity).setSource(servletRequest.getHeader(PRESTO_SOURCE)).setCatalog(getRequiredHeader(servletRequest,PRESTO_CATALOG,"Catalog")).setSchema(getRequiredHeader(servletRequest,PRESTO_SCHEMA,"Schema")).setRemoteUserAddress(servletRequest.getRemoteAddr()).setUserAgent(servletRequest.getHeader(USER_AGENT));
+  SessionBuilder sessionBuilder=Session.builder(sessionPropertyManager).setIdentity(identity).setSource(servletRequest.getHeader(PRESTO_SOURCE)).setCatalog(catalog).setSchema(schema).setRemoteUserAddress(servletRequest.getRemoteAddr()).setUserAgent(servletRequest.getHeader(USER_AGENT));
   String timeZoneId=servletRequest.getHeader(PRESTO_TIME_ZONE);
   if (timeZoneId != null) {
     sessionBuilder.setTimeZoneKey(getTimeZoneKey(timeZoneId));
