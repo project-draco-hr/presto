@@ -1,0 +1,14 @@
+{
+  List<Page> pages=new ArrayList<>(100);
+  try (ConnectorPageSource pageSource=fileFormat.createFileFormatReader(SESSION,dataFile,columnNames,fileFormat.supportsDate() ? columnTypes : noDateColumnTypes)){
+    while (!pageSource.isFinished()) {
+      Page page=pageSource.getNextPage();
+      if (page != null) {
+        page.assureLoaded();
+        pages.add(page);
+      }
+    }
+  }
+   counter.addCompressed(size,dataFile.length());
+  return pages;
+}

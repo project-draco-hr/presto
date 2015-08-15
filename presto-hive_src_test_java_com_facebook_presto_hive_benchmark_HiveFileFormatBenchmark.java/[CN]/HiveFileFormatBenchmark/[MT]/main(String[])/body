@@ -1,0 +1,13 @@
+{
+  Options opt=new OptionsBuilder().include(".*\\." + HiveFileFormatBenchmark.class.getSimpleName() + ".*").build();
+  Collection<RunResult> results=new Runner(opt).run();
+  for (  RunResult result : results) {
+    Statistics inputSizeStats=result.getSecondaryResults().get("getInputSize").getStatistics();
+    Statistics outputSizeStats=result.getSecondaryResults().get("getOutputSize").getStatistics();
+    double compressionRatio=1.0 * inputSizeStats.getSum() / outputSizeStats.getSum();
+    String compression=result.getParams().getParam("compression");
+    String fileFormat=result.getParams().getParam("fileFormat");
+    System.out.printf("  %-10s  %-22s  %-25s  %2.2f  %10s ?? %11s (%5.2f%%) (N = %d, \u03B1 = 99.9%%)\n",result.getPrimaryResult().getLabel(),compression,fileFormat,compressionRatio,toHumanReadableSpeed((long)inputSizeStats.getMean()),toHumanReadableSpeed((long)inputSizeStats.getMeanErrorAt(0.999)),inputSizeStats.getMeanErrorAt(0.999) * 100 / inputSizeStats.getMean(),inputSizeStats.getN());
+  }
+  System.out.println();
+}
