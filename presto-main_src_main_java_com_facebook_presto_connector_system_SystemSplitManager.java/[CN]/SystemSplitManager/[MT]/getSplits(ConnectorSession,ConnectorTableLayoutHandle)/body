@@ -1,15 +1,16 @@
 {
   SystemTableLayoutHandle layoutHandle=checkType(layout,SystemTableLayoutHandle.class,"layout");
   SystemTableHandle tableHandle=layoutHandle.getTable();
+  TupleDomain<ColumnHandle> constraint=layoutHandle.getConstraint();
   SystemTable systemTable=tables.get(tableHandle.getSchemaTableName());
   if (systemTable.isDistributed()) {
     ImmutableList.Builder<ConnectorSplit> splits=ImmutableList.builder();
     for (    Node node : nodeManager.getActiveNodes()) {
-      splits.add(new SystemSplit(tableHandle,node.getHostAndPort()));
+      splits.add(new SystemSplit(tableHandle,node.getHostAndPort(),constraint));
     }
     return new FixedSplitSource(SystemConnector.NAME,splits.build());
   }
   HostAddress address=nodeManager.getCurrentNode().getHostAndPort();
-  ConnectorSplit split=new SystemSplit(tableHandle,address);
+  ConnectorSplit split=new SystemSplit(tableHandle,address,constraint);
   return new FixedSplitSource(SystemConnector.NAME,ImmutableList.of(split));
 }

@@ -1,6 +1,7 @@
 {
-  SchemaTableName tableName=checkType(split,SystemSplit.class,"split").getTableHandle().getSchemaTableName();
   checkNotNull(columns,"columns is null");
+  SystemSplit systemSplit=checkType(split,SystemSplit.class,"split");
+  SchemaTableName tableName=systemSplit.getTableHandle().getSchemaTableName();
   SystemTable systemTable=tables.get(tableName);
   checkArgument(systemTable != null,"Table %s does not exist",tableName);
   List<ColumnMetadata> tableColumns=systemTable.getTableMetadata().getColumns();
@@ -20,5 +21,12 @@
     }
     userToSystemFieldIndex.add(index);
   }
-  return new MappedRecordSet(toRecordSet(systemTable),userToSystemFieldIndex.build());
+  TupleDomain<ColumnHandle> constraint=systemSplit.getConstraint();
+  ImmutableMap.Builder<Integer,Domain> newConstraints=ImmutableMap.builder();
+  for (  Map.Entry<ColumnHandle,Domain> entry : constraint.getDomains().entrySet()) {
+    String columnName=checkType(entry.getKey(),SystemColumnHandle.class,"column").getColumnName();
+    newConstraints.put(columnsByName.get(columnName),entry.getValue());
+  }
+  TupleDomain<Integer> newContraint=withColumnDomains(newConstraints.build());
+  return new MappedRecordSet(toRecordSet(systemTable,session,newContraint),userToSystemFieldIndex.build());
 }
