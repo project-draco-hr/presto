@@ -1,0 +1,17 @@
+{
+  Map<String,String> properties=ImmutableMap.<String,String>builder().put("query.queue-config-file",getResourceFilePath("queue_config_dashboard.json")).build();
+  try (DistributedQueryRunner queryRunner=createQueryRunner(properties)){
+    QueryId firstDashboardQuery=createQuery(queryRunner,DASHBOARD_SESSION,"SELECT COUNT(*) FROM lineitem");
+    waitForQueryState(queryRunner,firstDashboardQuery,RUNNING);
+    QueryId secondDashboardQuery=createQuery(queryRunner,DASHBOARD_SESSION,"SELECT COUNT(*) FROM lineitem");
+    waitForQueryState(queryRunner,secondDashboardQuery,QUEUED);
+    QueryId firstNonDashboardQuery=createQuery(queryRunner,SESSION,"SELECT COUNT(*) FROM lineitem");
+    waitForQueryState(queryRunner,firstNonDashboardQuery,RUNNING);
+    QueryId secondNonDashboardQuery=createQuery(queryRunner,SESSION,"SELECT COUNT(*) FROM lineitem");
+    waitForQueryState(queryRunner,secondNonDashboardQuery,QUEUED);
+    cancelQuery(queryRunner,firstDashboardQuery);
+    waitForQueryState(queryRunner,firstDashboardQuery,FAILED);
+    waitForQueryState(queryRunner,secondDashboardQuery,RUNNING);
+    waitForQueryState(queryRunner,secondNonDashboardQuery,RUNNING);
+  }
+ }
