@@ -1,0 +1,15 @@
+{
+  if (node instanceof TableWriterNode) {
+    return ((TableWriterNode)node).getTarget();
+  }
+ else   if (node instanceof DeleteNode) {
+    return ((DeleteNode)node).getTarget();
+  }
+ else   if (node instanceof ExchangeNode) {
+    PlanNode source=Iterables.getOnlyElement(node.getSources());
+    return getTarget(source);
+  }
+ else {
+    throw new IllegalArgumentException("Invalid child for TableCommitNode: " + node.getClass().getSimpleName());
+  }
+}
