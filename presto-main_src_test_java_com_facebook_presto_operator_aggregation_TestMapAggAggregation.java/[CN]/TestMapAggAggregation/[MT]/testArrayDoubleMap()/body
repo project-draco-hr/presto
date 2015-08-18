@@ -4,13 +4,13 @@
   InternalAggregationFunction aggFunc=metadata.getExactFunction(new Signature(NAME,mapType.getTypeSignature().toString(),arrayType.getTypeSignature().toString(),StandardTypes.DOUBLE)).getAggregationFunction();
   PageBuilder builder=new PageBuilder(ImmutableList.of(arrayType,DOUBLE));
   builder.declarePosition();
-  arrayType.writeObject(builder.getBlockBuilder(0),toStackRepresentation(ImmutableList.of("a","b"),VARCHAR));
+  arrayType.writeObject(builder.getBlockBuilder(0),arrayBlockOf(VARCHAR,"a","b"));
   DOUBLE.writeDouble(builder.getBlockBuilder(1),1.0);
   builder.declarePosition();
-  arrayType.writeObject(builder.getBlockBuilder(0),toStackRepresentation(ImmutableList.of("c","d"),VARCHAR));
+  arrayType.writeObject(builder.getBlockBuilder(0),arrayBlockOf(VARCHAR,"c","d"));
   DOUBLE.writeDouble(builder.getBlockBuilder(1),2.0);
   builder.declarePosition();
-  arrayType.writeObject(builder.getBlockBuilder(0),toStackRepresentation(ImmutableList.of("e","f"),VARCHAR));
+  arrayType.writeObject(builder.getBlockBuilder(0),arrayBlockOf(VARCHAR,"e","f"));
   DOUBLE.writeDouble(builder.getBlockBuilder(1),3.0);
   assertAggregation(aggFunc,1.0,ImmutableMap.of(ImmutableList.of("a","b"),1.0,ImmutableList.of("c","d"),2.0,ImmutableList.of("e","f"),3.0),builder.build());
 }

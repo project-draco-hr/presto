@@ -1,10 +1,15 @@
 {
   try {
-    Object array=stackRepresentationToObject(connectorSession,json,arrayType);
+    List<?> array=(List<?>)stackRepresentationToObject(connectorSession,json,arrayType);
     if (array == null) {
       return null;
     }
-    return toStackRepresentation((List<?>)array,((ArrayType)arrayType).getElementType());
+    Type elementType=((ArrayType)arrayType).getElementType();
+    BlockBuilder blockBuilder=elementType.createBlockBuilder(new BlockBuilderStatus(),array.size());
+    for (    Object element : array) {
+      appendToBlockBuilder(elementType,element,blockBuilder);
+    }
+    return blockBuilder.build();
   }
  catch (  RuntimeException e) {
     throw new PrestoException(INVALID_CAST_ARGUMENT,"Value cannot be cast to " + arrayType,e);
