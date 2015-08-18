@@ -1,7 +1,11 @@
 {
-  Object object=arrayType.getObjectValue(session,createBlock(arrayType,array),0);
+  Type elementType=arrayType.getTypeParameters().get(0);
+  List<Object> objectValues=new ArrayList<>(array.getPositionCount());
+  for (int i=0; i < array.getPositionCount(); i++) {
+    objectValues.add(elementType.getObjectValue(session,array,i));
+  }
   try {
-    return Slices.utf8Slice(OBJECT_MAPPER.get().writeValueAsString(object));
+    return Slices.utf8Slice(OBJECT_MAPPER.get().writeValueAsString(objectValues));
   }
  catch (  JsonProcessingException e) {
     throw Throwables.propagate(e);
