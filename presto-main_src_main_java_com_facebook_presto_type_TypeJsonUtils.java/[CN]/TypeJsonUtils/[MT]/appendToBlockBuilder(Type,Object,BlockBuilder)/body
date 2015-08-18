@@ -4,14 +4,14 @@
     blockBuilder.appendNull();
   }
  else   if (type.getTypeSignature().getBase().equals(StandardTypes.ARRAY) && element instanceof Iterable<?>) {
-    BlockBuilder subBlockBuilder=((ArrayType)type).getElementType().createBlockBuilder(new BlockBuilderStatus(),EXPECTED_ARRAY_SIZE);
+    BlockBuilder subBlockBuilder=((ArrayType)type).getElementType().createBlockBuilder(new BlockBuilderStatus(),TypeUtils.EXPECTED_ARRAY_SIZE);
     for (    Object subElement : (Iterable<?>)element) {
       appendToBlockBuilder(type.getTypeParameters().get(0),subElement,subBlockBuilder);
     }
     type.writeObject(blockBuilder,subBlockBuilder);
   }
  else   if (type.getTypeSignature().getBase().equals(StandardTypes.ROW) && element instanceof Iterable<?>) {
-    BlockBuilder subBlockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),EXPECTED_ARRAY_SIZE);
+    BlockBuilder subBlockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),TypeUtils.EXPECTED_ARRAY_SIZE);
     int field=0;
     for (    Object subElement : (Iterable<?>)element) {
       appendToBlockBuilder(type.getTypeParameters().get(field),subElement,subBlockBuilder);
@@ -20,7 +20,7 @@
     type.writeObject(blockBuilder,subBlockBuilder);
   }
  else   if (type.getTypeSignature().getBase().equals(StandardTypes.MAP) && element instanceof Map<?,?>) {
-    BlockBuilder subBlockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),EXPECTED_ARRAY_SIZE);
+    BlockBuilder subBlockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),TypeUtils.EXPECTED_ARRAY_SIZE);
     for (    Map.Entry<?,?> entry : ((Map<?,?>)element).entrySet()) {
       appendToBlockBuilder(type.getTypeParameters().get(0),entry.getKey(),subBlockBuilder);
       appendToBlockBuilder(type.getTypeParameters().get(1),entry.getValue(),subBlockBuilder);
