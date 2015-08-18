@@ -1,8 +1,10 @@
 {
-  MapType mapType=new MapType(keyType,valueType);
-  Object object=mapType.getObjectValue(session,createBlock(mapType,block),0);
+  Map<Object,Object> map=new HashMap<>();
+  for (int i=0; i < block.getPositionCount(); i+=2) {
+    map.put(keyType.getObjectValue(session,block,i),valueType.getObjectValue(session,block,i + 1));
+  }
   try {
-    return Slices.utf8Slice(OBJECT_MAPPER.get().writeValueAsString(object));
+    return Slices.utf8Slice(OBJECT_MAPPER.get().writeValueAsString(map));
   }
  catch (  JsonProcessingException e) {
     throw Throwables.propagate(e);
