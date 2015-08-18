@@ -2,22 +2,23 @@
   checkCondition(limit > 0,INVALID_FUNCTION_ARGUMENT,"Limit must be positive");
   checkCondition(limit <= Integer.MAX_VALUE,INVALID_FUNCTION_ARGUMENT,"Limit is too large");
   checkCondition(delimiter.length() > 0,INVALID_FUNCTION_ARGUMENT,"The delimiter may not be the empty string");
+  BlockBuilder parts=VARCHAR.createBlockBuilder(new BlockBuilderStatus(),1,string.length());
   if (limit == 1) {
-    return toStackRepresentation(ImmutableList.of(string),VARCHAR);
+    VARCHAR.writeSlice(parts,string);
+    return parts.build();
   }
-  List<Slice> parts=new ArrayList<>();
   int index=0;
   while (index < string.length()) {
     int splitIndex=string.indexOf(delimiter,index);
     if (splitIndex < 0) {
       break;
     }
-    parts.add(string.slice(index,splitIndex - index));
+    VARCHAR.writeSlice(parts,string,index,splitIndex - index);
     index=splitIndex + delimiter.length();
-    if (parts.size() == limit - 1) {
+    if (parts.getPositionCount() == limit - 1) {
       break;
     }
   }
-  parts.add(string.slice(index,string.length() - index));
-  return toStackRepresentation(parts,VARCHAR);
+  VARCHAR.writeSlice(parts,string,index,string.length() - index);
+  return parts.build();
 }
