@@ -1,10 +1,17 @@
 {
   try {
-    Object map=stackRepresentationToObject(connectorSession,json,mapType);
+    Map<?,?> map=(Map<?,?>)stackRepresentationToObject(connectorSession,json,mapType);
     if (map == null) {
       return null;
     }
-    return toStackRepresentation((Map<?,?>)map,((MapType)mapType).getKeyType(),((MapType)mapType).getValueType());
+    Type keyType=((MapType)mapType).getKeyType();
+    Type valueType=((MapType)mapType).getValueType();
+    BlockBuilder blockBuilder=new InterleavedBlockBuilder(ImmutableList.of(keyType,valueType),new BlockBuilderStatus(),map.size() * 2);
+    for (    Map.Entry<?,?> entry : map.entrySet()) {
+      appendToBlockBuilder(keyType,entry.getKey(),blockBuilder);
+      appendToBlockBuilder(valueType,entry.getValue(),blockBuilder);
+    }
+    return blockBuilder.build();
   }
  catch (  RuntimeException e) {
     throw new PrestoException(INVALID_CAST_ARGUMENT,"Value cannot be cast to " + mapType,e);
