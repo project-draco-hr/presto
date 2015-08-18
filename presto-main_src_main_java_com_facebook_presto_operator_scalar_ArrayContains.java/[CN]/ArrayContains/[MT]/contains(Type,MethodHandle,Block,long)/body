@@ -1,0 +1,22 @@
+{
+  boolean foundNull=false;
+  for (int i=0; i < arrayBlock.getPositionCount(); i++) {
+    if (arrayBlock.isNull(i)) {
+      foundNull=true;
+    }
+    try {
+      if ((boolean)equals.invokeExact(elementType.getLong(arrayBlock,i),value)) {
+        return true;
+      }
+    }
+ catch (    Throwable t) {
+      Throwables.propagateIfInstanceOf(t,Error.class);
+      Throwables.propagateIfInstanceOf(t,PrestoException.class);
+      throw new PrestoException(INTERNAL_ERROR,t);
+    }
+  }
+  if (foundNull) {
+    return null;
+  }
+  return false;
+}
