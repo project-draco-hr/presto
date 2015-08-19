@@ -1,24 +1,2 @@
 {
-  ConnectorTableHandle tableHandle=getTableHandle(tableBucketedBigintBoolean);
-  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(SESSION,tableHandle).values());
-  Map<String,Integer> columnIndex=indexColumns(columnHandles);
-  assertTableIsBucketed(tableHandle);
-  String testString="test";
-  Long testBigint=89L;
-  Boolean testBoolean=true;
-  ImmutableMap<ColumnHandle,SerializableNativeValue> bindings=ImmutableMap.<ColumnHandle,SerializableNativeValue>builder().put(columnHandles.get(columnIndex.get("t_string")),new SerializableNativeValue(Slice.class,utf8Slice(testString))).put(columnHandles.get(columnIndex.get("t_bigint")),new SerializableNativeValue(Long.class,testBigint)).put(columnHandles.get(columnIndex.get("t_boolean")),new SerializableNativeValue(Boolean.class,testBoolean)).build();
-  ConnectorPartitionResult partitionResult=splitManager.getPartitions(SESSION,tableHandle,TupleDomain.withNullableFixedValues(bindings));
-  List<ConnectorSplit> splits=getAllSplits(splitManager.getPartitionSplits(SESSION,tableHandle,partitionResult.getPartitions()));
-  assertEquals(splits.size(),1);
-  try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(SESSION,splits.get(0),columnHandles)){
-    MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,getTypes(columnHandles));
-    boolean rowFound=false;
-    for (    MaterializedRow row : result) {
-      if (testString.equals(row.getField(columnIndex.get("t_string"))) && testBigint.equals(row.getField(columnIndex.get("t_bigint"))) && testBoolean.equals(row.getField(columnIndex.get("t_boolean")))) {
-        rowFound=true;
-        break;
-      }
-    }
-    assertTrue(rowFound);
-  }
- }
+}

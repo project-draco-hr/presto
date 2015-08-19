@@ -1,24 +1,2 @@
 {
-  ConnectorTableHandle tableHandle=getTableHandle(tableOfflinePartition);
-  assertNotNull(tableHandle);
-  ColumnHandle dsColumn=metadata.getColumnHandles(SESSION,tableHandle).get("ds");
-  assertNotNull(dsColumn);
-  Domain domain=Domain.singleValue(utf8Slice("2012-12-30"));
-  TupleDomain<ColumnHandle> tupleDomain=TupleDomain.withColumnDomains(ImmutableMap.of(dsColumn,domain));
-  ConnectorPartitionResult partitionResult=splitManager.getPartitions(SESSION,tableHandle,tupleDomain);
-  for (  ConnectorPartition partition : partitionResult.getPartitions()) {
-    if (domain.equals(partition.getTupleDomain().getDomains().get(dsColumn))) {
-      try {
-        getSplitCount(splitManager.getPartitionSplits(SESSION,tableHandle,ImmutableList.of(partition)));
-        fail("Expected PartitionOfflineException");
-      }
- catch (      PartitionOfflineException e) {
-        assertEquals(e.getTableName(),tableOfflinePartition);
-        assertEquals(e.getPartition(),"ds=2012-12-30");
-      }
-    }
- else {
-      getSplitCount(splitManager.getPartitionSplits(SESSION,tableHandle,ImmutableList.of(partition)));
-    }
-  }
 }

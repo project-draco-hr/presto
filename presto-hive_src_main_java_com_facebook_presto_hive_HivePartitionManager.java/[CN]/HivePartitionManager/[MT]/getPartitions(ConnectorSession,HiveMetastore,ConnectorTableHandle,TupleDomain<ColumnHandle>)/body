@@ -1,0 +1,25 @@
+{
+  HiveTableHandle hiveTableHandle=checkType(tableHandle,HiveTableHandle.class,"tableHandle");
+  checkNotNull(effectivePredicate,"effectivePredicate is null");
+  if (effectivePredicate.isNone()) {
+    return new HivePartitionResult(ImmutableList.of(),TupleDomain.none());
+  }
+  SchemaTableName tableName=hiveTableHandle.getSchemaTableName();
+  Table table=getTable(metastore,tableName);
+  Optional<HiveBucketing.HiveBucket> bucket=getHiveBucket(table,effectivePredicate.extractFixedValues());
+  TupleDomain<HiveColumnHandle> compactEffectivePredicate=toCompactTupleDomain(effectivePredicate,domainCompactionThreshold);
+  if (table.getPartitionKeys().isEmpty()) {
+    return new HivePartitionResult(ImmutableList.of(new HivePartition(tableName,compactEffectivePredicate,bucket)),effectivePredicate);
+  }
+  List<HiveColumnHandle> partitionColumns=getPartitionKeyColumnHandles(connectorId,table,0);
+  List<String> partitionNames=getFilteredPartitionNames(metastore,tableName,partitionColumns,effectivePredicate);
+  ImmutableList.Builder<HivePartition> partitions=ImmutableList.builder();
+  for (  String partitionName : partitionNames) {
+    Optional<Map<ColumnHandle,SerializableNativeValue>> values=parseValuesAndFilterPartition(partitionName,partitionColumns,effectivePredicate);
+    if (values.isPresent()) {
+      partitions.add(new HivePartition(tableName,compactEffectivePredicate,partitionName,values.get(),bucket));
+    }
+  }
+  TupleDomain<ColumnHandle> remainingTupleDomain=TupleDomain.withColumnDomains(Maps.filterKeys(effectivePredicate.getDomains(),not(Predicates.<ColumnHandle>in(partitionColumns))));
+  return new HivePartitionResult(partitions.build(),remainingTupleDomain);
+}

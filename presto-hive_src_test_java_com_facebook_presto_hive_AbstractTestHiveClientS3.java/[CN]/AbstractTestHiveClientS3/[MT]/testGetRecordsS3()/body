@@ -1,18 +1,2 @@
 {
-  ConnectorTableHandle table=getTableHandle(tableS3);
-  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(SESSION,table).values());
-  Map<String,Integer> columnIndex=indexColumns(columnHandles);
-  ConnectorPartitionResult partitionResult=splitManager.getPartitions(SESSION,table,TupleDomain.<ColumnHandle>all());
-  assertEquals(partitionResult.getPartitions().size(),1);
-  ConnectorSplitSource splitSource=splitManager.getPartitionSplits(SESSION,table,partitionResult.getPartitions());
-  long sum=0;
-  for (  ConnectorSplit split : getAllSplits(splitSource)) {
-    try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(SESSION,split,columnHandles)){
-      MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,getTypes(columnHandles));
-      for (      MaterializedRow row : result) {
-        sum+=(Long)row.getField(columnIndex.get("t_bigint"));
-      }
-    }
-   }
-  assertEquals(sum,78300);
 }

@@ -7,12 +7,12 @@
     hiveClientConfig.setMetastoreSocksProxy(HostAndPort.fromString(proxy));
   }
   HiveCluster hiveCluster=new TestingHiveCluster(hiveClientConfig,host,port);
-  HiveMetastore metastoreClient=new CachingHiveMetastore(hiveCluster,executor,Duration.valueOf("1m"),Duration.valueOf("15s"));
+  metastoreClient=new CachingHiveMetastore(hiveCluster,executor,Duration.valueOf("1m"),Duration.valueOf("15s"));
   HiveConnectorId connectorId=new HiveConnectorId(connectorName);
   HdfsConfiguration hdfsConfiguration=new HiveHdfsConfiguration(new HdfsConfigurationUpdater(hiveClientConfig));
   hdfsEnvironment=new HdfsEnvironment(hdfsConfiguration,hiveClientConfig);
-  metadata=new HiveMetadata(connectorId,metastoreClient,hdfsEnvironment,timeZone,true,true,true,new TypeRegistry());
-  splitManager=new HiveSplitManager(connectorId,metastoreClient,new NamenodeStats(),hdfsEnvironment,new HadoopDirectoryLister(),timeZone,newDirectExecutorService(),maxOutstandingSplits,hiveClientConfig.getMinPartitionBatchSize(),hiveClientConfig.getMaxPartitionBatchSize(),hiveClientConfig.getMaxSplitSize(),hiveClientConfig.getMaxInitialSplitSize(),hiveClientConfig.getMaxInitialSplits(),false,false,hiveClientConfig.getDomainCompactionThreshold());
+  metadata=new HiveMetadata(connectorId,metastoreClient,hdfsEnvironment,new HivePartitionManager(connectorId,hiveClientConfig),timeZone,true,true,true,new TypeRegistry());
+  splitManager=new HiveSplitManager(connectorId,metastoreClient,new NamenodeStats(),hdfsEnvironment,new HadoopDirectoryLister(),newDirectExecutorService(),maxOutstandingSplits,hiveClientConfig.getMinPartitionBatchSize(),hiveClientConfig.getMaxPartitionBatchSize(),hiveClientConfig.getMaxSplitSize(),hiveClientConfig.getMaxInitialSplitSize(),hiveClientConfig.getMaxInitialSplits(),false);
   recordSinkProvider=new HiveRecordSinkProvider(hdfsEnvironment);
   pageSourceProvider=new HivePageSourceProvider(hiveClientConfig,hdfsEnvironment,DEFAULT_HIVE_RECORD_CURSOR_PROVIDER,DEFAULT_HIVE_DATA_STREAM_FACTORIES,TYPE_MANAGER);
 }

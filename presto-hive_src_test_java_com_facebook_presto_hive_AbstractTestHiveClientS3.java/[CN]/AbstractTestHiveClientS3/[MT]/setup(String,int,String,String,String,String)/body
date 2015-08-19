@@ -10,9 +10,10 @@
   HiveCluster hiveCluster=new TestingHiveCluster(hiveClientConfig,host,port);
   ExecutorService executor=newCachedThreadPool(daemonThreadsNamed("hive-s3-%s"));
   HdfsConfiguration hdfsConfiguration=new HiveHdfsConfiguration(new HdfsConfigurationUpdater(hiveClientConfig));
+  HivePartitionManager hivePartitionManager=new HivePartitionManager(connectorId,hiveClientConfig);
   hdfsEnvironment=new HdfsEnvironment(hdfsConfiguration,hiveClientConfig);
   metastoreClient=new TestingHiveMetastore(hiveCluster,executor,hiveClientConfig,writableBucket,hdfsEnvironment);
-  metadata=new HiveMetadata(connectorId,hiveClientConfig,metastoreClient,hdfsEnvironment,newDirectExecutorService(),new TypeRegistry());
+  metadata=new HiveMetadata(connectorId,hiveClientConfig,metastoreClient,hdfsEnvironment,hivePartitionManager,newDirectExecutorService(),new TypeRegistry());
   splitManager=new HiveSplitManager(connectorId,hiveClientConfig,metastoreClient,new NamenodeStats(),hdfsEnvironment,new HadoopDirectoryLister(),executor);
   recordSinkProvider=new HiveRecordSinkProvider(hdfsEnvironment);
   pageSourceProvider=new HivePageSourceProvider(hiveClientConfig,hdfsEnvironment,DEFAULT_HIVE_RECORD_CURSOR_PROVIDER,DEFAULT_HIVE_DATA_STREAM_FACTORIES,TYPE_MANAGER);
