@@ -9,6 +9,12 @@
   this.maxShardSize=requireNonNull(maxShardSize,"maxShardSize is null");
   checkArgument(maxShardRows > 0,"maxShardRows must be > 0");
   this.maxShardRows=maxShardRows;
-  checkArgument(compactionThreads > 0,"compactionThreads must be > 0");
-  this.compactionService=newFixedThreadPool(compactionThreads,daemonThreadsNamed("shard-compactor-%s"));
+  this.compactionEnabled=compactionEnabled;
+  if (compactionEnabled) {
+    checkArgument(compactionThreads > 0,"compactionThreads must be > 0");
+    this.compactionService=newFixedThreadPool(compactionThreads,daemonThreadsNamed("shard-compactor-%s"));
+  }
+ else {
+    this.compactionService=null;
+  }
 }
