@@ -11,7 +11,8 @@
       SingleColumn column=(SingleColumn)item;
       Optional<String> alias=column.getAlias();
       if (!alias.isPresent() && column.getExpression() instanceof QualifiedNameReference) {
-        alias=Optional.of(((QualifiedNameReference)column.getExpression()).getName().getSuffix());
+        QualifiedName name=((QualifiedNameReference)column.getExpression()).getName();
+        alias=Optional.of(getLast(name.getOriginalParts()));
       }
       outputFields.add(Field.newUnqualified(alias,analysis.getType(column.getExpression())));
     }
