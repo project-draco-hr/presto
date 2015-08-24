@@ -4,6 +4,7 @@
   metadata.addConnectorMetadata("tpch","tpch",new TestingMetadata());
   metadata.addConnectorMetadata("c2","c2",new TestingMetadata());
   metadata.addConnectorMetadata("c3","c3",new TestingMetadata());
+  AccessControl accessControl=new AllowAllAccessControl();
   SchemaTableName table1=new SchemaTableName("default","t1");
   metadata.createTable(SESSION,"tpch",new TableMetadata("tpch",new ConnectorTableMetadata(table1,ImmutableList.<ColumnMetadata>of(new ColumnMetadata("a",BIGINT,false),new ColumnMetadata("b",BIGINT,false),new ColumnMetadata("c",BIGINT,false),new ColumnMetadata("d",BIGINT,false)))));
   SchemaTableName table2=new SchemaTableName("default","t2");
@@ -20,6 +21,6 @@
   metadata.createView(SESSION,new QualifiedTableName("tpch","default","v2"),viewData2,false);
   String viewData3=JsonCodec.jsonCodec(ViewDefinition.class).toJson(new ViewDefinition("select a from t4","c2","s2",ImmutableList.of(new ViewColumn("a",BIGINT))));
   metadata.createView(SESSION,new QualifiedTableName("c3","s3","v3"),viewData3,false);
-  analyzer=new Analyzer(testSessionBuilder().setCatalog("tpch").setSchema("default").build(),metadata,SQL_PARSER,Optional.empty(),true);
-  approximateDisabledAnalyzer=new Analyzer(testSessionBuilder().setCatalog("tpch").setSchema("default").build(),metadata,SQL_PARSER,Optional.empty(),false);
+  analyzer=new Analyzer(testSessionBuilder().setCatalog("tpch").setSchema("default").build(),metadata,SQL_PARSER,accessControl,Optional.empty(),true);
+  approximateDisabledAnalyzer=new Analyzer(testSessionBuilder().setCatalog("tpch").setSchema("default").build(),metadata,SQL_PARSER,accessControl,Optional.empty(),false);
 }

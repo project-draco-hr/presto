@@ -20,6 +20,7 @@
     ViewDefinition view=optionalView.get();
     Query query=parseView(view.getOriginalSql(),name,table);
     analysis.registerNamedQuery(table,query);
+    accessControl.checkCanSelectFromView(session.getIdentity(),name);
     TupleDescriptor descriptor=analyzeView(query,name,view.getCatalog(),view.getSchema(),table);
     if (isViewStale(view.getColumns(),descriptor.getVisibleFields())) {
       throw new SemanticException(VIEW_IS_STALE,table,"View '%s' is stale; it must be re-created",name);
@@ -40,6 +41,7 @@
     }
     throw new SemanticException(MISSING_TABLE,table,"Table %s does not exist",name);
   }
+  accessControl.checkCanSelectFromTable(session.getIdentity(),name);
   TableMetadata tableMetadata=metadata.getTableMetadata(session,tableHandle.get());
   Map<String,ColumnHandle> columnHandles=metadata.getColumnHandles(session,tableHandle.get());
   ImmutableList.Builder<Field> fields=ImmutableList.builder();

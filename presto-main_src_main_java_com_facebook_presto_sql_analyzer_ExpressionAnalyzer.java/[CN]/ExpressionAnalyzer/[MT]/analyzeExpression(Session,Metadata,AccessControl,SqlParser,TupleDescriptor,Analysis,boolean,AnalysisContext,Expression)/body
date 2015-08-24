@@ -1,0 +1,16 @@
+{
+  ExpressionAnalyzer analyzer=create(analysis,session,metadata,sqlParser,accessControl,approximateQueriesEnabled);
+  analyzer.analyze(expression,tupleDescriptor,context);
+  IdentityHashMap<Expression,Type> expressionTypes=analyzer.getExpressionTypes();
+  IdentityHashMap<Expression,Type> expressionCoercions=analyzer.getExpressionCoercions();
+  IdentityHashMap<FunctionCall,FunctionInfo> resolvedFunctions=analyzer.getResolvedFunctions();
+  analysis.addTypes(expressionTypes);
+  analysis.addCoercions(expressionCoercions);
+  analysis.addFunctionInfos(resolvedFunctions);
+  analysis.addRowFieldReferences(analyzer.getRowFieldReferences());
+  for (  Expression subExpression : expressionTypes.keySet()) {
+    analysis.addResolvedNames(subExpression,analyzer.getResolvedNames());
+  }
+  Set<InPredicate> subqueryInPredicates=analyzer.getSubqueryInPredicates();
+  return new ExpressionAnalysis(expressionTypes,expressionCoercions,subqueryInPredicates);
+}

@@ -54,6 +54,12 @@
   }
   List<PropertyMetadata<?>> tableProperties=connector.getTableProperties();
   checkNotNull(tableProperties,"Connector %s returned null table properties",connectorId);
+  ConnectorAccessControl accessControl=null;
+  try {
+    accessControl=connector.getAccessControl();
+  }
+ catch (  UnsupportedOperationException ignored) {
+  }
   metadataManager.addConnectorMetadata(connectorId,catalogName,connectorMetadata);
   metadataManager.addInformationSchemaMetadata(makeInformationSchemaConnectorId(connectorId),catalogName,new InformationSchemaMetadata(catalogName));
   splitManager.addConnectorSplitManager(makeInformationSchemaConnectorId(connectorId),new InformationSchemaSplitManager(nodeManager));
@@ -72,5 +78,8 @@
   }
   if (indexResolver != null) {
     indexManager.addIndexResolver(connectorId,indexResolver);
+  }
+  if (accessControl != null) {
+    accessControlManager.addCatalogAccessControl(catalogName,accessControl);
   }
 }

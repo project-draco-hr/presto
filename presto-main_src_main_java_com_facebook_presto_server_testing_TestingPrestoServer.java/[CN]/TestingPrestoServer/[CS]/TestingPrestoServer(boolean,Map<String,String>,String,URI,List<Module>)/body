@@ -7,7 +7,14 @@
   if (coordinator) {
     serverProperties.put("failure-detector.enabled","false");
   }
-  ImmutableList.Builder<Module> modules=ImmutableList.<Module>builder().add(new TestingNodeModule(Optional.ofNullable(environment))).add(new TestingHttpServerModule()).add(new JsonModule()).add(new JaxrsModule(true)).add(new MBeanModule()).add(new TestingJmxModule()).add(new EventModule()).add(new TraceTokenModule()).add(new ServerMainModule(new SqlParserOptions()));
+  ImmutableList.Builder<Module> modules=ImmutableList.<Module>builder().add(new TestingNodeModule(Optional.ofNullable(environment))).add(new TestingHttpServerModule()).add(new JsonModule()).add(new JaxrsModule(true)).add(new MBeanModule()).add(new TestingJmxModule()).add(new EventModule()).add(new TraceTokenModule()).add(new ServerMainModule(new SqlParserOptions())).add(new Module(){
+    @Override public void configure(    Binder binder){
+      binder.bind(TestingAccessControlManager.class).in(Scopes.SINGLETON);
+      binder.bind(AccessControlManager.class).to(TestingAccessControlManager.class).in(Scopes.SINGLETON);
+      binder.bind(AccessControl.class).to(AccessControlManager.class).in(Scopes.SINGLETON);
+    }
+  }
+);
   if (discoveryUri != null) {
     checkNotNull(environment,"environment required when discoveryUri is present");
     serverProperties.put("discovery.uri",discoveryUri.toString());
@@ -30,6 +37,7 @@
   connectorManager=injector.getInstance(ConnectorManager.class);
   server=injector.getInstance(TestingHttpServer.class);
   metadata=injector.getInstance(Metadata.class);
+  accessControl=injector.getInstance(TestingAccessControlManager.class);
   clusterMemoryManager=injector.getInstance(ClusterMemoryManager.class);
   localMemoryManager=injector.getInstance(LocalMemoryManager.class);
   nodeManager=injector.getInstance(InternalNodeManager.class);

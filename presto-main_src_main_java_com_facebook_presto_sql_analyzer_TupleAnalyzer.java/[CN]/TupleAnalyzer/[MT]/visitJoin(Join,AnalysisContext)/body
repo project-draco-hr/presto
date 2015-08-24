@@ -33,7 +33,7 @@
   }
  else   if (criteria instanceof JoinOn) {
     Expression expression=((JoinOn)criteria).getExpression();
-    ExpressionAnalyzer analyzer=ExpressionAnalyzer.create(analysis,session,metadata,sqlParser,experimentalSyntaxEnabled);
+    ExpressionAnalyzer analyzer=ExpressionAnalyzer.create(analysis,session,metadata,sqlParser,accessControl,experimentalSyntaxEnabled);
     analyzer.analyze(expression,output,context);
     Analyzer.verifyNoAggregatesOrWindowFunctions(metadata,expression,"JOIN");
     Expression canonicalized=CanonicalizeExpressions.canonicalizeExpression(expression);
@@ -50,7 +50,7 @@
     if (!(optimizedExpression instanceof Expression)) {
       throw new SemanticException(TYPE_MISMATCH,node,"Join clause must be a boolean expression");
     }
-    analyzer=ExpressionAnalyzer.create(analysis,session,metadata,sqlParser,experimentalSyntaxEnabled);
+    analyzer=ExpressionAnalyzer.create(analysis,session,metadata,sqlParser,accessControl,experimentalSyntaxEnabled);
     analyzer.analyze((Expression)optimizedExpression,output,context);
     analysis.addCoercions(analyzer.getExpressionCoercions());
     for (    Expression conjunct : ExpressionUtils.extractConjuncts((Expression)optimizedExpression)) {

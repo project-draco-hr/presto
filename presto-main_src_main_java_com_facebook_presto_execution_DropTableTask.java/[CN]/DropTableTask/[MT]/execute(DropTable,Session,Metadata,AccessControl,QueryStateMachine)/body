@@ -1,0 +1,12 @@
+{
+  QualifiedTableName tableName=createQualifiedTableName(session,statement.getTableName());
+  Optional<TableHandle> tableHandle=metadata.getTableHandle(session,tableName);
+  if (!tableHandle.isPresent()) {
+    if (!statement.isExists()) {
+      throw new SemanticException(MISSING_TABLE,statement,"Table '%s' does not exist",tableName);
+    }
+    return;
+  }
+  accessControl.checkCanDropTable(session.getIdentity(),tableName);
+  metadata.dropTable(session,tableHandle.get());
+}

@@ -10,6 +10,7 @@
   if (targetTableHandle.isPresent()) {
     throw new SemanticException(TABLE_ALREADY_EXISTS,node,"Destination table '%s' already exists",targetTable);
   }
+  accessControl.checkCanCreateTable(session.getIdentity(),targetTable);
   TupleDescriptor descriptor=process(node.getQuery(),context);
   validateColumnNames(node,descriptor);
   return new TupleDescriptor(Field.newUnqualified("rows",BIGINT));
