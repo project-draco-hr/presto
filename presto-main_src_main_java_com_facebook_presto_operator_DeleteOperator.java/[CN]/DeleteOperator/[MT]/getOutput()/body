@@ -1,10 +1,9 @@
 {
-  if (state != State.FINISHING) {
+  if ((state != State.FINISHING) || !commitFuture.isDone()) {
     return null;
   }
   state=State.FINISHED;
-  Collection<Slice> fragments=pageSource().commit();
-  committed=true;
+  Collection<Slice> fragments=getFutureValue(commitFuture);
   PageBuilder page=new PageBuilder(TYPES);
   BlockBuilder rowsBuilder=page.getBlockBuilder(0);
   BlockBuilder fragmentBuilder=page.getBlockBuilder(1);
