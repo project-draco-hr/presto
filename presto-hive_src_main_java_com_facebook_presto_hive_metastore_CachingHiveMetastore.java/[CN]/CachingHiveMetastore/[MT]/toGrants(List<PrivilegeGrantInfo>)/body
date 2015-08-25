@@ -1,0 +1,13 @@
+{
+  if (userGrants == null) {
+    return ImmutableSet.of();
+  }
+  ImmutableSet.Builder<HivePrivilege> privileges=ImmutableSet.builder();
+  for (  PrivilegeGrantInfo userGrant : userGrants) {
+    privileges.addAll(parsePrivilege(userGrant));
+    if (userGrant.isGrantOption()) {
+      privileges.add(HivePrivilege.GRANT);
+    }
+  }
+  return privileges.build();
+}

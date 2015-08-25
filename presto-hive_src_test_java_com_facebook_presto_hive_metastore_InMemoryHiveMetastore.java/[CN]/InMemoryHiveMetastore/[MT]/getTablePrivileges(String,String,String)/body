@@ -1,0 +1,11 @@
+{
+  Set<HivePrivilege> privileges=new HashSet<>();
+  if (isTableOwner(user,databaseName,tableName)) {
+    privileges.add(OWNERSHIP);
+  }
+  privileges.addAll(tablePrivileges.getOrDefault(new PrincipalTableKey(user,USER,tableName,databaseName),ImmutableSet.of()));
+  for (  String role : getRoles(user)) {
+    privileges.addAll(tablePrivileges.getOrDefault(new PrincipalTableKey(role,ROLE,tableName,databaseName),ImmutableSet.of()));
+  }
+  return privileges;
+}
