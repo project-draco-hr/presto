@@ -9,10 +9,10 @@
         javaType=Object.class;
       }
       IfStatement ifStatement=new IfStatement();
-      ifStatement.condition().setDescription(format("block_%d.get%s()",field,type)).append(block).getVariable(positionVariable).invokeInterface(com.facebook.presto.spi.block.Block.class,"isNull",boolean.class,int.class);
+      ifStatement.condition().setDescription(format("block_%d.get%s()",field,type)).append(block).getVariable(positionVariable).invokeInterface(Block.class,"isNull",boolean.class,int.class);
       ifStatement.ifTrue().putVariable(wasNullVariable,true).pushJavaDefault(javaType);
       String methodName="get" + Primitives.wrap(javaType).getSimpleName();
-      ifStatement.ifFalse().append(loadConstant(callSiteBinder.bind(type,Type.class))).append(block).getVariable(positionVariable).invokeInterface(Type.class,methodName,javaType,com.facebook.presto.spi.block.Block.class,int.class);
+      ifStatement.ifFalse().append(loadConstant(callSiteBinder.bind(type,Type.class))).append(block).getVariable(positionVariable).invokeInterface(Type.class,methodName,javaType,Block.class,int.class);
       return ifStatement;
     }
     @Override public ByteCodeNode visitCall(    CallExpression call,    Scope scope){

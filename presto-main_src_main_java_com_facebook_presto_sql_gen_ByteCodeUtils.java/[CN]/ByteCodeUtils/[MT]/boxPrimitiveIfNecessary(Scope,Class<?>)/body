@@ -2,7 +2,7 @@
   if (!Primitives.isWrapperType(type)) {
     return NOP;
   }
-  Block notNull=new Block().comment("box primitive");
+  ByteCodeBlock notNull=new ByteCodeBlock().comment("box primitive");
   Class<?> expectedCurrentStackType;
   if (type == Long.class) {
     notNull.invokeStatic(Long.class,"valueOf",Long.class,long.class);
@@ -23,7 +23,7 @@
  else {
     throw new UnsupportedOperationException("not yet implemented: " + type);
   }
-  Block condition=new Block().append(scope.getVariable("wasNull"));
-  Block wasNull=new Block().pop(expectedCurrentStackType).pushNull().checkCast(type);
+  ByteCodeBlock condition=new ByteCodeBlock().append(scope.getVariable("wasNull"));
+  ByteCodeBlock wasNull=new ByteCodeBlock().pop(expectedCurrentStackType).pushNull().checkCast(type);
   return new IfStatement().condition(condition).ifTrue(wasNull).ifFalse(notNull);
 }

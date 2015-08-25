@@ -1,12 +1,12 @@
 {
   Parameter position=arg("position",int.class);
-  Parameter blocks=arg("blocks",com.facebook.presto.spi.block.Block[].class);
+  Parameter blocks=arg("blocks",Block[].class);
   MethodDefinition hashPositionMethod=classDefinition.declareMethod(a(PUBLIC),"hashRow",type(int.class),position,blocks);
   Variable resultVariable=hashPositionMethod.getScope().declareVariable(int.class,"result");
   hashPositionMethod.getBody().push(0).putVariable(resultVariable);
   for (int index=0; index < joinChannelTypes.size(); index++) {
     ByteCodeExpression type=constantType(callSiteBinder,joinChannelTypes.get(index));
-    ByteCodeExpression block=blocks.getElement(index).cast(com.facebook.presto.spi.block.Block.class);
+    ByteCodeExpression block=blocks.getElement(index).cast(Block.class);
     hashPositionMethod.getBody().getVariable(resultVariable).push(31).append(OpCode.IMUL).append(typeHashCode(type,block,position)).append(OpCode.IADD).putVariable(resultVariable);
   }
   hashPositionMethod.getBody().getVariable(resultVariable).retInt();

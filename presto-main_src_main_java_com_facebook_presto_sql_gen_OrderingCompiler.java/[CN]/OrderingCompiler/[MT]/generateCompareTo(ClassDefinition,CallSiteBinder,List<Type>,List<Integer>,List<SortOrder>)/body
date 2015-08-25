@@ -21,11 +21,11 @@
   for (int i=0; i < sortChannels.size(); i++) {
     int sortChannel=sortChannels.get(i);
     SortOrder sortOrder=sortOrders.get(i);
-    Block block=new Block().setDescription("compare channel " + sortChannel + " "+ sortOrder);
+    ByteCodeBlock block=new ByteCodeBlock().setDescription("compare channel " + sortChannel + " "+ sortOrder);
     Type sortType=sortTypes.get(i);
-    ByteCodeExpression leftBlock=pagesIndex.invoke("getChannel",ObjectArrayList.class,constantInt(sortChannel)).invoke("get",Object.class,leftBlockIndex).cast(com.facebook.presto.spi.block.Block.class);
-    ByteCodeExpression rightBlock=pagesIndex.invoke("getChannel",ObjectArrayList.class,constantInt(sortChannel)).invoke("get",Object.class,rightBlockIndex).cast(com.facebook.presto.spi.block.Block.class);
-    block.append(getStatic(SortOrder.class,sortOrder.name()).invoke("compareBlockValue",int.class,ImmutableList.of(Type.class,com.facebook.presto.spi.block.Block.class,int.class,com.facebook.presto.spi.block.Block.class,int.class),constantType(callSiteBinder,sortType),leftBlock,leftBlockPosition,rightBlock,rightBlockPosition));
+    ByteCodeExpression leftBlock=pagesIndex.invoke("getChannel",ObjectArrayList.class,constantInt(sortChannel)).invoke("get",Object.class,leftBlockIndex).cast(Block.class);
+    ByteCodeExpression rightBlock=pagesIndex.invoke("getChannel",ObjectArrayList.class,constantInt(sortChannel)).invoke("get",Object.class,rightBlockIndex).cast(Block.class);
+    block.append(getStatic(SortOrder.class,sortOrder.name()).invoke("compareBlockValue",int.class,ImmutableList.of(Type.class,Block.class,int.class,Block.class,int.class),constantType(callSiteBinder,sortType),leftBlock,leftBlockPosition,rightBlock,rightBlockPosition));
     LabelNode equal=new LabelNode("equal");
     block.comment("if (compare != 0) return compare").dup().ifZeroGoto(equal).retInt().visitLabel(equal).pop(int.class);
     compareToMethod.getBody().append(block);

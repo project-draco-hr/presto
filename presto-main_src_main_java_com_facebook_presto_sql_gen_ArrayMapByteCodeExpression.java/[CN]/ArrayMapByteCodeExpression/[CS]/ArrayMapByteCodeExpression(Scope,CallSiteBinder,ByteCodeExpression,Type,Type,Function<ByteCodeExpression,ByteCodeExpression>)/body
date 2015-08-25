@@ -1,6 +1,6 @@
 {
   super(type(Block.class));
-  body=new com.facebook.presto.byteCode.Block();
+  body=new ByteCodeBlock();
   Variable blockBuilder=scope.declareVariable(BlockBuilder.class,"blockBuilder_" + NEXT_VARIABLE_ID.getAndIncrement());
   body.append(blockBuilder.set(constantType(binder,toType).invoke("createBlockBuilder",BlockBuilder.class,newInstance(BlockBuilderStatus.class),array.invoke("getPositionCount",int.class))));
   Variable element=scope.declareVariable(fromType.getJavaType(),"element_" + NEXT_VARIABLE_ID.getAndIncrement());
@@ -8,7 +8,7 @@
   Variable position=scope.declareVariable(int.class,"position_" + NEXT_VARIABLE_ID.getAndIncrement());
   SqlTypeByteCodeExpression elementTypeConstant=constantType(binder,fromType);
   SqlTypeByteCodeExpression newElementTypeConstant=constantType(binder,toType);
-  com.facebook.presto.byteCode.Block mapElement=new com.facebook.presto.byteCode.Block().append(element.set(elementTypeConstant.getValue(array,position))).append(newElement.set(mapper.apply(element))).append(newElementTypeConstant.writeValue(blockBuilder,newElement));
+  ByteCodeBlock mapElement=new ByteCodeBlock().append(element.set(elementTypeConstant.getValue(array,position))).append(newElement.set(mapper.apply(element))).append(newElementTypeConstant.writeValue(blockBuilder,newElement));
   body.append(new ForLoop().initialize(position.set(constantInt(0))).condition(lessThan(position,array.invoke("getPositionCount",int.class))).update(incrementVariable(position,(byte)1)).body(new IfStatement().condition(array.invoke("isNull",boolean.class,position)).ifTrue(blockBuilder.invoke("appendNull",BlockBuilder.class).pop()).ifFalse(mapElement)));
   body.append(blockBuilder.invoke("build",Block.class));
   oneLineDescription="arrayMap(" + array + ", element -> "+ mapper.apply(element)+ ")";

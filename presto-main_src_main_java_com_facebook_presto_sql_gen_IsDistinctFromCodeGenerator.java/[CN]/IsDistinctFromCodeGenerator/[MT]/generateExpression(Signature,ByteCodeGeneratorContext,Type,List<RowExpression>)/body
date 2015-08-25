@@ -7,14 +7,14 @@
   Type rightType=right.getType();
   FunctionInfo operator=generatorContext.getRegistry().resolveOperator(OperatorType.EQUAL,ImmutableList.of(leftType,rightType));
   Binding binding=generatorContext.getCallSiteBinder().bind(operator.getMethodHandle());
-  ByteCodeNode equalsCall=new Block().comment("equals(%s, %s)",leftType,rightType).append(invoke(binding,operator.getSignature()));
+  ByteCodeNode equalsCall=new ByteCodeBlock().comment("equals(%s, %s)",leftType,rightType).append(invoke(binding,operator.getSignature()));
   ByteCodeNode neitherSideIsNull;
   if (leftType instanceof UnknownType || rightType instanceof UnknownType) {
-    neitherSideIsNull=new Block().comment("unreachable code").push(false);
+    neitherSideIsNull=new ByteCodeBlock().comment("unreachable code").push(false);
   }
  else {
-    neitherSideIsNull=new Block().append(equalsCall).invokeStatic(CompilerOperations.class,"not",boolean.class,boolean.class);
+    neitherSideIsNull=new ByteCodeBlock().append(equalsCall).invokeStatic(CompilerOperations.class,"not",boolean.class,boolean.class);
   }
-  Block block=new Block().comment("IS DISTINCT FROM").comment("left").append(generatorContext.generate(left)).append(new IfStatement().condition(wasNull).ifTrue(new Block().pop(leftType.getJavaType()).append(wasNull.set(constantFalse())).comment("right is not null").append(generatorContext.generate(right)).pop(rightType.getJavaType()).append(wasNull).invokeStatic(CompilerOperations.class,"not",boolean.class,boolean.class)).ifFalse(new Block().comment("right").append(generatorContext.generate(right)).append(new IfStatement().condition(wasNull).ifTrue(new Block().pop(leftType.getJavaType()).pop(rightType.getJavaType()).push(true)).ifFalse(neitherSideIsNull)))).append(wasNull.set(constantFalse()));
+  ByteCodeBlock block=new ByteCodeBlock().comment("IS DISTINCT FROM").comment("left").append(generatorContext.generate(left)).append(new IfStatement().condition(wasNull).ifTrue(new ByteCodeBlock().pop(leftType.getJavaType()).append(wasNull.set(constantFalse())).comment("right is not null").append(generatorContext.generate(right)).pop(rightType.getJavaType()).append(wasNull).invokeStatic(CompilerOperations.class,"not",boolean.class,boolean.class)).ifFalse(new ByteCodeBlock().comment("right").append(generatorContext.generate(right)).append(new IfStatement().condition(wasNull).ifTrue(new ByteCodeBlock().pop(leftType.getJavaType()).pop(rightType.getJavaType()).push(true)).ifFalse(neitherSideIsNull)))).append(wasNull.set(constantFalse()));
   return block;
 }

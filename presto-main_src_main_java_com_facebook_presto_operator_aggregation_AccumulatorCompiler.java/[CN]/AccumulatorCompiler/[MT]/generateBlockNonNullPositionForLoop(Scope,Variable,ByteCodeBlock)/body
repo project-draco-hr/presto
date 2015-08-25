@@ -1,0 +1,8 @@
+{
+  Variable rowsVariable=scope.declareVariable(int.class,"rows");
+  Variable blockVariable=scope.getVariable("block");
+  ByteCodeBlock block=new ByteCodeBlock().append(blockVariable).invokeInterface(Block.class,"getPositionCount",int.class).putVariable(rowsVariable);
+  IfStatement ifStatement=new IfStatement("if(!block.isNull(position))").condition(new ByteCodeBlock().append(blockVariable).append(positionVariable).invokeInterface(Block.class,"isNull",boolean.class,int.class)).ifFalse(loopBody);
+  block.append(new ForLoop().initialize(positionVariable.set(constantInt(0))).condition(new ByteCodeBlock().append(positionVariable).append(rowsVariable).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new ByteCodeBlock().incrementVariable(positionVariable,(byte)1)).body(ifStatement));
+  return block;
+}

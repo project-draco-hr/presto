@@ -7,13 +7,13 @@
   ByteCodeExpression bigintType=constantType(callSiteBinder,BigintType.BIGINT);
   IfStatement ifStatement=new IfStatement();
   ifStatement.condition(notEqual(hashChannel,constantNull(hashChannelField.getType())));
-  ifStatement.ifTrue(bigintType.invoke("getLong",long.class,hashChannel.invoke("get",Object.class,blockIndex).cast(com.facebook.presto.spi.block.Block.class),blockPosition).cast(int.class).ret());
+  ifStatement.ifTrue(bigintType.invoke("getLong",long.class,hashChannel.invoke("get",Object.class,blockIndex).cast(Block.class),blockPosition).cast(int.class).ret());
   hashPositionMethod.getBody().append(ifStatement);
   Variable resultVariable=hashPositionMethod.getScope().declareVariable(int.class,"result");
   hashPositionMethod.getBody().push(0).putVariable(resultVariable);
   for (int index=0; index < joinChannelTypes.size(); index++) {
     ByteCodeExpression type=constantType(callSiteBinder,joinChannelTypes.get(index));
-    ByteCodeExpression block=hashPositionMethod.getThis().getField(joinChannelFields.get(index)).invoke("get",Object.class,blockIndex).cast(com.facebook.presto.spi.block.Block.class);
+    ByteCodeExpression block=hashPositionMethod.getThis().getField(joinChannelFields.get(index)).invoke("get",Object.class,blockIndex).cast(Block.class);
     hashPositionMethod.getBody().getVariable(resultVariable).push(31).append(OpCode.IMUL).append(typeHashCode(type,block,blockPosition)).append(OpCode.IADD).putVariable(resultVariable);
   }
   hashPositionMethod.getBody().getVariable(resultVariable).retInt();

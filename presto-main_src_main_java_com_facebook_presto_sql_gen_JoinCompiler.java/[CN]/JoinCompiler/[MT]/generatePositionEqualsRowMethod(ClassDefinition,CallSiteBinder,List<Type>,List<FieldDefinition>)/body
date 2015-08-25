@@ -2,12 +2,12 @@
   Parameter leftBlockIndex=arg("leftBlockIndex",int.class);
   Parameter leftBlockPosition=arg("leftBlockPosition",int.class);
   Parameter rightPosition=arg("rightPosition",int.class);
-  Parameter rightBlocks=arg("rightBlocks",com.facebook.presto.spi.block.Block[].class);
+  Parameter rightBlocks=arg("rightBlocks",Block[].class);
   MethodDefinition hashPositionMethod=classDefinition.declareMethod(a(PUBLIC),"positionEqualsRow",type(boolean.class),leftBlockIndex,leftBlockPosition,rightPosition,rightBlocks);
   Variable thisVariable=hashPositionMethod.getThis();
   for (int index=0; index < joinChannelTypes.size(); index++) {
     ByteCodeExpression type=constantType(callSiteBinder,joinChannelTypes.get(index));
-    ByteCodeExpression leftBlock=thisVariable.getField(joinChannelFields.get(index)).invoke("get",Object.class,leftBlockIndex).cast(com.facebook.presto.spi.block.Block.class);
+    ByteCodeExpression leftBlock=thisVariable.getField(joinChannelFields.get(index)).invoke("get",Object.class,leftBlockIndex).cast(Block.class);
     ByteCodeExpression rightBlock=rightBlocks.getElement(index);
     LabelNode checkNextField=new LabelNode("checkNextField");
     hashPositionMethod.getBody().append(typeEquals(type,leftBlock,leftBlockPosition,rightBlock,rightPosition)).ifTrueGoto(checkNextField).push(false).retBoolean().visitLabel(checkNextField);
