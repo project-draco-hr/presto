@@ -5,12 +5,12 @@
     discoveryServer=closer.register(new TestingDiscoveryServer(ENVIRONMENT));
     log.info("Created TestingDiscoveryServer in %s",nanosSince(start).convertToMostSuccinctTimeUnit());
     ImmutableList.Builder<TestingPrestoServer> servers=ImmutableList.builder();
-    coordinator=closer.register(createTestingPrestoServer(discoveryServer.getBaseUrl(),true,extraProperties));
-    servers.add(coordinator);
     for (int i=1; i < workersCount; i++) {
       TestingPrestoServer worker=closer.register(createTestingPrestoServer(discoveryServer.getBaseUrl(),false,extraProperties));
       servers.add(worker);
     }
+    coordinator=closer.register(createTestingPrestoServer(discoveryServer.getBaseUrl(),true,extraProperties));
+    servers.add(coordinator);
     this.servers=servers.build();
   }
  catch (  Exception e) {
