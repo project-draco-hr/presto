@@ -1,3 +1,10 @@
 {
-  futureStateChange.complete(newState);
+  Set<CompletableFuture<T>> futures;
+synchronized (this) {
+    futures=ImmutableSet.copyOf(listeners);
+    listeners.clear();
+  }
+  for (  CompletableFuture<T> future : futures) {
+    future.complete(newState);
+  }
 }
