@@ -1,9 +1,9 @@
 {
   assertOptimizedEquals("if(unbound_boolean, 1, 0 / 0)","CASE WHEN unbound_boolean THEN 1 ELSE 0 / 0 END");
   assertOptimizedEquals("if(unbound_boolean, 0 / 0, 1)","CASE WHEN unbound_boolean THEN 0 / 0 ELSE 1 END");
-  assertOptimizedEqualsSelf("case unbound_long when 1 then 1 when 0 / 0 then 2 end");
-  assertOptimizedEqualsSelf("case unbound_boolean when true then 1 else 0 / 0 end");
-  assertOptimizedEqualsSelf("case unbound_boolean when true then 0 / 0 else 1 end");
+  assertOptimizedMatches("CASE unbound_long WHEN 1 THEN 1 WHEN 0 / 0 THEN 2 END","CASE unbound_long WHEN 1 THEN 1 WHEN cast(fail() as bigint) THEN 2 END");
+  assertOptimizedMatches("CASE unbound_boolean WHEN true THEN 1 ELSE 0 / 0 END","CASE unbound_boolean WHEN true THEN 1 ELSE cast(fail() as bigint) END");
+  assertOptimizedMatches("CASE bound_long WHEN unbound_long THEN 1 WHEN 0 / 0 THEN 2 ELSE 1 END","CASE 1234 WHEN unbound_long THEN 1 WHEN cast(fail() as bigint) THEN 2 ELSE 1 END");
   assertOptimizedEqualsSelf("case when unbound_boolean then 1 when 0 / 0 = 0 then 2 end");
   assertOptimizedEqualsSelf("case when unbound_boolean then 1 else 0 / 0  end");
   assertOptimizedEqualsSelf("case when unbound_boolean then 0 / 0 else 1 end");
