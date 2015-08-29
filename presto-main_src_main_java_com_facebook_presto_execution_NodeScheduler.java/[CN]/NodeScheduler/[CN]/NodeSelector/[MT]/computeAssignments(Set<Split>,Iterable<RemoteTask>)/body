@@ -10,17 +10,14 @@
     String nodeId=task.getNodeId();
     queuedSplitCountByNode.put(nodeId,queuedSplitCountByNode.getOrDefault(nodeId,0) + task.getQueuedPartitionedSplitCount());
   }
-  ResettableRandomizedIterator<Node> randomCandidates=null;
-  if (!locationAwareScheduling) {
-    randomCandidates=randomizedNodes();
-  }
+  ResettableRandomizedIterator<Node> randomCandidates=randomizedNodes();
   for (  Split split : splits) {
+    randomCandidates.reset();
     List<Node> candidateNodes;
     if (locationAwareScheduling || !split.isRemotelyAccessible()) {
-      candidateNodes=selectCandidateNodes(nodeMap.get().get(),split);
+      candidateNodes=selectCandidateNodes(nodeMap.get().get(),split,randomCandidates);
     }
  else {
-      randomCandidates.reset();
       candidateNodes=selectNodes(minCandidates,randomCandidates);
     }
     checkCondition(!candidateNodes.isEmpty(),NO_NODES_AVAILABLE,"No nodes available to run query");
