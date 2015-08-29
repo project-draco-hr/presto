@@ -5,4 +5,10 @@
     }
     handler.processRows(client);
   }
- }
+ catch (  RuntimeException|IOException e) {
+    if (userAbortedQuery.get() && !(e instanceof QueryAbortedException)) {
+      throw new QueryAbortedException(e);
+    }
+    throw e;
+  }
+}
