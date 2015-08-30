@@ -1,17 +1,23 @@
 {
-  MaterializedOutputFactory outputFactory=new MaterializedOutputFactory();
-  TaskContext taskContext=createTaskContext(executor,session);
-  List<Driver> drivers=createDrivers(session,sql,outputFactory,taskContext);
-  boolean done=false;
-  while (!done) {
-    boolean processed=false;
-    for (    Driver driver : drivers) {
-      if (!driver.isFinished()) {
-        driver.process();
-        processed=true;
+  lock.readLock().lock();
+  try {
+    MaterializedOutputFactory outputFactory=new MaterializedOutputFactory();
+    TaskContext taskContext=createTaskContext(executor,session);
+    List<Driver> drivers=createDrivers(session,sql,outputFactory,taskContext);
+    boolean done=false;
+    while (!done) {
+      boolean processed=false;
+      for (      Driver driver : drivers) {
+        if (!driver.isFinished()) {
+          driver.process();
+          processed=true;
+        }
       }
+      done=!processed;
     }
-    done=!processed;
+    return outputFactory.getMaterializingOperator().getMaterializedResult();
   }
-  return outputFactory.getMaterializingOperator().getMaterializedResult();
+  finally {
+    lock.readLock().unlock();
+  }
 }
