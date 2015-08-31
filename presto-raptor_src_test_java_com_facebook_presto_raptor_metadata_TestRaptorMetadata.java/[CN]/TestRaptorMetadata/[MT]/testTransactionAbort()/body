@@ -1,0 +1,16 @@
+{
+  long transactionId=1;
+  ConnectorOutputTableHandle outputHandle=metadata.beginCreateTable(SESSION,getOrdersTable());
+  assertTrue(transactionExists(transactionId));
+  assertNull(transactionSuccessful(transactionId));
+  shardManager.rollbackTransaction(transactionId);
+  assertTrue(transactionExists(transactionId));
+  assertFalse(transactionSuccessful(transactionId));
+  try {
+    metadata.commitCreateTable(SESSION,outputHandle,ImmutableList.of());
+    fail("expected exception");
+  }
+ catch (  PrestoException e) {
+    assertEquals(e.getErrorCode(),TRANSACTION_CONFLICT.toErrorCode());
+  }
+}

@@ -7,7 +7,8 @@
   RaptorColumnHandle c1=new RaptorColumnHandle("raptor","c1",1,VARCHAR);
   long tableId=createTable("test");
   shardManager.createTable(tableId,columns);
-  shardManager.commitShards(tableId,columns,shards,Optional.empty());
+  long transactionId=shardManager.beginTransaction();
+  shardManager.commitShards(transactionId,tableId,columns,shards,Optional.empty());
   shardAssertion(tableId).expected(shards);
   shardAssertion(tableId).equal(c1,VARCHAR,utf8Slice(prefix)).expected(shards);
   shardAssertion(tableId).equal(c1,VARCHAR,utf8Slice(prefix + "c")).expected(shards);

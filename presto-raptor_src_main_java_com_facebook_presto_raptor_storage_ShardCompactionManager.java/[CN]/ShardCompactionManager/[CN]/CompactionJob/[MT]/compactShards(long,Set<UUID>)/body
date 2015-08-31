@@ -1,5 +1,10 @@
 {
-  TableMetadata metadata=getTableMetadata(tableId);
-  List<ShardInfo> newShards=performCompaction(shardUuids,metadata);
-  shardManager.replaceShardUuids(tableId,metadata.getColumns(),shardUuids,newShards);
+  long transactionId=shardManager.beginTransaction();
+  try {
+    compactShards(transactionId,tableId,shardUuids);
+  }
+ catch (  Throwable e) {
+    shardManager.rollbackTransaction(transactionId);
+    throw e;
+  }
 }

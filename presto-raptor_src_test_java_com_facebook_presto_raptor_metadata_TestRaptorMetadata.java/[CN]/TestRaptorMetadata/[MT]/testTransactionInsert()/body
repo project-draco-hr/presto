@@ -1,0 +1,13 @@
+{
+  long transactionId=1;
+  metadata.createTable(SESSION,getOrdersTable());
+  assertTrue(transactionSuccessful(transactionId));
+  transactionId++;
+  ConnectorTableHandle tableHandle=metadata.getTableHandle(SESSION,DEFAULT_TEST_ORDERS);
+  ConnectorInsertTableHandle insertHandle=metadata.beginInsert(SESSION,tableHandle);
+  assertTrue(transactionExists(transactionId));
+  assertNull(transactionSuccessful(transactionId));
+  metadata.commitInsert(SESSION,insertHandle,ImmutableList.<Slice>of());
+  assertTrue(transactionExists(transactionId));
+  assertTrue(transactionSuccessful(transactionId));
+}

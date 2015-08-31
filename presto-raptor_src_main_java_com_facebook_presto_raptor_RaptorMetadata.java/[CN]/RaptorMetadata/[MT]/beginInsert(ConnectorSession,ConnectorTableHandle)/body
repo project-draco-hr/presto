@@ -6,7 +6,8 @@
     columnHandles.add(new RaptorColumnHandle(connectorId,column.getColumnName(),column.getColumnId(),column.getDataType()));
     columnTypes.add(column.getDataType());
   }
+  long transactionId=shardManager.beginTransaction();
   Optional<String> externalBatchId=getExternalBatchId(session);
   List<RaptorColumnHandle> sortColumnHandles=getSortColumnHandles(tableId);
-  return new RaptorInsertTableHandle(connectorId,tableId,columnHandles.build(),columnTypes.build(),externalBatchId,sortColumnHandles,nCopies(sortColumnHandles.size(),ASC_NULLS_FIRST));
+  return new RaptorInsertTableHandle(connectorId,transactionId,tableId,columnHandles.build(),columnTypes.build(),externalBatchId,sortColumnHandles,nCopies(sortColumnHandles.size(),ASC_NULLS_FIRST));
 }

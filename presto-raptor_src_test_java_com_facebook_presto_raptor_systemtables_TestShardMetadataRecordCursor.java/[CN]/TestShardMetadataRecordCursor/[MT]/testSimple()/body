@@ -8,7 +8,8 @@
   ShardInfo shardInfo2=new ShardInfo(uuid2,ImmutableSet.of("node2"),ImmutableList.of(),2,20,200);
   ShardInfo shardInfo3=new ShardInfo(uuid3,ImmutableSet.of("node3"),ImmutableList.of(),3,30,300);
   List<ShardInfo> shards=ImmutableList.of(shardInfo1,shardInfo2,shardInfo3);
-  shardManager.commitShards(tableId,ImmutableList.of(new ColumnInfo(1,BIGINT),new ColumnInfo(2,DATE)),shards,Optional.empty());
+  long transactionId=shardManager.beginTransaction();
+  shardManager.commitShards(transactionId,tableId,ImmutableList.of(new ColumnInfo(1,BIGINT),new ColumnInfo(2,DATE)),shards,Optional.empty());
   Slice schema=utf8Slice(DEFAULT_TEST_ORDERS.getSchemaName());
   Slice table=utf8Slice(DEFAULT_TEST_ORDERS.getTableName());
   DateTime date1=DateTime.parse("2015-01-01T00:00");

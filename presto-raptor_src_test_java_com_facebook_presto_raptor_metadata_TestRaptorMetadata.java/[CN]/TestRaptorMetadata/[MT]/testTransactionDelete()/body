@@ -1,0 +1,24 @@
+{
+  long transactionId=1;
+  metadata.createTable(SESSION,getOrdersTable());
+  assertTrue(transactionSuccessful(transactionId));
+  transactionId++;
+  ConnectorTableHandle tableHandle=metadata.getTableHandle(SESSION,DEFAULT_TEST_ORDERS);
+  tableHandle=metadata.beginDelete(SESSION,tableHandle);
+  assertInstanceOf(tableHandle,RaptorTableHandle.class);
+  RaptorTableHandle raptorTableHandle=(RaptorTableHandle)tableHandle;
+  assertEquals(raptorTableHandle.getTableId(),1);
+  assertEquals(raptorTableHandle.getTransactionId(),OptionalLong.of(transactionId));
+  assertTrue(transactionExists(transactionId));
+  assertNull(transactionSuccessful(transactionId));
+  metadata.rollbackDelete(SESSION,tableHandle);
+  assertTrue(transactionExists(transactionId));
+  assertFalse(transactionSuccessful(transactionId));
+  transactionId++;
+  tableHandle=metadata.beginDelete(SESSION,tableHandle);
+  assertTrue(transactionExists(transactionId));
+  assertNull(transactionSuccessful(transactionId));
+  metadata.commitDelete(SESSION,tableHandle,ImmutableList.of());
+  assertTrue(transactionExists(transactionId));
+  assertTrue(transactionSuccessful(transactionId));
+}

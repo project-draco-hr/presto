@@ -12,7 +12,8 @@
   RaptorColumnHandle c6=new RaptorColumnHandle("raptor","c6",6,BOOLEAN);
   long tableId=createTable("test");
   shardManager.createTable(tableId,columns);
-  shardManager.commitShards(tableId,columns,shards,Optional.empty());
+  long transactionId=shardManager.beginTransaction();
+  shardManager.commitShards(transactionId,tableId,columns,shards,Optional.empty());
   shardAssertion(tableId).expected(shards);
   shardAssertion(tableId).equal(c1,BIGINT,3L).expected(shard2);
   shardAssertion(tableId).equal(c1,BIGINT,8L).expected(shard1,shard2);

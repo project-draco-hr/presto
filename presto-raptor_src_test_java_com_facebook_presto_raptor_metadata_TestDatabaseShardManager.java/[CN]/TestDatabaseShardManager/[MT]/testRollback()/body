@@ -1,0 +1,15 @@
+{
+  long tableId=createTable("test");
+  List<ColumnInfo> columns=ImmutableList.of(new ColumnInfo(1,BIGINT));
+  List<ShardInfo> shards=ImmutableList.of(shardInfo(UUID.randomUUID(),"node1"));
+  shardManager.createTable(tableId,columns);
+  long transactionId=shardManager.beginTransaction();
+  shardManager.rollbackTransaction(transactionId);
+  try {
+    shardManager.commitShards(transactionId,tableId,columns,shards,Optional.empty());
+    fail("expected exception");
+  }
+ catch (  PrestoException e) {
+    assertEquals(e.getErrorCode(),TRANSACTION_CONFLICT.toErrorCode());
+  }
+}
