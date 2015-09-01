@@ -12,21 +12,6 @@
     updateTaskInfo(new TaskInfo(taskInfo.getTaskId(),taskInfo.getNodeInstanceId(),TaskInfo.MAX_VERSION,TaskState.ABORTED,uri,taskInfo.getLastHeartbeat(),taskInfo.getOutputBuffers(),taskInfo.getNoMoreSplits(),taskInfo.getStats(),ImmutableList.<ExecutionFailureInfo>of()));
     long start=System.nanoTime();
     Request request=prepareDelete().setUri(uriBuilderFrom(uri).addParameter("summarize").build()).build();
-    Futures.addCallback(httpClient.executeAsync(request,createStatusResponseHandler()),new FutureCallback<StatusResponse>(){
-      @Override public void onSuccess(      StatusResponse result){
-      }
-      @Override public void onFailure(      Throwable t){
-        if (t instanceof RejectedExecutionException) {
-          return;
-        }
-        if (Duration.nanosSince(start).compareTo(new Duration(2,TimeUnit.MINUTES)) < 0) {
-          Futures.addCallback(httpClient.executeAsync(request,createStatusResponseHandler()),this,executor);
-        }
- else {
-          logError(t,"Unable to abort task at %s",request.getUri());
-        }
-      }
-    }
-,executor);
+    scheduleAsyncCleanupRequest(start,request,"abort");
   }
  }
