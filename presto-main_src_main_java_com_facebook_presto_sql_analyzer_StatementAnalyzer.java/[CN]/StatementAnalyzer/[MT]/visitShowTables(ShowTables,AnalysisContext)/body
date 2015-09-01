@@ -12,6 +12,9 @@
     }
     schemaName=schema.get().getSuffix();
   }
+  if (!metadata.listSchemaNames(session,catalogName).contains(schemaName)) {
+    throw new SemanticException(MISSING_SCHEMA,showTables,"Schema '%s' does not exist",schemaName);
+  }
   Expression predicate=equal(nameReference("table_schema"),new StringLiteral(schemaName));
   Optional<String> likePattern=showTables.getLikePattern();
   if (likePattern.isPresent()) {

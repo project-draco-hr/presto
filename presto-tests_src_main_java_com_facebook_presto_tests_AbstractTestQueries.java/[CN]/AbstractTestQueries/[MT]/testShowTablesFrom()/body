@@ -6,7 +6,14 @@
   result=computeActual("SHOW TABLES FROM " + getSession().getCatalog() + "."+ getSession().getSchema());
   tableNames=ImmutableSet.copyOf(transform(result.getMaterializedRows(),onlyColumnGetter()));
   assertTrue(tableNames.containsAll(expectedTables));
-  result=computeActual("SHOW TABLES FROM UNKNOWN");
-  tableNames=ImmutableSet.copyOf(transform(result.getMaterializedRows(),onlyColumnGetter()));
-  assertEquals(tableNames,ImmutableSet.of());
+  try {
+    computeActual("SHOW TABLES FROM UNKNOWN");
+    fail("Showing tables in an unknown schema should fail");
+  }
+ catch (  SemanticException e) {
+    assertTrue(e.getCode() == MISSING_SCHEMA);
+  }
+catch (  RuntimeException e) {
+    assertEquals(e.getMessage(),"Schema 'unknown' does not exist");
+  }
 }
