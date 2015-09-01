@@ -1,0 +1,13 @@
+{
+  requireNonNull(maxFailureInterval,"maxFailureInterval is null");
+  requireNonNull(ticker,"ticker is null");
+  requireNonNull(backoffDelayIntervals,"backoffDelayIntervals is null");
+  checkArgument(backoffDelayIntervals.length > 0,"backoffDelayIntervals must contain at least one entry");
+  this.maxFailureIntervalNanos=maxFailureInterval.roundTo(NANOSECONDS);
+  this.ticker=ticker;
+  this.backoffDelayIntervalsNanos=new long[backoffDelayIntervals.length];
+  for (int i=0; i < backoffDelayIntervals.length; i++) {
+    this.backoffDelayIntervalsNanos[i]=backoffDelayIntervals[i].roundTo(NANOSECONDS);
+  }
+  this.lastSuccessTime=this.ticker.read();
+}
