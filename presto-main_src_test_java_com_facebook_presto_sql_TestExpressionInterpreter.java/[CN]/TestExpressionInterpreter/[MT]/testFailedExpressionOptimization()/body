@@ -4,7 +4,7 @@
   assertOptimizedMatches("CASE unbound_long WHEN 1 THEN 1 WHEN 0 / 0 THEN 2 END","CASE unbound_long WHEN 1 THEN 1 WHEN cast(fail() as bigint) THEN 2 END");
   assertOptimizedMatches("CASE unbound_boolean WHEN true THEN 1 ELSE 0 / 0 END","CASE unbound_boolean WHEN true THEN 1 ELSE cast(fail() as bigint) END");
   assertOptimizedMatches("CASE bound_long WHEN unbound_long THEN 1 WHEN 0 / 0 THEN 2 ELSE 1 END","CASE 1234 WHEN unbound_long THEN 1 WHEN cast(fail() as bigint) THEN 2 ELSE 1 END");
-  assertOptimizedEqualsSelf("case when unbound_boolean then 1 when 0 / 0 = 0 then 2 end");
-  assertOptimizedEqualsSelf("case when unbound_boolean then 1 else 0 / 0  end");
-  assertOptimizedEqualsSelf("case when unbound_boolean then 0 / 0 else 1 end");
+  assertOptimizedMatches("case when unbound_boolean then 1 when 0 / 0 = 0 then 2 end","case when unbound_boolean then 1 when cast(fail() as boolean) then 2 end");
+  assertOptimizedMatches("case when unbound_boolean then 1 else 0 / 0  end","case when unbound_boolean then 1 else cast(fail() as bigint) end");
+  assertOptimizedMatches("case when unbound_boolean then 0 / 0 else 1 end","case when unbound_boolean then cast(fail() as bigint) else 1 end");
 }
