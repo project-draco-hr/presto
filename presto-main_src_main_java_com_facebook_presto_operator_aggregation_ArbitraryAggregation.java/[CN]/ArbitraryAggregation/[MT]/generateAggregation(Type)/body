@@ -1,10 +1,10 @@
 {
   DynamicClassLoader classLoader=new DynamicClassLoader(ArbitraryAggregation.class.getClassLoader());
-  ArbitraryAggregationStateSerializer stateSerializer=new ArbitraryAggregationStateSerializer();
+  ArbitraryAggregationStateSerializer stateSerializer=new ArbitraryAggregationStateSerializer(valueType);
   Type intermediateType=stateSerializer.getSerializedType();
   List<Type> inputTypes=ImmutableList.of(valueType);
-  ArbitraryAggregationStateFactory stateFactory=new ArbitraryAggregationStateFactory(valueType);
-  AggregationMetadata metadata=new AggregationMetadata(generateAggregationName(NAME,valueType,inputTypes),createInputParameterMetadata(valueType),INPUT_FUNCTION,null,null,COMBINE_FUNCTION,OUTPUT_FUNCTION,ArbitraryAggregationState.class,stateSerializer,stateFactory,valueType,false);
+  ArbitraryAggregationStateFactory stateFactory=new ArbitraryAggregationStateFactory();
+  AggregationMetadata metadata=new AggregationMetadata(generateAggregationName(NAME,valueType,inputTypes),createInputParameterMetadata(valueType),INPUT_FUNCTION,null,null,COMBINE_FUNCTION,OUTPUT_FUNCTION.bindTo(valueType),ArbitraryAggregationState.class,stateSerializer,stateFactory,valueType,false);
   GenericAccumulatorFactoryBinder factory=new AccumulatorCompiler().generateAccumulatorFactoryBinder(metadata,classLoader);
   return new InternalAggregationFunction(NAME,inputTypes,intermediateType,valueType,true,false,factory);
 }
