@@ -1,0 +1,16 @@
+{
+  Session viewOwnerSession=TestingSession.testSessionBuilder().setIdentity(new Identity("test_view_access_owner",Optional.empty())).setCatalog(getSession().getCatalog()).setSchema(getSession().getSchema()).build();
+  assertAccessDenied(viewOwnerSession,"CREATE VIEW test_view_access AS SELECT * FROM orders","Cannot select from table .*.orders.*",privilege("orders",CREATE_VIEW_WITH_SELECT_TABLE));
+  assertAccessAllowed(viewOwnerSession,"CREATE VIEW test_view_access AS SELECT * FROM orders",privilege("bogus","bogus privilege to disable security",SELECT_TABLE));
+  assertAccessDenied("SELECT * FROM test_view_access","Cannot select from table .*.orders.*",privilege(viewOwnerSession.getUser(),"orders",CREATE_VIEW_WITH_SELECT_TABLE));
+  assertAccessAllowed("SELECT * FROM test_view_access",privilege(getSession().getUser(),"orders",CREATE_VIEW_WITH_SELECT_TABLE));
+  assertAccessAllowed("SELECT * FROM test_view_access",privilege(getSession().getUser(),"orders",SELECT_TABLE));
+  Session nestedViewOwnerSession=TestingSession.testSessionBuilder().setIdentity(new Identity("test_nested_view_access_owner",Optional.empty())).setCatalog(getSession().getCatalog()).setSchema(getSession().getSchema()).build();
+  assertAccessDenied(nestedViewOwnerSession,"CREATE VIEW test_nested_view_access AS SELECT * FROM test_view_access","Cannot select from view .*.test_view_access.*",privilege("test_view_access",CREATE_VIEW_WITH_SELECT_VIEW));
+  assertAccessAllowed(nestedViewOwnerSession,"CREATE VIEW test_nested_view_access AS SELECT * FROM test_view_access",privilege("bogus","bogus privilege to disable security",SELECT_TABLE));
+  assertAccessDenied("SELECT * FROM test_nested_view_access","Cannot select from view .*.test_view_access.*",privilege(nestedViewOwnerSession.getUser(),"test_view_access",CREATE_VIEW_WITH_SELECT_VIEW));
+  assertAccessAllowed("SELECT * FROM test_nested_view_access",privilege(getSession().getUser(),"test_view_access",CREATE_VIEW_WITH_SELECT_VIEW));
+  assertAccessAllowed("SELECT * FROM test_nested_view_access",privilege(getSession().getUser(),"test_view_access",SELECT_VIEW));
+  assertAccessAllowed(nestedViewOwnerSession,"DROP VIEW test_nested_view_access");
+  assertAccessAllowed(viewOwnerSession,"DROP VIEW test_view_access");
+}

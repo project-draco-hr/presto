@@ -1,6 +1,7 @@
 {
   analysis.setUpdateType("CREATE VIEW");
-  TupleDescriptor descriptor=process(node.getQuery(),context);
+  StatementAnalyzer analyzer=new StatementAnalyzer(analysis,metadata,sqlParser,new ViewAccessControl(accessControl),session,experimentalSyntaxEnabled,queryExplainer);
+  TupleDescriptor descriptor=analyzer.process(node.getQuery(),new AnalysisContext());
   QualifiedTableName viewName=MetadataUtil.createQualifiedTableName(session,node.getName());
   accessControl.checkCanCreateView(session.getIdentity(),viewName);
   validateColumnNames(node,descriptor);

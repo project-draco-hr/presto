@@ -1,6 +1,8 @@
 {
-  if (shouldDenyPrivilege(catalogName + "." + propertyName,SET_SESSION)) {
+  if (shouldDenyPrivilege(identity.getUser(),catalogName + "." + propertyName,SET_SESSION)) {
     denySetCatalogSessionProperty(catalogName,propertyName);
   }
-  super.checkCanSetCatalogSessionProperty(identity,catalogName,propertyName);
+  if (denyPrivileges.isEmpty()) {
+    super.checkCanSetCatalogSessionProperty(identity,catalogName,propertyName);
+  }
 }

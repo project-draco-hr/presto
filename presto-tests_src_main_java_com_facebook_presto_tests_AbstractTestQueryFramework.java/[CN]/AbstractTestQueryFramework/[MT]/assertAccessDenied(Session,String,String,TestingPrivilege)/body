@@ -1,0 +1,15 @@
+{
+  queryRunner.getExclusiveLock().lock();
+  try {
+    queryRunner.getAccessControl().deny(deniedPrivileges);
+    queryRunner.execute(session,sql);
+    fail("Expected " + AccessDeniedException.class.getSimpleName());
+  }
+ catch (  RuntimeException e) {
+    assertExceptionMessage(e,exceptionsMessageRegExp);
+  }
+ finally {
+    queryRunner.getAccessControl().reset();
+    queryRunner.getExclusiveLock().unlock();
+  }
+}
