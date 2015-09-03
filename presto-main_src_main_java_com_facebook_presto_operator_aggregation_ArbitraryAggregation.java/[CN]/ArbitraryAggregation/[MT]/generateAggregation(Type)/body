@@ -1,10 +1,44 @@
 {
   DynamicClassLoader classLoader=new DynamicClassLoader(ArbitraryAggregation.class.getClassLoader());
-  ArbitraryAggregationStateSerializer stateSerializer=new ArbitraryAggregationStateSerializer(valueType);
+  List<Type> inputTypes=ImmutableList.of(type);
+  MethodHandle inputFunction;
+  MethodHandle outputFunction;
+  Class<? extends AccumulatorState> stateInterface;
+  AccumulatorStateSerializer<?> stateSerializer;
+  if (type.getJavaType() == long.class) {
+    stateInterface=NullableLongState.class;
+    stateSerializer=compiler.generateStateSerializer(stateInterface,classLoader);
+    inputFunction=LONG_INPUT_FUNCTION;
+    outputFunction=LONG_OUTPUT_FUNCTION;
+  }
+ else   if (type.getJavaType() == double.class) {
+    stateInterface=NullableDoubleState.class;
+    stateSerializer=compiler.generateStateSerializer(stateInterface,classLoader);
+    inputFunction=DOUBLE_INPUT_FUNCTION;
+    outputFunction=DOUBLE_OUTPUT_FUNCTION;
+  }
+ else   if (type.getJavaType() == Slice.class) {
+    stateInterface=SliceState.class;
+    stateSerializer=compiler.generateStateSerializer(stateInterface,classLoader);
+    inputFunction=SLICE_INPUT_FUNCTION;
+    outputFunction=SLICE_OUTPUT_FUNCTION;
+  }
+ else   if (type.getJavaType() == boolean.class) {
+    stateInterface=NullableBooleanState.class;
+    stateSerializer=compiler.generateStateSerializer(stateInterface,classLoader);
+    inputFunction=BOOLEAN_INPUT_FUNCTION;
+    outputFunction=BOOLEAN_OUTPUT_FUNCTION;
+  }
+ else {
+    stateInterface=BlockState.class;
+    stateSerializer=new BlockStateSerializer(type);
+    inputFunction=BLOCK_INPUT_FUNCTION;
+    outputFunction=BLOCK_OUTPUT_FUNCTION;
+  }
+  inputFunction=inputFunction.bindTo(type);
   Type intermediateType=stateSerializer.getSerializedType();
-  List<Type> inputTypes=ImmutableList.of(valueType);
-  ArbitraryAggregationStateFactory stateFactory=new ArbitraryAggregationStateFactory();
-  AggregationMetadata metadata=new AggregationMetadata(generateAggregationName(NAME,valueType,inputTypes),createInputParameterMetadata(valueType),INPUT_FUNCTION,null,null,COMBINE_FUNCTION,OUTPUT_FUNCTION.bindTo(valueType),ArbitraryAggregationState.class,stateSerializer,stateFactory,valueType,false);
+  List<ParameterMetadata> inputParameterMetadata=createInputParameterMetadata(type);
+  AggregationMetadata metadata=new AggregationMetadata(generateAggregationName(NAME,type,inputTypes),inputParameterMetadata,inputFunction,inputParameterMetadata,inputFunction,null,outputFunction.bindTo(type),stateInterface,stateSerializer,compiler.generateStateFactory(stateInterface,classLoader),type,false);
   GenericAccumulatorFactoryBinder factory=new AccumulatorCompiler().generateAccumulatorFactoryBinder(metadata,classLoader);
-  return new InternalAggregationFunction(NAME,inputTypes,intermediateType,valueType,true,false,factory);
+  return new InternalAggregationFunction(NAME,inputTypes,intermediateType,type,true,false,factory);
 }
