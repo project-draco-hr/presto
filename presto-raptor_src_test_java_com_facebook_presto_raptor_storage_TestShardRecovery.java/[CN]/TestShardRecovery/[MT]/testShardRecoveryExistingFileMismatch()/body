@@ -6,11 +6,12 @@
   Files.write("test data",tempFile,UTF_8);
   Files.write("bad data",file,UTF_8);
   backupStore.backupShard(shardUuid,tempFile);
-  long backupSize=backupStore.shardSize(shardUuid).getAsLong();
-  assertEquals(backupSize,tempFile.length());
+  long backupSize=tempFile.length();
+  assertTrue(backupStore.shardExists(shardUuid));
+  assertEquals(backupStore.getBackupFile(shardUuid).length(),backupSize);
   assertTrue(file.exists());
   assertNotEquals(file.length(),backupSize);
-  recoveryManager.restoreFromBackup(shardUuid);
+  recoveryManager.restoreFromBackup(shardUuid,OptionalLong.of(backupSize));
   assertTrue(file.exists());
   assertEquals(file.length(),backupSize);
 }

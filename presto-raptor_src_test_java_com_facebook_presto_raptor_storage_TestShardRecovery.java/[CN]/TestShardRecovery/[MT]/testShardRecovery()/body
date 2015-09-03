@@ -4,9 +4,12 @@
   File tempFile=createTempFile("tmp",null,temporary);
   Files.write("test data",tempFile,UTF_8);
   backupStore.backupShard(shardUuid,tempFile);
-  assertTrue(backupStore.getBackupFile(shardUuid).exists());
-  assertEquals(backupStore.shardSize(shardUuid).getAsLong(),tempFile.length());
-  recoveryManager.restoreFromBackup(shardUuid);
+  assertTrue(backupStore.shardExists(shardUuid));
+  File backupFile=backupStore.getBackupFile(shardUuid);
+  assertTrue(backupFile.exists());
+  assertEquals(backupFile.length(),tempFile.length());
+  assertFalse(file.exists());
+  recoveryManager.restoreFromBackup(shardUuid,OptionalLong.empty());
   assertTrue(file.exists());
   assertEquals(file.length(),tempFile.length());
 }
