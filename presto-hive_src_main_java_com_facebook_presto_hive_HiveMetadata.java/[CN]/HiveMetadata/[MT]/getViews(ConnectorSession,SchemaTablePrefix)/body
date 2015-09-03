@@ -1,5 +1,5 @@
 {
-  ImmutableMap.Builder<SchemaTableName,String> views=ImmutableMap.builder();
+  ImmutableMap.Builder<SchemaTableName,ConnectorViewDefinition> views=ImmutableMap.builder();
   List<SchemaTableName> tableNames;
   if (prefix.getTableName() != null) {
     tableNames=ImmutableList.of(new SchemaTableName(prefix.getSchemaName(),prefix.getTableName()));
@@ -10,7 +10,7 @@
   for (  SchemaTableName schemaTableName : tableNames) {
     Optional<Table> table=metastore.getTable(schemaTableName.getSchemaName(),schemaTableName.getTableName());
     if (table.isPresent() && HiveUtil.isPrestoView(table.get())) {
-      views.put(schemaTableName,decodeViewData(table.get().getViewOriginalText()));
+      views.put(schemaTableName,new ConnectorViewDefinition(schemaTableName,Optional.ofNullable(table.get().getOwner()),decodeViewData(table.get().getViewOriginalText())));
     }
   }
   return views.build();

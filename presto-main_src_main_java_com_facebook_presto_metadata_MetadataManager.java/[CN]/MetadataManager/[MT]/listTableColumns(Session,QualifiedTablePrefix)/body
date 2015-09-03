@@ -9,10 +9,10 @@
       QualifiedTableName tableName=new QualifiedTableName(prefix.getCatalogName(),entry.getKey().getSchemaName(),entry.getKey().getTableName());
       tableColumns.put(tableName,entry.getValue());
     }
-    for (    Entry<SchemaTableName,String> entry : metadata.getViews(connectorSession,tablePrefix).entrySet()) {
+    for (    Entry<SchemaTableName,ConnectorViewDefinition> entry : metadata.getViews(connectorSession,tablePrefix).entrySet()) {
       QualifiedTableName tableName=new QualifiedTableName(prefix.getCatalogName(),entry.getKey().getSchemaName(),entry.getKey().getTableName());
       ImmutableList.Builder<ColumnMetadata> columns=ImmutableList.builder();
-      for (      ViewColumn column : deserializeView(entry.getValue()).getColumns()) {
+      for (      ViewColumn column : deserializeView(entry.getValue().getViewData()).getColumns()) {
         columns.add(new ColumnMetadata(column.getName(),column.getType(),false));
       }
       tableColumns.put(tableName,columns.build());

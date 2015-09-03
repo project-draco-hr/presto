@@ -4,9 +4,9 @@
   Map<QualifiedTableName,ViewDefinition> views=new LinkedHashMap<>();
   for (  ConnectorMetadataEntry metadata : allConnectorsFor(prefix.getCatalogName())) {
     ConnectorSession connectorSession=session.toConnectorSession(metadata.getCatalog());
-    for (    Entry<SchemaTableName,String> entry : metadata.getMetadata().getViews(connectorSession,tablePrefix).entrySet()) {
+    for (    Entry<SchemaTableName,ConnectorViewDefinition> entry : metadata.getMetadata().getViews(connectorSession,tablePrefix).entrySet()) {
       QualifiedTableName viewName=new QualifiedTableName(prefix.getCatalogName(),entry.getKey().getSchemaName(),entry.getKey().getTableName());
-      views.put(viewName,deserializeView(entry.getValue()));
+      views.put(viewName,deserializeView(entry.getValue().getViewData()));
     }
   }
   return ImmutableMap.copyOf(views);
