@@ -1,0 +1,19 @@
+{
+  OrcStorageManager manager=createOrcStorageManager();
+  List<Long> columnIds=ImmutableList.of(3L,7L);
+  List<Type> columnTypes=ImmutableList.<Type>of(BIGINT,VARCHAR);
+  StoragePageSink sink=manager.createStoragePageSink(columnIds,columnTypes);
+  List<Page> pages=rowPagesBuilder(columnTypes).row(123,"hello").row(456,"bye").build();
+  sink.appendPages(pages);
+  List<ShardInfo> shards=sink.commit();
+  BitSet rowsToDelete=new BitSet();
+  rowsToDelete.set(0);
+  Collection<Slice> fragments=manager.rewriteShard(shards.get(0).getShardUuid(),rowsToDelete);
+  Slice shardDelta=Iterables.getOnlyElement(fragments);
+  ShardDelta shardDeltas=jsonCodec(ShardDelta.class).fromJson(shardDelta.getBytes());
+  ShardInfo shardInfo=Iterables.getOnlyElement(shardDeltas.getNewShards());
+  assertEquals(shardInfo.getRowCount(),1);
+  File storageFile=storageService.getStorageFile(shardInfo.getShardUuid());
+  File backupFile=fileBackupStore.getBackupFile(shardInfo.getShardUuid());
+  assertFileEquals(storageFile,backupFile);
+}
