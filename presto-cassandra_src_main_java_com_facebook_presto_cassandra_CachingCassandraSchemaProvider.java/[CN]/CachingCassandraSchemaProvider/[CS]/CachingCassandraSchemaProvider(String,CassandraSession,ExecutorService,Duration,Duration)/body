@@ -1,9 +1,9 @@
 {
-  this.connectorId=checkNotNull(connectorId,"connectorId is null");
-  this.session=checkNotNull(session,"cassandraSession is null");
-  checkNotNull(executor,"executor is null");
-  long expiresAfterWriteMillis=checkNotNull(cacheTtl,"cacheTtl is null").toMillis();
-  long refreshMills=checkNotNull(refreshInterval,"refreshInterval is null").toMillis();
+  this.connectorId=requireNonNull(connectorId,"connectorId is null");
+  this.session=requireNonNull(session,"cassandraSession is null");
+  requireNonNull(executor,"executor is null");
+  long expiresAfterWriteMillis=requireNonNull(cacheTtl,"cacheTtl is null").toMillis();
+  long refreshMills=requireNonNull(refreshInterval,"refreshInterval is null").toMillis();
   schemaNamesCache=CacheBuilder.newBuilder().expireAfterWrite(expiresAfterWriteMillis,MILLISECONDS).refreshAfterWrite(refreshMills,MILLISECONDS).build(asyncReloading(new CacheLoader<String,Map<String,String>>(){
     @Override public Map<String,String> load(    String key) throws Exception {
       return loadAllSchemas();

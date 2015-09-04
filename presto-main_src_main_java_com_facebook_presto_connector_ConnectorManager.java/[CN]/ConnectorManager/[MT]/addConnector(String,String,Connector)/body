@@ -7,11 +7,11 @@
   ConnectorSplitManager connectorSplitManager=connector.getSplitManager();
   checkState(connectorSplitManager != null,"Connector %s does not have a split manager",connectorId);
   Set<SystemTable> systemTables=connector.getSystemTables();
-  checkNotNull(systemTables,"Connector %s returned a null system tables set");
+  requireNonNull(systemTables,"Connector %s returned a null system tables set");
   ConnectorPageSourceProvider connectorPageSourceProvider=null;
   try {
     connectorPageSourceProvider=connector.getPageSourceProvider();
-    checkNotNull(connectorPageSourceProvider,"Connector %s returned a null page source provider",connectorId);
+    requireNonNull(connectorPageSourceProvider,format("Connector %s returned a null page source provider",connectorId));
   }
  catch (  UnsupportedOperationException ignored) {
   }
@@ -19,7 +19,7 @@
     ConnectorRecordSetProvider connectorRecordSetProvider=null;
     try {
       connectorRecordSetProvider=connector.getRecordSetProvider();
-      checkNotNull(connectorRecordSetProvider,"Connector %s returned a null record set provider",connectorId);
+      requireNonNull(connectorRecordSetProvider,format("Connector %s returned a null record set provider",connectorId));
     }
  catch (    UnsupportedOperationException ignored) {
     }
@@ -27,11 +27,11 @@
     connectorPageSourceProvider=new RecordPageSourceProvider(connectorRecordSetProvider);
   }
   ConnectorHandleResolver connectorHandleResolver=connector.getHandleResolver();
-  checkNotNull(connectorHandleResolver,"Connector %s does not have a handle resolver",connectorId);
+  requireNonNull(connectorHandleResolver,format("Connector %s does not have a handle resolver",connectorId));
   ConnectorPageSinkProvider connectorPageSinkProvider=null;
   try {
     connectorPageSinkProvider=connector.getPageSinkProvider();
-    checkNotNull(connectorPageSinkProvider,"Connector %s returned a null page sink provider",connectorId);
+    requireNonNull(connectorPageSinkProvider,format("Connector %s returned a null page sink provider",connectorId));
   }
  catch (  UnsupportedOperationException ignored) {
   }
@@ -39,7 +39,7 @@
     ConnectorRecordSinkProvider connectorRecordSinkProvider=null;
     try {
       connectorRecordSinkProvider=connector.getRecordSinkProvider();
-      checkNotNull(connectorRecordSinkProvider,"Connector %s returned a null record sink provider",connectorId);
+      requireNonNull(connectorRecordSinkProvider,format("Connector %s returned a null record sink provider",connectorId));
       connectorPageSinkProvider=new RecordPageSinkProvider(connectorRecordSinkProvider);
     }
  catch (    UnsupportedOperationException ignored) {
@@ -48,12 +48,12 @@
   ConnectorIndexResolver indexResolver=null;
   try {
     indexResolver=connector.getIndexResolver();
-    checkNotNull(indexResolver,"Connector %s returned a null index resolver",connectorId);
+    requireNonNull(indexResolver,format("Connector %s returned a null index resolver",connectorId));
   }
  catch (  UnsupportedOperationException ignored) {
   }
   List<PropertyMetadata<?>> tableProperties=connector.getTableProperties();
-  checkNotNull(tableProperties,"Connector %s returned null table properties",connectorId);
+  requireNonNull(tableProperties,format("Connector %s returned null table properties",connectorId));
   ConnectorAccessControl accessControl=null;
   try {
     accessControl=connector.getAccessControl();

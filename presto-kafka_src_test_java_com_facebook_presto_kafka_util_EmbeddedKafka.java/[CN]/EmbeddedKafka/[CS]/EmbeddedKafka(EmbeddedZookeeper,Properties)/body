@@ -1,6 +1,6 @@
 {
-  this.zookeeper=checkNotNull(zookeeper,"zookeeper is null");
-  checkNotNull(overrideProperties,"overrideProperties is null");
+  this.zookeeper=requireNonNull(zookeeper,"zookeeper is null");
+  requireNonNull(overrideProperties,"overrideProperties is null");
   this.port=findUnusedPort();
   this.kafkaDataDir=Files.createTempDir();
   Map<String,String> properties=ImmutableMap.<String,String>builder().put("broker.id","0").put("host.name","localhost").put("num.partitions","2").put("log.flush.interval.messages","10000").put("log.flush.interval.ms","1000").put("log.retention.minutes","60").put("log.segment.bytes","1048576").put("auto.create.topics.enable","false").put("zookeeper.connection.timeout.ms","1000000").put("port",Integer.toString(port)).put("log.dirs",kafkaDataDir.getAbsolutePath()).put("zookeeper.connect",zookeeper.getConnectString()).putAll(Maps.fromProperties(overrideProperties)).build();
