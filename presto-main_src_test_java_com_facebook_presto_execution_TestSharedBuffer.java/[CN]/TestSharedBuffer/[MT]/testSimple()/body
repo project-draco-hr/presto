@@ -51,12 +51,14 @@
   assertBufferResultEquals(TYPES,x,bufferResult(6,createPage(6),createPage(7),createPage(8),createPage(9),createPage(10),createPage(11),createPage(12),createPage(13)));
   assertQueueState(sharedBuffer,FIRST,DEFAULT_PARTITION,8,6,8,14,0);
   assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,FIRST,14,sizeOfPages(10),NO_WAIT),emptyResults(14,true));
+  sharedBuffer.abort(FIRST);
   assertQueueClosed(sharedBuffer,FIRST,14);
   assertQueueState(sharedBuffer,SECOND,DEFAULT_PARTITION,4,10,4,14,0);
   assertFalse(sharedBuffer.isFinished());
   assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,SECOND,10,sizeOfPages(10),NO_WAIT),bufferResult(10,createPage(10),createPage(11),createPage(12),createPage(13)));
   assertQueueState(sharedBuffer,SECOND,DEFAULT_PARTITION,4,10,4,14,0);
   assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,SECOND,14,sizeOfPages(10),NO_WAIT),emptyResults(14,true));
+  sharedBuffer.abort(SECOND);
   assertQueueClosed(sharedBuffer,FIRST,14);
   assertQueueClosed(sharedBuffer,SECOND,14);
   assertFinished(sharedBuffer);

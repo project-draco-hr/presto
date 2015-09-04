@@ -1,0 +1,27 @@
+{
+  HttpResponseFuture<StatusResponse> resultFuture=httpClient.executeAsync(prepareDelete().setUri(location).build(),createStatusResponseHandler());
+  future=resultFuture;
+  Futures.addCallback(resultFuture,new FutureCallback<StatusResponse>(){
+    @Override public void onSuccess(    @Nullable StatusResponse result){
+      checkNotHoldsLock();
+synchronized (HttpPageBufferClient.this) {
+        closed=true;
+        future=null;
+        lastUpdate=DateTime.now();
+      }
+      clientCallback.clientFinished(HttpPageBufferClient.this);
+      requestsCompleted.incrementAndGet();
+    }
+    @Override public void onFailure(    Throwable t){
+      checkNotHoldsLock();
+      log.error("Request to delete %s failed %s",location,t);
+      Duration errorDuration=elapsedErrorDuration();
+      if (!(t instanceof PrestoException) && errorDuration.compareTo(minErrorDuration) > 0) {
+        String message=format("%s (%s - requests failed for %s)",WORKER_NODE_ERROR,location,errorDuration);
+        t=new PrestoException(StandardErrorCode.TOO_MANY_REQUESTS_FAILED,message,t);
+      }
+      handleFailure(t);
+    }
+  }
+,executor);
+}

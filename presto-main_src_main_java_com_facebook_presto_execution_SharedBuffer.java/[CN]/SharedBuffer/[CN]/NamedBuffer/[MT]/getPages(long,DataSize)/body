@@ -7,9 +7,12 @@
     this.sequenceId.set(startingSequenceId);
     sequenceId=startingSequenceId;
   }
-  if (checkCompletion()) {
+  if (isFinished()) {
     return emptyResults(startingSequenceId,true);
   }
   List<Page> pages=partitionBuffer.getPages(maxSize,sequenceId);
+  if (pages.isEmpty() && !state.get().canAddPages()) {
+    return emptyResults(startingSequenceId,true);
+  }
   return new BufferResult(startingSequenceId,startingSequenceId + pages.size(),false,pages);
 }

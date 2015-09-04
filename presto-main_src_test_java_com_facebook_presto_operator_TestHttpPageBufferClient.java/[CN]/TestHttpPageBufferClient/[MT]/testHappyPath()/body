@@ -41,8 +41,13 @@
   client.scheduleRequest();
   requestComplete.await(10,TimeUnit.SECONDS);
   assertEquals(callback.getPages().size(),0);
-  assertEquals(callback.getCompletedRequests(),0);
+  assertEquals(callback.getCompletedRequests(),1);
+  callback.resetStats();
+  client.scheduleRequest();
+  requestComplete.await(10,TimeUnit.SECONDS);
   assertEquals(callback.getFinishedBuffers(),1);
+  assertEquals(callback.getPages().size(),0);
+  assertEquals(callback.getCompletedRequests(),0);
   assertEquals(callback.getFailedBuffers(),0);
-  assertStatus(client,location,"closed",3,4,4,0,"not scheduled");
+  assertStatus(client,location,"closed",3,5,5,0,"not scheduled");
 }

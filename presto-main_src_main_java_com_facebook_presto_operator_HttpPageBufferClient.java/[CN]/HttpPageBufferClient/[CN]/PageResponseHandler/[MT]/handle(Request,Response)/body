@@ -1,9 +1,6 @@
 {
-  if (response.getStatusCode() == HttpStatus.GONE.code()) {
-    return createClosedResponse(getToken(response));
-  }
   if (response.getStatusCode() == HttpStatus.NO_CONTENT.code()) {
-    return createEmptyPagesResponse(getToken(response),getNextToken(response));
+    return createEmptyPagesResponse(getToken(response),getNextToken(response),getComplete(response));
   }
   if (response.getStatusCode() != HttpStatus.OK.code()) {
     throw new PageTransportErrorException(format("Expected response code to be 200, but was %s %s: %s",response.getStatusCode(),response.getStatusMessage(),request.getUri()));
@@ -14,9 +11,10 @@
   }
   long token=getToken(response);
   long nextToken=getNextToken(response);
+  boolean complete=getComplete(response);
   try (SliceInput input=new InputStreamSliceInput(response.getInputStream())){
     List<Page> pages=ImmutableList.copyOf(readPages(blockEncodingSerde,input));
-    return createPagesResponse(token,nextToken,pages);
+    return createPagesResponse(token,nextToken,pages,complete);
   }
  catch (  IOException e) {
     throw Throwables.propagate(e);

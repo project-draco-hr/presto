@@ -5,10 +5,12 @@
   CompletableFuture<BufferResult> bufferResult=sqlTask.getTaskResults(OUT,0,new DataSize(1,MEGABYTE));
   assertFalse(bufferResult.isDone());
   updateTask(sqlTask,ImmutableList.of(new TaskSource(TABLE_SCAN_NODE_ID,ImmutableSet.<ScheduledSplit>of(),true)),outputBuffers);
-  assertEquals(sqlTask.getTaskInfo().getState(),TaskState.FINISHED);
-  assertTrue(bufferResult.get(1,SECONDS).isBufferClosed());
+  TaskInfo taskInfo=sqlTask.abortTaskResults(OUT);
+  assertTrue(bufferResult.get(1,SECONDS).isBufferComplete());
   assertEquals(sqlTask.getTaskInfo().getOutputBuffers().getState(),BufferState.FINISHED);
+  taskInfo=sqlTask.getTaskInfo(taskInfo.getState()).get(1,SECONDS);
+  assertEquals(taskInfo.getState(),TaskState.FINISHED);
   bufferResult=sqlTask.getTaskResults(OUT,0,new DataSize(1,MEGABYTE));
   assertTrue(bufferResult.isDone());
-  assertTrue(bufferResult.get().isBufferClosed());
+  assertTrue(bufferResult.get().isBufferComplete());
 }

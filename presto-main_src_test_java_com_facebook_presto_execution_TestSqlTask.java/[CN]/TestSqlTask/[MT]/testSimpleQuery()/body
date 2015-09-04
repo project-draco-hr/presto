@@ -5,12 +5,14 @@
   taskInfo=sqlTask.getTaskInfo();
   assertEquals(taskInfo.getState(),TaskState.RUNNING);
   BufferResult results=sqlTask.getTaskResults(OUT,0,new DataSize(1,MEGABYTE)).get();
-  assertEquals(results.isBufferClosed(),false);
+  assertEquals(results.isBufferComplete(),false);
   assertEquals(results.getPages().size(),1);
   assertEquals(results.getPages().get(0).getPositionCount(),1);
   results=sqlTask.getTaskResults(OUT,results.getToken() + results.getPages().size(),new DataSize(1,MEGABYTE)).get();
-  assertEquals(results.isBufferClosed(),true);
+  assertEquals(results.isBufferComplete(),true);
   assertEquals(results.getPages().size(),0);
+  TaskInfo info=sqlTask.abortTaskResults(OUT);
+  assertEquals(info.getOutputBuffers().getState(),BufferState.FINISHED);
   taskInfo=sqlTask.getTaskInfo(taskInfo.getState()).get(1,SECONDS);
   assertEquals(taskInfo.getState(),TaskState.FINISHED);
   taskInfo=sqlTask.getTaskInfo();

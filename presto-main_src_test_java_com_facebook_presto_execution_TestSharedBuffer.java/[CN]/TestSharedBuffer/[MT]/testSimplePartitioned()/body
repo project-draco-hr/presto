@@ -47,6 +47,8 @@
   assertFalse(sharedBuffer.isFinished());
   sharedBuffer.setNoMorePages();
   assertQueueState(sharedBuffer,FIRST,firstPartition,10,4,10,14,0);
+  assertQueueState(sharedBuffer,SECOND,secondPartition,0,10,0,10,0);
+  sharedBuffer.abort(SECOND);
   assertQueueClosed(sharedBuffer,SECOND,10);
   assertFalse(sharedBuffer.isFinished());
   assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,FIRST,5,sizeOfPages(1),NO_WAIT),bufferResult(5,createPage(5)));
@@ -56,6 +58,7 @@
   assertBufferResultEquals(TYPES,x,bufferResult(6,createPage(6),createPage(7),createPage(8),createPage(9),createPage(10),createPage(11),createPage(12),createPage(13)));
   assertQueueState(sharedBuffer,FIRST,firstPartition,8,6,8,14,0);
   assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,FIRST,14,sizeOfPages(10),NO_WAIT),emptyResults(14,true));
+  sharedBuffer.abort(FIRST);
   assertQueueClosed(sharedBuffer,FIRST,14);
   assertFinished(sharedBuffer);
 }
