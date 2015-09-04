@@ -1,0 +1,11 @@
+{
+  try {
+    byte[] in=slice.getBytes();
+    SliceOutput dynamicSliceOutput=new DynamicSliceOutput(in.length);
+    SORTED_MAPPER.writeValue(dynamicSliceOutput,SORTED_MAPPER.readValue(in,Object.class));
+    return dynamicSliceOutput.slice();
+  }
+ catch (  Exception e) {
+    throw new PrestoException(INVALID_CAST_ARGUMENT,format("Cannot cast '%s' to JSON",slice.toStringUtf8()));
+  }
+}
