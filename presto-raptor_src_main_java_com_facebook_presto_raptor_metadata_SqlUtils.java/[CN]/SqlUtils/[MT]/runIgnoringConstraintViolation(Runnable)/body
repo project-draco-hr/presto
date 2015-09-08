@@ -1,11 +1,14 @@
 {
   try {
-    runIgnoringConstraintViolation(callable(task),null);
+    task.run();
   }
- catch (  Exception e) {
-    if (e instanceof InterruptedException) {
-      Thread.currentThread().interrupt();
+ catch (  UnableToExecuteStatementException e) {
+    if (e.getCause() instanceof SQLException) {
+      String state=((SQLException)e.getCause()).getSQLState();
+      if (state.startsWith("23")) {
+        return;
+      }
     }
-    throw Throwables.propagate(e);
+    throw e;
   }
 }
