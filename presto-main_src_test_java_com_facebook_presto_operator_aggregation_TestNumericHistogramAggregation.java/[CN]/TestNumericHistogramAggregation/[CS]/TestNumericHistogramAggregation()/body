@@ -3,13 +3,5 @@
   FunctionRegistry functionRegistry=new FunctionRegistry(typeRegistry,new BlockEncodingManager(typeRegistry),true);
   InternalAggregationFunction function=functionRegistry.resolveFunction(QualifiedName.of("numeric_histogram"),ImmutableList.of(BIGINT.getTypeSignature(),DOUBLE.getTypeSignature(),DOUBLE.getTypeSignature()),false).getAggregationFunction();
   factory=function.bind(ImmutableList.of(0,1,2),Optional.empty(),Optional.empty(),1.0);
-  int numberOfBuckets=10;
-  PageBuilder builder=new PageBuilder(ImmutableList.of(BIGINT,DOUBLE,DOUBLE));
-  for (int i=0; i < 100; i++) {
-    builder.declarePosition();
-    BIGINT.writeLong(builder.getBlockBuilder(0),numberOfBuckets);
-    DOUBLE.writeDouble(builder.getBlockBuilder(1),i);
-    DOUBLE.writeDouble(builder.getBlockBuilder(2),1);
-  }
-  input=builder.build();
+  input=makeInput(10);
 }
