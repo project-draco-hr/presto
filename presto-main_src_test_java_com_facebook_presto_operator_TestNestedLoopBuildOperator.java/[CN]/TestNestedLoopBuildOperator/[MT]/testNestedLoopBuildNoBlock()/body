@@ -1,0 +1,20 @@
+{
+  TaskContext taskContext=createTaskContext();
+  NestedLoopBuildOperatorFactory nestedLoopBuildOperatorFactory=new NestedLoopBuildOperatorFactory(3,ImmutableList.of());
+  DriverContext driverContext=taskContext.addPipelineContext(true,true).addDriverContext();
+  NestedLoopBuildOperator nestedLoopBuildOperator=(NestedLoopBuildOperator)nestedLoopBuildOperatorFactory.createOperator(driverContext);
+  NestedLoopJoinPagesSupplier nestedLoopJoinPagesSupplier=nestedLoopBuildOperatorFactory.getNestedLoopJoinPagesSupplier();
+  assertFalse(nestedLoopJoinPagesSupplier.getPagesFuture().isDone());
+  Page buildPage1=new Page(3);
+  Page buildPageEmpty=new Page(0);
+  Page buildPage2=new Page(3000);
+  nestedLoopBuildOperator.addInput(buildPage1);
+  nestedLoopBuildOperator.addInput(buildPageEmpty);
+  nestedLoopBuildOperator.addInput(buildPage2);
+  nestedLoopBuildOperator.finish();
+  assertTrue(nestedLoopJoinPagesSupplier.getPagesFuture().isDone());
+  List<Page> buildPages=nestedLoopJoinPagesSupplier.getPagesFuture().get().getPages();
+  assertEquals(buildPages.get(0),buildPage1);
+  assertEquals(buildPages.get(1),buildPage2);
+  assertEquals(buildPages.size(),2);
+}

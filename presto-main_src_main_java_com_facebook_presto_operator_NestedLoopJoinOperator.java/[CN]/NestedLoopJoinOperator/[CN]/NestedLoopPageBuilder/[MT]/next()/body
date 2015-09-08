@@ -1,0 +1,16 @@
+{
+  if (!hasNext()) {
+    throw new NoSuchElementException();
+  }
+  rowIndex++;
+  Block[] blocks=new Block[numberOfProbeColumns + numberOfBuildColumns];
+  int indexForRleBlocks=buildPageLarger ? 0 : numberOfProbeColumns;
+  int indexForPageBlocks=buildPageLarger ? numberOfProbeColumns : 0;
+  for (int i=0; i < smallPage.getChannelCount(); i++) {
+    Block block=smallPage.getBlock(i).getSingleValueBlock(rowIndex);
+    blocks[indexForRleBlocks]=new RunLengthEncodedBlock(block,largePage.getPositionCount());
+    indexForRleBlocks++;
+  }
+  System.arraycopy(largePage.getBlocks(),0,blocks,indexForPageBlocks,largePage.getChannelCount());
+  return new Page(largePage.getPositionCount(),blocks);
+}

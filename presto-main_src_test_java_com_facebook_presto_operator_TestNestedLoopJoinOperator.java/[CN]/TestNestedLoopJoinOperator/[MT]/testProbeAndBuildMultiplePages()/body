@@ -1,0 +1,13 @@
+{
+  TaskContext taskContext=createTaskContext();
+  List<Type> buildTypes=ImmutableList.<Type>of(VARCHAR);
+  RowPagesBuilder buildPages=rowPagesBuilder(buildTypes).row("A").row("B").pageBreak().row("C");
+  NestedLoopJoinPagesSupplier nestedLoopJoinPagesSupplier=buildPageSource(taskContext,buildPages);
+  List<Type> probeTypes=ImmutableList.<Type>of(VARCHAR);
+  RowPagesBuilder probePages=rowPagesBuilder(probeTypes);
+  List<Page> probeInput=probePages.row("a").pageBreak().row((String)null).row("b").row("c").pageBreak().row("d").build();
+  NestedLoopJoinOperatorFactory joinOperatorFactory=new NestedLoopJoinOperatorFactory(3,nestedLoopJoinPagesSupplier,ImmutableList.<Type>of(VARCHAR));
+  Operator joinOperator=joinOperatorFactory.createOperator(taskContext.addPipelineContext(true,true).addDriverContext());
+  MaterializedResult expected=resultBuilder(taskContext.getSession(),concat(probeTypes,buildPages.getTypes())).row("a","A").row("a","B").row("a","C").row(null,"A").row("b","A").row("c","A").row(null,"B").row("b","B").row("c","B").row(null,"C").row("b","C").row("c","C").row("d","A").row("d","B").row("d","C").build();
+  assertOperatorEquals(joinOperator,probeInput,expected);
+}
