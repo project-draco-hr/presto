@@ -1,3 +1,11 @@
 {
-  inputStream.readFully(position,buffer,bufferOffset,bufferLength);
+  try {
+    inputStream.readFully(position,buffer,bufferOffset,bufferLength);
+  }
+ catch (  PrestoException e) {
+    throw e;
+  }
+catch (  Exception e) {
+    throw new PrestoException(HIVE_FILESYSTEM_ERROR,format("HDFS error reading from %s at position %s",this,position),e);
+  }
 }
