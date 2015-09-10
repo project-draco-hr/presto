@@ -13,6 +13,15 @@
     if (jdbcType == null) {
       continue;
     }
+    if (handle.isShardUuid()) {
+      if (domain.isSingleValue()) {
+        predicate.add("shard_uuid = ?");
+        types.add(jdbcType(type));
+        Slice uuidSlice=checkType(entry.getValue().getSingleValue(),Slice.class,"value");
+        values.add(uuidStringToBytes(uuidSlice));
+      }
+      continue;
+    }
     SortedRangeSet ranges=domain.getRanges();
     if (ranges.getRangeCount() != 1) {
       continue;

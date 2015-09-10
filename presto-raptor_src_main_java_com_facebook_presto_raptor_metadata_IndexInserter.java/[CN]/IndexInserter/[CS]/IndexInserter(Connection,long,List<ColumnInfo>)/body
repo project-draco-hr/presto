@@ -13,8 +13,11 @@
     if (jdbcType == null) {
       continue;
     }
-    columnBuilder.add(column);
     long columnId=column.getColumnId();
+    if (isShardUuidColumn(columnId) || isShardRowIdColumn(columnId)) {
+      continue;
+    }
+    columnBuilder.add(column);
     nameJoiner.add(minColumn(columnId));
     nameJoiner.add(maxColumn(columnId));
     valueJoiner.add("?").add("?");
