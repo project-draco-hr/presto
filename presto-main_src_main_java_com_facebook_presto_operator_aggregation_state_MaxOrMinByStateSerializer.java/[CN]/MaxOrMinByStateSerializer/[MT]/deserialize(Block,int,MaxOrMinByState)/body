@@ -1,13 +1,10 @@
 {
-  SliceInput input=block.getSlice(index,0,block.getLength(index)).getInput();
-  int keyLength=input.readInt();
-  int valueLength=input.readInt();
-  state.setKey(null);
-  state.setValue(null);
-  if (keyLength > 0) {
-    state.setKey(toBlock(keyType,input,keyLength));
+  if (block.isNull(index)) {
+    state.setKey(null);
+    state.setValue(null);
+    return;
   }
-  if (valueLength > 0) {
-    state.setValue(toBlock(valueType,input,valueLength));
-  }
+  Block rowBlock=block.getObject(index,Block.class);
+  state.setKey(rowBlock.getSingleValueBlock(0));
+  state.setValue(rowBlock.getSingleValueBlock(1));
 }

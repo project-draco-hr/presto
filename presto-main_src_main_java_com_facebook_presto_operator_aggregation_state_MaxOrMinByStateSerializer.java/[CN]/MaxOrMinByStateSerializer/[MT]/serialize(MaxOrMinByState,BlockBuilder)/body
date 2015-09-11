@@ -1,22 +1,13 @@
 {
-  SliceOutput sliceOutput=new DynamicSliceOutput((int)state.getEstimatedSize());
-  int keyLength=0;
-  if (state.getKey() != null && !state.getKey().isNull(0)) {
-    keyLength=state.getKey().getLength(0);
+  Block keyState=state.getKey();
+  Block valueState=state.getValue();
+  checkState((keyState == null) == (valueState == null),"(keyState == null) != (valueState == null)");
+  if (keyState == null) {
+    out.appendNull();
+    return;
   }
-  sliceOutput.writeInt(keyLength);
-  int valueLength=0;
-  if (state.getValue() != null && !state.getValue().isNull(0)) {
-    valueLength=state.getValue().getLength(0);
-  }
-  sliceOutput.writeInt(valueLength);
-  if (state.getKey() != null && !state.getKey().isNull(0)) {
-    appendTo(keyType,sliceOutput,state.getKey());
-  }
-  if (state.getValue() != null && !state.getValue().isNull(0)) {
-    appendTo(valueType,sliceOutput,state.getValue());
-  }
-  Slice slice=sliceOutput.slice();
-  out.writeBytes(slice,0,slice.length());
+  BlockBuilder blockBuilder=out.beginBlockEntry();
+  keyType.appendTo(keyState,0,blockBuilder);
+  valueType.appendTo(valueState,0,blockBuilder);
   out.closeEntry();
 }
