@@ -1,0 +1,14 @@
+{
+  QuantileDigest otherDigest=otherState.getDigest();
+  QuantileDigest digest=state.getDigest();
+  if (digest == null) {
+    state.setDigest(otherDigest);
+    state.addMemoryUsage(otherDigest.estimatedInMemorySizeInBytes());
+  }
+ else {
+    state.addMemoryUsage(-digest.estimatedInMemorySizeInBytes());
+    digest.merge(otherDigest);
+    state.addMemoryUsage(digest.estimatedInMemorySizeInBytes());
+  }
+  state.setPercentiles(otherState.getPercentiles());
+}

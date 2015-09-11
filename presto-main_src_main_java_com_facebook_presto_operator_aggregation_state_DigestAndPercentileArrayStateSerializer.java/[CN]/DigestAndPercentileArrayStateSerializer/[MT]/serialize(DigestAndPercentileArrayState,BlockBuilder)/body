@@ -1,0 +1,15 @@
+{
+  if (state.getDigest() == null) {
+    out.appendNull();
+  }
+ else {
+    DynamicSliceOutput sliceOutput=new DynamicSliceOutput(state.getDigest().estimatedSerializedSizeInBytes() + (state.getPercentiles().size() * SIZE_OF_DOUBLE) + SIZE_OF_LONG);
+    state.getDigest().serialize(sliceOutput);
+    List<Double> percentiles=state.getPercentiles();
+    sliceOutput.appendLong(percentiles.size());
+    for (    Double percentile : percentiles) {
+      sliceOutput.appendDouble(percentile);
+    }
+    VARBINARY.writeSlice(out,sliceOutput.slice());
+  }
+}

@@ -1,0 +1,13 @@
+{
+  if (!block.isNull(index)) {
+    SliceInput input=VARBINARY.getSlice(block,index).getInput();
+    state.setDigest(QuantileDigest.deserialize(input));
+    state.addMemoryUsage(state.getDigest().estimatedInMemorySizeInBytes());
+    long numPercentiles=input.readLong();
+    ImmutableList.Builder<Double> percentilesListBuilder=ImmutableList.builder();
+    for (int i=0; i < numPercentiles; i++) {
+      percentilesListBuilder.add(input.readDouble());
+    }
+    state.setPercentiles(percentilesListBuilder.build());
+  }
+}
