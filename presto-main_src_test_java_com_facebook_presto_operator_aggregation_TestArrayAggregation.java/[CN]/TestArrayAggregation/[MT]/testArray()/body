@@ -1,18 +1,4 @@
 {
   InternalAggregationFunction varcharAgg=metadata.getExactFunction(new Signature("array_agg","array<array<bigint>>","array<bigint>")).getAggregationFunction();
-  Type arrayType=new ArrayType(BIGINT);
-  BlockBuilder builder=arrayType.createBlockBuilder(new BlockBuilderStatus(),100);
-  BlockBuilder variableWidthBlockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),100);
-  BIGINT.writeLong(variableWidthBlockBuilder,1);
-  arrayType.writeObject(builder,variableWidthBlockBuilder);
-  variableWidthBlockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),100);
-  BIGINT.writeLong(variableWidthBlockBuilder,1);
-  BIGINT.writeLong(variableWidthBlockBuilder,2);
-  arrayType.writeObject(builder,variableWidthBlockBuilder);
-  variableWidthBlockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),100);
-  BIGINT.writeLong(variableWidthBlockBuilder,1);
-  BIGINT.writeLong(variableWidthBlockBuilder,2);
-  BIGINT.writeLong(variableWidthBlockBuilder,3);
-  arrayType.writeObject(builder,variableWidthBlockBuilder);
-  assertAggregation(varcharAgg,1.0,Arrays.asList(Arrays.asList(1L),Arrays.asList(1L,2L),Arrays.asList(1L,2L,3L)),new Page(builder.build()));
+  assertAggregation(varcharAgg,1.0,Arrays.asList(Arrays.asList(1L),Arrays.asList(1L,2L),Arrays.asList(1L,2L,3L)),createArrayBigintBlock(ImmutableList.of(ImmutableList.of(1L),ImmutableList.of(1L,2L),ImmutableList.of(1L,2L,3L))));
 }

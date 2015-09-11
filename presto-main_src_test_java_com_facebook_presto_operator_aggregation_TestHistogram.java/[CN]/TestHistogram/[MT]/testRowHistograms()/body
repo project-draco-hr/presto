@@ -2,12 +2,9 @@
   RowType innerRowType=new RowType(ImmutableList.of(BIGINT,DOUBLE),Optional.of(ImmutableList.of("f1","f2")));
   MapType mapType=new MapType(innerRowType,BIGINT);
   InternalAggregationFunction aggregationFunction=metadata.getExactFunction(new Signature(NAME,mapType.getTypeSignature().toString(),innerRowType.getTypeSignature().toString())).getAggregationFunction();
-  PageBuilder builder=new PageBuilder(ImmutableList.of(innerRowType));
-  builder.declarePosition();
-  innerRowType.writeObject(builder.getBlockBuilder(0),testRowBigintBigint(1L,1.0));
-  builder.declarePosition();
-  innerRowType.writeObject(builder.getBlockBuilder(0),testRowBigintBigint(2L,2.0));
-  builder.declarePosition();
-  innerRowType.writeObject(builder.getBlockBuilder(0),testRowBigintBigint(3L,3.0));
+  BlockBuilder builder=innerRowType.createBlockBuilder(new BlockBuilderStatus(),3);
+  innerRowType.writeObject(builder,testRowBigintBigint(1L,1.0));
+  innerRowType.writeObject(builder,testRowBigintBigint(2L,2.0));
+  innerRowType.writeObject(builder,testRowBigintBigint(3L,3.0));
   assertAggregation(aggregationFunction,1.0,ImmutableMap.of(ImmutableList.of(1L,1.0),1L,ImmutableList.of(2L,2.0),1L,ImmutableList.of(3L,3.0),1L),builder.build());
 }

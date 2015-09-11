@@ -2,12 +2,9 @@
   MapType innerMapType=new MapType(VARCHAR,VARCHAR);
   MapType mapType=new MapType(innerMapType,BIGINT);
   InternalAggregationFunction aggregationFunction=metadata.getExactFunction(new Signature(NAME,mapType.getTypeSignature().toString(),innerMapType.getTypeSignature().toString())).getAggregationFunction();
-  PageBuilder builder=new PageBuilder(ImmutableList.of(innerMapType));
-  builder.declarePosition();
-  innerMapType.writeObject(builder.getBlockBuilder(0),mapBlockOf(VARCHAR,VARCHAR,ImmutableMap.of("a","b")));
-  builder.declarePosition();
-  innerMapType.writeObject(builder.getBlockBuilder(0),mapBlockOf(VARCHAR,VARCHAR,ImmutableMap.of("c","d")));
-  builder.declarePosition();
-  innerMapType.writeObject(builder.getBlockBuilder(0),mapBlockOf(VARCHAR,VARCHAR,ImmutableMap.of("e","f")));
+  BlockBuilder builder=innerMapType.createBlockBuilder(new BlockBuilderStatus(),3);
+  innerMapType.writeObject(builder,mapBlockOf(VARCHAR,VARCHAR,ImmutableMap.of("a","b")));
+  innerMapType.writeObject(builder,mapBlockOf(VARCHAR,VARCHAR,ImmutableMap.of("c","d")));
+  innerMapType.writeObject(builder,mapBlockOf(VARCHAR,VARCHAR,ImmutableMap.of("e","f")));
   assertAggregation(aggregationFunction,1.0,ImmutableMap.of(ImmutableMap.of("a","b"),1L,ImmutableMap.of("c","d"),1L,ImmutableMap.of("e","f"),1L),builder.build());
 }

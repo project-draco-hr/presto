@@ -2,15 +2,5 @@
   ArrayType arrayType=new ArrayType(VARCHAR);
   MapType mapType=new MapType(arrayType,DOUBLE);
   InternalAggregationFunction aggFunc=metadata.getExactFunction(new Signature(NAME,mapType.getTypeSignature().toString(),arrayType.getTypeSignature().toString(),StandardTypes.DOUBLE)).getAggregationFunction();
-  PageBuilder builder=new PageBuilder(ImmutableList.of(arrayType,DOUBLE));
-  builder.declarePosition();
-  arrayType.writeObject(builder.getBlockBuilder(0),arrayBlockOf(VARCHAR,"a","b"));
-  DOUBLE.writeDouble(builder.getBlockBuilder(1),1.0);
-  builder.declarePosition();
-  arrayType.writeObject(builder.getBlockBuilder(0),arrayBlockOf(VARCHAR,"c","d"));
-  DOUBLE.writeDouble(builder.getBlockBuilder(1),2.0);
-  builder.declarePosition();
-  arrayType.writeObject(builder.getBlockBuilder(0),arrayBlockOf(VARCHAR,"e","f"));
-  DOUBLE.writeDouble(builder.getBlockBuilder(1),3.0);
-  assertAggregation(aggFunc,1.0,ImmutableMap.of(ImmutableList.of("a","b"),1.0,ImmutableList.of("c","d"),2.0,ImmutableList.of("e","f"),3.0),builder.build());
+  assertAggregation(aggFunc,1.0,ImmutableMap.of(ImmutableList.of("a","b"),1.0,ImmutableList.of("c","d"),2.0,ImmutableList.of("e","f"),3.0),createStringArraysBlock(ImmutableList.of(ImmutableList.of("a","b"),ImmutableList.of("c","d"),ImmutableList.of("e","f"))),createDoublesBlock(1.0,2.0,3.0));
 }
