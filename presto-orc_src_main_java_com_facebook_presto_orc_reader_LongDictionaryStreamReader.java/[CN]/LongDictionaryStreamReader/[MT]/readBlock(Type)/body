@@ -16,6 +16,12 @@
       dataStream.skip(readOffset);
     }
   }
+  if (nullVector.length < nextBatchSize) {
+    nullVector=new boolean[nextBatchSize];
+  }
+  if (dataVector.length < nextBatchSize) {
+    dataVector=new long[nextBatchSize];
+  }
   if (presentStream == null) {
     if (dataStream == null) {
       throw new OrcCorruptionException("Value is not null but data stream is not present");
@@ -31,6 +37,9 @@
       }
       dataStream.nextLongVector(nextBatchSize,dataVector,nullVector);
     }
+  }
+  if (inDictionary.length < nextBatchSize) {
+    inDictionary=new boolean[nextBatchSize];
   }
   if (inDictionaryStream == null) {
     Arrays.fill(inDictionary,true);

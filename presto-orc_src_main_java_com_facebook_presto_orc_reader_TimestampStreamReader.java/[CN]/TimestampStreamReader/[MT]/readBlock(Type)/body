@@ -17,6 +17,12 @@
       nanosStream.skip(readOffset);
     }
   }
+  if (secondsVector.length < nextBatchSize) {
+    secondsVector=new long[nextBatchSize];
+  }
+  if (nanosVector.length < nextBatchSize) {
+    nanosVector=new long[nextBatchSize];
+  }
   BlockBuilder builder=type.createBlockBuilder(new BlockBuilderStatus(),nextBatchSize);
   if (presentStream == null) {
     if (secondsStream == null) {
@@ -32,6 +38,9 @@
     }
   }
  else {
+    if (nullVector.length < nextBatchSize) {
+      nullVector=new boolean[nextBatchSize];
+    }
     int nullValues=presentStream.getUnsetBits(nextBatchSize,nullVector);
     if (nullValues != nextBatchSize) {
       if (secondsStream == null) {
