@@ -1,0 +1,28 @@
+{
+  boolean minSet=false;
+  boolean maxSet=false;
+  boolean min=false;
+  boolean max=false;
+  while (true) {
+    int batchSize=reader.nextBatch();
+    if (batchSize <= 0) {
+      break;
+    }
+    Block block=reader.readBlock(type,columnIndex);
+    for (int i=0; i < batchSize; i++) {
+      if (block.isNull(i)) {
+        continue;
+      }
+      boolean value=type.getBoolean(block,i);
+      if (!minSet || Boolean.compare(value,min) < 0) {
+        minSet=true;
+        min=value;
+      }
+      if (!maxSet || Boolean.compare(value,max) > 0) {
+        maxSet=true;
+        max=value;
+      }
+    }
+  }
+  return new ColumnStats(columnId,minSet ? min : null,maxSet ? max : null);
+}

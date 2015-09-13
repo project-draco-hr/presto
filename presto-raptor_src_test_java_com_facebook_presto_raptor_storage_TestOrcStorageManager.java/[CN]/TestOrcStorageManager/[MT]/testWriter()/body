@@ -23,16 +23,14 @@
   try (OrcDataSource dataSource=manager.openShard(shardUuid,READER_ATTRIBUTES)){
     OrcRecordReader reader=createReader(dataSource,columnIds,columnTypes);
     assertEquals(reader.nextBatch(),2);
-    LongVector longVector=new LongVector(2);
-    reader.readVector(0,longVector);
-    assertEquals(longVector.isNull[0],false);
-    assertEquals(longVector.isNull[1],false);
-    assertEquals(longVector.vector[0],123L);
-    assertEquals(longVector.vector[1],456L);
-    SliceVector stringVector=new SliceVector(2);
-    reader.readVector(1,stringVector);
-    assertEquals(stringVector.vector[0],utf8Slice("hello"));
-    assertEquals(stringVector.vector[1],utf8Slice("bye"));
+    Block column0=reader.readBlock(BIGINT,0);
+    assertEquals(column0.isNull(0),false);
+    assertEquals(column0.isNull(1),false);
+    assertEquals(BIGINT.getLong(column0,0),123L);
+    assertEquals(BIGINT.getLong(column0,1),456L);
+    Block column1=reader.readBlock(VARCHAR,1);
+    assertEquals(VARCHAR.getSlice(column1,0),utf8Slice("hello"));
+    assertEquals(VARCHAR.getSlice(column1,1),utf8Slice("bye"));
     assertEquals(reader.nextBatch(),-1);
   }
  }

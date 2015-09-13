@@ -1,0 +1,29 @@
+{
+  boolean minSet=false;
+  boolean maxSet=false;
+  Slice min=null;
+  Slice max=null;
+  while (true) {
+    int batchSize=reader.nextBatch();
+    if (batchSize <= 0) {
+      break;
+    }
+    Block block=reader.readBlock(type,columnIndex);
+    for (int i=0; i < batchSize; i++) {
+      if (block.isNull(i)) {
+        continue;
+      }
+      Slice slice=type.getSlice(block,i);
+      slice=truncateIndexValue(slice);
+      if (!minSet || (slice.compareTo(min) < 0)) {
+        minSet=true;
+        min=slice;
+      }
+      if (!maxSet || (slice.compareTo(max) > 0)) {
+        maxSet=true;
+        max=slice;
+      }
+    }
+  }
+  return new ColumnStats(columnId,minSet ? min.toStringUtf8() : null,maxSet ? max.toStringUtf8() : null);
+}

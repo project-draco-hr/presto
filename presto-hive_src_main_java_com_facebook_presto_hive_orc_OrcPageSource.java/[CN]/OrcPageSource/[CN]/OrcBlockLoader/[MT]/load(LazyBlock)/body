@@ -1,0 +1,17 @@
+{
+  if (loaded) {
+    return;
+  }
+  checkState(batchId == expectedBatchId);
+  try {
+    Block block=recordReader.readBlock(type,columnIndex);
+    lazyBlock.setBlock(block);
+  }
+ catch (  IOException e) {
+    if (e instanceof OrcCorruptionException) {
+      throw new PrestoException(HIVE_BAD_DATA,e);
+    }
+    throw new PrestoException(HIVE_CURSOR_ERROR,e);
+  }
+  loaded=true;
+}

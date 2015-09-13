@@ -1,0 +1,41 @@
+{
+  if (block.isNull(position)) {
+    return null;
+  }
+  String base=type.getTypeSignature().getBase();
+  if (base.equals(ARRAY)) {
+    Block arrayBlock=(Block)type.getObject(block,position);
+    Type elementType=type.getTypeParameters().get(0);
+    List<Object> array=new ArrayList<>();
+    for (int entry=0; entry < arrayBlock.getPositionCount(); entry++) {
+      array.add(decodeObject(elementType,arrayBlock,entry));
+    }
+    return array;
+  }
+  if (base.equals(ROW)) {
+    Block rowBlock=(Block)type.getObject(block,position);
+    List<Type> fieldTypes=type.getTypeParameters();
+    List<Object> row=new ArrayList<>();
+    for (int field=0; field < fieldTypes.size(); field++) {
+      row.add(decodeObject(fieldTypes.get(field),rowBlock,field));
+    }
+    return row;
+  }
+  if (base.equals(MAP)) {
+    Block mapBlock=(Block)type.getObject(block,position);
+    Type keyType=type.getTypeParameters().get(0);
+    Type valueType=type.getTypeParameters().get(1);
+    Map<Object,Object> map=new LinkedHashMap<>();
+    int entryCount=mapBlock.getPositionCount() / 2;
+    for (int entry=0; entry < entryCount; entry++) {
+      int blockPosition=entry * 2;
+      Object key=decodeObject(keyType,mapBlock,blockPosition);
+      if (key != null) {
+        Object value=decodeObject(valueType,mapBlock,blockPosition + 1);
+        map.put(key,value);
+      }
+    }
+    return map;
+  }
+  return type.getObjectValue(SESSION,block,position);
+}

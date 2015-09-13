@@ -19,26 +19,8 @@
  else       if (columnIndexes[fieldId] == SHARD_UUID_COLUMN) {
         blocks[fieldId]=constantBlocks[fieldId].getRegion(0,batchSize);
       }
- else       if (BOOLEAN.equals(type)) {
-        blocks[fieldId]=new LazyFixedWidthBlock(BOOLEAN.getFixedSize(),batchSize,new LazyBooleanBlockLoader(columnIndexes[fieldId],batchSize));
-      }
- else       if (DATE.equals(type)) {
-        blocks[fieldId]=new LazyFixedWidthBlock(DATE.getFixedSize(),batchSize,new LazyIntBlockLoader(columnIndexes[fieldId],batchSize));
-      }
- else       if (BIGINT.equals(type) || TIMESTAMP.equals(type)) {
-        blocks[fieldId]=new LazyFixedWidthBlock(((FixedWidthType)type).getFixedSize(),batchSize,new LazyLongBlockLoader(columnIndexes[fieldId],batchSize));
-      }
- else       if (DOUBLE.equals(type)) {
-        blocks[fieldId]=new LazyFixedWidthBlock(DOUBLE.getFixedSize(),batchSize,new LazyDoubleBlockLoader(columnIndexes[fieldId],batchSize));
-      }
- else       if (VARCHAR.equals(type) || VARBINARY.equals(type)) {
-        blocks[fieldId]=new LazySliceArrayBlock(batchSize,new LazySliceBlockLoader(columnIndexes[fieldId],batchSize));
-      }
- else       if (isArrayType(type) || isMapType(type)) {
-        blocks[fieldId]=new LazyArrayBlock(new LazyStructuralBlockLoader(columnIndexes[fieldId],type));
-      }
  else {
-        throw new PrestoException(NOT_SUPPORTED,"Unsupported column type: " + type);
+        blocks[fieldId]=new LazyBlock(batchSize,new OrcBlockLoader(columnIndexes[fieldId],type));
       }
     }
     updateCompletedBytes();

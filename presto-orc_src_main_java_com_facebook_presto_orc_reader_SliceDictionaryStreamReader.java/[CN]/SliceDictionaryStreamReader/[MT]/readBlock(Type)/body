@@ -1,0 +1,76 @@
+{
+  if (!rowGroupOpen) {
+    openRowGroup();
+  }
+  if (readOffset > 0) {
+    if (presentStream != null) {
+      readOffset=presentStream.countBitsSet(readOffset);
+    }
+    if (readOffset > 0) {
+      if (dataStream == null) {
+        throw new OrcCorruptionException("Value is not null but data stream is not present");
+      }
+      if (inDictionaryStream != null) {
+        inDictionaryStream.skip(readOffset);
+      }
+      dataStream.skip(readOffset);
+    }
+  }
+  if (presentStream == null) {
+    if (dataStream == null) {
+      throw new OrcCorruptionException("Value is not null but data stream is not present");
+    }
+    Arrays.fill(isNullVector,false);
+    dataStream.nextIntVector(nextBatchSize,dataVector);
+  }
+ else {
+    int nullValues=presentStream.getUnsetBits(nextBatchSize,isNullVector);
+    if (nullValues != nextBatchSize) {
+      if (dataStream == null) {
+        throw new OrcCorruptionException("Value is not null but data stream is not present");
+      }
+      dataStream.nextIntVector(nextBatchSize,dataVector,isNullVector);
+    }
+  }
+  if (inDictionaryStream == null) {
+    Arrays.fill(inDictionary,true);
+  }
+ else {
+    inDictionaryStream.getSetBits(nextBatchSize,inDictionary,isNullVector);
+  }
+  boolean rowGroupDictionaryReferenced=false;
+  for (int i=0; i < nextBatchSize; i++) {
+    if (!isNullVector[i] && !inDictionary[i]) {
+      rowGroupDictionaryReferenced=true;
+      break;
+    }
+  }
+  Block block;
+  if (rowGroupDictionaryReferenced) {
+    BlockBuilder builder=type.createBlockBuilder(new BlockBuilderStatus(),nextBatchSize);
+    for (int i=0; i < nextBatchSize; i++) {
+      if (isNullVector[i]) {
+        builder.appendNull();
+      }
+ else       if (inDictionary[i]) {
+        type.writeSlice(builder,dictionary[dataVector[i]]);
+      }
+ else {
+        type.writeSlice(builder,rowGroupDictionary[dataVector[i]]);
+      }
+    }
+    block=builder.build();
+  }
+ else {
+    for (int i=0; i < dataVector.length; i++) {
+      if (isNullVector[i]) {
+        dataVector[i]=dictionarySize;
+      }
+    }
+    Slice ids=Slices.wrappedIntArray(Arrays.copyOfRange(dataVector,0,nextBatchSize));
+    block=new DictionaryBlock(nextBatchSize,new SliceArrayBlock(dictionarySize + 1,dictionary),ids);
+  }
+  readOffset=0;
+  nextBatchSize=0;
+  return block;
+}
