@@ -1,0 +1,22 @@
+{
+  if (!hasNull(keys)) {
+    return new InterleavedBlock(new Block[]{keys,values});
+  }
+  IntArrayList nonNullPositions=new IntArrayList(keys.getPositionCount());
+  int position=0;
+  for (int mapIndex=0; mapIndex < lengths.length; mapIndex++) {
+    int length=lengths[mapIndex];
+    for (int entryIndex=0; entryIndex < length; entryIndex++) {
+      if (keys.isNull(position)) {
+        lengths[mapIndex]--;
+      }
+ else {
+        nonNullPositions.add(position);
+      }
+      position++;
+    }
+  }
+  Block newKeys=keys.copyPositions(nonNullPositions);
+  Block newValues=values.copyPositions(nonNullPositions);
+  return new InterleavedBlock(new Block[]{newKeys,newValues});
+}
