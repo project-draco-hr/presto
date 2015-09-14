@@ -6,11 +6,17 @@
         if (client.current().getData() != null) {
           return;
         }
+        boolean update=nanosSince(lastPrint).getValue(SECONDS) >= 0.5;
         int key=readKey();
         if (key == CTRL_P) {
           partialCancel();
         }
-        if (nanosSince(lastPrint).getValue(SECONDS) >= 0.5) {
+ else         if (toUpperCase(key) == 'D') {
+          debug=!debug;
+          console.resetScreen();
+          update=true;
+        }
+        if (update) {
           console.repositionCursor();
           printQueryInfo(client.current());
           lastPrint=System.nanoTime();
