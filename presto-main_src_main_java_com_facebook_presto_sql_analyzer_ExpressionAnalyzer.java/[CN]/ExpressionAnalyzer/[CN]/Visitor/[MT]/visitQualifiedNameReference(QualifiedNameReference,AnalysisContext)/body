@@ -1,14 +1,15 @@
 {
   List<Field> matches=tupleDescriptor.resolveFields(node.getName());
   if (matches.isEmpty()) {
-    return tryVisitRowFieldAccessor(node);
+    throw createMissingAttributeException(node);
   }
   if (matches.size() > 1) {
     throw new SemanticException(AMBIGUOUS_ATTRIBUTE,node,"Column '%s' is ambiguous",node.getName());
   }
   Field field=Iterables.getOnlyElement(matches);
   int fieldIndex=tupleDescriptor.indexOf(field);
-  resolvedNames.put(node.getName(),fieldIndex);
+  resolvedNames.put(node,fieldIndex);
   expressionTypes.put(node,field.getType());
+  columnReferences.add(node);
   return field.getType();
 }

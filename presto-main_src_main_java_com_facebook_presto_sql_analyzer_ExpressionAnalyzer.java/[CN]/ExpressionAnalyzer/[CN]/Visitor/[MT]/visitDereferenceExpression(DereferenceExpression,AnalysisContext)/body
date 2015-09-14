@@ -1,0 +1,34 @@
+{
+  QualifiedName qualifiedName=DereferenceExpression.getQualifiedName(node);
+  if (qualifiedName != null) {
+    List<Field> matches=tupleDescriptor.resolveFields(qualifiedName);
+    if (matches.size() > 1) {
+      throw new SemanticException(AMBIGUOUS_ATTRIBUTE,node,"Column '%s' is ambiguous",node);
+    }
+    if (matches.size() == 1) {
+      Field field=Iterables.getOnlyElement(matches);
+      int fieldIndex=tupleDescriptor.indexOf(field);
+      resolvedNames.put(node,fieldIndex);
+      expressionTypes.put(node,field.getType());
+      columnReferences.add(node);
+      return field.getType();
+    }
+  }
+  Type baseType=process(node.getBase(),context);
+  if (!(baseType instanceof RowType)) {
+    throw new SemanticException(SemanticErrorCode.TYPE_MISMATCH,node.getBase(),"Expression %s is not of type ROW",node.getBase());
+  }
+  RowType rowType=(RowType)baseType;
+  Type rowFieldType=null;
+  for (  RowField rowField : rowType.getFields()) {
+    if (rowField.getName().equals(Optional.of(node.getFieldName()))) {
+      rowFieldType=rowField.getType();
+      break;
+    }
+  }
+  if (rowFieldType == null) {
+    throw createMissingAttributeException(node);
+  }
+  expressionTypes.put(node,rowFieldType);
+  return rowFieldType;
+}

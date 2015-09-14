@@ -10,6 +10,19 @@
       }
       return rewrittenExpression;
     }
+    @Override public Expression rewriteDereferenceExpression(    DereferenceExpression node,    Void context,    ExpressionTreeRewriter<Void> treeRewriter){
+      if (analysis.getColumnReferences().contains(node)) {
+        return rewriteExpression(node,context,treeRewriter);
+      }
+      Expression rewrittenBase=ExpressionTreeRewriter.rewriteWith(this,node.getBase());
+      QualifiedName mangledName=QualifiedName.of(mangleFieldReference(node.getFieldName()));
+      Expression rewrittenExpression=new FunctionCall(mangledName,ImmutableList.of(rewrittenBase));
+      Type coercion=analysis.getCoercion(node);
+      if (coercion != null) {
+        rewrittenExpression=new Cast(rewrittenExpression,coercion.getTypeSignature().toString());
+      }
+      return rewrittenExpression;
+    }
   }
 ,parsedExpression);
   return canonicalizeExpression(rewrittenExpression);

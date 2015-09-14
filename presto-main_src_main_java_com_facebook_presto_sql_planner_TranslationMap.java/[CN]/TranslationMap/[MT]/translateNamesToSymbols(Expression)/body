@@ -1,5 +1,5 @@
 {
-  final Map<QualifiedName,Integer> resolvedNames=analysis.getResolvedNames(expression);
+  final Map<Expression,Integer> resolvedNames=analysis.getResolvedNames(expression);
   Preconditions.checkArgument(resolvedNames != null,"No resolved names for expression %s",expression);
   return ExpressionTreeRewriter.rewriteWith(new ExpressionRewriter<Void>(){
     @Override public Expression rewriteExpression(    Expression node,    Void context,    ExpressionTreeRewriter<Void> treeRewriter){
@@ -11,16 +11,27 @@
       return rewrittenExpression;
     }
     @Override public Expression rewriteQualifiedNameReference(    QualifiedNameReference node,    Void context,    ExpressionTreeRewriter<Void> treeRewriter){
-      QualifiedName name=node.getName();
-      Integer fieldIndex=resolvedNames.get(name);
-      Preconditions.checkState(fieldIndex != null,"No field mapping for name '%s'",name);
+      return rewriteExpressionWithResolvedName(node);
+    }
+    private Expression rewriteExpressionWithResolvedName(    Expression node){
+      Integer fieldIndex=resolvedNames.get(node);
+      checkState(fieldIndex != null,"No field mapping for node '%s'",node);
       Symbol symbol=rewriteBase.getSymbol(fieldIndex);
-      Preconditions.checkState(symbol != null,"No symbol mapping for name '%s' (%s)",name,fieldIndex);
+      checkState(symbol != null,"No symbol mapping for node '%s' (%s)",node,fieldIndex);
       Expression rewrittenExpression=new QualifiedNameReference(symbol.toQualifiedName());
-      if (analysis.isRowFieldReference(node)) {
-        QualifiedName mangledName=QualifiedName.of(mangleFieldReference(node.getName().getSuffix()));
-        rewrittenExpression=new FunctionCall(mangledName,ImmutableList.of(rewrittenExpression));
+      Type coercion=analysis.getCoercion(node);
+      if (coercion != null) {
+        rewrittenExpression=new Cast(rewrittenExpression,coercion.getTypeSignature().toString());
       }
+      return rewrittenExpression;
+    }
+    @Override public Expression rewriteDereferenceExpression(    DereferenceExpression node,    Void context,    ExpressionTreeRewriter<Void> treeRewriter){
+      if (analysis.getColumnReferences().contains(node)) {
+        return rewriteExpressionWithResolvedName(node);
+      }
+      Expression rewrittenBaseExpression=rewrite(node.getBase());
+      QualifiedName mangledName=QualifiedName.of(mangleFieldReference(node.getFieldName()));
+      Expression rewrittenExpression=new FunctionCall(mangledName,ImmutableList.of(rewrittenBaseExpression));
       Type coercion=analysis.getCoercion(node);
       if (coercion != null) {
         rewrittenExpression=new Cast(rewrittenExpression,coercion.getTypeSignature().toString());
