@@ -1,0 +1,48 @@
+{
+  if (!rowGroupOpen) {
+    openRowGroup();
+  }
+  if (readOffset > 0) {
+    if (presentStream != null) {
+      readOffset=presentStream.countBitsSet(readOffset);
+    }
+    for (    StreamReader structField : structFields) {
+      structField.prepareNextRead(readOffset);
+    }
+  }
+  List<Type> typeParameters=type.getTypeParameters();
+  boolean[] nullVector=new boolean[nextBatchSize];
+  Block[] blocks=new Block[typeParameters.size()];
+  if (presentStream == null) {
+    for (int i=0; i < typeParameters.size(); i++) {
+      StreamReader structField=structFields[i];
+      structField.prepareNextRead(nextBatchSize);
+      blocks[i]=structField.readBlock(typeParameters.get(i));
+    }
+  }
+ else {
+    int nullValues=presentStream.getUnsetBits(nextBatchSize,nullVector);
+    if (nullValues != nextBatchSize) {
+      for (int i=0; i < typeParameters.size(); i++) {
+        StreamReader structField=structFields[i];
+        structField.prepareNextRead(nextBatchSize - nullValues);
+        blocks[i]=structField.readBlock(typeParameters.get(i));
+      }
+    }
+ else {
+      for (int i=0; i < typeParameters.size(); i++) {
+        blocks[i]=typeParameters.get(i).createBlockBuilder(new BlockBuilderStatus(),0).build();
+      }
+    }
+  }
+  int[] offsets=new int[nextBatchSize];
+  offsets[0]=(nullVector[0] ? 0 : typeParameters.size());
+  for (int i=1; i < nextBatchSize; i++) {
+    offsets[i]=offsets[i - 1] + (nullVector[i] ? 0 : typeParameters.size());
+  }
+  InterleavedBlock interleavedBlock=new InterleavedBlock(blocks);
+  ArrayBlock arrayBlock=new ArrayBlock(interleavedBlock,Slices.wrappedIntArray(offsets),0,Slices.wrappedBooleanArray(nullVector));
+  readOffset=0;
+  nextBatchSize=0;
+  return arrayBlock;
+}
