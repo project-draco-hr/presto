@@ -1,0 +1,25 @@
+{
+  if (!allowRenameColumn) {
+    throw new PrestoException(PERMISSION_DENIED,"Renaming columns is disabled in this Hive catalog");
+  }
+  HiveTableHandle hiveTableHandle=checkType(tableHandle,HiveTableHandle.class,"tableHandle");
+  HiveColumnHandle sourceHandle=checkType(source,HiveColumnHandle.class,"columnHandle");
+  Optional<Table> tableMetadata=metastore.getTable(hiveTableHandle.getSchemaName(),hiveTableHandle.getTableName());
+  if (!tableMetadata.isPresent()) {
+    throw new TableNotFoundException(hiveTableHandle.getSchemaTableName());
+  }
+  Table table=tableMetadata.get();
+  StorageDescriptor sd=table.getSd();
+  ImmutableList.Builder<FieldSchema> columns=ImmutableList.builder();
+  for (  FieldSchema fieldSchema : sd.getCols()) {
+    if (fieldSchema.getName().equals(sourceHandle.getName())) {
+      columns.add(new FieldSchema(target,fieldSchema.getType(),fieldSchema.getComment()));
+    }
+ else {
+      columns.add(fieldSchema);
+    }
+  }
+  sd.setCols(columns.build());
+  table.setSd(sd);
+  metastore.alterTable(hiveTableHandle.getSchemaName(),hiveTableHandle.getTableName(),table);
+}
