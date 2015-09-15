@@ -1,0 +1,16 @@
+{
+  List<RowExpression> values=new ArrayList<>();
+  values.add(new ConstantExpression(1.5D,DOUBLE));
+  values.add(new ConstantExpression(2.5D,DOUBLE));
+  values.add(new ConstantExpression(3.5D,DOUBLE));
+  SwitchGenerationCase switchGenerationCase=checkSwitchGenerationCase(DOUBLE,values);
+  Assert.assertEquals(switchGenerationCase,HASH_SWITCH);
+  values.add(new ConstantExpression(null,DOUBLE));
+  switchGenerationCase=checkSwitchGenerationCase(DOUBLE,values);
+  Assert.assertEquals(switchGenerationCase,HASH_SWITCH);
+  for (int i=5; i <= 1000; ++i) {
+    values.add(new ConstantExpression(Double.valueOf(i + 0.5D),DOUBLE));
+  }
+  switchGenerationCase=checkSwitchGenerationCase(DOUBLE,values);
+  Assert.assertEquals(switchGenerationCase,HASH_SWITCH);
+}
