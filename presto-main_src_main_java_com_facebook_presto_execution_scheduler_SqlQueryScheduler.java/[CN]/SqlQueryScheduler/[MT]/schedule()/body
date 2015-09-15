@@ -1,5 +1,6 @@
 {
   try (SetThreadName ignored=new SetThreadName("Query-%s",queryStateMachine.getQueryId())){
+    Set<StageId> completedStages=new HashSet<>();
     ExecutionSchedule executionSchedule=executionPolicy.createExecutionSchedule(stages.values());
     while (!executionSchedule.isFinished()) {
       List<CompletableFuture<?>> blockedStages=new ArrayList<>();
@@ -13,6 +14,12 @@
           blockedStages.add(result.getBlocked());
         }
         stageLinkages.get(stage.getStageId()).processScheduleResults(stage.getState(),result.getNewTasks());
+      }
+      for (      SqlStageExecution stage : stages.values()) {
+        if (!completedStages.contains(stage.getStageId()) && stage.getState().isDone()) {
+          stageLinkages.get(stage.getStageId()).processScheduleResults(stage.getState(),ImmutableSet.of());
+          completedStages.add(stage.getStageId());
+        }
       }
       if (!blockedStages.isEmpty()) {
         tryGetFutureValue(firstCompletedFuture(blockedStages),100,MILLISECONDS);
