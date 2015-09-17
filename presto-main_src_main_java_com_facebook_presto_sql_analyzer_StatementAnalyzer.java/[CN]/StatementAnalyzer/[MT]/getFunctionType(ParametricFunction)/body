@@ -1,9 +1,13 @@
 {
-  if (function.isAggregate()) {
+  FunctionType type=function.getSignature().getType();
+switch (type) {
+case AGGREGATE:
+case APPROXIMATE_AGGREGATE:
     return "aggregate";
-  }
-  if (function.isWindow()) {
-    return "window";
-  }
-  return "scalar";
+case WINDOW:
+  return "window";
+case SCALAR:
+return "scalar";
+}
+throw new IllegalArgumentException("Unsupported function type: " + type);
 }
