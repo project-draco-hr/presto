@@ -7,13 +7,13 @@
   for (  Map.Entry<Symbol,FunctionCall> entry : node.getAggregations().entrySet()) {
     Signature signature=node.getFunctions().get(entry.getKey());
     FunctionInfo function=metadata.getExactFunction(signature);
-    Symbol intermediateSymbol=allocator.newSymbol(function.getName().getSuffix(),metadata.getType(function.getIntermediateType()));
+    Symbol intermediateSymbol=allocator.newSymbol(function.getSignature().getName(),metadata.getType(function.getIntermediateType()));
     intermediateCalls.put(intermediateSymbol,entry.getValue());
     intermediateFunctions.put(intermediateSymbol,signature);
     if (masks.containsKey(entry.getKey())) {
       intermediateMask.put(intermediateSymbol,masks.get(entry.getKey()));
     }
-    finalCalls.put(entry.getKey(),new FunctionCall(function.getName(),ImmutableList.<Expression>of(new QualifiedNameReference(intermediateSymbol.toQualifiedName()))));
+    finalCalls.put(entry.getKey(),new FunctionCall(QualifiedName.of(function.getSignature().getName()),ImmutableList.<Expression>of(new QualifiedNameReference(intermediateSymbol.toQualifiedName()))));
   }
   PlanWithProperties partial=withDerivedProperties(new AggregationNode(idAllocator.getNextId(),newChild.getNode(),node.getGroupBy(),intermediateCalls,intermediateFunctions,intermediateMask,PARTIAL,node.getSampleWeight(),node.getConfidence(),node.getHashSymbol()),newChild.getProperties());
   PlanNode exchange=exchanger.apply(partial.getNode());
