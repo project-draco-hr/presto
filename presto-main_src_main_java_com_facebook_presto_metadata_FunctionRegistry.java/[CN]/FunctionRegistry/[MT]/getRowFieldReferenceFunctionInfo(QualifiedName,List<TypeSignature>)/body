@@ -1,0 +1,28 @@
+{
+  List<Type> resolvedTypes=resolveTypes(parameterTypes,typeManager);
+  FunctionInfo match=null;
+  for (  TypeSignature typeSignature : parameterTypes) {
+    if (typeSignature.getBase().equals(StandardTypes.ROW)) {
+      RowType rowType=RowParametricType.ROW.createType(resolveTypes(typeSignature.getParameters(),typeManager),typeSignature.getLiteralParameters());
+      for (      ParametricFunction function : RowParametricType.ROW.createFunctions(rowType)) {
+        if (!function.getSignature().getName().equals(name.toString())) {
+          continue;
+        }
+        Map<String,Type> boundTypeParameters=function.getSignature().bindTypeParameters(resolvedTypes,false,typeManager);
+        if (boundTypeParameters != null) {
+          checkArgument(match == null,"Ambiguous call to %s with parameters %s",name,parameterTypes);
+          try {
+            match=specializedFunctionCache.getUnchecked(new SpecializedFunctionKey(function,boundTypeParameters,resolvedTypes.size()));
+          }
+ catch (          UncheckedExecutionException e) {
+            throw Throwables.propagate(e.getCause());
+          }
+        }
+      }
+      if (match != null) {
+        return match;
+      }
+    }
+  }
+  return null;
+}

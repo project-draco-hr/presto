@@ -14,7 +14,7 @@
     elseBlock.append(wasNull.set(caseWasNull));
   }
   elseBlock.gotoLabel(noMatchLabel);
-  FunctionInfo operator=generatorContext.getRegistry().resolveOperator(OperatorType.EQUAL,ImmutableList.of(type,type));
+  ScalarFunctionImplementation operator=generatorContext.getRegistry().getScalarFunctionImplementation(internalOperator(EQUAL,BOOLEAN,ImmutableList.of(type,type)));
   Binding equalsFunction=generatorContext.getCallSiteBinder().bind(operator.getMethodHandle());
   ByteCodeNode elseNode=elseBlock;
   for (  ByteCodeNode testNode : testValues) {
@@ -24,7 +24,7 @@
     if (checkForNulls) {
       test.condition().append(wasNull).putVariable(caseWasNull).append(ifWasNullPopAndGoto(scope,elseLabel,void.class,type.getJavaType(),type.getJavaType()));
     }
-    test.condition().append(invoke(equalsFunction,operator.getSignature()));
+    test.condition().append(invoke(equalsFunction,EQUAL.name()));
     test.ifTrue().gotoLabel(matchLabel);
     test.ifFalse(elseNode);
     elseNode=test;

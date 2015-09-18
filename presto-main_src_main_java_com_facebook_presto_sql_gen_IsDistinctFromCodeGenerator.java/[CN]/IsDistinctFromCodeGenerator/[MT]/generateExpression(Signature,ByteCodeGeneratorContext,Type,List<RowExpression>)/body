@@ -5,9 +5,10 @@
   RowExpression right=arguments.get(1);
   Type leftType=left.getType();
   Type rightType=right.getType();
-  FunctionInfo operator=generatorContext.getRegistry().resolveOperator(OperatorType.EQUAL,ImmutableList.of(leftType,rightType));
-  Binding binding=generatorContext.getCallSiteBinder().bind(operator.getMethodHandle());
-  ByteCodeNode equalsCall=new ByteCodeBlock().comment("equals(%s, %s)",leftType,rightType).append(invoke(binding,operator.getSignature()));
+  Signature equalsSignature=generatorContext.getRegistry().resolveOperator(OperatorType.EQUAL,ImmutableList.of(leftType,rightType)).getSignature();
+  MethodHandle methodHandle=generatorContext.getRegistry().getScalarFunctionImplementation(equalsSignature).getMethodHandle();
+  Binding binding=generatorContext.getCallSiteBinder().bind(methodHandle);
+  ByteCodeNode equalsCall=new ByteCodeBlock().comment("equals(%s, %s)",leftType,rightType).append(invoke(binding,equalsSignature));
   ByteCodeNode neitherSideIsNull;
   if (leftType instanceof UnknownType || rightType instanceof UnknownType) {
     neitherSideIsNull=new ByteCodeBlock().comment("unreachable code").push(false);

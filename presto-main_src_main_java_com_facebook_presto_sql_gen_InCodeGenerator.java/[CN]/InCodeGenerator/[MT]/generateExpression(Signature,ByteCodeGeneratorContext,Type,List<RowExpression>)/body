@@ -9,7 +9,8 @@
   Type type=arguments.get(0).getType();
   Class<?> javaType=type.getJavaType();
   SwitchGenerationCase switchGenerationCase=checkSwitchGenerationCase(type,values);
-  FunctionInfo hashCodeFunction=generatorContext.getRegistry().resolveOperator(OperatorType.HASH_CODE,ImmutableList.of(type));
+  Signature hashCodeSignature=internalOperator(HASH_CODE,BIGINT,ImmutableList.of(type));
+  MethodHandle hashCodeFunction=generatorContext.getRegistry().getScalarFunctionImplementation(hashCodeSignature).getMethodHandle();
   ImmutableListMultimap.Builder<Integer,ByteCodeNode> hashBucketsBuilder=ImmutableListMultimap.builder();
   ImmutableList.Builder<ByteCodeNode> defaultBucket=ImmutableList.builder();
   ImmutableSet.Builder<Object> constantValuesBuilder=ImmutableSet.builder();
@@ -25,7 +26,7 @@ case SET_CONTAINS:
       break;
 case HASH_SWITCH:
     try {
-      int hashCode=Ints.checkedCast((Long)hashCodeFunction.getMethodHandle().invoke(object));
+      int hashCode=Ints.checkedCast((Long)hashCodeFunction.invoke(object));
       hashBucketsBuilder.put(hashCode,testByteCode);
     }
  catch (    Throwable throwable) {
@@ -67,8 +68,8 @@ ByteCodeBlock caseBlock=buildInCase(generatorContext,scope,type,label,match,defa
 switchCaseBlocks.append(caseBlock.setDescription("case " + bucket.getKey()));
 }
 switchBuilder.defaultCase(defaultLabel);
-Binding hashCodeBinding=generatorContext.getCallSiteBinder().bind(hashCodeFunction.getMethodHandle());
-switchBlock=new ByteCodeBlock().comment("lookupSwitch(hashCode(<stackValue>))").dup(javaType).append(invoke(hashCodeBinding,hashCodeFunction.getSignature())).longToInt().append(switchBuilder.build()).append(switchCaseBlocks);
+Binding hashCodeBinding=generatorContext.getCallSiteBinder().bind(hashCodeFunction);
+switchBlock=new ByteCodeBlock().comment("lookupSwitch(hashCode(<stackValue>))").dup(javaType).append(invoke(hashCodeBinding,hashCodeSignature)).longToInt().append(switchBuilder.build()).append(switchCaseBlocks);
 break;
 case SET_CONTAINS:
 Set<?> constantValuesSet=toFastutilHashSet(constantValues,javaType);

@@ -4,11 +4,9 @@
   Type toType=types.get("T");
   ArrayType fromArrayType=(ArrayType)typeManager.getParameterizedType(StandardTypes.ARRAY,ImmutableList.of(fromType.getTypeSignature()),ImmutableList.of());
   ArrayType toArrayType=(ArrayType)typeManager.getParameterizedType(StandardTypes.ARRAY,ImmutableList.of(toType.getTypeSignature()),ImmutableList.of());
-  FunctionInfo functionInfo=functionRegistry.getExactFunction(internalOperator(CAST.name(),toType.getTypeSignature(),ImmutableList.of(fromType.getTypeSignature())));
-  if (functionInfo == null) {
-    throw new PrestoException(FUNCTION_NOT_FOUND,format("Can not cast %s to %s",fromArrayType,toArrayType));
-  }
-  Class<?> castOperatorClass=generateArrayCast(typeManager,functionInfo);
+  Signature signature=internalOperator(CAST.name(),toType.getTypeSignature(),ImmutableList.of(fromType.getTypeSignature()));
+  ScalarFunctionImplementation function=functionRegistry.getScalarFunctionImplementation(signature);
+  Class<?> castOperatorClass=generateArrayCast(typeManager,signature,function);
   MethodHandle methodHandle=methodHandle(castOperatorClass,"castArray",ConnectorSession.class,Block.class);
   return operatorInfo(CAST,toArrayType.getTypeSignature(),ImmutableList.of(fromArrayType.getTypeSignature()),methodHandle,false,ImmutableList.of(false));
 }

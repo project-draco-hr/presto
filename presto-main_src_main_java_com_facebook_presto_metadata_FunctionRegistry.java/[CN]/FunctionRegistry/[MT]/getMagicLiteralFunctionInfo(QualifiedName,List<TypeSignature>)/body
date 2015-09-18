@@ -1,0 +1,19 @@
+{
+  String typeName=name.getSuffix().substring(MAGIC_LITERAL_FUNCTION_PREFIX.length());
+  Type type=typeManager.getType(parseTypeSignature(typeName));
+  requireNonNull(type,format("Type %s not registered",typeName));
+  checkArgument(parameterTypes.size() == 1,"Expected one argument to literal function, but got %s",parameterTypes);
+  Type parameterType=typeManager.getType(parameterTypes.get(0));
+  requireNonNull(parameterType,format("Type %s not found",parameterTypes.get(0)));
+  MethodHandle methodHandle=null;
+  if (parameterType.getJavaType() == type.getJavaType()) {
+    methodHandle=MethodHandles.identity(parameterType.getJavaType());
+  }
+  if (parameterType.getJavaType() == Slice.class) {
+    if (type.getJavaType() == Block.class) {
+      methodHandle=BlockSerdeUtil.READ_BLOCK.bindTo(blockEncodingSerde);
+    }
+  }
+  checkArgument(methodHandle != null,"Expected type %s to use (or can be converted into) Java type %s, but Java type is %s",type,parameterType.getJavaType(),type.getJavaType());
+  return new FunctionInfo(getMagicLiteralFunctionSignature(type),null,true,methodHandle,true,false,ImmutableList.of(false));
+}

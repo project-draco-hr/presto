@@ -1,13 +1,9 @@
 {
   FunctionRegistry registry=context.getRegistry();
-  FunctionInfo function=registry.getExactFunction(signature);
-  if (function == null) {
-    function=registry.resolveFunction(QualifiedName.of(signature.getName()),signature.getArgumentTypes(),false);
-  }
-  Preconditions.checkArgument(function != null,"Function %s not found",signature);
+  ScalarFunctionImplementation function=registry.getScalarFunctionImplementation(signature);
   List<ByteCodeNode> argumentsByteCode=new ArrayList<>();
   for (  RowExpression argument : arguments) {
     argumentsByteCode.add(context.generate(argument));
   }
-  return context.generateCall(function,argumentsByteCode);
+  return context.generateCall(signature.getName(),function,argumentsByteCode);
 }

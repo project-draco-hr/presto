@@ -7,8 +7,9 @@
   Type firstType=first.getType();
   Type secondType=second.getType();
   Type commonType=FunctionRegistry.getCommonSuperType(firstType,secondType).get();
-  FunctionInfo equalsFunction=generatorContext.getRegistry().resolveOperator(OperatorType.EQUAL,ImmutableList.of(firstType,secondType));
-  ByteCodeNode equalsCall=generatorContext.generateCall(equalsFunction,ImmutableList.of(cast(generatorContext,new ByteCodeBlock().dup(firstType.getJavaType()),firstType,commonType),cast(generatorContext,generatorContext.generate(second),secondType,commonType)));
+  FunctionInfo operatorInfo=generatorContext.getRegistry().resolveOperator(OperatorType.EQUAL,ImmutableList.of(firstType,secondType));
+  ScalarFunctionImplementation equalsFunction=generatorContext.getRegistry().getScalarFunctionImplementation(operatorInfo.getSignature());
+  ByteCodeNode equalsCall=generatorContext.generateCall(operatorInfo.getSignature().getName(),equalsFunction,ImmutableList.of(cast(generatorContext,new ByteCodeBlock().dup(firstType.getJavaType()),firstType,commonType),cast(generatorContext,generatorContext.generate(second),secondType,commonType)));
   ByteCodeBlock conditionBlock=new ByteCodeBlock().append(equalsCall).append(ByteCodeUtils.ifWasNullClearPopAndGoto(scope,notMatch,void.class,boolean.class));
   ByteCodeBlock trueBlock=new ByteCodeBlock().append(generatorContext.wasNull().set(constantTrue())).pop(first.getType().getJavaType()).pushJavaDefault(first.getType().getJavaType());
   block.append(new IfStatement().condition(conditionBlock).ifTrue(trueBlock).ifFalse(notMatch));

@@ -1,8 +1,15 @@
 {
   Type type=types.get("T");
-  FunctionInfo castFunction=functionRegistry.getExactFunction(internalOperator(CAST.name(),VARCHAR_TYPE_SIGNATURE,ImmutableList.of(type.getTypeSignature())));
-  if (!(type instanceof UnknownType)) {
-    checkCondition(castFunction != null,INVALID_FUNCTION_ARGUMENT,"Input type %s not supported",type);
+  if (type instanceof UnknownType) {
+    return new FunctionInfo(signature,DESCRIPTION,false,methodHandle.bindTo(null).bindTo(type),true,false,nullableArguments);
   }
-  return new FunctionInfo(signature,DESCRIPTION,false,methodHandle.bindTo(castFunction).bindTo(type),true,false,nullableArguments);
+ else {
+    try {
+      ScalarFunctionImplementation castFunction=functionRegistry.getScalarFunctionImplementation(internalOperator(CAST.name(),VARCHAR_TYPE_SIGNATURE,ImmutableList.of(type.getTypeSignature())));
+      return new FunctionInfo(signature,DESCRIPTION,false,methodHandle.bindTo(castFunction.getMethodHandle()).bindTo(type),true,false,nullableArguments);
+    }
+ catch (    PrestoException e) {
+      throw new PrestoException(INVALID_FUNCTION_ARGUMENT,format("Input type %s not supported",type),e);
+    }
+  }
 }

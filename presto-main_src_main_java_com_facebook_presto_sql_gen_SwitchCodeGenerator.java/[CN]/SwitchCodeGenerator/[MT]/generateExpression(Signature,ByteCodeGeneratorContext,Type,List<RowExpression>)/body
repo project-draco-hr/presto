@@ -24,7 +24,7 @@
     RowExpression operand=((CallExpression)clause).getArguments().get(0);
     RowExpression result=((CallExpression)clause).getArguments().get(1);
     FunctionInfo equalsFunction=generatorContext.getRegistry().resolveOperator(OperatorType.EQUAL,ImmutableList.of(value.getType(),operand.getType()));
-    ByteCodeNode equalsCall=generatorContext.generateCall(equalsFunction,ImmutableList.of(generatorContext.generate(operand),getTempVariableNode));
+    ByteCodeNode equalsCall=generatorContext.generateCall(equalsFunction.getSignature().getName(),generatorContext.getRegistry().getScalarFunctionImplementation(equalsFunction.getSignature()),ImmutableList.of(generatorContext.generate(operand),getTempVariableNode));
     ByteCodeBlock condition=new ByteCodeBlock().append(equalsCall).append(generatorContext.wasNull().set(constantFalse()));
     elseValue=new IfStatement("when").condition(condition).ifTrue(generatorContext.generate(result)).ifFalse(elseValue);
   }

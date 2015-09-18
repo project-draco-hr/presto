@@ -1,0 +1,13 @@
+{
+  checkArgument(signature.getType() == SCALAR,"%s is not a scalar function",signature);
+  checkArgument(signature.getTypeParameters().isEmpty(),"%s has unbound type parameters",signature);
+  FunctionInfo function=getExactFunction(signature);
+  if (function == null && signature.getName().startsWith(MAGIC_LITERAL_FUNCTION_PREFIX)) {
+    function=getMagicLiteralFunctionInfo(QualifiedName.of(signature.getName()),signature.getArgumentTypes());
+  }
+  if (function == null) {
+    function=getRowFieldReferenceFunctionInfo(QualifiedName.of(signature.getName()),signature.getArgumentTypes());
+  }
+  checkCondition(function != null,FUNCTION_IMPLEMENTATION_MISSING,"%s not found",signature);
+  return new ScalarFunctionImplementation(function.isNullable(),function.getNullableArguments(),function.getMethodHandle(),function.isDeterministic());
+}
