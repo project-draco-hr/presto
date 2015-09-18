@@ -31,9 +31,11 @@
     completeFooterSlice=Slices.wrappedBuffer(buffer,buffer.length - completeFooterSize,completeFooterSize);
   }
   Slice metadataSlice=completeFooterSlice.slice(0,metadataSize);
-  InputStream metadataInputStream=new OrcInputStream(orcDataSource.toString(),metadataSlice.getInput(),compressionKind,bufferSize);
-  this.metadata=metadataReader.readMetadata(metadataInputStream);
-  Slice footerSlice=completeFooterSlice.slice(metadataSize,footerSize);
-  InputStream footerInputStream=new OrcInputStream(orcDataSource.toString(),footerSlice.getInput(),compressionKind,bufferSize);
-  this.footer=metadataReader.readFooter(footerInputStream);
-}
+  try (InputStream metadataInputStream=new OrcInputStream(orcDataSource.toString(),metadataSlice.getInput(),compressionKind,bufferSize,new AggregatedMemoryContext())){
+    this.metadata=metadataReader.readMetadata(metadataInputStream);
+  }
+   Slice footerSlice=completeFooterSlice.slice(metadataSize,footerSize);
+  try (InputStream footerInputStream=new OrcInputStream(orcDataSource.toString(),footerSlice.getInput(),compressionKind,bufferSize,new AggregatedMemoryContext())){
+    this.footer=metadataReader.readFooter(footerInputStream);
+  }
+ }

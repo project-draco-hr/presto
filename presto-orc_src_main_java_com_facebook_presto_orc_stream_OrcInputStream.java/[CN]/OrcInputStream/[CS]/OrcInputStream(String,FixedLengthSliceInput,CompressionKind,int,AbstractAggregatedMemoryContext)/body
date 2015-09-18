@@ -1,0 +1,19 @@
+{
+  this.source=requireNonNull(source,"source is null");
+  requireNonNull(sliceInput,"sliceInput is null");
+  this.compressionKind=requireNonNull(compressionKind,"compressionKind is null");
+  this.maxBufferSize=bufferSize;
+  requireNonNull(systemMemoryContext,"systemMemoryContext is null");
+  this.bufferMemoryUsage=systemMemoryContext.newLocalMemoryContext();
+  this.fixedMemoryUsage=systemMemoryContext.newLocalMemoryContext();
+  this.fixedMemoryUsage.setBytes(sliceInput.length());
+  if (compressionKind == UNCOMPRESSED) {
+    this.current=sliceInput;
+    this.compressedSliceInput=EMPTY_SLICE.getInput();
+  }
+ else {
+    checkArgument(compressionKind == SNAPPY || compressionKind == ZLIB,"%s compression not supported",compressionKind);
+    this.compressedSliceInput=sliceInput;
+    this.current=EMPTY_SLICE.getInput();
+  }
+}

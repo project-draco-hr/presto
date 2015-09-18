@@ -1,5 +1,6 @@
 {
   OrcDataSource dataSource=openShard(shardUuid,readerAttributes);
+  AggregatedMemoryContext systemMemoryUsage=new AggregatedMemoryContext();
   try {
     OrcReader reader=new OrcReader(dataSource,new OrcMetadataReader(),readerAttributes.getMaxMergeDistance(),readerAttributes.getMaxReadSize());
     Map<Long,Integer> indexMap=columnIdIndex(reader.getColumnNames());
@@ -25,12 +26,12 @@
       }
     }
     OrcPredicate predicate=getPredicate(effectivePredicate,indexMap);
-    OrcRecordReader recordReader=reader.createRecordReader(includedColumns.build(),predicate,UTC);
+    OrcRecordReader recordReader=reader.createRecordReader(includedColumns.build(),predicate,UTC,systemMemoryUsage);
     Optional<ShardRewriter> shardRewriter=Optional.empty();
     if (transactionId.isPresent()) {
       shardRewriter=Optional.of(createShardRewriter(transactionId.getAsLong(),shardUuid));
     }
-    return new OrcPageSource(shardRewriter,recordReader,dataSource,columnIds,columnTypes,columnIndexes.build(),shardUuid);
+    return new OrcPageSource(shardRewriter,recordReader,dataSource,columnIds,columnTypes,columnIndexes.build(),shardUuid,systemMemoryUsage);
   }
  catch (  IOException|RuntimeException e) {
     try {

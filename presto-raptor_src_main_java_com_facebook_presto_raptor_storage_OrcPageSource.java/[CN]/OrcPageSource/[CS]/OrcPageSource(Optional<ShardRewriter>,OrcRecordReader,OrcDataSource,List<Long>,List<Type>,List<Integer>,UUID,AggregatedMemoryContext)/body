@@ -1,0 +1,24 @@
+{
+  this.shardRewriter=requireNonNull(shardRewriter,"shardRewriter is null");
+  this.recordReader=requireNonNull(recordReader,"recordReader is null");
+  this.orcDataSource=requireNonNull(orcDataSource,"orcDataSource is null");
+  this.rowsToDelete=new BitSet(Ints.checkedCast(recordReader.getFileRowCount()));
+  checkArgument(columnIds.size() == columnTypes.size(),"ids and types mismatch");
+  checkArgument(columnIds.size() == columnIndexes.size(),"ids and indexes mismatch");
+  int size=columnIds.size();
+  this.columnIds=ImmutableList.copyOf(columnIds);
+  this.types=ImmutableList.copyOf(columnTypes);
+  this.constantBlocks=new Block[size];
+  this.columnIndexes=new int[size];
+  requireNonNull(shardUuid,"shardUuid is null");
+  for (int i=0; i < size; i++) {
+    this.columnIndexes[i]=columnIndexes.get(i);
+    if (this.columnIndexes[i] == NULL_COLUMN) {
+      constantBlocks[i]=buildNullBlock(columnTypes.get(i));
+    }
+ else     if (this.columnIndexes[i] == SHARD_UUID_COLUMN) {
+      constantBlocks[i]=buildSingleValueBlock(Slices.utf8Slice(shardUuid.toString()));
+    }
+  }
+  this.systemMemoryContext=requireNonNull(systemMemoryContext,"systemMemoryContext is null");
+}

@@ -1,4 +1,7 @@
 {
+  currentStripeSystemMemoryContext.close();
+  currentStripeSystemMemoryContext=systemMemoryUsage.newAggregatedMemoryContext();
+  rowGroups=ImmutableList.<RowGroup>of().iterator();
   currentStripe++;
   if (currentStripe >= stripes.size()) {
     return;
@@ -7,7 +10,7 @@
     currentStripePosition+=stripes.get(currentStripe - 1).getNumberOfRows();
   }
   StripeInformation stripeInformation=stripes.get(currentStripe);
-  Stripe stripe=stripeReader.readStripe(stripeInformation);
+  Stripe stripe=stripeReader.readStripe(stripeInformation,currentStripeSystemMemoryContext);
   if (stripe != null) {
     StreamSources dictionaryStreamSources=stripe.getDictionaryStreamSources();
     List<ColumnEncoding> columnEncodings=stripe.getColumnEncodings();
@@ -17,8 +20,5 @@
       }
     }
     rowGroups=stripe.getRowGroups().iterator();
-  }
- else {
-    rowGroups=ImmutableList.<RowGroup>of().iterator();
   }
 }

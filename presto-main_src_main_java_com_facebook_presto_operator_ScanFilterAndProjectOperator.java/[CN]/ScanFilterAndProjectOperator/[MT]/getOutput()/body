@@ -3,6 +3,7 @@
     createSourceIfNecessary();
     if (cursor != null) {
       int rowsProcessed=cursorProcessor.process(operatorContext.getSession().toConnectorSession(),cursor,ROWS_PER_PAGE,pageBuilder);
+      pageSourceMemoryContext.setBytes(cursor.getSystemMemoryUsage());
       long bytesProcessed=cursor.getCompletedBytes() - completedBytes;
       long elapsedNanos=cursor.getReadTimeNanos() - readTimeNanos;
       operatorContext.recordGeneratedInput(bytesProcessed,rowsProcessed,elapsedNanos);
@@ -31,12 +32,15 @@
           currentPosition=0;
         }
       }
+      pageSourceMemoryContext.setBytes(pageSource.getSystemMemoryUsage());
     }
   }
   if (pageBuilder.isEmpty() || (!finishing && !pageBuilder.isFull())) {
+    pageBuilderMemoryContext.setBytes(pageBuilder.getRetainedSizeInBytes());
     return null;
   }
   Page page=pageBuilder.build();
   pageBuilder.reset();
+  pageBuilderMemoryContext.setBytes(pageBuilder.getRetainedSizeInBytes());
   return page;
 }

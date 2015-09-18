@@ -1,0 +1,63 @@
+{
+  ConnectorPageSource pageSource=testPreparer.newPageSource();
+  assertEquals(pageSource.getSystemMemoryUsage(),0);
+  long memoryUsage=-1;
+  for (int i=0; i < 20; i++) {
+    assertFalse(pageSource.isFinished());
+    Page page=pageSource.getNextPage();
+    assertNotNull(page);
+    Block block=page.getBlock(1);
+    if (memoryUsage == -1) {
+      assertBetweenInclusive(pageSource.getSystemMemoryUsage(),180000L,189999L);
+      VARCHAR.getSlice(block,block.getPositionCount() - 1);
+      memoryUsage=pageSource.getSystemMemoryUsage();
+      assertBetweenInclusive(memoryUsage,460000L,469999L);
+    }
+ else {
+      assertEquals(pageSource.getSystemMemoryUsage(),memoryUsage);
+      VARCHAR.getSlice(block,block.getPositionCount() - 1);
+      assertEquals(pageSource.getSystemMemoryUsage(),memoryUsage);
+    }
+  }
+  memoryUsage=-1;
+  for (int i=20; i < 40; i++) {
+    assertFalse(pageSource.isFinished());
+    Page page=pageSource.getNextPage();
+    assertNotNull(page);
+    Block block=page.getBlock(1);
+    if (memoryUsage == -1) {
+      assertBetweenInclusive(pageSource.getSystemMemoryUsage(),180000L,189999L);
+      VARCHAR.getSlice(block,block.getPositionCount() - 1);
+      memoryUsage=pageSource.getSystemMemoryUsage();
+      assertBetweenInclusive(memoryUsage,460000L,469999L);
+    }
+ else {
+      assertEquals(pageSource.getSystemMemoryUsage(),memoryUsage);
+      VARCHAR.getSlice(block,block.getPositionCount() - 1);
+      assertEquals(pageSource.getSystemMemoryUsage(),memoryUsage);
+    }
+  }
+  memoryUsage=-1;
+  for (int i=40; i < 50; i++) {
+    assertFalse(pageSource.isFinished());
+    Page page=pageSource.getNextPage();
+    assertNotNull(page);
+    Block block=page.getBlock(1);
+    if (memoryUsage == -1) {
+      assertBetweenInclusive(pageSource.getSystemMemoryUsage(),90000L,99999L);
+      VARCHAR.getSlice(block,block.getPositionCount() - 1);
+      memoryUsage=pageSource.getSystemMemoryUsage();
+      assertBetweenInclusive(memoryUsage,360000L,369999L);
+    }
+ else {
+      assertEquals(pageSource.getSystemMemoryUsage(),memoryUsage);
+      VARCHAR.getSlice(block,block.getPositionCount() - 1);
+      assertEquals(pageSource.getSystemMemoryUsage(),memoryUsage);
+    }
+  }
+  assertFalse(pageSource.isFinished());
+  assertNull(pageSource.getNextPage());
+  assertTrue(pageSource.isFinished());
+  assertEquals(pageSource.getSystemMemoryUsage(),0);
+  pageSource.close();
+}

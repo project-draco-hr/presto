@@ -22,10 +22,11 @@
     }
   }
   OrcPredicate predicate=new TupleDomainOrcPredicate<>(effectivePredicate,columnReferences.build());
+  AggregatedMemoryContext systemMemoryUsage=new AggregatedMemoryContext();
   try {
     OrcReader reader=new OrcReader(orcDataSource,metadataReader,maxMergeDistance,maxBufferSize);
-    OrcRecordReader recordReader=reader.createRecordReader(includedColumns.build(),predicate,start,length,hiveStorageTimeZone);
-    return new OrcPageSource(recordReader,orcDataSource,partitionKeys,columns,hiveStorageTimeZone,typeManager);
+    OrcRecordReader recordReader=reader.createRecordReader(includedColumns.build(),predicate,start,length,hiveStorageTimeZone,systemMemoryUsage);
+    return new OrcPageSource(recordReader,orcDataSource,partitionKeys,columns,hiveStorageTimeZone,typeManager,systemMemoryUsage);
   }
  catch (  Exception e) {
     try {

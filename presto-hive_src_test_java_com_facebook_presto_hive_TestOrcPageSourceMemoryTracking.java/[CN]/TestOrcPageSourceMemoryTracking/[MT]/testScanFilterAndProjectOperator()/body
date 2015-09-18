@@ -1,0 +1,22 @@
+{
+  DriverContext driverContext=testPreparer.newDriverContext();
+  SourceOperator operator=testPreparer.newScanFilterAndProjectOperator(driverContext);
+  assertEquals(driverContext.getSystemMemoryUsage(),0);
+  for (int i=0; i < 52; i++) {
+    assertFalse(operator.isFinished());
+    operator.getOutput();
+    assertBetweenInclusive(driverContext.getSystemMemoryUsage(),590000L,639999L);
+  }
+  for (int i=52; i < 65; i++) {
+    assertFalse(operator.isFinished());
+    operator.getOutput();
+    assertBetweenInclusive(driverContext.getSystemMemoryUsage(),490000L,539999L);
+  }
+  assertFalse(operator.isFinished());
+  assertNull(operator.getOutput());
+  assertBetweenInclusive(driverContext.getSystemMemoryUsage(),170000L,179999L);
+  assertFalse(operator.isFinished());
+  assertNotNull(operator.getOutput());
+  assertTrue(operator.isFinished());
+  assertEquals(driverContext.getSystemMemoryUsage(),131082);
+}

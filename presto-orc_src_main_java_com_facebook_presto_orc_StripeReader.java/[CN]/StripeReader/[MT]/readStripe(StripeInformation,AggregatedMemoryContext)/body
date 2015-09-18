@@ -1,0 +1,54 @@
+{
+  StripeFooter stripeFooter=readStripeFooter(stripe,systemMemoryUsage);
+  List<ColumnEncoding> columnEncodings=stripeFooter.getColumnEncodings();
+  Map<StreamId,Stream> streams=new HashMap<>();
+  boolean hasRowGroupDictionary=false;
+  for (  Stream stream : stripeFooter.getStreams()) {
+    if (includedOrcColumns.contains(stream.getColumn())) {
+      streams.put(new StreamId(stream),stream);
+      ColumnEncodingKind columnEncoding=columnEncodings.get(stream.getColumn()).getColumnEncodingKind();
+      if (columnEncoding == DICTIONARY && stream.getStreamKind() == StreamKind.IN_DICTIONARY) {
+        hasRowGroupDictionary=true;
+      }
+    }
+  }
+  if ((stripe.getNumberOfRows() > rowsInRowGroup) || hasRowGroupDictionary) {
+    Map<StreamId,DiskRange> diskRanges=getDiskRanges(stripeFooter.getStreams());
+    diskRanges=Maps.filterKeys(diskRanges,Predicates.in(streams.keySet()));
+    Map<StreamId,OrcInputStream> streamsData=readDiskRanges(stripe.getOffset(),diskRanges,systemMemoryUsage);
+    Map<Integer,List<RowGroupIndex>> columnIndexes=readColumnIndexes(streams,streamsData);
+    Set<Integer> selectedRowGroups=selectRowGroups(stripe,columnIndexes);
+    if (selectedRowGroups.isEmpty()) {
+      systemMemoryUsage.close();
+      return null;
+    }
+    Map<StreamId,ValueStream<?>> valueStreams=createValueStreams(streams,streamsData,columnEncodings);
+    StreamSources dictionaryStreamSources=createDictionaryStreamSources(streams,valueStreams,columnEncodings);
+    try {
+      List<RowGroup> rowGroups=createRowGroups(stripe.getNumberOfRows(),streams,valueStreams,columnIndexes,selectedRowGroups,columnEncodings);
+      return new Stripe(stripe.getNumberOfRows(),columnEncodings,rowGroups,dictionaryStreamSources);
+    }
+ catch (    InvalidCheckpointException e) {
+      if (hasRowGroupDictionary) {
+        throw new OrcCorruptionException(e,"ORC file %s has corrupt checkpoints",orcDataSource);
+      }
+    }
+  }
+  ImmutableMap.Builder<StreamId,DiskRange> diskRangesBuilder=ImmutableMap.builder();
+  for (  Entry<StreamId,DiskRange> entry : getDiskRanges(stripeFooter.getStreams()).entrySet()) {
+    StreamId streamId=entry.getKey();
+    if (streamId.getStreamKind() != ROW_INDEX && streams.keySet().contains(streamId)) {
+      diskRangesBuilder.put(entry);
+    }
+  }
+  ImmutableMap<StreamId,DiskRange> diskRanges=diskRangesBuilder.build();
+  Map<StreamId,OrcInputStream> streamsData=readDiskRanges(stripe.getOffset(),diskRanges,systemMemoryUsage);
+  Map<StreamId,ValueStream<?>> valueStreams=createValueStreams(streams,streamsData,columnEncodings);
+  StreamSources dictionaryStreamSources=createDictionaryStreamSources(streams,valueStreams,columnEncodings);
+  ImmutableMap.Builder<StreamId,StreamSource<?>> builder=ImmutableMap.builder();
+  for (  Entry<StreamId,ValueStream<?>> entry : valueStreams.entrySet()) {
+    builder.put(entry.getKey(),new ValueStreamSource<>(entry.getValue()));
+  }
+  RowGroup rowGroup=new RowGroup(0,0,stripe.getNumberOfRows(),new StreamSources(builder.build()));
+  return new Stripe(stripe.getNumberOfRows(),columnEncodings,ImmutableList.of(rowGroup),dictionaryStreamSources);
+}
