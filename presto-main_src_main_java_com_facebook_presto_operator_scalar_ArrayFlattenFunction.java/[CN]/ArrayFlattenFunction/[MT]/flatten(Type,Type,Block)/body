@@ -1,0 +1,15 @@
+{
+  if (array.getPositionCount() == 0) {
+    return type.createBlockBuilder(new BlockBuilderStatus(),0).build();
+  }
+  BlockBuilder builder=type.createBlockBuilder(new BlockBuilderStatus(),array.getPositionCount(),array.getSizeInBytes() / array.getPositionCount());
+  for (int i=0; i < array.getPositionCount(); i++) {
+    if (!array.isNull(i)) {
+      Block subArray=(Block)arrayType.getObject(array,i);
+      for (int j=0; j < subArray.getPositionCount(); j++) {
+        type.appendTo(subArray,j,builder);
+      }
+    }
+  }
+  return builder.build();
+}
