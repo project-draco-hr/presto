@@ -1,0 +1,16 @@
+{
+  ImmutableMap.Builder<String,ColumnHandle> columnHandles=ImmutableMap.builder();
+  int index=0;
+  for (  ColumnMetadata column : localFileTables.getColumns(tableHandle)) {
+    int ordinalPosition;
+    if (column.getName().equals(SERVER_ADDRESS_COLUMN_NAME)) {
+      ordinalPosition=SERVER_ADDRESS_ORDINAL_POSITION;
+    }
+ else {
+      ordinalPosition=index;
+      index++;
+    }
+    columnHandles.put(column.getName(),new LocalFileColumnHandle(column.getName(),column.getType(),ordinalPosition));
+  }
+  return columnHandles.build();
+}

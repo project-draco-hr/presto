@@ -1,0 +1,28 @@
+{
+  ImmutableMap.Builder<SchemaTableName,DataLocation> dataLocationBuilder=ImmutableMap.builder();
+  ImmutableMap.Builder<SchemaTableName,LocalFileTableHandle> tablesBuilder=ImmutableMap.builder();
+  ImmutableMap.Builder<SchemaTableName,List<ColumnMetadata>> tableColumnsBuilder=ImmutableMap.builder();
+  String httpRequestLogLocation=config.getHttpRequestLogLocation();
+  if (httpRequestLogLocation != null) {
+    Optional<String> pattern=Optional.empty();
+    if (config.getHttpRequestLogFileNamePattern() != null) {
+      pattern=Optional.of(config.getHttpRequestLogFileNamePattern());
+    }
+    SchemaTableName table=getSchemaTableName();
+    DataLocation dataLocation=new DataLocation(httpRequestLogLocation,pattern);
+    LocalFileTableHandle tableHandle=new LocalFileTableHandle(table,getTimestampColumn(),getServerAddressColumn());
+    tablesBuilder.put(table,tableHandle);
+    tableColumnsBuilder.put(table,HttpRequestLogTable.getColumns());
+    dataLocationBuilder.put(table,dataLocation);
+  }
+  tables=tablesBuilder.build();
+  tableColumns=tableColumnsBuilder.build();
+  tableDataLocations=dataLocationBuilder.build();
+  cachedFiles=CacheBuilder.newBuilder().expireAfterWrite(10,SECONDS).build(new CacheLoader<SchemaTableName,List<File>>(){
+    @Override public List<File> load(    @Nonnull SchemaTableName key) throws Exception {
+      DataLocation dataLocation=tableDataLocations.get(key);
+      return dataLocation.files();
+    }
+  }
+);
+}

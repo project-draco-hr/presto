@@ -1,0 +1,15 @@
+{
+  requireNonNull(location,"location is null");
+  requireNonNull(pattern,"pattern is null");
+  File file=new File(location);
+  if (!file.exists() && pattern.isPresent()) {
+    file.mkdirs();
+  }
+  checkArgument(file.exists(),"location does not exist");
+  if (pattern.isPresent() && !file.isDirectory()) {
+    throw new IllegalArgumentException("pattern may be specified only if location is a directory");
+  }
+  this.location=file;
+  this.pattern=(!pattern.isPresent() && file.isDirectory()) ? Optional.of(".*") : pattern;
+  this.compiledPattern=file.isDirectory() ? Optional.of(Pattern.compile(pattern.orElse(".*"))) : Optional.empty();
+}

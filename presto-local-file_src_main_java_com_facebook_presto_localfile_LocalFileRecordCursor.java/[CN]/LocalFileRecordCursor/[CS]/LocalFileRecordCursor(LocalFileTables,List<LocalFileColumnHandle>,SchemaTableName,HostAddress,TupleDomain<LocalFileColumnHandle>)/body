@@ -1,0 +1,11 @@
+{
+  this.columns=requireNonNull(columns,"columns is null");
+  this.address=requireNonNull(address,"address is null");
+  fieldToColumnIndex=new int[columns.size()];
+  for (int i=0; i < columns.size(); i++) {
+    LocalFileColumnHandle columnHandle=columns.get(i);
+    fieldToColumnIndex[i]=columnHandle.getOrdinalPosition();
+  }
+  this.includeServer=isThisServerIncluded(address,predicate,localFileTables.getTable(tableName));
+  this.reader=includeServer ? getFilesReader(localFileTables,predicate,tableName) : null;
+}
