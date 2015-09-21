@@ -34,7 +34,7 @@
   for (  Expression expression : node.getArguments()) {
     argumentTypes.add(process(expression,context).getTypeSignature());
   }
-  FunctionInfo function=functionRegistry.resolveFunction(node.getName(),argumentTypes.build(),context.isApproximate());
+  Signature function=functionRegistry.resolveFunction(node.getName(),argumentTypes.build(),context.isApproximate());
   for (int i=0; i < node.getArguments().size(); i++) {
     Expression expression=node.getArguments().get(i);
     Type type=typeManager.getType(function.getArgumentTypes().get(i));
@@ -42,7 +42,7 @@
     if (node.isDistinct() && !type.isComparable()) {
       throw new SemanticException(TYPE_MISMATCH,node,"DISTINCT can only be applied to comparable types (actual: %s)",type);
     }
-    coerceType(context,expression,type,String.format("Function %s argument %d",function.getSignature(),i));
+    coerceType(context,expression,type,String.format("Function %s argument %d",function,i));
   }
   resolvedFunctions.put(node,function);
   Type type=typeManager.getType(function.getReturnType());

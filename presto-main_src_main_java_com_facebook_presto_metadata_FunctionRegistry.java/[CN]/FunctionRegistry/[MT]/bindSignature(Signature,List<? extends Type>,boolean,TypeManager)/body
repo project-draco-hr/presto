@@ -1,0 +1,23 @@
+{
+  List<TypeSignature> argumentTypes=signature.getArgumentTypes();
+  Map<String,Type> boundParameters=signature.bindTypeParameters(types,allowCoercion,typeManager);
+  if (boundParameters == null) {
+    return null;
+  }
+  ImmutableList.Builder<TypeSignature> boundArguments=ImmutableList.builder();
+  for (int i=0; i < argumentTypes.size() - 1; i++) {
+    boundArguments.add(bindParameters(argumentTypes.get(i),boundParameters));
+  }
+  if (!argumentTypes.isEmpty()) {
+    TypeSignature lastArgument=bindParameters(argumentTypes.get(argumentTypes.size() - 1),boundParameters);
+    if (signature.isVariableArity()) {
+      for (int i=0; i < types.size() - (argumentTypes.size() - 1); i++) {
+        boundArguments.add(lastArgument);
+      }
+    }
+ else {
+      boundArguments.add(lastArgument);
+    }
+  }
+  return new Signature(signature.getName(),signature.getType(),bindParameters(signature.getReturnType(),boundParameters),boundArguments.build());
+}

@@ -13,9 +13,9 @@
   if (type == null) {
     throw new IllegalArgumentException("Unsupported type: " + node.getType());
   }
-  FunctionInfo operatorInfo=metadata.getFunctionRegistry().getCoercion(expressionTypes.get(node.getExpression()),type);
+  Signature operator=metadata.getFunctionRegistry().getCoercion(expressionTypes.get(node.getExpression()),type);
   try {
-    return invoke(session,metadata.getFunctionRegistry().getScalarFunctionImplementation(operatorInfo.getSignature()).getMethodHandle(),ImmutableList.of(value));
+    return invoke(session,metadata.getFunctionRegistry().getScalarFunctionImplementation(operator).getMethodHandle(),ImmutableList.of(value));
   }
  catch (  RuntimeException e) {
     if (node.isSafe()) {
