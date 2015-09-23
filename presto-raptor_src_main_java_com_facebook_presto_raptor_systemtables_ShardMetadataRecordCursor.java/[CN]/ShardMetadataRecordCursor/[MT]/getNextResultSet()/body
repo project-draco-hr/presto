@@ -1,0 +1,19 @@
+{
+  closeCurrentResultSet();
+  if (!tableIds.hasNext()) {
+    return null;
+  }
+  Long tableId=tableIds.next();
+  Long columnId=metadataDao.getTemporalColumnId(tableId);
+  String minColumn=(columnId == null) ? "null" : minColumn(columnId);
+  String maxColumn=(columnId == null) ? "null" : maxColumn(columnId);
+  try {
+    connection=dbi.open().getConnection();
+    statement=preparedStatementBuilder.create(connection,minColumn,maxColumn,shardIndexTable(tableId));
+    return statement.executeQuery();
+  }
+ catch (  SQLException e) {
+    close();
+    throw new PrestoException(RAPTOR_ERROR,e);
+  }
+}

@@ -1,0 +1,22 @@
+{
+  if (resultSet == null) {
+    close();
+  }
+  if (closed) {
+    return false;
+  }
+  try {
+    while (!resultSet.next()) {
+      resultSet=getNextResultSet();
+      if (resultSet == null) {
+        close();
+        return false;
+      }
+    }
+    completedBytes+=resultSetValues.extractValues(resultSet,ImmutableSet.of(getColumnIndex(SHARD_METADATA,SHARD_UUID)));
+    return true;
+  }
+ catch (  SQLException e) {
+    throw Throwables.propagate(e);
+  }
+}

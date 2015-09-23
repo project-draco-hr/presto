@@ -1,0 +1,16 @@
+{
+  if (tupleDomain.isNone()) {
+    return "";
+  }
+  ImmutableList.Builder<String> conjunctsBuilder=ImmutableList.builder();
+  Map<Integer,Domain> domainMap=tupleDomain.getDomains();
+  for (  Map.Entry<Integer,Domain> entry : domainMap.entrySet()) {
+    conjunctsBuilder.add(toPredicate(entry.getKey(),entry.getValue()));
+  }
+  List<String> conjuncts=conjunctsBuilder.build();
+  if (conjuncts.isEmpty()) {
+    return "";
+  }
+  StringBuilder where=new StringBuilder("\nWHERE ");
+  return Joiner.on(" AND ").appendTo(where,conjuncts).toString();
+}

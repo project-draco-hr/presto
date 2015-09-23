@@ -1,0 +1,22 @@
+{
+  if (value == null) {
+    return value;
+  }
+  Class<?> javaType=type.getJavaType();
+  if (javaType.isPrimitive()) {
+    checkArgument(Primitives.wrap(javaType).isInstance(value),"Type %s incompatible with %s",type,value);
+    return value;
+  }
+  if (javaType == Slice.class) {
+    if (value instanceof Slice) {
+      return value;
+    }
+    if (value instanceof String) {
+      return utf8Slice(((String)value));
+    }
+    if (value instanceof byte[]) {
+      return wrappedBuffer((byte[])value);
+    }
+  }
+  throw new IllegalArgumentException(format("Type %s incompatible with %s",type,value));
+}

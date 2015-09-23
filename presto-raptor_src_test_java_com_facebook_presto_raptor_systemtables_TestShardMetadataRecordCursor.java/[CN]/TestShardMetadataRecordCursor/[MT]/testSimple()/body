@@ -1,0 +1,24 @@
+{
+  ConnectorTableMetadata tableMetadata=tableMetadataBuilder(DEFAULT_TEST_ORDERS).column("orderkey",BIGINT).column("custkey",BIGINT).column("totalprice",DOUBLE).column("orderdate",DATE).column("orderstate",VARCHAR).property("temporal_column","orderdate").build();
+  metadata.createTable(SESSION,tableMetadata);
+  DatabaseShardManager shardManager=new DatabaseShardManager(dbi);
+  long tableId=1;
+  UUID uuid1=UUID.randomUUID();
+  UUID uuid2=UUID.randomUUID();
+  UUID uuid3=UUID.randomUUID();
+  ShardInfo shardInfo1=new ShardInfo(uuid1,ImmutableSet.of("node1"),ImmutableList.of(),1,10,100);
+  ShardInfo shardInfo2=new ShardInfo(uuid2,ImmutableSet.of("node2"),ImmutableList.of(),2,20,200);
+  ShardInfo shardInfo3=new ShardInfo(uuid3,ImmutableSet.of("node3"),ImmutableList.of(),3,30,300);
+  List<ShardInfo> shards=ImmutableList.of(shardInfo1,shardInfo2,shardInfo3);
+  shardManager.commitShards(tableId,ImmutableList.of(new ColumnInfo(1,BIGINT),new ColumnInfo(2,BIGINT),new ColumnInfo(3,DOUBLE),new ColumnInfo(4,DATE),new ColumnInfo(5,VARCHAR)),shards,Optional.empty());
+  Slice schema=utf8Slice(DEFAULT_TEST_ORDERS.getSchemaName());
+  Slice table=utf8Slice(DEFAULT_TEST_ORDERS.getTableName());
+  TupleDomain<Integer> tupleDomain=TupleDomain.withColumnDomains(ImmutableMap.<Integer,Domain>builder().put(0,Domain.singleValue(schema)).put(1,Domain.singleValue(table)).build());
+  List<MaterializedRow> actual;
+  try (RecordCursor cursor=new ShardMetadataSystemTable(dbi).cursor(SESSION,tupleDomain)){
+    actual=getMaterializedResults(cursor,SHARD_METADATA.getColumns());
+  }
+   assertEquals(actual.size(),3);
+  List<MaterializedRow> expected=ImmutableList.of(new MaterializedRow(DEFAULT_PRECISION,schema,table,utf8Slice(uuid1.toString()),100,10,1),new MaterializedRow(DEFAULT_PRECISION,schema,table,utf8Slice(uuid2.toString()),200,20,2),new MaterializedRow(DEFAULT_PRECISION,schema,table,utf8Slice(uuid3.toString()),300,30,3));
+  assertEquals(actual,expected);
+}

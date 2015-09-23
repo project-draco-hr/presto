@@ -1,0 +1,11 @@
+{
+  requireNonNull(dbi,"dbi is null");
+  requireNonNull(tupleDomain,"tupleDomain is null");
+  this.dbi=dbi;
+  this.metadataDao=dbi.onDemand(MetadataDao.class);
+  this.tableIds=getTableIds(metadataDao,tupleDomain);
+  List<String> columnNames=createQualifiedColumnName();
+  this.preparedStatementBuilder=new PreparedStatementBuilder(constructSqlTemplate(columnNames),columnNames,TYPES,ImmutableList.of(getColumnIndex(SHARD_METADATA,SHARD_UUID)),tupleDomain);
+  this.resultSetValues=new ResultSetValues(TYPES);
+  this.resultSet=getNextResultSet();
+}

@@ -1,0 +1,47 @@
+{
+  checkArgument(resultSet != null,"resultSet is null");
+  int completedBytes=0;
+  for (int i=0; i < types.size(); i++) {
+    Class<?> javaType=types.get(i).getJavaType();
+    if (javaType == boolean.class) {
+      booleans[i]=resultSet.getBoolean(i + 1);
+      nulls[i]=resultSet.wasNull();
+      if (!nulls[i]) {
+        completedBytes+=SIZE_OF_BYTE;
+      }
+    }
+ else     if (javaType == long.class) {
+      longs[i]=resultSet.getLong(i + 1);
+      nulls[i]=resultSet.wasNull();
+      if (!nulls[i]) {
+        completedBytes+=SIZE_OF_LONG;
+      }
+    }
+ else     if (javaType == double.class) {
+      doubles[i]=resultSet.getDouble(i + 1);
+      nulls[i]=resultSet.wasNull();
+      if (!nulls[i]) {
+        completedBytes+=SIZE_OF_DOUBLE;
+      }
+    }
+ else     if (javaType == Slice.class) {
+      if (uuidColumns.contains(i)) {
+        byte[] bytes=resultSet.getBytes(i + 1);
+        nulls[i]=resultSet.wasNull();
+        strings[i]=nulls[i] ? null : uuidFromBytes(bytes).toString().toLowerCase(ENGLISH);
+      }
+ else {
+        String value=resultSet.getString(i + 1);
+        nulls[i]=resultSet.wasNull();
+        strings[i]=nulls[i] ? null : value;
+      }
+      if (!nulls[i]) {
+        completedBytes+=strings[i].length();
+      }
+    }
+ else {
+      throw new VerifyException("Unknown Java type: " + javaType);
+    }
+  }
+  return completedBytes;
+}

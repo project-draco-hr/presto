@@ -1,0 +1,74 @@
+{
+  String columnName=columnsNames.get(columnIndex);
+  Type type=types.get(columnIndex);
+  if (domain.getRanges().isNone() && domain.isNullAllowed()) {
+    return columnName + " IS NULL";
+  }
+  if (domain.getRanges().isAll() && !domain.isNullAllowed()) {
+    return columnName + " IS NOT NULL";
+  }
+  List<String> disjuncts=new ArrayList<>();
+  List<Comparable<?>> singleValues=new ArrayList<>();
+  for (  Range range : domain.getRanges()) {
+    checkState(!range.isAll());
+    Comparable<?> lowValue=range.getLow().getValue();
+    if (range.isSingleValue()) {
+      singleValues.add(lowValue);
+    }
+ else {
+      List<String> rangeConjuncts=new ArrayList<>();
+      if (!range.getLow().isLowerUnbounded()) {
+        Object bindValue=getBindValue(columnIndex,lowValue);
+switch (range.getLow().getBound()) {
+case ABOVE:
+          rangeConjuncts.add(toBindPredicate(columnName,">"));
+        bindValues.add(ValueBuffer.create(columnIndex,type,bindValue));
+      break;
+case EXACTLY:
+    rangeConjuncts.add(toBindPredicate(columnName,">="));
+  bindValues.add(ValueBuffer.create(columnIndex,type,bindValue));
+break;
+case BELOW:
+throw new IllegalStateException("Low Marker should never use BELOW bound: " + range);
+default :
+throw new AssertionError("Unhandled bound: " + range.getLow().getBound());
+}
+}
+if (!range.getHigh().isUpperUnbounded()) {
+Comparable<?> highValue=range.getHigh().getValue();
+Object bindValue=getBindValue(columnIndex,highValue);
+switch (range.getHigh().getBound()) {
+case ABOVE:
+throw new IllegalStateException("High Marker should never use ABOVE bound: " + range);
+case EXACTLY:
+rangeConjuncts.add(toBindPredicate(columnName,"<="));
+bindValues.add(ValueBuffer.create(columnIndex,type,bindValue));
+break;
+case BELOW:
+rangeConjuncts.add(toBindPredicate(columnName,"<"));
+bindValues.add(ValueBuffer.create(columnIndex,type,bindValue));
+break;
+default :
+throw new AssertionError("Unhandled bound: " + range.getHigh().getBound());
+}
+}
+checkState(!rangeConjuncts.isEmpty());
+disjuncts.add("(" + Joiner.on(" AND ").join(rangeConjuncts) + ")");
+}
+}
+if (singleValues.size() == 1) {
+disjuncts.add(toBindPredicate(columnName,"="));
+bindValues.add(ValueBuffer.create(columnIndex,type,getBindValue(columnIndex,getOnlyElement(singleValues))));
+}
+ else if (singleValues.size() > 1) {
+disjuncts.add(columnName + " IN (" + Joiner.on(",").join(limit(cycle("?"),singleValues.size()))+ ")");
+for (Comparable<?> singleValue : singleValues) {
+bindValues.add(ValueBuffer.create(columnIndex,type,getBindValue(columnIndex,singleValue)));
+}
+}
+checkState(!disjuncts.isEmpty());
+if (domain.isNullAllowed()) {
+disjuncts.add(columnName + " IS NULL");
+}
+return "(" + Joiner.on(" OR ").join(disjuncts) + ")";
+}

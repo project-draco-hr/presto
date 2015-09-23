@@ -1,0 +1,24 @@
+{
+  Type type=valueBuffer.getType();
+  if (valueBuffer.isNull()) {
+    preparedStatement.setNull(parameterIndex,typeToSqlType(type));
+  }
+ else   if (type.getJavaType() == long.class) {
+    preparedStatement.setLong(parameterIndex,valueBuffer.getLong());
+  }
+ else   if (type.getJavaType() == double.class) {
+    preparedStatement.setDouble(parameterIndex,valueBuffer.getDouble());
+  }
+ else   if (type.getJavaType() == boolean.class) {
+    preparedStatement.setBoolean(parameterIndex,valueBuffer.getBoolean());
+  }
+ else   if (type.getJavaType() == Slice.class && uuidColumnIndexes.contains(valueBuffer.getColumnIndex())) {
+    preparedStatement.setBytes(parameterIndex,valueBuffer.getSlice().getBytes());
+  }
+ else   if (type.getJavaType() == Slice.class) {
+    preparedStatement.setString(parameterIndex,new String(valueBuffer.getSlice().getBytes()));
+  }
+ else {
+    throw new IllegalArgumentException("Unknown Java type: " + type.getJavaType());
+  }
+}
