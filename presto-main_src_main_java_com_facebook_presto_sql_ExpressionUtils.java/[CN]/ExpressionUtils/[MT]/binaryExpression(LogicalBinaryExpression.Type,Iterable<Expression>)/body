@@ -2,10 +2,9 @@
   requireNonNull(type,"type is null");
   requireNonNull(expressions,"expressions is null");
   Preconditions.checkArgument(!Iterables.isEmpty(expressions),"expressions is empty");
-  Iterator<Expression> iterator=expressions.iterator();
-  Expression result=iterator.next();
-  while (iterator.hasNext()) {
-    result=new LogicalBinaryExpression(type,result,iterator.next());
+  Queue<Expression> queue=new ArrayDeque<>(newArrayList(expressions));
+  while (queue.size() > 1) {
+    queue.add(new LogicalBinaryExpression(type,queue.remove(),queue.remove()));
   }
-  return result;
+  return queue.remove();
 }
