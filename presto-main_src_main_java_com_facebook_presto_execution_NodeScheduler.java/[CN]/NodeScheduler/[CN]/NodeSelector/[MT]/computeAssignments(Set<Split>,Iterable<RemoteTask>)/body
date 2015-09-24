@@ -14,13 +14,17 @@
   for (  Split split : splits) {
     randomCandidates.reset();
     List<Node> candidateNodes;
+    NodeMap nodeMap=this.nodeMap.get().get();
     if (locationAwareScheduling || !split.isRemotelyAccessible()) {
-      candidateNodes=selectCandidateNodes(nodeMap.get().get(),split,randomCandidates);
+      candidateNodes=selectCandidateNodes(nodeMap,split,randomCandidates);
     }
  else {
       candidateNodes=selectNodes(minCandidates,randomCandidates);
     }
-    checkCondition(!candidateNodes.isEmpty(),NO_NODES_AVAILABLE,"No nodes available to run query");
+    if (candidateNodes.isEmpty()) {
+      log.debug("No nodes available to schedule %s. Available nodes %s",split,nodeMap.getNodesByHost().keys());
+      throw new PrestoException(NO_NODES_AVAILABLE,"No nodes available to run query");
+    }
     for (    Node node : candidateNodes) {
       if (!splitCountByNode.containsKey(node)) {
         splitCountByNode.put(node,nodeTaskMap.getPartitionedSplitsOnNode(node));
