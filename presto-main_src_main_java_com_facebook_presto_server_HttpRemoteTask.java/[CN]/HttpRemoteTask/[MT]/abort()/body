@@ -10,8 +10,7 @@
     TaskInfo taskInfo=getTaskInfo();
     URI uri=taskInfo.getSelf();
     updateTaskInfo(new TaskInfo(taskInfo.getTaskId(),taskInfo.getNodeInstanceId(),TaskInfo.MAX_VERSION,TaskState.ABORTED,uri,taskInfo.getLastHeartbeat(),taskInfo.getOutputBuffers(),taskInfo.getNoMoreSplits(),taskInfo.getStats(),ImmutableList.<ExecutionFailureInfo>of()));
-    long start=System.nanoTime();
     Request request=prepareDelete().setUri(uriBuilderFrom(uri).addParameter("summarize").build()).build();
-    scheduleAsyncCleanupRequest(start,request,"abort");
+    scheduleAsyncCleanupRequest(new Backoff(MAX_CLEANUP_RETRY_TIME),request,"abort");
   }
  }
