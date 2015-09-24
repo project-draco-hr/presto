@@ -1,0 +1,17 @@
+{
+  TypedKeyValueHeap heap=state.getTypedKeyValueHeap();
+  if (heap == null || heap.isEmpty()) {
+    out.appendNull();
+    return;
+  }
+  Type elementType=outputType.getElementType();
+  BlockBuilder arrayBlockBuilder=out.beginBlockEntry();
+  BlockBuilder reversedBlockBuilder=elementType.createBlockBuilder(new BlockBuilderStatus(),heap.getCapacity());
+  long startSize=heap.getEstimatedSize();
+  heap.popAll(reversedBlockBuilder);
+  state.addMemoryUsage(heap.getEstimatedSize() - startSize);
+  for (int i=reversedBlockBuilder.getPositionCount() - 1; i >= 0; i--) {
+    elementType.appendTo(reversedBlockBuilder,i,arrayBlockBuilder);
+  }
+  out.closeEntry();
+}
