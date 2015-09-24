@@ -1,0 +1,11 @@
+{
+  if (dataSource instanceof CachingOrcDataSource) {
+    return dataSource;
+  }
+  for (  StripeInformation stripe : stripes) {
+    if (stripe.getTotalLength() > maxReadSize.toBytes()) {
+      return dataSource;
+    }
+  }
+  return new CachingOrcDataSource(dataSource,createTinyStripesRangeFinder(stripes,maxMergeDistance,maxReadSize));
+}

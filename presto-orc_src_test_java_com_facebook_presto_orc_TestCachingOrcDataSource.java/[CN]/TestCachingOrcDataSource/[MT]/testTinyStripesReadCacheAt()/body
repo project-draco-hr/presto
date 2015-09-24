@@ -1,0 +1,22 @@
+{
+  DataSize maxMergeDistance=new DataSize(1,Unit.MEGABYTE);
+  DataSize maxReadSize=new DataSize(8,Unit.MEGABYTE);
+  TestingOrcDataSource testingOrcDataSource=new TestingOrcDataSource(FakeOrcDataSource.INSTANCE);
+  CachingOrcDataSource cachingOrcDataSource=new CachingOrcDataSource(testingOrcDataSource,createTinyStripesRangeFinder(ImmutableList.of(new StripeInformation(123,3,10,10,10),new StripeInformation(123,33,10,10,10),new StripeInformation(123,63,1048576 * 8 - 20,10,10)),maxMergeDistance,maxReadSize));
+  cachingOrcDataSource.readCacheAt(3);
+  assertEquals(testingOrcDataSource.getLastReadRanges(),ImmutableList.of(new DiskRange(3,60)));
+  cachingOrcDataSource.readCacheAt(63);
+  assertEquals(testingOrcDataSource.getLastReadRanges(),ImmutableList.of(new DiskRange(63,8 * 1048576)));
+  testingOrcDataSource=new TestingOrcDataSource(FakeOrcDataSource.INSTANCE);
+  cachingOrcDataSource=new CachingOrcDataSource(testingOrcDataSource,createTinyStripesRangeFinder(ImmutableList.of(new StripeInformation(123,3,10,10,10),new StripeInformation(123,33,10,10,10),new StripeInformation(123,63,1048576 * 8 - 20,10,10)),maxMergeDistance,maxReadSize));
+  cachingOrcDataSource.readCacheAt(62);
+  assertEquals(testingOrcDataSource.getLastReadRanges(),ImmutableList.of(new DiskRange(3,60)));
+  cachingOrcDataSource.readCacheAt(63);
+  assertEquals(testingOrcDataSource.getLastReadRanges(),ImmutableList.of(new DiskRange(63,8 * 1048576)));
+  testingOrcDataSource=new TestingOrcDataSource(FakeOrcDataSource.INSTANCE);
+  cachingOrcDataSource=new CachingOrcDataSource(testingOrcDataSource,createTinyStripesRangeFinder(ImmutableList.of(new StripeInformation(123,3,1,0,0),new StripeInformation(123,4,1048576,1048576,1048576 * 3),new StripeInformation(123,4 + 1048576 * 5,1048576,1048576,1048576)),maxMergeDistance,maxReadSize));
+  cachingOrcDataSource.readCacheAt(3);
+  assertEquals(testingOrcDataSource.getLastReadRanges(),ImmutableList.of(new DiskRange(3,1 + 1048576 * 5)));
+  cachingOrcDataSource.readCacheAt(4 + 1048576 * 5);
+  assertEquals(testingOrcDataSource.getLastReadRanges(),ImmutableList.of(new DiskRange(4 + 1048576 * 5,3 * 1048576)));
+}

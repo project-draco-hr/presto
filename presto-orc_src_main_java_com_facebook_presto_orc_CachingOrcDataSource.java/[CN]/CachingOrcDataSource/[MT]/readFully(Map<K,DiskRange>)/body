@@ -1,0 +1,10 @@
+{
+  ImmutableMap.Builder<K,FixedLengthSliceInput> builder=ImmutableMap.builder();
+  for (  Map.Entry<K,DiskRange> entry : diskRanges.entrySet()) {
+    DiskRange diskRange=entry.getValue();
+    byte[] buffer=new byte[diskRange.getLength()];
+    readFully(diskRange.getOffset(),buffer);
+    builder.put(entry.getKey(),Slices.wrappedBuffer(buffer).getInput());
+  }
+  return builder.build();
+}

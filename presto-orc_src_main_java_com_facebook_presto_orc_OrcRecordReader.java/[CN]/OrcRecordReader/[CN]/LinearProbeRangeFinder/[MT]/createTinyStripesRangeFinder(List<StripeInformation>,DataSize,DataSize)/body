@@ -1,0 +1,8 @@
+{
+  List<DiskRange> scratchDiskRanges=new ArrayList<>(stripes.size());
+  for (  StripeInformation stripe : stripes) {
+    scratchDiskRanges.add(new DiskRange(stripe.getOffset(),Ints.checkedCast(stripe.getTotalLength())));
+  }
+  List<DiskRange> diskRanges=OrcDataSourceUtils.mergeAdjacentDiskRanges(scratchDiskRanges,maxMergeDistance,maxReadSize);
+  return new LinearProbeRangeFinder(diskRanges.listIterator());
+}
