@@ -1,0 +1,16 @@
+{
+  BlockBuilder blockBuilder=new ArrayBlockBuilder(VARCHAR,new BlockBuilderStatus(),100,100);
+  for (  Slice[] expectedValue : expectedValues) {
+    if (expectedValue == null) {
+      blockBuilder.appendNull();
+    }
+ else {
+      BlockBuilder elementBlockBuilder=VARCHAR.createBlockBuilder(new BlockBuilderStatus(),expectedValue.length);
+      for (      Slice v : expectedValue) {
+        VARCHAR.writeSlice(elementBlockBuilder,v);
+      }
+      blockBuilder.writeObject(elementBlockBuilder.build()).closeEntry();
+    }
+  }
+  return blockBuilder;
+}

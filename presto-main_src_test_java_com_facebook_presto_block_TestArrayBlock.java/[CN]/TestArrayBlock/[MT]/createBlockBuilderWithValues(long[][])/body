@@ -1,0 +1,16 @@
+{
+  BlockBuilder blockBuilder=new ArrayBlockBuilder(BIGINT,new BlockBuilderStatus(),100,100);
+  for (  long[] expectedValue : expectedValues) {
+    if (expectedValue == null) {
+      blockBuilder.appendNull();
+    }
+ else {
+      BlockBuilder elementBlockBuilder=BIGINT.createBlockBuilder(new BlockBuilderStatus(),expectedValue.length);
+      for (      long v : expectedValue) {
+        BIGINT.writeLong(elementBlockBuilder,v);
+      }
+      blockBuilder.writeObject(elementBlockBuilder).closeEntry();
+    }
+  }
+  return blockBuilder;
+}

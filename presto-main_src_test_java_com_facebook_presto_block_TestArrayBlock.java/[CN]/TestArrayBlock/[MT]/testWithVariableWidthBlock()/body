@@ -6,6 +6,11 @@
       expectedValues[i][j]=Slices.utf8Slice(String.format("%d.%d",i,j));
     }
   }
-  assertArrayValues(expectedValues);
-  assertArrayValues((Slice[][])alternatingNullValues(expectedValues));
+  BlockBuilder blockBuilder=createBlockBuilderWithValues(expectedValues);
+  assertBlock(blockBuilder,expectedValues);
+  assertBlock(blockBuilder.build(),expectedValues);
+  Slice[][] expectedValuesWithNull=(Slice[][])alternatingNullValues(expectedValues);
+  BlockBuilder blockBuilderWithNull=createBlockBuilderWithValues(expectedValuesWithNull);
+  assertBlock(blockBuilderWithNull,expectedValuesWithNull);
+  assertBlock(blockBuilderWithNull.build(),expectedValuesWithNull);
 }
