@@ -1,9 +1,30 @@
 {
   this.typeManager=requireNonNull(typeManager,"typeManager is null");
   this.blockEncodingSerde=requireNonNull(blockEncodingSerde,"blockEncodingSerde is null");
-  specializedFunctionCache=CacheBuilder.newBuilder().maximumSize(1000).build(new CacheLoader<SpecializedFunctionKey,FunctionInfo>(){
-    @Override public FunctionInfo load(    SpecializedFunctionKey key) throws Exception {
-      return key.getFunction().specialize(key.getBoundTypeParameters(),key.getArity(),typeManager,FunctionRegistry.this);
+  specializedScalarCache=CacheBuilder.newBuilder().maximumSize(1000).build(new CacheLoader<SpecializedFunctionKey,ScalarFunctionImplementation>(){
+    @Override public ScalarFunctionImplementation load(    SpecializedFunctionKey key) throws Exception {
+      SqlScalar scalarFunction=checkType(key.getFunction(),SqlScalar.class,"function");
+      return scalarFunction.specialize(key.getBoundTypeParameters(),key.getArity(),typeManager,FunctionRegistry.this);
+    }
+  }
+);
+  specializedAggregationCache=CacheBuilder.newBuilder().maximumSize(1000).build(new CacheLoader<SpecializedFunctionKey,InternalAggregationFunction>(){
+    @Override public InternalAggregationFunction load(    SpecializedFunctionKey key) throws Exception {
+      SqlAggregation aggregationFunction=checkType(key.getFunction(),SqlAggregation.class,"function");
+      return aggregationFunction.specialize(key.getBoundTypeParameters(),key.getArity(),typeManager,FunctionRegistry.this);
+    }
+  }
+);
+  specializedWindowCache=CacheBuilder.newBuilder().maximumSize(1000).build(new CacheLoader<SpecializedFunctionKey,WindowFunctionSupplier>(){
+    @Override public WindowFunctionSupplier load(    SpecializedFunctionKey key) throws Exception {
+      if (key.getFunction() instanceof SqlAggregation) {
+        SqlAggregation aggregationFunction=checkType(key.getFunction(),SqlAggregation.class,"function");
+        return supplier(aggregationFunction.getSignature(),specializedAggregationCache.getUnchecked(key));
+      }
+ else {
+        SqlWindowFunction windowFunction=checkType(key.getFunction(),SqlWindowFunction.class,"function");
+        return windowFunction.specialize(key.getBoundTypeParameters(),key.getArity(),typeManager,FunctionRegistry.this);
+      }
     }
   }
 );

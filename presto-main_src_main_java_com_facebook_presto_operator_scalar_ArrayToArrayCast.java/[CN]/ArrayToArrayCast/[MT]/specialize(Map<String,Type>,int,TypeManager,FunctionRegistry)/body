@@ -2,11 +2,9 @@
   checkArgument(arity == 1,"Expected arity to be 1");
   Type fromType=types.get("F");
   Type toType=types.get("T");
-  ArrayType fromArrayType=(ArrayType)typeManager.getParameterizedType(StandardTypes.ARRAY,ImmutableList.of(fromType.getTypeSignature()),ImmutableList.of());
-  ArrayType toArrayType=(ArrayType)typeManager.getParameterizedType(StandardTypes.ARRAY,ImmutableList.of(toType.getTypeSignature()),ImmutableList.of());
   Signature signature=internalOperator(CAST.name(),toType.getTypeSignature(),ImmutableList.of(fromType.getTypeSignature()));
   ScalarFunctionImplementation function=functionRegistry.getScalarFunctionImplementation(signature);
   Class<?> castOperatorClass=generateArrayCast(typeManager,signature,function);
   MethodHandle methodHandle=methodHandle(castOperatorClass,"castArray",ConnectorSession.class,Block.class);
-  return operatorInfo(CAST,toArrayType.getTypeSignature(),ImmutableList.of(fromArrayType.getTypeSignature()),methodHandle,false,ImmutableList.of(false));
+  return new ScalarFunctionImplementation(false,ImmutableList.of(false),methodHandle,isDeterministic());
 }

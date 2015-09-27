@@ -1,3 +1,13 @@
 {
-  return getExactFunction(internalOperator(operatorType,returnType,argumentTypes)) != null;
+  Signature signature=internalOperator(operatorType,returnType,argumentTypes);
+  try {
+    getScalarFunctionImplementation(signature);
+    return true;
+  }
+ catch (  PrestoException e) {
+    if (e.getErrorCode().getCode() == FUNCTION_IMPLEMENTATION_MISSING.toErrorCode().getCode()) {
+      return false;
+    }
+    throw e;
+  }
 }

@@ -1,7 +1,13 @@
 {
-  FunctionInfo functionInfo=getExactFunction(internalOperator(OperatorType.CAST.name(),toType.getTypeSignature(),ImmutableList.of(fromType.getTypeSignature())));
-  if (functionInfo == null) {
-    throw new OperatorNotFoundException(OperatorType.CAST,ImmutableList.of(fromType),toType);
+  Signature signature=internalOperator(OperatorType.CAST.name(),toType.getTypeSignature(),ImmutableList.of(fromType.getTypeSignature()));
+  try {
+    getScalarFunctionImplementation(signature);
   }
-  return functionInfo.getSignature();
+ catch (  PrestoException e) {
+    if (e.getErrorCode().getCode() == FUNCTION_IMPLEMENTATION_MISSING.toErrorCode().getCode()) {
+      throw new OperatorNotFoundException(OperatorType.CAST,ImmutableList.of(fromType),toType);
+    }
+    throw e;
+  }
+  return signature;
 }
