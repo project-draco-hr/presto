@@ -1,0 +1,50 @@
+{
+  ScalarFunction scalarAnnotation=clazz.getAnnotation(ScalarFunction.class);
+  ScalarOperator operatorAnnotation=clazz.getAnnotation(ScalarOperator.class);
+  Description descriptionAnnotation=clazz.getAnnotation(Description.class);
+  checkArgument(scalarAnnotation != null || operatorAnnotation != null,"Missing parametric annotation");
+  checkArgument(scalarAnnotation == null || operatorAnnotation == null,"%s annotated as both an operator and a function",clazz.getSimpleName());
+  if (scalarAnnotation != null) {
+    requireNonNull(descriptionAnnotation,format("%s missing @Description annotation",clazz.getSimpleName()));
+  }
+  String name;
+  String description=descriptionAnnotation == null ? "" : descriptionAnnotation.value();
+  boolean hidden;
+  boolean deterministic;
+  if (scalarAnnotation != null) {
+    name=scalarAnnotation.value();
+    hidden=scalarAnnotation.hidden();
+    deterministic=scalarAnnotation.deterministic();
+  }
+ else {
+    name=mangleOperatorName(operatorAnnotation.value());
+    hidden=true;
+    deterministic=true;
+  }
+  ImmutableMap.Builder<Signature,Implementation> exactImplementations=ImmutableMap.builder();
+  ImmutableList.Builder<Implementation> specializedImplementations=ImmutableList.builder();
+  ImmutableList.Builder<Implementation> implementations=ImmutableList.builder();
+  Signature signature=null;
+  Map<Set<TypeParameter>,Constructor<?>> constructors=findConstructors(clazz);
+  for (  Method method : findPublicMethodsWithAnnotation(clazz,SqlType.class)) {
+    Implementation implementation=new ImplementationParser(name,method,constructors).get();
+    if (implementation.getSignature().getTypeParameterRequirements().isEmpty()) {
+      exactImplementations.put(implementation.getSignature(),implementation);
+      continue;
+    }
+    if (signature == null) {
+      signature=implementation.getSignature();
+    }
+ else {
+      checkArgument(implementation.getSignature().equals(signature),"Implementations with type parameters must all have matching signatures. %s does not match %s",implementation.getSignature(),signature);
+    }
+    if (implementation.hasSpecializedTypeParameters()) {
+      specializedImplementations.add(implementation);
+    }
+ else {
+      implementations.add(implementation);
+    }
+  }
+  requireNonNull(signature,format("No implementations found for %s",name));
+  return new ReflectionParametricScalar(signature,description,hidden,exactImplementations.build(),specializedImplementations.build(),implementations.build(),deterministic);
+}

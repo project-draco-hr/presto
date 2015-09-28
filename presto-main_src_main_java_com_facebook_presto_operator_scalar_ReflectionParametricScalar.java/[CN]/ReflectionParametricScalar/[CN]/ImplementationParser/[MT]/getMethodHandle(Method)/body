@@ -1,0 +1,23 @@
+{
+  MethodHandle methodHandle;
+  try {
+    methodHandle=lookup().unreflect(method);
+  }
+ catch (  IllegalAccessException e) {
+    throw new PrestoException(FUNCTION_IMPLEMENTATION_ERROR,e);
+  }
+  if (!isStatic(method.getModifiers())) {
+    int[] permutedIndices=new int[methodHandle.type().parameterCount()];
+    permutedIndices[0]=dependencies.size();
+    MethodType newType=methodHandle.type().changeParameterType(dependencies.size(),methodHandle.type().parameterType(0));
+    for (int i=0; i < dependencies.size(); i++) {
+      permutedIndices[i + 1]=i;
+      newType=newType.changeParameterType(i,methodHandle.type().parameterType(i + 1));
+    }
+    for (int i=dependencies.size() + 1; i < permutedIndices.length; i++) {
+      permutedIndices[i]=i;
+    }
+    methodHandle=permuteArguments(methodHandle,newType,permutedIndices);
+  }
+  return methodHandle;
+}
