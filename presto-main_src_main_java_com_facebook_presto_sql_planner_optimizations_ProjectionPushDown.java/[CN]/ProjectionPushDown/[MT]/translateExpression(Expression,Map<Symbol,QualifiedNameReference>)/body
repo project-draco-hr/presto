@@ -1,10 +1,3 @@
 {
-  return ExpressionTreeRewriter.rewriteWith(new ExpressionRewriter<Void>(){
-    @Override public Expression rewriteQualifiedNameReference(    QualifiedNameReference node,    Void context,    ExpressionTreeRewriter<Void> treeRewriter){
-      QualifiedNameReference qualifiedNameReference=symbolMapping.get(Symbol.fromQualifiedName(node.getName()));
-      checkState(qualifiedNameReference != null,"Cannot resolve symbol %s",node.getName());
-      return qualifiedNameReference;
-    }
-  }
-,inputExpression);
+  return ExpressionTreeRewriter.rewriteWith(new ExpressionSymbolInliner(symbolMapping),inputExpression);
 }
