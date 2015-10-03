@@ -1,7 +1,7 @@
 {
   ShardPredicate predicate=ShardPredicate.create(effectivePredicate);
   String sql=format("SELECT shard_uuid, node_ids FROM %s WHERE %s",shardIndexTable(tableId),predicate.getPredicate());
-  dao=dbi.onDemand(ShardManagerDao.class);
+  dao=onDemandDao(dbi,ShardManagerDao.class);
   fetchNodes();
   try {
     connection=dbi.open().getConnection();
@@ -13,6 +13,6 @@
   }
  catch (  SQLException e) {
     close();
-    throw new PrestoException(RAPTOR_ERROR,e);
+    throw metadataError(e);
   }
 }
