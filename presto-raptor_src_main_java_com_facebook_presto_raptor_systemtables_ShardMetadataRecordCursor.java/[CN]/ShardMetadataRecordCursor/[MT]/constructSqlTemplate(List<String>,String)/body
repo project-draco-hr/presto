@@ -1,12 +1,8 @@
 {
   StringBuilder sql=new StringBuilder();
   sql.append("SELECT\n");
-  for (int i=0; i < columnNames.size() - 2; i++) {
-    sql.append(columnNames.get(i) + ",\n");
-  }
-  sql.append("%s AS min_timestamp,\n");
-  sql.append("%s AS max_timestamp\n");
-  sql.append("FROM %s x\n");
+  sql.append(Joiner.on(",\n").join(columnNames));
+  sql.append("\nFROM " + indexTableName + " x\n");
   sql.append("JOIN shards ON (x.shard_id = shards.shard_id)\n");
   sql.append("JOIN tables ON (shards.table_id = tables.table_id)\n");
   return sql.toString();
