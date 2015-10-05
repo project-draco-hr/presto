@@ -5,12 +5,15 @@
   ImmutableList.Builder<String> conjunctsBuilder=ImmutableList.builder();
   Map<Integer,Domain> domainMap=tupleDomain.getDomains();
   for (  Map.Entry<Integer,Domain> entry : domainMap.entrySet()) {
-    conjunctsBuilder.add(toPredicate(entry.getKey(),entry.getValue()));
+    int index=entry.getKey();
+    String columnName=columnNames.get(index);
+    Type type=types.get(index);
+    conjunctsBuilder.add(toPredicate(index,columnName,type,entry.getValue(),uuidColumnIndexes,bindValues));
   }
   List<String> conjuncts=conjunctsBuilder.build();
   if (conjuncts.isEmpty()) {
     return "";
   }
-  StringBuilder where=new StringBuilder("\nWHERE ");
-  return Joiner.on(" AND ").appendTo(where,conjuncts).toString();
+  StringBuilder where=new StringBuilder("WHERE ");
+  return Joiner.on(" AND\n").appendTo(where,conjuncts).toString();
 }

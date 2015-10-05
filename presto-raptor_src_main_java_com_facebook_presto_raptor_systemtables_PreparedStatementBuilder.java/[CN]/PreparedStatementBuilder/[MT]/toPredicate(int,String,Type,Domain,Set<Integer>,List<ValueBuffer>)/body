@@ -1,6 +1,4 @@
 {
-  String columnName=columnsNames.get(columnIndex);
-  Type type=types.get(columnIndex);
   if (domain.getRanges().isNone() && domain.isNullAllowed()) {
     return columnName + " IS NULL";
   }
@@ -17,7 +15,7 @@
  else {
       List<String> rangeConjuncts=new ArrayList<>();
       if (!range.getLow().isLowerUnbounded()) {
-        Object bindValue=getBindValue(columnIndex,range.getLow().getValue());
+        Object bindValue=getBindValue(columnIndex,uuidColumnIndexes,range.getLow().getValue());
 switch (range.getLow().getBound()) {
 case ABOVE:
           rangeConjuncts.add(toBindPredicate(columnName,">"));
@@ -34,7 +32,7 @@ throw new AssertionError("Unhandled bound: " + range.getLow().getBound());
 }
 }
 if (!range.getHigh().isUpperUnbounded()) {
-Object bindValue=getBindValue(columnIndex,range.getHigh().getValue());
+Object bindValue=getBindValue(columnIndex,uuidColumnIndexes,range.getHigh().getValue());
 switch (range.getHigh().getBound()) {
 case ABOVE:
 throw new IllegalStateException("High Marker should never use ABOVE bound: " + range);
@@ -56,12 +54,12 @@ disjuncts.add("(" + Joiner.on(" AND ").join(rangeConjuncts) + ")");
 }
 if (singleValues.size() == 1) {
 disjuncts.add(toBindPredicate(columnName,"="));
-bindValues.add(ValueBuffer.create(columnIndex,type,getBindValue(columnIndex,getOnlyElement(singleValues))));
+bindValues.add(ValueBuffer.create(columnIndex,type,getBindValue(columnIndex,uuidColumnIndexes,getOnlyElement(singleValues))));
 }
  else if (singleValues.size() > 1) {
 disjuncts.add(columnName + " IN (" + Joiner.on(",").join(limit(cycle("?"),singleValues.size()))+ ")");
 for (Comparable<?> singleValue : singleValues) {
-bindValues.add(ValueBuffer.create(columnIndex,type,getBindValue(columnIndex,singleValue)));
+bindValues.add(ValueBuffer.create(columnIndex,type,getBindValue(columnIndex,uuidColumnIndexes,singleValue)));
 }
 }
 checkState(!disjuncts.isEmpty());
