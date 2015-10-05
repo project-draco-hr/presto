@@ -3,7 +3,7 @@
   metadata.createTable(SESSION,tableMetadataBuilder(new SchemaTableName("schema1","foo")).column("orderkey",BIGINT).build());
   TupleDomain<Integer> tupleDomain=TupleDomain.withColumnDomains(ImmutableMap.<Integer,Domain>builder().put(1,Domain.singleValue(utf8Slice("orders"))).build());
   MetadataDao metadataDao=dummyHandle.attach(MetadataDao.class);
-  Set<Long> actual=ImmutableSet.copyOf(ShardMetadataRecordCursor.getTableIds(metadataDao,tupleDomain));
+  Set<Long> actual=ImmutableSet.copyOf(ShardMetadataRecordCursor.getTableIds(dbi,tupleDomain));
   Set<Long> expected=ImmutableSet.of(metadataDao.getTableInformation("other","orders").getTableId(),metadataDao.getTableInformation("test","orders").getTableId());
   assertEquals(actual,expected);
 }
