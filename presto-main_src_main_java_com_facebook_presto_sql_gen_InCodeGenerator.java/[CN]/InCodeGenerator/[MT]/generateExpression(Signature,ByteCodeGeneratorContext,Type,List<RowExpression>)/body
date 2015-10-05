@@ -72,7 +72,7 @@ Binding hashCodeBinding=generatorContext.getCallSiteBinder().bind(hashCodeFuncti
 switchBlock=new ByteCodeBlock().comment("lookupSwitch(hashCode(<stackValue>))").dup(javaType).append(invoke(hashCodeBinding,hashCodeSignature)).longToInt().append(switchBuilder.build()).append(switchCaseBlocks);
 break;
 case SET_CONTAINS:
-Set<?> constantValuesSet=toFastutilHashSet(constantValues,javaType);
+Set<?> constantValuesSet=toFastutilHashSet(constantValues,type,registry);
 Binding constant=generatorContext.getCallSiteBinder().bind(constantValuesSet,constantValuesSet.getClass());
 switchBlock=new ByteCodeBlock().comment("inListSet.contains(<stackValue>)").append(new IfStatement().condition(new ByteCodeBlock().comment("value").dup(javaType).comment("set").append(loadConstant(constant)).invokeStatic(FastutilSetHelper.class,"in",boolean.class,javaType.isPrimitive() ? javaType : Object.class,constantValuesSet.getClass())).ifTrue(jump(match)));
 break;
