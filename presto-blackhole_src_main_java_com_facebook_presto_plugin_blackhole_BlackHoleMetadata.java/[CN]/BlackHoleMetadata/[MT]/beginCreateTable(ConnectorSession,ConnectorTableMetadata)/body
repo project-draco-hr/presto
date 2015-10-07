@@ -2,6 +2,17 @@
   int splitCount=(Integer)tableMetadata.getProperties().get(SPLIT_COUNT_PROPERTY);
   int pagesPerSplit=(Integer)tableMetadata.getProperties().get(PAGES_PER_SPLIT_PROPERTY);
   int rowsPerPage=(Integer)tableMetadata.getProperties().get(ROWS_PER_PAGE_PROPERTY);
-  checkArgument((splitCount > 0 && pagesPerSplit > 0 && rowsPerPage > 0) || (splitCount == 0 && pagesPerSplit == 0 && rowsPerPage == 0),"You have to set all of the properties [%s, %s and %s] or none",SPLIT_COUNT_PROPERTY,PAGES_PER_SPLIT_PROPERTY,ROWS_PER_PAGE_PROPERTY);
+  if (splitCount < 0) {
+    throw new PrestoException(INVALID_TABLE_PROPERTY,SPLIT_COUNT_PROPERTY + " property is negative");
+  }
+  if (pagesPerSplit < 0) {
+    throw new PrestoException(INVALID_TABLE_PROPERTY,PAGES_PER_SPLIT_PROPERTY + " property is negative");
+  }
+  if (rowsPerPage < 0) {
+    throw new PrestoException(INVALID_TABLE_PROPERTY,ROWS_PER_PAGE_PROPERTY + " property is negative");
+  }
+  if (((splitCount > 0) || (pagesPerSplit > 0) || (rowsPerPage > 0)) && ((splitCount == 0) || (pagesPerSplit == 0) || (rowsPerPage == 0))) {
+    throw new PrestoException(INVALID_TABLE_PROPERTY,format("All properties [%s, %s, %s] must be set if any are set",SPLIT_COUNT_PROPERTY,PAGES_PER_SPLIT_PROPERTY,ROWS_PER_PAGE_PROPERTY));
+  }
   return new BlackHoleOutputTableHandle(new BlackHoleTableHandle(tableMetadata,splitCount,pagesPerSplit,rowsPerPage));
 }
