@@ -1,0 +1,43 @@
+{
+  String args=Joiner.on(",").join(nCopies(shardUuids.size(),"?"));
+  ImmutableSet.Builder<Long> shardIdSet=ImmutableSet.builder();
+  ImmutableList.Builder<UUID> shardUuidList=ImmutableList.builder();
+  ImmutableList.Builder<Integer> nodeIdList=ImmutableList.builder();
+  String selectShardNodes=format("SELECT shard_id, shard_uuid, node_ids FROM %s WHERE shard_uuid IN (%s) FOR UPDATE",shardIndexTable(tableId),args);
+  try (PreparedStatement statement=handle.getConnection().prepareStatement(selectShardNodes)){
+    bindUuids(statement,shardUuids);
+    try (ResultSet rs=statement.executeQuery()){
+      while (rs.next()) {
+        shardIdSet.add(rs.getLong("shard_id"));
+        UUID shardUuid=uuidFromBytes(rs.getBytes("shard_uuid"));
+        for (        Integer nodeId : intArrayFromBytes(rs.getBytes("node_ids"))) {
+          shardUuidList.add(shardUuid);
+          nodeIdList.add(nodeId);
+        }
+      }
+    }
+   }
+   Set<Long> shardIds=shardIdSet.build();
+  if (shardIds.size() != shardUuids.size()) {
+    throw transactionConflict();
+  }
+  ShardManagerDao dao=handle.attach(ShardManagerDao.class);
+  dao.insertDeletedShards(shardUuids);
+  dao.insertDeletedShardNodes(shardUuidList.build(),nodeIdList.build());
+  String where=" WHERE shard_id IN (" + args + ")";
+  String deleteFromShardNodes="DELETE FROM shard_nodes " + where;
+  String deleteFromShards="DELETE FROM shards " + where;
+  String deleteFromShardIndex="DELETE FROM " + shardIndexTable(tableId) + where;
+  try (PreparedStatement statement=handle.getConnection().prepareStatement(deleteFromShardNodes)){
+    bindLongs(statement,shardIds);
+    statement.executeUpdate();
+  }
+   for (  String sql : asList(deleteFromShards,deleteFromShardIndex)) {
+    try (PreparedStatement statement=handle.getConnection().prepareStatement(sql)){
+      bindLongs(statement,shardIds);
+      if (statement.executeUpdate() != shardIds.size()) {
+        throw transactionConflict();
+      }
+    }
+   }
+}
