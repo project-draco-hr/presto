@@ -18,8 +18,8 @@ synchronized (HttpPageBufferClient.this) {
       log.error("Request to delete %s failed %s",location,t);
       Duration errorDuration=elapsedErrorDuration();
       if (!(t instanceof PrestoException) && errorDuration.compareTo(minErrorDuration) > 0) {
-        String message=format("%s (%s - requests failed for %s)",WORKER_NODE_ERROR,location,errorDuration);
-        t=new PrestoException(StandardErrorCode.TOO_MANY_REQUESTS_FAILED,message,t);
+        String message=format("Error closing remote buffer (%s - requests failed for %s)",location,errorDuration);
+        t=new PrestoException(REMOTE_BUFFER_CLOSE_FAILED,message,t);
       }
       handleFailure(t);
     }
