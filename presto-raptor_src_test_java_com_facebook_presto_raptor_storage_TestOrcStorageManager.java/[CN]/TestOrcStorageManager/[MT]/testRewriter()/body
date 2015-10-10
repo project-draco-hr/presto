@@ -1,14 +1,16 @@
 {
   OrcStorageManager manager=createOrcStorageManager();
+  long transactionId=TRANSACTION_ID;
   List<Long> columnIds=ImmutableList.of(3L,7L);
   List<Type> columnTypes=ImmutableList.<Type>of(BIGINT,VARCHAR);
   StoragePageSink sink=createStoragePageSink(manager,columnIds,columnTypes);
   List<Page> pages=rowPagesBuilder(columnTypes).row(123,"hello").row(456,"bye").build();
   sink.appendPages(pages);
   List<ShardInfo> shards=sink.commit();
+  assertEquals(shardRecorder.getShards().size(),1);
   BitSet rowsToDelete=new BitSet();
   rowsToDelete.set(0);
-  Collection<Slice> fragments=manager.rewriteShard(shards.get(0).getShardUuid(),rowsToDelete);
+  Collection<Slice> fragments=manager.rewriteShard(transactionId,shards.get(0).getShardUuid(),rowsToDelete);
   Slice shardDelta=Iterables.getOnlyElement(fragments);
   ShardDelta shardDeltas=jsonCodec(ShardDelta.class).fromJson(shardDelta.getBytes());
   ShardInfo shardInfo=Iterables.getOnlyElement(shardDeltas.getNewShards());
@@ -16,4 +18,9 @@
   File storageFile=storageService.getStorageFile(shardInfo.getShardUuid());
   File backupFile=fileBackupStore.getBackupFile(shardInfo.getShardUuid());
   assertFileEquals(storageFile,backupFile);
+  List<RecordedShard> recordedShards=shardRecorder.getShards();
+  assertEquals(recordedShards.size(),2);
+  assertEquals(recordedShards.get(1).getTransactionId(),TRANSACTION_ID);
+  assertEquals(recordedShards.get(1).getShardUuid(),shardInfo.getShardUuid());
+  assertEquals(recordedShards.get(1).getNodeIdentifier(),CURRENT_NODE);
 }
