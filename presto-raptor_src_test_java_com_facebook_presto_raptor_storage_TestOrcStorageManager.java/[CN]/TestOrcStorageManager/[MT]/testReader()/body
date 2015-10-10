@@ -4,7 +4,7 @@
   List<Type> columnTypes=ImmutableList.<Type>of(BIGINT,VARCHAR,VARBINARY,DATE,BOOLEAN,DOUBLE);
   byte[] bytes1=octets(0x00,0xFE,0xFF);
   byte[] bytes3=octets(0x01,0x02,0x19,0x80);
-  StoragePageSink sink=manager.createStoragePageSink(columnIds,columnTypes);
+  StoragePageSink sink=createStoragePageSink(manager,columnIds,columnTypes);
   Object[][] doubles={{881,"-inf",null,null,null,Double.NEGATIVE_INFINITY},{882,"+inf",null,null,null,Double.POSITIVE_INFINITY},{883,"nan",null,null,null,Double.NaN},{884,"min",null,null,null,Double.MIN_VALUE},{885,"max",null,null,null,Double.MAX_VALUE},{886,"pzero",null,null,null,0.0},{887,"nzero",null,null,null,-0.0}};
   List<Page> pages=rowPagesBuilder(columnTypes).row(123,"hello",wrappedBuffer(bytes1),sqlDate(2001,8,22).getDays(),true,123.45).row(null,null,null,null,null,null).row(456,"bye",wrappedBuffer(bytes3),sqlDate(2005,4,22).getDays(),false,987.65).rows(doubles).build();
   sink.appendPages(pages);
