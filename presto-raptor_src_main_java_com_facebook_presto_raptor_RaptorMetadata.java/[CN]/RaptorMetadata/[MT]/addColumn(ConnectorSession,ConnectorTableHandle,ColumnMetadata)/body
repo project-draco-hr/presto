@@ -1,0 +1,9 @@
+{
+  RaptorTableHandle table=checkType(tableHandle,RaptorTableHandle.class,"tableHandle");
+  List<TableColumn> existingColumns=dao.listTableColumns(table.getSchemaName(),table.getTableName());
+  TableColumn lastColumn=existingColumns.get(existingColumns.size() - 1);
+  long columnId=lastColumn.getColumnId() + 1;
+  int ordinalPosition=existingColumns.size();
+  dao.insertColumn(table.getTableId(),columnId,column.getName(),ordinalPosition,column.getType().getTypeSignature().toString(),null);
+  shardManager.addColumn(table.getTableId(),new ColumnInfo(columnId,column.getType()));
+}
