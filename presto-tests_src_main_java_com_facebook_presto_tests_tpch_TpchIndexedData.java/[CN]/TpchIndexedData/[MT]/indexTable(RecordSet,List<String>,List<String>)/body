@@ -1,20 +1,2 @@
 {
-  List<Integer> keyPositions=FluentIterable.from(keyColumns).transform(new Function<String,Integer>(){
-    @Override public Integer apply(    String columnName){
-      int position=outputColumns.indexOf(columnName);
-      checkState(position != -1);
-      return position;
-    }
-  }
-).toList();
-  ImmutableListMultimap.Builder<MaterializedTuple,MaterializedTuple> indexedValuesBuilder=ImmutableListMultimap.builder();
-  List<Type> outputTypes=recordSet.getColumnTypes();
-  List<Type> keyTypes=extractPositionValues(outputTypes,keyPositions);
-  RecordCursor cursor=recordSet.cursor();
-  while (cursor.advanceNextPosition()) {
-    List<Object> values=extractValues(cursor,outputTypes);
-    List<Object> keyValues=extractPositionValues(values,keyPositions);
-    indexedValuesBuilder.put(new MaterializedTuple(keyValues),new MaterializedTuple(values));
-  }
-  return new IndexedTable(keyColumns,keyTypes,outputColumns,outputTypes,indexedValuesBuilder.build());
 }
