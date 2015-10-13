@@ -13,12 +13,12 @@
     context.addDriverFactory(new DriverFactory(intermediateContext.isInputDriver(),false,factories));
     OperatorFactory exchangeSource=createRandomDistribution(context.getNextOperatorId(),exchange);
     source=new PhysicalOperation(exchangeSource,source.getLayout());
-    return planGroupByAggregation(node,source,context,Optional.empty());
+    return planGroupByAggregation(node,source,context.getNextOperatorId(),Optional.empty());
   }
   int aggregationConcurrency=getTaskAggregationConcurrency(session);
   if (node.getStep() == Step.PARTIAL || !context.isAllowLocalParallel() || context.getDriverInstanceCount() > 1 || aggregationConcurrency <= 1) {
     PhysicalOperation source=node.getSource().accept(this,context);
-    return planGroupByAggregation(node,source,context,Optional.empty());
+    return planGroupByAggregation(node,source,context.getNextOperatorId(),Optional.empty());
   }
   LocalExecutionPlanContext parallelContext=context.createSubContext();
   parallelContext.setDriverInstanceCount(aggregationConcurrency);
@@ -34,7 +34,7 @@
   HashPartitionMaskOperatorFactory hashPartitionMask=new HashPartitionMaskOperatorFactory(parallelContext.getNextOperatorId(),aggregationConcurrency,exchangeSource.getTypes(),getChannelsForSymbols(ImmutableList.copyOf(node.getMasks().values()),source.getLayout()),getChannelsForSymbols(ImmutableList.copyOf(node.getGroupBy()),source.getLayout()),node.getHashSymbol().map(channelGetter(source)));
   int defaultMaskChannel=hashPartitionMask.getDefaultMaskChannel();
   source=new PhysicalOperation(hashPartitionMask,source.getLayout(),source);
-  PhysicalOperation operation=planGroupByAggregation(node,source,parallelContext,Optional.of(defaultMaskChannel));
+  PhysicalOperation operation=planGroupByAggregation(node,source,parallelContext.getNextOperatorId(),Optional.of(defaultMaskChannel));
   operation=addInMemoryExchange(context,operation,parallelContext);
   return operation;
 }
