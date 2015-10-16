@@ -3,5 +3,12 @@
     ParsingException e=(ParsingException)throwable;
     return new ErrorLocation(e.getLineNumber(),e.getColumnNumber());
   }
+ else   if (throwable instanceof SemanticException) {
+    SemanticException e=(SemanticException)throwable;
+    if (e.getNode().getLocation().isPresent()) {
+      NodeLocation nodeLocation=e.getNode().getLocation().get();
+      return new ErrorLocation(nodeLocation.getLineNumber(),nodeLocation.getColumnNumber());
+    }
+  }
   return null;
 }

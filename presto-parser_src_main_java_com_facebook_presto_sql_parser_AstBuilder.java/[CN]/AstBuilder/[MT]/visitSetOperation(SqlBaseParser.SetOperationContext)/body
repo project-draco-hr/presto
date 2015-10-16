@@ -4,11 +4,11 @@
   boolean distinct=context.setQuantifier() == null || context.setQuantifier().DISTINCT() != null;
 switch (context.operator.getType()) {
 case SqlBaseLexer.UNION:
-    return new Union(ImmutableList.of(left,right),distinct);
+    return new Union(getLocation(context.UNION()),ImmutableList.of(left,right),distinct);
 case SqlBaseLexer.INTERSECT:
-  return new Intersect(ImmutableList.of(left,right),distinct);
+  return new Intersect(getLocation(context.INTERSECT()),ImmutableList.of(left,right),distinct);
 case SqlBaseLexer.EXCEPT:
-return new Except(left,right,distinct);
+return new Except(getLocation(context.EXCEPT()),left,right,distinct);
 }
 throw new IllegalArgumentException("Unsupported set operation: " + context.operator.getText());
 }
