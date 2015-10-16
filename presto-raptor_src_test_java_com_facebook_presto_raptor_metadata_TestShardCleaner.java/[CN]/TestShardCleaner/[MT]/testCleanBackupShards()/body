@@ -1,0 +1,18 @@
+{
+  TestingDao dao=dbi.onDemand(TestingDao.class);
+  UUID shard1=randomUUID();
+  UUID shard2=randomUUID();
+  UUID shard3=randomUUID();
+  long now=System.currentTimeMillis();
+  Timestamp time1=new Timestamp(now - HOURS.toMillis(25));
+  Timestamp time2=new Timestamp(now - HOURS.toMillis(23));
+  dao.insertDeletedShard(shard1,time1);
+  dao.insertDeletedShard(shard2,time1);
+  dao.insertDeletedShard(shard3,time2);
+  createShardBackups(shard1,shard2,shard3);
+  cleaner.cleanBackupShards();
+  assertFalse(shardBackupExists(shard1));
+  assertFalse(shardBackupExists(shard2));
+  assertTrue(shardBackupExists(shard3));
+  assertQuery("SELECT shard_uuid, clean_time IS NULL FROM deleted_shards",row(shard1,false),row(shard2,false),row(shard3,true));
+}

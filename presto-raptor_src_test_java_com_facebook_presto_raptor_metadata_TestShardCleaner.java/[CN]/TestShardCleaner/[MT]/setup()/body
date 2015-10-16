@@ -1,0 +1,14 @@
+{
+  dbi=new DBI("jdbc:h2:mem:test" + System.nanoTime());
+  dummyHandle=dbi.open();
+  createTablesWithRetry(dbi);
+  temporary=createTempDir();
+  File directory=new File(temporary,"data");
+  storageService=new FileStorageService(directory);
+  storageService.start();
+  File backupDirectory=new File(temporary,"backup");
+  backupStore=new FileBackupStore(backupDirectory);
+  ((FileBackupStore)backupStore).start();
+  ShardCleanerConfig config=new ShardCleanerConfig();
+  cleaner=new ShardCleaner(dbi,"node1",true,storageService,Optional.of(backupStore),config.getMaxTransactionAge(),config.getLocalCleanerInterval(),config.getLocalCleanTime(),config.getLocalPurgeTime(),config.getBackupCleanerInterval(),config.getBackupCleanTime(),config.getBackupPurgeTime(),config.getBackupDeletionThreads());
+}

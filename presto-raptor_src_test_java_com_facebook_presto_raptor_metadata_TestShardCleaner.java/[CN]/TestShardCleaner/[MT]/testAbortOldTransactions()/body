@@ -1,0 +1,12 @@
+{
+  TestingDao dao=dbi.onDemand(TestingDao.class);
+  long now=System.currentTimeMillis();
+  long txn1=dao.insertTransaction(new Timestamp(now - HOURS.toMillis(26)));
+  long txn2=dao.insertTransaction(new Timestamp(now - HOURS.toMillis(25)));
+  long txn3=dao.insertTransaction(new Timestamp(now));
+  ShardManagerDao shardDao=dbi.onDemand(ShardManagerDao.class);
+  assertEquals(shardDao.finalizeTransaction(txn1,true),1);
+  assertQuery("SELECT transaction_id, successful FROM transactions",row(txn1,true),row(txn2,null),row(txn3,null));
+  cleaner.abortOldTransactions();
+  assertQuery("SELECT transaction_id, successful FROM transactions",row(txn1,true),row(txn2,false),row(txn3,null));
+}

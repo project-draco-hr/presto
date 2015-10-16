@@ -1,0 +1,12 @@
+{
+  while (!Thread.currentThread().isInterrupted()) {
+    List<UUID> uuids=dao.getPurgableShardNodesBatch(currentNode,maxTimestamp(localPurgeTime));
+    if (uuids.isEmpty()) {
+      break;
+    }
+    for (    UUID uuid : uuids) {
+      deleteFile(storageService.getStorageFile(uuid));
+    }
+    dao.updatePurgedShardNodes(uuids);
+  }
+}

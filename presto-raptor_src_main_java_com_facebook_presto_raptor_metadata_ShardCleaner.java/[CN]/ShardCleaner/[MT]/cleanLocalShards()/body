@@ -1,0 +1,12 @@
+{
+  while (!Thread.currentThread().isInterrupted()) {
+    List<UUID> uuids=dao.getCleanableShardNodesBatch(currentNode,maxTimestamp(localCleanTime));
+    if (uuids.isEmpty()) {
+      break;
+    }
+    for (    UUID uuid : uuids) {
+      deleteFile(storageService.getStorageFile(uuid));
+    }
+    dao.updateCleanedShardNodes(uuids);
+  }
+}
