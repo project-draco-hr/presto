@@ -1,0 +1,10 @@
+{
+  List<PlanNode> children=new ArrayList<>(node.getSources().size());
+  List<P> payloads=new ArrayList<>(node.getSources().size());
+  for (  PlanNode source : node.getSources()) {
+    Result<P> result=rewrite(source,context);
+    children.add(result.getPlanNode());
+    payloads.add(result.getPayload());
+  }
+  return new Result<>(ChildReplacer.replaceChildren(node,children),payloadCombiner.apply(payloads));
+}
