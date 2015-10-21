@@ -1,6 +1,13 @@
 {
   AWSCredentialsProvider credentials=getAwsCredentialsProvider(uri,hadoopConfig);
-  AmazonS3Client client=new AmazonS3Client(credentials,clientConfig,METRIC_COLLECTOR);
+  EncryptionMaterialsProvider emp=createEncryptionMaterialsProvider(hadoopConfig);
+  AmazonS3Client client;
+  if (emp != null) {
+    client=new AmazonS3EncryptionClient(credentials,emp,clientConfig,new CryptoConfiguration(),METRIC_COLLECTOR);
+  }
+ else {
+    client=new AmazonS3Client(credentials,clientConfig,METRIC_COLLECTOR);
+  }
   if (pinS3ClientToCurrentRegion) {
     Region region=Regions.getCurrentRegion();
     if (region != null) {
