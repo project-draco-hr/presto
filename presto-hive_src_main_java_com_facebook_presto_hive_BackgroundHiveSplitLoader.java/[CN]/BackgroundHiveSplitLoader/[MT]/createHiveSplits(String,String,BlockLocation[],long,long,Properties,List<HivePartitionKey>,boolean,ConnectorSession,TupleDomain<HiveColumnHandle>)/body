@@ -5,17 +5,25 @@
     for (    BlockLocation blockLocation : blockLocations) {
       List<HostAddress> addresses=toHostAddress(blockLocation.getHosts());
       long maxBytes=maxSplitSize.toBytes();
+      boolean creatingInitialSplits=false;
       if (remainingInitialSplits.get() > 0) {
         maxBytes=maxInitialSplitSize.toBytes();
+        creatingInitialSplits=true;
       }
       int chunks=Math.max(1,(int)(blockLocation.getLength() / maxBytes));
       long targetChunkSize=(long)Math.ceil(blockLocation.getLength() * 1.0 / chunks);
       long chunkOffset=0;
       while (chunkOffset < blockLocation.getLength()) {
+        if (remainingInitialSplits.decrementAndGet() < 0 && creatingInitialSplits) {
+          creatingInitialSplits=false;
+          maxBytes=maxSplitSize.toBytes();
+          long remainingLength=blockLocation.getLength() - chunkOffset;
+          chunks=Math.max(1,(int)(remainingLength / maxBytes));
+          targetChunkSize=(long)Math.ceil(remainingLength * 1.0 / chunks);
+        }
         long chunkLength=Math.min(targetChunkSize,blockLocation.getLength() - chunkOffset);
         builder.add(new HiveSplit(connectorId,table.getDbName(),table.getTableName(),partitionName,path,blockLocation.getOffset() + chunkOffset,chunkLength,schema,partitionKeys,addresses,forceLocalScheduling,effectivePredicate));
         chunkOffset+=chunkLength;
-        remainingInitialSplits.decrementAndGet();
       }
       checkState(chunkOffset == blockLocation.getLength(),"Error splitting blocks");
     }
