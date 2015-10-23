@@ -1,11 +1,12 @@
 {
-  final ObjectMapper mapper=new ObjectMapper();
-  mapper.registerModule(new SimpleModule().addDeserializer(ColumnHandle.class,new JsonDeserializer<ColumnHandle>(){
+  TestingTypeManager typeManager=new TestingTypeManager();
+  TestingBlockEncodingSerde blockEncodingSerde=new TestingBlockEncodingSerde(typeManager);
+  ObjectMapper mapper=new ObjectMapperProvider().get().registerModule(new SimpleModule().addDeserializer(ColumnHandle.class,new JsonDeserializer<ColumnHandle>(){
     @Override public ColumnHandle deserialize(    JsonParser jsonParser,    DeserializationContext deserializationContext) throws IOException {
-      return mapper.readValue(jsonParser,TestingColumnHandle.class);
+      return new ObjectMapperProvider().get().readValue(jsonParser,TestingColumnHandle.class);
     }
   }
-));
+).addDeserializer(Type.class,new TestingTypeDeserializer(typeManager)).addSerializer(Block.class,new TestingBlockJsonSerde.Serializer(blockEncodingSerde)).addDeserializer(Block.class,new TestingBlockJsonSerde.Deserializer(blockEncodingSerde)));
   TupleDomain<ColumnHandle> tupleDomain=TupleDomain.all();
   Assert.assertEquals(tupleDomain,mapper.readValue(mapper.writeValueAsString(tupleDomain),new TypeReference<TupleDomain<ColumnHandle>>(){
   }
@@ -14,7 +15,7 @@
   Assert.assertEquals(tupleDomain,mapper.readValue(mapper.writeValueAsString(tupleDomain),new TypeReference<TupleDomain<ColumnHandle>>(){
   }
 ));
-  tupleDomain=TupleDomain.withFixedValues(ImmutableMap.<ColumnHandle,Comparable<?>>of(A,1L,B,"abc"));
+  tupleDomain=TupleDomain.fromFixedValues(ImmutableMap.of(A,NullableValue.of(BIGINT,1L),B,NullableValue.asNull(VARCHAR)));
   Assert.assertEquals(tupleDomain,mapper.readValue(mapper.writeValueAsString(tupleDomain),new TypeReference<TupleDomain<ColumnHandle>>(){
   }
 ));

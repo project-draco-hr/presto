@@ -10,14 +10,14 @@
     return super.visitComparisonExpression(node,complement);
   }
   Symbol symbol=Symbol.fromQualifiedName(((QualifiedNameReference)node.getLeft()).getName());
-  Type columnType=checkedTypeLookup(symbol);
+  Type type=checkedTypeLookup(symbol);
   Object value=LiteralInterpreter.evaluate(metadata,session,node.getRight());
-  if (value instanceof Double && columnType.equals(BIGINT)) {
+  if (value instanceof Double && type.equals(BIGINT)) {
     return process(coerceDoubleToLongComparison(node),complement);
   }
-  if (value instanceof Long && columnType.equals(DoubleType.DOUBLE)) {
+  if (value instanceof Long && type.equals(DoubleType.DOUBLE)) {
     value=((Long)value).doubleValue();
   }
-  verifyType(columnType,value);
-  return createComparisonExtractionResult(node.getType(),symbol,columnType,objectToComparable(value),complement);
+  verifyType(type,value);
+  return createComparisonExtractionResult(node.getType(),symbol,type,value,complement);
 }

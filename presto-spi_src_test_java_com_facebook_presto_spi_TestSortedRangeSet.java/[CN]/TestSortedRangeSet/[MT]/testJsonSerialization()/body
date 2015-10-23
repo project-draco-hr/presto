@@ -1,11 +1,13 @@
 {
-  ObjectMapper mapper=new ObjectMapper();
-  SortedRangeSet set=SortedRangeSet.all(Long.class);
+  TestingTypeManager typeManager=new TestingTypeManager();
+  TestingBlockEncodingSerde blockEncodingSerde=new TestingBlockEncodingSerde(typeManager);
+  ObjectMapper mapper=new ObjectMapperProvider().get().registerModule(new SimpleModule().addDeserializer(Type.class,new TestingTypeDeserializer(typeManager)).addSerializer(Block.class,new TestingBlockJsonSerde.Serializer(blockEncodingSerde)).addDeserializer(Block.class,new TestingBlockJsonSerde.Deserializer(blockEncodingSerde)));
+  SortedRangeSet set=SortedRangeSet.all(BIGINT);
   Assert.assertEquals(set,mapper.readValue(mapper.writeValueAsString(set),SortedRangeSet.class));
-  set=SortedRangeSet.none(Double.class);
+  set=SortedRangeSet.none(DOUBLE);
   Assert.assertEquals(set,mapper.readValue(mapper.writeValueAsString(set),SortedRangeSet.class));
-  set=SortedRangeSet.singleValue("abc");
+  set=SortedRangeSet.of(VARCHAR,utf8Slice("abc"));
   Assert.assertEquals(set,mapper.readValue(mapper.writeValueAsString(set),SortedRangeSet.class));
-  set=SortedRangeSet.of(Range.equal(true),Range.equal(false));
+  set=SortedRangeSet.of(Range.equal(BOOLEAN,true),Range.equal(BOOLEAN,false));
   Assert.assertEquals(set,mapper.readValue(mapper.writeValueAsString(set),SortedRangeSet.class));
 }

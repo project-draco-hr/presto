@@ -6,8 +6,8 @@
   String testString="test";
   Long testInt=13L;
   Long testSmallint=12L;
-  ImmutableMap<ColumnHandle,SerializableNativeValue> bindings=ImmutableMap.<ColumnHandle,SerializableNativeValue>builder().put(columnHandles.get(columnIndex.get("t_int")),new SerializableNativeValue(Long.class,testInt)).put(columnHandles.get(columnIndex.get("t_string")),new SerializableNativeValue(Slice.class,utf8Slice(testString))).put(columnHandles.get(columnIndex.get("t_smallint")),new SerializableNativeValue(Long.class,testSmallint)).build();
-  MaterializedResult result=readTable(tableHandle,columnHandles,SESSION,TupleDomain.withNullableFixedValues(bindings),OptionalInt.of(1),Optional.empty());
+  ImmutableMap<ColumnHandle,NullableValue> bindings=ImmutableMap.<ColumnHandle,NullableValue>builder().put(columnHandles.get(columnIndex.get("t_int")),NullableValue.of(BIGINT,testInt)).put(columnHandles.get(columnIndex.get("t_string")),NullableValue.of(VARCHAR,utf8Slice(testString))).put(columnHandles.get(columnIndex.get("t_smallint")),NullableValue.of(BIGINT,testSmallint)).build();
+  MaterializedResult result=readTable(tableHandle,columnHandles,SESSION,TupleDomain.fromFixedValues(bindings),OptionalInt.of(1),Optional.empty());
   boolean rowFound=false;
   for (  MaterializedRow row : result) {
     if (testString.equals(row.getField(columnIndex.get("t_string"))) && testInt.equals(row.getField(columnIndex.get("t_int"))) && testSmallint.equals(row.getField(columnIndex.get("t_smallint")))) {

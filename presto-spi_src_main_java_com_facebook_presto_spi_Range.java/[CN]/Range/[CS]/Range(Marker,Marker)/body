@@ -1,14 +1,14 @@
 {
-  Objects.requireNonNull(low,"value is null");
-  Objects.requireNonNull(high,"value is null");
+  requireNonNull(low,"value is null");
+  requireNonNull(high,"value is null");
   if (!low.getType().equals(high.getType())) {
     throw new IllegalArgumentException(String.format("Marker types do not match: %s vs %s",low.getType(),high.getType()));
   }
-  if (low.isUpperUnbounded()) {
-    throw new IllegalArgumentException("low cannot be upper unbounded");
+  if (low.getBound() == Marker.Bound.BELOW) {
+    throw new IllegalArgumentException("low bound must be EXACTLY or ABOVE");
   }
-  if (high.isLowerUnbounded()) {
-    throw new IllegalArgumentException("high cannot be lower unbounded");
+  if (high.getBound() == Marker.Bound.ABOVE) {
+    throw new IllegalArgumentException("high bound must be EXACTLY or BELOW");
   }
   if (low.compareTo(high) > 0) {
     throw new IllegalArgumentException("low must be less than or equal to high");

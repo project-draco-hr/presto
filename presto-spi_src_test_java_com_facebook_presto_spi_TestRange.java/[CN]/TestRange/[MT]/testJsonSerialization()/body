@@ -1,15 +1,17 @@
 {
-  ObjectMapper mapper=new ObjectMapper();
-  Range range=Range.all(Long.class);
+  TestingTypeManager typeManager=new TestingTypeManager();
+  TestingBlockEncodingSerde blockEncodingSerde=new TestingBlockEncodingSerde(typeManager);
+  ObjectMapper mapper=new ObjectMapperProvider().get().registerModule(new SimpleModule().addDeserializer(Type.class,new TestingTypeDeserializer(typeManager)).addSerializer(Block.class,new TestingBlockJsonSerde.Serializer(blockEncodingSerde)).addDeserializer(Block.class,new TestingBlockJsonSerde.Deserializer(blockEncodingSerde)));
+  Range range=Range.all(BIGINT);
   Assert.assertEquals(range,mapper.readValue(mapper.writeValueAsString(range),Range.class));
-  range=Range.equal(0.123);
+  range=Range.equal(DOUBLE,0.123);
   Assert.assertEquals(range,mapper.readValue(mapper.writeValueAsString(range),Range.class));
-  range=Range.greaterThan(0L);
+  range=Range.greaterThan(BIGINT,0L);
   Assert.assertEquals(range,mapper.readValue(mapper.writeValueAsString(range),Range.class));
-  range=Range.greaterThanOrEqual("abc");
+  range=Range.greaterThanOrEqual(VARCHAR,utf8Slice("abc"));
   Assert.assertEquals(range,mapper.readValue(mapper.writeValueAsString(range),Range.class));
-  range=Range.lessThan(Long.MAX_VALUE);
+  range=Range.lessThan(BIGINT,Long.MAX_VALUE);
   Assert.assertEquals(range,mapper.readValue(mapper.writeValueAsString(range),Range.class));
-  range=Range.lessThanOrEqual(Double.MAX_VALUE);
+  range=Range.lessThanOrEqual(DOUBLE,Double.MAX_VALUE);
   Assert.assertEquals(range,mapper.readValue(mapper.writeValueAsString(range),Range.class));
 }

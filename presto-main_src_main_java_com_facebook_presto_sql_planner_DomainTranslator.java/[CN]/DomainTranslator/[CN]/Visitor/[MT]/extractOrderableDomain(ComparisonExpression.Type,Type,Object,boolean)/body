@@ -1,0 +1,21 @@
+{
+  checkArgument(value != null);
+switch (comparisonType) {
+case EQUAL:
+    return Domain.create(complementIfNecessary(ValueSet.ofRanges(Range.equal(type,value)),complement),false);
+case GREATER_THAN:
+  return Domain.create(complementIfNecessary(ValueSet.ofRanges(Range.greaterThan(type,value)),complement),false);
+case GREATER_THAN_OR_EQUAL:
+return Domain.create(complementIfNecessary(ValueSet.ofRanges(Range.greaterThanOrEqual(type,value)),complement),false);
+case LESS_THAN:
+return Domain.create(complementIfNecessary(ValueSet.ofRanges(Range.lessThan(type,value)),complement),false);
+case LESS_THAN_OR_EQUAL:
+return Domain.create(complementIfNecessary(ValueSet.ofRanges(Range.lessThanOrEqual(type,value)),complement),false);
+case NOT_EQUAL:
+return Domain.create(complementIfNecessary(ValueSet.ofRanges(Range.lessThan(type,value),Range.greaterThan(type,value)),complement),false);
+case IS_DISTINCT_FROM:
+return complementIfNecessary(Domain.create(ValueSet.ofRanges(Range.lessThan(type,value),Range.greaterThan(type,value)),true),complement);
+default :
+throw new AssertionError("Unhandled type: " + comparisonType);
+}
+}

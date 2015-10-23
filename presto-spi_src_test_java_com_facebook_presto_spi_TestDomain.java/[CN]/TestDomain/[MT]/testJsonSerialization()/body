@@ -1,15 +1,23 @@
 {
-  ObjectMapper mapper=new ObjectMapper();
-  Domain domain=Domain.all(Long.class);
+  TestingTypeManager typeManager=new TestingTypeManager();
+  TestingBlockEncodingSerde blockEncodingSerde=new TestingBlockEncodingSerde(typeManager);
+  ObjectMapper mapper=new ObjectMapperProvider().get().registerModule(new SimpleModule().addDeserializer(Type.class,new TestingTypeDeserializer(typeManager)).addSerializer(Block.class,new TestingBlockJsonSerde.Serializer(blockEncodingSerde)).addDeserializer(Block.class,new TestingBlockJsonSerde.Deserializer(blockEncodingSerde)));
+  Domain domain=Domain.all(BIGINT);
   Assert.assertEquals(domain,mapper.readValue(mapper.writeValueAsString(domain),Domain.class));
-  domain=Domain.none(Double.class);
+  domain=Domain.none(DOUBLE);
   Assert.assertEquals(domain,mapper.readValue(mapper.writeValueAsString(domain),Domain.class));
-  domain=Domain.notNull(Boolean.class);
+  domain=Domain.notNull(BOOLEAN);
   Assert.assertEquals(domain,mapper.readValue(mapper.writeValueAsString(domain),Domain.class));
-  domain=Domain.onlyNull(String.class);
+  domain=Domain.notNull(HYPER_LOG_LOG);
   Assert.assertEquals(domain,mapper.readValue(mapper.writeValueAsString(domain),Domain.class));
-  domain=Domain.singleValue(Long.MIN_VALUE);
+  domain=Domain.onlyNull(VARCHAR);
   Assert.assertEquals(domain,mapper.readValue(mapper.writeValueAsString(domain),Domain.class));
-  domain=Domain.create(SortedRangeSet.of(Range.lessThan(0L),Range.equal(1L),Range.range(2L,true,3L,true)),true);
+  domain=Domain.onlyNull(HYPER_LOG_LOG);
+  Assert.assertEquals(domain,mapper.readValue(mapper.writeValueAsString(domain),Domain.class));
+  domain=Domain.singleValue(BIGINT,Long.MIN_VALUE);
+  Assert.assertEquals(domain,mapper.readValue(mapper.writeValueAsString(domain),Domain.class));
+  domain=Domain.singleValue(ID,Long.MIN_VALUE);
+  Assert.assertEquals(domain,mapper.readValue(mapper.writeValueAsString(domain),Domain.class));
+  domain=Domain.create(ValueSet.ofRanges(Range.lessThan(BIGINT,0L),Range.equal(BIGINT,1L),Range.range(BIGINT,2L,true,3L,true)),true);
   Assert.assertEquals(domain,mapper.readValue(mapper.writeValueAsString(domain),Domain.class));
 }

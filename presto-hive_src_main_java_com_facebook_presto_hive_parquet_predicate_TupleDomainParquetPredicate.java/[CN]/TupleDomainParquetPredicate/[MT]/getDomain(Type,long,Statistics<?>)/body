@@ -1,27 +1,26 @@
 {
-  Class<?> boxedJavaType=Primitives.wrap(type.getJavaType());
   if (statistics == null || statistics.isEmpty() || !(Comparable.class.isAssignableFrom(type.getJavaType()))) {
     return null;
   }
   if (statistics.getNumNulls() == rowCount) {
-    return Domain.onlyNull(boxedJavaType);
+    return Domain.onlyNull(type);
   }
   boolean hasNullValue=statistics.getNumNulls() != 0L;
-  if (boxedJavaType == Boolean.class && statistics instanceof BooleanStatistics) {
+  if (type.equals(BOOLEAN) && statistics instanceof BooleanStatistics) {
     BooleanStatistics booleanStatistics=(BooleanStatistics)statistics;
     boolean hasTrueValues=!(booleanStatistics.getMax() == false && booleanStatistics.getMin() == false);
     boolean hasFalseValues=!(booleanStatistics.getMax() == true && booleanStatistics.getMin() == true);
     if (hasTrueValues && hasFalseValues) {
-      return Domain.all(Boolean.class);
+      return Domain.all(type);
     }
     if (hasTrueValues) {
-      return Domain.create(SortedRangeSet.singleValue(true),hasNullValue);
+      return Domain.create(ValueSet.of(type,true),hasNullValue);
     }
     if (hasFalseValues) {
-      return Domain.create(SortedRangeSet.singleValue(false),hasNullValue);
+      return Domain.create(ValueSet.of(type,false),hasNullValue);
     }
   }
- else   if (boxedJavaType == Long.class && (statistics instanceof LongStatistics || statistics instanceof IntStatistics)) {
+ else   if (type.equals(BIGINT) && (statistics instanceof LongStatistics || statistics instanceof IntStatistics)) {
     ParquetIntegerStatistics parquetIntegerStatistics;
     if (statistics instanceof LongStatistics) {
       LongStatistics longStatistics=(LongStatistics)statistics;
@@ -31,9 +30,9 @@
       IntStatistics intStatistics=(IntStatistics)statistics;
       parquetIntegerStatistics=new ParquetIntegerStatistics((long)intStatistics.getMin(),(long)intStatistics.getMax());
     }
-    return createDomain(boxedJavaType,hasNullValue,parquetIntegerStatistics);
+    return createDomain(type,hasNullValue,parquetIntegerStatistics);
   }
- else   if (boxedJavaType == Double.class && (statistics instanceof DoubleStatistics || statistics instanceof FloatStatistics)) {
+ else   if (type.equals(DOUBLE) && (statistics instanceof DoubleStatistics || statistics instanceof FloatStatistics)) {
     ParquetDoubleStatistics parquetDoubleStatistics;
     if (statistics instanceof DoubleStatistics) {
       DoubleStatistics doubleStatistics=(DoubleStatistics)statistics;
@@ -43,12 +42,12 @@
       FloatStatistics floatStatistics=(FloatStatistics)statistics;
       parquetDoubleStatistics=new ParquetDoubleStatistics((double)floatStatistics.getMin(),(double)floatStatistics.getMax());
     }
-    return createDomain(boxedJavaType,hasNullValue,parquetDoubleStatistics);
+    return createDomain(type,hasNullValue,parquetDoubleStatistics);
   }
- else   if (boxedJavaType == Slice.class && statistics instanceof BinaryStatistics) {
+ else   if (type.equals(VARCHAR) && statistics instanceof BinaryStatistics) {
     BinaryStatistics binaryStatistics=(BinaryStatistics)statistics;
     ParquetStringStatistics parquetStringStatistics=new ParquetStringStatistics(Slices.wrappedBuffer(binaryStatistics.getMin().getBytes()),Slices.wrappedBuffer(binaryStatistics.getMax().getBytes()));
-    return createDomain(boxedJavaType,hasNullValue,parquetStringStatistics);
+    return createDomain(type,hasNullValue,parquetStringStatistics);
   }
-  return Domain.create(SortedRangeSet.all(boxedJavaType),hasNullValue);
+  return Domain.create(ValueSet.all(type),hasNullValue);
 }

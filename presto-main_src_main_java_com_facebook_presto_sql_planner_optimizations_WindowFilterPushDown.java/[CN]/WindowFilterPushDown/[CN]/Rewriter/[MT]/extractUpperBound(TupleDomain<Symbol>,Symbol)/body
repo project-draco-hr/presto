@@ -2,19 +2,19 @@
   if (tupleDomain.isNone()) {
     return OptionalInt.empty();
   }
-  Domain rowNumberDomain=tupleDomain.getDomains().get(symbol);
+  Domain rowNumberDomain=tupleDomain.getDomains().get().get(symbol);
   if (rowNumberDomain == null) {
     return OptionalInt.empty();
   }
-  SortedRangeSet ranges=rowNumberDomain.getRanges();
-  if (ranges.isAll() || ranges.isNone() || ranges.getRangeCount() <= 0) {
+  ValueSet values=rowNumberDomain.getValues();
+  if (values.isAll() || values.isNone() || values.getRanges().getRangeCount() <= 0) {
     return OptionalInt.empty();
   }
-  Range span=ranges.getSpan();
+  Range span=values.getRanges().getSpan();
   if (span.getHigh().isUpperUnbounded()) {
     return OptionalInt.empty();
   }
-  verify(rowNumberDomain.getType().equals(Long.class));
+  verify(rowNumberDomain.getType().equals(BIGINT));
   long upperBound=(Long)span.getHigh().getValue();
   if (span.getHigh().getBound() == BELOW) {
     upperBound--;

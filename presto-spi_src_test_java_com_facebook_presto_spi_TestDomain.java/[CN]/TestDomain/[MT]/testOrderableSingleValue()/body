@@ -1,0 +1,23 @@
+{
+  Domain domain=Domain.singleValue(BIGINT,0L);
+  Assert.assertFalse(domain.isNone());
+  Assert.assertFalse(domain.isAll());
+  Assert.assertTrue(domain.isSingleValue());
+  Assert.assertTrue(domain.isNullableSingleValue());
+  Assert.assertFalse(domain.isOnlyNull());
+  Assert.assertFalse(domain.isNullAllowed());
+  Assert.assertEquals(domain.getValues(),ValueSet.ofRanges(Range.equal(BIGINT,0L)));
+  Assert.assertEquals(domain.getType(),BIGINT);
+  Assert.assertFalse(domain.includesNullableValue(Long.MIN_VALUE));
+  Assert.assertTrue(domain.includesNullableValue(0L));
+  Assert.assertFalse(domain.includesNullableValue(Long.MAX_VALUE));
+  Assert.assertEquals(domain.complement(),Domain.create(ValueSet.ofRanges(Range.lessThan(BIGINT,0L),Range.greaterThan(BIGINT,0L)),true));
+  Assert.assertEquals(domain.getSingleValue(),0L);
+  Assert.assertEquals(domain.getNullableSingleValue(),0L);
+  try {
+    Domain.create(ValueSet.ofRanges(Range.range(BIGINT,1L,true,2L,true)),false).getSingleValue();
+    Assert.fail();
+  }
+ catch (  IllegalStateException e) {
+  }
+}

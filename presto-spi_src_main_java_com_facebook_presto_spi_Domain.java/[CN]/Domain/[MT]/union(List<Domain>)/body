@@ -1,12 +1,16 @@
 {
+  if (domains.isEmpty()) {
+    throw new IllegalArgumentException("domains cannot be empty for union");
+  }
   if (domains.size() == 1) {
     return domains.get(0);
   }
   boolean nullAllowed=false;
-  List<SortedRangeSet> ranges=new ArrayList<>();
+  List<ValueSet> valueSets=new ArrayList<>(domains.size());
   for (  Domain domain : domains) {
-    ranges.add(domain.getRanges());
+    valueSets.add(domain.getValues());
     nullAllowed=nullAllowed || domain.nullAllowed;
   }
-  return new Domain(SortedRangeSet.union(ranges),nullAllowed);
+  ValueSet unionedValues=valueSets.get(0).union(valueSets.subList(1,valueSets.size()));
+  return new Domain(unionedValues,nullAllowed);
 }

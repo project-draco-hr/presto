@@ -2,13 +2,25 @@
   Expression originalExpression=in(A,ImmutableList.of(1L));
   ExtractionResult result=fromPredicate(originalExpression);
   assertEquals(result.getRemainingExpression(),TRUE_LITERAL);
-  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(A,Domain.singleValue(1L))));
+  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(A,Domain.singleValue(BIGINT,1L))));
+  originalExpression=in(J,ImmutableList.of(colorLiteral(COLOR_VALUE_1)));
+  result=fromPredicate(originalExpression);
+  assertEquals(result.getRemainingExpression(),TRUE_LITERAL);
+  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(J,Domain.singleValue(COLOR,COLOR_VALUE_1))));
   originalExpression=in(A,ImmutableList.of(1L,2L));
   result=fromPredicate(originalExpression);
   assertEquals(result.getRemainingExpression(),TRUE_LITERAL);
-  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(A,Domain.create(SortedRangeSet.of(Range.equal(1L),Range.equal(2L)),false))));
+  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(A,Domain.create(ValueSet.ofRanges(Range.equal(BIGINT,1L),Range.equal(BIGINT,2L)),false))));
+  originalExpression=in(J,ImmutableList.of(colorLiteral(COLOR_VALUE_1),colorLiteral(COLOR_VALUE_2)));
+  result=fromPredicate(originalExpression);
+  assertEquals(result.getRemainingExpression(),TRUE_LITERAL);
+  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(J,Domain.create(ValueSet.of(COLOR,COLOR_VALUE_1,COLOR_VALUE_2),false))));
   originalExpression=not(in(A,ImmutableList.of(1L,2L)));
   result=fromPredicate(originalExpression);
   assertEquals(result.getRemainingExpression(),TRUE_LITERAL);
-  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(A,Domain.create(SortedRangeSet.of(Range.lessThan(1L),Range.range(1L,false,2L,false),Range.greaterThan(2L)),false))));
+  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(A,Domain.create(ValueSet.ofRanges(Range.lessThan(BIGINT,1L),Range.range(BIGINT,1L,false,2L,false),Range.greaterThan(BIGINT,2L)),false))));
+  originalExpression=not(in(J,ImmutableList.of(colorLiteral(COLOR_VALUE_1),colorLiteral(COLOR_VALUE_2))));
+  result=fromPredicate(originalExpression);
+  assertEquals(result.getRemainingExpression(),TRUE_LITERAL);
+  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(J,Domain.create(ValueSet.of(COLOR,COLOR_VALUE_1,COLOR_VALUE_2).complement(),false))));
 }

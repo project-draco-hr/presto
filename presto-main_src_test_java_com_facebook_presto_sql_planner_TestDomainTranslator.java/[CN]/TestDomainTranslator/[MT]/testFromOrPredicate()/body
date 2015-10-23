@@ -2,15 +2,15 @@
   Expression originalPredicate=or(and(greaterThan(A,longLiteral(1L)),unprocessableExpression1(A)),and(lessThan(A,longLiteral(5L)),unprocessableExpression2(A)));
   ExtractionResult result=fromPredicate(originalPredicate);
   assertEquals(result.getRemainingExpression(),originalPredicate);
-  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(A,Domain.notNull(Long.class))));
+  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(A,Domain.notNull(BIGINT))));
   originalPredicate=or(and(equal(A,longLiteral(1L)),unprocessableExpression1(A)),and(equal(A,longLiteral(2L)),unprocessableExpression2(A)));
   result=fromPredicate(originalPredicate);
   assertEquals(result.getRemainingExpression(),originalPredicate);
-  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(A,Domain.create(SortedRangeSet.of(Range.equal(1L),Range.equal(2L)),false))));
+  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(A,Domain.create(ValueSet.ofRanges(Range.equal(BIGINT,1L),Range.equal(BIGINT,2L)),false))));
   originalPredicate=or(and(equal(A,longLiteral(1L)),unprocessableExpression1(A)),and(equal(A,longLiteral(2L)),unprocessableExpression1(A)));
   result=fromPredicate(originalPredicate);
   assertEquals(result.getRemainingExpression(),unprocessableExpression1(A));
-  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(A,Domain.create(SortedRangeSet.of(Range.equal(1L),Range.equal(2L)),false))));
+  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(A,Domain.create(ValueSet.ofRanges(Range.equal(BIGINT,1L),Range.equal(BIGINT,2L)),false))));
   originalPredicate=or(and(equal(A,longLiteral(1L)),unprocessableExpression1(A)),and(equal(B,doubleLiteral(2.0)),unprocessableExpression1(A)));
   result=fromPredicate(originalPredicate);
   assertEquals(result.getRemainingExpression(),originalPredicate);
@@ -18,11 +18,11 @@
   originalPredicate=or(and(greaterThan(A,longLiteral(1L)),greaterThan(B,doubleLiteral(1.0)),unprocessableExpression1(A)),and(greaterThan(A,longLiteral(2L)),greaterThan(B,doubleLiteral(2.0)),unprocessableExpression1(A)));
   result=fromPredicate(originalPredicate);
   assertEquals(result.getRemainingExpression(),unprocessableExpression1(A));
-  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(A,Domain.create(SortedRangeSet.of(Range.greaterThan(1L)),false),B,Domain.create(SortedRangeSet.of(Range.greaterThan(1.0)),false))));
+  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(A,Domain.create(ValueSet.ofRanges(Range.greaterThan(BIGINT,1L)),false),B,Domain.create(ValueSet.ofRanges(Range.greaterThan(DOUBLE,1.0)),false))));
   originalPredicate=or(and(equal(A,longLiteral(1L)),randPredicate(A)),and(equal(A,longLiteral(2L)),randPredicate(A)));
   result=fromPredicate(originalPredicate);
   assertEquals(result.getRemainingExpression(),originalPredicate);
-  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(A,Domain.create(SortedRangeSet.of(Range.equal(1L),Range.equal(2L)),false))));
+  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(A,Domain.create(ValueSet.ofRanges(Range.equal(BIGINT,1L),Range.equal(BIGINT,2L)),false))));
   originalPredicate=not(or(and(greaterThan(A,longLiteral(1L)),unprocessableExpression1(A)),and(lessThan(A,longLiteral(5L)),unprocessableExpression2(A))));
   result=fromPredicate(originalPredicate);
   assertEquals(result.getRemainingExpression(),and(not(and(greaterThan(A,longLiteral(1L)),unprocessableExpression1(A))),not(and(lessThan(A,longLiteral(5L)),unprocessableExpression2(A)))));
@@ -30,5 +30,5 @@
   originalPredicate=not(or(not(and(greaterThan(A,longLiteral(1L)),unprocessableExpression1(A))),not(and(lessThan(A,longLiteral(5L)),unprocessableExpression2(A)))));
   result=fromPredicate(originalPredicate);
   assertEquals(result.getRemainingExpression(),and(unprocessableExpression1(A),unprocessableExpression2(A)));
-  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(A,Domain.create(SortedRangeSet.of(Range.range(1L,false,5L,false)),false))));
+  assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(A,Domain.create(ValueSet.ofRanges(Range.range(BIGINT,1L,false,5L,false)),false))));
 }

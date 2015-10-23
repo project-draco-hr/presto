@@ -1,16 +1,2 @@
 {
-  TpchTableHandle tpchTableHandle=checkType(tableHandle,TpchTableHandle.class,"tableHandle");
-  Map<ColumnHandle,Comparable<?>> fixedValues=Maps.filterKeys(tupleDomain.extractFixedValues(),not(in(indexableColumns)));
-  ImmutableSet.Builder<String> builder=ImmutableSet.builder();
-  builder.addAll(transform(indexableColumns,columnNameGetter()));
-  builder.addAll(transform(fixedValues.keySet(),columnNameGetter()));
-  Set<String> lookupColumnNames=builder.build();
-  if (!indexedData.getIndexedTable(tpchTableHandle.getTableName(),tpchTableHandle.getScaleFactor(),lookupColumnNames).isPresent()) {
-    return null;
-  }
-  TupleDomain<ColumnHandle> filteredTupleDomain=tupleDomain;
-  if (!tupleDomain.isNone()) {
-    filteredTupleDomain=TupleDomain.withColumnDomains(Maps.filterKeys(tupleDomain.getDomains(),not(in(fixedValues.keySet()))));
-  }
-  return new ConnectorResolvedIndex(new TpchIndexHandle(connectorId,tpchTableHandle.getTableName(),tpchTableHandle.getScaleFactor(),lookupColumnNames,TupleDomain.withFixedValues(fixedValues)),filteredTupleDomain);
 }

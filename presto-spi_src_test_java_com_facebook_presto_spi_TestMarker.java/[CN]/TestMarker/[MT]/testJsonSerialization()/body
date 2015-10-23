@@ -1,15 +1,17 @@
 {
-  ObjectMapper mapper=new ObjectMapper();
-  Marker marker=Marker.above(0L);
+  TestingTypeManager typeManager=new TestingTypeManager();
+  TestingBlockEncodingSerde blockEncodingSerde=new TestingBlockEncodingSerde(typeManager);
+  ObjectMapper mapper=new ObjectMapperProvider().get().registerModule(new SimpleModule().addDeserializer(Type.class,new TestingTypeDeserializer(typeManager)).addSerializer(Block.class,new TestingBlockJsonSerde.Serializer(blockEncodingSerde)).addDeserializer(Block.class,new TestingBlockJsonSerde.Deserializer(blockEncodingSerde)));
+  Marker marker=Marker.above(BIGINT,0L);
   Assert.assertEquals(marker,mapper.readValue(mapper.writeValueAsString(marker),Marker.class));
-  marker=Marker.exactly("abc");
+  marker=Marker.exactly(VARCHAR,utf8Slice("abc"));
   Assert.assertEquals(marker,mapper.readValue(mapper.writeValueAsString(marker),Marker.class));
-  marker=Marker.below(0.123);
+  marker=Marker.below(DOUBLE,0.123);
   Assert.assertEquals(marker,mapper.readValue(mapper.writeValueAsString(marker),Marker.class));
-  marker=Marker.exactly(true);
+  marker=Marker.exactly(BOOLEAN,true);
   Assert.assertEquals(marker,mapper.readValue(mapper.writeValueAsString(marker),Marker.class));
-  marker=Marker.upperUnbounded(Long.class);
+  marker=Marker.upperUnbounded(BIGINT);
   Assert.assertEquals(marker,mapper.readValue(mapper.writeValueAsString(marker),Marker.class));
-  marker=Marker.lowerUnbounded(Long.class);
+  marker=Marker.lowerUnbounded(BIGINT);
   Assert.assertEquals(marker,mapper.readValue(mapper.writeValueAsString(marker),Marker.class));
 }

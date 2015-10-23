@@ -1,0 +1,53 @@
+{
+  List<Expression> disjuncts=new ArrayList<>();
+  List<Expression> singleValues=new ArrayList<>();
+  for (  Range range : ranges.getOrderedRanges()) {
+    checkState(!range.isAll());
+    if (range.isSingleValue()) {
+      singleValues.add(toExpression(range.getSingleValue(),type));
+    }
+ else     if (isBetween(range)) {
+      disjuncts.add(new BetweenPredicate(reference,toExpression(range.getLow().getValue(),type),toExpression(range.getHigh().getValue(),type)));
+    }
+ else {
+      List<Expression> rangeConjuncts=new ArrayList<>();
+      if (!range.getLow().isLowerUnbounded()) {
+switch (range.getLow().getBound()) {
+case ABOVE:
+          rangeConjuncts.add(new ComparisonExpression(GREATER_THAN,reference,toExpression(range.getLow().getValue(),type)));
+        break;
+case EXACTLY:
+      rangeConjuncts.add(new ComparisonExpression(GREATER_THAN_OR_EQUAL,reference,toExpression(range.getLow().getValue(),type)));
+    break;
+case BELOW:
+  throw new IllegalStateException("Low Marker should never use BELOW bound: " + range);
+default :
+throw new AssertionError("Unhandled bound: " + range.getLow().getBound());
+}
+}
+if (!range.getHigh().isUpperUnbounded()) {
+switch (range.getHigh().getBound()) {
+case ABOVE:
+throw new IllegalStateException("High Marker should never use ABOVE bound: " + range);
+case EXACTLY:
+rangeConjuncts.add(new ComparisonExpression(LESS_THAN_OR_EQUAL,reference,toExpression(range.getHigh().getValue(),type)));
+break;
+case BELOW:
+rangeConjuncts.add(new ComparisonExpression(LESS_THAN,reference,toExpression(range.getHigh().getValue(),type)));
+break;
+default :
+throw new AssertionError("Unhandled bound: " + range.getHigh().getBound());
+}
+}
+checkState(!rangeConjuncts.isEmpty());
+disjuncts.add(combineConjuncts(rangeConjuncts));
+}
+}
+if (singleValues.size() == 1) {
+disjuncts.add(new ComparisonExpression(EQUAL,reference,getOnlyElement(singleValues)));
+}
+ else if (singleValues.size() > 1) {
+disjuncts.add(new InPredicate(reference,new InListExpression(singleValues)));
+}
+return disjuncts;
+}

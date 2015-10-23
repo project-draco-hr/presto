@@ -1,0 +1,29 @@
+{
+  if (value == null) {
+switch (comparisonType) {
+case EQUAL:
+case GREATER_THAN:
+case GREATER_THAN_OR_EQUAL:
+case LESS_THAN:
+case LESS_THAN_OR_EQUAL:
+case NOT_EQUAL:
+      return new ExtractionResult(TupleDomain.none(),TRUE_LITERAL);
+case IS_DISTINCT_FROM:
+    Domain domain=complementIfNecessary(Domain.notNull(type),complement);
+  return new ExtractionResult(TupleDomain.withColumnDomains(ImmutableMap.of(column,domain)),TRUE_LITERAL);
+default :
+throw new AssertionError("Unhandled type: " + comparisonType);
+}
+}
+Domain domain;
+if (type.isOrderable()) {
+domain=extractOrderableDomain(comparisonType,type,value,complement);
+}
+ else if (type.isComparable()) {
+domain=extractEquatableDomain(comparisonType,type,value,complement);
+}
+ else {
+throw new AssertionError("Type cannot be used in a comparison expression (should have been caught in analysis): " + type);
+}
+return new ExtractionResult(TupleDomain.withColumnDomains(ImmutableMap.of(column,domain)),TRUE_LITERAL);
+}

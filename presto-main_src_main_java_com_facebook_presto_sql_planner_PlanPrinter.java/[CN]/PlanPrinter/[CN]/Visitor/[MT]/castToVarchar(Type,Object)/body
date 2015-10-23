@@ -1,0 +1,13 @@
+{
+  Signature coercion=metadata.getFunctionRegistry().getCoercion(type,VARCHAR);
+  MethodHandle method=metadata.getFunctionRegistry().getScalarFunctionImplementation(coercion).getMethodHandle();
+  try {
+    return ((Slice)method.invokeWithArguments(value)).toStringUtf8();
+  }
+ catch (  OperatorNotFoundException e) {
+    return "<UNREPRESENTABLE VALUE>";
+  }
+catch (  Throwable throwable) {
+    throw Throwables.propagate(throwable);
+  }
+}

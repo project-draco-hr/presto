@@ -1,9 +1,9 @@
 {
-  if (domains == null) {
-    return new TupleDomain<>(null);
+  if (!domains.isPresent()) {
+    return TupleDomain.none();
   }
-  HashMap<U,Domain> result=new HashMap<>(domains.size());
-  for (  Map.Entry<T,Domain> entry : domains.entrySet()) {
+  HashMap<U,Domain> result=new HashMap<>(domains.get().size());
+  for (  Map.Entry<T,Domain> entry : domains.get().entrySet()) {
     U key=function.apply(entry.getKey());
     if (key == null) {
       continue;
@@ -13,5 +13,5 @@
       throw new IllegalArgumentException(String.format("Every argument must have a unique mapping. %s maps to %s and %s",entry.getKey(),entry.getValue(),previous));
     }
   }
-  return new TupleDomain<>(result);
+  return TupleDomain.withColumnDomains(result);
 }

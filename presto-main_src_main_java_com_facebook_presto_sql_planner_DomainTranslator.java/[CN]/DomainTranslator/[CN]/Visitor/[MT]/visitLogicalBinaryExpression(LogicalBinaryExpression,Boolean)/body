@@ -1,16 +1,18 @@
 {
   ExtractionResult leftResult=process(node.getLeft(),complement);
   ExtractionResult rightResult=process(node.getRight(),complement);
+  TupleDomain<Symbol> leftTupleDomain=leftResult.getTupleDomain();
+  TupleDomain<Symbol> rightTupleDomain=rightResult.getTupleDomain();
   LogicalBinaryExpression.Type type=complement ? flipLogicalBinaryType(node.getType()) : node.getType();
 switch (type) {
 case AND:
-    return new ExtractionResult(leftResult.getTupleDomain().intersect(rightResult.getTupleDomain()),combineConjuncts(leftResult.getRemainingExpression(),rightResult.getRemainingExpression()));
+    return new ExtractionResult(leftTupleDomain.intersect(rightTupleDomain),combineConjuncts(leftResult.getRemainingExpression(),rightResult.getRemainingExpression()));
 case OR:
-  TupleDomain<Symbol> columnUnionedTupleDomain=TupleDomain.columnWiseUnion(leftResult.getTupleDomain(),rightResult.getTupleDomain());
+  TupleDomain<Symbol> columnUnionedTupleDomain=TupleDomain.columnWiseUnion(leftTupleDomain,rightTupleDomain);
 Expression remainingExpression=complementIfNecessary(node,complement);
 if (leftResult.getRemainingExpression().equals(rightResult.getRemainingExpression()) && DeterminismEvaluator.isDeterministic(leftResult.getRemainingExpression())) {
-boolean matchingSingleSymbolDomains=!leftResult.getTupleDomain().isNone() && !rightResult.getTupleDomain().isNone() && leftResult.getTupleDomain().getDomains().size() == 1 && rightResult.getTupleDomain().getDomains().size() == 1 && leftResult.getTupleDomain().getDomains().keySet().equals(rightResult.getTupleDomain().getDomains().keySet());
-boolean oneSideIsSuperSet=leftResult.getTupleDomain().contains(rightResult.getTupleDomain()) || rightResult.getTupleDomain().contains(leftResult.getTupleDomain());
+boolean matchingSingleSymbolDomains=!leftTupleDomain.isNone() && !rightTupleDomain.isNone() && leftTupleDomain.getDomains().get().size() == 1 && rightTupleDomain.getDomains().get().size() == 1 && leftTupleDomain.getDomains().get().keySet().equals(rightTupleDomain.getDomains().get().keySet());
+boolean oneSideIsSuperSet=leftTupleDomain.contains(rightTupleDomain) || rightTupleDomain.contains(leftTupleDomain);
 if (matchingSingleSymbolDomains || oneSideIsSuperSet) {
   remainingExpression=leftResult.getRemainingExpression();
 }

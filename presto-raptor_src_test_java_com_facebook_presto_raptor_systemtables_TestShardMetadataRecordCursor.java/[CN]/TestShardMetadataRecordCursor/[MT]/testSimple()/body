@@ -13,7 +13,7 @@
   Slice table=utf8Slice(DEFAULT_TEST_ORDERS.getTableName());
   DateTime date1=DateTime.parse("2015-01-01T00:00");
   DateTime date2=DateTime.parse("2015-01-02T00:00");
-  TupleDomain<Integer> tupleDomain=TupleDomain.withColumnDomains(ImmutableMap.<Integer,Domain>builder().put(0,Domain.singleValue(schema)).put(1,Domain.create(SortedRangeSet.of(lessThanOrEqual(table)),true)).put(6,Domain.create(SortedRangeSet.of(lessThanOrEqual(date1.getMillis()),greaterThan(date2.getMillis())),true)).put(7,Domain.create(SortedRangeSet.of(lessThanOrEqual(date1.getMillis()),greaterThan(date2.getMillis())),true)).build());
+  TupleDomain<Integer> tupleDomain=TupleDomain.withColumnDomains(ImmutableMap.<Integer,Domain>builder().put(0,Domain.singleValue(VARCHAR,schema)).put(1,Domain.create(ValueSet.ofRanges(lessThanOrEqual(VARCHAR,table)),true)).put(6,Domain.create(ValueSet.ofRanges(lessThanOrEqual(BIGINT,date1.getMillis()),greaterThan(BIGINT,date2.getMillis())),true)).put(7,Domain.create(ValueSet.ofRanges(lessThanOrEqual(BIGINT,date1.getMillis()),greaterThan(BIGINT,date2.getMillis())),true)).build());
   List<MaterializedRow> actual;
   try (RecordCursor cursor=new ShardMetadataSystemTable(dbi).cursor(SESSION,tupleDomain)){
     actual=getMaterializedResults(cursor,SHARD_METADATA.getColumns());

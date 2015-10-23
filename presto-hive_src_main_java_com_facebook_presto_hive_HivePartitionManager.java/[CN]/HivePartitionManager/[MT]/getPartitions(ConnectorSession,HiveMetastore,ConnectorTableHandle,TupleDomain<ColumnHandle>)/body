@@ -6,7 +6,7 @@
   }
   SchemaTableName tableName=hiveTableHandle.getSchemaTableName();
   Table table=getTable(metastore,tableName);
-  Optional<HiveBucketing.HiveBucket> bucket=getHiveBucket(table,effectivePredicate.extractFixedValues());
+  Optional<HiveBucketing.HiveBucket> bucket=getHiveBucket(table,TupleDomain.extractFixedValues(effectivePredicate));
   TupleDomain<HiveColumnHandle> compactEffectivePredicate=toCompactTupleDomain(effectivePredicate,domainCompactionThreshold);
   if (table.getPartitionKeys().isEmpty()) {
     return new HivePartitionResult(ImmutableList.of(new HivePartition(tableName,compactEffectivePredicate,bucket)),effectivePredicate,TupleDomain.none());
@@ -15,12 +15,12 @@
   List<String> partitionNames=getFilteredPartitionNames(metastore,tableName,partitionColumns,effectivePredicate);
   ImmutableList.Builder<HivePartition> partitions=ImmutableList.builder();
   for (  String partitionName : partitionNames) {
-    Optional<Map<ColumnHandle,SerializableNativeValue>> values=parseValuesAndFilterPartition(partitionName,partitionColumns,effectivePredicate);
+    Optional<Map<ColumnHandle,NullableValue>> values=parseValuesAndFilterPartition(partitionName,partitionColumns,effectivePredicate);
     if (values.isPresent()) {
       partitions.add(new HivePartition(tableName,compactEffectivePredicate,partitionName,values.get(),bucket));
     }
   }
-  TupleDomain<ColumnHandle> remainingTupleDomain=TupleDomain.withColumnDomains(Maps.filterKeys(effectivePredicate.getDomains(),not(Predicates.in(partitionColumns))));
-  TupleDomain<ColumnHandle> enforcedTupleDomain=TupleDomain.withColumnDomains(Maps.filterKeys(effectivePredicate.getDomains(),Predicates.in(partitionColumns)));
+  TupleDomain<ColumnHandle> remainingTupleDomain=TupleDomain.withColumnDomains(Maps.filterKeys(effectivePredicate.getDomains().get(),not(Predicates.in(partitionColumns))));
+  TupleDomain<ColumnHandle> enforcedTupleDomain=TupleDomain.withColumnDomains(Maps.filterKeys(effectivePredicate.getDomains().get(),Predicates.in(partitionColumns)));
   return new HivePartitionResult(partitions.build(),remainingTupleDomain,enforcedTupleDomain);
 }

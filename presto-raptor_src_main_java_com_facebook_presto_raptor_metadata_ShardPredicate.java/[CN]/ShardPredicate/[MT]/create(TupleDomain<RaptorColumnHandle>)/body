@@ -2,7 +2,7 @@
   StringJoiner predicate=new StringJoiner(" AND ").setEmptyValue("true");
   ImmutableList.Builder<JDBCType> types=ImmutableList.builder();
   ImmutableList.Builder<Object> values=ImmutableList.builder();
-  for (  Entry<RaptorColumnHandle,Domain> entry : tupleDomain.getDomains().entrySet()) {
+  for (  Entry<RaptorColumnHandle,Domain> entry : tupleDomain.getDomains().get().entrySet()) {
     Domain domain=entry.getValue();
     if (domain.isNullAllowed() || domain.isAll()) {
       continue;
@@ -22,11 +22,14 @@
       }
       continue;
     }
-    SortedRangeSet ranges=domain.getRanges();
+    if (!domain.getType().isOrderable()) {
+      continue;
+    }
+    Ranges ranges=domain.getValues().getRanges();
     if (ranges.getRangeCount() != 1) {
       continue;
     }
-    Range range=getOnlyElement(ranges.getRanges());
+    Range range=getOnlyElement(ranges.getOrderedRanges());
     Object minValue=null;
     Object maxValue=null;
     if (range.isSingleValue()) {

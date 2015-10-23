@@ -1,11 +1,13 @@
 {
+  checkArgument(predicate.getDomains().isPresent());
   List<String> partitionValues=extractPartitionKeyValues(partitionName);
-  ImmutableMap.Builder<ColumnHandle,SerializableNativeValue> builder=ImmutableMap.builder();
+  Map<ColumnHandle,Domain> domains=predicate.getDomains().get();
+  ImmutableMap.Builder<ColumnHandle,NullableValue> builder=ImmutableMap.builder();
   for (int i=0; i < partitionColumns.size(); i++) {
     HiveColumnHandle column=partitionColumns.get(i);
-    SerializableNativeValue parsedValue=parsePartitionValue(partitionName,partitionValues.get(i),column.getHiveType(),timeZone);
-    Domain allowedDomain=predicate.getDomains().get(column);
-    if (allowedDomain != null && !allowedDomain.includesValue(parsedValue.getValue())) {
+    NullableValue parsedValue=parsePartitionValue(partitionName,partitionValues.get(i),column.getHiveType(),timeZone);
+    Domain allowedDomain=domains.get(column);
+    if (allowedDomain != null && !allowedDomain.includesNullableValue(parsedValue.getValue())) {
       return Optional.empty();
     }
     builder.put(column,parsedValue);

@@ -12,7 +12,7 @@
     TupleDomain<T> domain=domains.next();
     if (!domain.isNone()) {
       found=true;
-      commonColumns.addAll(domain.getDomains().keySet());
+      commonColumns.addAll(domain.getDomains().get().keySet());
       break;
     }
   }
@@ -22,13 +22,13 @@
   while (domains.hasNext()) {
     TupleDomain<T> domain=domains.next();
     if (!domain.isNone()) {
-      commonColumns.retainAll(domain.getDomains().keySet());
+      commonColumns.retainAll(domain.getDomains().get().keySet());
     }
   }
-  Map<T,List<Domain>> domainsByColumn=new HashMap<>();
+  Map<T,List<Domain>> domainsByColumn=new HashMap<>(tupleDomains.size());
   for (  TupleDomain<T> domain : tupleDomains) {
     if (!domain.isNone()) {
-      for (      Map.Entry<T,Domain> entry : domain.getDomains().entrySet()) {
+      for (      Map.Entry<T,Domain> entry : domain.getDomains().get().entrySet()) {
         if (commonColumns.contains(entry.getKey())) {
           List<Domain> domainForColumn=domainsByColumn.get(entry.getKey());
           if (domainForColumn == null) {
@@ -40,7 +40,7 @@
       }
     }
   }
-  Map<T,Domain> result=new HashMap<>();
+  Map<T,Domain> result=new HashMap<>(domainsByColumn.size());
   for (  Map.Entry<T,List<Domain>> entry : domainsByColumn.entrySet()) {
     result.put(entry.getKey(),Domain.union(entry.getValue()));
   }

@@ -3,7 +3,7 @@
   List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(SESSION,tableHandle).values());
   Map<String,Integer> columnIndex=indexColumns(columnHandles);
   assertTableIsBucketed(tableHandle);
-  ImmutableMap<ColumnHandle,SerializableNativeValue> bindings=ImmutableMap.<ColumnHandle,SerializableNativeValue>builder().put(columnHandles.get(columnIndex.get("t_float")),new SerializableNativeValue(Double.class,87.1)).put(columnHandles.get(columnIndex.get("t_double")),new SerializableNativeValue(Double.class,88.2)).build();
-  MaterializedResult result=readTable(tableHandle,columnHandles,SESSION,TupleDomain.withNullableFixedValues(bindings),OptionalInt.of(32),Optional.empty());
+  ImmutableMap<ColumnHandle,NullableValue> bindings=ImmutableMap.<ColumnHandle,NullableValue>builder().put(columnHandles.get(columnIndex.get("t_float")),NullableValue.of(DOUBLE,87.1)).put(columnHandles.get(columnIndex.get("t_double")),NullableValue.of(DOUBLE,88.2)).build();
+  MaterializedResult result=readTable(tableHandle,columnHandles,SESSION,TupleDomain.fromFixedValues(bindings),OptionalInt.of(32),Optional.empty());
   assertEquals(result.getRowCount(),100);
 }
