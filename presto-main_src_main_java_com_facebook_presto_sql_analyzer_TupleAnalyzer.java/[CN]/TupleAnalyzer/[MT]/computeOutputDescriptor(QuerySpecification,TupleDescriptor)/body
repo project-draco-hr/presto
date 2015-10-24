@@ -9,12 +9,21 @@
     }
  else     if (item instanceof SingleColumn) {
       SingleColumn column=(SingleColumn)item;
+      Expression expression=column.getExpression();
       Optional<String> alias=column.getAlias();
-      if (!alias.isPresent() && column.getExpression() instanceof QualifiedNameReference) {
-        QualifiedName name=((QualifiedNameReference)column.getExpression()).getName();
-        alias=Optional.of(getLast(name.getOriginalParts()));
+      if (!alias.isPresent()) {
+        QualifiedName name=null;
+        if (expression instanceof QualifiedNameReference) {
+          name=((QualifiedNameReference)expression).getName();
+        }
+ else         if (expression instanceof DereferenceExpression) {
+          name=DereferenceExpression.getQualifiedName((DereferenceExpression)expression);
+        }
+        if (name != null) {
+          alias=Optional.of(getLast(name.getOriginalParts()));
+        }
       }
-      outputFields.add(Field.newUnqualified(alias,analysis.getType(column.getExpression())));
+      outputFields.add(Field.newUnqualified(alias,analysis.getType(expression)));
     }
  else {
       throw new IllegalArgumentException("Unsupported SelectItem type: " + item.getClass().getName());
