@@ -1,6 +1,7 @@
 {
   HttpServletRequest request=new MockHttpServletRequest(ImmutableListMultimap.<String,String>builder().put(PRESTO_USER,"testUser").put(PRESTO_SOURCE,"testSource").put(PRESTO_CATALOG,"testCatalog").put(PRESTO_SCHEMA,"testSchema").put(PRESTO_LANGUAGE,"zh-TW").put(PRESTO_TIME_ZONE,"Asia/Taipei").put(PRESTO_SESSION,QUERY_MAX_MEMORY + "=1GB").put(PRESTO_SESSION,DISTRIBUTED_JOIN + "=true," + HASH_PARTITION_COUNT+ " = 43").build(),"testRemote");
-  Session session=createSessionForRequest(request,new AllowAllAccessControl(),new SessionPropertyManager());
+  Session session=createSessionForRequest(request,new AllowAllAccessControl(),new SessionPropertyManager(),new QueryId("test_query_id"));
+  assertEquals(session.getQueryId(),new QueryId("test_query_id"));
   assertEquals(session.getUser(),"testUser");
   assertEquals(session.getSource().get(),"testSource");
   assertEquals(session.getCatalog().get(),"testCatalog");

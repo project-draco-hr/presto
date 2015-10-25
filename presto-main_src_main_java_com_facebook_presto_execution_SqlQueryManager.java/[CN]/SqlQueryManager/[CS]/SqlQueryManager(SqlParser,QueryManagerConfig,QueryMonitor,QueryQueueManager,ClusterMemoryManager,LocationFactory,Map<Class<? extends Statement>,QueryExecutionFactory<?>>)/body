@@ -1,0 +1,51 @@
+{
+  this.sqlParser=requireNonNull(sqlParser,"sqlParser is null");
+  this.executionFactories=requireNonNull(executionFactories,"executionFactories is null");
+  this.queryExecutor=newCachedThreadPool(threadsNamed("query-scheduler-%s"));
+  this.queryExecutorMBean=new ThreadPoolExecutorMBean((ThreadPoolExecutor)queryExecutor);
+  requireNonNull(config,"config is null");
+  this.queueManager=requireNonNull(queueManager,"queueManager is null");
+  this.memoryManager=requireNonNull(memoryManager,"memoryManager is null");
+  this.queryMonitor=requireNonNull(queryMonitor,"queryMonitor is null");
+  this.locationFactory=requireNonNull(locationFactory,"locationFactory is null");
+  this.maxQueryAge=config.getMaxQueryAge();
+  this.maxQueryHistory=config.getMaxQueryHistory();
+  this.clientTimeout=config.getClientTimeout();
+  queryManagementExecutor=Executors.newScheduledThreadPool(config.getQueryManagerExecutorPoolSize(),threadsNamed("query-management-%s"));
+  queryManagementExecutorMBean=new ThreadPoolExecutorMBean((ThreadPoolExecutor)queryManagementExecutor);
+  queryManagementExecutor.scheduleWithFixedDelay(new Runnable(){
+    @Override public void run(){
+      try {
+        failAbandonedQueries();
+      }
+ catch (      Throwable e) {
+        log.warn(e,"Error cancelling abandoned queries");
+      }
+      try {
+        enforceMemoryLimits();
+      }
+ catch (      Throwable e) {
+        log.warn(e,"Error enforcing memory limits");
+      }
+      try {
+        enforceQueryMaxRunTimeLimits();
+      }
+ catch (      Throwable e) {
+        log.warn(e,"Error enforcing query timeout limits");
+      }
+      try {
+        removeExpiredQueries();
+      }
+ catch (      Throwable e) {
+        log.warn(e,"Error removing expired queries");
+      }
+      try {
+        pruneExpiredQueries();
+      }
+ catch (      Throwable e) {
+        log.warn(e,"Error pruning expired queries");
+      }
+    }
+  }
+,1,1,TimeUnit.SECONDS);
+}
