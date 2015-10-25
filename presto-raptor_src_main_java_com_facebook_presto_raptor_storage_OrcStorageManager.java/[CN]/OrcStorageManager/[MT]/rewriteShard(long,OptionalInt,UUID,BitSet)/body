@@ -1,0 +1,20 @@
+{
+  if (rowsToDelete.isEmpty()) {
+    return ImmutableList.of();
+  }
+  UUID newShardUuid=UUID.randomUUID();
+  File input=storageService.getStorageFile(shardUuid);
+  File output=storageService.getStagingFile(newShardUuid);
+  OrcFileInfo info=rewriteFile(input,output,rowsToDelete);
+  long rowCount=info.getRowCount();
+  if (rowCount == 0) {
+    return shardDelta(shardUuid,Optional.empty());
+  }
+  shardRecorder.recordCreatedShard(transactionId,newShardUuid,nodeId);
+  getFutureValue(backupManager.submit(newShardUuid,output));
+  Set<String> nodes=ImmutableSet.of(nodeId);
+  long uncompressedSize=info.getUncompressedSize();
+  ShardInfo shard=createShardInfo(newShardUuid,bucketNumber,output,nodes,rowCount,uncompressedSize);
+  writeShard(newShardUuid);
+  return shardDelta(shardUuid,Optional.of(shard));
+}

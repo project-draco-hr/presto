@@ -1,5 +1,5 @@
 {
-  String sql="" + "INSERT INTO shards (shard_uuid, table_id, create_time, row_count, compressed_size, uncompressed_size)\n" + "VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?)";
+  String sql="" + "INSERT INTO shards (shard_uuid, table_id, create_time, row_count, compressed_size, uncompressed_size, bucket_number)\n" + "VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?)";
   try (PreparedStatement statement=connection.prepareStatement(sql,RETURN_GENERATED_KEYS)){
     for (    ShardInfo shard : shards) {
       statement.setBytes(1,uuidToBytes(shard.getShardUuid()));
@@ -7,6 +7,7 @@
       statement.setLong(3,shard.getRowCount());
       statement.setLong(4,shard.getCompressedSize());
       statement.setLong(5,shard.getUncompressedSize());
+      bindOptionalInt(statement,6,shard.getBucketNumber());
       statement.addBatch();
     }
     statement.executeBatch();

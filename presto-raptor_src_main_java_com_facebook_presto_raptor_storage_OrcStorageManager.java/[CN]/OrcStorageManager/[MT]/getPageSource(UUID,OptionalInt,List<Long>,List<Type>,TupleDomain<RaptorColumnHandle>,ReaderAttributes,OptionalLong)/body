@@ -1,0 +1,45 @@
+{
+  OrcDataSource dataSource=openShard(shardUuid,readerAttributes);
+  AggregatedMemoryContext systemMemoryUsage=new AggregatedMemoryContext();
+  try {
+    OrcReader reader=new OrcReader(dataSource,new OrcMetadataReader(),readerAttributes.getMaxMergeDistance(),readerAttributes.getMaxReadSize());
+    Map<Long,Integer> indexMap=columnIdIndex(reader.getColumnNames());
+    ImmutableMap.Builder<Integer,Type> includedColumns=ImmutableMap.builder();
+    ImmutableList.Builder<Integer> columnIndexes=ImmutableList.builder();
+    for (int i=0; i < columnIds.size(); i++) {
+      long columnId=columnIds.get(i);
+      if (isShardRowIdColumn(columnId)) {
+        columnIndexes.add(OrcPageSource.ROWID_COLUMN);
+        continue;
+      }
+      if (isShardUuidColumn(columnId)) {
+        columnIndexes.add(OrcPageSource.SHARD_UUID_COLUMN);
+        continue;
+      }
+      Integer index=indexMap.get(columnId);
+      if (index == null) {
+        columnIndexes.add(OrcPageSource.NULL_COLUMN);
+      }
+ else {
+        columnIndexes.add(index);
+        includedColumns.put(index,columnTypes.get(i));
+      }
+    }
+    OrcPredicate predicate=getPredicate(effectivePredicate,indexMap);
+    OrcRecordReader recordReader=reader.createRecordReader(includedColumns.build(),predicate,UTC,systemMemoryUsage);
+    Optional<ShardRewriter> shardRewriter=Optional.empty();
+    if (transactionId.isPresent()) {
+      shardRewriter=Optional.of(createShardRewriter(transactionId.getAsLong(),bucketNumber,shardUuid));
+    }
+    return new OrcPageSource(shardRewriter,recordReader,dataSource,columnIds,columnTypes,columnIndexes.build(),shardUuid,systemMemoryUsage);
+  }
+ catch (  IOException|RuntimeException e) {
+    try {
+      dataSource.close();
+    }
+ catch (    IOException ex) {
+      e.addSuppressed(ex);
+    }
+    throw new PrestoException(RAPTOR_ERROR,"Failed to create page source for shard " + shardUuid,e);
+  }
+}

@@ -1,15 +1,16 @@
 {
   long tableId=createTable("test");
+  OptionalInt bucketNumber=OptionalInt.empty();
   UUID shard1=UUID.randomUUID();
   UUID shard2=UUID.randomUUID();
-  List<ShardInfo> shardNodes=ImmutableList.of(new ShardInfo(shard1,ImmutableSet.of("node1"),ImmutableList.of(),3,33,333),new ShardInfo(shard2,ImmutableSet.of("node1"),ImmutableList.of(),5,55,555));
+  List<ShardInfo> shardNodes=ImmutableList.of(new ShardInfo(shard1,bucketNumber,ImmutableSet.of("node1"),ImmutableList.of(),3,33,333),new ShardInfo(shard2,bucketNumber,ImmutableSet.of("node1"),ImmutableList.of(),5,55,555));
   List<ColumnInfo> columns=ImmutableList.of(new ColumnInfo(1,BIGINT));
   shardManager.createTable(tableId,columns);
   long transactionId=shardManager.beginTransaction();
   shardManager.commitShards(transactionId,tableId,columns,shardNodes,Optional.empty());
-  assertEquals(getShardNodes(tableId,TupleDomain.all()),ImmutableSet.of(new ShardNodes(shard1,ImmutableSet.of("node1")),new ShardNodes(shard2,ImmutableSet.of("node1"))));
+  assertEquals(getShardNodes(tableId,TupleDomain.all()),ImmutableSet.of(new ShardNodes(shard1,bucketNumber,ImmutableSet.of("node1")),new ShardNodes(shard2,bucketNumber,ImmutableSet.of("node1"))));
   assertEquals(shardManager.getNodeBytes(),ImmutableMap.of("node1",88L));
   shardManager.assignShard(tableId,shard1,"node2");
-  assertEquals(getShardNodes(tableId,TupleDomain.all()),ImmutableSet.of(new ShardNodes(shard1,ImmutableSet.of("node1","node2")),new ShardNodes(shard2,ImmutableSet.of("node1"))));
+  assertEquals(getShardNodes(tableId,TupleDomain.all()),ImmutableSet.of(new ShardNodes(shard1,bucketNumber,ImmutableSet.of("node1","node2")),new ShardNodes(shard2,bucketNumber,ImmutableSet.of("node1"))));
   assertEquals(shardManager.getNodeBytes(),ImmutableMap.of("node1",88L,"node2",33L));
 }
