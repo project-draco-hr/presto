@@ -1,2 +1,26 @@
 {
+  process(node.getSelect(),indent);
+  if (node.getFrom().isPresent()) {
+    append(indent,"FROM");
+    builder.append('\n');
+    append(indent,"  ");
+    process(node.getFrom().get(),indent);
+  }
+  builder.append('\n');
+  if (node.getWhere().isPresent()) {
+    append(indent,"WHERE " + formatExpression(node.getWhere().get())).append('\n');
+  }
+  if (!node.getGroupBy().isEmpty()) {
+    append(indent,"GROUP BY " + formatGroupBy(node.getGroupBy())).append('\n');
+  }
+  if (node.getHaving().isPresent()) {
+    append(indent,"HAVING " + formatExpression(node.getHaving().get())).append('\n');
+  }
+  if (!node.getOrderBy().isEmpty()) {
+    append(indent,"ORDER BY " + formatSortItems(node.getOrderBy())).append('\n');
+  }
+  if (node.getLimit().isPresent()) {
+    append(indent,"LIMIT " + node.getLimit().get()).append('\n');
+  }
+  return null;
 }

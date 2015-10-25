@@ -32,9 +32,35 @@
         process(node.getWhere().get(),indentLevel + 1);
       }
       if (!node.getGroupBy().isEmpty()) {
-        print(indentLevel,"GroupBy");
-        for (        Expression expression : node.getGroupBy()) {
-          process(expression,indentLevel + 1);
+        for (        GroupingElement groupingElement : node.getGroupBy()) {
+          print(indentLevel,"GroupBy");
+          if (groupingElement instanceof SimpleGroupBy) {
+            for (            Expression column : ((SimpleGroupBy)groupingElement).getColumnExpressions()) {
+              process(column,indentLevel + 1);
+            }
+          }
+ else           if (groupingElement instanceof GroupingSets) {
+            print(indentLevel + 1,"GroupingSets");
+            for (            Set<Expression> column : groupingElement.enumerateGroupingSets()) {
+              print(indentLevel + 2,"GroupingSet[");
+              for (              Expression expression : column) {
+                process(expression,indentLevel + 3);
+              }
+              print(indentLevel + 2,"]");
+            }
+          }
+ else           if (groupingElement instanceof Cube) {
+            print(indentLevel + 1,"Cube");
+            for (            QualifiedName column : ((Cube)groupingElement).getColumns()) {
+              print(indentLevel + 1,column.toString());
+            }
+          }
+ else           if (groupingElement instanceof Rollup) {
+            print(indentLevel + 1,"Rollup");
+            for (            QualifiedName column : ((Rollup)groupingElement).getColumns()) {
+              print(indentLevel + 1,column.toString());
+            }
+          }
         }
       }
       if (node.getHaving().isPresent()) {

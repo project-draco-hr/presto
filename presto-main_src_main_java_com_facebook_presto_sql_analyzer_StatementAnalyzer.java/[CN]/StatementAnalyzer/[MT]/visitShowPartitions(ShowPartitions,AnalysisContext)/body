@@ -18,7 +18,7 @@
     selectList.add(new SingleColumn(function,column.getName()));
     wrappedList.add(unaliasedName(column.getName()));
   }
-  Query query=simpleQuery(selectAll(selectList.build()),from(table.getCatalogName(),TABLE_INTERNAL_PARTITIONS),Optional.of(logicalAnd(equal(nameReference("table_schema"),new StringLiteral(table.getSchemaName())),equal(nameReference("table_name"),new StringLiteral(table.getTableName())))),ImmutableList.of(nameReference("partition_number")),Optional.empty(),ImmutableList.of(),Optional.empty());
+  Query query=simpleQuery(selectAll(selectList.build()),from(table.getCatalogName(),TABLE_INTERNAL_PARTITIONS),Optional.of(logicalAnd(equal(nameReference("table_schema"),new StringLiteral(table.getSchemaName())),equal(nameReference("table_name"),new StringLiteral(table.getTableName())))),ImmutableList.of(new SimpleGroupBy(ImmutableList.of(nameReference("partition_number")))),Optional.empty(),ImmutableList.of(),Optional.empty());
   query=simpleQuery(selectAll(wrappedList.build()),subquery(query),showPartitions.getWhere(),ImmutableList.of(),Optional.empty(),ImmutableList.<SortItem>builder().addAll(showPartitions.getOrderBy()).add(ascending("partition_number")).build(),showPartitions.getLimit());
   return process(query,context);
 }
