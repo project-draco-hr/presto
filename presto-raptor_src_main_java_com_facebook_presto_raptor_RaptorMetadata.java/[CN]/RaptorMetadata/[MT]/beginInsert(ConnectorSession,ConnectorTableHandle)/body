@@ -1,5 +1,6 @@
 {
-  long tableId=checkType(tableHandle,RaptorTableHandle.class,"tableHandle").getTableId();
+  RaptorTableHandle handle=checkType(tableHandle,RaptorTableHandle.class,"tableHandle");
+  long tableId=handle.getTableId();
   ImmutableList.Builder<RaptorColumnHandle> columnHandles=ImmutableList.builder();
   ImmutableList.Builder<Type> columnTypes=ImmutableList.builder();
   for (  TableColumn column : dao.getTableColumns(tableId)) {
@@ -10,5 +11,6 @@
   setTransactionId(transactionId);
   Optional<String> externalBatchId=getExternalBatchId(session);
   List<RaptorColumnHandle> sortColumnHandles=getSortColumnHandles(tableId);
-  return new RaptorInsertTableHandle(connectorId,transactionId,tableId,columnHandles.build(),columnTypes.build(),externalBatchId,sortColumnHandles,nCopies(sortColumnHandles.size(),ASC_NULLS_FIRST));
+  List<RaptorColumnHandle> bucketColumnHandles=getBucketColumnHandles(tableId);
+  return new RaptorInsertTableHandle(connectorId,transactionId,tableId,columnHandles.build(),columnTypes.build(),externalBatchId,sortColumnHandles,nCopies(sortColumnHandles.size(),ASC_NULLS_FIRST),handle.getBucketCount(),bucketColumnHandles);
 }
