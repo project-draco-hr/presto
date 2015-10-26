@@ -29,14 +29,9 @@
       if (analysis.getColumnReferences().contains(node)) {
         return rewriteExpressionWithResolvedName(node);
       }
-      Expression rewrittenBaseExpression=rewrite(node.getBase());
       QualifiedName mangledName=QualifiedName.of(mangleFieldReference(node.getFieldName()));
-      Expression rewrittenExpression=new FunctionCall(mangledName,ImmutableList.of(rewrittenBaseExpression));
-      Type coercion=analysis.getCoercion(node);
-      if (coercion != null) {
-        rewrittenExpression=new Cast(rewrittenExpression,coercion.getTypeSignature().toString());
-      }
-      return rewrittenExpression;
+      FunctionCall functionCall=new FunctionCall(mangledName,ImmutableList.of(node.getBase()));
+      return rewriteFunctionCall(functionCall,context,treeRewriter);
     }
   }
 ,expression);
