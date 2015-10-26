@@ -1,14 +1,10 @@
 {
-  if (sortColumns == null) {
-    return ImmutableList.of();
-  }
-  ImmutableList.Builder<RaptorColumnHandle> sortColumnHandles=ImmutableList.builder();
+  ImmutableList.Builder<RaptorColumnHandle> columnHandles=ImmutableList.builder();
   for (  String column : sortColumns) {
-    RaptorColumnHandle handle=columnHandleMap.get(column);
-    if (handle == null) {
-      throw new PrestoException(NOT_FOUND,format("Ordering column %s does not exist",column));
+    if (!columnHandleMap.containsKey(column)) {
+      throw new PrestoException(NOT_FOUND,"Ordering column does not exist: " + column);
     }
-    sortColumnHandles.add(handle);
+    columnHandles.add(columnHandleMap.get(column));
   }
-  return sortColumnHandles.build();
+  return columnHandles.build();
 }
