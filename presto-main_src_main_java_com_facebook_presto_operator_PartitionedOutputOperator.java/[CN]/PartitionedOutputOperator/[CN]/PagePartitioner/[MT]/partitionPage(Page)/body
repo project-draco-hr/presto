@@ -1,0 +1,25 @@
+{
+  requireNonNull(page,"page is null");
+  Page partitionFunctionArgs=getPartitionFunctionArguments(page);
+  for (int position=0; position < page.getPositionCount(); position++) {
+    if (nullChannel.isPresent() && page.getBlock(nullChannel.getAsInt()).isNull(position)) {
+      for (      PageBuilder pageBuilder : pageBuilders) {
+        pageBuilder.declarePosition();
+        for (int channel=0; channel < sourceTypes.size(); channel++) {
+          Type type=sourceTypes.get(channel);
+          type.appendTo(page.getBlock(channel),position,pageBuilder.getBlockBuilder(channel));
+        }
+      }
+    }
+ else {
+      int partition=partitionFunction.getPartition(partitionFunctionArgs,position);
+      PageBuilder pageBuilder=pageBuilders.get(partition);
+      pageBuilder.declarePosition();
+      for (int channel=0; channel < sourceTypes.size(); channel++) {
+        Type type=sourceTypes.get(channel);
+        type.appendTo(page.getBlock(channel),position,pageBuilder.getBlockBuilder(channel));
+      }
+    }
+  }
+  return flush(false);
+}

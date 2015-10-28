@@ -1,0 +1,15 @@
+{
+  this.taskStateMachine=new TaskStateMachine(requireNonNull(taskId,"taskId is null"),requireNonNull(executor,"executor is null"));
+  MemoryPool memoryPool=new MemoryPool(new MemoryPoolId("test"),new DataSize(1,GIGABYTE));
+  MemoryPool memorySystemPool=new MemoryPool(new MemoryPoolId("testSystem"),new DataSize(1,GIGABYTE));
+  this.taskContext=new QueryContext(taskId.getQueryId(),new DataSize(1,MEGABYTE),memoryPool,memorySystemPool,executor).addTaskContext(taskStateMachine,TEST_SESSION,new DataSize(1,MEGABYTE),true,true);
+  this.location=URI.create("fake://task/" + taskId);
+  this.sharedBuffer=new SharedBuffer(taskId,executor,requireNonNull(new DataSize(1,DataSize.Unit.BYTE),"maxBufferSize is null"));
+  this.fragment=requireNonNull(fragment,"fragment is null");
+  this.nodeId=requireNonNull(nodeId,"nodeId is null");
+  checkArgument(partition >= 0,"partition is negative");
+  this.partition=partition;
+  splits.putAll(initialSplits);
+  this.partitionedSplitCountTracker=requireNonNull(partitionedSplitCountTracker,"partitionedSplitCountTracker is null");
+  partitionedSplitCountTracker.setPartitionedSplitCount(getPartitionedSplitCount());
+}

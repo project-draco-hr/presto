@@ -6,7 +6,7 @@
     addPage(sharedBuffer,createPage(i),firstPartition);
     addPage(sharedBuffer,createPage(i),secondPartition);
   }
-  OutputBuffers outputBuffers=INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffer(FIRST,new HashPagePartitionFunction(firstPartition,2,Ints.asList(0),Optional.<Integer>empty(),ImmutableList.of(BIGINT),HASH));
+  OutputBuffers outputBuffers=INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffer(FIRST,firstPartition);
   sharedBuffer.setOutputBuffers(outputBuffers);
   assertQueueState(sharedBuffer,FIRST,firstPartition,3,0,3,3,0);
   assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,FIRST,0,sizeOfPages(10),NO_WAIT),bufferResult(0,createPage(0),createPage(1),createPage(2)));
@@ -23,7 +23,7 @@
   assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,FIRST,3,sizeOfPages(1),NO_WAIT),bufferResult(3,createPage(3)));
   assertQueueState(sharedBuffer,FIRST,firstPartition,7,3,10,10,1);
   assertFalse(future.isDone());
-  outputBuffers=outputBuffers.withBuffer(SECOND,new HashPagePartitionFunction(secondPartition,2,Ints.asList(0),Optional.<Integer>empty(),ImmutableList.of(BIGINT),HASH));
+  outputBuffers=outputBuffers.withBuffer(SECOND,secondPartition);
   sharedBuffer.setOutputBuffers(outputBuffers);
   assertQueueState(sharedBuffer,SECOND,secondPartition,10,0,10,10,0);
   assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,SECOND,0,sizeOfPages(10),NO_WAIT),bufferResult(0,createPage(0),createPage(1),createPage(2),createPage(3),createPage(4),createPage(5),createPage(6),createPage(7),createPage(8),createPage(9)));

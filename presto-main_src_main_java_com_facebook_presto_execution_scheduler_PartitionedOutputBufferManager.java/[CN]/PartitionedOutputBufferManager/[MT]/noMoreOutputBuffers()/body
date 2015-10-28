@@ -1,18 +1,10 @@
 {
-  OutputBuffers outputBuffers;
 synchronized (this) {
     if (noMoreBufferIds) {
       return;
     }
     noMoreBufferIds=true;
-    ImmutableMap.Builder<TaskId,PagePartitionFunction> buffers=ImmutableMap.builder();
-    int partition=0;
-    int partitionCount=bufferIds.size();
-    for (    TaskId bufferId : bufferIds) {
-      buffers.put(bufferId,partitionFunctionGenerator.apply(partition,partitionCount));
-      partition++;
-    }
-    outputBuffers=INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffers(buffers.build()).withNoMoreBufferIds();
   }
+  OutputBuffers outputBuffers=INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffers(partitions).withNoMoreBufferIds();
   outputBufferTarget.accept(outputBuffers);
 }
