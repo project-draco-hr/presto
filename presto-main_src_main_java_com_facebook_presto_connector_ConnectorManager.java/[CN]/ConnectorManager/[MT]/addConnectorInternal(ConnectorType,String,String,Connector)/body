@@ -50,8 +50,13 @@
   }
  catch (  UnsupportedOperationException ignored) {
   }
-  requireNonNull(connector.getSessionProperties(),format("Connector %s returned null session properties",connectorId));
-  requireNonNull(connector.getTableProperties(),format("Connector %s returned null table properties",connectorId));
+  ConnectorNodePartitioningProvider partitioningProvider=null;
+  try {
+    partitioningProvider=connector.getNodePartitioningProvider();
+    requireNonNull(partitioningProvider,format("Connector %s returned a null partitioning provider",connectorId));
+  }
+ catch (  UnsupportedOperationException ignored) {
+  }
   ConnectorAccessControl accessControl=null;
   try {
     accessControl=connector.getAccessControl();
@@ -81,6 +86,9 @@
   }
   if (indexProvider != null) {
     indexManager.addIndexProvider(connectorId,indexProvider);
+  }
+  if (partitioningProvider != null) {
+    nodePartitioningManager.addPartitioningProvider(connectorId,partitioningProvider);
   }
   if (accessControl != null) {
     accessControlManager.addCatalogAccessControl(connectorId,catalogName,accessControl);

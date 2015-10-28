@@ -1,8 +1,17 @@
 {
+  Optional<int[]> bucketToPartition=functionBinding.getBucketToPartition();
+  checkArgument(bucketToPartition.isPresent(),"Bucket to partition must be set before a partition function can be created");
   PartitioningHandle partitioningHandle=functionBinding.getPartitioningHandle();
-  if (!(partitioningHandle instanceof SystemPartitioningHandle)) {
-    throw new IllegalArgumentException("Unsupported distribution handle " + partitioningHandle.getClass().getName());
+  BucketFunction bucketFunction;
+  if (partitioningHandle.getConnectorHandle() instanceof SystemPartitioningHandle) {
+    checkArgument(functionBinding.getBucketToPartition().isPresent(),"Bucket to partition must be set before a partition function can be created");
+    return ((SystemPartitioningHandle)partitioningHandle.getConnectorHandle()).getPartitionFunction(partitionChannelTypes,functionBinding.getHashColumn().isPresent(),functionBinding.getBucketToPartition().get());
   }
-  checkArgument(functionBinding.getBucketToPartition().isPresent(),"Bucket to partition must be set before a partition function can be created");
-  return ((SystemPartitioningHandle)partitioningHandle).getPartitionFunction(partitionChannelTypes,functionBinding.getHashColumn().isPresent(),functionBinding.getBucketToPartition().get());
+ else {
+    ConnectorNodePartitioningProvider partitioningProvider=partitioningProviders.get(partitioningHandle.getConnectorId().get());
+    checkArgument(partitioningProvider != null,"No partitioning provider for connector %s",partitioningHandle.getConnectorId().get());
+    bucketFunction=partitioningProvider.getBucketFunction(partitioningHandle.getTransactionHandle().orElse(null),session.toConnectorSession(),partitioningHandle.getConnectorHandle(),partitionChannelTypes,bucketToPartition.get().length);
+    checkArgument(bucketFunction != null,"No function %s",partitioningHandle);
+  }
+  return new PartitionFunction(bucketFunction,functionBinding.getBucketToPartition().get());
 }
