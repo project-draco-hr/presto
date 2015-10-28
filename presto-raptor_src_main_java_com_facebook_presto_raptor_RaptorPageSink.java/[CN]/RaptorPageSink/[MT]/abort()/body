@@ -1,3 +1,14 @@
 {
-  pageBuffer.getStoragePageSink().rollback();
+  RuntimeException error=new RuntimeException("Exception during rollback");
+  for (  PageBuffer pageBuffer : pageWriter.getPageBuffers()) {
+    try {
+      pageBuffer.getStoragePageSink().rollback();
+    }
+ catch (    Throwable t) {
+      error.addSuppressed(t);
+    }
+  }
+  if (error.getSuppressed().length > 0) {
+    throw error;
+  }
 }
