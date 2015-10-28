@@ -8,7 +8,7 @@
   }
   PlanWithProperties child=planChild(node,context.withPreferredProperties(PreferredProperties.derivePreferences(context.getPreferredProperties(),ImmutableSet.copyOf(node.getPartitionBy()),grouped(node.getPartitionBy()))));
   if (!child.getProperties().isPartitionedOn(node.getPartitionBy())) {
-    child=withDerivedProperties(partitionedExchange(idAllocator.getNextId(),child.getNode(),Optional.of(node.getPartitionBy()),node.getHashSymbol()),child.getProperties());
+    child=withDerivedProperties(partitionedExchange(idAllocator.getNextId(),child.getNode(),new PartitionFunctionBinding(HASH,node.getPartitionBy(),node.getHashSymbol())),child.getProperties());
   }
   return rebaseAndDeriveProperties(node,child);
 }
