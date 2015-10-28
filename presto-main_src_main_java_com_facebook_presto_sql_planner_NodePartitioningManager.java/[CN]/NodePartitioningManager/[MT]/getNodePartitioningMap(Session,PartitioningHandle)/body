@@ -1,0 +1,28 @@
+{
+  requireNonNull(partitioningHandle,"partitioningHandle is null");
+  if (!(partitioningHandle instanceof SystemPartitioningHandle)) {
+    throw new IllegalArgumentException("Unsupported partitioning handle " + partitioningHandle.getClass().getName());
+  }
+  NodeSelector nodeSelector=nodeScheduler.createNodeSelector(null);
+  PlanDistribution planDistribution=((SystemPartitioningHandle)partitioningHandle).getPlanDistribution();
+  List<Node> nodes;
+  if (planDistribution == COORDINATOR_ONLY) {
+    nodes=ImmutableList.of(nodeSelector.selectCurrentNode());
+  }
+ else   if (planDistribution == SINGLE) {
+    nodes=nodeSelector.selectRandomNodes(1);
+  }
+ else   if (planDistribution == FIXED) {
+    nodes=nodeSelector.selectRandomNodes(getHashPartitionCount(session));
+  }
+ else {
+    throw new IllegalArgumentException("Unsupported plan distribution " + planDistribution);
+  }
+  checkCondition(!nodes.isEmpty(),NO_NODES_AVAILABLE,"No worker nodes available");
+  ImmutableMap.Builder<Integer,Node> partitionToNode=ImmutableMap.builder();
+  for (int i=0; i < nodes.size(); i++) {
+    Node node=nodes.get(i);
+    partitionToNode.put(i,node);
+  }
+  return new NodePartitionMap(partitionToNode.build());
+}
