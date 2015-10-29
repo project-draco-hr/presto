@@ -57,7 +57,7 @@ for (Object constantValue : constantValues) {
 switchBuilder.addCase(Ints.checkedCast((Long)constantValue),match);
 }
 switchBuilder.defaultCase(defaultLabel);
-switchBlock=new ByteCodeBlock().comment("lookupSwitch(<stackValue>))").dup(javaType).longToInt().append(switchBuilder.build());
+switchBlock=new ByteCodeBlock().comment("lookupSwitch(<stackValue>))").dup(javaType).append(new IfStatement().condition(new ByteCodeBlock().dup(javaType).invokeStatic(InCodeGenerator.class,"isInteger",boolean.class,long.class)).ifFalse(new ByteCodeBlock().pop(javaType).gotoLabel(defaultLabel))).longToInt().append(switchBuilder.build());
 break;
 case HASH_SWITCH:
 for (Map.Entry<Integer,Collection<ByteCodeNode>> bucket : hashBuckets.asMap().entrySet()) {
