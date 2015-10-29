@@ -1,0 +1,13 @@
+{
+  for (int position=0; position < page.getPositionCount(); position++) {
+    int bucket=computeBucketNumber(page,position);
+    PageStore store=pageStores.get(bucket);
+    if (store == null) {
+      PageBuffer buffer=createPageBuffer(OptionalInt.of(bucket));
+      store=new PageStore(buffer,columnTypes);
+      pageStores.put(bucket,store);
+    }
+    store.appendPosition(page,position);
+  }
+  flushIfNecessary();
+}

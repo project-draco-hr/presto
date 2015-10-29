@@ -1,0 +1,16 @@
+{
+  long totalBytes=0;
+  long maxBytes=0;
+  PageBuffer maxBuffer=null;
+  for (  PageStore store : pageStores.values()) {
+    long bytes=store.getUsedMemoryBytes();
+    totalBytes+=bytes;
+    if ((maxBuffer == null) || (bytes > maxBytes)) {
+      maxBuffer=store.getPageBuffer();
+      maxBytes=bytes;
+    }
+  }
+  if ((totalBytes > maxBufferBytes) && (maxBuffer != null)) {
+    maxBuffer.flush();
+  }
+}
