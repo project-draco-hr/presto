@@ -1,14 +1,15 @@
 {
+  Set<String> result=new HashSet<>();
   FileSystem fileSystem=hdfsEnvironment.getFileSystem(path);
   if (fileSystem.exists(path)) {
     for (    FileStatus fileStatus : fileSystem.listStatus(path)) {
       if (HadoopFileStatus.isFile(fileStatus)) {
-        existingFiles.add(fileStatus.getPath().toString());
+        result.add(fileStatus.getPath().toString());
       }
  else       if (HadoopFileStatus.isDirectory(fileStatus)) {
-        existingFiles.addAll(listAllDataFiles(fileStatus.getPath(),existingFiles));
+        result.addAll(listAllDataFiles(fileStatus.getPath()));
       }
     }
   }
-  return existingFiles;
+  return result;
 }
