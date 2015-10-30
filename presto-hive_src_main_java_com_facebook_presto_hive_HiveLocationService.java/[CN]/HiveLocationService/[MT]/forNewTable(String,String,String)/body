@@ -1,0 +1,14 @@
+{
+  Path targetPath=getTableDefaultLocation(metastore,hdfsEnvironment,schemaName,tableName);
+  if (pathExists(hdfsEnvironment,targetPath)) {
+    throw new PrestoException(HIVE_PATH_ALREADY_EXISTS,format("Target directory for table '%s.%s' already exists: %s",schemaName,tableName,targetPath));
+  }
+  Path writePath;
+  if (shouldUseTemporaryDirectory(targetPath)) {
+    writePath=createTemporaryPath(hdfsEnvironment,targetPath);
+  }
+ else {
+    writePath=targetPath;
+  }
+  return new LocationHandle(targetPath,Optional.of(writePath),false);
+}

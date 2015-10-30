@@ -12,11 +12,12 @@
   HdfsConfiguration hdfsConfiguration=new HiveHdfsConfiguration(new HdfsConfigurationUpdater(hiveClientConfig));
   HivePartitionManager hivePartitionManager=new HivePartitionManager(connectorId,hiveClientConfig);
   hdfsEnvironment=new HdfsEnvironment(hdfsConfiguration,hiveClientConfig);
+  locationService=new HiveLocationService(metastoreClient,hdfsEnvironment);
   metastoreClient=new TestingHiveMetastore(hiveCluster,executor,hiveClientConfig,writableBucket,hdfsEnvironment);
   TypeRegistry typeManager=new TypeRegistry();
   JsonCodec<PartitionUpdate> partitionUpdateCodec=JsonCodec.jsonCodec(PartitionUpdate.class);
-  metadata=new HiveMetadata(connectorId,hiveClientConfig,metastoreClient,hdfsEnvironment,hivePartitionManager,newDirectExecutorService(),typeManager,partitionUpdateCodec);
+  metadata=new HiveMetadata(connectorId,hiveClientConfig,metastoreClient,hdfsEnvironment,hivePartitionManager,newDirectExecutorService(),typeManager,locationService,partitionUpdateCodec);
   splitManager=new HiveSplitManager(connectorId,hiveClientConfig,metastoreClient,new NamenodeStats(),hdfsEnvironment,new HadoopDirectoryLister(),executor);
-  pageSinkProvider=new HivePageSinkProvider(hdfsEnvironment,metastoreClient,new GroupByHashPageIndexerFactory(),typeManager,new HiveClientConfig(),partitionUpdateCodec);
+  pageSinkProvider=new HivePageSinkProvider(hdfsEnvironment,metastoreClient,new GroupByHashPageIndexerFactory(),typeManager,new HiveClientConfig(),locationService,partitionUpdateCodec);
   pageSourceProvider=new HivePageSourceProvider(hiveClientConfig,hdfsEnvironment,DEFAULT_HIVE_RECORD_CURSOR_PROVIDER,DEFAULT_HIVE_DATA_STREAM_FACTORIES,TYPE_MANAGER);
 }

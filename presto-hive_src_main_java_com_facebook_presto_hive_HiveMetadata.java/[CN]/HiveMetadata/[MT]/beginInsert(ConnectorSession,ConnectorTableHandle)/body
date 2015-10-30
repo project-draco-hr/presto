@@ -8,13 +8,5 @@
   checkTableIsWritable(table.get());
   HiveStorageFormat hiveStorageFormat=extractHiveStorageFormat(table.get());
   List<HiveColumnHandle> handles=hiveColumnHandles(connectorId,table.get());
-  Path targetPath=new Path(table.get().getSd().getLocation());
-  Optional<String> writePath;
-  if (useTemporaryDirectory(targetPath)) {
-    writePath=Optional.of(createTemporaryPath(hdfsEnvironment,targetPath));
-  }
- else {
-    writePath=Optional.empty();
-  }
-  return new HiveInsertTableHandle(connectorId,tableName.getSchemaName(),tableName.getTableName(),handles,randomUUID().toString(),writePath,hiveStorageFormat);
+  return new HiveInsertTableHandle(connectorId,tableName.getSchemaName(),tableName.getTableName(),handles,randomUUID().toString(),locationService.forExistingTable(session.getQueryId(),table.get()),hiveStorageFormat);
 }
