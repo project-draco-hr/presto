@@ -1,0 +1,13 @@
+{
+  Block block=page.getBlock(0);
+  if (block.isNull(position)) {
+    return 0;
+  }
+  long orderKey=BIGINT.getLong(block,position);
+  long rowNumber=rowNumberFromOrderKey(orderKey);
+  int bucket=Ints.checkedCast(rowNumber / rowsPerBucket);
+  if (bucket >= bucketCount) {
+    bucket=bucketCount - 1;
+  }
+  return bucket;
+}
