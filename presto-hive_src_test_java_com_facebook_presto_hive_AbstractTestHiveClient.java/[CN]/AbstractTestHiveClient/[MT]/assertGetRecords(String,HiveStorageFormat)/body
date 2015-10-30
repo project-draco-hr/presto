@@ -1,8 +1,9 @@
 {
+  ConnectorSession session=newSession();
   ConnectorTableHandle tableHandle=getTableHandle(new SchemaTableName(database,tableName));
-  ConnectorTableMetadata tableMetadata=metadata.getTableMetadata(SESSION,tableHandle);
+  ConnectorTableMetadata tableMetadata=metadata.getTableMetadata(session,tableHandle);
   HiveSplit hiveSplit=getHiveSplit(tableHandle);
-  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(SESSION,tableHandle).values());
-  ConnectorPageSource pageSource=pageSourceProvider.createPageSource(SESSION,hiveSplit,columnHandles);
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(session,tableHandle).values());
+  ConnectorPageSource pageSource=pageSourceProvider.createPageSource(session,hiveSplit,columnHandles);
   assertGetRecords(hiveStorageFormat,tableMetadata,hiveSplit,pageSource,columnHandles);
 }

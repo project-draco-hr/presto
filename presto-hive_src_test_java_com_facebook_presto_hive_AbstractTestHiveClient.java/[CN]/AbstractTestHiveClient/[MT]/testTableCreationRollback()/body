@@ -1,14 +1,15 @@
 {
   try {
-    ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(temporaryCreateTable,CREATE_TABLE_COLUMNS,createTableProperties(RCBINARY),SESSION.getUser());
-    ConnectorOutputTableHandle outputHandle=metadata.beginCreateTable(SESSION,tableMetadata);
-    ConnectorPageSink sink=pageSinkProvider.createPageSink(SESSION,outputHandle);
+    ConnectorSession session=newSession();
+    ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(temporaryCreateTable,CREATE_TABLE_COLUMNS,createTableProperties(RCBINARY),session.getUser());
+    ConnectorOutputTableHandle outputHandle=metadata.beginCreateTable(session,tableMetadata);
+    ConnectorPageSink sink=pageSinkProvider.createPageSink(session,outputHandle);
     sink.appendPage(CREATE_TABLE_DATA.toPage(),null);
     sink.commit();
     assertFalse(listAllDataFiles(outputHandle).isEmpty());
-    metadata.rollbackCreateTable(SESSION,outputHandle);
+    metadata.rollbackCreateTable(session,outputHandle);
     assertTrue(listAllDataFiles(outputHandle).isEmpty());
-    assertNull(metadata.getTableHandle(SESSION,temporaryCreateTable));
+    assertNull(metadata.getTableHandle(session,temporaryCreateTable));
   }
   finally {
     dropTable(temporaryCreateTable);

@@ -1,9 +1,10 @@
 {
   for (  HiveStorageFormat storageFormat : createTableFormats) {
     try {
+      ConnectorSession session=newSession();
       List<ColumnMetadata> columns=ImmutableList.of(new ColumnMetadata("dummy",HYPER_LOG_LOG,false));
-      ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(invalidTable,columns,createTableProperties(storageFormat),SESSION.getUser());
-      metadata.beginCreateTable(SESSION,tableMetadata);
+      ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(invalidTable,columns,createTableProperties(storageFormat),session.getUser());
+      metadata.beginCreateTable(session,tableMetadata);
       fail("create table with unsupported type should fail for storage format " + storageFormat);
     }
  catch (    PrestoException e) {

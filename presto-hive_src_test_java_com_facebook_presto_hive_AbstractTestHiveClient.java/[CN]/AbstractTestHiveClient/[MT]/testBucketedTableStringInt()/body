@@ -1,13 +1,14 @@
 {
+  ConnectorSession session=newSession();
   ConnectorTableHandle tableHandle=getTableHandle(tableBucketedStringInt);
-  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(SESSION,tableHandle).values());
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(session,tableHandle).values());
   Map<String,Integer> columnIndex=indexColumns(columnHandles);
   assertTableIsBucketed(tableHandle);
   String testString="test";
   Long testInt=13L;
   Long testSmallint=12L;
   ImmutableMap<ColumnHandle,NullableValue> bindings=ImmutableMap.<ColumnHandle,NullableValue>builder().put(columnHandles.get(columnIndex.get("t_int")),NullableValue.of(BIGINT,testInt)).put(columnHandles.get(columnIndex.get("t_string")),NullableValue.of(VARCHAR,utf8Slice(testString))).put(columnHandles.get(columnIndex.get("t_smallint")),NullableValue.of(BIGINT,testSmallint)).build();
-  MaterializedResult result=readTable(tableHandle,columnHandles,SESSION,TupleDomain.fromFixedValues(bindings),OptionalInt.of(1),Optional.empty());
+  MaterializedResult result=readTable(tableHandle,columnHandles,session,TupleDomain.fromFixedValues(bindings),OptionalInt.of(1),Optional.empty());
   boolean rowFound=false;
   for (  MaterializedRow row : result) {
     if (testString.equals(row.getField(columnIndex.get("t_string"))) && testInt.equals(row.getField(columnIndex.get("t_int"))) && testSmallint.equals(row.getField(columnIndex.get("t_smallint")))) {

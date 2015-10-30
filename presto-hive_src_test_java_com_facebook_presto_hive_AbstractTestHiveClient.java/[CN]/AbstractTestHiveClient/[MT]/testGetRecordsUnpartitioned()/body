@@ -1,6 +1,7 @@
 {
+  ConnectorSession session=newSession();
   ConnectorTableHandle tableHandle=getTableHandle(tableUnpartitioned);
-  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(SESSION,tableHandle).values());
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(session,tableHandle).values());
   Map<String,Integer> columnIndex=indexColumns(columnHandles);
   List<ConnectorSplit> splits=getAllSplits(tableHandle,TupleDomain.all());
   assertEquals(splits.size(),1);
@@ -8,9 +9,9 @@
     HiveSplit hiveSplit=(HiveSplit)split;
     assertEquals(hiveSplit.getPartitionKeys(),ImmutableList.of());
     long rowNumber=0;
-    try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(SESSION,split,columnHandles)){
+    try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(session,split,columnHandles)){
       assertPageSourceType(pageSource,TEXTFILE);
-      MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,getTypes(columnHandles));
+      MaterializedResult result=materializeSourceDataStream(session,pageSource,getTypes(columnHandles));
       assertEquals(pageSource.getTotalBytes(),hiveSplit.getLength());
       for (      MaterializedRow row : result) {
         rowNumber++;
