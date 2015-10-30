@@ -1,6 +1,4 @@
 {
-  final Map<Expression,Integer> resolvedNames=analysis.getResolvedNames(expression);
-  Preconditions.checkArgument(resolvedNames != null,"No resolved names for expression %s",expression);
   return ExpressionTreeRewriter.rewriteWith(new ExpressionRewriter<Void>(){
     @Override public Expression rewriteExpression(    Expression node,    Void context,    ExpressionTreeRewriter<Void> treeRewriter){
       Expression rewrittenExpression=treeRewriter.defaultRewrite(node,context);
@@ -14,10 +12,10 @@
       return rewriteExpressionWithResolvedName(node);
     }
     private Expression rewriteExpressionWithResolvedName(    Expression node){
-      Integer fieldIndex=resolvedNames.get(node);
-      checkState(fieldIndex != null,"No field mapping for node '%s'",node);
-      Symbol symbol=rewriteBase.getSymbol(fieldIndex);
-      checkState(symbol != null,"No symbol mapping for node '%s' (%s)",node,fieldIndex);
+      Optional<Integer> fieldIndex=analysis.getFieldIndex(node);
+      checkState(fieldIndex.isPresent(),"No field mapping for node '%s'",node);
+      Symbol symbol=rewriteBase.getSymbol(fieldIndex.get());
+      checkState(symbol != null,"No symbol mapping for node '%s' (%s)",node,fieldIndex.get());
       Expression rewrittenExpression=new QualifiedNameReference(symbol.toQualifiedName());
       Type coercion=analysis.getCoercion(node);
       if (coercion != null) {
@@ -26,7 +24,7 @@
       return rewrittenExpression;
     }
     @Override public Expression rewriteDereferenceExpression(    DereferenceExpression node,    Void context,    ExpressionTreeRewriter<Void> treeRewriter){
-      if (analysis.getColumnReferences().contains(node)) {
+      if (analysis.getFieldIndex(node).isPresent()) {
         return rewriteExpressionWithResolvedName(node);
       }
       QualifiedName mangledName=QualifiedName.of(mangleFieldReference(node.getFieldName()));
