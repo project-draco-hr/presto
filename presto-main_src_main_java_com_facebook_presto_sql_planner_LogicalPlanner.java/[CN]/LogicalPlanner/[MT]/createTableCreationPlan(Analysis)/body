@@ -5,5 +5,6 @@
   if (plan.getSampleWeight().isPresent() && !metadata.canCreateSampledTables(session,destination.getCatalogName())) {
     throw new PrestoException(NOT_SUPPORTED,"Cannot write sampled data to a store that doesn't support sampling");
   }
-  return createTableWriterPlan(analysis,plan,new CreateName(destination.getCatalogName(),tableMetadata),tableMetadata.getVisibleColumnNames());
+  Optional<NewTableLayout> newTableLayout=metadata.getNewTableLayout(session,destination.getCatalogName(),tableMetadata);
+  return createTableWriterPlan(analysis,plan,new CreateName(destination.getCatalogName(),tableMetadata),tableMetadata.getVisibleColumnNames(),newTableLayout);
 }
