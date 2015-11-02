@@ -1,2 +1,27 @@
 {
+  LookupSourceSupplier lookupSourceSupplier=createLookupJoinSource(node,buildNode,buildSymbols,buildHashSymbol,context);
+  PhysicalOperation probeSource;
+  LocalExecutionPlanContext parallelParentContext=null;
+  int joinConcurrency=getTaskJoinConcurrency(session);
+  if (!isBuildOuter(node) && context.isAllowLocalParallel() && context.getDriverInstanceCount() == 1 && joinConcurrency > 1) {
+    parallelParentContext=context;
+    context=context.createSubContext();
+    probeSource=createInMemoryExchange(probeNode,context);
+    context.setDriverInstanceCount(joinConcurrency);
+  }
+ else {
+    probeSource=probeNode.accept(this,context);
+  }
+  OperatorFactory operator=createLookupJoin(node,probeSource,probeSymbols,probeHashSymbol,lookupSourceSupplier,context);
+  ImmutableMap.Builder<Symbol,Integer> outputMappings=ImmutableMap.builder();
+  List<Symbol> outputSymbols=node.getOutputSymbols();
+  for (int i=0; i < outputSymbols.size(); i++) {
+    Symbol symbol=outputSymbols.get(i);
+    outputMappings.put(symbol,i);
+  }
+  PhysicalOperation operation=new PhysicalOperation(operator,outputMappings.build(),probeSource);
+  if (parallelParentContext != null) {
+    operation=addInMemoryExchange(parallelParentContext,operation,context);
+  }
+  return operation;
 }
