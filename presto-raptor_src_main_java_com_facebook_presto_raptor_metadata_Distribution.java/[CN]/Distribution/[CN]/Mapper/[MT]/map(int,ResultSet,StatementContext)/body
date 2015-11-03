@@ -1,0 +1,12 @@
+{
+  List<String> typeNames=LIST_CODEC.fromJson(rs.getString("column_types"));
+  ImmutableList.Builder<Type> types=ImmutableList.builder();
+  for (  String typeName : typeNames) {
+    Type type=typeManager.getType(parseTypeSignature(typeName));
+    if (type == null) {
+      throw new PrestoException(RAPTOR_ERROR,"Unknown distribution column type: " + typeName);
+    }
+    types.add(type);
+  }
+  return new Distribution(rs.getLong("distribution_id"),Optional.ofNullable(rs.getString("distribution_name")),types.build(),rs.getInt("bucket_count"));
+}

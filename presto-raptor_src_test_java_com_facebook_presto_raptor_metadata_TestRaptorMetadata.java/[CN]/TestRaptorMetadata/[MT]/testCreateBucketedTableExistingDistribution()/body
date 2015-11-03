@@ -1,0 +1,25 @@
+{
+  MetadataDao metadataDao=dbi.onDemand(MetadataDao.class);
+  assertNull(metadata.getTableHandle(SESSION,DEFAULT_TEST_ORDERS));
+  ConnectorTableMetadata table=getOrdersTable(ImmutableMap.of(BUCKET_COUNT_PROPERTY,16,BUCKETED_ON_PROPERTY,ImmutableList.of("orderkey"),DISTRIBUTION_NAME_PROPERTY,"orders"));
+  metadata.createTable(SESSION,table);
+  ConnectorTableHandle tableHandle=metadata.getTableHandle(SESSION,DEFAULT_TEST_ORDERS);
+  assertInstanceOf(tableHandle,RaptorTableHandle.class);
+  RaptorTableHandle raptorTableHandle=(RaptorTableHandle)tableHandle;
+  long tableId=raptorTableHandle.getTableId();
+  assertEquals(raptorTableHandle.getTableId(),1);
+  assertEquals(metadataDao.listBucketColumns(tableId),ImmutableList.of(new TableColumn(DEFAULT_TEST_ORDERS,"orderkey",BIGINT,0)));
+  assertEquals(raptorTableHandle.getBucketCount(),OptionalInt.of(16));
+  assertEquals(getTableDistributionId(tableId),Long.valueOf(1));
+  assertNull(metadata.getTableHandle(SESSION,DEFAULT_TEST_LINEITEMS));
+  table=getLineItemsTable(ImmutableMap.of(BUCKET_COUNT_PROPERTY,16,BUCKETED_ON_PROPERTY,ImmutableList.of("orderkey"),DISTRIBUTION_NAME_PROPERTY,"orders"));
+  metadata.createTable(SESSION,table);
+  tableHandle=metadata.getTableHandle(SESSION,DEFAULT_TEST_LINEITEMS);
+  assertInstanceOf(tableHandle,RaptorTableHandle.class);
+  raptorTableHandle=(RaptorTableHandle)tableHandle;
+  tableId=raptorTableHandle.getTableId();
+  assertEquals(tableId,2);
+  assertEquals(metadataDao.listBucketColumns(tableId),ImmutableList.of(new TableColumn(DEFAULT_TEST_LINEITEMS,"orderkey",BIGINT,0)));
+  assertEquals(raptorTableHandle.getBucketCount(),OptionalInt.of(16));
+  assertEquals(getTableDistributionId(tableId),Long.valueOf(1));
+}

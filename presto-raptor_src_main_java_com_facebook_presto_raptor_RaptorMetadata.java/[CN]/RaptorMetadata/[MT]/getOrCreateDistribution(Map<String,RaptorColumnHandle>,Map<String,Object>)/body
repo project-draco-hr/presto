@@ -1,0 +1,46 @@
+{
+  OptionalInt bucketCount=getBucketCount(properties);
+  List<RaptorColumnHandle> bucketColumnHandles=getBucketColumnHandles(getBucketColumns(properties),columnHandleMap);
+  if (bucketCount.isPresent() && bucketColumnHandles.isEmpty()) {
+    throw new PrestoException(INVALID_TABLE_PROPERTY,format("Must specify '%s' along with '%s'",BUCKETED_ON_PROPERTY,BUCKET_COUNT_PROPERTY));
+  }
+  if (!bucketCount.isPresent() && !bucketColumnHandles.isEmpty()) {
+    throw new PrestoException(INVALID_TABLE_PROPERTY,format("Must specify '%s' along with '%s'",BUCKET_COUNT_PROPERTY,BUCKETED_ON_PROPERTY));
+  }
+  ImmutableList.Builder<Type> bucketColumnTypes=ImmutableList.builder();
+  for (  RaptorColumnHandle column : bucketColumnHandles) {
+    if (!column.getColumnType().equals(BIGINT)) {
+      throw new PrestoException(NOT_SUPPORTED,"Bucketing is only supported for BIGINT columns");
+    }
+    bucketColumnTypes.add(column.getColumnType());
+  }
+  long distributionId;
+  String distributionName=getDistributionName(properties);
+  if (distributionName != null) {
+    if (bucketColumnHandles.isEmpty()) {
+      throw new PrestoException(INVALID_TABLE_PROPERTY,format("Must specify '%s' along with '%s'",BUCKETED_ON_PROPERTY,DISTRIBUTION_NAME_PROPERTY));
+    }
+    Distribution distribution=dao.getDistribution(distributionName);
+    if (distribution == null) {
+      if (!bucketCount.isPresent()) {
+        throw new PrestoException(INVALID_TABLE_PROPERTY,"Distribution does not exist and bucket count is not specified");
+      }
+      distribution=getOrCreateDistribution(distributionName,bucketColumnTypes.build(),bucketCount.getAsInt());
+    }
+    distributionId=distribution.getId();
+    if (bucketCount.isPresent() && (distribution.getBucketCount() != bucketCount.getAsInt())) {
+      throw new PrestoException(INVALID_TABLE_PROPERTY,"Bucket count must match distribution");
+    }
+    if (!distribution.getColumnTypes().equals(bucketColumnTypes.build())) {
+      throw new PrestoException(INVALID_TABLE_PROPERTY,"Bucket column types must match distribution");
+    }
+  }
+ else   if (bucketCount.isPresent()) {
+    String types=Distribution.serializeColumnTypes(bucketColumnTypes.build());
+    distributionId=dao.insertDistribution(null,types,bucketCount.getAsInt());
+  }
+ else {
+    return Optional.empty();
+  }
+  return Optional.of(new DistributionInfo(distributionId,bucketCount.getAsInt(),bucketColumnHandles));
+}

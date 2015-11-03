@@ -10,5 +10,10 @@
   MetadataDao metadataDao=dbi.onDemand(MetadataDao.class);
   assertEquals(metadataDao.listBucketColumns(tableId),ImmutableList.of(new TableColumn(DEFAULT_TEST_ORDERS,"custkey",BIGINT,0),new TableColumn(DEFAULT_TEST_ORDERS,"orderkey",BIGINT,1)));
   assertEquals(raptorTableHandle.getBucketCount(),OptionalInt.of(16));
+  assertEquals(getTableDistributionId(tableId),Long.valueOf(1));
   metadata.dropTable(SESSION,tableHandle);
+  metadata.createTable(SESSION,ordersTable);
+  tableId=((RaptorTableHandle)metadata.getTableHandle(SESSION,DEFAULT_TEST_ORDERS)).getTableId();
+  assertEquals(tableId,2);
+  assertEquals(getTableDistributionId(tableId),Long.valueOf(2));
 }
