@@ -1,0 +1,14 @@
+{
+  if (referenceCount.get() != 0 || outerLookupFuture == null) {
+    return;
+  }
+  Futures.addCallback(outerLookupFuture,new FutureCallback<LookupSource>(){
+    @Override public void onSuccess(    LookupSource result){
+      outerPositionsFuture.set(getPositionTracker(result).getOuterPositions());
+    }
+    @Override public void onFailure(    Throwable t){
+      outerPositionsFuture.setException(t);
+    }
+  }
+);
+}

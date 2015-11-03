@@ -1,0 +1,22 @@
+{
+  if (outerPositions == null) {
+    outerPositions=tryGetFutureValue(outerPositionsFuture).orElse(null);
+    if (outerPositions == null) {
+      return null;
+    }
+  }
+  while (!pageBuilder.isFull() && outerPositions.hasNext()) {
+    long buildSideOuterJoinPosition=outerPositions.next();
+    pageBuilder.declarePosition();
+    for (int probeChannel=0; probeChannel < probeTypes.size(); probeChannel++) {
+      pageBuilder.getBlockBuilder(probeChannel).appendNull();
+    }
+    outerPositions.appendTo(buildSideOuterJoinPosition,pageBuilder,probeTypes.size());
+  }
+  if (pageBuilder.isFull() || (!outerPositions.hasNext() && !pageBuilder.isEmpty())) {
+    Page page=pageBuilder.build();
+    pageBuilder.reset();
+    return page;
+  }
+  return null;
+}

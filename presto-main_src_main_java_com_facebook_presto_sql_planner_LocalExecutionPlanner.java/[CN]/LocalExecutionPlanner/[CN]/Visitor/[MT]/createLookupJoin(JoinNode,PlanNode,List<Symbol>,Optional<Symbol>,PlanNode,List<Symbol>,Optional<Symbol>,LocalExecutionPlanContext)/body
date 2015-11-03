@@ -3,11 +3,16 @@
   PhysicalOperation probeSource;
   LocalExecutionPlanContext parallelParentContext=null;
   int joinConcurrency=getTaskJoinConcurrency(session);
-  if (!isBuildOuter(node) && context.isAllowLocalParallel() && context.getDriverInstanceCount() == 1 && joinConcurrency > 1) {
+  if (context.isAllowLocalParallel() && context.getDriverInstanceCount() == 1 && joinConcurrency > 1) {
     parallelParentContext=context;
     context=context.createSubContext();
     probeSource=createInMemoryExchange(probeNode,context);
     context.setDriverInstanceCount(joinConcurrency);
+  }
+ else   if (context.isSingleNode() && isBuildOuter(node)) {
+    parallelParentContext=context;
+    context=context.createSubContext();
+    probeSource=probeNode.accept(this,context);
   }
  else {
     probeSource=probeNode.accept(this,context);
