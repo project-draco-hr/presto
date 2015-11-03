@@ -1,0 +1,28 @@
+{
+  Operator operator=createTableWriterOperator();
+  assertEquals(operator.isBlocked().isDone(),true);
+  assertEquals(operator.isFinished(),false);
+  assertEquals(operator.needsInput(),true);
+  operator.addInput(rowPagesBuilder(BIGINT).row(42).build().get(0));
+  assertEquals(operator.isBlocked().isDone(),false);
+  assertEquals(operator.isFinished(),false);
+  assertEquals(operator.needsInput(),false);
+  assertEquals(operator.getOutput(),null);
+  blockingPageSink.complete();
+  assertEquals(operator.isBlocked().isDone(),true);
+  assertEquals(operator.isFinished(),false);
+  assertEquals(operator.needsInput(),true);
+  operator.addInput(rowPagesBuilder(BIGINT).row(44).build().get(0));
+  assertEquals(operator.isBlocked().isDone(),false);
+  assertEquals(operator.isFinished(),false);
+  assertEquals(operator.needsInput(),false);
+  operator.finish();
+  assertEquals(operator.isBlocked().isDone(),false);
+  assertEquals(operator.isFinished(),false);
+  assertEquals(operator.needsInput(),false);
+  blockingPageSink.complete();
+  assertPageEquals(TableWriterOperator.TYPES,operator.getOutput(),rowPagesBuilder(TableWriterOperator.TYPES).row(2,null).build().get(0));
+  assertEquals(operator.isBlocked().isDone(),true);
+  assertEquals(operator.isFinished(),true);
+  assertEquals(operator.needsInput(),false);
+}

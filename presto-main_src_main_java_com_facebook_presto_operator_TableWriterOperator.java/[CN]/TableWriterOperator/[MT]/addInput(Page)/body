@@ -1,6 +1,6 @@
 {
   requireNonNull(page,"page is null");
-  checkState(state == State.RUNNING,"Operator is %s",state);
+  checkState(needsInput(),"Operator does not need input");
   Block[] blocks=new Block[inputChannels.size()];
   for (int outputChannel=0; outputChannel < inputChannels.size(); outputChannel++) {
     blocks[outputChannel]=page.getBlock(inputChannels.get(outputChannel));
@@ -9,6 +9,9 @@
   if (sampleWeightChannel.isPresent()) {
     sampleWeightBlock=page.getBlock(sampleWeightChannel.get());
   }
-  pageSink.appendPage(new Page(blocks),sampleWeightBlock);
+  CompletableFuture<?> future=pageSink.appendPage(new Page(blocks),sampleWeightBlock);
+  if (!future.isDone()) {
+    this.blocked=MoreFutures.toListenableFuture(future);
+  }
   rowCount+=page.getPositionCount();
 }
