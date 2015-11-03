@@ -4,7 +4,7 @@
   analyzer.analyze(expression,new TupleDescriptor(),new AnalysisContext());
   Type actualType=analyzer.getExpressionTypes().get(expression);
   if (!canCoerce(actualType,expectedType)) {
-    throw new PrestoException(StandardErrorCode.INVALID_SESSION_PROPERTY,String.format("Can not set property of type %s to %s",expectedType.getTypeSignature(),actualType.getTypeSignature()));
+    throw new SemanticException(SemanticErrorCode.TYPE_MISMATCH,expression,String.format("Cannot cast type %s to %s",expectedType.getTypeSignature(),actualType.getTypeSignature()));
   }
   IdentityHashMap<Expression,Type> coercions=new IdentityHashMap<>();
   coercions.putAll(analyzer.getExpressionCoercions());

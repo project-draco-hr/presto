@@ -11,7 +11,13 @@
     accessControl.checkCanSetCatalogSessionProperty(session.getIdentity(),propertyName.getParts().get(0),propertyName.getParts().get(1));
   }
   Type type=propertyMetadata.getSqlType();
-  Object objectValue=evaluatePropertyValue(statement.getValue(),type,session,metadata);
+  Object objectValue;
+  try {
+    objectValue=evaluatePropertyValue(statement.getValue(),type,session,metadata);
+  }
+ catch (  SemanticException e) {
+    throw new PrestoException(StandardErrorCode.INVALID_SESSION_PROPERTY,format("Unable to set session property '%s' to '%s': %s",propertyName,statement.getValue(),e.getMessage()));
+  }
   String value=serializeSessionProperty(type,objectValue);
   metadata.getSessionPropertyManager().decodeProperty(propertyName.toString(),value,propertyMetadata.getJavaType());
   stateMachine.addSetSessionProperties(propertyName.toString(),value);
