@@ -1,5 +1,16 @@
 {
   ActualProperties probeProperties=inputProperties.get(0);
   ActualProperties buildProperties=inputProperties.get(1);
-  return ActualProperties.builderFrom(probeProperties).constants(ImmutableMap.<Symbol,Object>builder().putAll(probeProperties.getConstants()).putAll(buildProperties.getConstants()).build()).build();
+switch (node.getType()) {
+case INNER:
+    return ActualProperties.builderFrom(probeProperties).constants(ImmutableMap.<Symbol,Object>builder().putAll(probeProperties.getConstants()).putAll(buildProperties.getConstants()).build()).build();
+case LEFT:
+  return ActualProperties.builderFrom(probeProperties).constants(probeProperties.getConstants()).build();
+case RIGHT:
+return ActualProperties.builder().global(buildProperties).constants(buildProperties.getConstants()).build();
+case FULL:
+return probeProperties.isDistributed() ? ActualProperties.distributed() : ActualProperties.undistributed();
+default :
+throw new UnsupportedOperationException("Unsupported join type: " + node.getType());
+}
 }
