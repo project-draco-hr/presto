@@ -1,0 +1,18 @@
+{
+  if (!useOrcColumnNames) {
+    return columns;
+  }
+  verifyFileHasColumnNames(reader.getColumnNames(),path);
+  Map<String,Integer> physicalNameOrdinalMap=buildPhysicalNameOrdinalMap(reader);
+  int nextMissingColumnIndex=physicalNameOrdinalMap.size();
+  ImmutableList.Builder<HiveColumnHandle> physicalColumns=ImmutableList.builder();
+  for (  HiveColumnHandle column : columns) {
+    Integer physicalOrdinal=physicalNameOrdinalMap.get(column.getName());
+    if (physicalOrdinal == null) {
+      physicalOrdinal=nextMissingColumnIndex;
+      nextMissingColumnIndex++;
+    }
+    physicalColumns.add(new HiveColumnHandle(column.getClientId(),column.getName(),column.getHiveType(),column.getTypeSignature(),physicalOrdinal,column.isPartitionKey()));
+  }
+  return physicalColumns.build();
+}

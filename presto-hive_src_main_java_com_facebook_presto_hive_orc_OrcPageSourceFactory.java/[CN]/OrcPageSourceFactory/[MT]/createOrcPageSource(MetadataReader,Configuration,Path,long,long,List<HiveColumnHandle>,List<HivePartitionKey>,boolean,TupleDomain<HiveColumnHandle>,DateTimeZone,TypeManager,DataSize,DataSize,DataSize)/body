@@ -12,21 +12,22 @@
     }
     throw new PrestoException(HIVE_CANNOT_OPEN_SPLIT,splitError(e,path,start,length),e);
   }
-  ImmutableMap.Builder<Integer,Type> includedColumns=ImmutableMap.builder();
-  ImmutableList.Builder<ColumnReference<HiveColumnHandle>> columnReferences=ImmutableList.builder();
-  for (  HiveColumnHandle column : columns) {
-    if (!column.isPartitionKey()) {
-      Type type=typeManager.getType(column.getTypeSignature());
-      includedColumns.put(column.getHiveColumnIndex(),type);
-      columnReferences.add(new ColumnReference<>(column,column.getHiveColumnIndex(),type));
-    }
-  }
-  OrcPredicate predicate=new TupleDomainOrcPredicate<>(effectivePredicate,columnReferences.build());
   AggregatedMemoryContext systemMemoryUsage=new AggregatedMemoryContext();
   try {
     OrcReader reader=new OrcReader(orcDataSource,metadataReader,maxMergeDistance,maxBufferSize);
+    List<HiveColumnHandle> physicalColumns=getPhysicalHiveColumnHandles(columns,useOrcColumnNames,reader,path);
+    ImmutableMap.Builder<Integer,Type> includedColumns=ImmutableMap.builder();
+    ImmutableList.Builder<ColumnReference<HiveColumnHandle>> columnReferences=ImmutableList.builder();
+    for (    HiveColumnHandle column : physicalColumns) {
+      if (!column.isPartitionKey()) {
+        Type type=typeManager.getType(column.getTypeSignature());
+        includedColumns.put(column.getHiveColumnIndex(),type);
+        columnReferences.add(new ColumnReference<>(column,column.getHiveColumnIndex(),type));
+      }
+    }
+    OrcPredicate predicate=new TupleDomainOrcPredicate<>(effectivePredicate,columnReferences.build());
     OrcRecordReader recordReader=reader.createRecordReader(includedColumns.build(),predicate,start,length,hiveStorageTimeZone,systemMemoryUsage);
-    return new OrcPageSource(recordReader,orcDataSource,partitionKeys,columns,hiveStorageTimeZone,typeManager,systemMemoryUsage);
+    return new OrcPageSource(recordReader,orcDataSource,partitionKeys,physicalColumns,hiveStorageTimeZone,typeManager,systemMemoryUsage);
   }
  catch (  Exception e) {
     try {
