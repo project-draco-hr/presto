@@ -4,11 +4,20 @@
     return properties;
   }
   ImmutableList.Builder<LocalProperty<Symbol>> localProperties=ImmutableList.builder();
+  if (!node.getPrePartitionedInputs().isEmpty()) {
+    GroupingProperty<Symbol> prePartitionedProperty=new GroupingProperty<>(node.getPrePartitionedInputs());
+    for (    LocalProperty<Symbol> localProperty : properties.getLocalProperties()) {
+      if (!prePartitionedProperty.isSimplifiedBy(localProperty)) {
+        break;
+      }
+      localProperties.add(localProperty);
+    }
+  }
   if (!node.getPartitionBy().isEmpty()) {
     localProperties.add(new GroupingProperty<>(node.getPartitionBy()));
   }
   for (  Symbol column : node.getOrderBy()) {
     localProperties.add(new SortingProperty<>(column,node.getOrderings().get(column)));
   }
-  return ActualProperties.builderFrom(properties).local(localProperties.build()).build();
+  return ActualProperties.builderFrom(properties).local(LocalProperties.normalizeAndPrune(localProperties.build())).build();
 }
