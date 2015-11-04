@@ -1,4 +1,5 @@
 {
+  this.coordinator=coordinator;
   baseDataDir=Files.createTempDirectory("PrestoTest");
   ImmutableMap.Builder<String,String> serverProperties=ImmutableMap.<String,String>builder().putAll(properties).put("coordinator",String.valueOf(coordinator)).put("presto.version","testversion").put("http-client.max-threads","16").put("task.default-concurrency","4").put("task.max-worker-threads","4").put("analyzer.experimental-syntax-enabled","true");
   if (!properties.containsKey("query.max-memory-per-node")) {
@@ -12,6 +13,12 @@
       binder.bind(TestingAccessControlManager.class).in(Scopes.SINGLETON);
       binder.bind(AccessControlManager.class).to(TestingAccessControlManager.class).in(Scopes.SINGLETON);
       binder.bind(AccessControl.class).to(AccessControlManager.class).in(Scopes.SINGLETON);
+    }
+  }
+).add(new Module(){
+    @Override public void configure(    Binder binder){
+      binder.bind(ShutdownAction.class).to(TestShutdownAction.class).in(Scopes.SINGLETON);
+      binder.bind(GracefulShutdownHandler.class).in(Scopes.SINGLETON);
     }
   }
 );
@@ -43,6 +50,9 @@
   localMemoryManager=injector.getInstance(LocalMemoryManager.class);
   nodeManager=injector.getInstance(InternalNodeManager.class);
   serviceSelectorManager=injector.getInstance(ServiceSelectorManager.class);
+  gracefulShutdownHandler=injector.getInstance(GracefulShutdownHandler.class);
+  taskManager=injector.getInstance(TaskManager.class);
+  shutdownAction=injector.getInstance(ShutdownAction.class);
   announcer=injector.getInstance(Announcer.class);
   announcer.forceAnnounce();
   refreshNodes();

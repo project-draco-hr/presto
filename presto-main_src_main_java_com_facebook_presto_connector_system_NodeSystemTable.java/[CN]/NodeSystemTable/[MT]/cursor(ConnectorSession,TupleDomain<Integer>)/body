@@ -1,11 +1,8 @@
 {
   Builder table=InMemoryRecordSet.builder(NODES_TABLE);
   AllNodes allNodes=nodeManager.getAllNodes();
-  for (  Node node : allNodes.getActiveNodes()) {
-    table.addRow(node.getNodeIdentifier(),node.getHttpUri().toString(),getNodeVersion(node),isCoordinator(node),Boolean.TRUE);
-  }
-  for (  Node node : allNodes.getInactiveNodes()) {
-    table.addRow(node.getNodeIdentifier(),node.getHttpUri().toString(),getNodeVersion(node),isCoordinator(node),Boolean.FALSE);
-  }
+  addRows(table,allNodes.getActiveNodes(),ACTIVE);
+  addRows(table,allNodes.getInactiveNodes(),INACTIVE);
+  addRows(table,allNodes.getShuttingDownNodes(),SHUTTING_DOWN);
   return table.build().cursor();
 }
