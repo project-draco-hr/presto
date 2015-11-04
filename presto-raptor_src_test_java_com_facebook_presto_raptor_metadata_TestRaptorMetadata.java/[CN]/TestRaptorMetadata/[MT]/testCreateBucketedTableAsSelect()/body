@@ -1,7 +1,12 @@
 {
   assertNull(metadata.getTableHandle(SESSION,DEFAULT_TEST_ORDERS));
   ConnectorTableMetadata ordersTable=getOrdersTable(ImmutableMap.of(BUCKET_COUNT_PROPERTY,32,BUCKETED_ON_PROPERTY,ImmutableList.of("orderkey","custkey")));
-  ConnectorOutputTableHandle outputHandle=metadata.beginCreateTable(SESSION,ordersTable,Optional.empty());
+  ConnectorNewTableLayout layout=metadata.getNewTableLayout(SESSION,ordersTable).get();
+  assertEquals(layout.getPartitionColumns(),ImmutableList.of("orderkey","custkey"));
+  assertInstanceOf(layout.getPartitioning(),RaptorPartitioningHandle.class);
+  RaptorPartitioningHandle partitioning=(RaptorPartitioningHandle)layout.getPartitioning();
+  assertEquals(partitioning.getDistributionId(),1);
+  ConnectorOutputTableHandle outputHandle=metadata.beginCreateTable(SESSION,ordersTable,Optional.of(layout));
   metadata.finishCreateTable(SESSION,outputHandle,ImmutableList.of());
   ConnectorTableHandle tableHandle=metadata.getTableHandle(SESSION,DEFAULT_TEST_ORDERS);
   assertInstanceOf(tableHandle,RaptorTableHandle.class);
