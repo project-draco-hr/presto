@@ -9,7 +9,6 @@
     PhysicalOperation source=node.getSource().accept(this,intermediateContext);
     InMemoryExchange exchange=new InMemoryExchange(source.getTypes());
     List<OperatorFactory> factories=ImmutableList.<OperatorFactory>builder().addAll(source.getOperatorFactories()).add(exchange.createSinkFactory(intermediateContext.getNextOperatorId())).build();
-    exchange.noMoreSinkFactories();
     context.addDriverFactory(new DriverFactory(intermediateContext.isInputDriver(),false,factories));
     OperatorFactory exchangeSource=createRandomDistribution(context.getNextOperatorId(),exchange);
     source=new PhysicalOperation(exchangeSource,source.getLayout());
@@ -27,7 +26,6 @@
   PhysicalOperation source=node.getSource().accept(this,sourceContext);
   InMemoryExchange exchange=new InMemoryExchange(source.getTypes(),aggregationConcurrency);
   List<OperatorFactory> factories=ImmutableList.<OperatorFactory>builder().addAll(source.getOperatorFactories()).add(exchange.createSinkFactory(sourceContext.getNextOperatorId())).build();
-  exchange.noMoreSinkFactories();
   parallelContext.addDriverFactory(new DriverFactory(sourceContext.isInputDriver(),false,factories));
   OperatorFactory exchangeSource=createBroadcastDistribution(parallelContext.getNextOperatorId(),exchange);
   source=new PhysicalOperation(exchangeSource,source.getLayout());

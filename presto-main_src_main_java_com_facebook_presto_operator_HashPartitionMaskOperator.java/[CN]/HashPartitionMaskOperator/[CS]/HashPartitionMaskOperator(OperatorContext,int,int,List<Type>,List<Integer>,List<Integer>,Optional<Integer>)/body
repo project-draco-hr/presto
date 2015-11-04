@@ -1,0 +1,23 @@
+{
+  this.partition=partition;
+  this.partitionCount=partitionCount;
+  this.operatorContext=requireNonNull(operatorContext,"operatorContext is null");
+  this.types=ImmutableList.copyOf(requireNonNull(types,"types is null"));
+  this.maskChannels=Ints.toArray(requireNonNull(maskChannels,"maskChannels is null"));
+  requireNonNull(hashChannel,"hashChannel is null");
+  requireNonNull(partitionChannels,"partitionChannels is null");
+  ImmutableList.Builder<Type> distinctTypes=ImmutableList.builder();
+  for (  int channel : partitionChannels) {
+    distinctTypes.add(types.get(channel));
+  }
+  ImmutableList.Builder<Type> partitionChannelTypes=ImmutableList.builder();
+  for (  int channel : partitionChannels) {
+    partitionChannelTypes.add(types.get(channel));
+  }
+  if (hashChannel.isPresent()) {
+    this.hashGenerator=new PrecomputedHashGenerator(hashChannel.get());
+  }
+ else {
+    this.hashGenerator=new InterpretedHashGenerator(partitionChannelTypes.build(),Ints.toArray(partitionChannels));
+  }
+}
