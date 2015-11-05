@@ -3,7 +3,7 @@
   QualifiedTableName targetTable=createQualifiedTableName(session,node,node.getName());
   analysis.setCreateTableDestination(targetTable);
   for (  Expression expression : node.getProperties().values()) {
-    createConstantAnalyzer(metadata,session).analyze(expression,new TupleDescriptor(),context);
+    createConstantAnalyzer(metadata,session).analyze(expression,new RelationType(),context);
   }
   analysis.setCreateTableProperties(node.getProperties());
   Optional<TableHandle> targetTableHandle=metadata.getTableHandle(session,targetTable);
@@ -12,7 +12,7 @@
   }
   accessControl.checkCanCreateTable(session.getIdentity(),targetTable);
   analysis.setCreateTableAsSelectWithData(node.isWithData());
-  TupleDescriptor descriptor=process(node.getQuery(),context);
+  RelationType descriptor=process(node.getQuery(),context);
   validateColumnNames(node,descriptor);
-  return new TupleDescriptor(Field.newUnqualified("rows",BIGINT));
+  return new RelationType(Field.newUnqualified("rows",BIGINT));
 }

@@ -1,0 +1,18 @@
+{
+  if (columnAliases != null) {
+    checkArgument(columnAliases.size() == visibleFields.size(),"Column alias list has %s entries but '%s' has %s columns available",columnAliases.size(),relationAlias,visibleFields.size());
+  }
+  ImmutableList.Builder<Field> fieldsBuilder=ImmutableList.builder();
+  for (int i=0; i < allFields.size(); i++) {
+    Field field=allFields.get(i);
+    Optional<String> columnAlias=field.getName();
+    if (columnAliases == null) {
+      fieldsBuilder.add(Field.newQualified(QualifiedName.of(relationAlias),columnAlias,field.getType(),field.isHidden()));
+    }
+ else     if (!field.isHidden()) {
+      columnAlias=Optional.of(columnAliases.get(i));
+      fieldsBuilder.add(Field.newQualified(QualifiedName.of(relationAlias),columnAlias,field.getType(),false));
+    }
+  }
+  return new RelationType(fieldsBuilder.build());
+}

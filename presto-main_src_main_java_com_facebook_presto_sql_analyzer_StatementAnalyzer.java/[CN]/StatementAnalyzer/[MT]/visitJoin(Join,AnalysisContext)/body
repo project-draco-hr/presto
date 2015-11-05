@@ -4,14 +4,14 @@
     throw new SemanticException(NOT_SUPPORTED,node,"Natural join not supported");
   }
   AnalysisContext leftContext=new AnalysisContext(context);
-  TupleDescriptor left=process(node.getLeft(),context);
+  RelationType left=process(node.getLeft(),context);
   leftContext.setLateralTupleDescriptor(left);
-  TupleDescriptor right=process(node.getRight(),leftContext);
+  RelationType right=process(node.getRight(),leftContext);
   Sets.SetView<QualifiedName> duplicateAliases=Sets.intersection(left.getRelationAliases(),right.getRelationAliases());
   if (!duplicateAliases.isEmpty()) {
     throw new SemanticException(DUPLICATE_RELATION,node,"Relations appear more than once: %s",duplicateAliases);
   }
-  TupleDescriptor output=left.joinWith(right);
+  RelationType output=left.joinWith(right);
   if (node.getType() == Join.Type.CROSS || node.getType() == Join.Type.IMPLICIT) {
     analysis.setOutputDescriptor(node,output);
     return output;

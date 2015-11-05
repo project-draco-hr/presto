@@ -4,12 +4,12 @@
     Query query=context.getNamedQuery(name);
     if (query != null) {
       analysis.registerNamedQuery(table,query);
-      TupleDescriptor queryDescriptor=analysis.getOutputDescriptor(query);
+      RelationType queryDescriptor=analysis.getOutputDescriptor(query);
       ImmutableList.Builder<Field> fields=ImmutableList.builder();
       for (      Field field : queryDescriptor.getAllFields()) {
         fields.add(Field.newQualified(QualifiedName.of(name),field.getName(),field.getType(),false));
       }
-      TupleDescriptor descriptor=new TupleDescriptor(fields.build());
+      RelationType descriptor=new RelationType(fields.build());
       analysis.setOutputDescriptor(table,descriptor);
       return descriptor;
     }
@@ -21,7 +21,7 @@
     Query query=parseView(view.getOriginalSql(),name,table);
     analysis.registerNamedQuery(table,query);
     accessControl.checkCanSelectFromView(session.getIdentity(),name);
-    TupleDescriptor descriptor=analyzeView(query,name,view.getCatalog(),view.getSchema(),view.getOwner(),table);
+    RelationType descriptor=analyzeView(query,name,view.getCatalog(),view.getSchema(),view.getOwner(),table);
     if (isViewStale(view.getColumns(),descriptor.getVisibleFields())) {
       throw new SemanticException(VIEW_IS_STALE,table,"View '%s' is stale; it must be re-created",name);
     }
@@ -53,7 +53,7 @@
     analysis.setColumn(field,columnHandle);
   }
   analysis.registerTable(table,tableHandle.get());
-  TupleDescriptor descriptor=new TupleDescriptor(fields.build());
+  RelationType descriptor=new RelationType(fields.build());
   analysis.setOutputDescriptor(table,descriptor);
   return descriptor;
 }

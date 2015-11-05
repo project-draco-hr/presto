@@ -16,14 +16,14 @@
   RelationPlan rightPlan=process(node.getRight(),context);
   PlanBuilder leftPlanBuilder=initializePlanBuilder(leftPlan);
   PlanBuilder rightPlanBuilder=initializePlanBuilder(rightPlan);
-  TupleDescriptor outputDescriptor=analysis.getOutputDescriptor(node);
+  RelationType outputDescriptor=analysis.getOutputDescriptor(node);
   List<Symbol> outputSymbols=ImmutableList.<Symbol>builder().addAll(leftPlan.getOutputSymbols()).addAll(rightPlan.getOutputSymbols()).build();
   ImmutableList.Builder<JoinNode.EquiJoinClause> equiClauses=ImmutableList.builder();
   Expression postInnerJoinCriteria=new BooleanLiteral("TRUE");
   if (node.getType() != Join.Type.CROSS && node.getType() != Join.Type.IMPLICIT) {
     Expression criteria=analysis.getJoinCriteria(node);
-    TupleDescriptor left=analysis.getOutputDescriptor(node.getLeft());
-    TupleDescriptor right=analysis.getOutputDescriptor(node.getRight());
+    RelationType left=analysis.getOutputDescriptor(node.getLeft());
+    RelationType right=analysis.getOutputDescriptor(node.getRight());
     List<Expression> leftExpressions=new ArrayList<>();
     List<Expression> rightExpressions=new ArrayList<>();
     List<ComparisonExpression.Type> comparisonTypes=new ArrayList<>();

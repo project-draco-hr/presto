@@ -5,7 +5,7 @@
     return plan;
   }
   List<Symbol> oldSymbols=plan.getOutputSymbols();
-  TupleDescriptor oldDescriptor=plan.getDescriptor().withOnlyVisibleFields();
+  RelationType oldDescriptor=plan.getDescriptor().withOnlyVisibleFields();
   verify(coerceToTypes.length == oldSymbols.size());
   ImmutableList.Builder<Symbol> newSymbols=new ImmutableList.Builder<>();
   Field[] newFields=new Field[coerceToTypes.length];
@@ -30,5 +30,5 @@
     newFields[i]=new Field(oldField.getRelationAlias(),oldField.getName(),coerceToTypes[i],oldField.isHidden());
   }
   ProjectNode projectNode=new ProjectNode(idAllocator.getNextId(),plan.getRoot(),assignments.build());
-  return new RelationPlan(projectNode,new TupleDescriptor(newFields),newSymbols.build(),plan.getSampleWeight());
+  return new RelationPlan(projectNode,new RelationType(newFields),newSymbols.build(),plan.getSampleWeight());
 }
