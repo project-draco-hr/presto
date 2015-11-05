@@ -1,3 +1,9 @@
 {
-  denyGrantTablePrivilege(privilege.name(),tableName.toString());
+  if (checkTablePermission(identity,tableName,OWNERSHIP)) {
+    return;
+  }
+  HivePrivilege hivePrivilege=toHivePrivilege(privilege);
+  if (hivePrivilege == null || !metastore.hasPrivilegeWithGrantOptionOnTable(identity.getUser(),tableName.getSchemaName(),tableName.getTableName(),hivePrivilege)) {
+    denyGrantTablePrivilege(privilege.name(),tableName.toString());
+  }
 }
