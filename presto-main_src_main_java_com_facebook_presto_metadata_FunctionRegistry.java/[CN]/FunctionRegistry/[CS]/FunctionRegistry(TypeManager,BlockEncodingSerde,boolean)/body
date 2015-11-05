@@ -10,15 +10,15 @@
 );
   specializedAggregationCache=CacheBuilder.newBuilder().maximumSize(1000).build(new CacheLoader<SpecializedFunctionKey,InternalAggregationFunction>(){
     @Override public InternalAggregationFunction load(    SpecializedFunctionKey key) throws Exception {
-      SqlAggregation aggregationFunction=checkType(key.getFunction(),SqlAggregation.class,"function");
+      SqlAggregationFunction aggregationFunction=checkType(key.getFunction(),SqlAggregationFunction.class,"function");
       return aggregationFunction.specialize(key.getBoundTypeParameters(),key.getArity(),typeManager,FunctionRegistry.this);
     }
   }
 );
   specializedWindowCache=CacheBuilder.newBuilder().maximumSize(1000).build(new CacheLoader<SpecializedFunctionKey,WindowFunctionSupplier>(){
     @Override public WindowFunctionSupplier load(    SpecializedFunctionKey key) throws Exception {
-      if (key.getFunction() instanceof SqlAggregation) {
-        SqlAggregation aggregationFunction=checkType(key.getFunction(),SqlAggregation.class,"function");
+      if (key.getFunction() instanceof SqlAggregationFunction) {
+        SqlAggregationFunction aggregationFunction=checkType(key.getFunction(),SqlAggregationFunction.class,"function");
         return supplier(aggregationFunction.getSignature(),specializedAggregationCache.getUnchecked(key));
       }
  else {
