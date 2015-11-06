@@ -1,0 +1,19 @@
+{
+  Block[] inputBlocks=currentPage.getBlocks();
+  Block[] outputBlocks=new Block[currentPage.getChannelCount() + 1];
+  for (int channel=0; channel < currentPage.getChannelCount(); channel++) {
+    if (groupingSetNullChannels[currentGroupingSet].get(channel)) {
+      outputBlocks[channel]=new RunLengthEncodedBlock(nullBlocks[channel],currentPage.getPositionCount());
+    }
+ else {
+      outputBlocks[channel]=inputBlocks[channel];
+    }
+  }
+  outputBlocks[outputBlocks.length - 1]=new RunLengthEncodedBlock(groupIdBlocks[currentGroupingSet],currentPage.getPositionCount());
+  currentGroupingSet=(currentGroupingSet + 1) % groupingSetNullChannels.length;
+  Page outputPage=new Page(currentPage.getPositionCount(),outputBlocks);
+  if (currentGroupingSet == 0) {
+    currentPage=null;
+  }
+  return outputPage;
+}

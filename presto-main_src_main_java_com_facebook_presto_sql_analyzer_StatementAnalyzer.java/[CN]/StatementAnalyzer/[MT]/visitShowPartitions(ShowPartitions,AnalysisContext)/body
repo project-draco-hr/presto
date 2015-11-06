@@ -25,7 +25,7 @@
     selectList.add(new SingleColumn(function,column.getName()));
     wrappedList.add(unaliasedName(column.getName()));
   }
-  Query query=simpleQuery(selectAll(selectList.build()),from(table.getCatalogName(),TABLE_INTERNAL_PARTITIONS),Optional.of(logicalAnd(equal(nameReference("table_schema"),new StringLiteral(table.getSchemaName())),equal(nameReference("table_name"),new StringLiteral(table.getObjectName())))),ImmutableList.of(new SimpleGroupBy(ImmutableList.of(nameReference("partition_number")))),Optional.empty(),ImmutableList.of(),Optional.empty());
-  query=simpleQuery(selectAll(wrappedList.build()),subquery(query),showPartitions.getWhere(),ImmutableList.of(),Optional.empty(),ImmutableList.<SortItem>builder().addAll(showPartitions.getOrderBy()).add(ascending("partition_number")).build(),showPartitions.getLimit());
+  Query query=simpleQuery(selectAll(selectList.build()),from(table.getCatalogName(),TABLE_INTERNAL_PARTITIONS),Optional.of(logicalAnd(equal(nameReference("table_schema"),new StringLiteral(table.getSchemaName())),equal(nameReference("table_name"),new StringLiteral(table.getObjectName())))),Optional.of(new GroupBy(false,ImmutableList.of(new SimpleGroupBy(ImmutableList.of(nameReference("partition_number")))))),Optional.empty(),ImmutableList.of(),Optional.empty());
+  query=simpleQuery(selectAll(wrappedList.build()),subquery(query),showPartitions.getWhere(),Optional.empty(),Optional.empty(),ImmutableList.<SortItem>builder().addAll(showPartitions.getOrderBy()).add(ascending("partition_number")).build(),showPartitions.getLimit());
   return process(query,context);
 }
