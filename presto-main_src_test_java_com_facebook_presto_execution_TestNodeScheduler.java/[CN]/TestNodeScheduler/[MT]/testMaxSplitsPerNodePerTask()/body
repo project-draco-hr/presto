@@ -5,14 +5,19 @@
   for (int i=0; i < 20; i++) {
     initialSplits.add(new Split("foo",new TestSplitRemote()));
   }
+  List<RemoteTask> tasks=new ArrayList<>();
   MockRemoteTaskFactory remoteTaskFactory=new MockRemoteTaskFactory(remoteTaskExecutor);
   for (  Node node : nodeManager.getActiveDatasourceNodes("foo")) {
-    RemoteTask remoteTask=remoteTaskFactory.createTableScanTask(node,initialSplits.build(),nodeTaskMap.getSplitCountChangeListener(node));
+    TaskId taskId=new TaskId(new StageId("test","1"),"1");
+    RemoteTask remoteTask=remoteTaskFactory.createTableScanTask(taskId,node,initialSplits.build(),nodeTaskMap.createPartitionedSplitCountTracker(node,taskId));
     nodeTaskMap.addTask(node,remoteTask);
+    tasks.add(remoteTask);
   }
-  RemoteTask newRemoteTask=remoteTaskFactory.createTableScanTask(newNode,initialSplits.build(),nodeTaskMap.getSplitCountChangeListener(newNode));
+  TaskId taskId=new TaskId(new StageId("test","1"),"2");
+  RemoteTask newRemoteTask=remoteTaskFactory.createTableScanTask(taskId,newNode,initialSplits.build(),nodeTaskMap.createPartitionedSplitCountTracker(newNode,taskId));
   taskMap.put(newNode,newRemoteTask);
   nodeTaskMap.addTask(newNode,newRemoteTask);
+  tasks.add(newRemoteTask);
   Set<Split> splits=new HashSet<>();
   for (int i=0; i < 5; i++) {
     splits.add(new Split("foo",new TestSplitRemote()));
@@ -20,4 +25,8 @@
   Multimap<Node,Split> assignments=nodeSelector.computeAssignments(splits,taskMap.values());
   assertEquals(assignments.keySet().size(),3);
   assertFalse(assignments.keySet().contains(newNode));
+  for (  RemoteTask task : tasks) {
+    task.abort();
+  }
+  assertEquals(nodeTaskMap.getPartitionedSplitsOnNode(newNode),0);
 }

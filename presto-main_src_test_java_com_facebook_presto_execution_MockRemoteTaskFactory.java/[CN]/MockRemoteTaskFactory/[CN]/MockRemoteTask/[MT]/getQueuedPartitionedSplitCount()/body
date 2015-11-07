@@ -2,5 +2,11 @@
   if (taskStateMachine.getState().isDone()) {
     return 0;
   }
-  return splits.size();
+synchronized (this) {
+    Collection<Split> partitionedSplits=splits.get(fragment.getPartitionedSource());
+    if (partitionedSplits == null) {
+      return 0;
+    }
+    return partitionedSplits.size();
+  }
 }

@@ -1,7 +1,9 @@
 {
   requireNonNull(splits,"splits is null");
-  for (  Split split : splits) {
-    this.splits.put(sourceId,split);
+synchronized (this) {
+    for (    Split split : splits) {
+      this.splits.put(sourceId,split);
+    }
   }
-  splitCountChangeListener.splitCountChanged(Iterables.size(splits));
+  partitionedSplitCountTracker.setPartitionedSplitCount(getPartitionedSplitCount());
 }

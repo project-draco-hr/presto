@@ -1,10 +1,13 @@
 {
   MockRemoteTaskFactory remoteTaskFactory=new MockRemoteTaskFactory(remoteTaskExecutor);
   Node chosenNode=Iterables.get(nodeManager.getActiveDatasourceNodes("foo"),0);
-  RemoteTask remoteTask=remoteTaskFactory.createTableScanTask(chosenNode,ImmutableList.of(new Split("foo",new TestSplitRemote())),nodeTaskMap.getSplitCountChangeListener(chosenNode));
+  TaskId taskId=new TaskId(new StageId("test","1"),"1");
+  RemoteTask remoteTask=remoteTaskFactory.createTableScanTask(taskId,chosenNode,ImmutableList.of(new Split("foo",new TestSplitRemote())),nodeTaskMap.createPartitionedSplitCountTracker(chosenNode,taskId));
   nodeTaskMap.addTask(chosenNode,remoteTask);
   assertEquals(nodeTaskMap.getPartitionedSplitsOnNode(chosenNode),1);
   remoteTask.abort();
   TimeUnit.MILLISECONDS.sleep(100);
+  assertEquals(nodeTaskMap.getPartitionedSplitsOnNode(chosenNode),0);
+  remoteTask.abort();
   assertEquals(nodeTaskMap.getPartitionedSplitsOnNode(chosenNode),0);
 }
