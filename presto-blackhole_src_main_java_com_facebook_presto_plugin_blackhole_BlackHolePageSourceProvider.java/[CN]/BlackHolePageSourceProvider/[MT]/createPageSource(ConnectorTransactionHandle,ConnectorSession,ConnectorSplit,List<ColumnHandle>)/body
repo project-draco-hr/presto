@@ -5,5 +5,6 @@
     builder.add((checkType(column,BlackHoleColumnHandle.class,"BlackHoleColumnHandle")).getColumnType());
   }
   List<Type> types=builder.build();
-  return new FixedPageSource(Iterables.limit(Iterables.cycle(generateZeroPage(types,blackHoleSplit.getRowsPerPage(),blackHoleSplit.getFieldsLength())),blackHoleSplit.getPagesCount()));
+  Iterable<Page> pages=Iterables.limit(Iterables.cycle(generateZeroPage(types,blackHoleSplit.getRowsPerPage(),blackHoleSplit.getFieldsLength())),blackHoleSplit.getPagesCount());
+  return new DelayPageSource(pages,blackHoleSplit.getPageProcessingDelay());
 }
