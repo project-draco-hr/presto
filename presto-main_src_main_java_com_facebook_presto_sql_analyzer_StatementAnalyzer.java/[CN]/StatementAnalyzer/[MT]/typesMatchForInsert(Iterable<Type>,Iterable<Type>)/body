@@ -1,0 +1,25 @@
+{
+  if (Iterables.size(tableTypes) != Iterables.size(queryTypes)) {
+    return false;
+  }
+  Iterator<Type> tableTypesIterator=tableTypes.iterator();
+  Iterator<Type> queryTypesIterator=queryTypes.iterator();
+  while (tableTypesIterator.hasNext()) {
+    Type tableType=tableTypesIterator.next();
+    Type queryType=queryTypesIterator.next();
+    if (isStructuralType(tableType)) {
+      if (!tableType.getTypeSignature().getBase().equals(queryType.getTypeSignature().getBase())) {
+        return false;
+      }
+      if (!typesMatchForInsert(tableType.getTypeParameters(),queryType.getTypeParameters())) {
+        return false;
+      }
+    }
+ else {
+      if (!Objects.equals(tableType,queryType) && !isTypeOnlyCoercion(queryType.getTypeSignature(),tableType.getTypeSignature())) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
