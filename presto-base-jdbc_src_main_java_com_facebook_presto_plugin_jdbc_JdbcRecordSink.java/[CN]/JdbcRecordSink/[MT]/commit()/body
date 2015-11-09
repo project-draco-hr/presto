@@ -5,8 +5,11 @@
       connection.commit();
     }
   }
- catch (  SQLException e) {
-    throw Throwables.propagate(e);
+ catch (  SQLNonTransientException e) {
+    throw new PrestoException(JDBC_NON_TRANSIENT_ERROR,e);
+  }
+catch (  SQLException e) {
+    throw new PrestoException(JDBC_ERROR,e);
   }
   return ImmutableList.of();
 }
