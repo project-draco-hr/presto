@@ -1,0 +1,17 @@
+{
+  for (  UUID uuid : uuids) {
+    try (ConnectorPageSource pageSource=storageManager.getPageSource(uuid,columnIds,columnTypes,TupleDomain.all(),readerAttributes)){
+      while (!pageSource.isFinished()) {
+        Page page=pageSource.getNextPage();
+        if (isNullOrEmptyPage(page)) {
+          continue;
+        }
+        storagePageSink.appendPages(ImmutableList.of(page));
+        if (storagePageSink.isFull()) {
+          storagePageSink.flush();
+        }
+      }
+    }
+   }
+  return storagePageSink.commit();
+}

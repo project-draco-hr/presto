@@ -1,0 +1,16 @@
+{
+  File staging=new File(new File(temporary,"data"),"staging");
+  assertFalse(staging.exists());
+  OrcStorageManager manager=createOrcStorageManager();
+  List<Long> columnIds=ImmutableList.of(3L,7L);
+  List<Type> columnTypes=ImmutableList.<Type>of(BIGINT,VARCHAR);
+  StoragePageSink sink=createStoragePageSink(manager,columnIds,columnTypes);
+  List<Page> pages=rowPagesBuilder(columnTypes).row(123,"hello").row(456,"bye").build();
+  sink.appendPages(pages);
+  sink.flush();
+  String[] files=staging.list();
+  assertEquals(files.length,1);
+  assertTrue(files[0].endsWith(".orc"));
+  sink.rollback();
+  assertEquals(staging.list(),new String[]{});
+}
