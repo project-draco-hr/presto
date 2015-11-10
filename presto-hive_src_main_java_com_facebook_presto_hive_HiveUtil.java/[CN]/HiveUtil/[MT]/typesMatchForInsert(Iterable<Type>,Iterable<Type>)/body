@@ -1,0 +1,23 @@
+{
+  if (Iterables.size(columnTypes) != Iterables.size(valuesTypes)) {
+    return false;
+  }
+  Iterator<Type> tableTypesIterator=columnTypes.iterator();
+  Iterator<Type> queryTypesIterator=valuesTypes.iterator();
+  while (tableTypesIterator.hasNext()) {
+    Type tableType=tableTypesIterator.next();
+    Type queryType=queryTypesIterator.next();
+    if (isStructuralType(tableType)) {
+      if (!tableType.getTypeSignature().getBase().equals(queryType.getTypeSignature().getBase())) {
+        return false;
+      }
+      if (!typesMatchForInsert(tableType.getTypeParameters(),queryType.getTypeParameters())) {
+        return false;
+      }
+    }
+ else     if (!Objects.equals(tableType,queryType) && !varcharTypesMatchForInsert(tableType,queryType)) {
+      return false;
+    }
+  }
+  return true;
+}
