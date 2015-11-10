@@ -60,7 +60,8 @@ StatementSplitter splitter=new StatementSplitter(sql,ImmutableSet.of(";","\\G"))
 for (Statement split : splitter.getCompleteStatements()) {
 Optional<Object> statement=getParsedStatement(split.statement());
 if (statement.isPresent() && isSessionParameterChange(statement.get())) {
-session=processSessionParameterChange(statement.get(),session);
+Map<String,String> properties=queryRunner.getSession().getProperties();
+session=processSessionParameterChange(statement.get(),session,properties);
 queryRunner.setSession(session);
 tableNameCompleter.populateCache();
 }
