@@ -3,7 +3,7 @@
     PhysicalOperation source=node.getSource().accept(this,context);
     return planGlobalAggregation(context.getNextOperatorId(),node,source);
   }
-  if (node.getStep() == Step.INTERMEDIATE) {
+  if (needsLocalGather(node)) {
     LocalExecutionPlanContext intermediateContext=context.createSubContext();
     intermediateContext.setInputDriver(context.isInputDriver());
     PhysicalOperation source=node.getSource().accept(this,intermediateContext);
