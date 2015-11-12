@@ -1,10 +1,10 @@
 {
-  MaterializedResult.Builder builder=MaterializedResult.resultBuilder(SESSION,columnTypes);
+  MaterializedResult.Builder rows=MaterializedResult.resultBuilder(SESSION,columnTypes);
   for (  UUID uuid : uuids) {
     try (ConnectorPageSource pageSource=storageManager.getPageSource(uuid,columnIds,columnTypes,TupleDomain.all(),READER_ATTRIBUTES)){
       MaterializedResult result=materializeSourceDataStream(SESSION,pageSource,columnTypes);
-      builder.rows(result.getMaterializedRows());
+      rows.rows(result.getMaterializedRows());
     }
    }
-  return builder.build();
+  return rows.build();
 }

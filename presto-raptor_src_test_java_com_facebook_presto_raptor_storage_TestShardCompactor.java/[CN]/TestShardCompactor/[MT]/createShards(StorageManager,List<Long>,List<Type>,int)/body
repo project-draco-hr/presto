@@ -1,8 +1,7 @@
 {
-  List<Page> pages=createPages(columnTypes,count,length);
   StoragePageSink sink=createStoragePageSink(storageManager,columnIds,columnTypes);
-  for (  Page page : pages) {
-    sink.appendPages(ImmutableList.of(page));
+  for (int i=0; i < shardCount; i++) {
+    sink.appendPages(createPages(columnTypes));
     sink.flush();
   }
   return sink.commit();

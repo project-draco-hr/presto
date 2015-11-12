@@ -1,12 +1,3 @@
 {
-  File directory=new File(temporary,"data");
-  StorageService storageService=new FileStorageService(directory);
-  storageService.start();
-  File backupDirectory=new File(temporary,"backup");
-  FileBackupStore fileBackupStore=new FileBackupStore(backupDirectory);
-  fileBackupStore.start();
-  Optional<BackupStore> backupStore=Optional.of(fileBackupStore);
-  ShardManager shardManager=new DatabaseShardManager(dbi);
-  ShardRecoveryManager recoveryManager=new ShardRecoveryManager(storageService,backupStore,new InMemoryNodeManager(),shardManager,MISSING_SHARD_DISCOVERY,10);
-  return createOrcStorageManager(storageService,backupStore,recoveryManager,new InMemoryShardRecorder(),MAX_SHARD_ROWS,MAX_FILE_SIZE);
+  return createOrcStorageManager(dbi,temporary,MAX_SHARD_ROWS);
 }
