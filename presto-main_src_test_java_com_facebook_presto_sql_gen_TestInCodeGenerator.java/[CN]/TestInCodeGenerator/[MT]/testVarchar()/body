@@ -1,0 +1,15 @@
+{
+  List<RowExpression> values=new ArrayList<>();
+  values.add(new ConstantExpression(Slices.utf8Slice("1"),DOUBLE));
+  values.add(new ConstantExpression(Slices.utf8Slice("2"),DOUBLE));
+  values.add(new ConstantExpression(Slices.utf8Slice("3"),DOUBLE));
+  assertEquals(checkSwitchGenerationCase(VARCHAR,values),HASH_SWITCH);
+  values.add(new ConstantExpression(null,VARCHAR));
+  assertEquals(checkSwitchGenerationCase(VARCHAR,values),HASH_SWITCH);
+  for (int i=5; i <= 1000; ++i) {
+    values.add(new ConstantExpression(Slices.utf8Slice(String.valueOf(i)),VARCHAR));
+  }
+  assertEquals(checkSwitchGenerationCase(VARCHAR,values),HASH_SWITCH);
+  values.add(new ConstantExpression(Slices.utf8Slice("1001"),VARCHAR));
+  assertEquals(checkSwitchGenerationCase(VARCHAR,values),SET_CONTAINS);
+}
