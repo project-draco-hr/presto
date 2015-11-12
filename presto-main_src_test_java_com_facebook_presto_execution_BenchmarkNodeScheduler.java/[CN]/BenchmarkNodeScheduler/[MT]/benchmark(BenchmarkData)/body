@@ -1,0 +1,25 @@
+{
+  List<RemoteTask> remoteTasks=ImmutableList.copyOf(data.getTaskMap().values());
+  Iterator<MockRemoteTaskFactory.MockRemoteTask> finishingTask=Iterators.cycle(data.getTaskMap().values());
+  Iterator<Split> splits=data.getSplits().iterator();
+  Set<Split> batch=new HashSet<>();
+  while (splits.hasNext() || !batch.isEmpty()) {
+    Multimap<Node,Split> assignments=data.getNodeSelector().computeAssignments(batch,remoteTasks);
+    for (    Node node : assignments.keySet()) {
+      MockRemoteTaskFactory.MockRemoteTask remoteTask=data.getTaskMap().get(node);
+      remoteTask.addSplits(new PlanNodeId("sourceId"),assignments.get(node));
+      remoteTask.startSplits(MAX_SPLITS_PER_NODE);
+    }
+    if (assignments.size() == batch.size()) {
+      batch.clear();
+    }
+ else {
+      batch.removeAll(assignments.values());
+    }
+    while (batch.size() < SPLIT_BATCH_SIZE && splits.hasNext()) {
+      batch.add(splits.next());
+    }
+    finishingTask.next().finishSplits((int)Math.ceil(MAX_SPLITS_PER_NODE / 50.0));
+  }
+  return remoteTasks;
+}

@@ -1,0 +1,28 @@
+{
+  this.nodeManager=nodeManager;
+  this.minCandidates=config.getMinCandidates();
+  this.includeCoordinator=config.isIncludeCoordinator();
+  this.doubleScheduling=config.isMultipleTasksPerNodeEnabled();
+  this.maxSplitsPerNode=config.getMaxSplitsPerNode();
+  this.maxSplitsPerNodePerTaskWhenFull=config.getMaxPendingSplitsPerNodePerTask();
+  this.nodeTaskMap=requireNonNull(nodeTaskMap,"nodeTaskMap is null");
+  checkArgument(maxSplitsPerNode > maxSplitsPerNodePerTaskWhenFull,"maxSplitsPerNode must be > maxSplitsPerNodePerTaskWhenFull");
+  this.useNetworkTopology=!config.getNetworkTopology().equals(LEGACY_NETWORK_TOPOLOGY);
+  ImmutableList.Builder<CounterStat> builder=ImmutableList.builder();
+  if (useNetworkTopology) {
+    networkLocationSegmentNames=ImmutableList.copyOf(networkTopology.getLocationSegmentNames());
+    for (int i=0; i < networkLocationSegmentNames.size() + 1; i++) {
+      builder.add(new CounterStat());
+    }
+  }
+ else {
+    networkLocationSegmentNames=ImmutableList.of();
+  }
+  topologicalSplitCounters=builder.build();
+  networkLocationCache=CacheBuilder.newBuilder().expireAfterWrite(1,TimeUnit.DAYS).refreshAfterWrite(12,TimeUnit.HOURS).build(new CacheLoader<HostAddress,NetworkLocation>(){
+    @Override public NetworkLocation load(    HostAddress address) throws Exception {
+      return networkTopology.locate(address);
+    }
+  }
+);
+}

@@ -1,0 +1,13 @@
+{
+  this.exporter=requireNonNull(exporter,"exporter is null");
+  Map<String,CounterStat> topologicalSplitCounters=nodeScheduler.getTopologicalSplitCounters();
+  for (  Map.Entry<String,CounterStat> entry : topologicalSplitCounters.entrySet()) {
+    try {
+      String objectName=ObjectNames.builder(NodeScheduler.class).withProperty("segment",entry.getKey()).build();
+      this.exporter.export(objectName,entry.getValue());
+      objectNames.add(objectName);
+    }
+ catch (    JmxException e) {
+    }
+  }
+}

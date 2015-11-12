@@ -1,0 +1,17 @@
+{
+  Node bestQueueNotFull=null;
+  int min=Integer.MAX_VALUE;
+  int fullCandidatesConsidered=0;
+  while (candidates.hasNext() && (fullCandidatesConsidered < minCandidatesWhenFull || bestQueueNotFull == null)) {
+    Node node=candidates.next();
+    if (assignmentStats.getTotalSplitCount(node) < maxSplitsPerNode) {
+      return node;
+    }
+    fullCandidatesConsidered++;
+    int totalSplitCount=assignmentStats.getTotalQueuedSplitCount(node);
+    if (totalSplitCount < min && totalSplitCount < maxSplitsPerNodePerTaskWhenFull) {
+      bestQueueNotFull=node;
+    }
+  }
+  return bestQueueNotFull;
+}
