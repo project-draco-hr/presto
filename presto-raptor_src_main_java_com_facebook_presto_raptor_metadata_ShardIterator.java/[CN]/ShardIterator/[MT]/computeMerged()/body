@@ -1,0 +1,24 @@
+{
+  if (resultSet.isAfterLast()) {
+    return endOfData();
+  }
+  if (resultSet.getRow() == 0) {
+    if (!resultSet.next()) {
+      return endOfData();
+    }
+  }
+  int bucketNumber=resultSet.getInt("bucket_number");
+  byte[] nodeIdBytes=resultSet.getBytes("node_ids");
+  ImmutableSet.Builder<UUID> shardBuilder=ImmutableSet.builder();
+  do {
+    if (!Arrays.equals(nodeIdBytes,resultSet.getBytes("node_ids"))) {
+      throw new PrestoException(RAPTOR_ERROR,"Shards in same bucket have different node assignments");
+    }
+    shardBuilder.add(uuidFromBytes(resultSet.getBytes("shard_uuid")));
+  }
+ while (resultSet.next() && resultSet.getInt("bucket_number") == bucketNumber);
+  List<Integer> nodeIds=intArrayFromBytes(nodeIdBytes);
+  Set<UUID> shardUuids=shardBuilder.build();
+  Set<String> nodeIdentifiers=getNodeIdentifiers(nodeIds,shardUuids.iterator().next());
+  return new ShardNodes(shardUuids,OptionalInt.of(bucketNumber),nodeIdentifiers);
+}

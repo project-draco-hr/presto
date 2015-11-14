@@ -1,2 +1,9 @@
 {
+  if (!resultSet.next()) {
+    return endOfData();
+  }
+  UUID shardUuid=uuidFromBytes(resultSet.getBytes("shard_uuid"));
+  List<Integer> nodeIds=intArrayFromBytes(resultSet.getBytes("node_ids"));
+  OptionalInt bucketNumber=bucketed ? OptionalInt.of(resultSet.getInt("bucket_number")) : OptionalInt.empty();
+  return new ShardNodes(ImmutableSet.of(shardUuid),bucketNumber,getNodeIdentifiers(nodeIds,shardUuid));
 }

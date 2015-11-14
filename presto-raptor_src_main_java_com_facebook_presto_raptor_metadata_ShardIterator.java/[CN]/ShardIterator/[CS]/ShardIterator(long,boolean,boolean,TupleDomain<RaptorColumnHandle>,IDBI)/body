@@ -1,0 +1,27 @@
+{
+  this.bucketed=bucketed;
+  this.merged=merged;
+  ShardPredicate predicate=ShardPredicate.create(effectivePredicate);
+  String sql;
+  if (bucketed) {
+    sql="SELECT shard_uuid, node_ids, bucket_number FROM %s WHERE %s ORDER BY bucket_number";
+  }
+ else {
+    sql="SELECT shard_uuid, node_ids FROM %s WHERE %s";
+  }
+  sql=format(sql,shardIndexTable(tableId),predicate.getPredicate());
+  dao=onDemandDao(dbi,ShardManagerDao.class);
+  fetchNodes();
+  try {
+    connection=dbi.open().getConnection();
+    statement=connection.prepareStatement(sql);
+    enableStreamingResults(statement);
+    predicate.bind(statement);
+    log.debug("Running query: %s",statement);
+    resultSet=statement.executeQuery();
+  }
+ catch (  SQLException e) {
+    close();
+    throw metadataError(e);
+  }
+}

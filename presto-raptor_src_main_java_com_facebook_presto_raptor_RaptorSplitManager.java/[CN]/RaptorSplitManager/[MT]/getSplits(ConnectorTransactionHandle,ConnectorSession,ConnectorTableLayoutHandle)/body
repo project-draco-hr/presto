@@ -2,5 +2,9 @@
   RaptorTableLayoutHandle handle=checkType(layout,RaptorTableLayoutHandle.class,"layout");
   RaptorTableHandle table=handle.getTable();
   TupleDomain<RaptorColumnHandle> effectivePredicate=toRaptorTupleDomain(handle.getConstraint());
-  return new RaptorSplitSource(table.getTableId(),effectivePredicate,table.getTransactionId());
+  long tableId=table.getTableId();
+  boolean bucketed=table.getBucketCount().isPresent();
+  boolean merged=bucketed && !table.isDelete();
+  OptionalLong transactionId=table.getTransactionId();
+  return new RaptorSplitSource(tableId,bucketed,merged,effectivePredicate,transactionId);
 }

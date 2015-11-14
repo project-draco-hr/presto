@@ -1,13 +1,19 @@
 {
+  this.bucketed=DBI.open(connection).createQuery("SELECT distribution_id IS NOT NULL FROM tables WHERE table_id = ?").bind(0,tableId).map(BooleanMapper.FIRST).first();
   ImmutableList.Builder<ColumnInfo> columnBuilder=ImmutableList.builder();
   ImmutableMap.Builder<Long,Integer> indexBuilder=ImmutableMap.builder();
   ImmutableMap.Builder<Long,JDBCType> typeBuilder=ImmutableMap.builder();
   StringJoiner nameJoiner=new StringJoiner(", ");
   StringJoiner valueJoiner=new StringJoiner(", ");
   int index=1;
-  nameJoiner.add("shard_id").add("shard_uuid").add("node_ids").add("bucket_number");
-  valueJoiner.add("?").add("?").add("?").add("?");
-  index+=4;
+  nameJoiner.add("shard_id").add("shard_uuid").add("node_ids");
+  valueJoiner.add("?").add("?").add("?");
+  index+=3;
+  if (bucketed) {
+    nameJoiner.add("bucket_number");
+    valueJoiner.add("?");
+    index++;
+  }
   for (  ColumnInfo column : columns) {
     JDBCType jdbcType=jdbcType(column.getType());
     if (jdbcType == null) {
