@@ -1,23 +1,18 @@
 {
-  if (isSimpleMagicLiteralComparison(node)) {
-    node=normalizeSimpleComparison(node);
-    node=convertMagicLiteralComparison(node);
-  }
- else   if (isSimpleComparison(node)) {
-    node=normalizeSimpleComparison(node);
-  }
- else {
+  Optional<NormalizedSimpleComparison> optionalNormalized=toNormalizedSimpleComparison(session,metadata,types,node);
+  if (!optionalNormalized.isPresent()) {
     return super.visitComparisonExpression(node,complement);
   }
-  Symbol symbol=Symbol.fromQualifiedName(((QualifiedNameReference)node.getLeft()).getName());
+  NormalizedSimpleComparison normalized=optionalNormalized.get();
+  Symbol symbol=Symbol.fromQualifiedName(normalized.getNameReference().getName());
   Type type=checkedTypeLookup(symbol);
-  Object value=LiteralInterpreter.evaluate(metadata,session,node.getRight());
-  if (value instanceof Double && type.equals(BIGINT)) {
-    return process(coerceDoubleToLongComparison(node),complement);
+  NullableValue value=normalized.getValue();
+  if (value.getType().equals(DOUBLE) && type.equals(BIGINT)) {
+    return process(coerceDoubleToLongComparison(normalized),complement);
   }
-  if (value instanceof Long && type.equals(DoubleType.DOUBLE)) {
-    value=((Long)value).doubleValue();
+  if (value.getType().equals(BIGINT) && type.equals(DOUBLE)) {
+    value=NullableValue.of(DOUBLE,((Long)value.getValue()).doubleValue());
   }
-  verifyType(type,value);
-  return createComparisonExtractionResult(node.getType(),symbol,type,value,complement);
+  checkState(value.isNull() || value.getType().equals(type),"INVARIANT: comparison should be working on the same types");
+  return createComparisonExtractionResult(normalized.getComparisonType(),symbol,type,value.getValue(),complement);
 }
