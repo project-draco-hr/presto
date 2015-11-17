@@ -4,7 +4,9 @@
   this.concurrentRequestMultiplier=concurrentRequestMultiplier;
   this.minErrorDuration=requireNonNull(minErrorDuration,"minErrorDuration is null");
   this.httpClient=requireNonNull(httpClient,"httpClient is null");
-  this.maxResponseSize=requireNonNull(maxResponseSize,"maxResponseSize is null");
+  requireNonNull(maxResponseSize,"maxResponseSize is null");
+  long maxResponseSizeBytes=(long)(Math.min(httpClient.getMaxContentLength(),maxResponseSize.toBytes()) * 0.75);
+  this.maxResponseSize=new DataSize(maxResponseSizeBytes,BYTE);
   this.executor=requireNonNull(executor,"executor is null");
   checkArgument(maxBufferedBytes.toBytes() > 0,"maxBufferSize must be at least 1 byte: %s",maxBufferedBytes);
   checkArgument(maxResponseSize.toBytes() > 0,"maxResponseSize must be at least 1 byte: %s",maxResponseSize);
