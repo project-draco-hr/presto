@@ -6,10 +6,10 @@
   }
   ImmutableList.Builder<TypeSignature> boundArguments=ImmutableList.builder();
   for (int i=0; i < argumentTypes.size() - 1; i++) {
-    boundArguments.add(bindParameters(argumentTypes.get(i),boundParameters));
+    boundArguments.add(argumentTypes.get(i).bindParameters(boundParameters));
   }
   if (!argumentTypes.isEmpty()) {
-    TypeSignature lastArgument=bindParameters(argumentTypes.get(argumentTypes.size() - 1),boundParameters);
+    TypeSignature lastArgument=argumentTypes.get(argumentTypes.size() - 1).bindParameters(boundParameters);
     if (signature.isVariableArity()) {
       for (int i=0; i < types.size() - (argumentTypes.size() - 1); i++) {
         boundArguments.add(lastArgument);
@@ -19,5 +19,5 @@
       boundArguments.add(lastArgument);
     }
   }
-  return new Signature(signature.getName(),signature.getKind(),bindParameters(signature.getReturnType(),boundParameters),boundArguments.build());
+  return new Signature(signature.getName(),signature.getKind(),signature.getReturnType().bindParameters(boundParameters),boundArguments.build());
 }
