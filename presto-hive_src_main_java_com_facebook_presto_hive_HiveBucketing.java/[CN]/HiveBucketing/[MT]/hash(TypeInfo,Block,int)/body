@@ -1,0 +1,60 @@
+{
+  if (block.isNull(position)) {
+    return 0;
+  }
+switch (type.getCategory()) {
+case PRIMITIVE:
+    PrimitiveCategory primitiveCategory=((PrimitiveTypeInfo)type).getPrimitiveCategory();
+switch (primitiveCategory) {
+case BOOLEAN:
+    return BOOLEAN.getBoolean(block,position) ? 1 : 0;
+case BYTE:
+case SHORT:
+case INT:
+  return Ints.checkedCast(BIGINT.getLong(block,position));
+case LONG:
+long bigintValue=BIGINT.getLong(block,position);
+return (int)((bigintValue >>> 32) ^ bigintValue);
+case FLOAT:
+return Float.floatToIntBits((float)DOUBLE.getDouble(block,position));
+case DOUBLE:
+long doubleValue=doubleToLongBits(DOUBLE.getDouble(block,position));
+return (int)((doubleValue >>> 32) ^ doubleValue);
+case STRING:
+return hashBytes(0,VARCHAR.getSlice(block,position));
+case DATE:
+long days=DATE.getLong(block,position);
+return Ints.checkedCast(days);
+case TIMESTAMP:
+long millisSinceEpoch=TIMESTAMP.getLong(block,position);
+long secondsAndNanos=(Math.floorDiv(millisSinceEpoch,1000L) << 30) + Math.floorMod(millisSinceEpoch,1000);
+return (int)((secondsAndNanos >>> 32) ^ secondsAndNanos);
+default :
+throw new UnsupportedOperationException("Computation of Hive bucket hashCode is not supported for Hive primitive category: " + primitiveCategory.toString() + ".");
+}
+case LIST:
+{
+TypeInfo elementTypeInfo=((ListTypeInfo)type).getListElementTypeInfo();
+Block elementsBlock=block.getObject(position,Block.class);
+int result=0;
+for (int i=0; i < elementsBlock.getPositionCount(); i++) {
+result=result * 31 + hash(elementTypeInfo,elementsBlock,i);
+}
+return result;
+}
+case MAP:
+{
+MapTypeInfo mapTypeInfo=(MapTypeInfo)type;
+TypeInfo keyTypeInfo=mapTypeInfo.getMapKeyTypeInfo();
+TypeInfo valueTypeInfo=mapTypeInfo.getMapValueTypeInfo();
+Block elementsBlock=block.getObject(position,Block.class);
+int result=0;
+for (int i=0; i < elementsBlock.getPositionCount(); i+=2) {
+result+=hash(keyTypeInfo,elementsBlock,i) ^ hash(valueTypeInfo,elementsBlock,i + 1);
+}
+return result;
+}
+default :
+throw new UnsupportedOperationException("Computation of Hive bucket hashCode is not supported for Hive category: " + type.getCategory().toString() + ".");
+}
+}
