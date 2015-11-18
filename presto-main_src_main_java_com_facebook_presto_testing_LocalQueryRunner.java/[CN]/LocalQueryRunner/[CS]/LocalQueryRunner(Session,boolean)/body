@@ -3,10 +3,14 @@
   checkArgument(!defaultSession.getTransactionId().isPresent() || !withInitialTransaction,"Already in transaction");
   this.executor=newCachedThreadPool(daemonThreadsNamed("local-query-runner-%s"));
   this.transactionCheckExecutor=newSingleThreadScheduledExecutor(daemonThreadsNamed("transaction-idle-check"));
+  this.finalizerService=new FinalizerService();
+  finalizerService.start();
   this.sqlParser=new SqlParser();
   this.nodeManager=new InMemoryNodeManager();
   this.typeRegistry=new TypeRegistry();
   this.indexManager=new IndexManager();
+  NodeScheduler nodeScheduler=new NodeScheduler(new LegacyNetworkTopology(),nodeManager,new NodeSchedulerConfig().setIncludeCoordinator(true),new NodeTaskMap(finalizerService));
+  this.nodePartitioningManager=new NodePartitioningManager(nodeScheduler);
   this.pageSinkManager=new PageSinkManager();
   this.transactionManager=TransactionManager.create(new TransactionManagerConfig().setIdleTimeout(new Duration(1,TimeUnit.DAYS)),transactionCheckExecutor,executor);
   this.splitManager=new SplitManager();
