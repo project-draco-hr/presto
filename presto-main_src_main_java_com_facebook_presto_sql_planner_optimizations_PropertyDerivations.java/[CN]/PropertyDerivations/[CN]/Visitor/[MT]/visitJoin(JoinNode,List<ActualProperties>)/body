@@ -7,9 +7,9 @@ case INNER:
 case LEFT:
   return ActualProperties.builderFrom(probeProperties).constants(probeProperties.getConstants()).build();
 case RIGHT:
-return ActualProperties.builder().global(buildProperties).constants(buildProperties.getConstants()).build();
+return ActualProperties.builderFrom(buildProperties).constants(buildProperties.getConstants()).local(ImmutableList.of()).build();
 case FULL:
-return probeProperties.isDistributed() ? ActualProperties.distributed() : ActualProperties.undistributed();
+return ActualProperties.builder().global(probeProperties.isSingleNode() ? singleStreamPartition() : arbitraryPartition()).build();
 default :
 throw new UnsupportedOperationException("Unsupported join type: " + node.getType());
 }
