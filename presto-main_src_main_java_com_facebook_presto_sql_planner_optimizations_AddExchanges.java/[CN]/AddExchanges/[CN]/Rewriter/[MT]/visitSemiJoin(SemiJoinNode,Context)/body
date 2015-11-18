@@ -16,7 +16,7 @@
     source=node.getSource().accept(this,context.withPreferredProperties(PreferredProperties.any()));
     filteringSource=node.getFilteringSource().accept(this,context.withPreferredProperties(PreferredProperties.any()).withHashPartitionedSemiJoinBanned(false));
     if (source.getProperties().isDistributed()) {
-      filteringSource=withDerivedProperties(new ExchangeNode(idAllocator.getNextId(),ExchangeNode.Type.REPLICATE,Optional.empty(),Optional.<Symbol>empty(),ImmutableList.of(filteringSource.getNode()),filteringSource.getNode().getOutputSymbols(),ImmutableList.of(filteringSource.getNode().getOutputSymbols())),filteringSource.getProperties());
+      filteringSource=withDerivedProperties(replicatedExchange(idAllocator.getNextId(),filteringSource.getNode()),filteringSource.getProperties());
     }
  else {
       filteringSource=withDerivedProperties(gatheringExchange(idAllocator.getNextId(),filteringSource.getNode()),filteringSource.getProperties());
