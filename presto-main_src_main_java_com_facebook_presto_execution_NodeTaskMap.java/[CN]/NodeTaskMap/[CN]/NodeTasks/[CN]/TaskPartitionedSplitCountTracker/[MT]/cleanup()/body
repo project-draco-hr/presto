@@ -1,0 +1,8 @@
+{
+  int leakedSplits=localPartitionedSplitCount.getAndSet(0);
+  if (leakedSplits == 0) {
+    return;
+  }
+  log.error("BUG! %s for %s leaked with %s partitioned splits.  Cleaning up so server can continue to function.",getClass().getName(),taskId,leakedSplits);
+  nodeTotalPartitionedSplitCount.addAndGet(-leakedSplits);
+}

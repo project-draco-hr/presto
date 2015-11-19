@@ -1,10 +1,9 @@
 {
   if (partitionedSplitCount < 0) {
-    nodeTotalPartitionedSplitCount.addAndGet(-localPartitionedSplitCount);
-    localPartitionedSplitCount=0;
+    int oldValue=localPartitionedSplitCount.getAndSet(0);
+    nodeTotalPartitionedSplitCount.addAndGet(-oldValue);
     throw new IllegalArgumentException("partitionedSplitCount is negative");
   }
-  int delta=partitionedSplitCount - localPartitionedSplitCount;
-  nodeTotalPartitionedSplitCount.addAndGet(delta);
-  localPartitionedSplitCount=partitionedSplitCount;
+  int oldValue=localPartitionedSplitCount.getAndSet(partitionedSplitCount);
+  nodeTotalPartitionedSplitCount.addAndGet(partitionedSplitCount - oldValue);
 }

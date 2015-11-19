@@ -1,0 +1,15 @@
+{
+  while (!Thread.currentThread().isInterrupted()) {
+    try {
+      FinalizerReference finalizer=(FinalizerReference)finalizerQueue.remove();
+      finalizers.remove(finalizer);
+      finalizer.cleanup();
+    }
+ catch (    InterruptedException e) {
+      return;
+    }
+catch (    Throwable e) {
+      log.error(e,"Finalizer cleanup failed");
+    }
+  }
+}

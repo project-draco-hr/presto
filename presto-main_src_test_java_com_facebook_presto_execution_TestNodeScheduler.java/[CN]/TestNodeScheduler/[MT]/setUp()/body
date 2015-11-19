@@ -1,5 +1,6 @@
 {
-  nodeTaskMap=new NodeTaskMap();
+  finalizerService=new FinalizerService();
+  nodeTaskMap=new NodeTaskMap(finalizerService);
   nodeManager=new InMemoryNodeManager();
   ImmutableList.Builder<Node> nodeBuilder=ImmutableList.builder();
   nodeBuilder.add(new PrestoNode("other1",URI.create("http://127.0.0.1:11"),NodeVersion.UNKNOWN));
@@ -12,4 +13,5 @@
   taskMap=new HashMap<>();
   nodeSelector=nodeScheduler.createNodeSelector("foo");
   remoteTaskExecutor=Executors.newCachedThreadPool(daemonThreadsNamed("remoteTaskExecutor-%s"));
+  finalizerService.start();
 }
