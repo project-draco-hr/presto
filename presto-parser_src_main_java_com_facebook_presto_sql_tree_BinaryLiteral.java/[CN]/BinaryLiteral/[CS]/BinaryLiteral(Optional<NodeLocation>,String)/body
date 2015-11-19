@@ -1,0 +1,12 @@
+{
+  super(location);
+  requireNonNull(value,"value is null");
+  String hexString=value.replaceAll("[ \\r\\n\\t]","").toUpperCase();
+  if (hexString.matches(".*[^A-F0-9].*")) {
+    throw new ParsingException("Binary literal can only contain hexadecimal digits",location.get());
+  }
+  if (hexString.length() % 2 != 0) {
+    throw new ParsingException("Binary literal must contain an even number of digits",location.get());
+  }
+  this.value=Slices.wrappedBuffer(BaseEncoding.base16().decode(hexString));
+}
