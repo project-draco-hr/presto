@@ -1,3 +1,12 @@
 {
-  return visitFunctionCall(new FunctionCall(QualifiedName.of(ArrayConstructor.ARRAY_CONSTRUCTOR),node.getValues()),context);
+  Type elementType=((ArrayType)expressionTypes.get(node)).getElementType();
+  BlockBuilder arrayBlockBuilder=elementType.createBlockBuilder(new BlockBuilderStatus(),node.getValues().size());
+  for (  Expression expression : node.getValues()) {
+    Object value=process(expression,context);
+    if (value instanceof Expression) {
+      return visitFunctionCall(new FunctionCall(QualifiedName.of(ArrayConstructor.ARRAY_CONSTRUCTOR),node.getValues()),context);
+    }
+    writeNativeValue(elementType,arrayBlockBuilder,value);
+  }
+  return arrayBlockBuilder.build();
 }
