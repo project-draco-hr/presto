@@ -5,10 +5,14 @@
   ImmutableMap.Builder<C,Domain> domains=ImmutableMap.builder();
   for (  ColumnReference<C> columnReference : columnReferences) {
     Statistics<?> statistics=statisticsByColumnIndex.get(columnReference.getOrdinal());
-    Domain domain=getDomain(columnReference.getType(),numberOfRows,statistics);
-    if (domain != null) {
-      domains.put(columnReference.getColumn(),domain);
+    Domain domain;
+    if (statistics == null || statistics.isEmpty()) {
+      domain=Domain.all(columnReference.getType());
     }
+ else {
+      domain=getDomain(columnReference.getType(),numberOfRows,statistics);
+    }
+    domains.put(columnReference.getColumn(),domain);
   }
   TupleDomain<C> stripeDomain=TupleDomain.withColumnDomains(domains.build());
   return effectivePredicate.overlaps(stripeDomain);
