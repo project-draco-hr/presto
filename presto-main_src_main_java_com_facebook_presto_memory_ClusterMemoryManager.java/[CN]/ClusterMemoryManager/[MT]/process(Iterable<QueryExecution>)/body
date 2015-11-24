@@ -62,4 +62,12 @@
   }
   updatePools(countByPool);
   updateNodes(updateAssignments(queries));
+  for (  QueryExecution query : queries) {
+    Duration cpuTime=query.getTotalCpuTime();
+    Duration sessionLimit=getQueryMaxCpuTime(query.getSession());
+    Duration limit=maxQueryCpuTime.compareTo(sessionLimit) < 0 ? maxQueryCpuTime : sessionLimit;
+    if (cpuTime.compareTo(limit) > 0) {
+      query.fail(new ExceededCpuLimitException(limit));
+    }
+  }
 }
