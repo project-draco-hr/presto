@@ -1,0 +1,20 @@
+{
+  PlanNode sourceNode=context.rewrite(node.getSource());
+  if (!(sourceNode instanceof UnionNode)) {
+    return node;
+  }
+  UnionNode unionNode=(UnionNode)sourceNode;
+  ImmutableList.Builder<PlanNode> rewrittenSources=ImmutableList.builder();
+  ImmutableListMultimap.Builder<Symbol,Symbol> mappings=ImmutableListMultimap.builder();
+  for (int i=0; i < unionNode.getSources().size(); i++) {
+    PlanNode unionOriginalSource=unionNode.getSources().get(i);
+    ImmutableList.Builder<Symbol> newSymbols=ImmutableList.builder();
+    for (    Symbol outputSymbol : node.getOutputSymbols()) {
+      Symbol newSymbol=symbolAllocator.newSymbol(outputSymbol.getName(),symbolAllocator.getTypes().get(outputSymbol));
+      newSymbols.add(newSymbol);
+      mappings.put(outputSymbol,newSymbol);
+    }
+    rewrittenSources.add(new TableWriterNode(idAllocator.getNextId(),unionOriginalSource,node.getTarget(),unionNode.sourceOutputLayout(i),node.getColumnNames(),newSymbols.build(),node.getSampleWeightSymbol()));
+  }
+  return new UnionNode(idAllocator.getNextId(),rewrittenSources.build(),mappings.build());
+}

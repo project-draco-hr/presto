@@ -1,0 +1,8 @@
+{
+  PlanNode child=node.getSource();
+  TableWriterNode.WriterTarget originalTarget=getTarget(child);
+  TableWriterNode.WriterTarget newTarget=createWriterTarget(originalTarget);
+  context.get().addMaterializedHandle(originalTarget,newTarget);
+  child=child.accept(this,context);
+  return new TableCommitNode(node.getId(),child,newTarget,node.getOutputSymbols());
+}
