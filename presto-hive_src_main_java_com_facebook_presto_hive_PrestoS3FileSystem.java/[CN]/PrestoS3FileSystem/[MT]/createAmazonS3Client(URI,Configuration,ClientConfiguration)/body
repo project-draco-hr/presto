@@ -1,9 +1,11 @@
 {
   AWSCredentialsProvider credentials=getAwsCredentialsProvider(uri,hadoopConfig);
   AmazonS3Client client=new AmazonS3Client(credentials,clientConfig,METRIC_COLLECTOR);
-  Region region=Regions.getCurrentRegion();
-  if (region != null) {
-    client.setRegion(region);
+  if (pinS3ClientToCurrentRegion) {
+    Region region=Regions.getCurrentRegion();
+    if (region != null) {
+      client.setRegion(region);
+    }
   }
   return client;
 }
