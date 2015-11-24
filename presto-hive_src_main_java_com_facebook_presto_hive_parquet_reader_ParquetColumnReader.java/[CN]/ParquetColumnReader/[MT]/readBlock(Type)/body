@@ -1,0 +1,31 @@
+{
+  checkArgument(currentValueCount <= totalValueCount,"Already read all values in column chunk");
+  if (readOffset != 0) {
+    int valuePosition=0;
+    while (valuePosition < readOffset) {
+      if (page == null) {
+        readNextPage();
+      }
+      int offsetNumber=Math.min(remainingValueCountInPage,readOffset - valuePosition);
+      skipValues(offsetNumber);
+      valuePosition=valuePosition + offsetNumber;
+      updatePosition(offsetNumber);
+    }
+    checkArgument(valuePosition == readOffset,"valuePosition " + valuePosition + " not equals to readOffset "+ readOffset);
+  }
+  BlockBuilder blockBuilder=createBlockBuilder();
+  int valueCount=0;
+  while (valueCount < nextBatchSize) {
+    if (page == null) {
+      readNextPage();
+    }
+    int valueNumber=Math.min(remainingValueCountInPage,nextBatchSize - valueCount);
+    readValues(blockBuilder,valueNumber);
+    valueCount=valueCount + valueNumber;
+    updatePosition(valueNumber);
+  }
+  checkArgument(valueCount == nextBatchSize,"valueCount " + valueCount + " not equals to batchSize "+ nextBatchSize);
+  readOffset=0;
+  nextBatchSize=0;
+  return blockBuilder.build();
+}

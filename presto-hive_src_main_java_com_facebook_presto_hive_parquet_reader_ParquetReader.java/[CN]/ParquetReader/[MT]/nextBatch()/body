@@ -7,5 +7,9 @@
   int batchSize=Ints.checkedCast(Math.min(MAX_VECTOR_LENGTH,currentGroupRowCount - nextRowInGroup));
   nextRowInGroup+=batchSize;
   currentPosition+=batchSize;
+  for (  ColumnDescriptor column : requestedSchema.getColumns()) {
+    ParquetColumnReader columnReader=columnReadersMap.get(column);
+    columnReader.prepareNextRead(batchSize);
+  }
   return batchSize;
 }
