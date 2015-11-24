@@ -3,7 +3,11 @@
   ParquetMetadata parquetMetadata=ParquetMetadataReader.readFooter(jobConf,path);
   FileMetaData fileMetaData=parquetMetadata.getFileMetaData();
   MessageType fileSchema=fileMetaData.getSchema();
-  ParquetReader parquetReader=new ParquetReader(fileSchema,fileMetaData.getKeyValueMetaData(),fileSchema,path,parquetMetadata.getBlocks(),jobConf);
+  FileSystem fileSystem=path.getFileSystem(jobConf);
+  long size=fileSystem.getFileStatus(path).getLen();
+  FSDataInputStream inputStream=fileSystem.open(path);
+  ParquetDataSource dataSource=new HdfsParquetDataSource(path,size,inputStream);
+  ParquetReader parquetReader=new ParquetReader(fileSchema,fileMetaData.getKeyValueMetaData(),fileSchema,parquetMetadata.getBlocks(),jobConf,dataSource);
   assertEquals(parquetReader.getPosition(),0);
   int rowsProcessed=0;
   Iterator<?> iterator=expectedValues.iterator();

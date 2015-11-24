@@ -6,13 +6,11 @@
     for (int i=0; i < requestedSchema.getColumns().size(); i++) {
       ColumnDescriptor columnDescriptor=requestedSchema.getColumns().get(i);
       if (isColumnPredicate(columnDescriptor,effectivePredicate) && columnChunkMetaData.getPath().equals(ColumnPath.get(columnDescriptor.getPath())) && isOnlyDictionaryEncodingPages(columnChunkMetaData.getEncodings())) {
-        DictionaryPage dictionaryPage;
-        try (FSDataInputStream inputStream=path.getFileSystem(configuration).open(path)){
-          inputStream.seek(columnChunkMetaData.getStartingPos());
+        try {
           int totalSize=Ints.checkedCast(columnChunkMetaData.getTotalSize());
           byte[] buffer=new byte[totalSize];
-          inputStream.readFully(buffer);
-          dictionaryPage=readDictionaryPage(buffer,codecFactory,columnChunkMetaData.getCodec());
+          dataSource.readFully(columnChunkMetaData.getStartingPos(),buffer);
+          DictionaryPage dictionaryPage=readDictionaryPage(buffer,codecFactory,columnChunkMetaData.getCodec());
           dictionaries.put(ordinal,new ParquetDictionaryDescriptor(columnDescriptor,dictionaryPage));
         }
  catch (        IOException ignored) {

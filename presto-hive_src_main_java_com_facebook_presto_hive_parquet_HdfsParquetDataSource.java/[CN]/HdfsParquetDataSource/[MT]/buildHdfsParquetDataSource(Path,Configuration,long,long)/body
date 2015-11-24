@@ -1,0 +1,14 @@
+{
+  try {
+    FileSystem fileSystem=path.getFileSystem(configuration);
+    long size=fileSystem.getFileStatus(path).getLen();
+    FSDataInputStream inputStream=fileSystem.open(path);
+    return new HdfsParquetDataSource(path,size,inputStream);
+  }
+ catch (  Exception e) {
+    if (nullToEmpty(e.getMessage()).trim().equals("Filesystem closed") || e instanceof FileNotFoundException) {
+      throw new PrestoException(HIVE_CANNOT_OPEN_SPLIT,e);
+    }
+    throw new PrestoException(HIVE_CANNOT_OPEN_SPLIT,format("Error opening Hive split %s (offset=%s, length=%s): %s",path,start,length,e.getMessage()),e);
+  }
+}
