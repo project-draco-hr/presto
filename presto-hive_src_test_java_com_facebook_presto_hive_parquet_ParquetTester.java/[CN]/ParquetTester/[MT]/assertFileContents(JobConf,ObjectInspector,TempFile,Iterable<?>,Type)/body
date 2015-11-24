@@ -1,0 +1,25 @@
+{
+  Path path=new Path(tempFile.getFile().toURI());
+  ParquetMetadata parquetMetadata=ParquetMetadataReader.readFooter(jobConf,path);
+  FileMetaData fileMetaData=parquetMetadata.getFileMetaData();
+  MessageType fileSchema=fileMetaData.getSchema();
+  ParquetReader parquetReader=new ParquetReader(fileSchema,fileMetaData.getKeyValueMetaData(),fileSchema,path,parquetMetadata.getBlocks(),jobConf);
+  assertEquals(parquetReader.getPosition(),0);
+  int rowsProcessed=0;
+  Iterator<?> iterator=expectedValues.iterator();
+  for (int batchSize=parquetReader.nextBatch(); batchSize >= 0; batchSize=parquetReader.nextBatch()) {
+    ColumnDescriptor columnDescriptor=fileSchema.getColumns().get(0);
+    Block block=parquetReader.readBlock(columnDescriptor,type);
+    for (int i=0; i < batchSize; i++) {
+      assertTrue(iterator.hasNext());
+      Object expected=iterator.next();
+      Object actual=decodeObject(type,block,i);
+      assertEquals(actual,expected);
+    }
+    rowsProcessed+=batchSize;
+    assertEquals(parquetReader.getPosition(),rowsProcessed);
+  }
+  assertFalse(iterator.hasNext());
+  assertEquals(parquetReader.getPosition(),rowsProcessed);
+  parquetReader.close();
+}

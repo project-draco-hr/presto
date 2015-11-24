@@ -1,0 +1,14 @@
+{
+  for (  WriterVersion version : versions) {
+    for (    CompressionCodecName compressionCodecName : compressions) {
+      try (TempFile tempFile=new TempFile("test","parquet")){
+        JobConf jobConf=new JobConf();
+        jobConf.setEnum(ParquetOutputFormat.COMPRESSION,compressionCodecName);
+        jobConf.setBoolean(ParquetOutputFormat.ENABLE_DICTIONARY,true);
+        jobConf.setEnum(ParquetOutputFormat.WRITER_VERSION,version);
+        writeParquetColumn(jobConf,tempFile.getFile(),compressionCodecName,objectInspector,writeValues.iterator());
+        assertFileContents(jobConf,objectInspector,tempFile,readValues,type);
+      }
+     }
+  }
+}
