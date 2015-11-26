@@ -2,7 +2,13 @@
   try {
     log.debug("Starting upload for host: %s, key: %s, file: %s, size: %s",host,key,tempFile,tempFile.length());
     STATS.uploadStarted();
-    Upload upload=transferManager.upload(host,key,tempFile);
+    PutObjectRequest request=new PutObjectRequest(host,key,tempFile);
+    if (sseEnabled) {
+      ObjectMetadata metadata=new ObjectMetadata();
+      metadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
+      request.setMetadata(metadata);
+    }
+    Upload upload=transferManager.upload(request);
     if (log.isDebugEnabled()) {
       upload.addProgressListener(createProgressListener(upload));
     }
