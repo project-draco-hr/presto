@@ -5,9 +5,10 @@
   }
   ImmutableMap.Builder<String,Object> properties=ImmutableMap.builder();
   for (  Map.Entry<String,Expression> sqlProperty : sqlPropertyValues.entrySet()) {
-    PropertyMetadata<?> tableProperty=supportedTableProperties.get(sqlProperty.getKey());
+    String property=sqlProperty.getKey().toLowerCase(ENGLISH);
+    PropertyMetadata<?> tableProperty=supportedTableProperties.get(property);
     if (tableProperty == null) {
-      throw new PrestoException(INVALID_TABLE_PROPERTY,format("Catalog '%s' does not support table property '%s'",catalog,sqlProperty.getKey()));
+      throw new PrestoException(INVALID_TABLE_PROPERTY,format("Catalog '%s' does not support table property '%s'",catalog,property));
     }
     Object sqlObjectValue;
     try {
