@@ -1,0 +1,25 @@
+{
+  String nodeName1=UUID.randomUUID().toString();
+  int nodeId1=dao.insertNode(nodeName1);
+  String nodeName2=UUID.randomUUID().toString();
+  int nodeId2=dao.insertNode(nodeName2);
+  ImmutableList<UUID> shards=ImmutableList.of(UUID.randomUUID());
+  dao.insertDeletedShardNodes(shards,ImmutableList.of(nodeId1));
+  dao.insertDeletedShardNodes(shards,ImmutableList.of(nodeId2));
+  assertEquals(dao.getCleanableShardNodesBatch(nodeName1,future()),shards);
+  assertEquals(dao.getCleanableShardNodesBatch(nodeName2,future()),shards);
+  dao.updateCleanedShardNodes(shards,nodeId1);
+  assertEquals(dao.getCleanableShardNodesBatch(nodeName1,future()),ImmutableList.of());
+  assertEquals(dao.getCleanableShardNodesBatch(nodeName2,future()),shards);
+  dao.updateCleanedShardNodes(shards,nodeId2);
+  assertEquals(dao.getCleanableShardNodesBatch(nodeName1,future()),ImmutableList.of());
+  assertEquals(dao.getCleanableShardNodesBatch(nodeName2,future()),ImmutableList.of());
+  assertEquals(dao.getPurgableShardNodesBatch(nodeName1,future()),shards);
+  assertEquals(dao.getPurgableShardNodesBatch(nodeName2,future()),shards);
+  dao.updatePurgedShardNodes(shards,nodeId1);
+  assertEquals(dao.getPurgableShardNodesBatch(nodeName1,future()),ImmutableList.of());
+  assertEquals(dao.getPurgableShardNodesBatch(nodeName2,future()),shards);
+  dao.updatePurgedShardNodes(shards,nodeId2);
+  assertEquals(dao.getPurgableShardNodesBatch(nodeName1,future()),ImmutableList.of());
+  assertEquals(dao.getPurgableShardNodesBatch(nodeName2,future()),ImmutableList.of());
+}
