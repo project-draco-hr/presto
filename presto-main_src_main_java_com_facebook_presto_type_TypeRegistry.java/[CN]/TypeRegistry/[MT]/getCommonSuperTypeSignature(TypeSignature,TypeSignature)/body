@@ -22,12 +22,12 @@
       typeParameters.add(TypeSignatureParameter.of(Math.max(firstParameter.getLongLiteral(),secondParameter.getLongLiteral())));
     }
  else     if (isCovariantParameterPosition(commonSuperTypeBase.get(),i)) {
-      if (firstParameter.getKind() != ParameterKind.TYPE_SIGNATURE || secondParameter.getKind() != ParameterKind.TYPE_SIGNATURE) {
+      Optional<TypeSignature> firstParameterSignature=firstParameter.getTypeSignatureOrNamedTypeSignature();
+      Optional<TypeSignature> secondParameterSignature=secondParameter.getTypeSignatureOrNamedTypeSignature();
+      if (!firstParameterSignature.isPresent() || !secondParameterSignature.isPresent()) {
         return Optional.empty();
       }
-      TypeSignature firstParameterSignature=firstParameter.getTypeSignature();
-      TypeSignature secondParameterSignature=secondParameter.getTypeSignature();
-      Optional<TypeSignature> commonSuperType=getCommonSuperTypeSignature(firstParameterSignature,secondParameterSignature);
+      Optional<TypeSignature> commonSuperType=getCommonSuperTypeSignature(firstParameterSignature.get(),secondParameterSignature.get());
       if (!commonSuperType.isPresent()) {
         return Optional.empty();
       }

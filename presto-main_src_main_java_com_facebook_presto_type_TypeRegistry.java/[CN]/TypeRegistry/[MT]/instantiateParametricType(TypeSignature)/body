@@ -1,17 +1,17 @@
 {
-  ImmutableList.Builder<Type> parameterTypes=ImmutableList.builder();
-  for (  TypeSignature parameter : signature.getTypeParametersAsTypeSignatures()) {
-    Type parameterType=getType(parameter);
-    if (parameterType == null) {
+  List<TypeParameter> parameters=new ArrayList<>();
+  for (  TypeSignatureParameter parameter : signature.getParameters()) {
+    TypeParameter typeParameter=TypeParameter.of(parameter,this);
+    if (typeParameter == null) {
       return null;
     }
-    parameterTypes.add(parameterType);
+    parameters.add(typeParameter);
   }
   ParametricType parametricType=parametricTypes.get(signature.getBase().toLowerCase(Locale.ENGLISH));
   if (parametricType == null) {
     return null;
   }
-  Type instantiatedType=parametricType.createType(parameterTypes.build(),signature.getLiteralParameters());
+  Type instantiatedType=parametricType.createType(parameters);
   checkState(instantiatedType.getTypeSignature().equals(signature),"Instantiated parametric type name (%s) does not match expected name (%s)",instantiatedType,signature);
   return instantiatedType;
 }

@@ -1,7 +1,7 @@
 {
   String baseName=null;
   List<TypeSignature> parameters=new ArrayList<>();
-  List<Object> literalParameters=new ArrayList<>();
+  List<String> fieldNames=new ArrayList<>();
   int parameterStart=-1;
   int bracketCount=0;
   boolean inLiteralParameters=false;
@@ -23,9 +23,7 @@
         checkArgument(parameterStart >= 0,"Bad type signature: '%s'",signature);
         parameters.add(parseTypeSignature(signature.substring(parameterStart,i)));
         parameterStart=i + 1;
-        if (i == signature.length() - 1) {
-          return new TypeSignature(baseName,parameters,literalParameters);
-        }
+        verify(i < signature.length() - 1,"Row's signature can not end with angle bracket");
       }
     }
  else     if (c == ',') {
@@ -37,7 +35,7 @@
         }
  else {
           checkArgument(parameterStart >= 0,"Bad type signature: '%s'",signature);
-          literalParameters.add(parseLiteral(signature.substring(parameterStart,i)));
+          fieldNames.add(parseFieldName(signature.substring(parameterStart,i)));
           parameterStart=i + 1;
         }
       }
@@ -61,8 +59,8 @@
         inLiteralParameters=false;
         checkArgument(i == signature.length() - 1,"Bad type signature: '%s'",signature);
         checkArgument(parameterStart >= 0,"Bad type signature: '%s'",signature);
-        literalParameters.add(parseLiteral(signature.substring(parameterStart,i)));
-        return new TypeSignature(baseName,parameters,literalParameters);
+        fieldNames.add(parseFieldName(signature.substring(parameterStart,i)));
+        return new TypeSignature(baseName,createNamedTypeParameters(parameters,fieldNames));
       }
     }
   }

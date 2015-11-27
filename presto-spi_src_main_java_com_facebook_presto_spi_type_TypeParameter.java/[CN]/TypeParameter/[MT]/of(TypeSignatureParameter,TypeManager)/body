@@ -1,0 +1,24 @@
+{
+switch (parameter.getKind()) {
+case TYPE_SIGNATURE:
+{
+      Type type=typeManager.getType(parameter.getTypeSignature());
+      if (type == null) {
+        return null;
+      }
+      return of(type);
+    }
+case LONG_LITERAL:
+  return of(parameter.getLongLiteral());
+case NAMED_TYPE_SIGNATURE:
+{
+  Type type=typeManager.getType(parameter.getNamedTypeSignature().getTypeSignature());
+  if (type == null) {
+    return null;
+  }
+  return of(new NamedType(parameter.getNamedTypeSignature().getName(),type));
+}
+default :
+throw new UnsupportedOperationException(format("Unsupported parameter [%s]",parameter));
+}
+}
