@@ -1,0 +1,39 @@
+{
+  long start=System.nanoTime();
+  MaterializedResult actualResults=actualQueryRunner.execute(session,actual).toJdbcTypes();
+  Duration actualTime=nanosSince(start);
+  long expectedStart=System.nanoTime();
+  MaterializedResult expectedResults=h2QueryRunner.execute(session,expected,actualResults.getTypes());
+  log.info("FINISHED in presto: %s, h2: %s, total: %s",actualTime,nanosSince(expectedStart),nanosSince(start));
+  if (actualResults.getUpdateType().isPresent() || actualResults.getUpdateCount().isPresent()) {
+    if (!actualResults.getUpdateType().isPresent()) {
+      fail("update count present without update type");
+    }
+    if (!compareUpdate) {
+      fail("update type should not be present (use assertUpdate)");
+    }
+  }
+  List<MaterializedRow> actualRows=actualResults.getMaterializedRows();
+  List<MaterializedRow> expectedRows=expectedResults.getMaterializedRows();
+  if (compareUpdate) {
+    if (!actualResults.getUpdateType().isPresent()) {
+      fail("update type not present");
+    }
+    if (!actualResults.getUpdateCount().isPresent()) {
+      fail("update count not present");
+    }
+    assertEquals(actualRows.size(),1);
+    assertEquals(expectedRows.size(),1);
+    MaterializedRow row=expectedRows.get(0);
+    assertEquals(row.getFieldCount(),1);
+    assertEquals(row.getField(0),actualResults.getUpdateCount().getAsLong());
+  }
+  if (ensureOrdering) {
+    if (!actualRows.equals(expectedRows)) {
+      assertEquals(actualRows,expectedRows);
+    }
+  }
+ else {
+    assertEqualsIgnoreOrder(actualRows,expectedRows);
+  }
+}

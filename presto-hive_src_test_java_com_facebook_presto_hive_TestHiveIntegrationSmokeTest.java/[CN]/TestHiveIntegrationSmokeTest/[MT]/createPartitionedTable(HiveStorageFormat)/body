@@ -1,6 +1,6 @@
 {
   @Language("SQL") String createTable="" + "CREATE TABLE test_partitioned_table (" + "  _partition_varchar VARCHAR"+ ", _partition_bigint BIGINT"+ ", _varchar VARCHAR"+ ", _varbinary VARBINARY"+ ", _bigint BIGINT"+ ", _double DOUBLE"+ ", _boolean BOOLEAN"+ ") "+ "WITH ("+ "format = '" + storageFormat + "', "+ "partitioned_by = ARRAY[ '_partition_varchar', '_partition_bigint' ]"+ ") ";
-  assertQuery(createTable,"SELECT 1");
+  assertUpdate(createTable);
   TableMetadata tableMetadata=getTableMetadata("test_partitioned_table");
   assertEquals(tableMetadata.getMetadata().getProperties().get(STORAGE_FORMAT_PROPERTY),storageFormat);
   List<String> partitionedBy=ImmutableList.of("_partition_varchar","_partition_bigint");
@@ -10,6 +10,6 @@
   }
   MaterializedResult result=computeActual("SELECT * from test_partitioned_table");
   assertEquals(result.getRowCount(),0);
-  assertQueryTrue("DROP TABLE test_partitioned_table");
+  assertUpdate("DROP TABLE test_partitioned_table");
   assertFalse(queryRunner.tableExists(getSession(),"test_partitioned_table"));
 }

@@ -1,0 +1,17 @@
+{
+  long start=System.nanoTime();
+  MaterializedResult results=queryRunner.execute(session,sql);
+  log.info("FINISHED in presto: %s",nanosSince(start));
+  if (!results.getUpdateType().isPresent()) {
+    fail("update type is not set");
+  }
+  if (results.getUpdateCount().isPresent()) {
+    if (!count.isPresent()) {
+      fail("update count should not be present");
+    }
+    assertEquals(results.getUpdateCount().isPresent(),count.isPresent(),"update count");
+  }
+ else   if (count.isPresent()) {
+    fail("update count is not present");
+  }
+}

@@ -1,6 +1,6 @@
 {
   @Language("SQL") String query="" + "CREATE TABLE test_types_table AS " + "SELECT"+ " 'foo' _varchar"+ ", cast('bar' as varbinary) _varbinary"+ ", 1 _bigint"+ ", 3.14 _double"+ ", true _boolean"+ ", DATE '1980-05-07' _date"+ ", TIMESTAMP '1980-05-07 11:22:33.456' _timestamp";
-  assertQuery(query,"SELECT 1");
+  assertUpdate(query,1);
   MaterializedResult results=queryRunner.execute(getSession(),"SELECT * FROM test_types_table").toJdbcTypes();
   assertEquals(results.getRowCount(),1);
   MaterializedRow row=results.getMaterializedRows().get(0);
@@ -11,6 +11,6 @@
   assertEquals(row.getField(4),true);
   assertEquals(row.getField(5),new Date(new DateTime(1980,5,7,0,0,0,UTC).getMillis()));
   assertEquals(row.getField(6),new Timestamp(new DateTime(1980,5,7,11,22,33,456,UTC).getMillis()));
-  assertQueryTrue("DROP TABLE test_types_table");
+  assertUpdate("DROP TABLE test_types_table");
   assertFalse(queryRunner.tableExists(getSession(),"test_types_table"));
 }

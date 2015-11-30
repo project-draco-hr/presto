@@ -1,11 +1,11 @@
 {
-  assertQueryTrue("CREATE TABLE test_rename_column AS SELECT 123 x");
-  assertQueryTrue("ALTER TABLE test_rename_column RENAME COLUMN x TO y");
+  assertUpdate("CREATE TABLE test_rename_column AS SELECT 123 x",1);
+  assertUpdate("ALTER TABLE test_rename_column RENAME COLUMN x TO y");
   MaterializedResult materializedRows=computeActual("SELECT y FROM test_rename_column");
   assertEquals(getOnlyElement(materializedRows.getMaterializedRows()).getField(0),123L);
-  assertQueryTrue("ALTER TABLE test_rename_column RENAME COLUMN y TO Z");
+  assertUpdate("ALTER TABLE test_rename_column RENAME COLUMN y TO Z");
   materializedRows=computeActual("SELECT z FROM test_rename_column");
   assertEquals(getOnlyElement(materializedRows.getMaterializedRows()).getField(0),123L);
-  assertQueryTrue("DROP TABLE test_rename_column");
+  assertUpdate("DROP TABLE test_rename_column");
   assertFalse(queryRunner.tableExists(getSession(),"test_rename_column"));
 }
