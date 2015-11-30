@@ -4,22 +4,18 @@
   try (Jedis jedis=jedisPool.getResource()){
 switch (split.getValueDataType()) {
 case STRING:
-{
-        valueString=jedis.get(keyString);
-        if (valueString == null) {
-          log.warn("Redis data modified while query was running, string value at key %s deleted",keyString);
-          return false;
-        }
-      }
-    break;
-case HASH:
-{
-    valueMap=jedis.hgetAll(keyString);
-    if (valueMap == null) {
-      log.warn("Redis data modified while query was running, hash value at key %s deleted",keyString);
+      valueString=jedis.get(keyString);
+    if (valueString == null) {
+      log.warn("Redis data modified while query was running, string value at key %s deleted",keyString);
       return false;
     }
-  }
+  break;
+case HASH:
+valueMap=jedis.hgetAll(keyString);
+if (valueMap == null) {
+log.warn("Redis data modified while query was running, hash value at key %s deleted",keyString);
+return false;
+}
 break;
 default :
 log.debug("Redis type for key %s is unsupported",keyString);

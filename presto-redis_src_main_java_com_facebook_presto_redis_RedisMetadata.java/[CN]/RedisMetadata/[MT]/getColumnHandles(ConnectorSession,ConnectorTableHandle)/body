@@ -10,8 +10,9 @@
   if (key != null) {
     List<RedisTableFieldDescription> fields=key.getFields();
     if (fields != null) {
-      for (      RedisTableFieldDescription redisTableFieldDescription : fields) {
-        columnHandles.put(redisTableFieldDescription.getName(),redisTableFieldDescription.getColumnHandle(connectorId,true,index++));
+      for (      RedisTableFieldDescription field : fields) {
+        columnHandles.put(field.getName(),field.getColumnHandle(connectorId,true,index));
+        index++;
       }
     }
   }
@@ -19,14 +20,15 @@
   if (value != null) {
     List<RedisTableFieldDescription> fields=value.getFields();
     if (fields != null) {
-      for (      RedisTableFieldDescription redisTableFieldDescription : fields) {
-        columnHandles.put(redisTableFieldDescription.getName(),redisTableFieldDescription.getColumnHandle(connectorId,false,index++));
+      for (      RedisTableFieldDescription field : fields) {
+        columnHandles.put(field.getName(),field.getColumnHandle(connectorId,false,index));
+        index++;
       }
     }
   }
-  for (  RedisInternalFieldDescription redisInternalFieldDescription : internalFieldDescriptions) {
-    RedisColumnHandle columnHandle=redisInternalFieldDescription.getColumnHandle(connectorId,index++,redisConnectorConfig.isHideInternalColumns());
-    columnHandles.put(redisInternalFieldDescription.getName(),columnHandle);
+  for (  RedisInternalFieldDescription field : internalFieldDescriptions) {
+    columnHandles.put(field.getName(),field.getColumnHandle(connectorId,index,hideInternalColumns));
+    index++;
   }
   return columnHandles.build();
 }
