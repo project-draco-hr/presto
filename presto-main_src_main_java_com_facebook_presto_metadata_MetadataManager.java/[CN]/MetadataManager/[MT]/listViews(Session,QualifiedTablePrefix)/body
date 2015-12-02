@@ -1,10 +1,10 @@
 {
   requireNonNull(prefix,"prefix is null");
   String schemaNameOrNull=prefix.getSchemaName().orElse(null);
-  Set<QualifiedTableName> views=new LinkedHashSet<>();
+  Set<QualifiedObjectName> views=new LinkedHashSet<>();
   for (  ConnectorMetadataEntry entry : allConnectorsFor(prefix.getCatalogName())) {
     ConnectorSession connectorSession=session.toConnectorSession(entry.getCatalog());
-    for (    QualifiedTableName tableName : transform(entry.getMetadata().listViews(connectorSession,schemaNameOrNull),convertFromSchemaTableName(prefix.getCatalogName()))) {
+    for (    QualifiedObjectName tableName : transform(entry.getMetadata().listViews(connectorSession,schemaNameOrNull),convertFromSchemaTableName(prefix.getCatalogName()))) {
       views.add(tableName);
     }
   }

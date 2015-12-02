@@ -1,8 +1,8 @@
 {
-  QualifiedTableName tableName=createQualifiedTableName(session,showColumns,showColumns.getTable());
+  QualifiedObjectName tableName=createQualifiedObjectName(session,showColumns,showColumns.getTable());
   if (!metadata.getView(session,tableName).isPresent() && !metadata.getTableHandle(session,tableName).isPresent()) {
     throw new SemanticException(MISSING_TABLE,showColumns,"Table '%s' does not exist",tableName);
   }
-  Query query=simpleQuery(selectList(aliasedName("column_name","Column"),aliasedName("data_type","Type"),aliasedYesNoToBoolean("is_nullable","Null"),aliasedYesNoToBoolean("is_partition_key","Partition Key"),aliasedNullToEmpty("comment","Comment")),from(tableName.getCatalogName(),TABLE_COLUMNS),logicalAnd(equal(nameReference("table_schema"),new StringLiteral(tableName.getSchemaName())),equal(nameReference("table_name"),new StringLiteral(tableName.getTableName()))),ordering(ascending("ordinal_position")));
+  Query query=simpleQuery(selectList(aliasedName("column_name","Column"),aliasedName("data_type","Type"),aliasedYesNoToBoolean("is_nullable","Null"),aliasedYesNoToBoolean("is_partition_key","Partition Key"),aliasedNullToEmpty("comment","Comment")),from(tableName.getCatalogName(),TABLE_COLUMNS),logicalAnd(equal(nameReference("table_schema"),new StringLiteral(tableName.getSchemaName())),equal(nameReference("table_name"),new StringLiteral(tableName.getObjectName()))),ordering(ascending("ordinal_position")));
   return process(query,context);
 }

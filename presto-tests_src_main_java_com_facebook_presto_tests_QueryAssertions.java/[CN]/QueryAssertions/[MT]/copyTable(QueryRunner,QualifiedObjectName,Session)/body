@@ -1,0 +1,7 @@
+{
+  long start=System.nanoTime();
+  log.info("Running import for %s",table.getObjectName());
+  @Language("SQL") String sql=format("CREATE TABLE %s AS SELECT * FROM %s",table.getObjectName(),table);
+  long rows=checkType(queryRunner.execute(session,sql).getMaterializedRows().get(0).getField(0),Long.class,"rows");
+  log.info("Imported %s rows for %s in %s",rows,table.getObjectName(),nanosSince(start).convertToMostSuccinctTimeUnit());
+}
