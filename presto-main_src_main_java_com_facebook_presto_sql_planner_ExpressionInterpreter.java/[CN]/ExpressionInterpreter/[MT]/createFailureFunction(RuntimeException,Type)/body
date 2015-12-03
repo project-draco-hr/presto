@@ -1,0 +1,7 @@
+{
+  requireNonNull(exception,"Exception is null");
+  String failureInfo=JsonCodec.jsonCodec(FailureInfo.class).toJson(Failures.toFailure(exception).toFailureInfo());
+  FunctionCall jsonParse=new FunctionCall(QualifiedName.of("json_parse"),ImmutableList.of(new StringLiteral(failureInfo)));
+  FunctionCall failureFunction=new FunctionCall(QualifiedName.of("fail"),ImmutableList.of(jsonParse));
+  return new Cast(failureFunction,type.getTypeSignature().toString());
+}
