@@ -5,8 +5,9 @@
   QueryResult test=validator.getTestResult();
   if (!validator.valid()) {
     errorMessage=format("Test state %s, Control state %s\n",test.getState(),control.getState());
-    if (test.getException() != null) {
-      errorMessage+=getStackTraceAsString(test.getException());
+    Exception e=test.getException();
+    if (e != null && shouldAddStackTrace(e)) {
+      errorMessage+=getStackTraceAsString(e);
     }
  else {
       errorMessage+=validator.getResultsComparison(precision).trim();
