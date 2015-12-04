@@ -1,0 +1,24 @@
+{
+  Parameter session=arg("session",ConnectorSession.class);
+  Parameter page=arg("page",Page.class);
+  MethodDefinition method=classDefinition.declareMethod(a(PUBLIC),"filterPage",type(int[].class),session,page);
+  method.comment("Filter: %s rows in the page",filter.toString());
+  Scope scope=method.getScope();
+  Variable thisVariable=method.getThis();
+  ByteCodeBlock body=method.getBody();
+  Variable positionCount=scope.declareVariable("positionCount",body,page.invoke("getPositionCount",int.class));
+  Variable selectedPositions=scope.declareVariable("selectedPositions",body,newArray(type(int[].class),positionCount));
+  List<Integer> filterChannels=getInputChannels(filter);
+  ImmutableList.Builder<Variable> blockVariablesBuilder=ImmutableList.<Variable>builder();
+  for (  int channel : filterChannels) {
+    Variable blockVariable=scope.declareVariable("block_" + channel,body,page.invoke("getBlock",Block.class,constantInt(channel)));
+    blockVariablesBuilder.add(blockVariable);
+  }
+  List<Variable> blockVariables=blockVariablesBuilder.build();
+  Variable selectedCount=scope.declareVariable("selectedCount",body,constantInt(0));
+  Variable position=scope.declareVariable(int.class,"position");
+  IfStatement ifStatement=new IfStatement();
+  ifStatement.condition(invokeFilter(thisVariable,session,blockVariables,position)).ifTrue().append(selectedPositions.setElement(selectedCount,position)).append(selectedCount.increment());
+  body.append(new ForLoop().initialize(position.set(constantInt(0))).condition(lessThan(position,positionCount)).update(position.increment()).body(ifStatement));
+  body.append(invokeStatic(Arrays.class,"copyOf",int[].class,selectedPositions,selectedCount).ret());
+}

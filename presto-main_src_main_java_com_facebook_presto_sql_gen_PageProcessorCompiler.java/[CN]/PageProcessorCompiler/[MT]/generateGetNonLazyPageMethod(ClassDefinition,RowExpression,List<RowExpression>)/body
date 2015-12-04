@@ -1,0 +1,29 @@
+{
+  Parameter page=arg("page",Page.class);
+  MethodDefinition method=classDefinition.declareMethod(a(PRIVATE),"getNonLazyPage",type(Page.class),page);
+  Scope scope=method.getScope();
+  ByteCodeBlock body=method.getBody();
+  List<Integer> allInputChannels=getInputChannels(concat(projections,ImmutableList.of(filter)));
+  if (allInputChannels.isEmpty()) {
+    body.append(page.ret());
+    return;
+  }
+  ImmutableMap.Builder<Integer,Variable> builder=ImmutableMap.builder();
+  for (  int channel : allInputChannels) {
+    Variable blockVariable=scope.declareVariable("block_" + channel,body,page.invoke("getBlock",Block.class,constantInt(channel)));
+    builder.put(channel,blockVariable);
+  }
+  Map<Integer,Variable> channelBlocks=builder.build();
+  Variable blocks=scope.declareVariable("blocks",body,page.invoke("getBlocks",Block[].class));
+  Variable positionCount=scope.declareVariable("positionCount",body,page.invoke("getPositionCount",int.class));
+  Variable createNewPage=scope.declareVariable("createNewPage",body,constantFalse());
+  for (  Map.Entry<Integer,Variable> entry : channelBlocks.entrySet()) {
+    int channel=entry.getKey();
+    Variable inputBlock=entry.getValue();
+    IfStatement ifStmt=new IfStatement();
+    ifStmt.condition(inputBlock.instanceOf(LazyBlock.class)).ifTrue().append(blocks.setElement(channel,inputBlock.cast(LazyBlock.class).invoke("getBlock",Block.class))).append(createNewPage.set(constantTrue()));
+    body.append(ifStmt);
+  }
+  body.append(new IfStatement().condition(createNewPage).ifTrue(page.set(newInstance(Page.class,positionCount,blocks))));
+  body.append(page.ret());
+}

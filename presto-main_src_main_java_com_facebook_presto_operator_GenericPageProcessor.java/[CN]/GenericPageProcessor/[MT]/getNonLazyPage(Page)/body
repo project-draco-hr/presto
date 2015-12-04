@@ -1,0 +1,18 @@
+{
+  ImmutableSet.Builder<Integer> builder=ImmutableSet.builder();
+  for (  ProjectionFunction projection : projections) {
+    builder.addAll(projection.getInputChannels());
+  }
+  Set<Integer> inputChannels=builder.build();
+  if (inputChannels.isEmpty()) {
+    return page;
+  }
+  Block[] blocks=page.getBlocks();
+  for (  int inputChannel : inputChannels) {
+    Block block=page.getBlock(inputChannel);
+    if (block instanceof LazyBlock) {
+      blocks[inputChannel]=((LazyBlock)block).getBlock();
+    }
+  }
+  return new Page(blocks);
+}

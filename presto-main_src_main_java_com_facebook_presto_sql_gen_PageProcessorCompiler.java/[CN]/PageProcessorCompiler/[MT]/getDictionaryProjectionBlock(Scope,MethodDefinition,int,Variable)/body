@@ -1,0 +1,17 @@
+{
+  Variable session=scope.getVariable("session");
+  Variable cardinality=scope.getVariable("cardinality");
+  Variable selectedPositions=scope.getVariable("selectedPositions");
+  Variable outputBlocks=scope.getVariable("outputBlocks");
+  Variable position=scope.getVariable("position");
+  Variable dictionary=scope.getVariable("dictionary");
+  Variable ids=scope.getVariable("ids");
+  Variable dictionaryCount=scope.getVariable("dictionaryCount");
+  Variable outputDictionary=scope.getVariable("outputDictionary");
+  Variable outputIds=scope.getVariable("outputIds");
+  Variable thisVariable=scope.getThis();
+  Variable blockBuilder=scope.getVariable("blockBuilder_" + projectionIndex);
+  ByteCodeBlock dictionaryProjection=new ByteCodeBlock().comment("Dictionary projection");
+  dictionaryProjection.comment("Extract dictionary and ids").append(dictionary.set(inputBlock.cast(DictionaryBlock.class).invoke("getDictionary",Block.class))).append(ids.set(inputBlock.cast(DictionaryBlock.class).invoke("getIds",Slice.class))).append(dictionaryCount.set(dictionary.invoke("getPositionCount",int.class))).comment("Project dictionary").append(new ForLoop().initialize(position.set(constantInt(0))).condition(lessThan(position,dictionaryCount)).update(position.increment()).body(invokeProject(thisVariable,session,ImmutableList.of(dictionary),position,blockBuilder,projectionMethod))).append(outputDictionary.set(blockBuilder.invoke("build",Block.class))).comment("Filter ids").append(outputIds.set(newArray(type(int[].class),cardinality))).append(new ForLoop().initialize(position.set(constantInt(0))).condition(lessThan(position,cardinality)).update(position.increment()).body(outputIds.setElement(position,ids.invoke("getInt",int.class,multiply(selectedPositions.getElement(position),constantInt(SizeOf.SIZE_OF_INT)))))).append(outputBlocks.setElement(projectionIndex,newInstance(DictionaryBlock.class,cardinality,outputDictionary,invokeStatic(Slices.class,"wrappedIntArray",Slice.class,outputIds)).cast(Block.class)));
+  return dictionaryProjection;
+}

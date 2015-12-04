@@ -1,0 +1,12 @@
+{
+  int dictionarySize=length / 5;
+  BlockBuilder builder=VARCHAR.createBlockBuilder(new BlockBuilderStatus(),dictionarySize);
+  for (int i=start; i < dictionarySize; i++) {
+    VARCHAR.writeString(builder,String.valueOf(i));
+  }
+  int[] ids=new int[length];
+  for (int i=0; i < length; i++) {
+    ids[i]=length % dictionarySize;
+  }
+  return new DictionaryBlock(length,builder.build(),wrappedIntArray(ids));
+}

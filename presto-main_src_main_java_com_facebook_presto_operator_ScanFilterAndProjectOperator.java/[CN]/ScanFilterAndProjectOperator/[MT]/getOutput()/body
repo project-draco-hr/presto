@@ -26,10 +26,24 @@
         currentPosition=0;
       }
       if (currentPage != null) {
-        currentPosition=pageProcessor.process(operatorContext.getSession().toConnectorSession(),currentPage,currentPosition,currentPage.getPositionCount(),pageBuilder);
-        if (currentPosition == currentPage.getPositionCount()) {
+        if (columnarProcessingDictionaryEnabled) {
+          Page page=pageProcessor.processColumnarDictionary(operatorContext.getSession().toConnectorSession(),currentPage,getTypes());
           currentPage=null;
           currentPosition=0;
+          return page;
+        }
+ else         if (columnarProcessingEnabled) {
+          Page page=pageProcessor.processColumnar(operatorContext.getSession().toConnectorSession(),currentPage,getTypes());
+          currentPage=null;
+          currentPosition=0;
+          return page;
+        }
+ else {
+          currentPosition=pageProcessor.process(operatorContext.getSession().toConnectorSession(),currentPage,currentPosition,currentPage.getPositionCount(),pageBuilder);
+          if (currentPosition == currentPage.getPositionCount()) {
+            currentPage=null;
+            currentPosition=0;
+          }
         }
       }
       pageSourceMemoryContext.setBytes(pageSource.getSystemMemoryUsage());

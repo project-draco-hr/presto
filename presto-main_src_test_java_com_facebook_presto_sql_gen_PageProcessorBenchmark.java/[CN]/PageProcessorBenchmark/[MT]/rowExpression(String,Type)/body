@@ -1,0 +1,11 @@
+{
+  SymbolToInputRewriter symbolToInputRewriter=new SymbolToInputRewriter(sourceLayout);
+  Expression inputReferenceExpression=ExpressionTreeRewriter.rewriteWith(symbolToInputRewriter,createExpression(expression,METADATA,symbolTypes));
+  ImmutableMap.Builder<Integer,Type> builder=ImmutableMap.builder();
+  for (int i=0; i < columnCount; i++) {
+    builder.put(i,type);
+  }
+  Map<Integer,Type> types=builder.build();
+  IdentityHashMap<Expression,Type> expressionTypes=getExpressionTypesFromInput(TEST_SESSION,METADATA,SQL_PARSER,types,inputReferenceExpression);
+  return SqlToRowExpressionTranslator.translate(inputReferenceExpression,SCALAR,expressionTypes,METADATA.getFunctionRegistry(),METADATA.getTypeManager(),TEST_SESSION,true);
+}
