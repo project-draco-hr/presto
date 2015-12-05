@@ -1,0 +1,14 @@
+{
+  requireNonNull(source,"source is null");
+  requireNonNull(distribution,"distribution is null");
+  partitionedSources.add(source);
+  if (partitioningHandle.isPresent()) {
+    PartitioningHandle currentPartitioning=partitioningHandle.get();
+    if (!currentPartitioning.equals(distribution)) {
+      checkState(currentPartitioning.equals(SINGLE_DISTRIBUTION) || currentPartitioning.equals(COORDINATOR_DISTRIBUTION),"Cannot overwrite distribution with %s (currently set to %s)",distribution,currentPartitioning);
+      return this;
+    }
+  }
+  partitioningHandle=Optional.of(distribution);
+  return this;
+}

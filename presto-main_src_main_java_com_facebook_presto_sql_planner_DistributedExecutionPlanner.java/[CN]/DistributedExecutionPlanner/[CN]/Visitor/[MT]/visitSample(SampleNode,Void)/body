@@ -4,10 +4,11 @@ case BERNOULLI:
 case POISSONIZED:
     return node.getSource().accept(this,context);
 case SYSTEM:
-  Optional<SplitSource> nodeSplits=node.getSource().accept(this,context);
-if (nodeSplits.isPresent()) {
-  SplitSource sampledSplitSource=new SampledSplitSource(nodeSplits.get(),node.getSampleRatio());
-  return Optional.of(sampledSplitSource);
+  Map<PlanNodeId,SplitSource> nodeSplits=node.getSource().accept(this,context);
+if (nodeSplits.size() == 1) {
+  PlanNodeId planNodeId=getOnlyElement(nodeSplits.keySet());
+  SplitSource sampledSplitSource=new SampledSplitSource(nodeSplits.get(planNodeId),node.getSampleRatio());
+  return ImmutableMap.of(planNodeId,sampledSplitSource);
 }
 return nodeSplits;
 default :

@@ -10,11 +10,11 @@
       checkState(!noMoreSplits.contains(sourceId),"noMoreSplits has already been set for %s",sourceId);
       int added=0;
       for (      Split split : splits) {
-        if (pendingSplits.put(sourceId,new ScheduledSplit(nextSplitId.getAndIncrement(),split))) {
+        if (pendingSplits.put(sourceId,new ScheduledSplit(nextSplitId.getAndIncrement(),sourceId,split))) {
           added++;
         }
       }
-      if (sourceId.equals(planFragment.getPartitionedSource())) {
+      if (planFragment.isPartitionedSources(sourceId)) {
         pendingSourceSplitCount+=added;
         partitionedSplitCountTracker.setPartitionedSplitCount(getPartitionedSplitCount());
       }

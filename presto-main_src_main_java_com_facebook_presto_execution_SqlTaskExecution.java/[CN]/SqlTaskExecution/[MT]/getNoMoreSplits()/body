@@ -1,7 +1,9 @@
 {
   ImmutableSet.Builder<PlanNodeId> noMoreSplits=ImmutableSet.builder();
-  if (partitionedDriverFactory != null && partitionedDriverFactory.isNoMoreSplits()) {
-    noMoreSplits.add(partitionedSourceId);
+  for (  Entry<PlanNodeId,DriverSplitRunnerFactory> entry : partitionedDriverFactories.entrySet()) {
+    if (entry.getValue().isNoMoreSplits()) {
+      noMoreSplits.add(entry.getKey());
+    }
   }
   for (  TaskSource taskSource : unpartitionedSources.values()) {
     if (taskSource.isNoMoreSplits()) {

@@ -3,10 +3,11 @@
     return 0;
   }
 synchronized (this) {
-    Collection<Split> partitionedSplits=splits.get(fragment.getPartitionedSource());
-    if (partitionedSplits == null) {
-      return 0;
+    int count=0;
+    for (    PlanNodeId partitionedSource : fragment.getPartitionedSources()) {
+      Collection<Split> partitionedSplits=splits.get(partitionedSource);
+      count+=partitionedSplits.size();
     }
-    return partitionedSplits.size();
+    return count;
   }
 }
