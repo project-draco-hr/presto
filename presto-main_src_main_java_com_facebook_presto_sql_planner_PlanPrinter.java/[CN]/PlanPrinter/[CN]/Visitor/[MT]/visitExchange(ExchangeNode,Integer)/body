@@ -1,5 +1,10 @@
 {
-  print(indent,"- Exchange[%s] => %s",node.getType(),formatOutputs(node.getOutputSymbols()));
+  if (node.getScope() == Scope.LOCAL) {
+    print(indent,"- LocalExchange[%s] (%s) => %s",node.getPartitionFunction().getPartitioningHandle(),Joiner.on(", ").join(node.getPartitionFunction().getPartitionFunctionArguments()),formatOutputs(node.getOutputSymbols()));
+  }
+ else {
+    print(indent,"- %sExchange[%s] => %s",UPPER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL,node.getScope().toString()),node.getType(),formatOutputs(node.getOutputSymbols()));
+  }
   printStats(indent + 2,node.getId());
   return processChildren(node,indent + 1);
 }
