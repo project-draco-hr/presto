@@ -1,0 +1,13 @@
+{
+  checkNotHoldsLock(this);
+  LocalExchangeSink sink=new LocalExchangeSink(this,exchangerSupplier.get());
+synchronized (this) {
+    checkState(sinkFactories.contains(factory),"Factory is already closed");
+    if (!allSourcesFinished) {
+      sinks.add(sink);
+      return sink;
+    }
+  }
+  sink.finish();
+  return sink;
+}

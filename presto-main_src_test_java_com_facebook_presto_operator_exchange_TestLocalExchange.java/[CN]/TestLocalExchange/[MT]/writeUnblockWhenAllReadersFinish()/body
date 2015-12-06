@@ -1,0 +1,24 @@
+{
+  ImmutableList<BigintType> types=ImmutableList.of(BIGINT);
+  LocalExchange exchange=new LocalExchange(FIXED_BROADCAST_DISTRIBUTION,2,types,ImmutableList.of(),Optional.empty(),new DataSize(1,BYTE));
+  assertEquals(exchange.getBufferCount(),2);
+  LocalExchangeSinkFactory sinkFactory=exchange.createSinkFactory();
+  LocalExchangeSink sinkA=sinkFactory.createSink();
+  assertSinkCanWrite(sinkA);
+  LocalExchangeSink sinkB=sinkFactory.createSink();
+  assertSinkCanWrite(sinkB);
+  sinkFactory.close();
+  sinkFactory.noMoreSinkFactories();
+  LocalExchangeSource sourceA=exchange.getSource(0);
+  assertSource(sourceA,0);
+  LocalExchangeSource sourceB=exchange.getSource(1);
+  assertSource(sourceB,0);
+  sourceA.finish();
+  assertSourceFinished(sourceA);
+  assertSinkCanWrite(sinkA);
+  assertSinkCanWrite(sinkB);
+  sourceB.finish();
+  assertSourceFinished(sourceB);
+  assertSinkFinished(sinkA);
+  assertSinkFinished(sinkB);
+}

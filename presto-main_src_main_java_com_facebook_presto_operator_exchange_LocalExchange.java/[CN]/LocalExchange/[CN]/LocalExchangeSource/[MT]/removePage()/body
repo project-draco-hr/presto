@@ -1,0 +1,13 @@
+{
+  checkNotHoldsLock(this);
+  PageReference pageReference=buffer.poll();
+  if (pageReference == null) {
+    return null;
+  }
+  Page page=pageReference.removePage();
+  bufferedBytes.addAndGet(-page.getSizeInBytes());
+  if (isFinished()) {
+    onFinish.accept(this);
+  }
+  return page;
+}

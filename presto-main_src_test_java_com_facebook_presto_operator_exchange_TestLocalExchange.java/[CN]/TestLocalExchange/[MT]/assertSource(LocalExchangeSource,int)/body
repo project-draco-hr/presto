@@ -1,0 +1,17 @@
+{
+  assertEquals(source.getTypes(),TYPES);
+  LocalExchangeBufferInfo bufferInfo=source.getBufferInfo();
+  assertEquals(bufferInfo.getBufferedPages(),pageCount);
+  assertFalse(source.isFinished());
+  if (pageCount == 0) {
+    assertFalse(source.waitForReading().isDone());
+    assertNull(source.removePage());
+    assertFalse(source.waitForReading().isDone());
+    assertFalse(source.isFinished());
+    assertEquals(bufferInfo.getBufferedBytes(),0);
+  }
+ else {
+    assertTrue(source.waitForReading().isDone());
+    assertTrue(bufferInfo.getBufferedBytes() > 0);
+  }
+}
