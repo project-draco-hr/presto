@@ -1,12 +1,16 @@
 {
   LimitContext limit=context.get();
+  LimitContext childLimit=null;
+  if (limit != null) {
+    childLimit=new LimitContext(limit.getCount(),true);
+  }
   List<PlanNode> sources=new ArrayList<>();
   for (int i=0; i < node.getSources().size(); i++) {
-    sources.add(context.rewrite(node.getSources().get(i),limit));
+    sources.add(context.rewrite(node.getSources().get(i),childLimit));
   }
   PlanNode output=new UnionNode(node.getId(),sources,node.getSymbolMapping(),node.getOutputSymbols());
   if (limit != null) {
-    output=new LimitNode(idAllocator.getNextId(),output,limit.getCount());
+    output=new LimitNode(idAllocator.getNextId(),output,limit.getCount(),limit.isPartial());
   }
   return output;
 }
