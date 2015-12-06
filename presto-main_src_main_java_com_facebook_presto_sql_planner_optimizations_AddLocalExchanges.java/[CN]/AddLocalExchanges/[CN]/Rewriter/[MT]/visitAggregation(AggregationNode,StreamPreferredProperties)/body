@@ -1,0 +1,13 @@
+{
+  StreamPreferredProperties requiredProperties;
+  StreamPreferredProperties preferredChildProperties;
+  if (node.getStep() == Step.FINAL || node.getStep() == Step.SINGLE) {
+    requiredProperties=parentPreferences.withDefaultParallelism(session).withPartitioning(node.getGroupBy());
+    preferredChildProperties=parentPreferences.withDefaultParallelism(session).withPartitioning(node.getGroupBy());
+  }
+ else {
+    requiredProperties=parentPreferences.withoutPreference().withDefaultParallelism(session);
+    preferredChildProperties=parentPreferences.withDefaultParallelism(session).constrainTo(node.getSource().getOutputSymbols());
+  }
+  return planAndEnforceChildren(node,requiredProperties,preferredChildProperties);
+}

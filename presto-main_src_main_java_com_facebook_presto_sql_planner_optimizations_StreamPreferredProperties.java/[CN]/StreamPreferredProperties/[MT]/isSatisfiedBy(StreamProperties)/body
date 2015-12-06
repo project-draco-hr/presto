@@ -1,0 +1,27 @@
+{
+  if (!distribution.isPresent() && !partitioningColumns.isPresent()) {
+    return true;
+  }
+  if (isOrderSensitive() && actualProperties.isOrdered()) {
+    return true;
+  }
+  if (distribution.isPresent()) {
+    StreamDistribution actualDistribution=actualProperties.getDistribution();
+    if (distribution.get() == SINGLE && actualDistribution != SINGLE) {
+      return false;
+    }
+ else     if (distribution.get() == FIXED && actualDistribution != FIXED) {
+      return false;
+    }
+ else     if (distribution.get() == MULTIPLE && actualDistribution != FIXED && actualDistribution != MULTIPLE) {
+      return false;
+    }
+  }
+ else   if (actualProperties.getDistribution() == SINGLE) {
+    return true;
+  }
+  if (partitioningColumns.isPresent()) {
+    return actualProperties.isPartitionedOn(partitioningColumns.get());
+  }
+  return true;
+}

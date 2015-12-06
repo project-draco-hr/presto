@@ -1,0 +1,7 @@
+{
+  PlanWithProperties probe=planAndEnforce(node.getProbeSource(),defaultParallelism(session),parentPreferences.constrainTo(node.getProbeSource().getOutputSymbols()).withDefaultParallelism(session));
+  StreamProperties indexStreamProperties=derivePropertiesRecursively(node.getIndexSource());
+  checkArgument(indexStreamProperties.getDistribution() == SINGLE,"index source must be single stream");
+  PlanWithProperties index=new PlanWithProperties(node.getIndexSource(),indexStreamProperties);
+  return rebaseAndDeriveProperties(node,ImmutableList.of(probe,index));
+}

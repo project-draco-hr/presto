@@ -2,13 +2,13 @@
   if (node.getPartitionBy().isEmpty()) {
     PlanWithProperties child=planChild(node,context.withPreferredProperties(PreferredProperties.undistributed()));
     if (!child.getProperties().isSingleNode()) {
-      child=withDerivedProperties(gatheringExchange(idAllocator.getNextId(),child.getNode()),child.getProperties());
+      child=withDerivedProperties(gatheringExchange(idAllocator.getNextId(),REMOTE,child.getNode()),child.getProperties());
     }
     return rebaseAndDeriveProperties(node,child);
   }
   PlanWithProperties child=planChild(node,context.withPreferredProperties(PreferredProperties.derivePreferences(context.getPreferredProperties(),ImmutableSet.copyOf(node.getPartitionBy()),grouped(node.getPartitionBy()))));
   if (!child.getProperties().isStreamPartitionedOn(node.getPartitionBy())) {
-    child=withDerivedProperties(partitionedExchange(idAllocator.getNextId(),child.getNode(),node.getPartitionBy(),node.getHashSymbol()),child.getProperties());
+    child=withDerivedProperties(partitionedExchange(idAllocator.getNextId(),REMOTE,child.getNode(),node.getPartitionBy(),node.getHashSymbol()),child.getProperties());
   }
   return rebaseAndDeriveProperties(node,child);
 }

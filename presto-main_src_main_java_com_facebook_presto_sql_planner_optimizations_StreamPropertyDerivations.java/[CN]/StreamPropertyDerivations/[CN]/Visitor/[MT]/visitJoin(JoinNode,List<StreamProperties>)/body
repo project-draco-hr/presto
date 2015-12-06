@@ -1,0 +1,16 @@
+{
+  StreamProperties leftProperties=inputProperties.get(0);
+  StreamProperties rightProperties=inputProperties.get(1);
+switch (node.getType()) {
+case INNER:
+    return leftProperties;
+case LEFT:
+  return leftProperties.withUnspecifiedPartitioning();
+case RIGHT:
+return new StreamProperties(MULTIPLE,leftProperties.getPartitioningColumns(),false);
+case FULL:
+return new StreamProperties(MULTIPLE,Optional.empty(),false);
+default :
+throw new UnsupportedOperationException("Unsupported join type: " + node.getType());
+}
+}

@@ -1,0 +1,20 @@
+{
+  if (requiredProperties.isSatisfiedBy(planWithProperties.getProperties())) {
+    return planWithProperties;
+  }
+  if (requiredProperties.isSingleStreamPreferred()) {
+    ExchangeNode exchangeNode=gatheringExchange(idAllocator.getNextId(),LOCAL,planWithProperties.getNode());
+    return deriveProperties(exchangeNode,planWithProperties.getProperties());
+  }
+  Optional<Set<Symbol>> requiredPartitionColumns=requiredProperties.getPartitioningColumns();
+  if (!requiredPartitionColumns.isPresent()) {
+    ExchangeNode exchangeNode=partitionedExchange(idAllocator.getNextId(),LOCAL,planWithProperties.getNode(),new PartitionFunctionBinding(FIXED_RANDOM_DISTRIBUTION,planWithProperties.getNode().getOutputSymbols(),ImmutableList.of()));
+    return deriveProperties(exchangeNode,planWithProperties.getProperties());
+  }
+  if (requiredProperties.isParallelPreferred()) {
+    ExchangeNode exchangeNode=partitionedExchange(idAllocator.getNextId(),LOCAL,planWithProperties.getNode(),ImmutableList.copyOf(requiredPartitionColumns.get()),Optional.empty());
+    return deriveProperties(exchangeNode,planWithProperties.getProperties());
+  }
+  ExchangeNode exchangeNode=gatheringExchange(idAllocator.getNextId(),LOCAL,planWithProperties.getNode());
+  return deriveProperties(exchangeNode,planWithProperties.getProperties());
+}
