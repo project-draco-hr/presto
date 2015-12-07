@@ -1,3 +1,13 @@
 {
-  return getSizeInBytes();
+  int sizeInBytes=this.retainedSizeInBytes.get();
+  if (sizeInBytes < 0) {
+    assureLoaded();
+    sizeInBytes=INSTANCE_SIZE + getSliceArrayRetainedSizeInBytes(values);
+    if (dictionary) {
+      sizeInBytes+=SizeOf.sizeOf(ids);
+      sizeInBytes+=SizeOf.sizeOf(isNull);
+    }
+    this.retainedSizeInBytes.set(sizeInBytes);
+  }
+  return sizeInBytes;
 }
