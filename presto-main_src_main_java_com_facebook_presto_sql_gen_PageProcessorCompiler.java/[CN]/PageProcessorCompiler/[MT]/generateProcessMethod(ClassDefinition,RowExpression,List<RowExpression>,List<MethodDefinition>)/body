@@ -6,23 +6,22 @@
   Parameter pageBuilder=arg("pageBuilder",PageBuilder.class);
   MethodDefinition method=classDefinition.declareMethod(a(PUBLIC),"process",type(int.class),session,page,start,end,pageBuilder);
   Scope scope=method.getScope();
+  ByteCodeBlock body=method.getBody();
   Variable thisVariable=method.getThis();
-  List<Integer> allInputChannels=getInputChannels(Iterables.concat(projections,ImmutableList.of(filter)));
-  ImmutableMap.Builder<Integer,Variable> channelBlockBuilder=ImmutableMap.builder();
+  List<Integer> allInputChannels=getInputChannels(concat(projections,ImmutableList.of(filter)));
+  ImmutableMap.Builder<Integer,Variable> builder=ImmutableMap.builder();
   for (  int channel : allInputChannels) {
-    Variable blockVariable=scope.declareVariable(Block.class,"block_" + channel);
-    method.getBody().append(blockVariable.set(page.invoke("getBlock",Block.class,constantInt(channel))));
-    channelBlockBuilder.put(channel,blockVariable);
+    Variable blockVariable=scope.declareVariable("block_" + channel,body,page.invoke("getBlock",Block.class,constantInt(channel)));
+    builder.put(channel,blockVariable);
   }
-  Map<Integer,Variable> channelBlock=channelBlockBuilder.build();
+  Map<Integer,Variable> channelBlock=builder.build();
   Map<RowExpression,List<Variable>> expressionInputBlocks=getExpressionInputBlocks(projections,filter,channelBlock);
-  ImmutableList.Builder<Variable> builder=ImmutableList.<Variable>builder();
+  ImmutableList.Builder<Variable> variableBuilder=ImmutableList.<Variable>builder();
   for (int projectionIndex=0; projectionIndex < projections.size(); projectionIndex++) {
-    Variable blockBuilder=scope.declareVariable(BlockBuilder.class,"blockBuilder_" + projectionIndex);
-    method.getBody().append(blockBuilder.set(pageBuilder.invoke("getBlockBuilder",BlockBuilder.class,constantInt(projectionIndex))));
-    builder.add(blockBuilder);
+    Variable blockBuilder=scope.declareVariable("blockBuilder_" + projectionIndex,body,pageBuilder.invoke("getBlockBuilder",BlockBuilder.class,constantInt(projectionIndex)));
+    variableBuilder.add(blockBuilder);
   }
-  List<Variable> blockBuilders=builder.build();
+  List<Variable> blockBuilders=variableBuilder.build();
   Variable position=scope.declareVariable(int.class,"position");
   ByteCodeBlock project=new ByteCodeBlock().append(pageBuilder.invoke("declarePosition",void.class));
   for (int projectionIndex=0; projectionIndex < projections.size(); projectionIndex++) {
@@ -31,5 +30,5 @@
   }
   LabelNode done=new LabelNode("done");
   ForLoop loop=new ForLoop().initialize(position.set(start)).condition(lessThan(position,end)).update(position.set(add(position,constantInt(1)))).body(new ByteCodeBlock().append(new IfStatement().condition(pageBuilder.invoke("isFull",boolean.class)).ifTrue(jump(done))).append(new IfStatement().condition(invokeFilter(thisVariable,session,expressionInputBlocks.get(filter),position)).ifTrue(project)));
-  method.getBody().append(loop).visitLabel(done).append(position.ret());
+  body.append(loop).visitLabel(done).append(position.ret());
 }
