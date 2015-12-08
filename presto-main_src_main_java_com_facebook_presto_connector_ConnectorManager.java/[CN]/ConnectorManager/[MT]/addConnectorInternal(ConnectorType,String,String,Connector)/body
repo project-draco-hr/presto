@@ -6,6 +6,8 @@
   checkState(connectorSplitManager != null,"Connector %s does not have a split manager",connectorId);
   Set<SystemTable> systemTables=connector.getSystemTables();
   requireNonNull(systemTables,"Connector %s returned a null system tables set");
+  Set<Procedure> procedures=connector.getProcedures();
+  requireNonNull(procedures,"Connector %s returned a null procedures set");
   ConnectorPageSourceProvider connectorPageSourceProvider=null;
   try {
     connectorPageSourceProvider=connector.getPageSourceProvider();
@@ -71,6 +73,9 @@
   }
   splitManager.addConnectorSplitManager(connectorId,connectorSplitManager);
   pageSourceManager.addConnectorPageSourceProvider(connectorId,connectorPageSourceProvider);
+  for (  Procedure procedure : procedures) {
+    metadataManager.getProcedureRegistry().addProcedure(catalogName,procedure);
+  }
   if (connectorPageSinkProvider != null) {
     pageSinkManager.addConnectorPageSinkProvider(connectorId,connectorPageSinkProvider);
   }

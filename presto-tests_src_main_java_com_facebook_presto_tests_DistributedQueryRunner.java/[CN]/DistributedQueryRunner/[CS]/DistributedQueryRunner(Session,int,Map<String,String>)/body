@@ -38,4 +38,10 @@
     sessionPropertyManager.addSystemSessionProperties(AbstractTestQueries.TEST_SYSTEM_PROPERTIES);
     sessionPropertyManager.addConnectorSessionProperties("connector",AbstractTestQueries.TEST_CATALOG_PROPERTIES);
   }
+  TypeManager typeManager=coordinator.getMetadata().getTypeManager();
+  ProcedureRegistry procedureRegistry=coordinator.getMetadata().getProcedureRegistry();
+  TestingProcedures procedures=new TestingProcedures(coordinator.getProcedureTester(),typeManager);
+  for (  Procedure procedure : procedures.getProcedures(defaultSession.getSchema().get())) {
+    procedureRegistry.addProcedure(defaultSession.getCatalog().get(),procedure);
+  }
 }
