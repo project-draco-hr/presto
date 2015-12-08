@@ -1,11 +1,17 @@
 {
   int inputChannel=getOnlyElement(projection.getInputChannels());
   Block dictionary=((DictionaryBlock)page.getBlock(inputChannel)).getDictionary();
+  int projectionIndex=projections.indexOf(projection);
+  if (inputDictionaries[projectionIndex] == dictionary) {
+    return outputDictionaries[projectionIndex];
+  }
   BlockBuilder dictionaryBuilder=projection.getType().createBlockBuilder(new BlockBuilderStatus(),dictionary.getPositionCount());
   Block[] blocks=new Block[page.getChannelCount()];
   blocks[inputChannel]=dictionary;
   for (int i=0; i < dictionary.getPositionCount(); i++) {
     projection.project(i,blocks,dictionaryBuilder);
   }
-  return dictionaryBuilder.build();
+  inputDictionaries[projectionIndex]=dictionary;
+  outputDictionaries[projectionIndex]=dictionaryBuilder.build();
+  return outputDictionaries[projectionIndex];
 }
