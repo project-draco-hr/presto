@@ -13,8 +13,8 @@
   this.pageSourceManager=new PageSourceManager();
   this.compiler=new ExpressionCompiler(metadata);
   this.connectorManager=new ConnectorManager(metadata,accessControl,splitManager,pageSourceManager,indexManager,pageSinkManager,new HandleResolver(),nodeManager);
-  Connector systemConnector=new SystemConnector(nodeManager,ImmutableSet.of(new NodeSystemTable(nodeManager),new CatalogSystemTable(metadata),new TablePropertiesSystemTable(metadata)));
-  connectorManager.createConnection(SystemConnector.NAME,systemConnector);
+  SystemConnectorFactory systemConnectorFactory=new SystemConnectorFactory(nodeManager,ImmutableSet.of(new NodeSystemTable(nodeManager),new CatalogSystemTable(metadata),new TablePropertiesSystemTable(metadata)));
+  connectorManager.createConnection(SystemConnector.NAME,systemConnectorFactory,ImmutableMap.of());
   this.defaultSession=new Session(defaultSession.getQueryId(),defaultSession.getIdentity(),defaultSession.getSource(),defaultSession.getCatalog(),defaultSession.getSchema(),defaultSession.getTimeZoneKey(),defaultSession.getLocale(),defaultSession.getRemoteUserAddress(),defaultSession.getUserAgent(),defaultSession.getStartTime(),defaultSession.getSystemProperties(),defaultSession.getCatalogProperties(),metadata.getSessionPropertyManager());
   dataDefinitionTask=ImmutableMap.<Class<? extends Statement>,DataDefinitionTask<?>>builder().put(CreateTable.class,new CreateTableTask()).put(CreateView.class,new CreateViewTask(jsonCodec(ViewDefinition.class),sqlParser,accessControl,new FeaturesConfig())).put(DropTable.class,new DropTableTask()).put(DropView.class,new DropViewTask()).put(RenameColumn.class,new RenameColumnTask()).put(RenameTable.class,new RenameTableTask()).put(ResetSession.class,new ResetSessionTask()).put(SetSession.class,new SetSessionTask()).build();
 }
