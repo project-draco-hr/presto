@@ -1,6 +1,5 @@
 {
   this.types=unmodifiableList(new ArrayList<>(requireNonNull(types,"types is null")));
-  this.expectedEntries=Math.max(expectedEntries,1);
   int maxBlockSizeInBytes;
   if (!types.isEmpty()) {
     maxBlockSizeInBytes=(int)(1.0 * DEFAULT_MAX_PAGE_SIZE_IN_BYTES / types.size());
@@ -10,8 +9,19 @@
     maxBlockSizeInBytes=0;
   }
   pageBuilderStatus=new PageBuilderStatus(DEFAULT_MAX_PAGE_SIZE_IN_BYTES,maxBlockSizeInBytes);
+  int expectedEntries=Math.min(maxBlockSizeInBytes,initialExpectedEntries);
+  for (  Type type : types) {
+    if (type instanceof FixedWidthType) {
+      int fixedSize=Math.max(((FixedWidthType)type).getFixedSize(),1);
+      expectedEntries=Math.min(expectedEntries,maxBlockSizeInBytes / fixedSize);
+    }
+ else {
+      expectedEntries=Math.min(expectedEntries,maxBlockSizeInBytes / 32);
+    }
+  }
   blockBuilders=new BlockBuilder[types.size()];
   for (int i=0; i < blockBuilders.length; i++) {
     blockBuilders[i]=types.get(i).createBlockBuilder(pageBuilderStatus.createBlockBuilderStatus(),expectedEntries,pageBuilderStatus.getMaxBlockSizeInBytes() / expectedEntries);
   }
+  this.initialExpectedEntries=expectedEntries;
 }
