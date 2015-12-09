@@ -1,8 +1,7 @@
 {
-  try {
-    return new StaticCredentialsProvider(getAwsCredentials(uri,conf));
-  }
- catch (  IllegalArgumentException ignored) {
+  Optional<AWSCredentials> credentials=getAwsCredentials(uri,conf);
+  if (credentials.isPresent()) {
+    return new StaticCredentialsProvider(credentials.get());
   }
   if (useInstanceCredentials) {
     return new InstanceProfileCredentialsProvider();
