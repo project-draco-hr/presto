@@ -1,9 +1,13 @@
 {
-  int newSize=arraySize(size + 1,FILL_RATIO);
-  int newMask=newSize - 1;
-  long[] newKey=new long[newSize];
+  long newCapacityLong=this.groupIdsByHash.length * 2L;
+  if (newCapacityLong > Integer.MAX_VALUE) {
+    throw new PrestoException(INSUFFICIENT_RESOURCES,"Size of hash table cannot exceed 1 billion entries");
+  }
+  int newCapacity=(int)newCapacityLong;
+  int newMask=newCapacity - 1;
+  long[] newKey=new long[newCapacity];
   Arrays.fill(newKey,-1);
-  int[] newValue=new int[newSize];
+  int[] newValue=new int[newCapacity];
   int oldIndex=0;
   for (int groupId=0; groupId < nextGroupId; groupId++) {
     while (groupAddressByHash[oldIndex] == -1) {
@@ -19,7 +23,7 @@
     oldIndex++;
   }
   this.mask=newMask;
-  this.maxFill=calculateMaxFill(newSize);
+  this.maxFill=calculateMaxFill(newCapacity);
   this.groupAddressByHash=newKey;
   this.groupIdsByHash=newValue;
   groupAddressByGroupId.ensureCapacity(maxFill);

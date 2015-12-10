@@ -1,10 +1,14 @@
 {
-  int newSize=arraySize(size + 1,FILL_RATIO);
-  int newMask=newSize - 1;
+  long newCapacityLong=hashCapacity * 2L;
+  if (newCapacityLong > Integer.MAX_VALUE) {
+    throw new PrestoException(INSUFFICIENT_RESOURCES,"Size of hash table cannot exceed 1 billion entries");
+  }
+  int newCapacity=(int)newCapacityLong;
+  int newMask=newCapacity - 1;
   LongBigArray newValues=new LongBigArray();
-  newValues.ensureCapacity(newSize);
+  newValues.ensureCapacity(newCapacity);
   IntBigArray newGroupIds=new IntBigArray(-1);
-  newGroupIds.ensureCapacity(newSize);
+  newGroupIds.ensureCapacity(newCapacity);
   for (int groupId=0; groupId < nextGroupId; groupId++) {
     if (groupId == nullGroupId) {
       continue;
@@ -18,7 +22,8 @@
     newGroupIds.set(hashPosition,groupId);
   }
   mask=newMask;
-  maxFill=calculateMaxFill(newSize);
+  hashCapacity=newCapacity;
+  maxFill=calculateMaxFill(hashCapacity);
   values=newValues;
   groupIds=newGroupIds;
   this.valuesByGroupId.ensureCapacity(maxFill);
