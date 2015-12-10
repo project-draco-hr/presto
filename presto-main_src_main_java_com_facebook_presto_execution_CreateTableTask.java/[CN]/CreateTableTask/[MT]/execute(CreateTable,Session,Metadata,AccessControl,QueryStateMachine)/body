@@ -6,7 +6,7 @@
     if (!statement.isNotExists()) {
       throw new SemanticException(TABLE_ALREADY_EXISTS,statement,"Table '%s' already exists",tableName);
     }
-    return;
+    return completedFuture(null);
   }
   List<ColumnMetadata> columns=new ArrayList<>();
   for (  TableElement element : statement.getElements()) {
@@ -20,4 +20,5 @@
   Map<String,Object> properties=metadata.getTablePropertyManager().getTableProperties(tableName.getCatalogName(),statement.getProperties(),session,metadata);
   TableMetadata tableMetadata=new TableMetadata(tableName.getCatalogName(),new ConnectorTableMetadata(tableName.asSchemaTableName(),columns,properties,session.getUser(),false));
   metadata.createTable(session,tableName.getCatalogName(),tableMetadata);
+  return completedFuture(null);
 }
