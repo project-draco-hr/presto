@@ -52,30 +52,29 @@
   }
  catch (  UnsupportedOperationException ignored) {
   }
-  List<PropertyMetadata<?>> tableProperties=connector.getTableProperties();
-  requireNonNull(tableProperties,format("Connector %s returned null table properties",connectorId));
+  requireNonNull(connector.getSessionProperties(),format("Connector %s returned null session properties",connectorId));
+  requireNonNull(connector.getTableProperties(),format("Connector %s returned null table properties",connectorId));
   ConnectorAccessControl accessControl=null;
   try {
     accessControl=connector.getAccessControl();
   }
  catch (  UnsupportedOperationException ignored) {
   }
-  metadataManager.addConnectorMetadata(connectorId,catalogName,connectorMetadata);
-  Connector informationSchemaConnector=new InformationSchemaConnector(makeInformationSchemaConnectorId(connectorId),catalogName,nodeManager,metadataManager);
-  handleResolver.addHandleResolver(makeInformationSchemaConnectorId(connectorId),informationSchemaConnector.getHandleResolver());
-  metadataManager.addInformationSchemaMetadata(makeInformationSchemaConnectorId(connectorId),catalogName,informationSchemaConnector.getMetadata());
-  splitManager.addConnectorSplitManager(makeInformationSchemaConnectorId(connectorId),informationSchemaConnector.getSplitManager());
-  pageSourceManager.addConnectorPageSourceProvider(makeInformationSchemaConnectorId(connectorId),informationSchemaConnector.getPageSourceProvider());
-  Connector systemConnector=new SystemConnector(makeSystemTablesConnectorId(connectorId),nodeManager,systemTables);
-  handleResolver.addHandleResolver(makeSystemTablesConnectorId(connectorId),systemConnector.getHandleResolver());
-  metadataManager.addSystemTablesMetadata(makeSystemTablesConnectorId(connectorId),catalogName,systemConnector.getMetadata());
-  splitManager.addConnectorSplitManager(makeSystemTablesConnectorId(connectorId),systemConnector.getSplitManager());
-  pageSourceManager.addConnectorPageSourceProvider(makeSystemTablesConnectorId(connectorId),new RecordPageSourceProvider(systemConnector.getRecordSetProvider()));
+  if (type == ConnectorType.STANDARD) {
+    metadataManager.addConnectorMetadata(connectorId,catalogName,connectorMetadata);
+  }
+ else   if (type == ConnectorType.INFORMATION_SCHEMA) {
+    metadataManager.addInformationSchemaMetadata(connectorId,catalogName,connectorMetadata);
+  }
+ else   if (type == ConnectorType.SYSTEM) {
+    metadataManager.addSystemTablesMetadata(connectorId,catalogName,connectorMetadata);
+  }
+ else {
+    throw new IllegalArgumentException("Unhandled type: " + type);
+  }
   splitManager.addConnectorSplitManager(connectorId,connectorSplitManager);
   handleResolver.addHandleResolver(connectorId,connectorHandleResolver);
   pageSourceManager.addConnectorPageSourceProvider(connectorId,connectorPageSourceProvider);
-  metadataManager.getSessionPropertyManager().addConnectorSessionProperties(catalogName,connector.getSessionProperties());
-  metadataManager.getTablePropertyManager().addTableProperties(catalogName,tableProperties);
   if (connectorPageSinkProvider != null) {
     pageSinkManager.addConnectorPageSinkProvider(connectorId,connectorPageSinkProvider);
   }
