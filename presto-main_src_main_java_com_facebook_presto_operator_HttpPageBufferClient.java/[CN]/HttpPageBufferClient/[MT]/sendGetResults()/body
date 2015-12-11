@@ -8,6 +8,14 @@
       resetErrors();
       List<Page> pages;
 synchronized (HttpPageBufferClient.this) {
+        if (taskInstanceId == null) {
+          taskInstanceId=result.getTaskInstanceId();
+        }
+        if (!isNullOrEmpty(taskInstanceId) && !result.getTaskInstanceId().equals(taskInstanceId)) {
+          Throwable t=new PrestoException(REMOTE_TASK_MISMATCH,REMOTE_TASK_MISMATCH_ERROR);
+          handleFailure(t);
+          return;
+        }
         if (result.getToken() == token) {
           pages=result.getPages();
           token=result.getNextToken();

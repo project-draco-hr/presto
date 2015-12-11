@@ -1,6 +1,6 @@
 {
   if (completed.get() && pages.isEmpty()) {
-    return BufferResult.emptyResults(token.get(),true);
+    return BufferResult.emptyResults(TASK_INSTANCE_ID,token.get(),true);
   }
   assertEquals(sequenceId,token.get(),"token");
   Page page=null;
@@ -11,7 +11,7 @@
     Thread.currentThread().interrupt();
   }
   if (page == null) {
-    return BufferResult.emptyResults(token.get(),false);
+    return BufferResult.emptyResults(TASK_INSTANCE_ID,token.get(),false);
   }
   List<Page> responsePages=new ArrayList<>();
   responsePages.add(page);
@@ -25,7 +25,7 @@
     responseSize+=page.getSizeInBytes();
   }
   long nextToken=token.get() + responsePages.size();
-  BufferResult bufferResult=new BufferResult(token.get(),nextToken,false,responsePages);
+  BufferResult bufferResult=new BufferResult(TASK_INSTANCE_ID,token.get(),nextToken,false,responsePages);
   token.set(nextToken);
   return bufferResult;
 }

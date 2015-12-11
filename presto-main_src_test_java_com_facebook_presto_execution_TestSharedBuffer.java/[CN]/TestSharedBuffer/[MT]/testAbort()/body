@@ -1,5 +1,5 @@
 {
-  SharedBuffer sharedBuffer=new SharedBuffer(TASK_ID,stateNotificationExecutor,sizeOfPages(10));
+  SharedBuffer sharedBuffer=new SharedBuffer(TASK_ID,TASK_INSTANCE_ID,stateNotificationExecutor,sizeOfPages(10));
   for (int i=0; i < 10; i++) {
     addPage(sharedBuffer,createPage(i));
   }
@@ -9,12 +9,12 @@
   assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,FIRST,0,sizeOfPages(1),NO_WAIT),bufferResult(0,createPage(0)));
   sharedBuffer.abort(FIRST);
   assertQueueClosed(sharedBuffer,FIRST,0);
-  assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,FIRST,1,sizeOfPages(1),NO_WAIT),emptyResults(1,true));
+  assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,FIRST,1,sizeOfPages(1),NO_WAIT),emptyResults(TASK_INSTANCE_ID,1,true));
   outputBuffers=outputBuffers.withBuffer(SECOND,0).withNoMoreBufferIds();
   sharedBuffer.setOutputBuffers(outputBuffers);
   assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,SECOND,0,sizeOfPages(1),NO_WAIT),bufferResult(0,createPage(0)));
   sharedBuffer.abort(SECOND);
   assertQueueClosed(sharedBuffer,SECOND,0);
   assertFinished(sharedBuffer);
-  assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,SECOND,1,sizeOfPages(1),NO_WAIT),emptyResults(0,true));
+  assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,SECOND,1,sizeOfPages(1),NO_WAIT),emptyResults(TASK_INSTANCE_ID,0,true));
 }

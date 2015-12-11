@@ -9,14 +9,14 @@
   try {
     NamedBuffer namedBuffer=namedBuffers.get(outputId);
     if (state.get() == FINISHED) {
-      future.complete(emptyResults(namedBuffer == null ? 0 : namedBuffer.getSequenceId(),true));
+      future.complete(emptyResults(taskInstanceId,namedBuffer == null ? 0 : namedBuffer.getSequenceId(),true));
       return true;
     }
     if (namedBuffer == null) {
       return false;
     }
     if (startingSequenceId < namedBuffer.getSequenceId()) {
-      future.complete(emptyResults(startingSequenceId,false));
+      future.complete(emptyResults(taskInstanceId,startingSequenceId,false));
       return true;
     }
     BufferResult bufferResult=namedBuffer.getPages(startingSequenceId,maxSize);
