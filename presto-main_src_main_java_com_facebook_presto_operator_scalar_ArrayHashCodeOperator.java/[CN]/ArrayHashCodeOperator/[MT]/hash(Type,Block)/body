@@ -1,5 +1,8 @@
 {
-  BlockBuilder blockBuilder=type.createBlockBuilder(new BlockBuilderStatus(),1);
-  blockBuilder.writeObject(block).closeEntry();
-  return type.hash(blockBuilder.build(),0);
+  int hash=0;
+  for (int i=0; i < block.getPositionCount(); i++) {
+    checkElementNotNull(block.isNull(i),ARRAY_NULL_ELEMENT_MSG);
+    hash=(int)CombineHashFunction.getHash(hash,type.hash(block,i));
+  }
+  return hash;
 }
