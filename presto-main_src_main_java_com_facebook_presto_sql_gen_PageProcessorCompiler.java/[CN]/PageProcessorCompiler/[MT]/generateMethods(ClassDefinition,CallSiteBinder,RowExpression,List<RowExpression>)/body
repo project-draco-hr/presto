@@ -1,14 +1,23 @@
 {
-  ImmutableList.Builder<MethodDefinition> projectionMethods=ImmutableList.builder();
+  ImmutableList.Builder<MethodDefinition> projectMethods=ImmutableList.builder();
+  ImmutableList.Builder<MethodDefinition> projectColumnarMethods=ImmutableList.builder();
+  ImmutableList.Builder<MethodDefinition> projectDictionaryMethods=ImmutableList.builder();
   for (int i=0; i < projections.size(); i++) {
-    projectionMethods.add(generateProjectMethod(classDefinition,callSiteBinder,"project_" + i,projections.get(i)));
+    MethodDefinition project=generateProjectMethod(classDefinition,callSiteBinder,"project_" + i,projections.get(i));
+    MethodDefinition projectColumnar=generateProjectColumnarMethod(classDefinition,callSiteBinder,"projectColumnar_" + i,projections.get(i),project);
+    MethodDefinition projectDictionary=generateProjectDictionaryMethod(classDefinition,"projectDictionary_" + i,projections.get(i),project,projectColumnar);
+    projectMethods.add(project);
+    projectColumnarMethods.add(projectColumnar);
+    projectDictionaryMethods.add(projectDictionary);
   }
-  List<MethodDefinition> projectionMethodDefinitions=projectionMethods.build();
+  List<MethodDefinition> projectMethodDefinitions=projectMethods.build();
+  List<MethodDefinition> projectColumnarMethodDefinitions=projectColumnarMethods.build();
+  List<MethodDefinition> projectDictionaryMethodDefinitions=projectDictionaryMethods.build();
   generateConstructor(classDefinition,projections.size());
-  generateProcessMethod(classDefinition,filter,projections,projectionMethodDefinitions);
+  generateProcessMethod(classDefinition,filter,projections,projectMethodDefinitions);
   generateGetNonLazyPageMethod(classDefinition,filter,projections);
-  generateProcessColumnarMethod(classDefinition,callSiteBinder,filter,projections,projectionMethodDefinitions);
-  generateProcessColumnarDictionaryMethod(classDefinition,callSiteBinder,filter,projections,projectionMethodDefinitions);
+  generateProcessColumnarMethod(classDefinition,filter,projections,projectColumnarMethodDefinitions);
+  generateProcessColumnarDictionaryMethod(classDefinition,filter,projections,projectColumnarMethodDefinitions,projectDictionaryMethodDefinitions);
   generateFilterPageMethod(classDefinition,filter);
   generateFilterMethod(classDefinition,callSiteBinder,filter);
 }

@@ -1,0 +1,33 @@
+{
+  Parameter session=arg("session",ConnectorSession.class);
+  List<Parameter> inputs=toBlockParameters(getInputChannels(projection));
+  Parameter positionCount=arg("positionCount",int.class);
+  Parameter selectedPositions=arg("selectedPositions",int[].class);
+  Parameter pageBuilder=arg("pageBuilder",PageBuilder.class);
+  Parameter projectionIndex=arg("projectionIndex",int.class);
+  List<Parameter> params=ImmutableList.<Parameter>builder().add(session).addAll(inputs).add(positionCount).add(selectedPositions).add(pageBuilder).add(projectionIndex).build();
+  MethodDefinition method=classDefinition.declareMethod(a(PRIVATE),methodName,type(Block.class),params);
+  ByteCodeBlock body=method.getBody();
+  Scope scope=method.getScope();
+  Variable thisVariable=method.getThis();
+  Variable position=scope.declareVariable("position",body,constantInt(0));
+  Variable cardinality=scope.declareVariable("cardinality",body,selectedPositions.length());
+  Variable outputBlock=scope.declareVariable(Block.class,"outputBlock");
+  Variable blockBuilder=scope.declareVariable("blockBuilder",body,pageBuilder.invoke("getBlockBuilder",BlockBuilder.class,projectionIndex));
+  Variable type=scope.declareVariable("type",body,pageBuilder.invoke("getType",Type.class,projectionIndex));
+  ByteCodeBlock projectBlock=new ByteCodeBlock().append(new ForLoop().initialize(position.set(constantInt(0))).condition(lessThan(position,cardinality)).update(position.increment()).body(invokeProject(thisVariable,session,inputs,selectedPositions.getElement(position),blockBuilder,projectionMethod))).append(outputBlock.set(blockBuilder.invoke("build",Block.class)));
+  if (isIdentityExpression(projection)) {
+    body.append(new IfStatement().condition(equal(cardinality,positionCount)).ifTrue(outputBlock.set(inputs.get(0))).ifFalse(projectBlock));
+  }
+ else   if (isConstantExpression(projection)) {
+    ConstantExpression constantExpression=(ConstantExpression)projection;
+    verify(getInputChannels(projection).isEmpty());
+    ByteCodeExpression value=loadConstant(callSiteBinder,constantExpression.getValue(),Object.class);
+    body.append(outputBlock.set(invokeStatic(RunLengthEncodedBlock.class,"create",Block.class,type,value,cardinality)));
+  }
+ else {
+    body.append(projectBlock);
+  }
+  body.append(outputBlock.ret());
+  return method;
+}

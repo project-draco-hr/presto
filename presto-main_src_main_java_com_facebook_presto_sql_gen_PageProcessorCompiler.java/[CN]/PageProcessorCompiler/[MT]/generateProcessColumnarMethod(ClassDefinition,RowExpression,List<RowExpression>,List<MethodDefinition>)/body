@@ -2,7 +2,7 @@
   Parameter session=arg("session",ConnectorSession.class);
   Parameter page=arg("page",Page.class);
   Parameter types=arg("types",List.class);
-  MethodDefinition method=classDefinition.declareMethod(a(PUBLIC),"processColumnarDictionary",type(Page.class),session,page,types);
+  MethodDefinition method=classDefinition.declareMethod(a(PUBLIC),"processColumnar",type(Page.class),session,page,types);
   Scope scope=method.getScope();
   ByteCodeBlock body=method.getBody();
   Variable thisVariable=method.getThis();
@@ -17,36 +17,17 @@
   Variable selectedPositions=scope.declareVariable("selectedPositions",body,thisVariable.invoke("filterPage",int[].class,session,page));
   Variable cardinality=scope.declareVariable("cardinality",body,selectedPositions.length());
   body.comment("if no rows selected return null").append(new IfStatement().condition(equal(cardinality,constantInt(0))).ifTrue(constantNull(Page.class).ret()));
-  if (projectionMethods.isEmpty()) {
+  if (projections.isEmpty()) {
     body.append(newInstance(Page.class,cardinality,newArray(type(Block[].class),0)).ret());
     return;
   }
   Variable pageBuilder=scope.declareVariable("pageBuilder",body,newInstance(PageBuilder.class,cardinality,types));
-  for (int projectionIndex=0; projectionIndex < projections.size(); projectionIndex++) {
-    scope.declareVariable("blockBuilder_" + projectionIndex,body,pageBuilder.invoke("getBlockBuilder",BlockBuilder.class,constantInt(projectionIndex)));
-  }
-  body.append(page.set(thisVariable.invoke("getNonLazyPage",Page.class,page)));
+  Variable positionCount=scope.declareVariable("positionCount",body,page.invoke("getPositionCount",int.class));
   Variable outputBlocks=scope.declareVariable("outputBlocks",body,newArray(type(Block[].class),projections.size()));
-  scope.declareVariable("positionCount",body,page.invoke("getPositionCount",int.class));
-  scope.declareVariable(int.class,"position");
-  scope.declareVariable(Block.class,"block");
-  scope.declareVariable(Block.class,"dictionary");
-  scope.declareVariable(Slice.class,"ids");
-  scope.declareVariable(int.class,"dictionaryCount");
-  scope.declareVariable(Block.class,"outputDictionary");
-  scope.declareVariable(int[].class,"outputIds");
   for (int projectionIndex=0; projectionIndex < projections.size(); projectionIndex++) {
     RowExpression projection=projections.get(projectionIndex);
-    List<Integer> inputChannels=getInputChannels(projection);
-    ByteCodeBlock simpleProjection=getSimpleProjectionBlock(callSiteBinder,scope,projectionMethods.get(projectionIndex),projection,projectionIndex,expressionInputBlocks.get(projection));
-    if (inputChannels.size() != 1) {
-      body.append(simpleProjection);
-      continue;
-    }
-    Variable inputBlock=Iterables.getOnlyElement(expressionInputBlocks.get(projection));
-    ByteCodeBlock dictionaryProjection=getDictionaryProjectionBlock(scope,projectionMethods.get(projectionIndex),projectionIndex,inputBlock);
-    IfStatement ifStatement=new IfStatement().condition(inputBlock.instanceOf(DictionaryBlock.class)).ifTrue(dictionaryProjection).ifFalse(simpleProjection);
-    body.append(ifStatement);
+    List<ByteCodeExpression> params=ImmutableList.<ByteCodeExpression>builder().add(session).addAll(expressionInputBlocks.get(projection)).add(positionCount).add(selectedPositions).add(pageBuilder.invoke("getBlockBuilder",BlockBuilder.class,constantInt(projectionIndex))).add(pageBuilder.invoke("getType",Type.class,constantInt(projectionIndex))).build();
+    body.append(outputBlocks.setElement(projectionIndex,thisVariable.invoke(projectColumnarMethods.get(projectionIndex),params)));
   }
   body.append(newInstance(Page.class,cardinality,outputBlocks).ret());
 }
