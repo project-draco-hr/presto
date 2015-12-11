@@ -1,0 +1,13 @@
+{
+  try {
+    Field writerField=OrcOutputFormat.class.getClassLoader().loadClass(ORC_RECORD_WRITER).getDeclaredField("writer");
+    writerField.setAccessible(true);
+    Writer writer=(Writer)writerField.get(recordWriter);
+    Method flushStripe=WriterImpl.class.getDeclaredMethod("flushStripe");
+    flushStripe.setAccessible(true);
+    flushStripe.invoke(writer);
+  }
+ catch (  ReflectiveOperationException e) {
+    throw Throwables.propagate(e);
+  }
+}
