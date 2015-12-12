@@ -1,12 +1,20 @@
 {
   try (Query query=queryRunner.startQuery(sql)){
     query.renderOutput(System.out,outputFormat,interactive);
+    ClientSession session=queryRunner.getSession();
     if (!query.getSetSessionProperties().isEmpty() || !query.getResetSessionProperties().isEmpty()) {
-      Map<String,String> sessionProperties=new HashMap<>(queryRunner.getSession().getProperties());
+      Map<String,String> sessionProperties=new HashMap<>(session.getProperties());
       sessionProperties.putAll(query.getSetSessionProperties());
       sessionProperties.keySet().removeAll(query.getResetSessionProperties());
-      queryRunner.setSession(withProperties(queryRunner.getSession(),sessionProperties));
+      session=withProperties(session,sessionProperties);
     }
+    if (query.isClearTransactionId()) {
+      session=stripTransactionId(session);
+    }
+    if (query.getStartedTransactionId() != null) {
+      session=withTransactionId(session,query.getStartedTransactionId());
+    }
+    queryRunner.setSession(session);
   }
  catch (  RuntimeException e) {
     System.err.println("Error running command: " + e.getMessage());

@@ -13,6 +13,10 @@
   }
   Identity identity=new Identity(user,Optional.ofNullable(principal));
   SessionBuilder sessionBuilder=Session.builder(sessionPropertyManager).setQueryId(queryId).setIdentity(identity).setSource(servletRequest.getHeader(PRESTO_SOURCE)).setCatalog(catalog).setSchema(schema).setRemoteUserAddress(servletRequest.getRemoteAddr()).setUserAgent(servletRequest.getHeader(USER_AGENT));
+  String transactionId=trimEmptyToNull(servletRequest.getHeader(PRESTO_TRANSACTION_ID));
+  if (transactionId != null) {
+    sessionBuilder.setTransactionId(getTransactionId(transactionId));
+  }
   String timeZoneId=servletRequest.getHeader(PRESTO_TIME_ZONE);
   if (timeZoneId != null) {
     sessionBuilder.setTimeZoneKey(getTimeZoneKey(timeZoneId));
