@@ -2,10 +2,11 @@
   Block valuesBlock=BlockAssertions.createDoubleSequenceBlock(0,10);
   Block stringValuesBlock=BlockAssertions.createStringSequenceBlock(0,10);
   Block hashBlock=TypeUtils.getHashBlock(ImmutableList.of(DOUBLE,VARCHAR),valuesBlock,stringValuesBlock);
-  GroupByHash groupByHash=createGroupByHash(ImmutableList.of(DOUBLE,VARCHAR),new int[]{0,1},Optional.<Integer>empty(),Optional.of(2),100);
+  int[] hashChannels={0,1};
+  GroupByHash groupByHash=createGroupByHash(ImmutableList.of(DOUBLE,VARCHAR),hashChannels,Optional.<Integer>empty(),Optional.of(2),100);
   groupByHash.getGroupIds(new Page(valuesBlock,stringValuesBlock,hashBlock));
   Block testValuesBlock=BlockAssertions.createDoublesBlock((double)3);
   Block testStringValuesBlock=BlockAssertions.createStringsBlock("3");
   Block testHashBlock=TypeUtils.getHashBlock(ImmutableList.of(DOUBLE,VARCHAR),testValuesBlock,testStringValuesBlock);
-  assertTrue(groupByHash.contains(0,new Page(testValuesBlock,testStringValuesBlock,testHashBlock)));
+  assertTrue(groupByHash.contains(0,new Page(testValuesBlock,testStringValuesBlock,testHashBlock),hashChannels));
 }

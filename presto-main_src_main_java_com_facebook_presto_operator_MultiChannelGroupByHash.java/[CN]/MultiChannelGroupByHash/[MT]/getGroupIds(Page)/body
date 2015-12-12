@@ -5,13 +5,12 @@
   if (maskChannel >= 0) {
     maskBlock=page.getBlock(maskChannel);
   }
-  Block[] hashBlocks=extractHashColumns(page);
   for (int position=0; position < positionCount; position++) {
     if (maskBlock != null && !BOOLEAN.getBoolean(maskBlock,position)) {
       blockBuilder.appendNull();
       continue;
     }
-    int groupId=putIfAbsent(position,page,hashBlocks);
+    int groupId=putIfAbsent(position,page);
     BIGINT.writeLong(blockBuilder,groupId);
   }
   return new GroupByIdBlock(nextGroupId,blockBuilder.build());

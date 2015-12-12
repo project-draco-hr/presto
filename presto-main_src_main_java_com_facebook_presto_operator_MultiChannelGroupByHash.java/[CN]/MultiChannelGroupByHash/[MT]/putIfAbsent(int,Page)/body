@@ -1,3 +1,17 @@
 {
-  return putIfAbsent(position,page,extractHashColumns(page));
+  int rawHash=hashGenerator.hashPosition(position,page);
+  int hashPosition=getHashPosition(rawHash,mask);
+  int groupId=-1;
+  while (groupAddressByHash[hashPosition] != -1) {
+    long address=groupAddressByHash[hashPosition];
+    if (positionEqualsCurrentRow(decodeSliceIndex(address),decodePosition(address),position,page)) {
+      groupId=groupIdsByHash[hashPosition];
+      break;
+    }
+    hashPosition=(hashPosition + 1) & mask;
+  }
+  if (groupId < 0) {
+    groupId=addNewGroup(hashPosition,position,page,rawHash);
+  }
+  return groupId;
 }

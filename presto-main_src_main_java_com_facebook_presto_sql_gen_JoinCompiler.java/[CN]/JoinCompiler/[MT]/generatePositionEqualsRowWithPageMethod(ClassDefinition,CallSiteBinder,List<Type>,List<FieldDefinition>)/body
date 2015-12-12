@@ -1,0 +1,17 @@
+{
+  Parameter leftBlockIndex=arg("leftBlockIndex",int.class);
+  Parameter leftBlockPosition=arg("leftBlockPosition",int.class);
+  Parameter rightPosition=arg("rightPosition",int.class);
+  Parameter page=arg("page",Page.class);
+  Parameter rightChannels=arg("rightChannels",int[].class);
+  MethodDefinition positionEqualsRowMethod=classDefinition.declareMethod(a(PUBLIC),"positionEqualsRow",type(boolean.class),leftBlockIndex,leftBlockPosition,rightPosition,page,rightChannels);
+  Variable thisVariable=positionEqualsRowMethod.getThis();
+  ByteCodeBlock body=positionEqualsRowMethod.getBody();
+  for (int index=0; index < joinChannelTypes.size(); index++) {
+    ByteCodeExpression type=constantType(callSiteBinder,joinChannelTypes.get(index));
+    ByteCodeExpression leftBlock=thisVariable.getField(joinChannelFields.get(index)).invoke("get",Object.class,leftBlockIndex).cast(Block.class);
+    ByteCodeExpression rightBlock=page.invoke("getBlock",Block.class,rightChannels.getElement(index));
+    body.append(new IfStatement().condition(typeEquals(type,leftBlock,leftBlockPosition,rightBlock,rightPosition)).ifFalse(constantFalse().ret()));
+  }
+  body.append(constantTrue().ret());
+}
