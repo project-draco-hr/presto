@@ -1,0 +1,14 @@
+{
+  DistributedQueryRunner queryRunner=new DistributedQueryRunner(createSession("tpch"),2,extraProperties);
+  queryRunner.installPlugin(new TpchPlugin());
+  queryRunner.createCatalog("tpch","tpch");
+  queryRunner.installPlugin(new SampledTpchPlugin());
+  queryRunner.createCatalog("tpch_sampled","tpch_sampled");
+  queryRunner.installPlugin(new RaptorPlugin());
+  File baseDir=queryRunner.getCoordinator().getBaseDataDir().toFile();
+  Map<String,String> raptorProperties=ImmutableMap.<String,String>builder().put("metadata.db.type","h2").put("metadata.db.filename",new File(baseDir,"db").getAbsolutePath()).put("storage.data-directory",new File(baseDir,"data").getAbsolutePath()).put("storage.max-shard-rows","2000").put("backup.provider","file").put("backup.directory",new File(baseDir,"backup").getAbsolutePath()).build();
+  queryRunner.createCatalog("raptor","raptor",raptorProperties);
+  copyTpchTables(queryRunner,"tpch",TINY_SCHEMA_NAME,createSession(),tables);
+  copyTpchTables(queryRunner,"tpch_sampled",TINY_SCHEMA_NAME,createSampledSession(),tables);
+  return queryRunner;
+}

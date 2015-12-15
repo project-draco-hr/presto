@@ -1,0 +1,15 @@
+{
+  Session session=testSessionBuilder().setCatalog("blackhole").setSchema("default").build();
+  DistributedQueryRunner queryRunner=new DistributedQueryRunner(session,4,extraProperties);
+  try {
+    queryRunner.installPlugin(new BlackHolePlugin());
+    queryRunner.createCatalog("blackhole","blackhole",ImmutableMap.of());
+    queryRunner.installPlugin(new TpchPlugin());
+    queryRunner.createCatalog("tpch","tpch",ImmutableMap.of());
+    return queryRunner;
+  }
+ catch (  Exception e) {
+    closeAllSuppress(e,queryRunner);
+    throw e;
+  }
+}
