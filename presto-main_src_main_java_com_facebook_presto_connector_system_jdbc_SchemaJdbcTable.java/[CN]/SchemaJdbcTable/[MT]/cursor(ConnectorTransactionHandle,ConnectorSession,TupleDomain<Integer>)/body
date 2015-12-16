@@ -1,0 +1,12 @@
+{
+  GlobalSystemTransactionHandle transaction=checkType(transactionHandle,GlobalSystemTransactionHandle.class,"transaction");
+  Session session=toSession(transaction.getTransactionId(),connectorSession);
+  Optional<String> catalogFilter=FilterUtil.stringFilter(constraint,1);
+  Builder table=InMemoryRecordSet.builder(METADATA);
+  for (  String catalog : filter(metadata.getCatalogNames().keySet(),catalogFilter)) {
+    for (    String schema : metadata.listSchemaNames(session,catalog)) {
+      table.addRow(schema,catalog);
+    }
+  }
+  return table.build().cursor();
+}

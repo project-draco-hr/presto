@@ -16,7 +16,7 @@
   DateTime date2=DateTime.parse("2015-01-02T00:00");
   TupleDomain<Integer> tupleDomain=TupleDomain.withColumnDomains(ImmutableMap.<Integer,Domain>builder().put(0,Domain.singleValue(VARCHAR,schema)).put(1,Domain.create(ValueSet.ofRanges(lessThanOrEqual(VARCHAR,table)),true)).put(6,Domain.create(ValueSet.ofRanges(lessThanOrEqual(BIGINT,date1.getMillis()),greaterThan(BIGINT,date2.getMillis())),true)).put(7,Domain.create(ValueSet.ofRanges(lessThanOrEqual(BIGINT,date1.getMillis()),greaterThan(BIGINT,date2.getMillis())),true)).build());
   List<MaterializedRow> actual;
-  try (RecordCursor cursor=new ShardMetadataSystemTable(dbi).cursor(SESSION,tupleDomain)){
+  try (RecordCursor cursor=new ShardMetadataSystemTable(dbi).cursor(null,SESSION,tupleDomain)){
     actual=getMaterializedResults(cursor,SHARD_METADATA.getColumns());
   }
    assertEquals(actual.size(),3);
