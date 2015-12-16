@@ -1,0 +1,11 @@
+{
+  Session session=stateMachine.getSession();
+  if (session.getTransactionId().isPresent()) {
+    throw new PrestoException(StandardErrorCode.NOT_SUPPORTED,"Nested transactions not supported");
+  }
+  Optional<IsolationLevel> isolationLevel=extractIsolationLevel(statement);
+  Optional<Boolean> readOnly=extractReadOnly(statement);
+  TransactionId transactionId=transactionManager.beginTransaction(isolationLevel.orElse(TransactionManager.DEFAULT_ISOLATION),readOnly.orElse(TransactionManager.DEFAULT_READ_ONLY),false);
+  stateMachine.setStartedTransactionId(transactionId);
+  return completedFuture(null);
+}

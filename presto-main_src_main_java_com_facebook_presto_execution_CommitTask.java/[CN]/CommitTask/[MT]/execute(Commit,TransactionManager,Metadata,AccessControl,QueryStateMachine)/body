@@ -1,0 +1,9 @@
+{
+  Session session=stateMachine.getSession();
+  if (!session.getTransactionId().isPresent()) {
+    throw new PrestoException(NOT_IN_TRANSACTION,"No transaction in progress");
+  }
+  TransactionId transactionId=session.getTransactionId().get();
+  stateMachine.clearTransactionId();
+  return transactionManager.asyncCommit(transactionId);
+}
