@@ -13,15 +13,21 @@
   this.retainedSizeInBytes=INSTANCE_SIZE + dictionary.getRetainedSizeInBytes() + ids.getRetainedSize();
   if (dictionaryIsCompacted) {
     this.sizeInBytes=this.retainedSizeInBytes;
+    this.uniqueIds=dictionary.getPositionCount();
   }
  else {
     int sizeInBytes=0;
+    int uniqueIds=0;
     boolean[] isReferenced=getReferencedPositions();
     for (int position=0; position < isReferenced.length; position++) {
-      if (isReferenced[position] && !dictionary.isNull(position)) {
-        sizeInBytes+=dictionary.getLength(position);
+      if (isReferenced[position]) {
+        if (!dictionary.isNull(position)) {
+          sizeInBytes+=dictionary.getLength(position);
+        }
+        uniqueIds++;
       }
     }
     this.sizeInBytes=sizeInBytes + ids.length();
+    this.uniqueIds=uniqueIds;
   }
 }
