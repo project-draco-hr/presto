@@ -1,5 +1,5 @@
 {
-  UnloadedIndexKeyRecordSet recordSetForLookupSource=new UnloadedIndexKeyRecordSet(indexSnapshotReference.get(),lookupSourceInputChannels,indexTypes,requests);
+  UnloadedIndexKeyRecordSet recordSetForLookupSource=new UnloadedIndexKeyRecordSet(pipelineContext.getSession(),indexSnapshotReference.get(),lookupSourceInputChannels,indexTypes,requests);
   try (Driver driver=driverFactory.createDriver(pipelineContext.addDriverContext())){
     PlanNodeId sourcePlanNodeId=Iterables.getOnlyElement(driverFactory.getSourceIds());
     driver.updateSource(new TaskSource(sourcePlanNodeId,ImmutableSet.of(new ScheduledSplit(0,new Split("index",new ConnectorTransactionHandle(){
@@ -14,7 +14,7 @@
     clearCachedData();
     return false;
   }
-  UnloadedIndexKeyRecordSet indexKeysRecordSet=(lookupSourceInputChannels.equals(allInputChannels)) ? recordSetForLookupSource : new UnloadedIndexKeyRecordSet(indexSnapshotReference.get(),allInputChannels,indexTypes,requests);
+  UnloadedIndexKeyRecordSet indexKeysRecordSet=(lookupSourceInputChannels.equals(allInputChannels)) ? recordSetForLookupSource : new UnloadedIndexKeyRecordSet(pipelineContext.getSession(),indexSnapshotReference.get(),allInputChannels,indexTypes,requests);
   IndexSnapshot newValue=indexSnapshotBuilder.createIndexSnapshot(indexKeysRecordSet);
   if (newValue == null) {
     clearCachedData();
