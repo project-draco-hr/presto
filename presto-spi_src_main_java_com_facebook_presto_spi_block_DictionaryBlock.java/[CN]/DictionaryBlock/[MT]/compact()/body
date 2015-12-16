@@ -1,9 +1,6 @@
 {
   int dictionarySize=dictionary.getPositionCount();
-  boolean[] isReferenced=new boolean[dictionarySize];
-  for (int i=0; i < this.positionCount; i++) {
-    isReferenced[getIndex(i)]=true;
-  }
+  boolean[] isReferenced=getReferencedPositions();
   List<Integer> dictionaryPositionsToCopy=new ArrayList<>(dictionarySize);
   int[] remapIndex=new int[dictionarySize];
   Arrays.fill(remapIndex,-1);
@@ -16,7 +13,7 @@
     }
   }
   if (dictionaryPositionsToCopy.size() == dictionarySize) {
-    return this;
+    return new DictionaryBlock(positionCount,dictionary,ids,true);
   }
   int[] newIds=new int[positionCount];
   for (int i=0; i < positionCount; i++) {
@@ -28,7 +25,7 @@
   }
   try {
     Block compactDictionary=dictionary.copyPositions(dictionaryPositionsToCopy);
-    return new DictionaryBlock(positionCount,compactDictionary,wrappedIntArray(newIds));
+    return new DictionaryBlock(positionCount,compactDictionary,wrappedIntArray(newIds),true);
   }
  catch (  UnsupportedOperationException e) {
     return this;
