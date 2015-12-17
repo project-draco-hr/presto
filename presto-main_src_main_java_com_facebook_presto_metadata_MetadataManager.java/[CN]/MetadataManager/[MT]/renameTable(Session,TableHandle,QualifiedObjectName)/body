@@ -1,12 +1,12 @@
 {
   String catalogName=newTableName.getCatalogName();
-  ConnectorMetadataEntry target=connectorsByCatalog.get(catalogName);
+  ConnectorEntry target=connectorsByCatalog.get(catalogName);
   if (target == null) {
     throw new PrestoException(NOT_FOUND,format("Target catalog '%s' does not exist",catalogName));
   }
   if (!tableHandle.getConnectorId().equals(target.getConnectorId())) {
     throw new PrestoException(SYNTAX_ERROR,"Cannot rename tables across catalogs");
   }
-  ConnectorMetadataEntry entry=lookupConnectorFor(tableHandle);
+  ConnectorEntry entry=lookupConnectorFor(tableHandle);
   entry.getMetadata().renameTable(session.toConnectorSession(entry.getCatalog()),tableHandle.getConnectorHandle(),newTableName.asSchemaTableName());
 }

@@ -2,9 +2,9 @@
   requireNonNull(prefix,"prefix is null");
   SchemaTablePrefix tablePrefix=prefix.asSchemaTablePrefix();
   Map<QualifiedObjectName,List<ColumnMetadata>> tableColumns=new HashMap<>();
-  for (  ConnectorMetadataEntry connectorMetadata : allConnectorsFor(prefix.getCatalogName())) {
-    ConnectorMetadata metadata=connectorMetadata.getMetadata();
-    ConnectorSession connectorSession=session.toConnectorSession(connectorMetadata.getCatalog());
+  for (  ConnectorEntry connectorEntry : allConnectorsFor(prefix.getCatalogName())) {
+    ConnectorMetadata metadata=connectorEntry.getMetadata();
+    ConnectorSession connectorSession=session.toConnectorSession(connectorEntry.getCatalog());
     for (    Entry<SchemaTableName,List<ColumnMetadata>> entry : metadata.listTableColumns(connectorSession,tablePrefix).entrySet()) {
       QualifiedObjectName tableName=new QualifiedObjectName(prefix.getCatalogName(),entry.getKey().getSchemaName(),entry.getKey().getTableName());
       tableColumns.put(tableName,entry.getValue());
