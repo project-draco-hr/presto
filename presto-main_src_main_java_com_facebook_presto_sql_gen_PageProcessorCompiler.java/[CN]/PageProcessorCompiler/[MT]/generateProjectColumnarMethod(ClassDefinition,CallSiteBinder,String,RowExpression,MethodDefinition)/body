@@ -1,15 +1,21 @@
 {
   Parameter session=arg("session",ConnectorSession.class);
-  List<Parameter> inputs=toBlockParameters(getInputChannels(projection));
-  Parameter positionCount=arg("positionCount",int.class);
+  Parameter page=arg("page",Page.class);
   Parameter selectedPositions=arg("selectedPositions",int[].class);
   Parameter pageBuilder=arg("pageBuilder",PageBuilder.class);
   Parameter projectionIndex=arg("projectionIndex",int.class);
-  List<Parameter> params=ImmutableList.<Parameter>builder().add(session).addAll(inputs).add(positionCount).add(selectedPositions).add(pageBuilder).add(projectionIndex).build();
+  List<Parameter> params=ImmutableList.<Parameter>builder().add(session).add(page).add(selectedPositions).add(pageBuilder).add(projectionIndex).build();
   MethodDefinition method=classDefinition.declareMethod(a(PRIVATE),methodName,type(Block.class),params);
   ByteCodeBlock body=method.getBody();
   Scope scope=method.getScope();
   Variable thisVariable=method.getThis();
+  ImmutableList.Builder<Variable> builder=ImmutableList.<Variable>builder();
+  for (  int channel : getInputChannels(projection)) {
+    Variable blockVariable=scope.declareVariable("block_" + channel,body,page.invoke("getBlock",Block.class,constantInt(channel)));
+    builder.add(blockVariable);
+  }
+  List<Variable> inputs=builder.build();
+  Variable positionCount=scope.declareVariable("positionCount",body,page.invoke("getPositionCount",int.class));
   Variable position=scope.declareVariable("position",body,constantInt(0));
   Variable cardinality=scope.declareVariable("cardinality",body,selectedPositions.length());
   Variable outputBlock=scope.declareVariable(Block.class,"outputBlock");
