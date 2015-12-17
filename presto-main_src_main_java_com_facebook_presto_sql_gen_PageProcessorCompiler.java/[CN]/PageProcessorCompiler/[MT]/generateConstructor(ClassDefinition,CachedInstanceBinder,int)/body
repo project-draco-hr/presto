@@ -1,0 +1,12 @@
+{
+  MethodDefinition constructorDefinition=classDefinition.declareConstructor(a(PUBLIC));
+  FieldDefinition inputDictionaries=classDefinition.declareField(a(PRIVATE,FINAL),"inputDictionaries",Block[].class);
+  FieldDefinition outputDictionaries=classDefinition.declareField(a(PRIVATE,FINAL),"outputDictionaries",Block[].class);
+  ByteCodeBlock body=constructorDefinition.getBody();
+  Variable thisVariable=constructorDefinition.getThis();
+  body.comment("super();").append(thisVariable).invokeConstructor(Object.class);
+  body.append(thisVariable.setField(inputDictionaries,newArray(type(Block[].class),projectionCount)));
+  body.append(thisVariable.setField(outputDictionaries,newArray(type(Block[].class),projectionCount)));
+  cachedInstanceBinder.generateInitializations(thisVariable,body);
+  body.ret();
+}

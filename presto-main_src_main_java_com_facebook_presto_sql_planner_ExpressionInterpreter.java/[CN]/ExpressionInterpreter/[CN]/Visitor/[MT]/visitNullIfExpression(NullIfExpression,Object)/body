@@ -15,9 +15,9 @@
   Type commonType=metadata.getTypeManager().getCommonSuperType(firstType,secondType).get();
   Signature firstCast=metadata.getFunctionRegistry().getCoercion(firstType,commonType);
   Signature secondCast=metadata.getFunctionRegistry().getCoercion(secondType,commonType);
-  MethodHandle firstCastHandle=metadata.getFunctionRegistry().getScalarFunctionImplementation(firstCast).getMethodHandle();
-  MethodHandle secondCastHandle=metadata.getFunctionRegistry().getScalarFunctionImplementation(secondCast).getMethodHandle();
-  boolean equal=(Boolean)invokeOperator(OperatorType.EQUAL,ImmutableList.of(commonType,commonType),ImmutableList.of(invoke(session,firstCastHandle,ImmutableList.of(first)),invoke(session,secondCastHandle,ImmutableList.of(second))));
+  ScalarFunctionImplementation firstCastFunction=metadata.getFunctionRegistry().getScalarFunctionImplementation(firstCast);
+  ScalarFunctionImplementation secondCastFunction=metadata.getFunctionRegistry().getScalarFunctionImplementation(secondCast);
+  boolean equal=(Boolean)invokeOperator(OperatorType.EQUAL,ImmutableList.of(commonType,commonType),ImmutableList.of(invoke(session,firstCastFunction,ImmutableList.of(first)),invoke(session,secondCastFunction,ImmutableList.of(second))));
   if (equal) {
     return null;
   }

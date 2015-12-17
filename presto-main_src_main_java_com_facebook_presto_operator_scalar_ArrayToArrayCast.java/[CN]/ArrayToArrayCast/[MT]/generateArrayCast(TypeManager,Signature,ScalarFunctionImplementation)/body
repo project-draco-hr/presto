@@ -1,7 +1,6 @@
 {
   CallSiteBinder binder=new CallSiteBinder();
   ClassDefinition definition=new ClassDefinition(a(PUBLIC,FINAL),CompilerUtils.makeClassName(Joiner.on("$").join("ArrayCast",elementCastSignature.getArgumentTypes().get(0),elementCastSignature.getReturnType())),type(Object.class));
-  definition.declareDefaultConstructor(a(PRIVATE));
   Parameter session=arg("session",ConnectorSession.class);
   Parameter value=arg("value",Block.class);
   MethodDefinition method=definition.declareMethod(a(PUBLIC,STATIC),"castArray",type(Block.class),session,value);
@@ -11,7 +10,14 @@
   body.append(wasNull.set(constantBoolean(false)));
   Type fromElementType=typeManager.getType(elementCastSignature.getArgumentTypes().get(0));
   Type toElementType=typeManager.getType(elementCastSignature.getReturnType());
-  ArrayMapByteCodeExpression newArray=ArrayGeneratorUtils.map(scope,binder,fromElementType,toElementType,value,elementCastSignature.getName(),elementCast);
+  CachedInstanceBinder cachedInstanceBinder=new CachedInstanceBinder(definition,binder);
+  ArrayMapByteCodeExpression newArray=ArrayGeneratorUtils.map(scope,cachedInstanceBinder,fromElementType,toElementType,value,elementCastSignature.getName(),elementCast);
   body.append(newArray.ret());
+  MethodDefinition constructorDefinition=definition.declareConstructor(a(PUBLIC));
+  ByteCodeBlock constructorBody=constructorDefinition.getBody();
+  Variable thisVariable=constructorDefinition.getThis();
+  constructorBody.comment("super();").append(thisVariable).invokeConstructor(Object.class);
+  cachedInstanceBinder.generateInitializations(thisVariable,constructorBody);
+  constructorBody.ret();
   return defineClass(definition,Object.class,binder.getBindings(),ArrayToArrayCast.class.getClassLoader());
 }

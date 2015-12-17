@@ -1,0 +1,14 @@
+{
+  Parameter session=arg("session",ConnectorSession.class);
+  Parameter position=arg("position",int.class);
+  List<Parameter> blocks=toBlockParameters(getInputChannels(filter));
+  MethodDefinition method=classDefinition.declareMethod(a(PUBLIC),"filter",type(boolean.class),ImmutableList.<Parameter>builder().add(session).addAll(blocks).add(position).build());
+  method.comment("Filter: %s",filter.toString());
+  ByteCodeBlock body=method.getBody();
+  Scope scope=method.getScope();
+  Variable wasNullVariable=scope.declareVariable("wasNull",body,constantFalse());
+  ByteCodeExpressionVisitor visitor=new ByteCodeExpressionVisitor(callSiteBinder,cachedInstanceBinder,fieldReferenceCompiler(callSiteBinder,position,wasNullVariable),metadata.getFunctionRegistry());
+  ByteCodeNode visitorBody=filter.accept(visitor,scope);
+  Variable result=scope.declareVariable(boolean.class,"result");
+  body.append(visitorBody).putVariable(result).append(new IfStatement().condition(wasNullVariable).ifTrue(constantFalse().ret()).ifFalse(result.ret()));
+}

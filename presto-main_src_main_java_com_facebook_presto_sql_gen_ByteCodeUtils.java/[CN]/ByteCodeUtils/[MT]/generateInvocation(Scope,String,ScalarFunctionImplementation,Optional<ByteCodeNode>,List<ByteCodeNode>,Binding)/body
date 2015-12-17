@@ -1,0 +1,42 @@
+{
+  MethodType methodType=binding.getType();
+  Class<?> returnType=methodType.returnType();
+  Class<?> unboxedReturnType=Primitives.unwrap(returnType);
+  LabelNode end=new LabelNode("end");
+  ByteCodeBlock block=new ByteCodeBlock().setDescription("invoke " + name);
+  List<Class<?>> stackTypes=new ArrayList<>();
+  if (function.getInstanceFactory().isPresent()) {
+    checkArgument(instance.isPresent());
+  }
+  int index=0;
+  boolean boundInstance=false;
+  for (  Class<?> type : methodType.parameterArray()) {
+    stackTypes.add(type);
+    if (function.getInstanceFactory().isPresent() && !boundInstance) {
+      checkState(type.equals(function.getInstanceFactory().get().type().returnType()),"Mismatched type for instance parameter");
+      block.append(instance.get());
+      boundInstance=true;
+    }
+ else     if (type == ConnectorSession.class) {
+      block.append(scope.getVariable("session"));
+    }
+ else {
+      block.append(arguments.get(index));
+      if (!function.getNullableArguments().get(index)) {
+        checkArgument(!Primitives.isWrapperType(type),"Non-nullable argument must not be primitive wrapper type");
+        block.append(ifWasNullPopAndGoto(scope,end,unboxedReturnType,Lists.reverse(stackTypes)));
+      }
+ else {
+        block.append(boxPrimitiveIfNecessary(scope,type));
+        block.append(scope.getVariable("wasNull").set(constantFalse()));
+      }
+      index++;
+    }
+  }
+  block.append(invoke(binding,name));
+  if (function.isNullable()) {
+    block.append(unboxPrimitiveIfNecessary(scope,returnType));
+  }
+  block.visitLabel(end);
+  return block;
+}

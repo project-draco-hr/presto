@@ -1,8 +1,14 @@
 {
-  classDefinition.declareDefaultConstructor(a(PUBLIC));
+  CachedInstanceBinder cachedInstanceBinder=new CachedInstanceBinder(classDefinition,callSiteBinder);
   generateProcessMethod(classDefinition,projections.size());
-  generateFilterMethod(classDefinition,callSiteBinder,filter);
+  generateFilterMethod(classDefinition,callSiteBinder,cachedInstanceBinder,filter);
   for (int i=0; i < projections.size(); i++) {
-    generateProjectMethod(classDefinition,callSiteBinder,"project_" + i,projections.get(i));
+    generateProjectMethod(classDefinition,callSiteBinder,cachedInstanceBinder,"project_" + i,projections.get(i));
   }
+  MethodDefinition constructorDefinition=classDefinition.declareConstructor(a(PUBLIC));
+  ByteCodeBlock constructorBody=constructorDefinition.getBody();
+  Variable thisVariable=constructorDefinition.getThis();
+  constructorBody.comment("super();").append(thisVariable).invokeConstructor(Object.class);
+  cachedInstanceBinder.generateInitializations(thisVariable,constructorBody);
+  constructorBody.ret();
 }

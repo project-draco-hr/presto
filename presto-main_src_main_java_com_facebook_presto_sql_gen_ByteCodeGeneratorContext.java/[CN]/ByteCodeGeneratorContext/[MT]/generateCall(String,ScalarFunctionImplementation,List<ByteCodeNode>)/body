@@ -1,4 +1,9 @@
 {
   Binding binding=callSiteBinder.bind(function.getMethodHandle());
-  return generateInvocation(scope,name,function,arguments,binding);
+  Optional<ByteCodeNode> instance=Optional.empty();
+  if (function.getInstanceFactory().isPresent()) {
+    FieldDefinition field=cachedInstanceBinder.getCachedInstance(function.getInstanceFactory().get());
+    instance=Optional.of(scope.getThis().getField(field));
+  }
+  return generateInvocation(scope,name,function,instance,arguments,binding);
 }

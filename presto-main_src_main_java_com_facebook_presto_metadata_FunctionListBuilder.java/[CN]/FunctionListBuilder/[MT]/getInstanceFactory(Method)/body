@@ -1,0 +1,12 @@
+{
+  Optional<MethodHandle> instanceFactory=Optional.empty();
+  if (!Modifier.isStatic(method.getModifiers())) {
+    try {
+      instanceFactory=Optional.of(lookup().unreflectConstructor(method.getDeclaringClass().getConstructor()));
+    }
+ catch (    NoSuchMethodException e) {
+      throw new PrestoException(FUNCTION_IMPLEMENTATION_ERROR,format("%s is non-static, but its declaring class is missing a default constructor",method));
+    }
+  }
+  return instanceFactory;
+}

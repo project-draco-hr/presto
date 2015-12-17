@@ -1,0 +1,26 @@
+{
+  MethodHandle handle=function.getMethodHandle();
+  if (function.getInstanceFactory().isPresent()) {
+    try {
+      handle=handle.bindTo(function.getInstanceFactory().get().invoke());
+    }
+ catch (    Throwable throwable) {
+      if (throwable instanceof InterruptedException) {
+        Thread.currentThread().interrupt();
+      }
+      throw Throwables.propagate(throwable);
+    }
+  }
+  if (handle.type().parameterCount() > 0 && handle.type().parameterType(0) == ConnectorSession.class) {
+    handle=handle.bindTo(session);
+  }
+  try {
+    return handle.invokeWithArguments(argumentValues);
+  }
+ catch (  Throwable throwable) {
+    if (throwable instanceof InterruptedException) {
+      Thread.currentThread().interrupt();
+    }
+    throw Throwables.propagate(throwable);
+  }
+}
