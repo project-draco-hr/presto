@@ -1,0 +1,33 @@
+{
+  requireNonNull(session,"session is null");
+  requireNonNull(callback,"callback is null");
+  boolean managedTransaction=!session.getTransactionId().isPresent();
+  Session transactionSession;
+  if (managedTransaction) {
+    TransactionId transactionId=transactionManager.beginTransaction(isolationLevel,readOnly,singleStatement);
+    transactionSession=session.withTransactionId(transactionId);
+  }
+ else {
+    TransactionInfo transactionInfo=transactionManager.getTransactionInfo(session.getTransactionId().get());
+    checkState(transactionInfo.getIsolationLevel().meetsRequirementOf(isolationLevel),"Cannot provide %s isolation with existing transaction isolation: %s",isolationLevel,transactionInfo.getIsolationLevel());
+    checkState(!transactionInfo.isReadOnly() || readOnly,"Cannot provide read-write semantics with existing read-only transaction");
+    checkState(!transactionInfo.isAutoCommitContext() && !singleStatement,"Cannot combine auto commit transactions");
+    transactionSession=session;
+  }
+  boolean success=false;
+  try {
+    T result=callback.apply(transactionSession);
+    success=true;
+    return result;
+  }
+  finally {
+    if (managedTransaction) {
+      if (success) {
+        transactionManager.asyncCommit(transactionSession.getTransactionId().get()).join();
+      }
+ else {
+        transactionManager.asyncAbort(transactionSession.getTransactionId().get());
+      }
+    }
+  }
+}

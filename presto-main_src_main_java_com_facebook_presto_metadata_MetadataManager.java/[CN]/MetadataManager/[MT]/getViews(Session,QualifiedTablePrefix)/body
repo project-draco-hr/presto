@@ -2,9 +2,10 @@
   requireNonNull(prefix,"prefix is null");
   SchemaTablePrefix tablePrefix=prefix.asSchemaTablePrefix();
   Map<QualifiedObjectName,ViewDefinition> views=new LinkedHashMap<>();
-  for (  ConnectorEntry metadata : allConnectorsFor(prefix.getCatalogName())) {
-    ConnectorSession connectorSession=session.toConnectorSession(metadata.getCatalog());
-    for (    Entry<SchemaTableName,ConnectorViewDefinition> entry : metadata.getMetadata().getViews(connectorSession,tablePrefix).entrySet()) {
+  for (  ConnectorEntry connectorEntry : allConnectorsFor(prefix.getCatalogName())) {
+    ConnectorMetadata metadata=connectorEntry.getMetadata(session);
+    ConnectorSession connectorSession=session.toConnectorSession(connectorEntry.getCatalog());
+    for (    Entry<SchemaTableName,ConnectorViewDefinition> entry : metadata.getViews(connectorSession,tablePrefix).entrySet()) {
       QualifiedObjectName viewName=new QualifiedObjectName(prefix.getCatalogName(),entry.getKey().getSchemaName(),entry.getKey().getTableName());
       views.put(viewName,deserializeView(entry.getValue().getViewData()));
     }

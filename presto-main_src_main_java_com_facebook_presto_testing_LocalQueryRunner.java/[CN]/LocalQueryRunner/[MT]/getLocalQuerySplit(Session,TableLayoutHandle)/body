@@ -1,0 +1,10 @@
+{
+  SplitSource splitSource=splitManager.getSplits(session,handle);
+  List<Split> splits=new ArrayList<>();
+  splits.addAll(getFutureValue(splitSource.getNextBatch(1000)));
+  while (!splitSource.isFinished()) {
+    splits.addAll(getFutureValue(splitSource.getNextBatch(1000)));
+  }
+  checkArgument(splits.size() == 1,"Expected only one split for a local query, but got %s splits",splits.size());
+  return splits.get(0);
+}

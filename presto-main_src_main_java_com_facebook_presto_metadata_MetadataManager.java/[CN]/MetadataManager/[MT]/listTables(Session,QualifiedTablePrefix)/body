@@ -3,8 +3,9 @@
   String schemaNameOrNull=prefix.getSchemaName().orElse(null);
   Set<QualifiedObjectName> tables=new LinkedHashSet<>();
   for (  ConnectorEntry entry : allConnectorsFor(prefix.getCatalogName())) {
+    ConnectorMetadata metadata=entry.getMetadata(session);
     ConnectorSession connectorSession=session.toConnectorSession(entry.getCatalog());
-    for (    QualifiedObjectName tableName : transform(entry.getMetadata().listTables(connectorSession,schemaNameOrNull),convertFromSchemaTableName(prefix.getCatalogName()))) {
+    for (    QualifiedObjectName tableName : transform(metadata.listTables(connectorSession,schemaNameOrNull),convertFromSchemaTableName(prefix.getCatalogName()))) {
       tables.add(tableName);
     }
   }

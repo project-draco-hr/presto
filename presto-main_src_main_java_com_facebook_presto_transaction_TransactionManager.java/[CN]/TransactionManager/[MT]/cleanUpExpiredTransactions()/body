@@ -1,0 +1,11 @@
+{
+  Iterator<Map.Entry<TransactionId,TransactionMetadata>> iterator=transactions.entrySet().iterator();
+  while (iterator.hasNext()) {
+    Map.Entry<TransactionId,TransactionMetadata> entry=iterator.next();
+    if (entry.getValue().isExpired(idleTimeout)) {
+      iterator.remove();
+      log.info("Removing expired transaction: %s",entry.getKey());
+      entry.getValue().asyncAbort();
+    }
+  }
+}

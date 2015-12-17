@@ -2,7 +2,8 @@
   checkCatalogName(catalogName);
   ImmutableSet.Builder<String> schemaNames=ImmutableSet.builder();
   for (  ConnectorEntry entry : allConnectorsFor(catalogName)) {
-    schemaNames.addAll(entry.getMetadata().listSchemaNames(session.toConnectorSession(entry.getCatalog())));
+    ConnectorMetadata metadata=entry.getMetadata(session);
+    schemaNames.addAll(metadata.listSchemaNames(session.toConnectorSession(entry.getCatalog())));
   }
   return ImmutableList.copyOf(schemaNames.build());
 }

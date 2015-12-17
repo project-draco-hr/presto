@@ -1,0 +1,12 @@
+{
+  String catalog=name.getCatalogName();
+  String schema=name.getSchemaName();
+  if (schema.equals(INFORMATION_SCHEMA_NAME)) {
+    return informationSchemasByCatalog.get(catalog);
+  }
+  ConnectorEntry entry=systemTablesByCatalog.get(catalog);
+  if ((entry != null) && (entry.getMetadata(session).getTableHandle(null,name.asSchemaTableName()) != null)) {
+    return entry;
+  }
+  return connectorsByCatalog.get(catalog);
+}

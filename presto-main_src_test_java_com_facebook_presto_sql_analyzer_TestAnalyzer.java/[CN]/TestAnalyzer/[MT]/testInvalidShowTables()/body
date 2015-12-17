@@ -1,10 +1,10 @@
 {
   assertFails(INVALID_SCHEMA_NAME,"SHOW TABLES FROM a.b.c");
-  Analyzer analyzer=createAnalyzer(null,null,true);
-  assertFails(analyzer,CATALOG_NOT_SPECIFIED,"SHOW TABLES");
-  assertFails(analyzer,CATALOG_NOT_SPECIFIED,"SHOW TABLES FROM a");
-  assertMissingInformationSchema(analyzer,"SHOW TABLES FROM c2.s2");
-  analyzer=createAnalyzer("c2",null,true);
-  assertFails(analyzer,SCHEMA_NOT_SPECIFIED,"SHOW TABLES");
-  assertMissingInformationSchema(analyzer,"SHOW TABLES FROM s2");
+  Session session=testSessionBuilder().setCatalog(null).setSchema(null).build();
+  assertFails(session,CATALOG_NOT_SPECIFIED,"SHOW TABLES");
+  assertFails(session,CATALOG_NOT_SPECIFIED,"SHOW TABLES FROM a");
+  assertMissingInformationSchema(session,"SHOW TABLES FROM c2.s2");
+  session=testSessionBuilder().setCatalog("c2").setSchema(null).build();
+  assertFails(session,SCHEMA_NOT_SPECIFIED,"SHOW TABLES");
+  assertMissingInformationSchema(session,"SHOW TABLES FROM s2");
 }

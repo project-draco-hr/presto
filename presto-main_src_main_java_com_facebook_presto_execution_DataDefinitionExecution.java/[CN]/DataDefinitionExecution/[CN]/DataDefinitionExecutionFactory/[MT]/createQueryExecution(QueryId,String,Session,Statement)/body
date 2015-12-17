@@ -1,5 +1,8 @@
 {
   URI self=locationFactory.createQueryLocation(queryId);
-  QueryStateMachine stateMachine=new QueryStateMachine(queryId,query,session,self,executor);
-  return createExecution(statement,session,stateMachine);
+  DataDefinitionTask<Statement> task=getTask(statement);
+  checkArgument(task != null,"no task for statement: %s",statement.getClass().getSimpleName());
+  QueryStateMachine stateMachine=QueryStateMachine.begin(queryId,query,session,self,task.isTransactionControl(),transactionManager,executor);
+  stateMachine.setUpdateType(task.getName());
+  return new DataDefinitionExecution<>(task,statement,metadata,accessControl,stateMachine);
 }

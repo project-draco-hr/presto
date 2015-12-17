@@ -8,5 +8,6 @@
     throw new PrestoException(SYNTAX_ERROR,"Cannot rename tables across catalogs");
   }
   ConnectorEntry entry=lookupConnectorFor(tableHandle);
-  entry.getMetadata().renameTable(session.toConnectorSession(entry.getCatalog()),tableHandle.getConnectorHandle(),newTableName.asSchemaTableName());
+  ConnectorMetadata metadata=entry.getMetadataForWrite(session);
+  metadata.renameTable(session.toConnectorSession(entry.getCatalog()),tableHandle.getConnectorHandle(),newTableName.asSchemaTableName());
 }

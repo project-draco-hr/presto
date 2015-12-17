@@ -1,6 +1,7 @@
 {
   Session session=TEST_SESSION.withSystemProperty("foo","bar").withCatalogProperty("catalog","baz","blah");
-  QueryStateMachine stateMachine=new QueryStateMachine(new QueryId("query"),"reset foo",session,URI.create("fake://uri"),executor);
+  TransactionManager transactionManager=createTestTransactionManager();
+  QueryStateMachine stateMachine=QueryStateMachine.begin(new QueryId("query"),"reset foo",session,URI.create("fake://uri"),true,transactionManager,executor);
   new ResetSessionTask().execute(new ResetSession(QualifiedName.of("catalog","baz")),session,metadata,new AllowAllAccessControl(),stateMachine).join();
   Set<String> sessionProperties=stateMachine.getResetSessionProperties();
   assertEquals(sessionProperties,ImmutableSet.of("catalog.baz"));

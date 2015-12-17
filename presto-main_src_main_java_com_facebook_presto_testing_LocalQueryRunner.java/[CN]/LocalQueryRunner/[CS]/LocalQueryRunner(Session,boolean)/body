@@ -1,0 +1,23 @@
+{
+  requireNonNull(defaultSession,"defaultSession is null");
+  checkArgument(!defaultSession.getTransactionId().isPresent() || !withInitialTransaction,"Already in transaction");
+  this.executor=newCachedThreadPool(daemonThreadsNamed("local-query-runner-%s"));
+  this.transactionCheckExecutor=newSingleThreadScheduledExecutor(daemonThreadsNamed("transaction-idle-check"));
+  this.sqlParser=new SqlParser();
+  this.nodeManager=new InMemoryNodeManager();
+  this.typeRegistry=new TypeRegistry();
+  this.indexManager=new IndexManager();
+  this.pageSinkManager=new PageSinkManager();
+  this.transactionManager=TransactionManager.create(new TransactionManagerConfig().setIdleTimeout(new Duration(1,TimeUnit.DAYS)),transactionCheckExecutor,executor);
+  this.splitManager=new SplitManager();
+  this.blockEncodingSerde=new BlockEncodingManager(typeRegistry);
+  this.metadata=new MetadataManager(new FeaturesConfig().setExperimentalSyntaxEnabled(true),typeRegistry,splitManager,blockEncodingSerde,new SessionPropertyManager(),new TablePropertyManager(),transactionManager);
+  this.accessControl=new TestingAccessControlManager();
+  this.pageSourceManager=new PageSourceManager();
+  this.compiler=new ExpressionCompiler(metadata);
+  this.connectorManager=new ConnectorManager(metadata,accessControl,splitManager,pageSourceManager,indexManager,pageSinkManager,new HandleResolver(),nodeManager,transactionManager);
+  SystemConnectorFactory systemConnectorFactory=new SystemConnectorFactory(nodeManager,ImmutableSet.of(new NodeSystemTable(nodeManager),new CatalogSystemTable(metadata),new TablePropertiesSystemTable(metadata)));
+  connectorManager.createConnection(SystemConnector.NAME,systemConnectorFactory,ImmutableMap.of());
+  this.defaultSession=new Session(defaultSession.getQueryId(),withInitialTransaction ? Optional.of(transactionManager.beginTransaction(false)) : defaultSession.getTransactionId(),defaultSession.getIdentity(),defaultSession.getSource(),defaultSession.getCatalog(),defaultSession.getSchema(),defaultSession.getTimeZoneKey(),defaultSession.getLocale(),defaultSession.getRemoteUserAddress(),defaultSession.getUserAgent(),defaultSession.getStartTime(),defaultSession.getSystemProperties(),defaultSession.getCatalogProperties(),metadata.getSessionPropertyManager());
+  dataDefinitionTask=ImmutableMap.<Class<? extends Statement>,DataDefinitionTask<?>>builder().put(CreateTable.class,new CreateTableTask()).put(CreateView.class,new CreateViewTask(jsonCodec(ViewDefinition.class),sqlParser,accessControl,new FeaturesConfig())).put(DropTable.class,new DropTableTask()).put(DropView.class,new DropViewTask()).put(RenameColumn.class,new RenameColumnTask()).put(RenameTable.class,new RenameTableTask()).put(ResetSession.class,new ResetSessionTask()).put(SetSession.class,new SetSessionTask()).build();
+}
