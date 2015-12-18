@@ -1,0 +1,13 @@
+{
+  Map<String,String> properties=ImmutableMap.<String,String>builder().put("task.operator-pre-allocated-memory","0B").put("query.max-memory-per-node","1kB").put("query.max-memory","1kB").build();
+  try (DistributedQueryRunner queryRunner=createQueryRunner(TINY_SESSION,properties)){
+    try {
+      queryRunner.execute("SELECT COUNT(*), clerk FROM orders GROUP BY clerk");
+      fail();
+    }
+ catch (    RuntimeException e) {
+    }
+    Session session=TINY_SESSION.withSystemProperty(RESOURCE_OVER_COMMIT,"true");
+    queryRunner.execute(session,"SELECT COUNT(*), clerk FROM orders GROUP BY clerk");
+  }
+ }

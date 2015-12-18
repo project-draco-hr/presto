@@ -4,6 +4,9 @@
   requireNonNull(fragment,"fragment is null");
   requireNonNull(sources,"sources is null");
   requireNonNull(outputBuffers,"outputBuffers is null");
+  if (resourceOverCommit(session)) {
+    queryContexts.getUnchecked(taskId.getQueryId()).setResourceOverCommit();
+  }
   SqlTask sqlTask=tasks.getUnchecked(taskId);
   sqlTask.recordHeartbeat();
   return sqlTask.updateTask(session,fragment,sources,outputBuffers);

@@ -2,7 +2,8 @@
   if (!enabled) {
     return;
   }
-  if (!isClusterOutOfMemory()) {
+  boolean outOfMemory=isClusterOutOfMemory();
+  if (!outOfMemory) {
     lastTimeNotOutOfMemory=System.nanoTime();
   }
   boolean queryKilled=false;
@@ -13,14 +14,23 @@
     long queryMemoryLimit=Math.min(maxQueryMemory.toBytes(),sessionMaxQueryMemory.toBytes());
     totalBytes+=bytes;
     if (bytes > queryMemoryLimit) {
-      DataSize maxMemory=succinctDataSize(queryMemoryLimit,BYTE);
-      query.fail(exceededGlobalLimit(maxMemory));
-      queryKilled=true;
+      if (resourceOverCommit(query.getSession())) {
+        if (outOfMemory) {
+          DataSize memory=succinctDataSize(bytes,BYTE);
+          query.fail(new PrestoException(CLUSTER_OUT_OF_MEMORY,format("The cluster is out of memory, you set %s=true, and your query is using %s of memory, so it was killed.",RESOURCE_OVER_COMMIT,memory)));
+          queryKilled=true;
+        }
+      }
+ else {
+        DataSize maxMemory=succinctDataSize(queryMemoryLimit,BYTE);
+        query.fail(exceededGlobalLimit(maxMemory));
+        queryKilled=true;
+      }
     }
   }
   clusterMemoryUsageBytes.set(totalBytes);
   if (killOnOutOfMemory) {
-    boolean shouldKillQuery=nanosSince(lastTimeNotOutOfMemory).compareTo(killOnOutOfMemoryDelay) > 0 && isClusterOutOfMemory();
+    boolean shouldKillQuery=nanosSince(lastTimeNotOutOfMemory).compareTo(killOnOutOfMemoryDelay) > 0 && outOfMemory;
     boolean lastKilledQueryIsGone=(lastKilledQuery == null);
     if (!lastKilledQueryIsGone) {
       ClusterMemoryPool generalPool=pools.get(GENERAL_POOL);

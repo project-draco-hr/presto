@@ -7,6 +7,9 @@
       QueryExecution biggestQuery=null;
       long maxMemory=-1;
       for (      QueryExecution queryExecution : queries) {
+        if (resourceOverCommit(queryExecution.getSession())) {
+          continue;
+        }
         long bytesUsed=queryExecution.getTotalMemoryReservation();
         if (bytesUsed > maxMemory) {
           biggestQuery=queryExecution;
