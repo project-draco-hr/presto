@@ -4,9 +4,20 @@
   }
   for (int i=0; i < blocks.length; i++) {
     Block block=blocks[i];
+    if (block instanceof DictionaryBlock) {
+      continue;
+    }
     if (block.getSizeInBytes() < block.getRetainedSizeInBytes()) {
       Block compactedBlock=block.copyRegion(0,block.getPositionCount());
       blocks[i]=compactedBlock;
+    }
+  }
+  Map<UUID,DictionaryBlockIndexes> dictionaryBlocks=getRelatedDictionaryBlocks();
+  for (  DictionaryBlockIndexes blockIndexes : dictionaryBlocks.values()) {
+    List<Block> compactBlocks=DictionaryBlock.compactBlocks(blockIndexes.getBlocks());
+    List<Integer> indexes=blockIndexes.getIndexes();
+    for (int i=0; i < compactBlocks.size(); i++) {
+      blocks[indexes.get(i)]=compactBlocks.get(i);
     }
   }
   long retainedSize=0;

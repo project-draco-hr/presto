@@ -1,0 +1,37 @@
+{
+  verifyEligibleToCompact(blocks);
+  DictionaryBlock dictionaryBlock=(DictionaryBlock)blocks.get(0);
+  Block dictionary=dictionaryBlock.getDictionary();
+  Slice ids=dictionaryBlock.getIds();
+  int positionCount=dictionaryBlock.getPositionCount();
+  int dictionarySize=dictionary.getPositionCount();
+  boolean[] isReferenced=getReferencedPositions(dictionary,ids,positionCount);
+  List<Integer> dictionaryPositionsToCopy=new ArrayList<>(dictionarySize);
+  int[] remapIndex=new int[dictionarySize];
+  Arrays.fill(remapIndex,-1);
+  int newIndex=0;
+  for (int i=0; i < dictionarySize; i++) {
+    if (isReferenced[i]) {
+      dictionaryPositionsToCopy.add(i);
+      remapIndex[i]=newIndex;
+      newIndex++;
+    }
+  }
+  if (dictionaryPositionsToCopy.size() == dictionarySize) {
+    return blocks;
+  }
+  Slice newIdsSlice=wrappedIntArray(getNewIds(positionCount,ids,remapIndex));
+  List<Block> outputDictionaryBlocks=new ArrayList<>(blocks.size());
+  UUID uuid=UUID.randomUUID();
+  for (  Block block : blocks) {
+    dictionaryBlock=((DictionaryBlock)block);
+    try {
+      Block compactDictionary=dictionaryBlock.getDictionary().copyPositions(dictionaryPositionsToCopy);
+      outputDictionaryBlocks.add(new DictionaryBlock(positionCount,compactDictionary,newIdsSlice,true,uuid));
+    }
+ catch (    UnsupportedOperationException e) {
+      outputDictionaryBlocks.add(new DictionaryBlock(positionCount,dictionaryBlock.getDictionary(),dictionaryBlock.getIds()));
+    }
+  }
+  return outputDictionaryBlocks;
+}

@@ -1,0 +1,16 @@
+{
+  Slice[] expectedValues=createExpectedValues(10);
+  BlockBuilder blockBuilder=BIGINT.createBlockBuilder(new BlockBuilderStatus(),expectedValues.length);
+  for (  Slice expectedValue : expectedValues) {
+    BIGINT.writeLong(blockBuilder,expectedValue.length());
+  }
+  Block lengthsDictionary=blockBuilder.build();
+  UUID commonSourceId=UUID.randomUUID();
+  DictionaryBlock commonSourceIdBlock1=createDictionaryBlock(expectedValues,100,commonSourceId);
+  DictionaryBlock commonSourceIdBlock2=new DictionaryBlock(commonSourceIdBlock1.getPositionCount(),lengthsDictionary,commonSourceIdBlock1.getIds(),commonSourceId);
+  DictionaryBlock randomSourceIdBlock=createDictionaryBlock(expectedValues,100,UUID.randomUUID());
+  Page page=new Page(commonSourceIdBlock1,randomSourceIdBlock,commonSourceIdBlock2);
+  page.compact();
+  assertNotEquals(((DictionaryBlock)page.getBlock(0)).getDictionarySourceId(),((DictionaryBlock)page.getBlock(1)).getDictionarySourceId());
+  assertEquals(((DictionaryBlock)page.getBlock(0)).getDictionarySourceId(),((DictionaryBlock)page.getBlock(2)).getDictionarySourceId());
+}
