@@ -7,7 +7,7 @@
     ConnectorInsertTableHandle insertTableHandle=metadata.beginInsert(session,tableHandle);
     ConnectorPageSink sink=pageSinkProvider.createPageSink(session,insertTableHandle);
     sink.appendPage(CREATE_TABLE_DATA.toPage(),null);
-    Collection<Slice> fragments=sink.commit();
+    Collection<Slice> fragments=sink.finish();
     metadata.commitInsert(session,insertTableHandle,fragments);
     List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(session,tableHandle).values());
     ConnectorTableMetadata tableMetadata=metadata.getTableMetadata(session,getTableHandle(tableName));
@@ -26,7 +26,7 @@
   ConnectorPageSink sink=pageSinkProvider.createPageSink(session,insertTableHandle);
   sink.appendPage(CREATE_TABLE_DATA.toPage(),null);
   sink.appendPage(CREATE_TABLE_DATA.toPage(),null);
-  sink.commit();
+  sink.finish();
   assertEquals(listAllDataFiles(tableName.getSchemaName(),tableName.getTableName()),existingFiles);
   Set<String> tempFiles=listAllDataFiles(insertTableHandle);
   assertTrue(!tempFiles.isEmpty());
