@@ -3,7 +3,7 @@
   StatementAnalyzer analyzer=new StatementAnalyzer(analysis,metadata,sqlParser,new ViewAccessControl(accessControl),session,experimentalSyntaxEnabled,queryExplainer);
   RelationType descriptor=analyzer.process(node.getQuery(),new AnalysisContext());
   QualifiedObjectName viewName=createQualifiedObjectName(session,node,node.getName());
-  accessControl.checkCanCreateView(session.getIdentity(),viewName);
+  accessControl.checkCanCreateView(session.getRequiredTransactionId(),session.getIdentity(),viewName);
   validateColumnNames(node,descriptor);
   return descriptor;
 }

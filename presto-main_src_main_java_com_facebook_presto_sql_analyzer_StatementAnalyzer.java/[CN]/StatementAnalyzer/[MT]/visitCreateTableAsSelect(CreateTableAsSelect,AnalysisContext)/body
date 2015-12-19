@@ -10,7 +10,7 @@
   if (targetTableHandle.isPresent()) {
     throw new SemanticException(TABLE_ALREADY_EXISTS,node,"Destination table '%s' already exists",targetTable);
   }
-  accessControl.checkCanCreateTable(session.getIdentity(),targetTable);
+  accessControl.checkCanCreateTable(session.getRequiredTransactionId(),session.getIdentity(),targetTable);
   analysis.setCreateTableAsSelectWithData(node.isWithData());
   RelationType descriptor=process(node.getQuery(),context);
   validateColumnNames(node,descriptor);

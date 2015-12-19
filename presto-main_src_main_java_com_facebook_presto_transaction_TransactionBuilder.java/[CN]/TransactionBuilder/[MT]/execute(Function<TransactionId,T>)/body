@@ -1,0 +1,18 @@
+{
+  requireNonNull(callback,"callback is null");
+  TransactionId transactionId=transactionManager.beginTransaction(isolationLevel,readOnly,singleStatement);
+  boolean success=false;
+  try {
+    T result=callback.apply(transactionId);
+    success=true;
+    return result;
+  }
+  finally {
+    if (success) {
+      transactionManager.asyncCommit(transactionId).join();
+    }
+ else {
+      transactionManager.asyncAbort(transactionId);
+    }
+  }
+}
