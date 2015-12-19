@@ -25,9 +25,14 @@
     List<NetworkLocation> locations=new ArrayList<>();
     for (    HostAddress host : split.getAddresses()) {
       try {
+        if (negativeNetworkLocationCache.getIfPresent(host) != null) {
+          continue;
+        }
         locations.add(networkLocationCache.get(host));
       }
  catch (      ExecutionException|UncheckedExecutionException e) {
+        negativeNetworkLocationCache.put(host,true);
+        log.warn(e,"Unable to determine location of %s. Will attempt again in %s",host,NEGATIVE_CACHE_DURATION);
       }
     }
     if (locations.isEmpty()) {
