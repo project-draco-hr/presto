@@ -6,9 +6,5 @@
   for (  SubPlan childPlan : root.getChildren()) {
     dependencies.add(plan(childPlan,session));
   }
-  Optional<PartitioningHandle> partitioningHandle=Optional.empty();
-  if (currentFragment.getDistribution() != SOURCE) {
-    partitioningHandle=Optional.of(new SystemPartitioningHandle(currentFragment.getDistribution()));
-  }
-  return new StageExecutionPlan(currentFragment,splits,partitioningHandle,dependencies.build());
+  return new StageExecutionPlan(currentFragment,splits,currentFragment.getPartitioning(),dependencies.build());
 }

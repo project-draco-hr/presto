@@ -1,4 +1,8 @@
 {
-  BucketFunction bucketFunction=functionBinding.getFunctionHandle().createBucketFunction(functionBinding,partitionChannelTypes);
-  return new PartitionFunction(bucketFunction,functionBinding.getBucketToPartition().get());
+  PartitioningHandle partitioningHandle=functionBinding.getPartitioningHandle();
+  if (!(partitioningHandle instanceof SystemPartitioningHandle)) {
+    throw new IllegalArgumentException("Unsupported distribution handle " + partitioningHandle.getClass().getName());
+  }
+  checkArgument(functionBinding.getBucketToPartition().isPresent(),"Bucket to partition must be set before a partition function can be created");
+  return ((SystemPartitioningHandle)partitioningHandle).getPartitionFunction(partitionChannelTypes,functionBinding.getHashColumn().isPresent(),functionBinding.getBucketToPartition().get());
 }

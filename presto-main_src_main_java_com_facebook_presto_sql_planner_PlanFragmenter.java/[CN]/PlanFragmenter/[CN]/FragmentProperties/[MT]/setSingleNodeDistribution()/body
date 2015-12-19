@@ -1,10 +1,8 @@
 {
-  if (distribution.isPresent()) {
-    PlanDistribution value=distribution.get();
-    checkState(value == PlanDistribution.SINGLE || value == PlanDistribution.COORDINATOR_ONLY,"Cannot overwrite distribution with %s (currently set to %s)",PlanDistribution.SINGLE,value);
+  if (partitioningHandle.isPresent() && partitioningHandle.get().isSingleNodeDistribution()) {
+    return this;
   }
- else {
-    distribution=Optional.of(PlanDistribution.SINGLE);
-  }
+  checkState(!partitioningHandle.isPresent(),"Cannot overwrite partitioning with %s (currently set to %s)",SINGLE_DISTRIBUTION,partitioningHandle);
+  partitioningHandle=Optional.of(SINGLE_DISTRIBUTION);
   return this;
 }

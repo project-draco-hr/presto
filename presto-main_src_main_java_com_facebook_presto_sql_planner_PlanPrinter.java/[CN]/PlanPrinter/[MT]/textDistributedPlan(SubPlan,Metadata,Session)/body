@@ -1,19 +1,18 @@
 {
   StringBuilder builder=new StringBuilder();
   for (  PlanFragment fragment : plan.getAllFragments()) {
-    builder.append(format("Fragment %s [%s]\n",fragment.getId(),fragment.getDistribution()));
+    builder.append(format("Fragment %s [%s]\n",fragment.getId(),fragment.getPartitioning()));
     builder.append(indentString(1)).append(format("Output layout: [%s]\n",Joiner.on(", ").join(fragment.getOutputLayout())));
     if (fragment.getPartitionFunction().isPresent()) {
       PartitionFunctionBinding partitionFunction=fragment.getPartitionFunction().get();
-      PartitionFunctionHandle outputPartitioning=partitionFunction.getFunctionHandle();
       boolean replicateNulls=partitionFunction.isReplicateNulls();
       List<Symbol> symbols=partitionFunction.getPartitioningColumns();
       builder.append(indentString(1));
       if (replicateNulls) {
-        builder.append(format("Output partitioning: %s (replicate nulls) [%s]\n",outputPartitioning,Joiner.on(", ").join(symbols)));
+        builder.append(format("Output partitioning: %s (replicate nulls) [%s]\n",partitionFunction.getPartitioningHandle(),Joiner.on(", ").join(symbols)));
       }
  else {
-        builder.append(format("Output partitioning: %s [%s]\n",outputPartitioning,Joiner.on(", ").join(symbols)));
+        builder.append(format("Output partitioning: %s [%s]\n",partitionFunction.getPartitioningHandle(),Joiner.on(", ").join(symbols)));
       }
     }
     builder.append(textLogicalPlan(fragment.getRoot(),fragment.getSymbols(),metadata,session,1)).append("\n");

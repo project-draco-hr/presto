@@ -1,10 +1,15 @@
 {
-  if (distribution.isPresent()) {
-    checkState(distribution.get() == PlanDistribution.SINGLE || distribution.get() == PlanDistribution.COORDINATOR_ONLY,"Cannot overwrite distribution with %s (currently set to %s)",PlanDistribution.SOURCE,distribution.get());
-  }
+  if (partitioningHandle.isPresent()) {
+    PartitioningHandle partitioningHandle=this.partitioningHandle.get();
+    if (partitioningHandle.equals(SOURCE_DISTRIBUTION)) {
+      checkState(distributeBy == null || distributeBy == source,"Cannot overwrite partitioned source");
+    }
  else {
-    distribution=Optional.of(PlanDistribution.SOURCE);
-    this.distributeBy=source;
+      checkState(partitioningHandle.equals(SINGLE_DISTRIBUTION) || partitioningHandle.equals(COORDINATOR_DISTRIBUTION),"Cannot overwrite distribution with %s (currently set to %s)",SOURCE_DISTRIBUTION,partitioningHandle);
+      return this;
+    }
   }
+  distributeBy=requireNonNull(source,"source is null");
+  partitioningHandle=Optional.of(SOURCE_DISTRIBUTION);
   return this;
 }
