@@ -5,15 +5,11 @@
     throw new SemanticException(MULTIPLE_FIELDS_FROM_SUBQUERY,node,"Multiple columns returned by subquery are not yet supported. Found %s",descriptor.getVisibleFieldCount());
   }
   Optional<Node> previousNode=context.getPreviousNode();
-  if (previousNode.isPresent() && previousNode.get() instanceof InPredicate) {
-    InPredicate inPredicate=(InPredicate)previousNode.get();
-    if (inPredicate.getValue() == node) {
-      throw new SemanticException(NOT_SUPPORTED,node,"Scalar subqueries not supported as left side for IN expression.");
-    }
+  if (previousNode.isPresent() && previousNode.get() instanceof InPredicate && ((InPredicate)previousNode.get()).getValue() != node) {
     subqueryInPredicates.add((InPredicate)previousNode.get());
   }
  else {
-    throw new SemanticException(NOT_SUPPORTED,node,"Scalar subqueries not yet supported");
+    scalarSubqueries.add(node);
   }
   Type type=Iterables.getOnlyElement(descriptor.getVisibleFields()).getType();
   expressionTypes.put(node,type);

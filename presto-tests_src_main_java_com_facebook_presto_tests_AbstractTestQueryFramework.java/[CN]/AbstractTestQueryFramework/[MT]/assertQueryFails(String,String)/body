@@ -1,0 +1,13 @@
+{
+  queryRunner.getExclusiveLock().lock();
+  try {
+    queryRunner.execute(getSession(),sql);
+    fail(format("Expected query to fail: %s",sql));
+  }
+ catch (  RuntimeException ex) {
+    assertExceptionMessage(ex,expectedMessageRegExp);
+  }
+ finally {
+    queryRunner.getExclusiveLock().unlock();
+  }
+}

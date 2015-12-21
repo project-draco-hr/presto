@@ -1,0 +1,12 @@
+{
+  EnforceSingleRowNode enforceSingleRowNode=new EnforceSingleRowNode(idAllocator.getNextId(),createRelationPlan(scalarSubquery).getRoot());
+  TranslationMap translations=copyTranslations(builder);
+  translations.put(scalarSubquery,getOnlyElement(enforceSingleRowNode.getOutputSymbols()));
+  PlanNode root=builder.getRoot();
+  if (root.getOutputSymbols().isEmpty()) {
+    return new PlanBuilder(translations,enforceSingleRowNode,builder.getSampleWeight());
+  }
+ else {
+    return new PlanBuilder(translations,new JoinNode(idAllocator.getNextId(),JoinNode.Type.FULL,root,enforceSingleRowNode,ImmutableList.of(),Optional.empty(),Optional.empty()),builder.getSampleWeight());
+  }
+}

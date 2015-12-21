@@ -1,9 +1,8 @@
 {
-  TranslationMap translations=new TranslationMap(subPlan.getRelationPlan(),analysis);
-  translations.copyMappingsFrom(subPlan.getTranslations());
+  TranslationMap translations=copyTranslations(subPlan);
   subPlan=appendProjections(subPlan,ImmutableList.of(inPredicate.getValue()));
   Symbol sourceJoinSymbol=subPlan.translate(inPredicate.getValue());
-  Preconditions.checkState(inPredicate.getValueList() instanceof SubqueryExpression);
+  checkState(inPredicate.getValueList() instanceof SubqueryExpression);
   SubqueryExpression subqueryExpression=(SubqueryExpression)inPredicate.getValueList();
   RelationPlanner relationPlanner=new RelationPlanner(analysis,symbolAllocator,idAllocator,metadata,session);
   RelationPlan valueListRelation=relationPlanner.process(subqueryExpression.getQuery(),null);
