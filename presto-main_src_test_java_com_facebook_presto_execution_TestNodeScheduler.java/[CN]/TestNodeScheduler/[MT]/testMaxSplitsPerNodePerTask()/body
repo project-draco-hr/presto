@@ -1,9 +1,10 @@
 {
+  TestingTransactionHandle transactionHandle=TestingTransactionHandle.create("foo");
   Node newNode=new PrestoNode("other4",URI.create("http://127.0.0.1:14"),NodeVersion.UNKNOWN);
   nodeManager.addNode("foo",newNode);
   ImmutableList.Builder<Split> initialSplits=ImmutableList.builder();
   for (int i=0; i < 20; i++) {
-    initialSplits.add(new Split("foo",new TestSplitRemote()));
+    initialSplits.add(new Split("foo",transactionHandle,new TestSplitRemote()));
   }
   List<RemoteTask> tasks=new ArrayList<>();
   MockRemoteTaskFactory remoteTaskFactory=new MockRemoteTaskFactory(remoteTaskExecutor);
@@ -20,7 +21,7 @@
   tasks.add(newRemoteTask);
   Set<Split> splits=new HashSet<>();
   for (int i=0; i < 5; i++) {
-    splits.add(new Split("foo",new TestSplitRemote()));
+    splits.add(new Split("foo",transactionHandle,new TestSplitRemote()));
   }
   Multimap<Node,Split> assignments=nodeSelector.computeAssignments(splits,ImmutableList.copyOf(taskMap.values()));
   assertEquals(assignments.keySet().size(),3);

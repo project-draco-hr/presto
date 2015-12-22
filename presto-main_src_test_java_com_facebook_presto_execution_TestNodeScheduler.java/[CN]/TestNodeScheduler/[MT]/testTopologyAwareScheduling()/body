@@ -1,4 +1,5 @@
 {
+  TestingTransactionHandle transactionHandle=TestingTransactionHandle.create("foo");
   NodeTaskMap nodeTaskMap=new NodeTaskMap(finalizerService);
   InMemoryNodeManager nodeManager=new InMemoryNodeManager();
   ImmutableList.Builder<Node> nodeBuilder=ImmutableList.builder();
@@ -14,7 +15,7 @@
   NodeSelector nodeSelector=nodeScheduler.createNodeSelector("foo");
   ImmutableSet.Builder<Split> nonRackLocalBuilder=ImmutableSet.builder();
   for (int i=0; i < 26 * 3; i++) {
-    nonRackLocalBuilder.add(new Split("foo",new TestSplitRemote(HostAddress.fromParts("data.other_rack",1))));
+    nonRackLocalBuilder.add(new Split("foo",transactionHandle,new TestSplitRemote(HostAddress.fromParts("data.other_rack",1))));
   }
   Set<Split> nonRackLocalSplits=nonRackLocalBuilder.build();
   Multimap<Node,Split> assignments=nodeSelector.computeAssignments(nonRackLocalSplits,ImmutableList.copyOf(taskMap.values()));
@@ -38,10 +39,10 @@
   assertEquals(nonRackLocalSplits.size(),3);
   ImmutableSet.Builder<Split> rackLocalSplits=ImmutableSet.builder();
   for (int i=0; i < 6 * 2; i++) {
-    rackLocalSplits.add(new Split("foo",new TestSplitRemote(HostAddress.fromParts("data.rack1",1))));
+    rackLocalSplits.add(new Split("foo",transactionHandle,new TestSplitRemote(HostAddress.fromParts("data.rack1",1))));
   }
   for (int i=0; i < 6; i++) {
-    rackLocalSplits.add(new Split("foo",new TestSplitRemote(HostAddress.fromParts("data.rack2",1))));
+    rackLocalSplits.add(new Split("foo",transactionHandle,new TestSplitRemote(HostAddress.fromParts("data.rack2",1))));
   }
   assignments=nodeSelector.computeAssignments(rackLocalSplits.build(),ImmutableList.copyOf(taskMap.values()));
   for (  Node node : assignments.keySet()) {
@@ -68,9 +69,9 @@ fail();
 assertEquals(rack1,2);
 assertEquals(rack2,1);
 ImmutableSet.Builder<Split> localSplits=ImmutableSet.builder();
-localSplits.add(new Split("foo",new TestSplitRemote(HostAddress.fromParts("host1.rack1",1))));
-localSplits.add(new Split("foo",new TestSplitRemote(HostAddress.fromParts("host2.rack1",1))));
-localSplits.add(new Split("foo",new TestSplitRemote(HostAddress.fromParts("host3.rack2",1))));
+localSplits.add(new Split("foo",transactionHandle,new TestSplitRemote(HostAddress.fromParts("host1.rack1",1))));
+localSplits.add(new Split("foo",transactionHandle,new TestSplitRemote(HostAddress.fromParts("host2.rack1",1))));
+localSplits.add(new Split("foo",transactionHandle,new TestSplitRemote(HostAddress.fromParts("host3.rack2",1))));
 assignments=nodeSelector.computeAssignments(localSplits.build(),ImmutableList.copyOf(taskMap.values()));
 assertEquals(assignments.size(),3);
 assertEquals(assignments.keySet().size(),3);
