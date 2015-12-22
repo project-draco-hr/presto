@@ -2,9 +2,9 @@
   UnloadedIndexKeyRecordSet recordSetForLookupSource=new UnloadedIndexKeyRecordSet(indexSnapshotReference.get(),lookupSourceInputChannels,indexTypes,requests);
   try (Driver driver=driverFactory.createDriver(pipelineContext.addDriverContext())){
     PlanNodeId sourcePlanNodeId=Iterables.getOnlyElement(driverFactory.getSourceIds());
-    driver.updateSource(new TaskSource(sourcePlanNodeId,ImmutableSet.of(new ScheduledSplit(0,new Split("index",new ConnectorTransactionHandle(){
+    driver.updateSource(new TaskSource(sourcePlanNodeId,ImmutableSet.of(new ScheduledSplit(0,new Split("index",new TransactionHandle("index",new ConnectorTransactionHandle(){
     }
-,new IndexSplit(recordSetForLookupSource)))),true));
+),new IndexSplit(recordSetForLookupSource)))),true));
     while (!driver.isFinished()) {
       ListenableFuture<?> process=driver.process();
       checkState(process.isDone(),"Driver should never block");
