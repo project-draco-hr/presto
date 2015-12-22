@@ -1,21 +1,2 @@
 {
-  if (value == null) {
-    serializerProvider.defaultSerializeNull(jsonGenerator);
-  }
- else {
-    try {
-      JsonSerializer<Object> serializer=serializerCache.get(value.getClass(),new Callable<JsonSerializer<Object>>(){
-        @Override public JsonSerializer<Object> call() throws Exception {
-          return BeanSerializerFactory.instance.createSerializer(serializerProvider,serializerProvider.constructType(value.getClass()));
-        }
-      }
-);
-      serializer.serializeWithType(value,jsonGenerator,serializerProvider,typeSerializer);
-    }
- catch (    ExecutionException e) {
-      Throwables.propagateIfInstanceOf(e.getCause(),IOException.class);
-      Throwables.propagateIfInstanceOf(e.getCause(),JsonGenerationException.class);
-      throw Throwables.propagate(e.getCause());
-    }
-  }
 }
