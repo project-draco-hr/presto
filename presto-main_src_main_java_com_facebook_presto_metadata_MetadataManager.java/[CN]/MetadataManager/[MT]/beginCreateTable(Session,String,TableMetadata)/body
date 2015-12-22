@@ -2,7 +2,8 @@
   ConnectorEntry entry=connectorsByCatalog.get(catalogName);
   checkArgument(entry != null,"Catalog %s does not exist",catalogName);
   TransactionalConnectorMetadata metadata=entry.getMetadataForWrite(session);
+  ConnectorTransactionHandle transactionHandle=entry.getTransactionHandle(session);
   ConnectorSession connectorSession=session.toConnectorSession(entry.getCatalog());
   ConnectorOutputTableHandle handle=metadata.beginCreateTable(connectorSession,tableMetadata.getMetadata());
-  return new OutputTableHandle(entry.getConnectorId(),handle);
+  return new OutputTableHandle(entry.getConnectorId(),transactionHandle,handle);
 }
