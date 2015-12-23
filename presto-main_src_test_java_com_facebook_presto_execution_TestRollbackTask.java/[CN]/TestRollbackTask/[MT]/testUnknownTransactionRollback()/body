@@ -1,0 +1,9 @@
+{
+  TransactionManager transactionManager=createTestTransactionManager();
+  Session session=sessionBuilder().setTransactionId(TransactionId.create()).build();
+  QueryStateMachine stateMachine=QueryStateMachine.begin(new QueryId("query"),"ROLLBACK",session,URI.create("fake://uri"),true,transactionManager,executor);
+  new RollbackTask().execute(new Rollback(),transactionManager,metadata,new AllowAllAccessControl(),stateMachine).join();
+  Assert.assertTrue(stateMachine.getQueryInfoWithoutDetails().isClearTransactionId());
+  Assert.assertFalse(stateMachine.getQueryInfoWithoutDetails().getStartedTransactionId().isPresent());
+  Assert.assertTrue(transactionManager.getAllTransactionInfos().isEmpty());
+}

@@ -1,0 +1,21 @@
+{
+  Session session=sessionBuilder().setClientTransactionSupport().build();
+  TransactionManager transactionManager=createTestTransactionManager();
+  QueryStateMachine stateMachine=QueryStateMachine.begin(new QueryId("query"),"START TRANSACTION",session,URI.create("fake://uri"),true,transactionManager,executor);
+  Assert.assertFalse(stateMachine.getSession().getTransactionId().isPresent());
+  try {
+    try {
+      new StartTransactionTask().execute(new StartTransaction(ImmutableList.of(new TransactionAccessMode(true),new TransactionAccessMode(true))),transactionManager,metadata,new AllowAllAccessControl(),stateMachine).join();
+      Assert.fail();
+    }
+ catch (    CompletionException e) {
+      throw Throwables.propagate(e.getCause());
+    }
+  }
+ catch (  SemanticException e) {
+    Assert.assertEquals(e.getCode(),INVALID_TRANSACTION_MODE);
+  }
+  Assert.assertTrue(transactionManager.getAllTransactionInfos().isEmpty());
+  Assert.assertFalse(stateMachine.getQueryInfoWithoutDetails().isClearTransactionId());
+  Assert.assertFalse(stateMachine.getQueryInfoWithoutDetails().getStartedTransactionId().isPresent());
+}

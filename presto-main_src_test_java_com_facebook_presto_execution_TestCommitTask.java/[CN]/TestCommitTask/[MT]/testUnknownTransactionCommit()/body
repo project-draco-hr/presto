@@ -1,0 +1,20 @@
+{
+  TransactionManager transactionManager=createTestTransactionManager();
+  Session session=sessionBuilder().setTransactionId(TransactionId.create()).build();
+  QueryStateMachine stateMachine=QueryStateMachine.begin(new QueryId("query"),"COMMIT",session,URI.create("fake://uri"),true,transactionManager,executor);
+  try {
+    try {
+      new CommitTask().execute(new Commit(),transactionManager,metadata,new AllowAllAccessControl(),stateMachine).join();
+      Assert.fail();
+    }
+ catch (    CompletionException e) {
+      throw Throwables.propagate(e.getCause());
+    }
+  }
+ catch (  PrestoException e) {
+    Assert.assertEquals(e.getErrorCode(),UNKNOWN_TRANSACTION.toErrorCode());
+  }
+  Assert.assertTrue(stateMachine.getQueryInfoWithoutDetails().isClearTransactionId());
+  Assert.assertFalse(stateMachine.getQueryInfoWithoutDetails().getStartedTransactionId().isPresent());
+  Assert.assertTrue(transactionManager.getAllTransactionInfos().isEmpty());
+}
