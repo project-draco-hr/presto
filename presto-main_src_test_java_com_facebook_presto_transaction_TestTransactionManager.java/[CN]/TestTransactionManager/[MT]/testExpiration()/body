@@ -1,0 +1,14 @@
+{
+  try (IdleCheckExecutor executor=new IdleCheckExecutor()){
+    TransactionManager transactionManager=TransactionManager.create(new TransactionManagerConfig().setIdleTimeout(new Duration(1,TimeUnit.MILLISECONDS)).setIdleCheckInterval(new Duration(5,TimeUnit.MILLISECONDS)),executor.getExecutor(),finishingExecutor);
+    TransactionId transactionId=transactionManager.beginTransaction(false);
+    Assert.assertEquals(transactionManager.getAllTransactionInfos().size(),1);
+    TransactionInfo transactionInfo=transactionManager.getTransactionInfo(transactionId);
+    Assert.assertFalse(transactionInfo.isAutoCommitContext());
+    Assert.assertTrue(transactionInfo.getConnectorIds().isEmpty());
+    Assert.assertFalse(transactionInfo.getWrittenConnectorId().isPresent());
+    transactionManager.trySetInactive(transactionId);
+    TimeUnit.MILLISECONDS.sleep(100);
+    Assert.assertTrue(transactionManager.getAllTransactionInfos().isEmpty());
+  }
+ }
