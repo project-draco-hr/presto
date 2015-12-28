@@ -1,0 +1,41 @@
+{
+  List<TypeSignatureParameter> parameters=parameter.getParameters();
+  for (int i=0; i < parameters.size(); i++) {
+    TypeSignatureParameter actualTypeParameter=type.getTypeSignature().getParameters().get(i);
+    TypeSignatureParameter typeSignatureParameter=type.getTypeSignature().getParameters().get(i);
+    TypeSignatureParameter componentParameter=parameters.get(i);
+    if (componentParameter.isLiteralCalculation()) {
+      if (!typeSignatureParameter.isLongLiteral()) {
+        return false;
+      }
+    }
+ else     if (componentParameter.isLongLiteral()) {
+      if (!typeSignatureParameter.isLongLiteral()) {
+        return false;
+      }
+      if (componentParameter.getLongLiteral().longValue() != typeSignatureParameter.getLongLiteral().longValue()) {
+        return false;
+      }
+    }
+ else {
+      TypeSignature componentSignature;
+      if (componentParameter.isTypeSignature()) {
+        if (!actualTypeParameter.isTypeSignature() && !actualTypeParameter.isNamedTypeSignature()) {
+          return false;
+        }
+        componentSignature=componentParameter.getTypeSignature();
+      }
+ else       if (componentParameter.isNamedTypeSignature() && actualTypeParameter.isNamedTypeSignature()) {
+        componentSignature=componentParameter.getNamedTypeSignature().getTypeSignature();
+      }
+ else {
+        throw new UnsupportedOperationException(format("Unsupported TypeSignatureParameter [%s]",componentParameter));
+      }
+      Type componentType=type.getTypeParameters().get(i);
+      if (!matchAndBind(boundParameters,typeParameters,componentSignature,componentType,allowCoercion,typeManager)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}

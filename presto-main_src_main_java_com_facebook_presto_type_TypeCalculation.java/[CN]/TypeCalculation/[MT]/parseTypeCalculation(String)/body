@@ -1,0 +1,21 @@
+{
+  TypeCalculationLexer lexer=new TypeCalculationLexer(new CaseInsensitiveStream(new ANTLRInputStream(calculation)));
+  CommonTokenStream tokenStream=new CommonTokenStream(lexer);
+  TypeCalculationParser parser=new TypeCalculationParser(tokenStream);
+  lexer.removeErrorListeners();
+  lexer.addErrorListener(ERROR_LISTENER);
+  parser.removeErrorListeners();
+  parser.addErrorListener(ERROR_LISTENER);
+  ParserRuleContext tree;
+  try {
+    parser.getInterpreter().setPredictionMode(PredictionMode.SLL);
+    tree=parser.typeCalculation();
+  }
+ catch (  ParseCancellationException ex) {
+    tokenStream.reset();
+    parser.reset();
+    parser.getInterpreter().setPredictionMode(PredictionMode.LL);
+    tree=parser.typeCalculation();
+  }
+  return tree;
+}

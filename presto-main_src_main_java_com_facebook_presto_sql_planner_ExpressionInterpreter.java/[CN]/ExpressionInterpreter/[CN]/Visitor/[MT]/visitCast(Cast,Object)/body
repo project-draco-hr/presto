@@ -1,10 +1,13 @@
 {
   Object value=process(node.getExpression(),context);
   if (value instanceof Expression) {
-    return new Cast((Expression)value,node.getType(),node.isSafe());
+    return new Cast((Expression)value,node.getType(),node.isSafe(),node.isTypeOnly());
+  }
+  if (node.isTypeOnly()) {
+    return value;
   }
   if (optimize && !FunctionRegistry.isSupportedLiteralType(expressionTypes.get(node))) {
-    return new Cast(toExpression(value,expressionTypes.get(node.getExpression())),node.getType(),node.isSafe());
+    return new Cast(toExpression(value,expressionTypes.get(node.getExpression())),node.getType(),node.isSafe(),node.isTypeOnly());
   }
   if (value == null) {
     return null;

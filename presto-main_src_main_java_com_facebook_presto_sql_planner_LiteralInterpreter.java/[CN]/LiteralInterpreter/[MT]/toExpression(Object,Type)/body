@@ -7,7 +7,7 @@
     if (type.equals(UNKNOWN)) {
       return new NullLiteral();
     }
-    return new Cast(new NullLiteral(),type.getTypeSignature().toString());
+    return new Cast(new NullLiteral(),type.getTypeSignature().toString(),false,true);
   }
   checkArgument(Primitives.wrap(type.getJavaType()).isInstance(object),"object.getClass (%s) and type.getJavaType (%s) do not agree",object.getClass(),type.getJavaType());
   if (type.equals(BIGINT)) {
@@ -28,12 +28,17 @@
       return new DoubleLiteral(object.toString());
     }
   }
-  if (type.equals(VARCHAR)) {
-    if (object instanceof Slice) {
-      return new StringLiteral(((Slice)object).toStringUtf8());
-    }
+  if (type instanceof VarcharType) {
     if (object instanceof String) {
-      return new StringLiteral((String)object);
+      object=Slices.utf8Slice((String)object);
+    }
+    if (object instanceof Slice) {
+      Slice value=(Slice)object;
+      int length=SliceUtf8.countCodePoints(value);
+      if (length == ((VarcharType)type).getLength()) {
+        return new StringLiteral(value.toStringUtf8());
+      }
+      return new Cast(new StringLiteral(value.toStringUtf8()),type.getDisplayName(),false,true);
     }
     throw new IllegalArgumentException("object must be instance of Slice or String when type is VARCHAR");
   }
@@ -45,7 +50,7 @@
     BlockSerdeUtil.writeBlock(output,(Block)object);
     object=output.slice();
   }
-  if (object instanceof Slice && !type.equals(VARCHAR)) {
+  if (object instanceof Slice) {
     FunctionCall fromBase64=new FunctionCall(new QualifiedName("from_base64"),ImmutableList.of(new StringLiteral(VarbinaryFunctions.toBase64((Slice)object).toStringUtf8())));
     Signature signature=FunctionRegistry.getMagicLiteralFunctionSignature(type);
     return new FunctionCall(new QualifiedName(signature.getName()),ImmutableList.of(fromBase64));

@@ -13,6 +13,9 @@
   if (value.getType().equals(BIGINT) && type.equals(DOUBLE)) {
     value=NullableValue.of(DOUBLE,((Long)value.getValue()).doubleValue());
   }
+  if (value.getType() instanceof VarcharType && type instanceof VarcharType) {
+    value=NullableValue.of(type,value.getValue());
+  }
   checkState(value.isNull() || value.getType().equals(type),"INVARIANT: comparison should be working on the same types");
   return createComparisonExtractionResult(normalized.getComparisonType(),symbol,type,value.getValue(),complement);
 }

@@ -5,6 +5,14 @@
   if (UnknownType.NAME.equals(secondType.getBase())) {
     return Optional.of(firstType);
   }
+  for (  String varcharSubType : new String[]{RegexpType.NAME,LikePatternType.NAME,JsonPathType.NAME}) {
+    if (firstType.getBase().equals(StandardTypes.VARCHAR) && secondType.getBase().equals(varcharSubType)) {
+      return Optional.of(secondType);
+    }
+ else     if (secondType.getBase().equals(StandardTypes.VARCHAR) && firstType.getBase().equals(varcharSubType)) {
+      return Optional.of(firstType);
+    }
+  }
   List<TypeSignatureParameter> firstTypeTypeParameters=firstType.getParameters();
   List<TypeSignatureParameter> secondTypeTypeParameters=secondType.getParameters();
   if (firstTypeTypeParameters.size() != secondTypeTypeParameters.size()) {
@@ -18,7 +26,7 @@
   for (int i=0; i < firstTypeTypeParameters.size(); i++) {
     TypeSignatureParameter firstParameter=firstTypeTypeParameters.get(i);
     TypeSignatureParameter secondParameter=secondTypeTypeParameters.get(i);
-    if (firstParameter.getKind() == secondParameter.getKind() && firstParameter.getKind() == ParameterKind.LONG_LITERAL) {
+    if (firstParameter.isLongLiteral() && secondParameter.isLongLiteral()) {
       typeParameters.add(TypeSignatureParameter.of(Math.max(firstParameter.getLongLiteral(),secondParameter.getLongLiteral())));
     }
  else     if (isCovariantParameterPosition(commonSuperTypeBase.get(),i)) {

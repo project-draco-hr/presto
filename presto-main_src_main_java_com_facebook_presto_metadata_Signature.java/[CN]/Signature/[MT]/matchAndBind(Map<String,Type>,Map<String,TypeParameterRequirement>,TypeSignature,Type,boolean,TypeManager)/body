@@ -16,44 +16,46 @@
       return type.equals(boundParameters.get(parameter.getBase()));
     }
   }
+  TypeSignature typeSignature=type.getTypeSignature();
+  boolean parametersMatched=true;
   if (!parameters.isEmpty()) {
-    if (type.getTypeParameters().size() != parameters.size()) {
+    if (typeSignature.getParameters().size() == parameters.size()) {
+      if (!matchAndBindParameters(boundParameters,typeParameters,parameter,type,allowCoercion,typeManager)) {
+        parametersMatched=false;
+      }
+    }
+ else {
+      parametersMatched=false;
+    }
+  }
+  if (typeParameters.containsKey(parameter.getBase())) {
+    TypeParameterRequirement typeParameterRequirement=typeParameters.get(parameter.getBase());
+    if (!typeParameterRequirement.canBind(type)) {
       return false;
     }
-    for (int i=0; i < parameters.size(); i++) {
-      Type componentType=type.getTypeParameters().get(i);
-      TypeSignatureParameter componentParameter=parameters.get(i);
-      TypeSignature componentSignature;
-switch (componentParameter.getKind()) {
-case TYPE_SIGNATURE:
-        componentSignature=componentParameter.getTypeSignature();
-      break;
-case NAMED_TYPE_SIGNATURE:
-    componentSignature=componentParameter.getNamedTypeSignature().getTypeSignature();
-  break;
-default :
-return false;
-}
-if (!matchAndBind(boundParameters,typeParameters,componentSignature,componentType,allowCoercion,typeManager)) {
-return false;
-}
-}
-}
-if (typeParameters.containsKey(parameter.getBase())) {
-TypeParameterRequirement typeParameterRequirement=typeParameters.get(parameter.getBase());
-if (!typeParameterRequirement.canBind(type)) {
-return false;
-}
-boundParameters.put(parameter.getBase(),type);
-return true;
-}
-if (!parameters.isEmpty()) {
-return type.getTypeSignature().getBase().equals(parameter.getBase());
-}
-if (allowCoercion) {
-return canCoerce(type,typeManager.getType(parseTypeSignature(parameter.getBase())));
-}
+    boundParameters.put(parameter.getBase(),type);
+    return true;
+  }
+  if (!parametersMatched && !typeSignature.getBase().equals(parameter.getBase())) {
+    if (allowCoercion && canCoerce(typeSignature,parameter)) {
+      return matchAndBind(boundParameters,typeParameters,parameter,requireNonNull(typeManager.getType(parseTypeSignature(parameter.getBase()))),true,typeManager);
+    }
  else {
-return type.equals(typeManager.getType(parseTypeSignature(parameter.getBase())));
-}
+      return false;
+    }
+  }
+  if (parametersMatched && !parameters.isEmpty()) {
+    return typeSignature.getBase().equals(parameter.getBase());
+  }
+  Type parameterType=typeManager.getType(parameter);
+  if (parameterType == null) {
+    return false;
+  }
+  if (allowCoercion) {
+    return canCoerce(type,parameterType);
+  }
+ else   if (parametersMatched) {
+    return typeSignature.getBase().equals(parameterType.getTypeSignature().getBase());
+  }
+  return false;
 }

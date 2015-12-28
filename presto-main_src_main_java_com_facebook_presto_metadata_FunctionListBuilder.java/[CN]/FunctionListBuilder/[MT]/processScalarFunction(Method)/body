@@ -1,2 +1,28 @@
 {
+  ScalarFunction scalarFunction=method.getAnnotation(ScalarFunction.class);
+  if (scalarFunction == null) {
+    return false;
+  }
+  checkValidMethod(method);
+  Optional<MethodHandle> instanceFactory=getInstanceFactory(method);
+  MethodHandle methodHandle=lookup().unreflect(method);
+  String name=scalarFunction.value();
+  if (name.isEmpty()) {
+    name=camelToSnake(method.getName());
+  }
+  SqlType returnTypeAnnotation=method.getAnnotation(SqlType.class);
+  checkArgument(returnTypeAnnotation != null,"Method %s return type does not have a @SqlType annotation",method);
+  LiteralParameters literalParametersAnnotation=method.getAnnotation(LiteralParameters.class);
+  Set<String> literalParameters=ImmutableSet.of();
+  if (literalParametersAnnotation != null) {
+    literalParameters=ImmutableSet.copyOf(literalParametersAnnotation.value());
+  }
+  Signature signature=new Signature(name.toLowerCase(ENGLISH),SCALAR,parseTypeSignature(returnTypeAnnotation.value(),literalParameters),parameterTypeSignatures(method,literalParameters));
+  verifyMethodSignature(method,signature.getReturnType(),signature.getArgumentTypes(),typeManager);
+  List<Boolean> nullableArguments=getNullableArguments(method);
+  scalar(signature,methodHandle,instanceFactory,scalarFunction.deterministic(),getDescription(method),scalarFunction.hidden(),method.isAnnotationPresent(Nullable.class),nullableArguments,literalParameters);
+  for (  String alias : scalarFunction.alias()) {
+    scalar(signature.withAlias(alias.toLowerCase(ENGLISH)),methodHandle,instanceFactory,scalarFunction.deterministic(),getDescription(method),scalarFunction.hidden(),method.isAnnotationPresent(Nullable.class),nullableArguments,literalParameters);
+  }
+  return true;
 }

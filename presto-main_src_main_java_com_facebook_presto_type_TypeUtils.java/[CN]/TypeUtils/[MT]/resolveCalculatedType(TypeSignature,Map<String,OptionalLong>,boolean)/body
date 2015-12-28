@@ -1,0 +1,30 @@
+{
+  ImmutableList.Builder<TypeSignatureParameter> parametersBuilder=ImmutableList.builder();
+  boolean failedToCalculateLiteral=false;
+  for (  TypeSignatureParameter parameter : typeSignature.getParameters()) {
+switch (parameter.getKind()) {
+case TYPE_SIGNATURE:
+      parametersBuilder.add(TypeSignatureParameter.of(resolveCalculatedType(parameter.getTypeSignature(),inputs,allowExpressionsInSignature)));
+    break;
+case LITERAL_CALCULATION:
+{
+    OptionalLong optionalLong=TypeCalculation.calculateLiteralValue(parameter.getLiteralCalculation().getCalculation(),inputs,allowExpressionsInSignature);
+    if (optionalLong.isPresent()) {
+      parametersBuilder.add(TypeSignatureParameter.of(optionalLong.getAsLong()));
+    }
+ else {
+      failedToCalculateLiteral=true;
+    }
+    break;
+  }
+default :
+parametersBuilder.add(parameter);
+break;
+}
+}
+List<TypeSignatureParameter> calculatedParameters=parametersBuilder.build();
+if (failedToCalculateLiteral && !calculatedParameters.isEmpty()) {
+throw new IllegalArgumentException(format("Could not evaluate type expression %s with parameter bindings %s",typeSignature,inputs));
+}
+return new TypeSignature(typeSignature.getBase(),calculatedParameters);
+}

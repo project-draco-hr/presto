@@ -4,7 +4,8 @@
       Expression rewrittenExpression=treeRewriter.defaultRewrite(node,context);
       Type coercion=analysis.getCoercion(node);
       if (coercion != null) {
-        rewrittenExpression=new Cast(rewrittenExpression,coercion.getTypeSignature().toString());
+        Type type=analysis.getType(node);
+        rewrittenExpression=new Cast(rewrittenExpression,coercion.getTypeSignature().toString(),false,isTypeOnlyCoercion(type.getTypeSignature(),coercion.getTypeSignature()));
       }
       return rewrittenExpression;
     }
@@ -29,10 +30,14 @@
       }
       QualifiedName mangledName=QualifiedName.of(mangleFieldReference(node.getFieldName()));
       FunctionCall functionCall=new FunctionCall(mangledName,ImmutableList.of(node.getBase()));
+      IdentityHashMap<Expression,Type> functionType=new IdentityHashMap<>();
+      functionType.put(functionCall,analysis.getType(node));
+      analysis.addTypes(functionType);
       Expression rewrittenExpression=rewriteFunctionCall(functionCall,context,treeRewriter);
+      Type type=analysis.getType(node);
       Type coercion=analysis.getCoercion(node);
       if (coercion != null) {
-        rewrittenExpression=new Cast(rewrittenExpression,coercion.getTypeSignature().toString());
+        rewrittenExpression=new Cast(rewrittenExpression,coercion.getTypeSignature().toString(),false,isTypeOnlyCoercion(type.getTypeSignature(),coercion.getTypeSignature()));
       }
       return rewrittenExpression;
     }

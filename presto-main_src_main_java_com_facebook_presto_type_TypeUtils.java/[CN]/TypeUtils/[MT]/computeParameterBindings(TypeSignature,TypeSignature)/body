@@ -1,0 +1,38 @@
+{
+  if (!declaredType.isCalculated()) {
+    return emptyMap();
+  }
+  Map<String,OptionalLong> inputs=new HashMap<>();
+  List<TypeSignatureParameter> declaredParameters=declaredType.getParameters();
+  List<TypeSignatureParameter> actualParameters=actualType.getParameters();
+  if (!declaredType.getBase().equals(actualType.getBase())) {
+    checkArgument(actualParameters.isEmpty(),"Expected empty argument list for actual type with different base");
+    for (    TypeSignatureParameter parameter : declaredParameters) {
+      if (parameter.isLiteralCalculation()) {
+        inputs.put(parameter.getLiteralCalculation().getCalculation().toUpperCase(Locale.US),OptionalLong.empty());
+      }
+    }
+    return inputs;
+  }
+  if (declaredParameters.size() != actualParameters.size()) {
+    throw new IllegalArgumentException(format("Number of parameters for declared type %s don't match actual type %s",declaredType,actualType));
+  }
+  for (int index=0; index < declaredParameters.size(); index++) {
+    TypeSignatureParameter declaredParameter=declaredParameters.get(index);
+    TypeSignatureParameter actualParameter=actualParameters.get(index);
+    if (declaredParameter.isTypeSignature()) {
+      checkState(actualParameter.isTypeSignature(),"declared type %s doesn't match actual type %s",declaredType,actualType);
+      if (declaredParameter.isCalculated()) {
+        inputs.putAll(computeParameterBindings(declaredParameter.getTypeSignature(),actualParameter.getTypeSignature()));
+      }
+    }
+ else     if (declaredParameter.isLiteralCalculation()) {
+      TypeLiteralCalculation calculation=declaredParameter.getLiteralCalculation();
+      if (!actualParameter.isLongLiteral()) {
+        throw new IllegalArgumentException(format("Expected type %s parameter %s to be a numeric literal",actualType,index));
+      }
+      inputs.put(calculation.getCalculation().toUpperCase(Locale.US),OptionalLong.of(actualParameter.getLongLiteral()));
+    }
+  }
+  return inputs;
+}
