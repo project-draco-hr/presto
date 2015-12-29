@@ -1,0 +1,16 @@
+{
+  for (int field=0; field < fieldCount; field++) {
+    if (columns[field].isNull(position)) {
+      tableInspector.setStructFieldData(row,structFields.get(field),null);
+    }
+ else {
+      setters[field].setField(columns[field],position);
+    }
+  }
+  try {
+    recordWriter.write(serializer.serialize(row,tableInspector));
+  }
+ catch (  SerDeException|IOException e) {
+    throw new PrestoException(HIVE_WRITER_ERROR,e);
+  }
+}

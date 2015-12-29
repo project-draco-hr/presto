@@ -1,0 +1,33 @@
+{
+  if (type.equals(BooleanType.BOOLEAN)) {
+    return new BooleanFieldSetter(rowInspector,row,field);
+  }
+  if (type.equals(BigintType.BIGINT)) {
+    return new BigintFieldBuilder(rowInspector,row,field);
+  }
+  if (type.equals(DoubleType.DOUBLE)) {
+    return new DoubleFieldSetter(rowInspector,row,field);
+  }
+  if (type.equals(VarcharType.VARCHAR)) {
+    return new VarcharFieldSetter(rowInspector,row,field);
+  }
+  if (type.equals(VarbinaryType.VARBINARY)) {
+    return new BinaryFieldSetter(rowInspector,row,field);
+  }
+  if (type.equals(DateType.DATE)) {
+    return new DateFieldSetter(rowInspector,row,field);
+  }
+  if (type.equals(TimestampType.TIMESTAMP)) {
+    return new TimestampFieldSetter(rowInspector,row,field);
+  }
+  if (isArrayType(type)) {
+    return new ArrayFieldSetter(rowInspector,row,field,type.getTypeParameters().get(0));
+  }
+  if (isMapType(type)) {
+    return new MapFieldSetter(rowInspector,row,field,type.getTypeParameters().get(0),type.getTypeParameters().get(1));
+  }
+  if (isRowType(type)) {
+    return new RowFieldSetter(rowInspector,row,field,type.getTypeParameters());
+  }
+  throw new IllegalArgumentException("unsupported type: " + type);
+}

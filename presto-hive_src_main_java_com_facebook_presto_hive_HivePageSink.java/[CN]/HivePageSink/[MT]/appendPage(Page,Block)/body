@@ -15,11 +15,13 @@
     int writerIndex=indexes[position];
     HiveRecordWriter writer=writers[writerIndex];
     if (writer == null) {
-      buildRow(partitionColumnTypes,partitionRow,partitionBlocks,position);
+      for (int field=0; field < partitionBlocks.length; field++) {
+        Object value=getField(partitionColumnTypes.get(field),partitionBlocks[field],position);
+        partitionRow.set(field,value);
+      }
       writer=createWriter(partitionRow);
       writers[writerIndex]=writer;
     }
-    buildRow(dataColumnTypes,dataRow,dataBlocks,position);
-    writer.addRow(dataRow);
+    writer.addRow(dataBlocks,position);
   }
 }
