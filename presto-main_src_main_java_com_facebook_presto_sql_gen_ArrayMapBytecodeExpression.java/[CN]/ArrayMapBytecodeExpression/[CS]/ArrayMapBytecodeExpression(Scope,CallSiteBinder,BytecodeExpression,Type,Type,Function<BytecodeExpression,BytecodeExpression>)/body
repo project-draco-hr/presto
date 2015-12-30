@@ -1,0 +1,24 @@
+{
+  super(type(Block.class));
+  body=new BytecodeBlock();
+  Variable blockBuilder=scope.declareVariable(BlockBuilder.class,"blockBuilder_" + NEXT_VARIABLE_ID.getAndIncrement());
+  body.append(blockBuilder.set(constantType(binder,toType).invoke("createBlockBuilder",BlockBuilder.class,newInstance(BlockBuilderStatus.class),array.invoke("getPositionCount",int.class))));
+  Variable position=scope.declareVariable(int.class,"position_" + NEXT_VARIABLE_ID.getAndIncrement());
+  BytecodeBlock mapElement;
+  String mapperDescription;
+  if (fromType instanceof UnknownType) {
+    mapElement=new BytecodeBlock().comment("unreachable code");
+    mapperDescription="null";
+  }
+ else {
+    Variable element=scope.declareVariable(fromType.getJavaType(),"element_" + NEXT_VARIABLE_ID.getAndIncrement());
+    Variable newElement=scope.declareVariable(toType.getJavaType(),"newElement_" + NEXT_VARIABLE_ID.getAndIncrement());
+    SqlTypeBytecodeExpression elementTypeConstant=constantType(binder,fromType);
+    SqlTypeBytecodeExpression newElementTypeConstant=constantType(binder,toType);
+    mapElement=new BytecodeBlock().append(element.set(elementTypeConstant.getValue(array,position))).append(newElement.set(mapper.apply(element))).append(newElementTypeConstant.writeValue(blockBuilder,newElement));
+    mapperDescription=mapper.apply(element).toString();
+  }
+  body.append(new ForLoop().initialize(position.set(constantInt(0))).condition(lessThan(position,array.invoke("getPositionCount",int.class))).update(incrementVariable(position,(byte)1)).body(new IfStatement().condition(array.invoke("isNull",boolean.class,position)).ifTrue(blockBuilder.invoke("appendNull",BlockBuilder.class).pop()).ifFalse(mapElement)));
+  body.append(blockBuilder.invoke("build",Block.class));
+  oneLineDescription="arrayMap(" + array + ", element -> "+ mapperDescription+ ")";
+}

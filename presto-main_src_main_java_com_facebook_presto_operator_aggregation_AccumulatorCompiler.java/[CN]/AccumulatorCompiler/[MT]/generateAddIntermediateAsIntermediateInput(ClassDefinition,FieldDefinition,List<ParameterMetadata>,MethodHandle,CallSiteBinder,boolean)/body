@@ -1,15 +1,15 @@
 {
   MethodDefinition method=declareAddIntermediate(definition,grouped);
   Scope scope=method.getScope();
-  ByteCodeBlock body=method.getBody();
+  BytecodeBlock body=method.getBody();
   if (grouped) {
     generateEnsureCapacity(scope,stateField,body);
   }
   Variable positionVariable=scope.declareVariable(int.class,"position");
-  ByteCodeBlock loopBody=generateInvokeInputFunction(scope,stateField,positionVariable,null,ImmutableList.of(scope.getVariable("block")),parameterMetadatas,intermediateInputFunction,callSiteBinder,grouped);
+  BytecodeBlock loopBody=generateInvokeInputFunction(scope,stateField,positionVariable,null,ImmutableList.of(scope.getVariable("block")),parameterMetadatas,intermediateInputFunction,callSiteBinder,grouped);
   if (grouped) {
     IfStatement ifStatement=new IfStatement("if (!groupIdsBlock.isNull(position))").condition(not(scope.getVariable("groupIdsBlock").invoke("isNull",boolean.class,positionVariable))).ifTrue(loopBody);
-    loopBody=new ByteCodeBlock().append(ifStatement);
+    loopBody=new BytecodeBlock().append(ifStatement);
   }
   body.append(generateBlockNonNullPositionForLoop(scope,positionVariable,loopBody)).ret();
 }

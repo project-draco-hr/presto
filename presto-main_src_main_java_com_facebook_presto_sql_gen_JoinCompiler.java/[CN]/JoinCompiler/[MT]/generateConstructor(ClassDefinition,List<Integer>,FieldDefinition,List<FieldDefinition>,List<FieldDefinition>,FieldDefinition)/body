@@ -4,19 +4,19 @@
   MethodDefinition constructorDefinition=classDefinition.declareConstructor(a(PUBLIC),channels,hashChannel);
   Variable thisVariable=constructorDefinition.getThis();
   Variable blockIndex=constructorDefinition.getScope().declareVariable(int.class,"blockIndex");
-  ByteCodeBlock constructor=constructorDefinition.getBody().comment("super();").append(thisVariable).invokeConstructor(Object.class);
+  BytecodeBlock constructor=constructorDefinition.getBody().comment("super();").append(thisVariable).invokeConstructor(Object.class);
   constructor.comment("this.size = 0").append(thisVariable.setField(sizeField,constantLong(0L)));
   constructor.comment("Set channel fields");
   for (int index=0; index < channelFields.size(); index++) {
-    ByteCodeExpression channel=channels.invoke("get",Object.class,constantInt(index)).cast(type(List.class,Block.class));
+    BytecodeExpression channel=channels.invoke("get",Object.class,constantInt(index)).cast(type(List.class,Block.class));
     constructor.append(thisVariable.setField(channelFields.get(index),channel));
-    ByteCodeBlock loopBody=new ByteCodeBlock();
-    constructor.comment("for(blockIndex = 0; blockIndex < channel.size(); blockIndex++) { size += channel.get(i).getRetainedSizeInBytes() }").append(new ForLoop().initialize(blockIndex.set(constantInt(0))).condition(new ByteCodeBlock().append(blockIndex).append(channel.invoke("size",int.class)).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new ByteCodeBlock().incrementVariable(blockIndex,(byte)1)).body(loopBody));
+    BytecodeBlock loopBody=new BytecodeBlock();
+    constructor.comment("for(blockIndex = 0; blockIndex < channel.size(); blockIndex++) { size += channel.get(i).getRetainedSizeInBytes() }").append(new ForLoop().initialize(blockIndex.set(constantInt(0))).condition(new BytecodeBlock().append(blockIndex).append(channel.invoke("size",int.class)).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new BytecodeBlock().incrementVariable(blockIndex,(byte)1)).body(loopBody));
     loopBody.append(thisVariable).append(thisVariable).getField(sizeField).append(channel.invoke("get",Object.class,blockIndex).cast(type(Block.class)).invoke("getRetainedSizeInBytes",int.class).cast(long.class)).longAdd().putField(sizeField);
   }
   constructor.comment("Set join channel fields");
   for (int index=0; index < joinChannelFields.size(); index++) {
-    ByteCodeExpression joinChannel=channels.invoke("get",Object.class,constantInt(joinChannels.get(index))).cast(type(List.class,Block.class));
+    BytecodeExpression joinChannel=channels.invoke("get",Object.class,constantInt(joinChannels.get(index))).cast(type(List.class,Block.class));
     constructor.append(thisVariable.setField(joinChannelFields.get(index),joinChannel));
   }
   constructor.comment("Set hashChannel");

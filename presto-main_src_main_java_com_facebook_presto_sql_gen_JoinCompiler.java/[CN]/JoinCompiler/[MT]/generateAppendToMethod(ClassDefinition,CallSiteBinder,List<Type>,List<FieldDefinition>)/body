@@ -5,11 +5,11 @@
   Parameter outputChannelOffset=arg("outputChannelOffset",int.class);
   MethodDefinition appendToMethod=classDefinition.declareMethod(a(PUBLIC),"appendTo",type(void.class),blockIndex,blockPosition,pageBuilder,outputChannelOffset);
   Variable thisVariable=appendToMethod.getThis();
-  ByteCodeBlock appendToBody=appendToMethod.getBody();
+  BytecodeBlock appendToBody=appendToMethod.getBody();
   for (int index=0; index < channelFields.size(); index++) {
     Type type=types.get(index);
-    ByteCodeExpression typeExpression=constantType(callSiteBinder,type);
-    ByteCodeExpression block=thisVariable.getField(channelFields.get(index)).invoke("get",Object.class,blockIndex).cast(Block.class);
+    BytecodeExpression typeExpression=constantType(callSiteBinder,type);
+    BytecodeExpression block=thisVariable.getField(channelFields.get(index)).invoke("get",Object.class,blockIndex).cast(Block.class);
     appendToBody.comment("%s.appendTo(channel_%s.get(blockIndex), blockPosition, pageBuilder.getBlockBuilder(outputChannelOffset + %s));",type.getClass(),index,index).append(typeExpression).append(block).append(blockPosition).append(pageBuilder).append(outputChannelOffset).push(index).append(OpCode.IADD).invokeVirtual(PageBuilder.class,"getBlockBuilder",BlockBuilder.class,int.class).invokeInterface(Type.class,"appendTo",void.class,Block.class,int.class,BlockBuilder.class);
   }
   appendToBody.ret();

@@ -1,0 +1,21 @@
+{
+  Preconditions.checkArgument(arguments.size() == 2);
+  Variable wasNull=generator.wasNull();
+  BytecodeBlock block=new BytecodeBlock().comment("OR").setDescription("OR");
+  BytecodeNode left=generator.generate(arguments.get(0));
+  BytecodeNode right=generator.generate(arguments.get(1));
+  block.append(left);
+  IfStatement ifLeftIsNull=new IfStatement("if left wasNull...").condition(wasNull);
+  LabelNode end=new LabelNode("end");
+  ifLeftIsNull.ifTrue(new BytecodeBlock().comment("clear the null flag, pop left value off stack, and push left null flag on the stack (true)").append(wasNull.set(constantFalse())).pop(arguments.get(0).getType().getJavaType()).push(true));
+  LabelNode leftIsFalse=new LabelNode("leftIsFalse");
+  ifLeftIsNull.ifFalse(new BytecodeBlock().comment("if left is true, push true, and goto end").ifFalseGoto(leftIsFalse).push(true).gotoLabel(end).comment("left was false; push left null flag on the stack (false)").visitLabel(leftIsFalse).push(false));
+  block.append(ifLeftIsNull);
+  block.append(right);
+  IfStatement ifRightIsNull=new IfStatement("if right wasNull...").condition(wasNull);
+  ifRightIsNull.ifTrue().comment("right was null, pop the right value off the stack; wasNull flag remains set to TRUE").pop(arguments.get(1).getType().getJavaType());
+  LabelNode rightIsTrue=new LabelNode("rightIsTrue");
+  ifRightIsNull.ifFalse().comment("if right is true, pop left null flag off stack, push true and goto end").ifFalseGoto(rightIsTrue).pop(boolean.class).push(true).gotoLabel(end).comment("right was false; store left null flag (on stack) in wasNull variable, and push false").visitLabel(rightIsTrue).putVariable(wasNull).push(false);
+  block.append(ifRightIsNull).visitLabel(end);
+  return block;
+}

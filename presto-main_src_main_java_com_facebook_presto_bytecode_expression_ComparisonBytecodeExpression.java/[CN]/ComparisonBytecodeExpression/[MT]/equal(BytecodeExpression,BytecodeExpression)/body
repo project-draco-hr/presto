@@ -1,0 +1,32 @@
+{
+  requireNonNull(left,"left is null");
+  requireNonNull(right,"right is null");
+  checkArgument(left.getType().equals(right.getType()),"left and right must be the same type");
+  OpCode comparisonInstruction;
+  OpCode noMatchJumpInstruction;
+  Class<?> type=left.getType().getPrimitiveType();
+  if (type == int.class) {
+    comparisonInstruction=null;
+    noMatchJumpInstruction=IF_ICMPNE;
+  }
+ else   if (type == long.class) {
+    comparisonInstruction=LCMP;
+    noMatchJumpInstruction=IFNE;
+  }
+ else   if (type == float.class) {
+    comparisonInstruction=FCMPL;
+    noMatchJumpInstruction=IFNE;
+  }
+ else   if (type == double.class) {
+    comparisonInstruction=DCMPL;
+    noMatchJumpInstruction=IFNE;
+  }
+ else   if (type == null) {
+    comparisonInstruction=null;
+    noMatchJumpInstruction=IF_ACMPNE;
+  }
+ else {
+    throw new IllegalArgumentException("Less than does not support " + type);
+  }
+  return new ComparisonBytecodeExpression("==",comparisonInstruction,noMatchJumpInstruction,left,right);
+}

@@ -1,0 +1,13 @@
+{
+  if (type.getJavaType() == void.class) {
+    return new BytecodeBlock().comment("output.appendNull();").invokeInterface(BlockBuilder.class,"appendNull",BlockBuilder.class).pop();
+  }
+  Class<?> valueJavaType=type.getJavaType();
+  if (!valueJavaType.isPrimitive() && valueJavaType != Slice.class) {
+    valueJavaType=Object.class;
+  }
+  String methodName="write" + Primitives.wrap(valueJavaType).getSimpleName();
+  Variable tempValue=scope.createTempVariable(valueJavaType);
+  Variable tempOutput=scope.createTempVariable(BlockBuilder.class);
+  return new BytecodeBlock().comment("if (wasNull)").append(new IfStatement().condition(wasNullVariable).ifTrue(new BytecodeBlock().comment("output.appendNull();").pop(valueJavaType).invokeInterface(BlockBuilder.class,"appendNull",BlockBuilder.class).pop()).ifFalse(new BytecodeBlock().comment("%s.%s(output, %s)",type.getTypeSignature(),methodName,valueJavaType.getSimpleName()).putVariable(tempValue).putVariable(tempOutput).append(loadConstant(callSiteBinder.bind(type,Type.class))).getVariable(tempOutput).getVariable(tempValue).invokeInterface(Type.class,methodName,void.class,BlockBuilder.class,valueJavaType)));
+}

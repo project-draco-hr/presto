@@ -1,7 +1,7 @@
 {
   MethodDefinition method=declareAddIntermediate(definition,grouped);
   Scope scope=method.getScope();
-  ByteCodeBlock body=method.getBody();
+  BytecodeBlock body=method.getBody();
   Variable thisVariable=method.getThis();
   Variable block=scope.getVariable("block");
   Variable scratchState=scope.declareVariable(singleStateClass,"scratchState");
@@ -10,7 +10,7 @@
   if (grouped) {
     generateEnsureCapacity(scope,stateField,body);
   }
-  ByteCodeBlock loopBody=new ByteCodeBlock();
+  BytecodeBlock loopBody=new BytecodeBlock();
   if (grouped) {
     Variable groupIdsBlock=scope.getVariable("groupIdsBlock");
     loopBody.append(thisVariable.getField(stateField).invoke("setGroupId",void.class,groupIdsBlock.invoke("getGroupId",long.class,position)));
@@ -19,7 +19,7 @@
   loopBody.comment("combine(state, scratchState)").append(thisVariable.getField(stateField)).append(scratchState).append(invoke(callSiteBinder.bind(combineFunction),"combine"));
   if (grouped) {
     IfStatement ifStatement=new IfStatement("if (!groupIdsBlock.isNull(position))").condition(not(scope.getVariable("groupIdsBlock").invoke("isNull",boolean.class,position))).ifTrue(loopBody);
-    loopBody=new ByteCodeBlock().append(ifStatement);
+    loopBody=new BytecodeBlock().append(ifStatement);
   }
   body.append(generateBlockNonNullPositionForLoop(scope,position,loopBody)).ret();
 }

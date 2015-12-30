@@ -4,7 +4,7 @@
   Parameter types=arg("types",List.class);
   MethodDefinition method=classDefinition.declareMethod(a(PUBLIC),"processColumnar",type(Page.class),session,page,types);
   Scope scope=method.getScope();
-  ByteCodeBlock body=method.getBody();
+  BytecodeBlock body=method.getBody();
   Variable thisVariable=method.getThis();
   Variable selectedPositions=scope.declareVariable("selectedPositions",body,thisVariable.invoke("filterPage",int[].class,session,page));
   Variable cardinality=scope.declareVariable("cardinality",body,selectedPositions.length());
@@ -16,7 +16,7 @@
   Variable pageBuilder=scope.declareVariable("pageBuilder",body,newInstance(PageBuilder.class,cardinality,types));
   Variable outputBlocks=scope.declareVariable("outputBlocks",body,newArray(type(Block[].class),projections.size()));
   for (int projectionIndex=0; projectionIndex < projections.size(); projectionIndex++) {
-    List<ByteCodeExpression> params=ImmutableList.<ByteCodeExpression>builder().add(session).add(page).add(selectedPositions).add(pageBuilder).add(constantInt(projectionIndex)).build();
+    List<BytecodeExpression> params=ImmutableList.<BytecodeExpression>builder().add(session).add(page).add(selectedPositions).add(pageBuilder).add(constantInt(projectionIndex)).build();
     body.append(outputBlocks.setElement(projectionIndex,thisVariable.invoke(projectColumnarMethods.get(projectionIndex),params)));
   }
   body.append(newInstance(Page.class,cardinality,outputBlocks).ret());

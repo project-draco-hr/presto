@@ -1,0 +1,29 @@
+{
+  if (!Primitives.isWrapperType(type)) {
+    return NOP;
+  }
+  BytecodeBlock notNull=new BytecodeBlock().comment("box primitive");
+  Class<?> expectedCurrentStackType;
+  if (type == Long.class) {
+    notNull.invokeStatic(Long.class,"valueOf",Long.class,long.class);
+    expectedCurrentStackType=long.class;
+  }
+ else   if (type == Double.class) {
+    notNull.invokeStatic(Double.class,"valueOf",Double.class,double.class);
+    expectedCurrentStackType=double.class;
+  }
+ else   if (type == Boolean.class) {
+    notNull.invokeStatic(Boolean.class,"valueOf",Boolean.class,boolean.class);
+    expectedCurrentStackType=boolean.class;
+  }
+ else   if (type == Void.class) {
+    notNull.pushNull().checkCast(Void.class);
+    return notNull;
+  }
+ else {
+    throw new UnsupportedOperationException("not yet implemented: " + type);
+  }
+  BytecodeBlock condition=new BytecodeBlock().append(scope.getVariable("wasNull"));
+  BytecodeBlock wasNull=new BytecodeBlock().pop(expectedCurrentStackType).pushNull().checkCast(type);
+  return new IfStatement().condition(condition).ifTrue(wasNull).ifFalse(notNull);
+}

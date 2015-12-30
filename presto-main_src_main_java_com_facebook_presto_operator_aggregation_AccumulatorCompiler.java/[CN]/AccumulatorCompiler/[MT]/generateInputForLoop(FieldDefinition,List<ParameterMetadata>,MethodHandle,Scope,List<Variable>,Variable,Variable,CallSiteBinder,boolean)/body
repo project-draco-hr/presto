@@ -6,11 +6,11 @@
     sampleWeightVariable=scope.declareVariable(long.class,"sampleWeight");
   }
   Variable rowsVariable=scope.declareVariable(int.class,"rows");
-  ByteCodeBlock block=new ByteCodeBlock().append(page).invokeVirtual(Page.class,"getPositionCount",int.class).putVariable(rowsVariable).initializeVariable(positionVariable);
+  BytecodeBlock block=new BytecodeBlock().append(page).invokeVirtual(Page.class,"getPositionCount",int.class).putVariable(rowsVariable).initializeVariable(positionVariable);
   if (sampleWeightVariable != null) {
     block.initializeVariable(sampleWeightVariable);
   }
-  ByteCodeNode loopBody=generateInvokeInputFunction(scope,stateField,positionVariable,sampleWeightVariable,parameterVariables,parameterMetadatas,inputFunction,callSiteBinder,grouped);
+  BytecodeNode loopBody=generateInvokeInputFunction(scope,stateField,positionVariable,sampleWeightVariable,parameterVariables,parameterMetadatas,inputFunction,callSiteBinder,grouped);
   List<Boolean> nullable=new ArrayList<>();
   for (  ParameterMetadata metadata : parameterMetadatas) {
 switch (metadata.getParameterType()) {
@@ -28,15 +28,15 @@ checkState(nullable.size() == parameterVariables.size(),"Number of parameters do
 for (int i=0; i < parameterVariables.size(); i++) {
 if (!nullable.get(i)) {
 Variable variableDefinition=parameterVariables.get(i);
-loopBody=new IfStatement("if(!%s.isNull(position))",variableDefinition.getName()).condition(new ByteCodeBlock().getVariable(variableDefinition).getVariable(positionVariable).invokeInterface(Block.class,"isNull",boolean.class,int.class)).ifFalse(loopBody);
+loopBody=new IfStatement("if(!%s.isNull(position))",variableDefinition.getName()).condition(new BytecodeBlock().getVariable(variableDefinition).getVariable(positionVariable).invokeInterface(Block.class,"isNull",boolean.class,int.class)).ifFalse(loopBody);
 }
 }
 if (sampleWeightVariable != null) {
 loopBody=generateComputeSampleWeightAndCheckGreaterThanZero(loopBody,sampleWeightVariable,masksBlock,sampleWeightsBlock,positionVariable);
 }
  else {
-loopBody=new IfStatement("if(testMask(%s, position))",masksBlock.getName()).condition(new ByteCodeBlock().getVariable(masksBlock).getVariable(positionVariable).invokeStatic(CompilerOperations.class,"testMask",boolean.class,Block.class,int.class)).ifTrue(loopBody);
+loopBody=new IfStatement("if(testMask(%s, position))",masksBlock.getName()).condition(new BytecodeBlock().getVariable(masksBlock).getVariable(positionVariable).invokeStatic(CompilerOperations.class,"testMask",boolean.class,Block.class,int.class)).ifTrue(loopBody);
 }
-block.append(new ForLoop().initialize(new ByteCodeBlock().putVariable(positionVariable,0)).condition(new ByteCodeBlock().getVariable(positionVariable).getVariable(rowsVariable).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new ByteCodeBlock().incrementVariable(positionVariable,(byte)1)).body(loopBody));
+block.append(new ForLoop().initialize(new BytecodeBlock().putVariable(positionVariable,0)).condition(new BytecodeBlock().getVariable(positionVariable).getVariable(rowsVariable).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new BytecodeBlock().incrementVariable(positionVariable,(byte)1)).body(loopBody));
 return block;
 }

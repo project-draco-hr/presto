@@ -1,10 +1,10 @@
 {
   MethodDefinition method=classDefinition.declareMethod(a(PUBLIC),"getCurrentJoinPosition",type(long.class));
   Variable thisVariable=method.getThis();
-  ByteCodeBlock body=method.getBody().append(new IfStatement().condition(thisVariable.invoke("currentRowContainsNull",boolean.class)).ifTrue(constantLong(-1).ret()));
-  ByteCodeExpression position=thisVariable.getField(positionField);
-  ByteCodeExpression page=thisVariable.getField(probePageField);
-  ByteCodeExpression probeHashBlock=thisVariable.getField(probeHashBlockField);
+  BytecodeBlock body=method.getBody().append(new IfStatement().condition(thisVariable.invoke("currentRowContainsNull",boolean.class)).ifTrue(constantLong(-1).ret()));
+  BytecodeExpression position=thisVariable.getField(positionField);
+  BytecodeExpression page=thisVariable.getField(probePageField);
+  BytecodeExpression probeHashBlock=thisVariable.getField(probeHashBlockField);
   if (probeHashChannel.isPresent()) {
     body.append(thisVariable.getField(lookupSourceField).invoke("getJoinPosition",long.class,position,page,constantType(callSiteBinder,BigintType.BIGINT).invoke("getLong",long.class,probeHashBlock,position).cast(int.class))).retLong();
   }

@@ -1,0 +1,26 @@
+{
+  checkArgumentTypes(left,right);
+  OpCode comparisonInstruction;
+  OpCode noMatchJumpInstruction;
+  Class<?> type=left.getType().getPrimitiveType();
+  if (type == int.class) {
+    comparisonInstruction=null;
+    noMatchJumpInstruction=IF_ICMPGT;
+  }
+ else   if (type == long.class) {
+    comparisonInstruction=LCMP;
+    noMatchJumpInstruction=IFGT;
+  }
+ else   if (type == float.class) {
+    comparisonInstruction=FCMPG;
+    noMatchJumpInstruction=IFGT;
+  }
+ else   if (type == double.class) {
+    comparisonInstruction=DCMPG;
+    noMatchJumpInstruction=IFGT;
+  }
+ else {
+    throw new IllegalArgumentException("Less than does not support " + type);
+  }
+  return new ComparisonBytecodeExpression("<=",comparisonInstruction,noMatchJumpInstruction,left,right);
+}

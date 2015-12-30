@@ -1,0 +1,41 @@
+{
+  BytecodeGenerator generator;
+  if (call.getSignature().getName().equals(CAST)) {
+    generator=new CastCodeGenerator();
+  }
+ else {
+switch (call.getSignature().getName()) {
+case IF:
+      generator=new IfCodeGenerator();
+    break;
+case NULL_IF:
+  generator=new NullIfCodeGenerator();
+break;
+case SWITCH:
+generator=new SwitchCodeGenerator();
+break;
+case IS_NULL:
+generator=new IsNullCodeGenerator();
+break;
+case "IS_DISTINCT_FROM":
+generator=new IsDistinctFromCodeGenerator();
+break;
+case COALESCE:
+generator=new CoalesceCodeGenerator();
+break;
+case IN:
+generator=new InCodeGenerator(registry);
+break;
+case "AND":
+generator=new AndCodeGenerator();
+break;
+case "OR":
+generator=new OrCodeGenerator();
+break;
+default :
+generator=new FunctionCallCodeGenerator();
+}
+}
+BytecodeGeneratorContext generatorContext=new BytecodeGeneratorContext(this,scope,callSiteBinder,cachedInstanceBinder,registry);
+return generator.generateExpression(call.getSignature(),generatorContext,call.getType(),call.getArguments());
+}

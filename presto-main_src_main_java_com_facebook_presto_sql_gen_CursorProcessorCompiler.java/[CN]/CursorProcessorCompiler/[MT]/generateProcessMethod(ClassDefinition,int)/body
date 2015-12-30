@@ -8,8 +8,8 @@
   Variable completedPositionsVariable=scope.declareVariable(int.class,"completedPositions");
   method.getBody().comment("int completedPositions = 0;").putVariable(completedPositionsVariable,0);
   LabelNode done=new LabelNode("done");
-  ForLoop forLoop=new ForLoop().initialize(NOP).condition(new ByteCodeBlock().comment("completedPositions < count").getVariable(completedPositionsVariable).getVariable(count).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new ByteCodeBlock().comment("completedPositions++").incrementVariable(completedPositionsVariable,(byte)1));
-  ByteCodeBlock forLoopBody=new ByteCodeBlock().comment("if (pageBuilder.isFull()) break;").append(new ByteCodeBlock().getVariable(pageBuilder).invokeVirtual(PageBuilder.class,"isFull",boolean.class).ifTrueGoto(done)).comment("if (!cursor.advanceNextPosition()) break;").append(new ByteCodeBlock().getVariable(cursor).invokeInterface(RecordCursor.class,"advanceNextPosition",boolean.class).ifFalseGoto(done));
+  ForLoop forLoop=new ForLoop().initialize(NOP).condition(new BytecodeBlock().comment("completedPositions < count").getVariable(completedPositionsVariable).getVariable(count).invokeStatic(CompilerOperations.class,"lessThan",boolean.class,int.class,int.class)).update(new BytecodeBlock().comment("completedPositions++").incrementVariable(completedPositionsVariable,(byte)1));
+  BytecodeBlock forLoopBody=new BytecodeBlock().comment("if (pageBuilder.isFull()) break;").append(new BytecodeBlock().getVariable(pageBuilder).invokeVirtual(PageBuilder.class,"isFull",boolean.class).ifTrueGoto(done)).comment("if (!cursor.advanceNextPosition()) break;").append(new BytecodeBlock().getVariable(cursor).invokeInterface(RecordCursor.class,"advanceNextPosition",boolean.class).ifFalseGoto(done));
   forLoop.body(forLoopBody);
   IfStatement ifStatement=new IfStatement();
   ifStatement.condition().append(method.getThis()).getVariable(session).getVariable(cursor).invokeVirtual(classDefinition.getType(),"filter",type(boolean.class),type(ConnectorSession.class),type(RecordCursor.class));

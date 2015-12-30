@@ -3,8 +3,8 @@
   Parameter blockPosition=arg("blockPosition",int.class);
   MethodDefinition hashPositionMethod=classDefinition.declareMethod(a(PUBLIC),"hashPosition",type(int.class),blockIndex,blockPosition);
   Variable thisVariable=hashPositionMethod.getThis();
-  ByteCodeExpression hashChannel=thisVariable.getField(hashChannelField);
-  ByteCodeExpression bigintType=constantType(callSiteBinder,BigintType.BIGINT);
+  BytecodeExpression hashChannel=thisVariable.getField(hashChannelField);
+  BytecodeExpression bigintType=constantType(callSiteBinder,BigintType.BIGINT);
   IfStatement ifStatement=new IfStatement();
   ifStatement.condition(notEqual(hashChannel,constantNull(hashChannelField.getType())));
   ifStatement.ifTrue(bigintType.invoke("getLong",long.class,hashChannel.invoke("get",Object.class,blockIndex).cast(Block.class),blockPosition).cast(int.class).ret());
@@ -12,8 +12,8 @@
   Variable resultVariable=hashPositionMethod.getScope().declareVariable(int.class,"result");
   hashPositionMethod.getBody().push(0).putVariable(resultVariable);
   for (int index=0; index < joinChannelTypes.size(); index++) {
-    ByteCodeExpression type=constantType(callSiteBinder,joinChannelTypes.get(index));
-    ByteCodeExpression block=hashPositionMethod.getThis().getField(joinChannelFields.get(index)).invoke("get",Object.class,blockIndex).cast(Block.class);
+    BytecodeExpression type=constantType(callSiteBinder,joinChannelTypes.get(index));
+    BytecodeExpression block=hashPositionMethod.getThis().getField(joinChannelFields.get(index)).invoke("get",Object.class,blockIndex).cast(Block.class);
     hashPositionMethod.getBody().getVariable(resultVariable).push(31).append(OpCode.IMUL).append(typeHashCode(type,block,blockPosition)).append(OpCode.IADD).putVariable(resultVariable);
   }
   hashPositionMethod.getBody().getVariable(resultVariable).retInt();

@@ -1,0 +1,21 @@
+{
+  Preconditions.checkArgument(arguments.size() == 2);
+  Variable wasNull=generatorContext.wasNull();
+  RowExpression left=arguments.get(0);
+  RowExpression right=arguments.get(1);
+  Type leftType=left.getType();
+  Type rightType=right.getType();
+  Signature equalsSignature=generatorContext.getRegistry().resolveOperator(OperatorType.EQUAL,ImmutableList.of(leftType,rightType));
+  MethodHandle methodHandle=generatorContext.getRegistry().getScalarFunctionImplementation(equalsSignature).getMethodHandle();
+  Binding binding=generatorContext.getCallSiteBinder().bind(methodHandle);
+  BytecodeNode equalsCall=new BytecodeBlock().comment("equals(%s, %s)",leftType,rightType).append(invoke(binding,equalsSignature));
+  BytecodeNode neitherSideIsNull;
+  if (leftType instanceof UnknownType || rightType instanceof UnknownType) {
+    neitherSideIsNull=new BytecodeBlock().comment("unreachable code").push(false);
+  }
+ else {
+    neitherSideIsNull=new BytecodeBlock().append(equalsCall).invokeStatic(CompilerOperations.class,"not",boolean.class,boolean.class);
+  }
+  BytecodeBlock block=new BytecodeBlock().comment("IS DISTINCT FROM").comment("left").append(generatorContext.generate(left)).append(new IfStatement().condition(wasNull).ifTrue(new BytecodeBlock().pop(leftType.getJavaType()).append(wasNull.set(constantFalse())).comment("right is not null").append(generatorContext.generate(right)).pop(rightType.getJavaType()).append(wasNull).invokeStatic(CompilerOperations.class,"not",boolean.class,boolean.class)).ifFalse(new BytecodeBlock().comment("right").append(generatorContext.generate(right)).append(new IfStatement().condition(wasNull).ifTrue(new BytecodeBlock().pop(leftType.getJavaType()).pop(rightType.getJavaType()).push(true)).ifFalse(neitherSideIsNull)))).append(wasNull.set(constantFalse()));
+  return block;
+}
