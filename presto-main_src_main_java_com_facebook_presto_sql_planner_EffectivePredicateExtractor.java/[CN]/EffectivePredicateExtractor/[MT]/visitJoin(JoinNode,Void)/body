@@ -9,11 +9,11 @@ switch (node.getType()) {
 case INNER:
     return combineConjuncts(ImmutableList.<Expression>builder().add(leftPredicate).add(rightPredicate).addAll(joinConjuncts).build());
 case LEFT:
-  return combineConjuncts(ImmutableList.<Expression>builder().add(leftPredicate).addAll(transform(extractConjuncts(rightPredicate),expressionOrNullSymbols(in(node.getRight().getOutputSymbols())))).addAll(transform(joinConjuncts,expressionOrNullSymbols(in(node.getRight().getOutputSymbols())))).build());
+  return combineConjuncts(ImmutableList.<Expression>builder().add(leftPredicate).addAll(pullNullableConjunctsThroughOuterJoin(extractConjuncts(rightPredicate),in(node.getRight().getOutputSymbols()))).addAll(pullNullableConjunctsThroughOuterJoin(joinConjuncts,in(node.getRight().getOutputSymbols()))).build());
 case RIGHT:
-return combineConjuncts(ImmutableList.<Expression>builder().add(rightPredicate).addAll(transform(extractConjuncts(leftPredicate),expressionOrNullSymbols(in(node.getLeft().getOutputSymbols())))).addAll(transform(joinConjuncts,expressionOrNullSymbols(in(node.getLeft().getOutputSymbols())))).build());
+return combineConjuncts(ImmutableList.<Expression>builder().add(rightPredicate).addAll(pullNullableConjunctsThroughOuterJoin(extractConjuncts(leftPredicate),in(node.getLeft().getOutputSymbols()))).addAll(pullNullableConjunctsThroughOuterJoin(joinConjuncts,in(node.getLeft().getOutputSymbols()))).build());
 case FULL:
-return combineConjuncts(ImmutableList.<Expression>builder().addAll(transform(extractConjuncts(leftPredicate),expressionOrNullSymbols(in(node.getLeft().getOutputSymbols())))).addAll(transform(extractConjuncts(rightPredicate),expressionOrNullSymbols(in(node.getRight().getOutputSymbols())))).addAll(transform(joinConjuncts,expressionOrNullSymbols(in(node.getLeft().getOutputSymbols()),in(node.getRight().getOutputSymbols())))).build());
+return combineConjuncts(ImmutableList.<Expression>builder().addAll(pullNullableConjunctsThroughOuterJoin(extractConjuncts(leftPredicate),in(node.getLeft().getOutputSymbols()))).addAll(pullNullableConjunctsThroughOuterJoin(extractConjuncts(rightPredicate),in(node.getRight().getOutputSymbols()))).addAll(pullNullableConjunctsThroughOuterJoin(joinConjuncts,in(node.getLeft().getOutputSymbols()),in(node.getRight().getOutputSymbols()))).build());
 default :
 throw new UnsupportedOperationException("Unknown join type: " + node.getType());
 }
