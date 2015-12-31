@@ -53,7 +53,9 @@
     analyzer=ExpressionAnalyzer.create(analysis,session,metadata,sqlParser,accessControl,experimentalSyntaxEnabled);
     analyzer.analyze((Expression)optimizedExpression,output,context);
     analysis.addCoercions(analyzer.getExpressionCoercions());
-    Set<Expression> postJoinConditionConjuncts=new HashSet<>();
+    Set<Expression> postJoinConjuncts=new HashSet<>();
+    final Set<InPredicate> leftJoinInPredicates=new HashSet<>();
+    final Set<InPredicate> rightJoinInPredicates=new HashSet<>();
     for (    Expression conjunct : ExpressionUtils.extractConjuncts((Expression)optimizedExpression)) {
       conjunct=ExpressionUtils.normalize(conjunct);
       if (conjunct instanceof ComparisonExpression) {
@@ -74,18 +76,21 @@
         if (rightExpression != null) {
           ExpressionAnalysis leftExpressionAnalysis=analyzeExpression(leftExpression,left,context);
           ExpressionAnalysis rightExpressionAnalysis=analyzeExpression(rightExpression,right,context);
-          analysis.addJoinInPredicates(node,new Analysis.JoinInPredicates(leftExpressionAnalysis.getSubqueryInPredicates(),rightExpressionAnalysis.getSubqueryInPredicates()));
+          leftJoinInPredicates.addAll(leftExpressionAnalysis.getSubqueryInPredicates());
+          rightJoinInPredicates.addAll(rightExpressionAnalysis.getSubqueryInPredicates());
           addCoercionForJoinCriteria(node,leftExpression,rightExpression);
         }
  else {
-          postJoinConditionConjuncts.add(conjunct);
+          postJoinConjuncts.add(conjunct);
         }
       }
  else {
-        postJoinConditionConjuncts.add(conjunct);
+        postJoinConjuncts.add(conjunct);
       }
     }
-    analyzeExpression(ExpressionUtils.combineConjuncts(postJoinConditionConjuncts),output,context);
+    ExpressionAnalysis postJoinPredicatesConjunctsAnalysis=analyzeExpression(ExpressionUtils.combineConjuncts(postJoinConjuncts),output,context);
+    analysis.recordSubqueries(node,postJoinPredicatesConjunctsAnalysis);
+    analysis.addJoinInPredicates(node,new Analysis.JoinInPredicates(leftJoinInPredicates,rightJoinInPredicates));
     analysis.setJoinCriteria(node,(Expression)optimizedExpression);
   }
  else {
