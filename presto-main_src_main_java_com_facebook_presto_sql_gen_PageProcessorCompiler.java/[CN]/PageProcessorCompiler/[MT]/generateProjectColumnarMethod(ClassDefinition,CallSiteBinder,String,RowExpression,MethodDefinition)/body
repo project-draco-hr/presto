@@ -21,7 +21,7 @@
   Variable outputBlock=scope.declareVariable(Block.class,"outputBlock");
   Variable blockBuilder=scope.declareVariable("blockBuilder",body,pageBuilder.invoke("getBlockBuilder",BlockBuilder.class,projectionIndex));
   Variable type=scope.declareVariable("type",body,pageBuilder.invoke("getType",Type.class,projectionIndex));
-  BytecodeBlock projectBlock=new BytecodeBlock().append(new ForLoop().initialize(position.set(constantInt(0))).condition(lessThan(position,cardinality)).update(position.increment()).body(invokeProject(thisVariable,session,inputs,selectedPositions.getElement(position),blockBuilder,projectionMethod))).append(outputBlock.set(blockBuilder.invoke("build",Block.class)));
+  BytecodeBlock projectBlock=new BytecodeBlock().append(new ForLoop().initialize(position.set(constantInt(0))).condition(lessThan(position,cardinality)).update(position.increment()).body(invokeProject(thisVariable,session,inputs,selectedPositions.getElement(position),pageBuilder,projectionIndex,projectionMethod))).append(outputBlock.set(blockBuilder.invoke("build",Block.class)));
   if (isIdentityExpression(projection)) {
     body.append(new IfStatement().condition(equal(cardinality,positionCount)).ifTrue(outputBlock.set(inputs.get(0))).ifFalse(projectBlock));
   }

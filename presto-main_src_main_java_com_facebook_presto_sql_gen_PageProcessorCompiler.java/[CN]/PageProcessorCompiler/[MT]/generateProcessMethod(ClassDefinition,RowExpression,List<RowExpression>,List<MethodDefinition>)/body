@@ -16,17 +16,11 @@
   }
   Map<Integer,Variable> channelBlocks=builder.build();
   Map<RowExpression,List<Variable>> expressionInputBlocks=getExpressionInputBlocks(projections,filter,channelBlocks);
-  ImmutableList.Builder<Variable> variableBuilder=ImmutableList.<Variable>builder();
-  for (int projectionIndex=0; projectionIndex < projections.size(); projectionIndex++) {
-    Variable blockBuilder=scope.declareVariable("blockBuilder_" + projectionIndex,body,pageBuilder.invoke("getBlockBuilder",BlockBuilder.class,constantInt(projectionIndex)));
-    variableBuilder.add(blockBuilder);
-  }
-  List<Variable> blockBuilders=variableBuilder.build();
   Variable position=scope.declareVariable(int.class,"position");
   BytecodeBlock project=new BytecodeBlock().append(pageBuilder.invoke("declarePosition",void.class));
   for (int projectionIndex=0; projectionIndex < projections.size(); projectionIndex++) {
     RowExpression projection=projections.get(projectionIndex);
-    project.append(invokeProject(thisVariable,session,expressionInputBlocks.get(projection),position,blockBuilders.get(projectionIndex),projectionMethods.get(projectionIndex)));
+    project.append(invokeProject(thisVariable,session,expressionInputBlocks.get(projection),position,pageBuilder,constantInt(projectionIndex),projectionMethods.get(projectionIndex)));
   }
   LabelNode done=new LabelNode("done");
   ForLoop loop=new ForLoop().initialize(position.set(start)).condition(lessThan(position,end)).update(position.set(add(position,constantInt(1)))).body(new BytecodeBlock().append(new IfStatement().condition(pageBuilder.invoke("isFull",boolean.class)).ifTrue(jump(done))).append(new IfStatement().condition(invokeFilter(thisVariable,session,expressionInputBlocks.get(filter),position)).ifTrue(project)));

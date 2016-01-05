@@ -8,22 +8,14 @@
     body.append(page.ret());
     return;
   }
-  ImmutableMap.Builder<Integer,Variable> builder=ImmutableMap.builder();
-  for (  int channel : allInputChannels) {
-    Variable blockVariable=scope.declareVariable("block_" + channel,body,page.invoke("getBlock",Block.class,constantInt(channel)));
-    builder.put(channel,blockVariable);
-  }
-  Map<Integer,Variable> channelBlocks=builder.build();
-  Variable blocks=scope.declareVariable("blocks",body,page.invoke("getBlocks",Block[].class));
+  Variable index=scope.declareVariable(int.class,"index");
+  Variable channelCount=scope.declareVariable("channelCount",body,page.invoke("getChannelCount",int.class));
+  Variable blocks=scope.declareVariable("blocks",body,newArray(type(Block[].class),channelCount));
+  Variable inputBlock=scope.declareVariable(Block.class,"inputBlock");
   Variable positionCount=scope.declareVariable("positionCount",body,page.invoke("getPositionCount",int.class));
   Variable createNewPage=scope.declareVariable("createNewPage",body,constantFalse());
-  for (  Map.Entry<Integer,Variable> entry : channelBlocks.entrySet()) {
-    int channel=entry.getKey();
-    Variable inputBlock=entry.getValue();
-    IfStatement ifStmt=new IfStatement();
-    ifStmt.condition(inputBlock.instanceOf(LazyBlock.class)).ifTrue().append(blocks.setElement(channel,inputBlock.cast(LazyBlock.class).invoke("getBlock",Block.class))).append(createNewPage.set(constantTrue()));
-    body.append(ifStmt);
-  }
+  ForLoop forLoop=new ForLoop().initialize(index.set(constantInt(0))).condition(lessThan(index,channelCount)).update(index.increment()).body(new BytecodeBlock().append(inputBlock.set(page.invoke("getBlock",Block.class,index))).append(new IfStatement().condition(inputBlock.instanceOf(LazyBlock.class)).ifTrue(new BytecodeBlock().append(blocks.setElement(index,inputBlock.cast(LazyBlock.class).invoke("getBlock",Block.class))).append(createNewPage.set(constantTrue()))).ifFalse(blocks.setElement(index,inputBlock))));
+  body.append(forLoop);
   body.append(new IfStatement().condition(createNewPage).ifTrue(page.set(newInstance(Page.class,positionCount,blocks))));
   body.append(page.ret());
 }
