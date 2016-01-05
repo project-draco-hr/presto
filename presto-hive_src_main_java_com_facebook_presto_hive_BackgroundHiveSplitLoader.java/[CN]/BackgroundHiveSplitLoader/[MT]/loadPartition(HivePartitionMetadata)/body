@@ -22,16 +22,14 @@
     return;
   }
   FileSystem fs=hdfsEnvironment.getFileSystem(path);
-  if (bucket.isPresent()) {
-    Optional<FileStatus> bucketFile=getBucketFile(bucket.get(),fs,path);
-    if (bucketFile.isPresent()) {
-      FileStatus file=bucketFile.get();
-      BlockLocation[] blockLocations=fs.getFileBlockLocations(file,0,file.getLen());
-      boolean splittable=isSplittable(inputFormat,fs,file.getPath());
-      hiveSplitSource.addToQueue(createHiveSplits(partitionName,file.getPath().toString(),blockLocations,0,file.getLen(),schema,partitionKeys,splittable,session,effectivePredicate));
-      return;
-    }
-  }
   HiveFileIterator iterator=new HiveFileIterator(path,fs,directoryLister,namenodeStats,partitionName,inputFormat,schema,partitionKeys,effectivePredicate);
+  if (bucket.isPresent()) {
+    List<LocatedFileStatus> locatedFileStatuses=listAndSortBucketFiles(iterator,bucket.get().getBucketCount());
+    FileStatus file=locatedFileStatuses.get(bucket.get().getBucketNumber());
+    BlockLocation[] blockLocations=fs.getFileBlockLocations(file,0,file.getLen());
+    boolean splittable=isSplittable(inputFormat,fs,file.getPath());
+    hiveSplitSource.addToQueue(createHiveSplits(partitionName,file.getPath().toString(),blockLocations,0,file.getLen(),schema,partitionKeys,splittable,session,effectivePredicate));
+    return;
+  }
   fileIterators.addLast(iterator);
 }
