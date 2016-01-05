@@ -18,7 +18,7 @@
     }
     PlanNode result=null;
     if (!partitionedChildren.isEmpty()) {
-      result=new ExchangeNode(idAllocator.getNextId(),ExchangeNode.Type.GATHER,new PartitionFunctionBinding(SINGLE_DISTRIBUTION,ImmutableList.of()),partitionedChildren,node.getOutputSymbols(),partitionedOutputLayouts);
+      result=new ExchangeNode(idAllocator.getNextId(),ExchangeNode.Type.GATHER,new PartitionFunctionBinding(SINGLE_DISTRIBUTION,node.getOutputSymbols(),ImmutableList.of()),partitionedChildren,partitionedOutputLayouts);
       unpartitionedChildren.add(result);
       unpartitionedOutputLayouts.add(result.getOutputSymbols());
     }
@@ -44,7 +44,7 @@
     List<Symbol> sourceHashColumns=hashColumnsBuilder.build();
     PlanWithProperties source=node.getSources().get(sourceIndex).accept(this,context.withPreferredProperties(PreferredProperties.hashPartitioned(sourceHashColumns)));
     if (!source.getProperties().isHashPartitionedOn(sourceHashColumns)) {
-      source=withDerivedProperties(partitionedExchange(idAllocator.getNextId(),source.getNode(),new PartitionFunctionBinding(FIXED_HASH_DISTRIBUTION,sourceHashColumns,Optional.empty())),source.getProperties());
+      source=withDerivedProperties(partitionedExchange(idAllocator.getNextId(),source.getNode(),sourceHashColumns,Optional.empty()),source.getProperties());
     }
     partitionedSources.add(source.getNode());
     for (int column=0; column < node.getOutputSymbols().size(); column++) {
