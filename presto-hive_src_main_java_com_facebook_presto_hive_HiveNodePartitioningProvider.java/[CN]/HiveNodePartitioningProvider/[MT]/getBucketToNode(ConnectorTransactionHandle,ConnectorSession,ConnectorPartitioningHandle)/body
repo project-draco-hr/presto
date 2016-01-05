@@ -1,0 +1,12 @@
+{
+  HivePartitioningHandle handle=checkType(partitioningHandle,HivePartitioningHandle.class,"partitioningHandle");
+  Set<Node> nodesSet=nodeManager.getActiveDatasourceNodes(connectorId);
+  checkState(!nodesSet.isEmpty(),"No %s nodes available",connectorId);
+  List<Node> nodes=shuffle(nodesSet);
+  int bucketCount=handle.getBucketCount();
+  ImmutableMap.Builder<Integer,Node> distribution=ImmutableMap.builder();
+  for (int i=0; i < bucketCount; i++) {
+    distribution.put(i,nodes.get(i % nodes.size()));
+  }
+  return distribution.build();
+}

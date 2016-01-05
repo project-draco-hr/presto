@@ -1,0 +1,29 @@
+{
+  @Language("SQL") String createTable="" + "CREATE TABLE test_create_partitioned_bucketed_table_as " + "WITH ("+ "format = '" + storageFormat + "', "+ "partitioned_by = ARRAY[ 'orderstatus' ], "+ "clustered_by = ARRAY[ 'custkey' ], "+ "bucket_count = 11 "+ ") "+ "AS "+ "SELECT custkey, comment, orderstatus "+ "FROM tpch.tiny.orders";
+  assertUpdate(getSession().withSystemProperty("task_writer_count","3"),createTable,"SELECT count(*) from orders");
+  TableMetadata tableMetadata=getTableMetadata("test_create_partitioned_bucketed_table_as");
+  assertEquals(tableMetadata.getMetadata().getProperties().get(STORAGE_FORMAT_PROPERTY),storageFormat);
+  List<String> partitionedBy=ImmutableList.of("orderstatus");
+  assertEquals(tableMetadata.getMetadata().getProperties().get(PARTITIONED_BY_PROPERTY),partitionedBy);
+  for (  ColumnMetadata columnMetadata : tableMetadata.getColumns()) {
+    boolean partitionKey=partitionedBy.contains(columnMetadata.getName());
+    assertEquals(columnMetadata.getComment(),annotateColumnComment(null,partitionKey));
+  }
+  assertEquals(tableMetadata.getMetadata().getProperties().get(CLUSTERED_BY_PROPERTY),ImmutableList.of("custkey"));
+  assertEquals(tableMetadata.getMetadata().getProperties().get(BUCKET_COUNT_PROPERTY),11);
+  List<?> partitions=getPartitions("test_create_partitioned_bucketed_table_as");
+  assertEquals(partitions.size(),3);
+  assertQuery("SELECT * from test_create_partitioned_bucketed_table_as","SELECT custkey, comment, orderstatus FROM orders");
+  try {
+    assertUpdate("INSERT INTO test_create_partitioned_bucketed_table_as VALUES (1, 'comment', 'O')",1);
+    fail("expected failure");
+  }
+ catch (  Exception e) {
+    assertEquals(e.getMessage(),"Can not insert into existing partitions of bucketed Hive table");
+  }
+  for (int i=1; i <= 30; i++) {
+    assertQuery(format("SELECT * from test_create_partitioned_bucketed_table_as where custkey = %d",i),format("SELECT custkey, comment, orderstatus FROM orders where custkey = %d",i));
+  }
+  assertUpdate("DROP TABLE test_create_partitioned_bucketed_table_as");
+  assertFalse(queryRunner.tableExists(getSession(),"test_create_partitioned_bucketed_table_as"));
+}

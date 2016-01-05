@@ -1,0 +1,13 @@
+{
+  ImmutableList.Builder<HiveColumnHandle> columns=ImmutableList.builder();
+  int hiveColumnIndex=0;
+  for (  FieldSchema field : table.getSd().getCols()) {
+    TypeInfo typeInfo=getTypeInfoFromTypeString(field.getType());
+    if (HiveType.isSupportedType(typeInfo)) {
+      HiveType hiveType=toHiveType(typeInfo);
+      columns.add(new HiveColumnHandle(connectorId,field.getName(),hiveType,hiveType.getTypeSignature(),hiveColumnIndex,false));
+    }
+    hiveColumnIndex++;
+  }
+  return columns.build();
+}

@@ -1,0 +1,11 @@
+{
+  boolean bucketColsSet=storageDescriptor.isSetBucketCols() && !storageDescriptor.getBucketCols().isEmpty();
+  boolean numBucketsSet=storageDescriptor.isSetNumBuckets() && storageDescriptor.getNumBuckets() > 0;
+  if (bucketColsSet != numBucketsSet) {
+    throw new PrestoException(HiveErrorCode.HIVE_INVALID_METADATA,"Only one of bucketCols and numBuckets is set in metadata of table/partition " + tablePartitionName);
+  }
+  if (!bucketColsSet) {
+    return Optional.empty();
+  }
+  return Optional.of(new HiveBucketProperty(storageDescriptor.getBucketCols(),storageDescriptor.getNumBuckets()));
+}

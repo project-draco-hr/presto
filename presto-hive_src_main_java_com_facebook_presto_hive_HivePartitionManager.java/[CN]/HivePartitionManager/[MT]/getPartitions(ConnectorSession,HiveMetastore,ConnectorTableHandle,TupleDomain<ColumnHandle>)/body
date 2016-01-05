@@ -3,14 +3,15 @@
   requireNonNull(effectivePredicate,"effectivePredicate is null");
   SchemaTableName tableName=hiveTableHandle.getSchemaTableName();
   Table table=getTable(metastore,tableName);
+  Optional<HiveBucketHandle> hiveBucketHandle=getHiveBucketHandle(connectorId,table);
   List<HiveColumnHandle> partitionColumns=getPartitionKeyColumnHandles(connectorId,table);
   Optional<HiveBucketing.HiveBucket> bucket=getHiveBucket(table,TupleDomain.extractFixedValues(effectivePredicate).get());
   TupleDomain<HiveColumnHandle> compactEffectivePredicate=toCompactTupleDomain(effectivePredicate,domainCompactionThreshold);
   if (effectivePredicate.isNone()) {
-    return new HivePartitionResult(partitionColumns,ImmutableList.of(),TupleDomain.none(),TupleDomain.none());
+    return new HivePartitionResult(partitionColumns,ImmutableList.of(),TupleDomain.none(),TupleDomain.none(),hiveBucketHandle);
   }
   if (partitionColumns.isEmpty()) {
-    return new HivePartitionResult(partitionColumns,ImmutableList.of(new HivePartition(tableName,compactEffectivePredicate,bucket)),effectivePredicate,TupleDomain.none());
+    return new HivePartitionResult(partitionColumns,ImmutableList.of(new HivePartition(tableName,compactEffectivePredicate,bucket)),effectivePredicate,TupleDomain.none(),hiveBucketHandle);
   }
   List<String> partitionNames=getFilteredPartitionNames(metastore,tableName,partitionColumns,effectivePredicate);
   ImmutableList.Builder<HivePartition> partitions=ImmutableList.builder();
@@ -22,5 +23,5 @@
   }
   TupleDomain<ColumnHandle> remainingTupleDomain=TupleDomain.withColumnDomains(Maps.filterKeys(effectivePredicate.getDomains().get(),not(Predicates.in(partitionColumns))));
   TupleDomain<ColumnHandle> enforcedTupleDomain=TupleDomain.withColumnDomains(Maps.filterKeys(effectivePredicate.getDomains().get(),Predicates.in(partitionColumns)));
-  return new HivePartitionResult(partitionColumns,partitions.build(),remainingTupleDomain,enforcedTupleDomain);
+  return new HivePartitionResult(partitionColumns,partitions.build(),remainingTupleDomain,enforcedTupleDomain,hiveBucketHandle);
 }

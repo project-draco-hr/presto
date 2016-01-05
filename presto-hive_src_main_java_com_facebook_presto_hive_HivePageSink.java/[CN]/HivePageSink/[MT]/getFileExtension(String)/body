@@ -1,0 +1,19 @@
+{
+  if (!HiveConf.getBoolVar(conf,COMPRESSRESULT) || !HiveIgnoreKeyTextOutputFormat.class.getName().equals(outputFormat)) {
+    return "";
+  }
+  String compressionCodecClass=conf.get("mapred.output.compression.codec");
+  if (compressionCodecClass == null) {
+    return new DefaultCodec().getDefaultExtension();
+  }
+  try {
+    Class<? extends CompressionCodec> codecClass=conf.getClassByName(compressionCodecClass).asSubclass(CompressionCodec.class);
+    return ReflectionUtil.newInstance(codecClass,conf).getDefaultExtension();
+  }
+ catch (  ClassNotFoundException e) {
+    throw new PrestoException(HIVE_UNSUPPORTED_FORMAT,"Compression codec not found: " + compressionCodecClass,e);
+  }
+catch (  RuntimeException e) {
+    throw new PrestoException(HIVE_UNSUPPORTED_FORMAT,"Failed to load compression codec: " + compressionCodecClass,e);
+  }
+}
