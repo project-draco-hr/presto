@@ -12,7 +12,7 @@
   }
   Slice idsSlice=Slices.wrappedIntArray(ids);
   BlockEncoding blockEncoding=new DictionaryBlockEncoding(new VariableWidthBlockEncoding());
-  DictionaryBlock dictionaryBlock=new DictionaryBlock(positionCount,dictionary,idsSlice);
+  DictionaryBlock dictionaryBlock=new DictionaryBlock(positionCount,dictionary,idsSlice,false,UUID.randomUUID());
   DynamicSliceOutput sliceOutput=new DynamicSliceOutput(1024);
   blockEncoding.writeBlock(sliceOutput,dictionaryBlock);
   Block actualBlock=blockEncoding.readBlock(sliceOutput.slice().getInput());
@@ -20,4 +20,5 @@
   DictionaryBlock actualDictionaryBlock=(DictionaryBlock)actualBlock;
   assertBlockEquals(VARCHAR,actualDictionaryBlock.getDictionary(),dictionary);
   assertEquals(actualDictionaryBlock.getIds(),idsSlice);
+  assertEquals(actualDictionaryBlock.getDictionarySourceId(),dictionaryBlock.getDictionarySourceId());
 }

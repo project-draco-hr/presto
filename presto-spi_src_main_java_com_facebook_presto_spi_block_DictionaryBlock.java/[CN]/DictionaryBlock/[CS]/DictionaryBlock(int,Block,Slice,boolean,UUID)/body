@@ -1,0 +1,34 @@
+{
+  requireNonNull(dictionary,"dictionary is null");
+  requireNonNull(ids,"ids is null");
+  if (positionCount < 0) {
+    throw new IllegalArgumentException("positionCount is negative");
+  }
+  if (ids.length() != positionCount * SIZE_OF_INT) {
+    throw new IllegalArgumentException("ids length does not match with positionCount");
+  }
+  this.positionCount=positionCount;
+  this.dictionary=dictionary;
+  this.ids=ids;
+  this.dictionarySourceId=requireNonNull(dictionarySourceId,"dictionarySourceId is null");
+  this.retainedSizeInBytes=INSTANCE_SIZE + dictionary.getRetainedSizeInBytes() + ids.getRetainedSize();
+  if (dictionaryIsCompacted) {
+    this.sizeInBytes=this.retainedSizeInBytes;
+    this.uniqueIds=dictionary.getPositionCount();
+  }
+ else {
+    int sizeInBytes=0;
+    int uniqueIds=0;
+    boolean[] isReferenced=getReferencedPositions();
+    for (int position=0; position < isReferenced.length; position++) {
+      if (isReferenced[position]) {
+        if (!dictionary.isNull(position)) {
+          sizeInBytes+=dictionary.getLength(position);
+        }
+        uniqueIds++;
+      }
+    }
+    this.sizeInBytes=sizeInBytes + ids.length();
+    this.uniqueIds=uniqueIds;
+  }
+}
