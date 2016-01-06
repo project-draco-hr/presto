@@ -1,12 +1,13 @@
 {
-  requireNonNull(hashTypes,"hashTypes is null");
+  this.hashTypes=ImmutableList.copyOf(requireNonNull(hashTypes,"hashTypes is null"));
   checkArgument(hashTypes.size() == hashChannels.length,"hashTypes and hashChannels have different sizes");
-  requireNonNull(inputHashChannel,"inputHashChannel is null");
   checkArgument(expectedSize > 0,"expectedSize must be greater than zero");
-  this.types=inputHashChannel.isPresent() ? ImmutableList.copyOf(Iterables.concat(hashTypes,ImmutableList.of(BIGINT))) : ImmutableList.copyOf(hashTypes);
+  this.inputHashChannel=requireNonNull(inputHashChannel,"inputHashChannel is null");
+  this.types=inputHashChannel.isPresent() ? ImmutableList.copyOf(Iterables.concat(hashTypes,ImmutableList.of(BIGINT))) : this.hashTypes;
   this.channels=requireNonNull(hashChannels,"hashChannels is null").clone();
   this.maskChannel=requireNonNull(maskChannel,"maskChannel is null").orElse(-1);
-  this.hashGenerator=inputHashChannel.isPresent() ? new PrecomputedHashGenerator(inputHashChannel.get()) : new InterpretedHashGenerator(ImmutableList.copyOf(hashTypes),hashChannels);
+  this.hashGenerator=inputHashChannel.isPresent() ? new PrecomputedHashGenerator(inputHashChannel.get()) : new InterpretedHashGenerator(this.hashTypes,hashChannels);
+  this.processDictionary=processDictionary;
   ImmutableList.Builder<Integer> outputChannels=ImmutableList.builder();
   ImmutableList.Builder<ObjectArrayList<Block>> channelBuilders=ImmutableList.builder();
   for (int i=0; i < hashChannels.length; i++) {
