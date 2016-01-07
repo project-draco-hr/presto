@@ -6,13 +6,6 @@
   checkArgument(!catalogs.contains(catalogName),"A catalog already exists for %s",catalogName);
   String connectorId=getConnectorId(catalogName);
   checkState(!connectors.containsKey(connectorId),"A connector %s already exists",connectorId);
-  Class<?> connectorFactoryClass=connectorFactory.getClass();
-  if (connectorFactory instanceof LegacyTransactionConnectorFactory) {
-    connectorFactoryClass=((LegacyTransactionConnectorFactory)connectorFactory).getConnectorFactory().getClass();
-  }
-  try (ThreadContextClassLoader ignored=new ThreadContextClassLoader(connectorFactoryClass.getClassLoader())){
-    Connector connector=connectorFactory.create(connectorId,properties);
-    addCatalogConnector(catalogName,connectorId,connectorFactory,properties);
-  }
-   catalogs.add(catalogName);
+  addCatalogConnector(catalogName,connectorId,connectorFactory,properties);
+  catalogs.add(catalogName);
 }
