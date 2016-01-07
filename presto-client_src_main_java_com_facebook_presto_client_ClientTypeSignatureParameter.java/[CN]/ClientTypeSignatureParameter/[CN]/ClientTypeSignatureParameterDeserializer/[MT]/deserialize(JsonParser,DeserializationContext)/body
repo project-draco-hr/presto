@@ -1,0 +1,20 @@
+{
+  JsonNode node=jp.getCodec().readTree(jp);
+  ParameterKind kind=MAPPER.readValue(MAPPER.treeAsTokens(node.get("kind")),ParameterKind.class);
+  JsonParser jsonValue=MAPPER.treeAsTokens(node.get("value"));
+  Object value;
+switch (kind) {
+case TYPE_SIGNATURE:
+    value=MAPPER.readValue(jsonValue,ClientTypeSignature.class);
+  break;
+case NAMED_TYPE_SIGNATURE:
+value=MAPPER.readValue(jsonValue,NamedTypeSignature.class);
+break;
+case LONG_LITERAL:
+value=MAPPER.readValue(jsonValue,Long.class);
+break;
+default :
+throw new UnsupportedOperationException(format("Unsupported kind [%s]",kind));
+}
+return new ClientTypeSignatureParameter(kind,value);
+}
