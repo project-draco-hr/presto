@@ -1,10 +1,10 @@
 {
   DriverContext driverContext=taskContext.addPipelineContext(true,true).addDriverContext();
-  OperatorContext operatorContext=driverContext.addOperatorContext(0,ValuesOperator.class.getSimpleName());
+  OperatorContext operatorContext=driverContext.addOperatorContext(0,new PlanNodeId("test"),ValuesOperator.class.getSimpleName());
   List<Type> buildTypes=ImmutableList.<Type>of(BIGINT);
   RowPagesBuilder rowPagesBuilder=rowPagesBuilder(hashEnabled,Ints.asList(0),buildTypes);
   Operator buildOperator=new ValuesOperator(operatorContext,buildTypes,rowPagesBuilder.row(0).row(1).row(2).row(2).row(3).row((Object)null).build());
-  SetBuilderOperatorFactory setBuilderOperatorFactory=new SetBuilderOperatorFactory(1,buildOperator.getTypes().get(0),0,rowPagesBuilder.getHashChannel(),10);
+  SetBuilderOperatorFactory setBuilderOperatorFactory=new SetBuilderOperatorFactory(1,new PlanNodeId("test"),buildOperator.getTypes().get(0),0,rowPagesBuilder.getHashChannel(),10);
   Operator setBuilderOperator=setBuilderOperatorFactory.createOperator(driverContext);
   Driver driver=new Driver(driverContext,buildOperator,setBuilderOperator);
   while (!driver.isFinished()) {
@@ -13,7 +13,7 @@
   List<Type> probeTypes=ImmutableList.<Type>of(BIGINT);
   RowPagesBuilder rowPagesBuilderProbe=rowPagesBuilder(hashEnabled,Ints.asList(0),probeTypes);
   List<Page> probeInput=rowPagesBuilderProbe.addSequencePage(4,1).build();
-  HashSemiJoinOperatorFactory joinOperatorFactory=new HashSemiJoinOperatorFactory(2,setBuilderOperatorFactory.getSetProvider(),rowPagesBuilderProbe.getTypes(),0);
+  HashSemiJoinOperatorFactory joinOperatorFactory=new HashSemiJoinOperatorFactory(2,new PlanNodeId("test"),setBuilderOperatorFactory.getSetProvider(),rowPagesBuilderProbe.getTypes(),0);
   Operator joinOperator=joinOperatorFactory.createOperator(driverContext);
   MaterializedResult expected=resultBuilder(driverContext.getSession(),concat(probeTypes,ImmutableList.of(BOOLEAN))).row(1,true).row(2,true).row(3,true).row(4,null).build();
   OperatorAssertion.assertOperatorEquals(joinOperator,probeInput,expected,hashEnabled,ImmutableList.of(probeTypes.size()));

@@ -1,0 +1,23 @@
+{
+  requireNonNull(sourceTypes,"sourceType is null");
+  return new OperatorFactory(){
+    @Override public List<Type> getTypes(){
+      return ImmutableList.of();
+    }
+    @Override public Operator createOperator(    DriverContext driverContext){
+      MaterializedResult.Builder resultBuilder=materializedResultBuilder.get();
+      if (resultBuilder == null) {
+        materializedResultBuilder.compareAndSet(null,MaterializedResult.resultBuilder(driverContext.getSession(),sourceTypes));
+        resultBuilder=materializedResultBuilder.get();
+      }
+      OperatorContext operatorContext=driverContext.addOperatorContext(operatorId,planNodeId,MaterializingOperator.class.getSimpleName());
+      return new MaterializingOperator(operatorContext,resultBuilder);
+    }
+    @Override public void close(){
+    }
+    @Override public OperatorFactory duplicate(){
+      return createOutputOperator(operatorId,planNodeId,sourceTypes);
+    }
+  }
+;
+}

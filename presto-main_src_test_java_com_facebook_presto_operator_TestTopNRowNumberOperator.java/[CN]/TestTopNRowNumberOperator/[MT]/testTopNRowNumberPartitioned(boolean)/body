@@ -1,7 +1,7 @@
 {
   RowPagesBuilder rowPagesBuilder=rowPagesBuilder(hashEnabled,Ints.asList(0),BIGINT,DOUBLE);
   List<Page> input=rowPagesBuilder.row(1,0.3).row(2,0.2).row(3,0.1).row(3,0.91).pageBreak().row(1,0.4).pageBreak().row(1,0.5).row(1,0.6).row(2,0.7).row(2,0.8).pageBreak().row(2,0.9).build();
-  TopNRowNumberOperatorFactory operatorFactory=new TopNRowNumberOperatorFactory(0,ImmutableList.of(BIGINT,DOUBLE),Ints.asList(1,0),Ints.asList(0),ImmutableList.of(BIGINT),Ints.asList(1),ImmutableList.of(SortOrder.ASC_NULLS_LAST),3,false,Optional.empty(),10);
+  TopNRowNumberOperatorFactory operatorFactory=new TopNRowNumberOperatorFactory(0,new PlanNodeId("test"),ImmutableList.of(BIGINT,DOUBLE),Ints.asList(1,0),Ints.asList(0),ImmutableList.of(BIGINT),Ints.asList(1),ImmutableList.of(SortOrder.ASC_NULLS_LAST),3,false,Optional.empty(),10);
   Operator operator=operatorFactory.createOperator(driverContext);
   MaterializedResult expected=resultBuilder(driverContext.getSession(),DOUBLE,BIGINT,BIGINT).row(0.3,1,1).row(0.4,1,2).row(0.5,1,3).row(0.2,2,1).row(0.7,2,2).row(0.8,2,3).row(0.1,3,1).row(0.91,3,2).build();
   assertOperatorEquals(operator,input,expected);

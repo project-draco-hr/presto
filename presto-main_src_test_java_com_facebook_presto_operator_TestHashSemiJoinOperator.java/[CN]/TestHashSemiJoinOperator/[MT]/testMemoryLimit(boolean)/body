@@ -1,10 +1,10 @@
 {
   DriverContext driverContext=createTaskContext(executor,TEST_SESSION,new DataSize(100,BYTE)).addPipelineContext(true,true).addDriverContext();
-  OperatorContext operatorContext=driverContext.addOperatorContext(0,ValuesOperator.class.getSimpleName());
+  OperatorContext operatorContext=driverContext.addOperatorContext(0,new PlanNodeId("test"),ValuesOperator.class.getSimpleName());
   List<Type> buildTypes=ImmutableList.<Type>of(BIGINT);
   RowPagesBuilder rowPagesBuilder=rowPagesBuilder(hashEnabled,Ints.asList(0),buildTypes);
   Operator buildOperator=new ValuesOperator(operatorContext,buildTypes,rowPagesBuilder.addSequencePage(10000,20).build());
-  SetBuilderOperatorFactory setBuilderOperatorFactory=new SetBuilderOperatorFactory(1,buildOperator.getTypes().get(0),0,rowPagesBuilder.getHashChannel(),10);
+  SetBuilderOperatorFactory setBuilderOperatorFactory=new SetBuilderOperatorFactory(1,new PlanNodeId("test"),buildOperator.getTypes().get(0),0,rowPagesBuilder.getHashChannel(),10);
   Operator setBuilderOperator=setBuilderOperatorFactory.createOperator(driverContext);
   Driver driver=new Driver(driverContext,buildOperator,setBuilderOperator);
   while (!driver.isFinished()) {

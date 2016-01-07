@@ -1,13 +1,13 @@
 {
   PlanNodeId sourceId=new PlanNodeId("source");
   final List<Type> types=ImmutableList.<Type>of(VARCHAR,BIGINT,BIGINT);
-  TableScanOperator source=new NotBlockedTableScanOperator(driverContext.addOperatorContext(99,"values"),sourceId,new PageSourceProvider(){
+  TableScanOperator source=new NotBlockedTableScanOperator(driverContext.addOperatorContext(99,new PlanNodeId("test"),"values"),sourceId,new PageSourceProvider(){
     @Override public ConnectorPageSource createPageSource(    Session session,    Split split,    List<ColumnHandle> columns){
       return new FixedPageSource(rowPagesBuilder(types).addSequencePage(10,20,30,40).build());
     }
   }
 ,types,ImmutableList.<ColumnHandle>of());
-  BrokenOperator brokenOperator=new BrokenOperator(driverContext.addOperatorContext(0,"source"));
+  BrokenOperator brokenOperator=new BrokenOperator(driverContext.addOperatorContext(0,new PlanNodeId("test"),"source"));
   final Driver driver=new Driver(driverContext,source,brokenOperator);
   Future<Boolean> driverProcessFor=executor.submit(new Callable<Boolean>(){
     @Override public Boolean call() throws Exception {

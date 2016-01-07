@@ -2,14 +2,14 @@
   if (parallelBuild) {
     ParallelHashBuilder parallelHashBuilder=new ParallelHashBuilder(buildPages.getTypes(),hashChannels,buildPages.getHashChannel(),100,PARTITION_COUNT);
     DriverContext collectDriverContext=taskContext.addPipelineContext(true,true).addDriverContext();
-    ValuesOperatorFactory valuesOperatorFactory=new ValuesOperatorFactory(0,buildPages.getTypes(),buildPages.build());
-    OperatorFactory collectOperatorFactory=parallelHashBuilder.getCollectOperatorFactory(1);
+    ValuesOperatorFactory valuesOperatorFactory=new ValuesOperatorFactory(0,new PlanNodeId("test"),buildPages.getTypes(),buildPages.build());
+    OperatorFactory collectOperatorFactory=parallelHashBuilder.getCollectOperatorFactory(1,new PlanNodeId("test"));
     Driver driver=new Driver(collectDriverContext,valuesOperatorFactory.createOperator(collectDriverContext),collectOperatorFactory.createOperator(collectDriverContext));
     while (!driver.isFinished()) {
       driver.process();
     }
     PipelineContext buildPipeline=taskContext.addPipelineContext(true,true);
-    OperatorFactory buildOperatorFactory=parallelHashBuilder.getBuildOperatorFactory();
+    OperatorFactory buildOperatorFactory=parallelHashBuilder.getBuildOperatorFactory(new PlanNodeId("test"));
     for (int i=0; i < PARTITION_COUNT; i++) {
       DriverContext buildDriverContext=buildPipeline.addDriverContext();
       Driver buildDriver=new Driver(buildDriverContext,buildOperatorFactory.createOperator(buildDriverContext));
@@ -21,8 +21,8 @@
   }
  else {
     DriverContext driverContext=taskContext.addPipelineContext(true,true).addDriverContext();
-    ValuesOperatorFactory valuesOperatorFactory=new ValuesOperatorFactory(0,buildPages.getTypes(),buildPages.build());
-    HashBuilderOperatorFactory hashBuilderOperatorFactory=new HashBuilderOperatorFactory(1,buildPages.getTypes(),hashChannels,buildPages.getHashChannel(),100);
+    ValuesOperatorFactory valuesOperatorFactory=new ValuesOperatorFactory(0,new PlanNodeId("test"),buildPages.getTypes(),buildPages.build());
+    HashBuilderOperatorFactory hashBuilderOperatorFactory=new HashBuilderOperatorFactory(1,new PlanNodeId("test"),buildPages.getTypes(),hashChannels,buildPages.getHashChannel(),100);
     Driver driver=new Driver(driverContext,valuesOperatorFactory.createOperator(driverContext),hashBuilderOperatorFactory.createOperator(driverContext));
     while (!driver.isFinished()) {
       driver.process();

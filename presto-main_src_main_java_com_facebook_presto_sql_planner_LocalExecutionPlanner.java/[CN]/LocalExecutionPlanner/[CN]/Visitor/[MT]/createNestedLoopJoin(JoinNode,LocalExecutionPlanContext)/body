@@ -1,0 +1,17 @@
+{
+  PhysicalOperation probeSource=node.getLeft().accept(this,context);
+  LocalExecutionPlanContext buildContext=context.createSubContext();
+  PhysicalOperation buildSource=node.getRight().accept(this,buildContext);
+  NestedLoopBuildOperatorFactory nestedLoopBuildOperatorFactory=new NestedLoopBuildOperatorFactory(buildContext.getNextOperatorId(),node.getId(),buildSource.getTypes());
+  context.addDriverFactory(new DriverFactory(buildContext.isInputDriver(),false,ImmutableList.<OperatorFactory>builder().addAll(buildSource.getOperatorFactories()).add(nestedLoopBuildOperatorFactory).build()));
+  NestedLoopJoinPagesSupplier nestedLoopJoinPagesSupplier=nestedLoopBuildOperatorFactory.getNestedLoopJoinPagesSupplier();
+  ImmutableMap.Builder<Symbol,Integer> outputMappings=ImmutableMap.builder();
+  outputMappings.putAll(probeSource.getLayout());
+  int offset=probeSource.getTypes().size();
+  for (  Map.Entry<Symbol,Integer> entry : buildSource.getLayout().entrySet()) {
+    outputMappings.put(entry.getKey(),offset + entry.getValue());
+  }
+  OperatorFactory operatorFactory=new NestedLoopJoinOperatorFactory(context.getNextOperatorId(),node.getId(),nestedLoopJoinPagesSupplier,probeSource.getTypes());
+  PhysicalOperation operation=new PhysicalOperation(operatorFactory,outputMappings.build(),probeSource);
+  return operation;
+}

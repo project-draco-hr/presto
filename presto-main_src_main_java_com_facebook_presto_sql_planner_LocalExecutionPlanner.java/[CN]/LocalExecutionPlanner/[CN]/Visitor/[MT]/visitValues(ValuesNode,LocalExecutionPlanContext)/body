@@ -5,7 +5,7 @@
     outputTypes.add(type);
   }
   if (node.getRows().isEmpty()) {
-    OperatorFactory operatorFactory=new ValuesOperatorFactory(context.getNextOperatorId(),outputTypes,ImmutableList.of());
+    OperatorFactory operatorFactory=new ValuesOperatorFactory(context.getNextOperatorId(),node.getId(),outputTypes,ImmutableList.of());
     return new PhysicalOperation(operatorFactory,makeLayout(node));
   }
   PageBuilder pageBuilder=new PageBuilder(outputTypes);
@@ -17,6 +17,6 @@
       writeNativeValue(outputTypes.get(i),pageBuilder.getBlockBuilder(i),result);
     }
   }
-  OperatorFactory operatorFactory=new ValuesOperatorFactory(context.getNextOperatorId(),outputTypes,ImmutableList.of(pageBuilder.build()));
+  OperatorFactory operatorFactory=new ValuesOperatorFactory(context.getNextOperatorId(),node.getId(),outputTypes,ImmutableList.of(pageBuilder.build()));
   return new PhysicalOperation(operatorFactory,makeLayout(node));
 }

@@ -6,7 +6,7 @@
   List<Type> probeTypes=ImmutableList.<Type>of(VARCHAR);
   RowPagesBuilder probePages=rowPagesBuilder(probeTypes);
   List<Page> probeInput=probePages.row("A").row((String)null).row((String)null).row("A").row("B").build();
-  NestedLoopJoinOperatorFactory joinOperatorFactory=new NestedLoopJoinOperatorFactory(3,nestedLoopJoinPagesSupplier,ImmutableList.<Type>of(VARCHAR));
+  NestedLoopJoinOperatorFactory joinOperatorFactory=new NestedLoopJoinOperatorFactory(3,new PlanNodeId("test"),nestedLoopJoinPagesSupplier,ImmutableList.<Type>of(VARCHAR));
   Operator joinOperator=joinOperatorFactory.createOperator(taskContext.addPipelineContext(true,true).addDriverContext());
   MaterializedResult expected=resultBuilder(taskContext.getSession(),concat(probeTypes,buildPages.getTypes())).row("A","a").row(null,"a").row(null,"a").row("A","a").row("B","a").row("A","b").row(null,"b").row(null,"b").row("A","b").row("B","b").build();
   assertOperatorEquals(joinOperator,probeInput,expected);

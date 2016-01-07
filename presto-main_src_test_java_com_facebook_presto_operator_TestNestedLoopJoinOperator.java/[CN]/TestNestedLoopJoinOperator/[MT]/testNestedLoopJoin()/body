@@ -4,13 +4,13 @@
   NestedLoopJoinPagesSupplier nestedLoopJoinPagesSupplier=buildPageSource(taskContext,buildPages);
   RowPagesBuilder probePages=rowPagesBuilder(ImmutableList.<Type>of(VARCHAR,BIGINT,BIGINT));
   List<Page> probeInput=probePages.addSequencePage(2,0,1000,2000).build();
-  NestedLoopJoinOperatorFactory joinOperatorFactory=new NestedLoopJoinOperatorFactory(3,nestedLoopJoinPagesSupplier,ImmutableList.<Type>of(VARCHAR,BIGINT,BIGINT));
+  NestedLoopJoinOperatorFactory joinOperatorFactory=new NestedLoopJoinOperatorFactory(3,new PlanNodeId("test"),nestedLoopJoinPagesSupplier,ImmutableList.<Type>of(VARCHAR,BIGINT,BIGINT));
   Operator joinOperator=joinOperatorFactory.createOperator(taskContext.addPipelineContext(true,true).addDriverContext());
   MaterializedResult expected=resultBuilder(taskContext.getSession(),concat(probePages.getTypes(),buildPages.getTypes())).row("0",1000,2000,"20",30,40).row("0",1000,2000,"21",31,41).row("0",1000,2000,"22",32,42).row("1",1001,2001,"20",30,40).row("1",1001,2001,"21",31,41).row("1",1001,2001,"22",32,42).build();
   assertOperatorEquals(joinOperator,probeInput,expected);
   buildPages=rowPagesBuilder(ImmutableList.of(VARCHAR,BIGINT,BIGINT)).addSequencePage(2,20,30,40);
   nestedLoopJoinPagesSupplier=buildPageSource(taskContext,buildPages);
-  joinOperatorFactory=new NestedLoopJoinOperatorFactory(3,nestedLoopJoinPagesSupplier,ImmutableList.<Type>of(VARCHAR,BIGINT,BIGINT));
+  joinOperatorFactory=new NestedLoopJoinOperatorFactory(3,new PlanNodeId("test"),nestedLoopJoinPagesSupplier,ImmutableList.<Type>of(VARCHAR,BIGINT,BIGINT));
   joinOperator=joinOperatorFactory.createOperator(taskContext.addPipelineContext(true,true).addDriverContext());
   probePages=rowPagesBuilder(ImmutableList.<Type>of(VARCHAR,BIGINT,BIGINT));
   probeInput=probePages.addSequencePage(3,0,1000,2000).build();
