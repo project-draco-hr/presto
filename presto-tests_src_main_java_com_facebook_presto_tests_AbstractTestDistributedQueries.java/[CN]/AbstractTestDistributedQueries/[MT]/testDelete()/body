@@ -40,4 +40,11 @@
   assertUpdate("DELETE FROM test_delete WHERE orderkey = (SELECT orderkey FROM orders WHERE false)",0);
   assertUpdate("DELETE FROM test_delete WHERE (SELECT true)","SELECT count(*) - 1 FROM orders");
   assertUpdate("DROP TABLE test_delete");
+  assertExplainAnalyze("EXPLAIN ANALYZE CREATE TABLE analyze_test AS SELECT orderstatus FROM orders");
+  assertQuery("SELECT * from analyze_test","SELECT orderstatus FROM orders");
+  assertExplainAnalyze("EXPLAIN ANALYZE INSERT INTO analyze_test SELECT clerk FROM orders");
+  assertQuery("SELECT * from analyze_test","SELECT orderstatus FROM orders UNION ALL SELECT clerk FROM orders");
+  assertExplainAnalyze("EXPLAIN ANALYZE DELETE FROM analyze_test WHERE TRUE");
+  assertQuery("SELECT COUNT(*) from analyze_test","SELECT 0");
+  assertUpdate("DROP TABLE analyze_test");
 }

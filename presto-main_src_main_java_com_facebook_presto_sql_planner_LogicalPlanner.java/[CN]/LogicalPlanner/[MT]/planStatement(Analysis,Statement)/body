@@ -1,0 +1,29 @@
+{
+  if (statement instanceof CreateTableAsSelect) {
+    checkState(analysis.getCreateTableDestination().isPresent(),"Table destination is missing");
+    if (analysis.isCreateTableAsSelectNoOp()) {
+      List<Expression> emptyRow=ImmutableList.of();
+      PlanNode source=new ValuesNode(idAllocator.getNextId(),ImmutableList.of(),ImmutableList.of(emptyRow));
+      return new OutputNode(idAllocator.getNextId(),source,ImmutableList.of(),ImmutableList.of());
+    }
+ else {
+      return createOutputPlan(createTableCreationPlan(analysis,((CreateTableAsSelect)statement).getQuery()),analysis);
+    }
+  }
+ else   if (statement instanceof Insert) {
+    checkState(analysis.getInsert().isPresent(),"Insert handle is missing");
+    return createOutputPlan(createInsertPlan(analysis,(Insert)statement),analysis);
+  }
+ else   if (statement instanceof Delete) {
+    return createOutputPlan(createDeletePlan(analysis,(Delete)statement),analysis);
+  }
+ else   if (statement instanceof Query) {
+    return createOutputPlan(createRelationPlan(analysis,(Query)statement),analysis);
+  }
+ else   if (statement instanceof Explain && ((Explain)statement).isAnalyze()) {
+    return createOutputPlan(createExplainAnalyzePlan(analysis,(Explain)statement),analysis);
+  }
+ else {
+    throw new PrestoException(NOT_SUPPORTED,"Unsupported statement type " + statement.getClass().getSimpleName());
+  }
+}

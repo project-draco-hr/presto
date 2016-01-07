@@ -1,0 +1,24 @@
+{
+  checkArgument(planNodeStats1.getPlanNodeId().equals(planNodeStats2.getPlanNodeId()),"planNodeIds do not match. %s != %s",planNodeStats1.getPlanNodeId(),planNodeStats2.getPlanNodeId());
+  Optional<Long> outputPositions;
+  if (planNodeStats1.getOutputPositions().isPresent() && planNodeStats2.getOutputPositions().isPresent()) {
+    outputPositions=Optional.of(planNodeStats1.getOutputPositions().get() + planNodeStats2.getOutputPositions().get());
+  }
+ else   if (planNodeStats1.getOutputPositions().isPresent()) {
+    outputPositions=planNodeStats1.getOutputPositions();
+  }
+ else {
+    outputPositions=planNodeStats2.getOutputPositions();
+  }
+  Optional<DataSize> outputDataSize;
+  if (planNodeStats1.getOutputDataSize().isPresent() && planNodeStats2.getOutputDataSize().isPresent()) {
+    outputDataSize=Optional.of(succinctDataSize(planNodeStats1.getOutputDataSize().get().toBytes() + planNodeStats2.getOutputDataSize().get().toBytes(),BYTE));
+  }
+ else   if (planNodeStats1.getOutputDataSize().isPresent()) {
+    outputDataSize=planNodeStats1.getOutputDataSize();
+  }
+ else {
+    outputDataSize=planNodeStats2.getOutputDataSize();
+  }
+  return new PlanNodeStats(planNodeStats1.getPlanNodeId(),new Duration(planNodeStats1.getWallTime().toMillis() + planNodeStats2.getWallTime().toMillis(),MILLISECONDS),outputPositions,outputDataSize);
+}

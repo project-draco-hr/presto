@@ -19,4 +19,7 @@
   assertCreateTableAsSelect("test_union_all","SELECT orderdate, orderkey, totalprice FROM orders WHERE orderkey % 2 = 0 UNION ALL " + "SELECT orderdate, orderkey, totalprice FROM orders WHERE orderkey % 2 = 1","SELECT orderdate, orderkey, totalprice FROM orders","SELECT count(*) FROM orders");
   assertCreateTableAsSelect(getSession().withSystemProperty("redistribute_writes","true"),"test_union_all","SELECT orderdate, orderkey, totalprice FROM orders UNION ALL " + "SELECT DATE '2000-01-01', 1234567890, 1.23","SELECT orderdate, orderkey, totalprice FROM orders UNION ALL " + "SELECT DATE '2000-01-01', 1234567890, 1.23","SELECT count(*) + 1 FROM orders");
   assertCreateTableAsSelect(getSession().withSystemProperty("redistribute_writes","false"),"test_union_all","SELECT orderdate, orderkey, totalprice FROM orders UNION ALL " + "SELECT DATE '2000-01-01', 1234567890, 1.23","SELECT orderdate, orderkey, totalprice FROM orders UNION ALL " + "SELECT DATE '2000-01-01', 1234567890, 1.23","SELECT count(*) + 1 FROM orders");
+  assertExplainAnalyze("EXPLAIN ANALYZE CREATE TABLE analyze_test AS SELECT orderstatus FROM orders");
+  assertQuery("SELECT * from analyze_test","SELECT orderstatus FROM orders");
+  assertUpdate("DROP TABLE analyze_test");
 }
