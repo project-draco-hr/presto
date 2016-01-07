@@ -15,15 +15,15 @@
       try {
         if (limitedStatement.execute(sql)) {
           List<List<Object>> results=limiter.callWithTimeout(getResultSetConverter(limitedStatement.getResultSet()),timeout.toMillis() - stopwatch.elapsed(TimeUnit.MILLISECONDS),TimeUnit.MILLISECONDS,true);
-          return new QueryResult(State.SUCCESS,null,nanosSince(start),results);
+          return new QueryResult(State.SUCCESS,null,nanosSince(start),getCpuTime(limitedStatement.getResultSet()),results);
         }
  else {
-          return new QueryResult(State.SUCCESS,null,nanosSince(start),null);
+          return new QueryResult(State.SUCCESS,null,nanosSince(start),getCpuTime(limitedStatement.getResultSet()),null);
         }
       }
  catch (      AssertionError e) {
         if (e.getMessage().startsWith("unimplemented type:")) {
-          return new QueryResult(State.INVALID,null,null,ImmutableList.<List<Object>>of());
+          return new QueryResult(State.INVALID,null,null,null,ImmutableList.<List<Object>>of());
         }
         throw e;
       }
@@ -31,7 +31,7 @@ catch (      SQLException|VerifierException e) {
         throw e;
       }
 catch (      UncheckedTimeoutException e) {
-        return new QueryResult(State.TIMEOUT,null,null,ImmutableList.<List<Object>>of());
+        return new QueryResult(State.TIMEOUT,null,null,null,ImmutableList.<List<Object>>of());
       }
 catch (      InterruptedException e) {
         Thread.currentThread().interrupt();
@@ -48,9 +48,9 @@ catch (      Exception e) {
       exception=(Exception)e.getCause();
     }
     State state=isPrestoQueryInvalid(e) ? State.INVALID : State.FAILED;
-    return new QueryResult(state,exception,null,null);
+    return new QueryResult(state,exception,null,null,null);
   }
 catch (  VerifierException e) {
-    return new QueryResult(State.TOO_MANY_ROWS,e,null,null);
+    return new QueryResult(State.TOO_MANY_ROWS,e,null,null,null);
   }
 }
