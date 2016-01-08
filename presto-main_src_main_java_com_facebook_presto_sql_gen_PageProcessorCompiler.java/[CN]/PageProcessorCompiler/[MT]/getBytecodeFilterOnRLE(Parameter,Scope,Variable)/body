@@ -1,0 +1,9 @@
+{
+  Variable positionCount=scope.getVariable("positionCount");
+  Variable thisVariable=scope.getThis();
+  BytecodeBlock ifFilterOnRLEBlock=new BytecodeBlock();
+  Variable rleBlock=scope.declareVariable("rleBlock",ifFilterOnRLEBlock,blockVariable.cast(RunLengthEncodedBlock.class));
+  Variable rleValue=scope.declareVariable("rleValue",ifFilterOnRLEBlock,rleBlock.invoke("getValue",Block.class));
+  ifFilterOnRLEBlock.append(new IfStatement().condition(invokeFilter(thisVariable,session,singletonList(rleValue),constantInt(0))).ifTrue(invokeStatic(IntStream.class,"range",IntStream.class,constantInt(0),positionCount).invoke("toArray",int[].class).ret()).ifFalse(newArray(type(int[].class),constantInt(0)).ret()));
+  return ifFilterOnRLEBlock;
+}

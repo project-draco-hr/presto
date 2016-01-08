@@ -1,0 +1,11 @@
+{
+  Signature lessThan=internalOperator(LESS_THAN,BOOLEAN,ImmutableList.of(BIGINT,BIGINT));
+  CallExpression filter=new CallExpression(lessThan,BOOLEAN,ImmutableList.of(new InputReferenceExpression(0,BIGINT),new ConstantExpression(10L,BIGINT)));
+  PageProcessor processor=new ExpressionCompiler(createTestMetadataManager()).compilePageProcessor(filter,ImmutableList.of(new InputReferenceExpression(0,BIGINT))).get();
+  Page page=new Page(createRLEBlock(5L,100));
+  Page outputPage=processor.processColumnarDictionary(null,page,ImmutableList.of(BIGINT));
+  assertEquals(outputPage.getPositionCount(),100);
+  assertTrue(outputPage.getBlock(0) instanceof RunLengthEncodedBlock);
+  RunLengthEncodedBlock rle=(RunLengthEncodedBlock)outputPage.getBlock(0);
+  assertEquals(BIGINT.getLong(rle.getValue(),0),5L);
+}

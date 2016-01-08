@@ -8,6 +8,8 @@
   BytecodeBlock body=method.getBody();
   Variable positionCount=scope.declareVariable("positionCount",body,page.invoke("getPositionCount",int.class));
   Variable selectedPositions=scope.declareVariable("selectedPositions",body,newArray(type(int[].class),positionCount));
+  Variable selectedCount=scope.declareVariable("selectedCount",body,constantInt(0));
+  Variable position=scope.declareVariable(int.class,"position");
   List<Integer> filterChannels=getInputChannels(filter);
   ImmutableList.Builder<Variable> blockVariablesBuilder=ImmutableList.<Variable>builder();
   for (  int channel : filterChannels) {
@@ -15,10 +17,12 @@
     blockVariablesBuilder.add(blockVariable);
   }
   List<Variable> blockVariables=blockVariablesBuilder.build();
-  Variable selectedCount=scope.declareVariable("selectedCount",body,constantInt(0));
-  Variable position=scope.declareVariable(int.class,"position");
-  IfStatement ifStatement=new IfStatement();
-  ifStatement.condition(invokeFilter(thisVariable,session,blockVariables,position)).ifTrue().append(selectedPositions.setElement(selectedCount,position)).append(selectedCount.increment());
-  body.append(new ForLoop().initialize(position.set(constantInt(0))).condition(lessThan(position,positionCount)).update(position.increment()).body(ifStatement));
+  if (filterChannels.size() == 1) {
+    BytecodeBlock ifFilterOnDictionaryBlock=getBytecodeFilterOnDictionary(session,scope,blockVariables.get(0));
+    BytecodeBlock ifFilterOnRLEBlock=getBytecodeFilterOnRLE(session,scope,blockVariables.get(0));
+    body.append(new IfStatement().condition(blockVariables.get(0).instanceOf(DictionaryBlock.class)).ifTrue(ifFilterOnDictionaryBlock));
+    body.append(new IfStatement().condition(blockVariables.get(0).instanceOf(RunLengthEncodedBlock.class)).ifTrue(ifFilterOnRLEBlock));
+  }
+  body.append(new ForLoop().initialize(position.set(constantInt(0))).condition(lessThan(position,positionCount)).update(position.increment()).body(new IfStatement().condition(invokeFilter(thisVariable,session,blockVariables,position)).ifTrue(new BytecodeBlock().append(selectedPositions.setElement(selectedCount,position)).append(selectedCount.increment()))));
   body.append(invokeStatic(Arrays.class,"copyOf",int[].class,selectedPositions,selectedCount).ret());
 }
