@@ -1,7 +1,15 @@
 {
+  int inputChannel=getOnlyElement(projection.getInputChannels());
+  Block[] blocks=new Block[inputPage.getChannelCount()];
+  if (inputPage.getBlock(inputChannel) instanceof RunLengthEncodedBlock) {
+    RunLengthEncodedBlock rleBlock=(RunLengthEncodedBlock)inputPage.getBlock(inputChannel);
+    BlockBuilder builder=projection.getType().createBlockBuilder(new BlockBuilderStatus(),1);
+    blocks[inputChannel]=rleBlock.getValue();
+    projection.project(0,blocks,builder);
+    return new RunLengthEncodedBlock(builder.build(),selectedPositions.length);
+  }
   Block outputDictionary=projectDictionary(projection,inputPage);
   int[] outputIds=filterIds(projection,inputPage,selectedPositions);
-  int inputChannel=getOnlyElement(projection.getInputChannels());
   DictionaryBlock dictionaryBlock=(DictionaryBlock)inputPage.getBlock(inputChannel);
   DictionaryId sourceId=dictionarySourceIds.get(dictionaryBlock.getDictionarySourceId());
   if (sourceId == null) {

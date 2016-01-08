@@ -1,0 +1,13 @@
+{
+  PageProcessor processor=new ExpressionCompiler(createTestMetadataManager()).compilePageProcessor(new ConstantExpression(TRUE,BOOLEAN),ImmutableList.of(new InputReferenceExpression(0,BIGINT),new InputReferenceExpression(1,VARCHAR)));
+  Slice varcharValue=Slices.utf8Slice("hello");
+  Page page=new Page(RunLengthEncodedBlock.create(BIGINT,123L,100),RunLengthEncodedBlock.create(VARCHAR,varcharValue,100));
+  Page outputPage=processor.processColumnarDictionary(null,page,ImmutableList.of(BIGINT,VARCHAR));
+  assertEquals(outputPage.getPositionCount(),100);
+  assertTrue(outputPage.getBlock(0) instanceof RunLengthEncodedBlock);
+  assertTrue(outputPage.getBlock(1) instanceof RunLengthEncodedBlock);
+  RunLengthEncodedBlock rleBlock=(RunLengthEncodedBlock)outputPage.getBlock(0);
+  assertEquals(BIGINT.getLong(rleBlock.getValue(),0),123L);
+  RunLengthEncodedBlock rleBlock1=(RunLengthEncodedBlock)outputPage.getBlock(1);
+  assertEquals(VARCHAR.getSlice(rleBlock1.getValue(),0),varcharValue);
+}

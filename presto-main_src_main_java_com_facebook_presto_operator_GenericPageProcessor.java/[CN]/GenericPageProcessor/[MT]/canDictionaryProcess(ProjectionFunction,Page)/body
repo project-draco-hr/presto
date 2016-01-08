@@ -1,4 +1,11 @@
 {
+  if (!projection.isDeterministic()) {
+    return false;
+  }
   Set<Integer> inputChannels=projection.getInputChannels();
-  return projection.isDeterministic() && inputChannels.size() == 1 && (inputPage.getBlock(getOnlyElement(inputChannels)) instanceof DictionaryBlock);
+  if (inputChannels.size() != 1) {
+    return false;
+  }
+  Block block=inputPage.getBlock(getOnlyElement(inputChannels));
+  return block instanceof DictionaryBlock || block instanceof RunLengthEncodedBlock;
 }

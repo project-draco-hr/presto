@@ -1,0 +1,25 @@
+{
+  Parameter session=arg("session",ConnectorSession.class);
+  Parameter page=arg("page",Page.class);
+  Parameter selectedPositions=arg("selectedPositions",int[].class);
+  Parameter pageBuilder=arg("pageBuilder",PageBuilder.class);
+  Parameter projectionIndex=arg("projectionIndex",int.class);
+  List<Parameter> params=ImmutableList.<Parameter>builder().add(session).add(page).add(selectedPositions).add(pageBuilder).add(projectionIndex).build();
+  MethodDefinition method=classDefinition.declareMethod(a(PRIVATE),methodName,type(Block.class),params);
+  BytecodeBlock body=method.getBody();
+  Scope scope=method.getScope();
+  Variable thisVariable=method.getThis();
+  List<Integer> inputChannels=getInputChannels(projection);
+  if (inputChannels.size() != 1) {
+    body.append(thisVariable.invoke(projectColumnar,params).ret());
+    return method;
+  }
+  Variable inputBlock=scope.declareVariable("inputBlock",body,page.invoke("getBlock",Block.class,constantInt(getOnlyElement(inputChannels))));
+  body.append(new IfStatement().condition(inputBlock.instanceOf(RunLengthEncodedBlock.class)).ifFalse(thisVariable.invoke(projectColumnar,params).ret()));
+  Variable valueBlock=scope.declareVariable("valueBlock",body,inputBlock.cast(RunLengthEncodedBlock.class).invoke("getValue",Block.class));
+  Variable blockBuilder=scope.declareVariable("blockBuilder",body,pageBuilder.invoke("getBlockBuilder",BlockBuilder.class,projectionIndex));
+  body.append(invokeProject(thisVariable,session,Collections.singletonList(valueBlock),constantInt(0),pageBuilder,projectionIndex,projectionMethod));
+  Variable outputValueBlock=scope.declareVariable("outputValueBlock",body,blockBuilder.invoke("build",Block.class));
+  body.append(newInstance(RunLengthEncodedBlock.class,outputValueBlock,selectedPositions.length()).ret());
+  return method;
+}

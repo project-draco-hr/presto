@@ -16,9 +16,9 @@
     body.append(thisVariable.invoke(projectColumnar,columnarParams).ret());
     return method;
   }
-  Variable inputBlock=scope.declareVariable("inputBlock",body,page.invoke("getBlock",Block.class,constantInt(Iterables.getOnlyElement(inputChannels))));
-  IfStatement ifStatement=new IfStatement().condition(inputBlock.instanceOf(DictionaryBlock.class)).ifFalse(thisVariable.invoke(projectColumnar,columnarParams).ret());
-  body.append(ifStatement);
+  Variable inputBlock=scope.declareVariable("inputBlock",body,page.invoke("getBlock",Block.class,constantInt(getOnlyElement(inputChannels))));
+  body.append(new IfStatement().condition(inputBlock.instanceOf(RunLengthEncodedBlock.class)).ifTrue(thisVariable.invoke(projectRLE,columnarParams).ret()));
+  body.append(new IfStatement().condition(inputBlock.instanceOf(DictionaryBlock.class)).ifFalse(thisVariable.invoke(projectColumnar,columnarParams).ret()));
   Variable blockBuilder=scope.declareVariable("blockBuilder",body,pageBuilder.invoke("getBlockBuilder",BlockBuilder.class,projectionIndex));
   Variable cardinality=scope.declareVariable("cardinality",body,selectedPositions.length());
   Variable dictionary=scope.declareVariable(Block.class,"dictionary");
