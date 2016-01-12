@@ -7,22 +7,26 @@
       checkNotHoldsLock();
       resetErrors();
       List<Page> pages;
+      try {
 synchronized (HttpPageBufferClient.this) {
-        if (taskInstanceId == null) {
-          taskInstanceId=result.getTaskInstanceId();
-        }
-        if (!isNullOrEmpty(taskInstanceId) && !result.getTaskInstanceId().equals(taskInstanceId)) {
-          Throwable t=new PrestoException(REMOTE_TASK_MISMATCH,REMOTE_TASK_MISMATCH_ERROR);
-          handleFailure(t);
-          return;
-        }
-        if (result.getToken() == token) {
-          pages=result.getPages();
-          token=result.getNextToken();
-        }
+          if (taskInstanceId == null) {
+            taskInstanceId=result.getTaskInstanceId();
+          }
+          if (!isNullOrEmpty(taskInstanceId) && !result.getTaskInstanceId().equals(taskInstanceId)) {
+            throw new PrestoException(REMOTE_TASK_MISMATCH,REMOTE_TASK_MISMATCH_ERROR);
+          }
+          if (result.getToken() == token) {
+            pages=result.getPages();
+            token=result.getNextToken();
+          }
  else {
-          pages=ImmutableList.of();
+            pages=ImmutableList.of();
+          }
         }
+      }
+ catch (      PrestoException e) {
+        handleFailure(e);
+        return;
       }
       for (      Page page : pages) {
         pagesReceived.incrementAndGet();
