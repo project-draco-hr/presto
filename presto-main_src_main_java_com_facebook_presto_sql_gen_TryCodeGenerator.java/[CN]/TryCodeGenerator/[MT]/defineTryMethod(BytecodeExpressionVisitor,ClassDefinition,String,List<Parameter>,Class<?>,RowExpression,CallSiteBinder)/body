@@ -1,0 +1,11 @@
+{
+  MethodDefinition method=classDefinition.declareMethod(a(PUBLIC),methodName,type(returnType),inputParameters);
+  Scope calleeMethodScope=method.getScope();
+  BytecodeNode innerExpression=innerRowExpression.accept(innerExpressionVisitor,calleeMethodScope);
+  MethodType exceptionHandlerType=methodType(returnType,PrestoException.class);
+  MethodHandle exceptionHandler=methodHandle(TryCodeGenerator.class,EXCEPTION_HANDLER_NAME,PrestoException.class).asType(exceptionHandlerType);
+  Binding binding=callSiteBinder.bind(exceptionHandler);
+  method.comment("Try projection: %s",innerRowExpression.toString());
+  method.getBody().append(new TryCatch(new BytecodeBlock().append(innerExpression).append(boxPrimitiveIfNecessary(calleeMethodScope,returnType)),new BytecodeBlock().append(invoke(binding,EXCEPTION_HANDLER_NAME)),ParameterizedType.type(PrestoException.class))).ret(returnType);
+  return method;
+}

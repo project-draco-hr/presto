@@ -23,5 +23,10 @@
     check(!distinct,"DISTINCT not valid for 'coalesce' function",context);
     return new CoalesceExpression(getLocation(context),visit(context.expression(),Expression.class));
   }
+  if (name.toString().equalsIgnoreCase("try")) {
+    check(!window.isPresent(),"OVER clause not valid for 'try' function",context);
+    check(!distinct,"DISTINCT not valid for 'try' function",context);
+    return new TryExpression(getLocation(context),(Expression)visit(getOnlyElement(context.expression())));
+  }
   return new FunctionCall(getLocation(context),getQualifiedName(context.qualifiedName()),window,distinct,visit(context.expression(),Expression.class));
 }

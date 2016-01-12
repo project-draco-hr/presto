@@ -1,4 +1,5 @@
 {
+  Map<CallExpression,MethodDefinition> tryMethodMap=generateTryMethods(classDefinition,callSiteBinder,cachedInstanceBinder,projection,methodName);
   Parameter session=arg("session",ConnectorSession.class);
   Parameter cursor=arg("cursor",RecordCursor.class);
   Parameter output=arg("output",BlockBuilder.class);
@@ -7,6 +8,6 @@
   Scope scope=method.getScope();
   Variable wasNullVariable=scope.declareVariable(type(boolean.class),"wasNull");
   BytecodeBlock body=method.getBody().comment("boolean wasNull = false;").putVariable(wasNullVariable,false);
-  BytecodeExpressionVisitor visitor=new BytecodeExpressionVisitor(callSiteBinder,cachedInstanceBinder,fieldReferenceCompiler(cursor,wasNullVariable),metadata.getFunctionRegistry());
+  BytecodeExpressionVisitor visitor=new BytecodeExpressionVisitor(callSiteBinder,cachedInstanceBinder,fieldReferenceCompiler(cursor,wasNullVariable),metadata.getFunctionRegistry(),ImmutableList.of(session,cursor,wasNullVariable),tryMethodMap);
   body.getVariable(output).comment("evaluate projection: " + projection.toString()).append(projection.accept(visitor,scope)).append(generateWrite(callSiteBinder,scope,wasNullVariable,projection.getType())).ret();
 }
