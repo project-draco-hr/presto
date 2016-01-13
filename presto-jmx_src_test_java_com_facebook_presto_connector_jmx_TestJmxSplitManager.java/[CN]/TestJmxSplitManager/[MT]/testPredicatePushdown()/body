@@ -2,8 +2,8 @@
   for (  Node node : nodes) {
     String nodeIdentifier=node.getNodeIdentifier();
     TupleDomain<ColumnHandle> nodeTupleDomain=TupleDomain.fromFixedValues(ImmutableMap.of(columnHandle,NullableValue.of(VARCHAR,utf8Slice(nodeIdentifier))));
-    ConnectorPartitionResult connectorPartitionResult=splitManager.getPartitions(SESSION,tableHandle,nodeTupleDomain);
-    ConnectorSplitSource splitSource=splitManager.getPartitionSplits(SESSION,tableHandle,connectorPartitionResult.getPartitions());
+    ConnectorTableLayoutHandle layout=new JmxTableLayoutHandle(tableHandle,nodeTupleDomain);
+    ConnectorSplitSource splitSource=splitManager.getSplits(SESSION,layout);
     List<ConnectorSplit> allSplits=getAllSplits(splitSource);
     assertEquals(allSplits.size(),1);
     assertEquals(allSplits.get(0).getAddresses().size(),1);

@@ -2,8 +2,8 @@
   for (  SchemaTableName schemaTableName : metadata.listTables(SESSION,"jmx")) {
     JmxTableHandle tableHandle=metadata.getTableHandle(SESSION,schemaTableName);
     List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(SESSION,tableHandle).values());
-    ConnectorPartitionResult connectorPartitionResult=splitManager.getPartitions(SESSION,tableHandle,TupleDomain.all());
-    ConnectorSplitSource splitSource=splitManager.getPartitionSplits(SESSION,tableHandle,connectorPartitionResult.getPartitions());
+    ConnectorTableLayoutHandle layout=new JmxTableLayoutHandle(tableHandle,TupleDomain.all());
+    ConnectorSplitSource splitSource=splitManager.getSplits(SESSION,layout);
     List<ConnectorSplit> allSplits=getAllSplits(splitSource);
     assertEquals(allSplits.size(),nodes.size());
     ConnectorSplit split=allSplits.get(0);
