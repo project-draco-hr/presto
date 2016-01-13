@@ -1,6 +1,12 @@
 {
   return new Connector(){
-    @Override public ConnectorMetadata getMetadata(){
+    @Override public ConnectorTransactionHandle beginTransaction(    IsolationLevel isolationLevel,    boolean readOnly){
+      if (!READ_COMMITTED.meetsRequirementOf(isolationLevel)) {
+        throw new PrestoException(UNSUPPORTED_ISOLATION_LEVEL,format("Connector supported isolation level %s does not meet requested isolation level %s",READ_COMMITTED,isolationLevel));
+      }
+      return JmxTransactionHandle.INSTANCE;
+    }
+    @Override public ConnectorMetadata getMetadata(    ConnectorTransactionHandle transactionHandle){
       return new JmxMetadata(connectorId,mbeanServer);
     }
     @Override public ConnectorSplitManager getSplitManager(){
