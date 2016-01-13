@@ -1,6 +1,6 @@
 {
   MaterializedResult materializedResult=computeActual("" + "SELECT COUNT(*)\n" + "FROM (\n"+ "  SELECT DISTINCT *\n"+ "  FROM (\n"+ "    SELECT 'abc' as col1a, 500 as col1b FROM lineitem limit 1\n"+ "  ) table1\n"+ "  JOIN (\n"+ "    SELECT 'abc' as col2a FROM lineitem limit 1000000\n"+ "  ) table2\n"+ "  ON table1.col1a = table2.col2a\n"+ "  WHERE rand() * 1000 > table1.col1b\n"+ ")");
-  MaterializedRow row=Iterables.getOnlyElement(materializedResult.getMaterializedRows());
+  MaterializedRow row=getOnlyElement(materializedResult.getMaterializedRows());
   assertEquals(row.getFieldCount(),1);
   long count=(Long)row.getField(0);
   assertTrue(count > 0 && count < 1000000);

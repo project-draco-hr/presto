@@ -3,11 +3,9 @@
   String catalog=getSession().getCatalog().get();
   String schema=getSession().getSchema().get();
   MaterializedResult result=computeActual("SHOW TABLES FROM " + schema);
-  Set<String> tableNames=ImmutableSet.copyOf(transform(result.getMaterializedRows(),onlyColumnGetter()));
-  assertTrue(tableNames.containsAll(expectedTables));
+  assertTrue(result.getOnlyColumnAsSet().containsAll(expectedTables));
   result=computeActual("SHOW TABLES FROM " + catalog + "."+ schema);
-  tableNames=ImmutableSet.copyOf(transform(result.getMaterializedRows(),onlyColumnGetter()));
-  assertTrue(tableNames.containsAll(expectedTables));
+  assertTrue(result.getOnlyColumnAsSet().containsAll(expectedTables));
   try {
     computeActual("SHOW TABLES FROM UNKNOWN");
     fail("Showing tables in an unknown schema should fail");
