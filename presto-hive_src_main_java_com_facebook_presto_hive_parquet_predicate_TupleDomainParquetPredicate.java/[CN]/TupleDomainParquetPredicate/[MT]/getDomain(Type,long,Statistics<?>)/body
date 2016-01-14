@@ -6,6 +6,9 @@
     return Domain.onlyNull(type);
   }
   boolean hasNullValue=statistics.getNumNulls() != 0L;
+  if (statistics.genericGetMin() == null || statistics.genericGetMax() == null) {
+    return Domain.create(ValueSet.all(type),hasNullValue);
+  }
   if (type.equals(BOOLEAN) && statistics instanceof BooleanStatistics) {
     BooleanStatistics booleanStatistics=(BooleanStatistics)statistics;
     boolean hasTrueValues=!(booleanStatistics.getMax() == false && booleanStatistics.getMin() == false);
@@ -24,10 +27,16 @@
     ParquetIntegerStatistics parquetIntegerStatistics;
     if (statistics instanceof LongStatistics) {
       LongStatistics longStatistics=(LongStatistics)statistics;
+      if (longStatistics.genericGetMin() > longStatistics.genericGetMax()) {
+        return Domain.create(ValueSet.all(type),hasNullValue);
+      }
       parquetIntegerStatistics=new ParquetIntegerStatistics(longStatistics.genericGetMin(),longStatistics.genericGetMax());
     }
  else {
       IntStatistics intStatistics=(IntStatistics)statistics;
+      if (intStatistics.genericGetMin() > intStatistics.genericGetMax()) {
+        return Domain.create(ValueSet.all(type),hasNullValue);
+      }
       parquetIntegerStatistics=new ParquetIntegerStatistics((long)intStatistics.getMin(),(long)intStatistics.getMax());
     }
     return createDomain(type,hasNullValue,parquetIntegerStatistics);
@@ -36,17 +45,28 @@
     ParquetDoubleStatistics parquetDoubleStatistics;
     if (statistics instanceof DoubleStatistics) {
       DoubleStatistics doubleStatistics=(DoubleStatistics)statistics;
+      if (doubleStatistics.genericGetMin() > doubleStatistics.genericGetMax()) {
+        return Domain.create(ValueSet.all(type),hasNullValue);
+      }
       parquetDoubleStatistics=new ParquetDoubleStatistics(doubleStatistics.genericGetMin(),doubleStatistics.genericGetMax());
     }
  else {
       FloatStatistics floatStatistics=(FloatStatistics)statistics;
+      if (floatStatistics.genericGetMin() > floatStatistics.genericGetMax()) {
+        return Domain.create(ValueSet.all(type),hasNullValue);
+      }
       parquetDoubleStatistics=new ParquetDoubleStatistics((double)floatStatistics.getMin(),(double)floatStatistics.getMax());
     }
     return createDomain(type,hasNullValue,parquetDoubleStatistics);
   }
  else   if (type.equals(VARCHAR) && statistics instanceof BinaryStatistics) {
     BinaryStatistics binaryStatistics=(BinaryStatistics)statistics;
-    ParquetStringStatistics parquetStringStatistics=new ParquetStringStatistics(Slices.wrappedBuffer(binaryStatistics.getMin().getBytes()),Slices.wrappedBuffer(binaryStatistics.getMax().getBytes()));
+    Slice minSlice=Slices.wrappedBuffer(binaryStatistics.getMin().getBytes());
+    Slice maxSlice=Slices.wrappedBuffer(binaryStatistics.getMax().getBytes());
+    if (minSlice.compareTo(maxSlice) > 0) {
+      return Domain.create(ValueSet.all(type),hasNullValue);
+    }
+    ParquetStringStatistics parquetStringStatistics=new ParquetStringStatistics(minSlice,maxSlice);
     return createDomain(type,hasNullValue,parquetStringStatistics);
   }
   return Domain.create(ValueSet.all(type),hasNullValue);
