@@ -1,0 +1,18 @@
+{
+  CassandraTableLayoutHandle layoutHandle=checkType(layout,CassandraTableLayoutHandle.class,"layout");
+  CassandraTableHandle cassandraTableHandle=layoutHandle.getTable();
+  List<CassandraPartition> partitions=layoutHandle.getPartitions().get();
+  requireNonNull(partitions,"partitions is null");
+  if (partitions.isEmpty()) {
+    return new FixedSplitSource(connectorId,ImmutableList.<ConnectorSplit>of());
+  }
+  if (partitions.size() == 1) {
+    CassandraPartition cassandraPartition=partitions.get(0);
+    if (cassandraPartition.isUnpartitioned() || cassandraPartition.isIndexedColumnPredicatePushdown()) {
+      CassandraTable table=schemaProvider.getTable(cassandraTableHandle);
+      List<ConnectorSplit> splits=getSplitsByTokenRange(table,cassandraPartition.getPartitionId());
+      return new FixedSplitSource(connectorId,splits);
+    }
+  }
+  return new FixedSplitSource(connectorId,getSplitsForPartitions(cassandraTableHandle,partitions));
+}
