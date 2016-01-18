@@ -1,0 +1,17 @@
+{
+  long dumpTimestamp=roundToPeriod(currentTimeMillis());
+  if (dumpTimestamp <= lastDumpTimestamp) {
+    return;
+  }
+  lastDumpTimestamp=dumpTimestamp;
+  for (  JmxTableHandle tableHandle : tableHandles) {
+    try {
+      List<Object> row=jmxRecordSetProvider.getLiveRow(tableHandle,tableHandle.getColumnHandles(),dumpTimestamp);
+      jmxHistoricalData.addRow(tableHandle.getObjectName(),row);
+    }
+ catch (    JMException ex) {
+      log.error(ex,"Error in JmxHistoryDumper thread");
+    }
+  }
+  schedule();
+}

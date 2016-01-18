@@ -1,0 +1,10 @@
+{
+  JmxTableHandle tableHandle=metadata.getTableHandle(SESSION,schemaTableName);
+  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(SESSION,tableHandle).values());
+  ConnectorTableLayoutHandle layout=new JmxTableLayoutHandle(tableHandle,TupleDomain.all());
+  ConnectorSplitSource splitSource=splitManager.getSplits(JmxTransactionHandle.INSTANCE,SESSION,layout);
+  List<ConnectorSplit> allSplits=getAllSplits(splitSource);
+  assertEquals(allSplits.size(),nodes.size());
+  ConnectorSplit split=allSplits.get(0);
+  return recordSetProvider.getRecordSet(JmxTransactionHandle.INSTANCE,SESSION,split,columnHandles);
+}

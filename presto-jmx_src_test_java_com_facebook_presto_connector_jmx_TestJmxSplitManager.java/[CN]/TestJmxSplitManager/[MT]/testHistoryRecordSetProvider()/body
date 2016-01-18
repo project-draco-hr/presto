@@ -1,0 +1,15 @@
+{
+  for (  SchemaTableName schemaTableName : metadata.listTables(SESSION,HISTORY_SCHEMA_NAME)) {
+    List<Long> timeStamps=ImmutableList.of();
+    for (int waited=0; waited < TIMEOUT_TIME; waited+=SLEEP_TIME) {
+      RecordSet recordSet=getRecordSet(schemaTableName);
+      timeStamps=readTimeStampsFrom(recordSet);
+      if (timeStamps.size() >= 2) {
+        break;
+      }
+      Thread.sleep(SLEEP_TIME);
+    }
+    assertTrue(timeStamps.size() >= 2);
+    assertTrue(timeStamps.get(1) - timeStamps.get(0) >= JMX_STATS_DUMP.toMillis());
+  }
+}

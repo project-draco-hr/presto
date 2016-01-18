@@ -1,0 +1,82 @@
+{
+  ImmutableMap<String,Optional<Object>> attributes=getAttributes(getColumnNames(columns),tableHandle);
+  List<Object> row=new ArrayList<>();
+  for (  ColumnHandle column : columns) {
+    JmxColumnHandle jmxColumn=checkType(column,JmxColumnHandle.class,"column");
+    if (jmxColumn.getColumnName().equals(JmxMetadata.NODE_COLUMN_NAME)) {
+      row.add(nodeId);
+    }
+ else     if (jmxColumn.getColumnName().equals(JmxMetadata.TIMESTAMP_COLUMN_NAME)) {
+      row.add(entryTimestamp);
+    }
+ else {
+      Optional<Object> optionalValue=attributes.get(jmxColumn.getColumnName());
+      if (optionalValue == null || !optionalValue.isPresent()) {
+        row.add(null);
+      }
+ else {
+        Object value=optionalValue.get();
+        Class<?> javaType=jmxColumn.getColumnType().getJavaType();
+        if (javaType == boolean.class) {
+          if (value instanceof Boolean) {
+            row.add(value);
+          }
+ else {
+            row.add(null);
+          }
+        }
+ else         if (javaType == long.class) {
+          if (value instanceof Number) {
+            row.add(((Number)value).longValue());
+          }
+ else {
+            row.add(null);
+          }
+        }
+ else         if (javaType == double.class) {
+          if (value instanceof Number) {
+            row.add(((Number)value).doubleValue());
+          }
+ else {
+            row.add(null);
+          }
+        }
+ else         if (javaType == Slice.class) {
+          if (value.getClass().isArray()) {
+            if (value.getClass().getComponentType() == boolean.class) {
+              row.add(Arrays.toString((boolean[])value));
+            }
+ else             if (value.getClass().getComponentType() == byte.class) {
+              row.add(Arrays.toString((byte[])value));
+            }
+ else             if (value.getClass().getComponentType() == char.class) {
+              row.add(Arrays.toString((char[])value));
+            }
+ else             if (value.getClass().getComponentType() == double.class) {
+              row.add(Arrays.toString((double[])value));
+            }
+ else             if (value.getClass().getComponentType() == float.class) {
+              row.add(Arrays.toString((float[])value));
+            }
+ else             if (value.getClass().getComponentType() == int.class) {
+              row.add(Arrays.toString((int[])value));
+            }
+ else             if (value.getClass().getComponentType() == long.class) {
+              row.add(Arrays.toString((long[])value));
+            }
+ else             if (value.getClass().getComponentType() == short.class) {
+              row.add(Arrays.toString((short[])value));
+            }
+ else {
+              row.add(Arrays.toString((Object[])value));
+            }
+          }
+ else {
+            row.add(value.toString());
+          }
+        }
+      }
+    }
+  }
+  return row;
+}

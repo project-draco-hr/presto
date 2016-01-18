@@ -1,0 +1,16 @@
+{
+  ImmutableList.Builder<Long> result=ImmutableList.builder();
+  try (RecordCursor cursor=recordSet.cursor()){
+    while (cursor.advanceNextPosition()) {
+      for (int i=0; i < recordSet.getColumnTypes().size(); i++) {
+        cursor.isNull(i);
+      }
+      if (cursor.isNull(0)) {
+        return result.build();
+      }
+      assertTrue(recordSet.getColumnTypes().get(0) instanceof TimestampType);
+      result.add(cursor.getLong(0));
+    }
+  }
+   return result.build();
+}
