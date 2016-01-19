@@ -2,7 +2,10 @@
   requireNonNull(properties,"properties is null");
   int splitsPerNode=getSplitsPerNode(properties);
   return new Connector(){
-    @Override public ConnectorMetadata getMetadata(){
+    @Override public ConnectorTransactionHandle beginTransaction(    IsolationLevel isolationLevel,    boolean readOnly){
+      return TpchTransactionHandle.INSTANCE;
+    }
+    @Override public ConnectorMetadata getMetadata(    ConnectorTransactionHandle transaction){
       return new SampledTpchMetadata(connectorId);
     }
     @Override public ConnectorSplitManager getSplitManager(){

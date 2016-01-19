@@ -2,8 +2,11 @@
   int splitsPerNode=getSplitsPerNode(properties);
   TpchIndexedData indexedData=new TpchIndexedData(connectorId,indexSpec);
   return new Connector(){
-    @Override public ConnectorMetadata getMetadata(){
-      return new TpchMetadata(connectorId);
+    @Override public ConnectorTransactionHandle beginTransaction(    IsolationLevel isolationLevel,    boolean readOnly){
+      return TpchTransactionHandle.INSTANCE;
+    }
+    @Override public ConnectorMetadata getMetadata(    ConnectorTransactionHandle transactionHandle){
+      return new TpchIndexMetadata(connectorId,indexedData);
     }
     @Override public ConnectorSplitManager getSplitManager(){
       return new TpchSplitManager(connectorId,nodeManager,splitsPerNode);
@@ -11,8 +14,8 @@
     @Override public ConnectorRecordSetProvider getRecordSetProvider(){
       return new TpchRecordSetProvider();
     }
-    @Override public ConnectorIndexResolver getIndexResolver(){
-      return new TpchIndexResolver(connectorId,indexedData);
+    @Override public ConnectorIndexProvider getIndexProvider(){
+      return new TpchIndexProvider(indexedData);
     }
     @Override public Set<SystemTable> getSystemTables(){
       return ImmutableSet.of(new ExampleSystemTable());

@@ -15,12 +15,12 @@
       TpchSplit tpchSplit=(TpchSplit)split;
       ColumnHandle column=Iterables.getFirst(metadata.getColumnHandles(session,tpchSplit.getTableHandle()).values(),null);
       requireNonNull(column,"Could not find any columns");
-      recordSet=new EmptyRecordSet(super.getRecordSet(session,split,ImmutableList.of(column)));
+      recordSet=new EmptyRecordSet(super.getRecordSet(transaction,session,split,ImmutableList.of(column)));
     }
  else {
-      recordSet=super.getRecordSet(session,split,delegatedColumns);
+      recordSet=super.getRecordSet(transaction,session,split,delegatedColumns);
     }
     return new SampledTpchRecordSet(recordSet,sampleWeightField,sampleWeight);
   }
-  return super.getRecordSet(session,split,columns);
+  return super.getRecordSet(transaction,session,split,columns);
 }
