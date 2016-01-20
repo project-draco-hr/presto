@@ -1,2 +1,60 @@
 {
+  NodeMap nodeMap=this.nodeMap.get().get();
+  Multimap<Node,Split> assignment=HashMultimap.create();
+  NodeAssignmentStats assignmentStats=new NodeAssignmentStats(nodeTaskMap,nodeMap,existingTasks);
+  int[] topologicCounters=new int[topologicalSplitCounters.size()];
+  Set<NetworkLocation> filledLocations=new HashSet<>();
+  for (  Split split : splits) {
+    if (!split.isRemotelyAccessible()) {
+      List<Node> candidateNodes=selectExactNodes(nodeMap,split.getAddresses(),includeCoordinator);
+      if (candidateNodes.isEmpty()) {
+        log.debug("No nodes available to schedule %s. Available nodes %s",split,nodeMap.getNodesByHost().keys());
+        throw new PrestoException(NO_NODES_AVAILABLE,"No nodes available to run query");
+      }
+      Node chosenNode=bestNodeSplitCount(candidateNodes.iterator(),minCandidates,maxSplitsPerNodePerTaskWhenFull,assignmentStats);
+      if (chosenNode != null) {
+        assignment.put(chosenNode,split);
+        assignmentStats.addAssignedSplit(chosenNode);
+      }
+      continue;
+    }
+    Node chosenNode=null;
+    int depth=networkLocationSegmentNames.size();
+    int chosenDepth=0;
+    Set<NetworkLocation> locations=new HashSet<>();
+    for (    HostAddress host : split.getAddresses()) {
+      locations.add(networkLocationCache.get(host));
+    }
+    if (locations.isEmpty()) {
+      locations.add(ROOT_LOCATION);
+      depth=0;
+    }
+    for (int i=depth; i >= 0 && chosenNode == null; i--) {
+      for (      NetworkLocation location : locations) {
+        location=location.subLocation(0,i);
+        if (filledLocations.contains(location)) {
+          continue;
+        }
+        Set<Node> nodes=nodeMap.getWorkersByNetworkPath().get(location);
+        double queueFraction=(1.0 + i) / (1.0 + depth);
+        chosenNode=bestNodeSplitCount(new ResettableRandomizedIterator<>(nodes),minCandidates,(int)Math.ceil(queueFraction * maxSplitsPerNodePerTaskWhenFull),assignmentStats);
+        if (chosenNode != null) {
+          chosenDepth=i;
+          break;
+        }
+        filledLocations.add(location);
+      }
+    }
+    if (chosenNode != null) {
+      assignment.put(chosenNode,split);
+      assignmentStats.addAssignedSplit(chosenNode);
+      topologicCounters[chosenDepth]++;
+    }
+  }
+  for (int i=0; i < topologicCounters.length; i++) {
+    if (topologicCounters[i] > 0) {
+      topologicalSplitCounters.get(i).update(topologicCounters[i]);
+    }
+  }
+  return assignment;
 }
