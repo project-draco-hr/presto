@@ -5,10 +5,10 @@
     BIGINT.writeLong(blockBuilder,expectedValue.length());
   }
   Block lengthsDictionary=blockBuilder.build();
-  UUID commonSourceId=UUID.randomUUID();
+  DictionaryId commonSourceId=randomDictionaryId();
   DictionaryBlock commonSourceIdBlock1=createDictionaryBlock(expectedValues,100,commonSourceId);
   DictionaryBlock commonSourceIdBlock2=new DictionaryBlock(commonSourceIdBlock1.getPositionCount(),lengthsDictionary,commonSourceIdBlock1.getIds(),commonSourceId);
-  DictionaryBlock randomSourceIdBlock=createDictionaryBlock(expectedValues,100,UUID.randomUUID());
+  DictionaryBlock randomSourceIdBlock=createDictionaryBlock(expectedValues,100,randomDictionaryId());
   Page page=new Page(commonSourceIdBlock1,randomSourceIdBlock,commonSourceIdBlock2);
   page.compact();
   assertNotEquals(((DictionaryBlock)page.getBlock(0)).getDictionarySourceId(),((DictionaryBlock)page.getBlock(1)).getDictionarySourceId());
