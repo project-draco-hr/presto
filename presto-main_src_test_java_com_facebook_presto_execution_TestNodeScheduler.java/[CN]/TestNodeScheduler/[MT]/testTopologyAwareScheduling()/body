@@ -13,7 +13,12 @@
   TestNetworkTopology topology=new TestNetworkTopology();
   NetworkLocationCache locationCache=new NetworkLocationCache(topology){
     @Override public NetworkLocation get(    HostAddress host){
-      return topology.locate(host);
+      if (host.getHostText().startsWith("host")) {
+        return topology.locate(host);
+      }
+ else {
+        return super.get(host);
+      }
     }
   }
 ;
@@ -44,11 +49,13 @@
   nonRackLocalSplits=Sets.difference(nonRackLocalSplits,new HashSet<>(assignments.values()));
   assertEquals(nonRackLocalSplits.size(),3);
   ImmutableSet.Builder<Split> rackLocalSplits=ImmutableSet.builder();
+  HostAddress dataHost1=HostAddress.fromParts("data.rack1",1);
+  HostAddress dataHost2=HostAddress.fromParts("data.rack2",1);
   for (int i=0; i < 6 * 2; i++) {
-    rackLocalSplits.add(new Split("foo",transactionHandle,new TestSplitRemote(HostAddress.fromParts("data.rack1",1))));
+    rackLocalSplits.add(new Split("foo",transactionHandle,new TestSplitRemote(dataHost1)));
   }
   for (int i=0; i < 6; i++) {
-    rackLocalSplits.add(new Split("foo",transactionHandle,new TestSplitRemote(HostAddress.fromParts("data.rack2",1))));
+    rackLocalSplits.add(new Split("foo",transactionHandle,new TestSplitRemote(dataHost2)));
   }
   assignments=nodeSelector.computeAssignments(rackLocalSplits.build(),ImmutableList.copyOf(taskMap.values()));
   for (  Node node : assignments.keySet()) {
@@ -56,6 +63,23 @@
     remoteTask.addSplits(new PlanNodeId("sourceId"),assignments.get(node));
   }
   Set<Split> unassigned=Sets.difference(rackLocalSplits.build(),new HashSet<>(assignments.values()));
+  boolean cacheRefreshed=false;
+  while (!cacheRefreshed) {
+    cacheRefreshed=true;
+    if (locationCache.get(dataHost1).equals(ROOT_LOCATION)) {
+      cacheRefreshed=false;
+    }
+    if (locationCache.get(dataHost2).equals(ROOT_LOCATION)) {
+      cacheRefreshed=false;
+    }
+    MILLISECONDS.sleep(10);
+  }
+  assignments=nodeSelector.computeAssignments(unassigned,ImmutableList.copyOf(taskMap.values()));
+  for (  Node node : assignments.keySet()) {
+    RemoteTask remoteTask=taskMap.get(node);
+    remoteTask.addSplits(new PlanNodeId("sourceId"),assignments.get(node));
+  }
+  unassigned=Sets.difference(unassigned,new HashSet<>(assignments.values()));
   assertEquals(unassigned.size(),3);
   int rack1=0;
   int rack2=0;
