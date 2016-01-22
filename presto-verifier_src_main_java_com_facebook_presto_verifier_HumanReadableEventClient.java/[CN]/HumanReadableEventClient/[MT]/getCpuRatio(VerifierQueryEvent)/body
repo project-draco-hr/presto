@@ -1,0 +1,15 @@
+{
+  Double controlCpuTime=queryEvent.getControlCpuTimeSecs();
+  Double testCpuTime=queryEvent.getTestCpuTimeSecs();
+  if (controlCpuTime == null || testCpuTime == null) {
+    return Optional.empty();
+  }
+  if (controlCpuTime < regressionMinCpuTime.getValue(SECONDS)) {
+    return Optional.empty();
+  }
+  double value=testCpuTime / controlCpuTime;
+  if (isNaN(value)) {
+    value=1.0;
+  }
+  return Optional.of(value);
+}
