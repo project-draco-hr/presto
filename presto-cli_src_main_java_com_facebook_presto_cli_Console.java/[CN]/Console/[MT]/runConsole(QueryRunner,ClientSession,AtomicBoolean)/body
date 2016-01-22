@@ -61,7 +61,8 @@ for (Statement split : splitter.getCompleteStatements()) {
 Optional<Object> statement=getParsedStatement(split.statement());
 if (statement.isPresent() && isSessionParameterChange(statement.get())) {
 Map<String,String> properties=queryRunner.getSession().getProperties();
-session=processSessionParameterChange(statement.get(),session,properties);
+Map<String,String> preparedStatements=queryRunner.getSession().getPreparedStatements();
+session=processSessionParameterChange(statement.get(),session,properties,preparedStatements);
 queryRunner.setSession(session);
 tableNameCompleter.populateCache();
 }

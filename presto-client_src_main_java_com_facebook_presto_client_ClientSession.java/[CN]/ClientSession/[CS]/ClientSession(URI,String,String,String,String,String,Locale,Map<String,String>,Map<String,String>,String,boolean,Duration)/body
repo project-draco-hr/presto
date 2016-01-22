@@ -1,0 +1,21 @@
+{
+  this.server=requireNonNull(server,"server is null");
+  this.user=user;
+  this.source=source;
+  this.catalog=catalog;
+  this.schema=schema;
+  this.locale=locale;
+  this.timeZoneId=requireNonNull(timeZoneId,"timeZoneId is null");
+  this.transactionId=transactionId;
+  this.debug=debug;
+  this.properties=ImmutableMap.copyOf(requireNonNull(properties,"properties is null"));
+  this.preparedStatements=ImmutableMap.copyOf(requireNonNull(preparedStatements,"preparedStatements is null"));
+  this.clientRequestTimeout=clientRequestTimeout;
+  CharsetEncoder charsetEncoder=US_ASCII.newEncoder();
+  for (  Entry<String,String> entry : properties.entrySet()) {
+    checkArgument(!entry.getKey().isEmpty(),"Session property name is empty");
+    checkArgument(entry.getKey().indexOf('=') < 0,"Session property name must not contain '=': %s",entry.getKey());
+    checkArgument(charsetEncoder.canEncode(entry.getKey()),"Session property name is not US_ASCII: %s",entry.getKey());
+    checkArgument(charsetEncoder.canEncode(entry.getValue()),"Session property value is not US_ASCII: %s",entry.getValue());
+  }
+}

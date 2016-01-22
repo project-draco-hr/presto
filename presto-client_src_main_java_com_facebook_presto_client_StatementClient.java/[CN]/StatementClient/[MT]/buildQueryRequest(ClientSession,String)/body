@@ -15,6 +15,10 @@
   for (  Entry<String,String> entry : property.entrySet()) {
     builder.addHeader(PrestoHeaders.PRESTO_SESSION,entry.getKey() + "=" + entry.getValue());
   }
+  Map<String,String> statements=session.getPreparedStatements();
+  for (  Entry<String,String> entry : statements.entrySet()) {
+    builder.addHeader(PrestoHeaders.PRESTO_PREPARED_STATEMENT,urlEncode(entry.getKey()) + "=" + urlEncode(entry.getValue()));
+  }
   builder.setHeader(PrestoHeaders.PRESTO_TRANSACTION_ID,session.getTransactionId() == null ? "NONE" : session.getTransactionId());
   return builder.build();
 }
