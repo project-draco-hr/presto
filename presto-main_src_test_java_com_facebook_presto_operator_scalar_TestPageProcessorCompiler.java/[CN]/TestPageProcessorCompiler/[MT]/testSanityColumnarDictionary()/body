@@ -1,0 +1,9 @@
+{
+  PageProcessor processor=new ExpressionCompiler(createTestMetadataManager()).compilePageProcessor(new ConstantExpression(TRUE,BOOLEAN),ImmutableList.of(new InputReferenceExpression(0,VARCHAR)));
+  Page page=new Page(createDictionaryBlock(createExpectedValues(10),100));
+  Page outputPage=processor.processColumnarDictionary(null,page,ImmutableList.of(VARCHAR));
+  assertEquals(outputPage.getPositionCount(),100);
+  assertTrue(outputPage.getBlock(0) instanceof DictionaryBlock);
+  DictionaryBlock dictionaryBlock=(DictionaryBlock)outputPage.getBlock(0);
+  assertEquals(dictionaryBlock.getDictionary().getPositionCount(),10);
+}
