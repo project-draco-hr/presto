@@ -3,11 +3,10 @@
   checkArgument(!isNullOrEmpty(tableMetadata.getOwner()),"Table owner is null or empty");
   HiveStorageFormat hiveStorageFormat=getHiveStorageFormat(tableMetadata.getProperties());
   List<String> partitionedBy=getPartitionedBy(tableMetadata.getProperties());
-  OptionalInt retentionDays=getRetentionDays(tableMetadata.getProperties());
   Map<String,String> additionalTableParameters=tableParameterCodec.encode(tableMetadata.getProperties());
   SchemaTableName schemaTableName=tableMetadata.getTable();
   String schemaName=schemaTableName.getSchemaName();
   String tableName=schemaTableName.getTableName();
   List<HiveColumnHandle> columnHandles=getColumnHandles(connectorId,tableMetadata,ImmutableSet.copyOf(partitionedBy));
-  return new HiveOutputTableHandle(connectorId,schemaName,tableName,columnHandles,session.getQueryId(),locationService.forNewTable(session.getQueryId(),schemaName,tableName),hiveStorageFormat,partitionedBy,tableMetadata.getOwner(),retentionDays,additionalTableParameters);
+  return new HiveOutputTableHandle(connectorId,schemaName,tableName,columnHandles,session.getQueryId(),locationService.forNewTable(session.getQueryId(),schemaName,tableName),hiveStorageFormat,partitionedBy,tableMetadata.getOwner(),additionalTableParameters);
 }

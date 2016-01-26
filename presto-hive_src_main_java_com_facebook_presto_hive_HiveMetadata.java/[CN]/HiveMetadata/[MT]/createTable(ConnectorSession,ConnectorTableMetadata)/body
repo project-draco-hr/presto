@@ -6,10 +6,9 @@
   List<String> partitionedBy=getPartitionedBy(tableMetadata.getProperties());
   List<HiveColumnHandle> columnHandles=getColumnHandles(connectorId,tableMetadata,ImmutableSet.copyOf(partitionedBy));
   HiveStorageFormat hiveStorageFormat=getHiveStorageFormat(tableMetadata.getProperties());
-  OptionalInt retentionDays=getRetentionDays(tableMetadata.getProperties());
   Map<String,String> additionalTableParameters=tableParameterCodec.encode(tableMetadata.getProperties());
   LocationHandle locationHandle=locationService.forNewTable(session.getQueryId(),schemaName,tableName);
   Path targetPath=locationService.targetPathRoot(locationHandle);
   createDirectory(hdfsEnvironment,targetPath);
-  createTable(schemaName,tableName,tableMetadata.getOwner(),columnHandles,hiveStorageFormat,partitionedBy,retentionDays,additionalTableParameters,targetPath);
+  createTable(schemaName,tableName,tableMetadata.getOwner(),columnHandles,hiveStorageFormat,partitionedBy,additionalTableParameters,targetPath);
 }
