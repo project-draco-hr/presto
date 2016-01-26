@@ -7,5 +7,8 @@
   List<HiveColumnHandle> columnHandles=getColumnHandles(connectorId,tableMetadata,ImmutableSet.copyOf(partitionedBy));
   HiveStorageFormat hiveStorageFormat=getHiveStorageFormat(tableMetadata.getProperties());
   OptionalInt retentionDays=getRetentionDays(tableMetadata.getProperties());
-  createTable(session,schemaName,tableName,tableMetadata.getOwner(),columnHandles,hiveStorageFormat,partitionedBy,retentionDays);
+  LocationHandle locationHandle=locationService.forNewTable(session.getQueryId(),schemaName,tableName);
+  Path targetPath=locationService.targetPathRoot(locationHandle);
+  createDirectory(hdfsEnvironment,targetPath);
+  createTable(schemaName,tableName,tableMetadata.getOwner(),columnHandles,hiveStorageFormat,partitionedBy,retentionDays,targetPath);
 }
