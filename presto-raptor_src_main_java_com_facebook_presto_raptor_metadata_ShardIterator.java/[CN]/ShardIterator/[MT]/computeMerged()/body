@@ -8,17 +8,13 @@
     }
   }
   int bucketNumber=resultSet.getInt("bucket_number");
-  byte[] nodeIdBytes=resultSet.getBytes("node_ids");
-  ImmutableSet.Builder<UUID> shardBuilder=ImmutableSet.builder();
+  ImmutableSet.Builder<ShardNodes> shards=ImmutableSet.builder();
   do {
-    if (!Arrays.equals(nodeIdBytes,resultSet.getBytes("node_ids"))) {
-      throw new PrestoException(RAPTOR_ERROR,"Shards in same bucket have different node assignments");
-    }
-    shardBuilder.add(uuidFromBytes(resultSet.getBytes("shard_uuid")));
+    UUID shardUuid=uuidFromBytes(resultSet.getBytes("shard_uuid"));
+    List<Integer> nodeIds=intArrayFromBytes(resultSet.getBytes("node_ids"));
+    Set<String> nodeIdentifiers=getNodeIdentifiers(nodeIds,shardUuid);
+    shards.add(new ShardNodes(shardUuid,nodeIdentifiers));
   }
  while (resultSet.next() && resultSet.getInt("bucket_number") == bucketNumber);
-  List<Integer> nodeIds=intArrayFromBytes(nodeIdBytes);
-  Set<UUID> shardUuids=shardBuilder.build();
-  Set<String> nodeIdentifiers=getNodeIdentifiers(nodeIds,shardUuids.iterator().next());
-  return new ShardNodes(shardUuids,OptionalInt.of(bucketNumber),nodeIdentifiers);
+  return new BucketShards(OptionalInt.of(bucketNumber),shards.build());
 }

@@ -1,8 +1,8 @@
 {
-  RaptorTableLayoutHandle layout=new RaptorTableLayoutHandle(handle,constraint);
   if (!handle.getDistributionId().isPresent()) {
-    return new ConnectorTableLayout(layout);
+    return new ConnectorTableLayout(new RaptorTableLayoutHandle(handle,constraint,Optional.empty()));
   }
   List<RaptorColumnHandle> bucketColumnHandles=getBucketColumnHandles(handle.getTableId());
-  return new ConnectorTableLayout(layout,Optional.empty(),TupleDomain.all(),Optional.of(new ConnectorNodePartitioning(new RaptorPartitioningHandle(handle.getDistributionId().getAsLong()),ImmutableList.copyOf(bucketColumnHandles))),Optional.of(ImmutableSet.copyOf(bucketColumnHandles)),Optional.empty(),ImmutableList.of());
+  RaptorPartitioningHandle partitioning=getPartitioningHandle(handle.getDistributionId().getAsLong());
+  return new ConnectorTableLayout(new RaptorTableLayoutHandle(handle,constraint,Optional.of(partitioning)),Optional.empty(),TupleDomain.all(),Optional.of(new ConnectorNodePartitioning(partitioning,ImmutableList.copyOf(bucketColumnHandles))),Optional.of(ImmutableSet.copyOf(bucketColumnHandles)),Optional.empty(),ImmutableList.of());
 }

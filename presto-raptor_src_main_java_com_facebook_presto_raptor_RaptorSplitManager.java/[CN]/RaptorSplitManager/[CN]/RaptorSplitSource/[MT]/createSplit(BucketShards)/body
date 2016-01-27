@@ -1,0 +1,23 @@
+{
+  if (bucketShards.getBucketNumber().isPresent()) {
+    return createBucketSplit(bucketShards.getBucketNumber().getAsInt(),bucketShards.getShards());
+  }
+  verify(bucketShards.getShards().size() == 1,"wrong shard count for non-bucketed table");
+  ShardNodes shard=getOnlyElement(bucketShards.getShards());
+  UUID shardId=shard.getShardUuid();
+  Set<String> nodeIds=shard.getNodeIdentifiers();
+  List<HostAddress> addresses=getAddressesForNodes(nodesById,nodeIds);
+  if (addresses.isEmpty()) {
+    if (!backupAvailable) {
+      throw new PrestoException(RAPTOR_NO_HOST_FOR_SHARD,format("No host for shard %s found: %s",shardId,nodeIds));
+    }
+    Set<Node> availableNodes=nodeSupplier.getWorkerNodes();
+    if (availableNodes.isEmpty()) {
+      throw new PrestoException(NO_NODES_AVAILABLE,"No nodes available to run query");
+    }
+    Node node=selectRandom(availableNodes);
+    shardManager.assignShard(tableId,shardId,node.getNodeIdentifier());
+    addresses=ImmutableList.of(node.getHostAndPort());
+  }
+  return new RaptorSplit(connectorId,shardId,addresses,effectivePredicate,transactionId);
+}

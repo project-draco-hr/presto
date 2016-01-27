@@ -1,2 +1,17 @@
 {
+  Set<String> nodeIds=getNodeIdentifiers();
+  Iterator<String> nodeIterator=cyclingShuffledIterator(nodeIds);
+  ImmutableMap.Builder<Integer,String> assignments=ImmutableMap.builder();
+  for (  BucketNode bucketNode : dao.getBucketNodes(distributionId)) {
+    int bucket=bucketNode.getBucketNumber();
+    String nodeId=bucketNode.getNodeIdentifier();
+    if (!nodeIds.contains(nodeId)) {
+      String oldNodeId=nodeId;
+      nodeId=nodeIterator.next();
+      dao.updateBucketNode(distributionId,bucket,getOrCreateNodeId(nodeId));
+      log.info("Reassigned bucket %s for distribution ID %s from %s to %s",bucket,distributionId,oldNodeId,nodeId);
+    }
+    assignments.put(bucket,nodeId);
+  }
+  return assignments.build();
 }
