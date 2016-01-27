@@ -1,0 +1,16 @@
+{
+  Set<QueryType> types=EnumSet.noneOf(QueryType.class);
+  try {
+    for (    String sql : query.getPreQueries()) {
+      types.add(statementToQueryType(parser,sql));
+    }
+    types.add(statementToQueryType(parser,query.getQuery()));
+    for (    String sql : query.getPostQueries()) {
+      types.add(statementToQueryType(parser,sql));
+    }
+  }
+ catch (  UnsupportedOperationException e) {
+    return false;
+  }
+  return allowedTypes.containsAll(types);
+}
