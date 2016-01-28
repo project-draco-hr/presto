@@ -1,27 +1,7 @@
 {
+  PhysicalOperation source=node.getSource().accept(this,context);
   if (node.getGroupBy().isEmpty()) {
-    PhysicalOperation source=node.getSource().accept(this,context);
     return planGlobalAggregation(context.getNextOperatorId(),node,source);
   }
-  int aggregationConcurrency=getTaskAggregationConcurrency(session);
-  if (node.getStep() == Step.PARTIAL || !context.isAllowLocalParallel() || context.getDriverInstanceCount().isPresent() || aggregationConcurrency <= 1) {
-    PhysicalOperation source=node.getSource().accept(this,context);
-    return planGroupByAggregation(node,source,context.getNextOperatorId(),Optional.empty());
-  }
-  LocalExecutionPlanContext parallelContext=context.createSubContext();
-  parallelContext.setDriverInstanceCount(aggregationConcurrency);
-  LocalExecutionPlanContext sourceContext=parallelContext.createSubContext();
-  parallelContext.setInputDriver(false);
-  PhysicalOperation source=node.getSource().accept(this,sourceContext);
-  InMemoryExchange exchange=new InMemoryExchange(source.getTypes(),aggregationConcurrency);
-  List<OperatorFactory> factories=ImmutableList.<OperatorFactory>builder().addAll(source.getOperatorFactories()).add(exchange.createSinkFactory(sourceContext.getNextOperatorId(),node.getId())).build();
-  parallelContext.addDriverFactory(new DriverFactory(sourceContext.isInputDriver(),false,factories,sourceContext.getDriverInstanceCount()));
-  OperatorFactory exchangeSource=createBroadcastDistribution(parallelContext.getNextOperatorId(),node.getId(),exchange);
-  source=new PhysicalOperation(exchangeSource,source.getLayout());
-  HashPartitionMaskOperatorFactory hashPartitionMask=new HashPartitionMaskOperatorFactory(parallelContext.getNextOperatorId(),node.getId(),aggregationConcurrency,exchangeSource.getTypes(),getChannelsForSymbols(ImmutableList.copyOf(node.getMasks().values()),source.getLayout()),getChannelsForSymbols(ImmutableList.copyOf(node.getGroupBy()),source.getLayout()),node.getHashSymbol().map(channelGetter(source)));
-  int defaultMaskChannel=hashPartitionMask.getDefaultMaskChannel();
-  source=new PhysicalOperation(hashPartitionMask,source.getLayout(),source);
-  PhysicalOperation operation=planGroupByAggregation(node,source,parallelContext.getNextOperatorId(),Optional.of(defaultMaskChannel));
-  operation=addInMemoryExchange(context,node.getId(),operation,parallelContext);
-  return operation;
+  return planGroupByAggregation(node,source,context.getNextOperatorId(),Optional.empty());
 }
