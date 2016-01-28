@@ -9,13 +9,13 @@
     PhysicalOperation source=node.getSource().accept(this,intermediateContext);
     InMemoryExchange exchange=new InMemoryExchange(source.getTypes());
     List<OperatorFactory> factories=ImmutableList.<OperatorFactory>builder().addAll(source.getOperatorFactories()).add(exchange.createSinkFactory(intermediateContext.getNextOperatorId(),node.getId())).build();
-    context.addDriverFactory(new DriverFactory(intermediateContext.isInputDriver(),false,factories));
+    context.addDriverFactory(new DriverFactory(intermediateContext.isInputDriver(),false,factories,intermediateContext.getDriverInstanceCount()));
     OperatorFactory exchangeSource=createRandomDistribution(context.getNextOperatorId(),node.getId(),exchange);
     source=new PhysicalOperation(exchangeSource,source.getLayout());
     return planGroupByAggregation(node,source,context.getNextOperatorId(),Optional.empty());
   }
   int aggregationConcurrency=getTaskAggregationConcurrency(session);
-  if (node.getStep() == Step.PARTIAL || !context.isAllowLocalParallel() || context.getDriverInstanceCount() > 1 || aggregationConcurrency <= 1) {
+  if (node.getStep() == Step.PARTIAL || !context.isAllowLocalParallel() || context.getDriverInstanceCount().isPresent() || aggregationConcurrency <= 1) {
     PhysicalOperation source=node.getSource().accept(this,context);
     return planGroupByAggregation(node,source,context.getNextOperatorId(),Optional.empty());
   }
@@ -26,7 +26,7 @@
   PhysicalOperation source=node.getSource().accept(this,sourceContext);
   InMemoryExchange exchange=new InMemoryExchange(source.getTypes(),aggregationConcurrency);
   List<OperatorFactory> factories=ImmutableList.<OperatorFactory>builder().addAll(source.getOperatorFactories()).add(exchange.createSinkFactory(sourceContext.getNextOperatorId(),node.getId())).build();
-  parallelContext.addDriverFactory(new DriverFactory(sourceContext.isInputDriver(),false,factories));
+  parallelContext.addDriverFactory(new DriverFactory(sourceContext.isInputDriver(),false,factories,sourceContext.getDriverInstanceCount()));
   OperatorFactory exchangeSource=createBroadcastDistribution(parallelContext.getNextOperatorId(),node.getId(),exchange);
   source=new PhysicalOperation(exchangeSource,source.getLayout());
   HashPartitionMaskOperatorFactory hashPartitionMask=new HashPartitionMaskOperatorFactory(parallelContext.getNextOperatorId(),node.getId(),aggregationConcurrency,exchangeSource.getTypes(),getChannelsForSymbols(ImmutableList.copyOf(node.getMasks().values()),source.getLayout()),getChannelsForSymbols(ImmutableList.copyOf(node.getGroupBy()),source.getLayout()),node.getHashSymbol().map(channelGetter(source)));

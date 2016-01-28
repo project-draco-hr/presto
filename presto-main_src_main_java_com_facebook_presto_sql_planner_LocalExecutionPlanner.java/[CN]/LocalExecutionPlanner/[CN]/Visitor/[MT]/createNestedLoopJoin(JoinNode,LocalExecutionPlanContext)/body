@@ -3,7 +3,8 @@
   LocalExecutionPlanContext buildContext=context.createSubContext();
   PhysicalOperation buildSource=node.getRight().accept(this,buildContext);
   NestedLoopBuildOperatorFactory nestedLoopBuildOperatorFactory=new NestedLoopBuildOperatorFactory(buildContext.getNextOperatorId(),node.getId(),buildSource.getTypes());
-  context.addDriverFactory(new DriverFactory(buildContext.isInputDriver(),false,ImmutableList.<OperatorFactory>builder().addAll(buildSource.getOperatorFactories()).add(nestedLoopBuildOperatorFactory).build()));
+  checkArgument(buildContext.getDriverInstanceCount().orElse(1) == 1,"Expected local execution to not be parallel");
+  context.addDriverFactory(new DriverFactory(buildContext.isInputDriver(),false,ImmutableList.<OperatorFactory>builder().addAll(buildSource.getOperatorFactories()).add(nestedLoopBuildOperatorFactory).build(),buildContext.getDriverInstanceCount()));
   NestedLoopJoinPagesSupplier nestedLoopJoinPagesSupplier=nestedLoopBuildOperatorFactory.getNestedLoopJoinPagesSupplier();
   ImmutableMap.Builder<Symbol,Integer> outputMappings=ImmutableMap.builder();
   outputMappings.putAll(probeSource.getLayout());

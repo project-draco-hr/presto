@@ -3,7 +3,7 @@
   PhysicalOperation probeSource;
   LocalExecutionPlanContext parallelParentContext=null;
   int joinConcurrency=getTaskJoinConcurrency(session);
-  if (context.isAllowLocalParallel() && context.getDriverInstanceCount() == 1 && joinConcurrency > 1) {
+  if (context.isAllowLocalParallel() && !context.getDriverInstanceCount().isPresent() && joinConcurrency > 1) {
     parallelParentContext=context;
     context=context.createSubContext();
     probeSource=createInMemoryExchange(probeNode,context);
