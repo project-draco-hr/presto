@@ -1,0 +1,11 @@
+{
+  this.client=requireNonNull(client,"client is null");
+  requireNonNull(progressCallback,"progressCallback is null");
+  this.sessionTimeZone=DateTimeZone.forID(client.getTimeZoneId());
+  this.queryId=client.current().getId();
+  List<Column> columns=getColumns(client,progressCallback);
+  this.fieldMap=getFieldMap(columns);
+  this.columnInfoList=getColumnInfo(columns);
+  this.resultSetMetaData=new PrestoResultSetMetaData(columnInfoList);
+  this.results=flatten(new ResultsPageIterator(client,progressCallback));
+}

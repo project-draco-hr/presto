@@ -1,0 +1,16 @@
+{
+  while (client.isValid()) {
+    QueryResults results=client.current();
+    progressCallback.accept(QueryStats.create(results.getId(),results.getStats()));
+    List<Column> columns=results.getColumns();
+    if (columns != null) {
+      return columns;
+    }
+    client.advance();
+  }
+  QueryResults results=client.finalResults();
+  if (!client.isFailed()) {
+    throw new SQLException(format("Query has no columns (#%s)",results.getId()));
+  }
+  throw resultsException(results);
+}

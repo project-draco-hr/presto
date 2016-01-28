@@ -1,0 +1,23 @@
+{
+  try (Connection connection=createConnection()){
+    try (Statement statement=connection.createStatement()){
+      PrestoStatement prestoStatement=statement.unwrap(PrestoStatement.class);
+      RecordingProgressMonitor progressMonitor=new RecordingProgressMonitor();
+      prestoStatement.setProgressMonitor(progressMonitor);
+      try (ResultSet rs=statement.executeQuery("bogus query for testing")){
+        ResultSetMetaData metadata=rs.getMetaData();
+        assertEquals(metadata.getColumnCount(),1);
+        assertEquals(metadata.getColumnName(1),"_col0");
+        assertTrue(rs.next());
+        assertEquals(rs.getLong(1),253161L);
+        assertEquals(rs.getLong("_col0"),253161L);
+        assertFalse(rs.next());
+      }
+       prestoStatement.clearProgressMonitor();
+      List<QueryStats> queryStatsList=progressMonitor.finish();
+      assertGreaterThanOrEqual(queryStatsList.size(),5);
+      assertEquals(queryStatsList.get(0).getState(),"QUEUED");
+      assertEquals(queryStatsList.get(queryStatsList.size() - 1).getState(),"FINISHED");
+    }
+   }
+ }

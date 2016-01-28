@@ -4,7 +4,9 @@
       client.close();
       throw propagate(new SQLException("ResultSet thread was interrupted"));
     }
-    Iterable<List<Object>> data=client.current().getData();
+    QueryResults results=client.current();
+    progressCallback.accept(QueryStats.create(results.getId(),results.getStats()));
+    Iterable<List<Object>> data=results.getData();
     client.advance();
     if (data != null) {
       return data;
