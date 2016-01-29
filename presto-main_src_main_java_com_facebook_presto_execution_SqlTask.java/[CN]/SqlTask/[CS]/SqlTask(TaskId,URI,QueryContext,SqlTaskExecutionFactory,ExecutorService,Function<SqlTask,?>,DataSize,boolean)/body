@@ -7,7 +7,12 @@
   requireNonNull(taskNotificationExecutor,"taskNotificationExecutor is null");
   requireNonNull(onDone,"onDone is null");
   requireNonNull(maxBufferSize,"maxBufferSize is null");
-  outputBuffer=new SharedOutputBuffer(taskId,taskInstanceId,taskNotificationExecutor,maxBufferSize,new UpdateSystemMemory(queryContext));
+  if (newSinkBufferImplementation) {
+    outputBuffer=new LazyOutputBuffer(taskId,taskInstanceId,taskNotificationExecutor,maxBufferSize,new UpdateSystemMemory(queryContext));
+  }
+ else {
+    outputBuffer=new SharedOutputBuffer(taskId,taskInstanceId,taskNotificationExecutor,maxBufferSize,new UpdateSystemMemory(queryContext));
+  }
   taskStateMachine=new TaskStateMachine(taskId,taskNotificationExecutor);
   taskStateMachine.addStateChangeListener(new StateChangeListener<TaskState>(){
     @Override public void stateChanged(    TaskState newState){

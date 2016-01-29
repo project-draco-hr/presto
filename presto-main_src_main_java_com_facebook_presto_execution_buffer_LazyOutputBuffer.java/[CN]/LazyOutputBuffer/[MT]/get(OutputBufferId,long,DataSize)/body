@@ -1,0 +1,15 @@
+{
+  OutputBuffer outputBuffer;
+synchronized (this) {
+    if (delegate == null) {
+      if (state.get() == FINISHED) {
+        return completedFuture(emptyResults(taskInstanceId,0,true));
+      }
+      PendingRead pendingRead=new PendingRead(bufferId,token,maxSize);
+      pendingReads.add(pendingRead);
+      return pendingRead.getFutureResult();
+    }
+    outputBuffer=delegate;
+  }
+  return outputBuffer.get(bufferId,token,maxSize);
+}
