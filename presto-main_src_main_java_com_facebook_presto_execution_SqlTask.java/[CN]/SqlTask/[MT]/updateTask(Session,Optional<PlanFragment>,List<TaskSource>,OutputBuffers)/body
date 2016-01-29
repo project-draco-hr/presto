@@ -9,13 +9,13 @@ synchronized (this) {
       taskExecution=taskHolder.getTaskExecution();
       if (taskExecution == null) {
         checkState(fragment.isPresent(),"fragment must be present");
-        taskExecution=sqlTaskExecutionFactory.create(session,queryContext,taskStateMachine,sharedBuffer,fragment.get(),sources);
+        taskExecution=sqlTaskExecutionFactory.create(session,queryContext,taskStateMachine,outputBuffer,fragment.get(),sources);
         taskHolderReference.compareAndSet(taskHolder,new TaskHolder(taskExecution));
         needsPlan.set(false);
       }
     }
     if (taskExecution != null) {
-      sharedBuffer.setOutputBuffers(outputBuffers);
+      outputBuffer.setOutputBuffers(outputBuffers);
       taskExecution.addSources(sources);
     }
   }
