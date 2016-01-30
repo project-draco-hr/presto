@@ -1,0 +1,15 @@
+{
+  for (  BigDecimal left : decimalLefts) {
+    for (    Long right : longRights) {
+      assertExecute(generateExpression("%s = %s",left,right),BOOLEAN,left == null || right == null ? null : left.equals(new BigDecimal(right)));
+      assertExecute(generateExpression("%s <> %s",left,right),BOOLEAN,left == null || right == null ? null : !left.equals(new BigDecimal(right)));
+      assertExecute(generateExpression("%s > %s",left,right),BOOLEAN,left == null || right == null ? null : left.compareTo(new BigDecimal(right)) > 0);
+      assertExecute(generateExpression("%s < %s",left,right),BOOLEAN,left == null || right == null ? null : left.compareTo(new BigDecimal(right)) < 0);
+      assertExecute(generateExpression("%s >= %s",left,right),BOOLEAN,left == null || right == null ? null : left.compareTo(new BigDecimal(right)) >= 0);
+      assertExecute(generateExpression("%s <= %s",left,right),BOOLEAN,left == null || right == null ? null : left.compareTo(new BigDecimal(right)) <= 0);
+      assertExecute(generateExpression("nullif(%s, %s)",left,right),BigDecimal.class.cast(nullIf(left,right)));
+      assertExecute(generateExpression("%s is distinct from %s",left,right),BOOLEAN,!Objects.equals(left,right == null ? null : new BigDecimal(right)));
+    }
+  }
+  Futures.allAsList(futures).get();
+}
