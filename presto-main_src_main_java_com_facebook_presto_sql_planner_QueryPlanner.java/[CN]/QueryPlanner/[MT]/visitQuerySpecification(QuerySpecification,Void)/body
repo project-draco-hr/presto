@@ -1,13 +1,13 @@
 {
   PlanBuilder builder=planFrom(node);
-  builder=appendSemiJoins(builder,analysis.getInPredicates(node));
-  builder=appendScalarSubqueryJoins(builder,analysis.getScalarSubqueries(node));
-  builder=filter(builder,analysis.getWhere(node));
+  builder=filter(builder,analysis.getWhere(node),node);
   builder=aggregate(builder,node);
-  builder=filter(builder,analysis.getHaving(node));
+  builder=filter(builder,analysis.getHaving(node),node);
   builder=window(builder,node);
   List<FieldOrExpression> orderBy=analysis.getOrderByExpressions(node);
+  builder=handleSubqueries(builder,node,orderBy);
   List<FieldOrExpression> outputs=analysis.getOutputExpressions(node);
+  builder=handleSubqueries(builder,node,outputs);
   builder=project(builder,Iterables.concat(orderBy,outputs));
   builder=distinct(builder,node,outputs,orderBy);
   builder=sort(builder,node);

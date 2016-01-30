@@ -1,0 +1,10 @@
+{
+  assertQuery("SELECT linenumber, min(orderkey), 6 IN (SELECT orderkey FROM orders WHERE orderkey < 7)" + "FROM lineitem " + "GROUP BY linenumber");
+  assertQuery("SELECT linenumber, min(orderkey), 6 IN (SELECT orderkey FROM orders WHERE orderkey < 7)" + "FROM lineitem " + "GROUP BY linenumber, 6 IN (SELECT orderkey FROM orders WHERE orderkey < 7)");
+  assertQuery("SELECT linenumber, min(orderkey) " + "FROM lineitem " + "GROUP BY linenumber, 6 IN (SELECT orderkey FROM orders WHERE orderkey < 7)");
+  assertQuery("SELECT linenumber, min(orderkey) " + "FROM lineitem " + "GROUP BY linenumber "+ "HAVING 6 IN (SELECT orderkey FROM orders WHERE orderkey < 7)");
+  assertQuery("SELECT linenumber, min(orderkey), 6 IN (SELECT orderkey FROM orders WHERE orderkey < 7)" + "FROM lineitem " + "GROUP BY linenumber, 6 IN (SELECT orderkey FROM orders WHERE orderkey < 7)"+ "HAVING 6 IN (SELECT orderkey FROM orders WHERE orderkey < 7)");
+  assertQuery("SELECT linenumber, min(orderkey), 6 IN (SELECT max(orderkey) FROM orders WHERE orderkey < 7)" + "FROM lineitem " + "GROUP BY linenumber, 6 IN (SELECT sum(orderkey) FROM orders WHERE orderkey < 5)");
+  assertQuery("SELECT linenumber, min(orderkey) " + "FROM lineitem " + "GROUP BY linenumber, 6 IN (SELECT orderkey FROM orders WHERE orderkey < 7)"+ "HAVING 6 IN (SELECT orderkey FROM orders WHERE orderkey > 3)");
+  assertQuery("SELECT linenumber, min(orderkey), 6 IN (SELECT orderkey FROM orders WHERE orderkey < 7)" + "FROM lineitem " + "GROUP BY linenumber, 6 IN (SELECT orderkey FROM orders WHERE orderkey < 5)"+ "HAVING 6 IN (SELECT orderkey FROM orders WHERE orderkey > 3)");
+}

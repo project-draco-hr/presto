@@ -13,8 +13,9 @@
   for (  String joinType : ImmutableList.of("INNER","LEFT OUTER")) {
     assertQuery("SELECT l.orderkey, COUNT(*) " + "FROM lineitem l " + joinType + " JOIN orders o ON l.orderkey = o.orderkey "+ "WHERE l.orderkey BETWEEN"+ "   (SELECT avg(orderkey) FROM orders) - 10 "+ "   AND"+ "   (SELECT avg(orderkey) FROM orders) + 10 "+ "GROUP BY l.orderkey");
   }
+  assertQuery("SELECT orderkey, totalprice FROM orders ORDER BY (SELECT 2)");
   String multipleRowsErrorMsg="Scalar sub-query has returned multiple rows";
   assertQueryFails("SELECT * FROM lineitem WHERE orderkey = (\n" + "SELECT orderkey FROM orders ORDER BY totalprice)",multipleRowsErrorMsg);
-  assertQueryFails("SELECT (VALUES (1), (2)) IN (1,2)",multipleRowsErrorMsg);
+  assertQueryFails("SELECT orderkey, totalprice FROM orders ORDER BY (VALUES 1, 2)",multipleRowsErrorMsg);
   assertQuery("SELECT custkey, (SELECT DISTINCT custkey FROM orders ORDER BY custkey LIMIT 1) FROM orders");
 }

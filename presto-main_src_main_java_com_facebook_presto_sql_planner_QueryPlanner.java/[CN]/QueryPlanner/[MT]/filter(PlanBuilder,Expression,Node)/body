@@ -1,0 +1,9 @@
+{
+  if (predicate == null) {
+    return subPlan;
+  }
+  Expression rewrittenBeforeSubqueries=subPlan.rewrite(predicate);
+  subPlan=handleSubqueries(subPlan,rewrittenBeforeSubqueries,node);
+  Expression rewrittenAfterSubqueries=subPlan.rewrite(predicate);
+  return new PlanBuilder(subPlan.getTranslations(),new FilterNode(idAllocator.getNextId(),subPlan.getRoot(),rewrittenAfterSubqueries),subPlan.getSampleWeight());
+}
