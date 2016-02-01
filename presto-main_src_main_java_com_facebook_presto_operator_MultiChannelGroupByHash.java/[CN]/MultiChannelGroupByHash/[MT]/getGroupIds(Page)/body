@@ -1,19 +1,11 @@
 {
   int positionCount=page.getPositionCount();
   BlockBuilder blockBuilder=BIGINT.createFixedSizeBlockBuilder(positionCount);
-  Block maskBlock=null;
-  if (maskChannel >= 0) {
-    maskBlock=page.getBlock(maskChannel);
-  }
   if (canProcessDictionary(page)) {
     Block groupIds=processDictionary(page);
     return new GroupByIdBlock(nextGroupId,groupIds);
   }
   for (int position=0; position < positionCount; position++) {
-    if (maskBlock != null && !BOOLEAN.getBoolean(maskBlock,position)) {
-      blockBuilder.appendNull();
-      continue;
-    }
     int groupId=putIfAbsent(position,page);
     BIGINT.writeLong(blockBuilder,groupId);
   }
