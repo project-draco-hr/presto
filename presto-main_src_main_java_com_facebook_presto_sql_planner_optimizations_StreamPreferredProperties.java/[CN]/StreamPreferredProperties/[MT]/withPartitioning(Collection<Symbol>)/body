@@ -4,9 +4,16 @@
   }
   Iterable<Symbol> desiredPartitioning=partitionSymbols;
   if (partitioningColumns.isPresent()) {
-    Set<Symbol> common=Sets.intersection(ImmutableSet.copyOf(desiredPartitioning),ImmutableSet.copyOf(partitioningColumns.get()));
-    if (!common.isEmpty()) {
-      desiredPartitioning=common;
+    if (exactColumnOrder) {
+      if (partitioningColumns.get().equals(desiredPartitioning)) {
+        return this;
+      }
+    }
+ else {
+      Set<Symbol> common=Sets.intersection(ImmutableSet.copyOf(desiredPartitioning),ImmutableSet.copyOf(partitioningColumns.get()));
+      if (!common.isEmpty()) {
+        desiredPartitioning=common;
+      }
     }
   }
   return new StreamPreferredProperties(distribution,Optional.of(desiredPartitioning),false);

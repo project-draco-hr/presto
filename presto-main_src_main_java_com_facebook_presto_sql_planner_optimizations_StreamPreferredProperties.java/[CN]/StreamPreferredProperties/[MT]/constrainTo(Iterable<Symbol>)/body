@@ -2,9 +2,16 @@
   if (!partitioningColumns.isPresent()) {
     return this;
   }
-  Set<Symbol> common=Sets.intersection(ImmutableSet.copyOf(symbols),ImmutableSet.copyOf(partitioningColumns.get()));
+  ImmutableSet<Symbol> availableSymbols=ImmutableSet.copyOf(symbols);
+  if (exactColumnOrder) {
+    if (availableSymbols.containsAll(partitioningColumns.get())) {
+      return this;
+    }
+    return any();
+  }
+  Set<Symbol> common=Sets.intersection(availableSymbols,ImmutableSet.copyOf(partitioningColumns.get()));
   if (common.isEmpty()) {
-    return singleStream();
+    return any();
   }
   return new StreamPreferredProperties(distribution,Optional.of(common),false);
 }

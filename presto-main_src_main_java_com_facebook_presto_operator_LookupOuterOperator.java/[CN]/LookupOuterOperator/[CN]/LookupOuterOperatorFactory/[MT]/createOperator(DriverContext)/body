@@ -1,5 +1,6 @@
 {
-  checkState(!closed,"Factory is already closed");
+  checkState(state == State.NOT_CREATED,"Only one outer operator can be created");
+  state=State.CREATED;
   OperatorContext operatorContext=driverContext.addOperatorContext(operatorId,planNodeId,LookupOuterOperator.class.getSimpleName());
-  return new LookupOuterOperator(operatorContext,lookupSourceSupplier,probeTypes);
+  return new LookupOuterOperator(operatorContext,outerPositionsFuture,probeTypes,buildTypes,onOperatorClose);
 }

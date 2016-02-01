@@ -1,6 +1,8 @@
 {
-  int partition=(int)(partitionedJoinPosition & partitionMask);
-  long joinPosition=partitionedJoinPosition >>> lookupSources.length;
-  LookupSource lookupSource=lookupSources[partition];
-  lookupSource.appendTo(joinPosition,pageBuilder,outputChannelOffset);
+  int partition=decodePartition(partitionedJoinPosition);
+  int joinPosition=decodeJoinPosition(partitionedJoinPosition);
+  lookupSources[partition].appendTo(joinPosition,pageBuilder,outputChannelOffset);
+  if (visitedPositions != null) {
+    visitedPositions[partition][joinPosition]=true;
+  }
 }

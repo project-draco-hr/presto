@@ -1,0 +1,19 @@
+{
+  this.lookupSources=lookupSources.toArray(new LookupSource[lookupSources.size()]);
+  int[] hashChannels=new int[hashChannelTypes.size()];
+  for (int i=0; i < hashChannels.length; i++) {
+    hashChannels[i]=i;
+  }
+  this.partitionGenerator=new LocalPartitionGenerator(new InterpretedHashGenerator(hashChannelTypes,hashChannels),lookupSources.size());
+  this.partitionMask=lookupSources.size() - 1;
+  this.shiftSize=numberOfTrailingZeros(lookupSources.size()) + 1;
+  if (outer) {
+    visitedPositions=new boolean[lookupSources.size()][];
+    for (int source=0; source < this.lookupSources.length; source++) {
+      visitedPositions[source]=new boolean[this.lookupSources[source].getJoinPositionCount()];
+    }
+  }
+ else {
+    visitedPositions=null;
+  }
+}

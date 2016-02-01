@@ -1,0 +1,25 @@
+{
+  PartitionedLookupSource partitionedLookupSource=null;
+synchronized (this) {
+    requireNonNull(lookupSource,"lookupSource is null");
+    requireNonNull(operatorContext,"operatorContext is null");
+    if (destroyed) {
+      return;
+    }
+    checkState(partitions[partitionIndex] == null,"Partition already set");
+    partitions[partitionIndex]=lookupSource;
+    partitionsSet++;
+    long lookupSourceSizeInBytes=lookupSource.getInMemorySizeInBytes();
+    operatorContext.transferMemoryToTaskContext(lookupSourceSizeInBytes);
+    reservedMemory+=lookupSourceSizeInBytes;
+    if (taskContext == null) {
+      taskContext=operatorContext.getDriverContext().getPipelineContext().getTaskContext();
+    }
+    if (partitionsSet == partitions.length) {
+      partitionedLookupSource=new PartitionedLookupSource(ImmutableList.copyOf(partitions),hashChannelTypes,outer);
+    }
+  }
+  if (partitionedLookupSource != null) {
+    lookupSourceFuture.set(partitionedLookupSource);
+  }
+}
