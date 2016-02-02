@@ -1,0 +1,13 @@
+{
+  if (state.getBigInteger() == null) {
+    out.appendNull();
+  }
+ else {
+    byte[] bigIntegerBytes=state.getBigInteger().toByteArray();
+    Slice slice=Slices.allocate(Long.BYTES + bigIntegerBytes.length);
+    SliceOutput output=slice.getOutput();
+    output.writeLong(state.getLong());
+    output.writeBytes(bigIntegerBytes);
+    VARBINARY.writeSlice(out,slice);
+  }
+}
