@@ -1,19 +1,2 @@
 {
-  ImmutableSet.Builder<HivePrivilege> privileges=ImmutableSet.builder();
-  try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
-    PrincipalPrivilegeSet privilegeSet=client.getPrivilegeSet(objectReference,user,null);
-    if (privilegeSet != null) {
-      Map<String,List<PrivilegeGrantInfo>> userPrivileges=privilegeSet.getUserPrivileges();
-      if (userPrivileges != null) {
-        privileges.addAll(toGrants(userPrivileges.get(user)));
-      }
-      for (      List<PrivilegeGrantInfo> rolePrivileges : privilegeSet.getRolePrivileges().values()) {
-        privileges.addAll(toGrants(rolePrivileges));
-      }
-    }
-  }
- catch (  TException e) {
-    throw new PrestoException(HIVE_METASTORE_ERROR,e);
-  }
-  return privileges.build();
 }
