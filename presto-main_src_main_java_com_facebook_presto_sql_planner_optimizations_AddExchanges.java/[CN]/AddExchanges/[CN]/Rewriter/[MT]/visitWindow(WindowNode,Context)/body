@@ -1,2 +1,19 @@
 {
+  List<LocalProperty<Symbol>> desiredProperties=new ArrayList<>();
+  if (!node.getPartitionBy().isEmpty()) {
+    desiredProperties.add(new GroupingProperty<>(node.getPartitionBy()));
+  }
+  for (  Symbol symbol : node.getOrderBy()) {
+    desiredProperties.add(new SortingProperty<>(symbol,node.getOrderings().get(symbol)));
+  }
+  PlanWithProperties child=planChild(node,context.withPreferredProperties(PreferredProperties.derivePreferences(context.getPreferredProperties(),ImmutableSet.copyOf(node.getPartitionBy()),desiredProperties)));
+  if (!child.getProperties().isStreamPartitionedOn(node.getPartitionBy())) {
+    if (node.getPartitionBy().isEmpty()) {
+      child=withDerivedProperties(gatheringExchange(idAllocator.getNextId(),REMOTE,child.getNode()),child.getProperties());
+    }
+ else {
+      child=withDerivedProperties(partitionedExchange(idAllocator.getNextId(),REMOTE,child.getNode(),node.getPartitionBy(),node.getHashSymbol()),child.getProperties());
+    }
+  }
+  return rebaseAndDeriveProperties(node,child);
 }
