@@ -1,23 +1,2 @@
 {
-  final SettableFuture<Void> future=SettableFuture.create();
-  executor.submit(new Runnable(){
-    @Override public void run(){
-      try {
-        for (int splitId=0; splitId < splits; splitId++) {
-          SimulationSplit split=new SimulationSplit(new Duration(80,TimeUnit.MILLISECONDS),new Duration(1,TimeUnit.MILLISECONDS));
-          SimulationTask.this.splits.add(split);
-          splitFutures.addAll(taskExecutor.enqueueSplits(taskHandle,false,ImmutableList.of(split)));
-          Thread.sleep(entryDelay.toMillis());
-        }
-        Futures.allAsList(splitFutures).get();
-        future.set(null);
-      }
- catch (      Throwable e) {
-        future.setException(e);
-        throw Throwables.propagate(e);
-      }
-    }
-  }
-);
-  return future;
 }
