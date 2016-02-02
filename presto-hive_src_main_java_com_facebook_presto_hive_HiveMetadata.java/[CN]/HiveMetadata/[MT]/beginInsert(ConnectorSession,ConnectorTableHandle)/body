@@ -8,5 +8,10 @@
   checkTableIsWritable(table.get());
   HiveStorageFormat hiveStorageFormat=extractHiveStorageFormat(table.get());
   List<HiveColumnHandle> handles=hiveColumnHandles(connectorId,table.get());
+  for (  HiveColumnHandle hiveColumnHandle : handles) {
+    if (!isWritableType(hiveColumnHandle.getHiveType())) {
+      throw new PrestoException(NOT_SUPPORTED,format("Inserting into Hive table with column type %s not supported",hiveColumnHandle.getHiveType()));
+    }
+  }
   return new HiveInsertTableHandle(connectorId,tableName.getSchemaName(),tableName.getTableName(),handles,session.getQueryId(),locationService.forExistingTable(session.getQueryId(),table.get()),hiveStorageFormat);
 }

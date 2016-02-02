@@ -1,0 +1,30 @@
+{
+  ConnectorSession session=newSession();
+  String tableOwner=session.getUser();
+  String schemaName=schemaTableName.getSchemaName();
+  String tableName=schemaTableName.getTableName();
+  LocationService locationService=getLocationService(schemaName);
+  LocationHandle locationHandle=locationService.forNewTable(session.getQueryId(),schemaName,tableName);
+  Path targetPath=locationService.targetPathRoot(locationHandle);
+  HiveWriteUtils.createDirectory(hdfsEnvironment,targetPath);
+  SerDeInfo serdeInfo=new SerDeInfo();
+  serdeInfo.setName(tableName);
+  serdeInfo.setSerializationLib(hiveStorageFormat.getSerDe());
+  serdeInfo.setParameters(ImmutableMap.of());
+  StorageDescriptor sd=new StorageDescriptor();
+  sd.setLocation(targetPath.toString());
+  sd.setCols(columns);
+  sd.setSerdeInfo(serdeInfo);
+  sd.setInputFormat(hiveStorageFormat.getInputFormat());
+  sd.setOutputFormat(hiveStorageFormat.getOutputFormat());
+  sd.setParameters(ImmutableMap.of());
+  Table table=new Table();
+  table.setDbName(schemaName);
+  table.setTableName(tableName);
+  table.setOwner(tableOwner);
+  table.setTableType(TableType.MANAGED_TABLE.toString());
+  table.setParameters(ImmutableMap.of());
+  table.setPartitionKeys(partitionColumns);
+  table.setSd(sd);
+  getMetastoreClient(schemaName).createTable(table);
+}
