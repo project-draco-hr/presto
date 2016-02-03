@@ -1,0 +1,21 @@
+{
+  if (leftArgument.isVariable()) {
+    if (rightArgument.isVariable()) {
+      Set<Symbol> mappedColumns=leftToRightMappings.apply(leftArgument.getColumn());
+      return mappedColumns.contains(rightArgument.getColumn());
+    }
+ else {
+      NullableValue leftConstant=leftConstantMapping.apply(leftArgument.getColumn());
+      return leftConstant != null && leftConstant.equals(rightArgument.getConstant());
+    }
+  }
+ else {
+    if (rightArgument.isConstant()) {
+      return leftArgument.getConstant().equals(rightArgument.getConstant());
+    }
+ else {
+      NullableValue rightConstant=rightConstantMapping.apply(rightArgument.getColumn());
+      return leftArgument.getConstant().equals(rightConstant);
+    }
+  }
+}

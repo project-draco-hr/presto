@@ -1,26 +1,2 @@
 {
-  PlanWithProperties source;
-  PlanWithProperties filteringSource;
-  if (distributedJoins && !context.isDownstreamIsDelete()) {
-    List<Symbol> sourceSymbols=ImmutableList.of(node.getSourceJoinSymbol());
-    List<Symbol> filteringSourceSymbols=ImmutableList.of(node.getFilteringSourceJoinSymbol());
-    source=node.getSource().accept(this,context.withPreferredProperties(PreferredProperties.hashPartitioned(sourceSymbols)));
-    filteringSource=node.getFilteringSource().accept(this,context.withPreferredProperties(PreferredProperties.any()));
-    if (!source.getProperties().isNodePartitionedOn(FIXED_HASH_DISTRIBUTION,sourceSymbols)) {
-      source=withDerivedProperties(partitionedExchange(idAllocator.getNextId(),source.getNode(),sourceSymbols,node.getSourceHashSymbol()),source.getProperties());
-    }
-    PartitionFunctionBinding partitionFunction=new PartitionFunctionBinding(FIXED_HASH_DISTRIBUTION,filteringSource.getNode().getOutputSymbols(),filteringSourceSymbols,node.getFilteringSourceHashSymbol(),true,Optional.empty());
-    filteringSource=withDerivedProperties(partitionedExchange(idAllocator.getNextId(),filteringSource.getNode(),partitionFunction),filteringSource.getProperties());
-  }
- else {
-    source=node.getSource().accept(this,context.withPreferredProperties(PreferredProperties.any()));
-    filteringSource=node.getFilteringSource().accept(this,context.withPreferredProperties(PreferredProperties.any()).withHashPartitionedSemiJoinBanned(false));
-    if (source.getProperties().isSingleNode()) {
-      filteringSource=withDerivedProperties(gatheringExchange(idAllocator.getNextId(),filteringSource.getNode()),filteringSource.getProperties());
-    }
- else {
-      filteringSource=withDerivedProperties(replicatedExchange(idAllocator.getNextId(),filteringSource.getNode()),filteringSource.getProperties());
-    }
-  }
-  return rebaseAndDeriveProperties(node,ImmutableList.of(source,filteringSource));
 }

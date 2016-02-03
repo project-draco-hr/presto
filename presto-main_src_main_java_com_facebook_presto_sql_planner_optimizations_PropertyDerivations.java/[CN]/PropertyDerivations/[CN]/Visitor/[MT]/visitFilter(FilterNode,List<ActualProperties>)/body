@@ -1,2 +1,7 @@
 {
+  ActualProperties properties=Iterables.getOnlyElement(inputProperties);
+  DomainTranslator.ExtractionResult decomposedPredicate=DomainTranslator.fromPredicate(metadata,session,node.getPredicate(),types);
+  Map<Symbol,NullableValue> constants=new HashMap<>(properties.getConstants());
+  constants.putAll(extractFixedValues(decomposedPredicate.getTupleDomain()).orElse(ImmutableMap.of()));
+  return ActualProperties.builderFrom(properties).constants(constants).build();
 }
