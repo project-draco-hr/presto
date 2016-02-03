@@ -1,8 +1,8 @@
 {
   Signature coercion=metadata.getFunctionRegistry().getCoercion(type,VARCHAR);
-  MethodHandle method=metadata.getFunctionRegistry().getScalarFunctionImplementation(coercion).getMethodHandle();
   try {
-    return ((Slice)method.invokeWithArguments(value)).toStringUtf8();
+    Slice coerced=(Slice)new FunctionInvoker(metadata.getFunctionRegistry()).invoke(coercion,session.toConnectorSession(),value);
+    return coerced.toStringUtf8();
   }
  catch (  OperatorNotFoundException e) {
     return "<UNREPRESENTABLE VALUE>";
