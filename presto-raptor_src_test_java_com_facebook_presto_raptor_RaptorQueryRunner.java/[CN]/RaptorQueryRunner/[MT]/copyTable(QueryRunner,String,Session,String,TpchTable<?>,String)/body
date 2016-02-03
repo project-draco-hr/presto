@@ -1,0 +1,10 @@
+{
+  QualifiedObjectName source=new QualifiedObjectName(catalog,schema,table.getTableName());
+  String target=table.getTableName();
+  String with=properties.isEmpty() ? "" : format(" WITH (%s)",properties);
+  @Language("SQL") String sql=format("CREATE TABLE %s%s AS SELECT * FROM %s",target,with,source);
+  log.info("Running import for %s",target);
+  long start=System.nanoTime();
+  long rows=queryRunner.execute(session,sql).getUpdateCount().getAsLong();
+  log.info("Imported %s rows for %s in %s",rows,target,nanosSince(start));
+}

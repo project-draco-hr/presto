@@ -1,0 +1,14 @@
+{
+  String schema=TINY_SCHEMA_NAME;
+  if (!bucketed) {
+    copyTpchTables(queryRunner,catalog,schema,session,TpchTable.getTables());
+    return;
+  }
+  Map<TpchTable<?>,String> tables=ImmutableMap.<TpchTable<?>,String>builder().put(TpchTable.ORDERS,"bucket_count = 25, bucketed_on = ARRAY['orderkey'], distribution_name = 'order'").put(TpchTable.LINE_ITEM,"bucket_count = 25, bucketed_on = ARRAY['orderkey'], distribution_name = 'order'").put(TpchTable.PART,"bucket_count = 20, bucketed_on = ARRAY['partkey'], distribution_name = 'part'").put(TpchTable.PART_SUPPLIER,"bucket_count = 20, bucketed_on = ARRAY['partkey'], distribution_name = 'part'").put(TpchTable.SUPPLIER,"bucket_count = 10, bucketed_on = ARRAY['suppkey']").put(TpchTable.CUSTOMER,"bucket_count = 10, bucketed_on = ARRAY['custkey']").put(TpchTable.NATION,"").put(TpchTable.REGION,"").build();
+  log.info("Loading data from %s.%s...",catalog,schema);
+  long startTime=System.nanoTime();
+  for (  Entry<TpchTable<?>,String> entry : tables.entrySet()) {
+    copyTable(queryRunner,catalog,session,schema,entry.getKey(),entry.getValue());
+  }
+  log.info("Loading from %s.%s complete in %s",catalog,schema,nanosSince(startTime));
+}
