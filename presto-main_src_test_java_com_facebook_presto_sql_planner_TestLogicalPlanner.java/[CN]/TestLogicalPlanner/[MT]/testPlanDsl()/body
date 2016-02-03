@@ -1,0 +1,10 @@
+{
+  assertPlan("SELECT orderkey FROM orders WHERE orderkey IN (1, 2, 3)",node(OutputNode.class,node(FilterNode.class,tableScan("orders"))));
+  String simpleJoinQuery="SELECT o.orderkey FROM orders o, lineitem l WHERE l.orderkey = o.orderkey";
+  assertPlan(simpleJoinQuery,any(any(node(JoinNode.class,any(tableScan("orders")),any(any(tableScan("lineitem")))))));
+  assertPlan(simpleJoinQuery,anyTree(node(JoinNode.class,anyTree(),anyTree())));
+  assertPlan(simpleJoinQuery,anyTree(node(TableScanNode.class)));
+  assertPlan("SELECT * FROM orders WHERE orderkey = (SELECT orderkey FROM lineitem ORDER BY orderkey LIMIT 1)",anyTree(join(ImmutableList.of(aliasPair("X","Y")),project(tableScan("orders").withSymbol("orderkey","X")),project(node(EnforceSingleRowNode.class,anyTree(tableScan("lineitem").withSymbol("orderkey","Y")))))));
+  assertPlan("SELECT * FROM orders WHERE orderkey IN (SELECT orderkey FROM lineitem WHERE linenumber % 4 = 0)",anyTree(filter("S",project(semiJoin("X","Y","S",anyTree(tableScan("orders").withSymbol("orderkey","X")),anyTree(tableScan("lineitem").withSymbol("orderkey","Y")))))));
+  assertPlan("SELECT * FROM orders WHERE orderkey NOT IN (SELECT orderkey FROM lineitem WHERE linenumber < 0)",anyTree(filter("NOT S",project(semiJoin("X","Y","S",anyTree(tableScan("orders").withSymbol("orderkey","X")),anyTree(tableScan("lineitem").withSymbol("orderkey","Y")))))));
+}

@@ -1,0 +1,21 @@
+{
+  List<PlanMatchingState> states=context.getPattern().matches(node,session,metadata,context.getSymbolAliases());
+  if (states.isEmpty()) {
+    return false;
+  }
+  if (node.getSources().isEmpty()) {
+    return !filterTerminated(states).isEmpty();
+  }
+  for (  PlanMatchingState state : states) {
+    checkState(node.getSources().size() == state.getPatterns().size(),"Matchers count does not match count of sources");
+    int i=0;
+    boolean sourcesMatch=true;
+    for (    PlanNode source : node.getSources()) {
+      sourcesMatch=sourcesMatch && source.accept(this,state.createContext(i++));
+    }
+    if (sourcesMatch) {
+      return true;
+    }
+  }
+  return false;
+}

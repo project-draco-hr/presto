@@ -1,0 +1,11 @@
+{
+  Statement statement=sqlParser.createStatement(sql);
+  assertFormattedSql(sqlParser,statement);
+  PlanNodeIdAllocator idAllocator=new PlanNodeIdAllocator();
+  FeaturesConfig featuresConfig=new FeaturesConfig().setExperimentalSyntaxEnabled(true).setDistributedIndexJoinsEnabled(false).setOptimizeHashGeneration(true);
+  PlanOptimizersFactory planOptimizersFactory=new PlanOptimizersFactory(metadata,sqlParser,featuresConfig,true);
+  QueryExplainer queryExplainer=new QueryExplainer(planOptimizersFactory.get(),metadata,accessControl,sqlParser,dataDefinitionTask,featuresConfig.isExperimentalSyntaxEnabled());
+  Analyzer analyzer=new Analyzer(session,metadata,sqlParser,accessControl,Optional.of(queryExplainer),featuresConfig.isExperimentalSyntaxEnabled());
+  Analysis analysis=analyzer.analyze(statement);
+  return new LogicalPlanner(session,planOptimizersFactory.get(),idAllocator,metadata).plan(analysis);
+}
