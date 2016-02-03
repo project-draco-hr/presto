@@ -1,0 +1,16 @@
+{
+  checkArgument(splitThreadNanos >= 0,"nanos is negative");
+  checkArgument(isFinite(utilization),"utilization must be finite");
+  checkArgument(utilization >= 0,"utilization is negative");
+  checkArgument(currentConcurrency >= 0,"currentConcurrency is negative");
+  if (threadNanosSinceLastAdjustment >= adjustmentIntervalNanos || threadNanosSinceLastAdjustment >= splitThreadNanos) {
+    if (utilization > TARGET_UTILIZATION && targetConcurrency > 1) {
+      threadNanosSinceLastAdjustment=0;
+      targetConcurrency--;
+    }
+ else     if (utilization < TARGET_UTILIZATION && currentConcurrency >= targetConcurrency) {
+      threadNanosSinceLastAdjustment=0;
+      targetConcurrency++;
+    }
+  }
+}
