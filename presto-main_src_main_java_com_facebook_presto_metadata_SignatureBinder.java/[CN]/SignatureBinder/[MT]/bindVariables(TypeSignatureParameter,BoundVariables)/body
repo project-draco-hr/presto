@@ -1,0 +1,29 @@
+{
+  ParameterKind parameterKind=parameter.getKind();
+switch (parameterKind) {
+case TYPE:
+{
+      TypeSignature typeSignature=parameter.getTypeSignature();
+      return TypeSignatureParameter.of(bindVariables(typeSignature,boundVariables));
+    }
+case NAMED_TYPE:
+{
+    NamedTypeSignature namedTypeSignature=parameter.getNamedTypeSignature();
+    TypeSignature typeSignature=namedTypeSignature.getTypeSignature();
+    return TypeSignatureParameter.of(new NamedTypeSignature(namedTypeSignature.getName(),bindVariables(typeSignature,boundVariables)));
+  }
+case VARIABLE:
+{
+  String variableName=parameter.getVariable();
+  checkState(boundVariables.containsLongVariable(variableName),"Variable is not bound: %s",variableName);
+  Long variableValue=boundVariables.getLongVariable(variableName);
+  return TypeSignatureParameter.of(variableValue);
+}
+case LONG:
+{
+return parameter;
+}
+default :
+throw new IllegalStateException("Unknown parameter kind: " + parameter.getKind());
+}
+}

@@ -1,7 +1,8 @@
 {
-  Type resolvedReturnType=typeManager.getType(resolveTypeSignature(getSignature().getReturnType(),boundVariables));
-  List<TypeSignature> resolvedParameterSignatures=resolveTypeSignatures(getSignature().getArgumentTypes(),boundVariables);
-  List<Type> resolvedParameterTypes=resolveTypes(resolvedParameterSignatures,typeManager);
+  List<TypeSignature> resolvedParameterTypeSignatures=bindVariables(getSignature().getArgumentTypes(),boundVariables);
+  List<Type> resolvedParameterTypes=resolveTypes(resolvedParameterTypeSignatures,typeManager);
+  TypeSignature resolvedReturnTypeSignature=bindVariables(getSignature().getReturnType(),boundVariables);
+  Type resolvedReturnType=typeManager.getType(resolvedReturnTypeSignature);
   SpecializeContext context=new SpecializeContext(boundVariables,resolvedParameterTypes,resolvedReturnType,typeManager,functionRegistry);
   Optional<Method> matchingMethod=Optional.empty();
   Optional<MethodsGroup> matchingMethodsGroup=Optional.empty();
@@ -12,7 +13,7 @@
           if (onlyFirstMatchedMethodHasPredicate(matchingMethodsGroup.get(),candidateMethodsGroup)) {
             continue;
           }
-          throw new IllegalStateException("two matching methods (" + matchingMethod.get().getName() + " and "+ candidateMethod.getName()+ ") for parameter types "+ resolvedParameterTypes);
+          throw new IllegalStateException("two matching methods (" + matchingMethod.get().getName() + " and "+ candidateMethod.getName()+ ") for parameter types "+ resolvedParameterTypeSignatures);
         }
         matchingMethod=Optional.of(candidateMethod);
         matchingMethodsGroup=Optional.of(candidateMethodsGroup);

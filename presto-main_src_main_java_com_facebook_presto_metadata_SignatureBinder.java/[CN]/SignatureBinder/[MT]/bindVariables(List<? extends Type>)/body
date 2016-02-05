@@ -1,0 +1,14 @@
+{
+  List<TypeSignature> expectedArgumentSignatures=declaredSignature.getArgumentTypes();
+  boolean variableArity=declaredSignature.isVariableArity();
+  BoundVariables.Builder variableBinder=BoundVariables.builder();
+  if (!matchArguments(expectedArgumentSignatures,actualArgumentTypes,variableArity,variableBinder)) {
+    return Optional.empty();
+  }
+  calculateVariableValuesForLongConstraints(variableBinder);
+  BoundVariables boundVariables=variableBinder.build();
+  if (!allTypeVariablesBound(boundVariables)) {
+    return Optional.empty();
+  }
+  return Optional.of(boundVariables);
+}

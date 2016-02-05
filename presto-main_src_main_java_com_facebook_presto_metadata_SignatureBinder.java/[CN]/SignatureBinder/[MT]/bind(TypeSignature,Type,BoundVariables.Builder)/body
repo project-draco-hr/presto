@@ -1,0 +1,20 @@
+{
+  if (isTypeVariable(expected)) {
+    String variable=expected.getBase();
+    return matchAndBindTypeVariable(variable,actual,variableBinder);
+  }
+  TypeSignature actualArgumentSignature=actual.getTypeSignature();
+  if (baseTypesAreEqual(expected,actualArgumentSignature) && matchAndBindTypeParameters(expected,actual,variableBinder)) {
+    return true;
+  }
+ else   if (allowCoercion) {
+    if (actual.equals(UnknownType.UNKNOWN) && isTypeParametrized(expected)) {
+      return true;
+    }
+    Optional<Type> coercedType=coerceType(actualArgumentSignature,expected);
+    if (coercedType.isPresent()) {
+      return matchAndBindTypeParameters(expected,coercedType.get(),variableBinder);
+    }
+  }
+  return false;
+}

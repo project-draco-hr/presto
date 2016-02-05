@@ -1,0 +1,39 @@
+{
+switch (expected.getKind()) {
+case VARIABLE:
+{
+      String variable=expected.getVariable();
+      checkState(actual.getKind() == ParameterKind.LONG,"LONG parameter kind is expected here");
+      Long variableValue=actual.getLongLiteral();
+      return matchAndBindLongVariable(variable,variableValue,variableBinder);
+    }
+case LONG:
+{
+    checkState(actual.getKind() == ParameterKind.LONG,"LONG parameter kind is expected here");
+    return actual.getLongLiteral().equals(expected.getLongLiteral());
+  }
+case TYPE:
+{
+  checkState(actual.getKind() == ParameterKind.TYPE,"TYPE parameter kind is expected here");
+  TypeSignature expectedTypeSignature=expected.getTypeSignature();
+  TypeSignature actualTypeSignature=actual.getTypeSignature();
+  Type actualType=typeManager.getType(actualTypeSignature);
+  return bind(expectedTypeSignature,actualType,variableBinder);
+}
+case NAMED_TYPE:
+{
+checkState(actual.getKind() == ParameterKind.NAMED_TYPE,"NAMED_TYPE parameter kind is expected here");
+NamedTypeSignature expectedNamedTypeSignature=expected.getNamedTypeSignature();
+NamedTypeSignature actualNamedTypeSignature=actual.getNamedTypeSignature();
+if (!expectedNamedTypeSignature.getName().equals(actualNamedTypeSignature.getName())) {
+  return false;
+}
+TypeSignature expectedTypeSignature=expectedNamedTypeSignature.getTypeSignature();
+TypeSignature actualTypeSignature=actualNamedTypeSignature.getTypeSignature();
+Type actualType=typeManager.getType(actualTypeSignature);
+return bind(expectedTypeSignature,actualType,variableBinder);
+}
+default :
+throw new IllegalStateException("Unknown parameter kind: " + expected.getKind());
+}
+}

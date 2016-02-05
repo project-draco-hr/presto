@@ -1,0 +1,21 @@
+{
+  TypeSignature actualArgumentSignature=actualArgumentType.getTypeSignature();
+  checkState(baseTypesAreEqual(expectedArgumentSignature,actualArgumentSignature),"equal base types are expected here");
+  List<TypeSignatureParameter> expectedTypeParameters=expectedArgumentSignature.getParameters();
+  List<TypeSignatureParameter> actualTypeParameters=actualArgumentSignature.getParameters();
+  if (expectedTypeParameters.isEmpty() && !actualTypeParameters.isEmpty()) {
+    checkState(expectedArgumentSignature.getBase().equals(StandardTypes.VARCHAR),"This is just legacy trick for VARCHAR. " + "newly added methods for parametrized types must declare literal parameters in signatures");
+    return true;
+  }
+  if (expectedTypeParameters.size() != actualTypeParameters.size()) {
+    return false;
+  }
+  for (int typeParameterIndex=0; typeParameterIndex < expectedTypeParameters.size(); typeParameterIndex++) {
+    TypeSignatureParameter expectedTypeParameter=expectedTypeParameters.get(typeParameterIndex);
+    TypeSignatureParameter actualTypeParameter=actualTypeParameters.get(typeParameterIndex);
+    if (!matchAndBindTypeParameter(expectedTypeParameter,actualTypeParameter,variableBinder)) {
+      return false;
+    }
+  }
+  return true;
+}

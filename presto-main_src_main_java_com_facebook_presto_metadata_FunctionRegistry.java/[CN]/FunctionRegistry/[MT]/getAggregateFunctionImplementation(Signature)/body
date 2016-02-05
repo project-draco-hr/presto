@@ -5,12 +5,10 @@
   for (  SqlFunction operator : candidates) {
     Type returnType=typeManager.getType(signature.getReturnType());
     List<Type> argumentTypes=resolveTypes(signature.getArgumentTypes(),typeManager);
-    Map<String,Type> boundTypeParameters=operator.getSignature().bindTypeVariables(returnType,argumentTypes,false,typeManager);
-    if (boundTypeParameters != null) {
+    Optional<BoundVariables> boundVariables=new SignatureBinder(typeManager,operator.getSignature(),false).bindVariables(argumentTypes,returnType);
+    if (boundVariables.isPresent()) {
       try {
-        Map<String,OptionalLong> boundLiteralParameters=operator.getSignature().bindLongVariables(signature.getArgumentTypes());
-        BoundVariables boundVariables=new BoundVariables(boundTypeParameters,boundLiteralParameters);
-        return specializedAggregationCache.getUnchecked(new SpecializedFunctionKey(operator,boundVariables,signature.getArgumentTypes().size()));
+        return specializedAggregationCache.getUnchecked(new SpecializedFunctionKey(operator,boundVariables.get(),signature.getArgumentTypes().size()));
       }
  catch (      UncheckedExecutionException e) {
         throw Throwables.propagate(e.getCause());

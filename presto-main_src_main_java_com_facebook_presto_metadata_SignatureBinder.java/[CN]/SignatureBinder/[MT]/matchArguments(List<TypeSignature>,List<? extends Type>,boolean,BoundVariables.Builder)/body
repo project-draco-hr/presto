@@ -1,0 +1,27 @@
+{
+  if (variableArity && (actualTypes.size() < (expectedTypes.size() - 1))) {
+    return false;
+  }
+  if (!variableArity && expectedTypes.size() != actualTypes.size()) {
+    return false;
+  }
+  if (variableArity && actualTypes.size() >= expectedTypes.size()) {
+    List<? extends Type> tail=actualTypes.subList(expectedTypes.size() - 1,actualTypes.size());
+    Optional<Type> commonType=typeManager.getCommonSuperType(tail);
+    if (!commonType.isPresent()) {
+      return false;
+    }
+    TypeSignature expected=expectedTypes.get(expectedTypes.size() - 1);
+    if (!bind(expected,commonType.get(),variableBinder)) {
+      return false;
+    }
+  }
+  for (int i=0; i < actualTypes.size(); i++) {
+    TypeSignature expectedArgumentSignature=expectedTypes.get(Math.min(i,expectedTypes.size() - 1));
+    Type actualArgumentType=actualTypes.get(i);
+    if (!bind(expectedArgumentSignature,actualArgumentType,variableBinder)) {
+      return false;
+    }
+  }
+  return true;
+}

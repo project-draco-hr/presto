@@ -5,12 +5,10 @@
   Type returnType=typeManager.getType(signature.getReturnType());
   List<Type> argumentTypes=resolveTypes(signature.getArgumentTypes(),typeManager);
   for (  SqlFunction operator : candidates) {
-    Map<String,Type> boundTypeParameters=operator.getSignature().bindTypeVariables(returnType,argumentTypes,false,typeManager);
-    if (boundTypeParameters != null) {
+    Optional<BoundVariables> boundVariables=new SignatureBinder(typeManager,operator.getSignature(),false).bindVariables(argumentTypes,returnType);
+    if (boundVariables.isPresent()) {
       try {
-        Map<String,OptionalLong> boundLiteralParameters=operator.getSignature().bindLongVariables(signature.getArgumentTypes());
-        BoundVariables boundVariables=new BoundVariables(boundTypeParameters,boundLiteralParameters);
-        return specializedScalarCache.getUnchecked(new SpecializedFunctionKey(operator,boundVariables,argumentTypes.size()));
+        return specializedScalarCache.getUnchecked(new SpecializedFunctionKey(operator,boundVariables.get(),argumentTypes.size()));
       }
  catch (      UncheckedExecutionException e) {
         throw Throwables.propagate(e.getCause());
@@ -40,10 +38,9 @@
   if (!signature.getArgumentTypes().isEmpty() && signature.getArgumentTypes().get(0).getBase().equals(StandardTypes.ROW)) {
     SqlFunction fieldReference=getRowFieldReference(signature.getName(),signature.getArgumentTypes().get(0));
     if (fieldReference != null) {
-      Map<String,Type> boundTypeParameters=fieldReference.getSignature().bindTypeVariables(returnType,argumentTypes,false,typeManager);
-      Map<String,OptionalLong> boundLiteralParameters=fieldReference.getSignature().bindLongVariables(signature.getArgumentTypes());
-      BoundVariables boundVariables=new BoundVariables(boundTypeParameters,boundLiteralParameters);
-      return specializedScalarCache.getUnchecked(new SpecializedFunctionKey(fieldReference,boundVariables,argumentTypes.size()));
+      Optional<BoundVariables> boundVariables=new SignatureBinder(typeManager,fieldReference.getSignature(),false).bindVariables(argumentTypes,returnType);
+      checkState(boundVariables.isPresent());
+      return specializedScalarCache.getUnchecked(new SpecializedFunctionKey(fieldReference,boundVariables.get(),argumentTypes.size()));
     }
   }
   throw new PrestoException(FUNCTION_IMPLEMENTATION_MISSING,format("%s not found",signature));
