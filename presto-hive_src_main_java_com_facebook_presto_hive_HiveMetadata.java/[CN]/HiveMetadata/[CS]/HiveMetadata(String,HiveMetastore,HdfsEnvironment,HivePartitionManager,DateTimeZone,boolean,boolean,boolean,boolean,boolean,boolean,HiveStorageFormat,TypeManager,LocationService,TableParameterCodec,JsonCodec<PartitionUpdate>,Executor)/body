@@ -1,5 +1,5 @@
 {
-  this.connectorId=requireNonNull(connectorId,"connectorId is null").toString();
+  this.connectorId=requireNonNull(connectorId,"connectorId is null");
   this.allowDropTable=allowDropTable;
   this.allowRenameTable=allowRenameTable;
   this.allowAddColumn=allowAddColumn;
@@ -13,8 +13,7 @@
   this.locationService=requireNonNull(locationService,"locationService is null");
   this.tableParameterCodec=requireNonNull(tableParameterCodec,"tableParameterCodec is null");
   this.partitionUpdateCodec=requireNonNull(partitionUpdateCodec,"partitionUpdateCodec is null");
-  if (!allowCorruptWritesForTesting && !timeZone.equals(DateTimeZone.getDefault())) {
-    log.warn("Hive writes are disabled. " + "To write data to Hive, your JVM timezone must match the Hive storage timezone. " + "Add -Duser.timezone=%s to your JVM arguments",timeZone.getID());
-  }
-  renameExecution=new BoundedExecutor(executorService,maxConcurrentFileRenames);
+  this.respectTableFormat=respectTableFormat;
+  this.defaultStorageFormat=requireNonNull(defaultStorageFormat,"defaultStorageFormat is null");
+  this.renameExecutor=requireNonNull(renameExecutor,"renameExecution is null");
 }

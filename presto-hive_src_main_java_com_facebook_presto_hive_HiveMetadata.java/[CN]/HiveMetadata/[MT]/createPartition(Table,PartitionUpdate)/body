@@ -4,7 +4,12 @@
   partition.setDbName(table.getDbName());
   partition.setTableName(table.getTableName());
   partition.setValues(values);
-  partition.setSd(table.getSd().deepCopy());
-  partition.getSd().setLocation(partitionUpdate.getTargetPath());
+  if (respectTableFormat) {
+    partition.setSd(table.getSd().deepCopy());
+    partition.getSd().setLocation(partitionUpdate.getTargetPath());
+  }
+ else {
+    partition.setSd(makeStorageDescriptor(table.getTableName(),defaultStorageFormat,new Path(partitionUpdate.getTargetPath()),table.getSd().getCols()));
+  }
   return partition;
 }
