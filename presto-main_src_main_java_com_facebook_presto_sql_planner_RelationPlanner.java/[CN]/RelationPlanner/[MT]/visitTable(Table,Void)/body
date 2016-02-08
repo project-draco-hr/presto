@@ -1,27 +1,2 @@
 {
-  Query namedQuery=analysis.getNamedQuery(node);
-  if (namedQuery != null) {
-    RelationPlan subPlan=process(namedQuery,null);
-    return new RelationPlan(subPlan.getRoot(),analysis.getOutputDescriptor(node),subPlan.getOutputSymbols(),subPlan.getSampleWeight());
-  }
-  RelationType descriptor=analysis.getOutputDescriptor(node);
-  TableHandle handle=analysis.getTableHandle(node);
-  ImmutableList.Builder<Symbol> outputSymbolsBuilder=ImmutableList.builder();
-  ImmutableMap.Builder<Symbol,ColumnHandle> columns=ImmutableMap.builder();
-  for (  Field field : descriptor.getAllFields()) {
-    Symbol symbol=symbolAllocator.newSymbol(field.getName().get(),field.getType());
-    outputSymbolsBuilder.add(symbol);
-    columns.put(symbol,analysis.getColumn(field));
-  }
-  List<Symbol> planOutputSymbols=outputSymbolsBuilder.build();
-  Optional<ColumnHandle> sampleWeightColumn=metadata.getSampleWeightColumnHandle(session,handle);
-  Symbol sampleWeightSymbol=null;
-  if (sampleWeightColumn.isPresent()) {
-    sampleWeightSymbol=symbolAllocator.newSymbol("$sampleWeight",BIGINT);
-    outputSymbolsBuilder.add(sampleWeightSymbol);
-    columns.put(sampleWeightSymbol,sampleWeightColumn.get());
-  }
-  List<Symbol> nodeOutputSymbols=outputSymbolsBuilder.build();
-  PlanNode root=new TableScanNode(idAllocator.getNextId(),handle,nodeOutputSymbols,columns.build(),Optional.empty(),TupleDomain.all(),null);
-  return new RelationPlan(root,descriptor,planOutputSymbols,Optional.ofNullable(sampleWeightSymbol));
 }

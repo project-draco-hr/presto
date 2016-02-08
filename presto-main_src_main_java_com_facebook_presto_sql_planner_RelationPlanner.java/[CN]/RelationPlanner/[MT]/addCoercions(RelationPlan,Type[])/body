@@ -1,0 +1,29 @@
+{
+  List<Symbol> oldSymbols=plan.getOutputSymbols();
+  RelationType oldDescriptor=plan.getDescriptor().withOnlyVisibleFields();
+  verify(targetColumnTypes.length == oldSymbols.size());
+  ImmutableList.Builder<Symbol> newSymbols=new ImmutableList.Builder<>();
+  Field[] newFields=new Field[targetColumnTypes.length];
+  ImmutableMap.Builder<Symbol,Expression> assignments=new ImmutableMap.Builder<>();
+  for (int i=0; i < targetColumnTypes.length; i++) {
+    Symbol inputSymbol=oldSymbols.get(i);
+    Type inputType=symbolAllocator.getTypes().get(inputSymbol);
+    Type outputType=targetColumnTypes[i];
+    if (outputType != inputType && !isTypeOnlyCoercion(inputType.getTypeSignature(),outputType.getTypeSignature())) {
+      Expression cast=new Cast(new QualifiedNameReference(inputSymbol.toQualifiedName()),outputType.getTypeSignature().toString());
+      Symbol outputSymbol=symbolAllocator.newSymbol(cast,outputType);
+      assignments.put(outputSymbol,cast);
+      newSymbols.add(outputSymbol);
+    }
+ else {
+      QualifiedNameReference qualifiedNameReference=new QualifiedNameReference(inputSymbol.toQualifiedName());
+      Symbol outputSymbol=symbolAllocator.newSymbol(qualifiedNameReference,outputType);
+      assignments.put(outputSymbol,qualifiedNameReference);
+      newSymbols.add(outputSymbol);
+    }
+    Field oldField=oldDescriptor.getFieldByIndex(i);
+    newFields[i]=new Field(oldField.getRelationAlias(),oldField.getName(),targetColumnTypes[i],oldField.isHidden());
+  }
+  ProjectNode projectNode=new ProjectNode(idAllocator.getNextId(),plan.getRoot(),assignments.build());
+  return new RelationPlan(projectNode,new RelationType(newFields),newSymbols.build(),plan.getSampleWeight());
+}
