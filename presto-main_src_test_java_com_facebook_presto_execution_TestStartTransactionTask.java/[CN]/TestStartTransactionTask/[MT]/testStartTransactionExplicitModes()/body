@@ -2,13 +2,13 @@
   Session session=sessionBuilder().setClientTransactionSupport().build();
   TransactionManager transactionManager=createTestTransactionManager();
   QueryStateMachine stateMachine=QueryStateMachine.begin(new QueryId("query"),"START TRANSACTION",session,URI.create("fake://uri"),true,transactionManager,executor);
-  Assert.assertFalse(stateMachine.getSession().getTransactionId().isPresent());
+  assertFalse(stateMachine.getSession().getTransactionId().isPresent());
   new StartTransactionTask().execute(new StartTransaction(ImmutableList.of(new Isolation(Isolation.Level.SERIALIZABLE),new TransactionAccessMode(true))),transactionManager,metadata,new AllowAllAccessControl(),stateMachine).join();
-  Assert.assertFalse(stateMachine.getQueryInfoWithoutDetails().isClearTransactionId());
-  Assert.assertTrue(stateMachine.getQueryInfoWithoutDetails().getStartedTransactionId().isPresent());
-  Assert.assertEquals(transactionManager.getAllTransactionInfos().size(),1);
+  assertFalse(stateMachine.getQueryInfoWithoutDetails().isClearTransactionId());
+  assertTrue(stateMachine.getQueryInfoWithoutDetails().getStartedTransactionId().isPresent());
+  assertEquals(transactionManager.getAllTransactionInfos().size(),1);
   TransactionInfo transactionInfo=transactionManager.getTransactionInfo(stateMachine.getQueryInfoWithoutDetails().getStartedTransactionId().get());
-  Assert.assertEquals(transactionInfo.getIsolationLevel(),IsolationLevel.SERIALIZABLE);
-  Assert.assertTrue(transactionInfo.isReadOnly());
-  Assert.assertFalse(transactionInfo.isAutoCommitContext());
+  assertEquals(transactionInfo.getIsolationLevel(),IsolationLevel.SERIALIZABLE);
+  assertTrue(transactionInfo.isReadOnly());
+  assertFalse(transactionInfo.isAutoCommitContext());
 }

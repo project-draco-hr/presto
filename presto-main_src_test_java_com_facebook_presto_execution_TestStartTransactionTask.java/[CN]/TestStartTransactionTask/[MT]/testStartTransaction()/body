@@ -2,11 +2,11 @@
   Session session=sessionBuilder().setClientTransactionSupport().build();
   TransactionManager transactionManager=createTestTransactionManager();
   QueryStateMachine stateMachine=QueryStateMachine.begin(new QueryId("query"),"START TRANSACTION",session,URI.create("fake://uri"),true,transactionManager,executor);
-  Assert.assertFalse(stateMachine.getSession().getTransactionId().isPresent());
+  assertFalse(stateMachine.getSession().getTransactionId().isPresent());
   new StartTransactionTask().execute(new StartTransaction(ImmutableList.of()),transactionManager,metadata,new AllowAllAccessControl(),stateMachine).join();
-  Assert.assertFalse(stateMachine.getQueryInfoWithoutDetails().isClearTransactionId());
-  Assert.assertTrue(stateMachine.getQueryInfoWithoutDetails().getStartedTransactionId().isPresent());
-  Assert.assertEquals(transactionManager.getAllTransactionInfos().size(),1);
+  assertFalse(stateMachine.getQueryInfoWithoutDetails().isClearTransactionId());
+  assertTrue(stateMachine.getQueryInfoWithoutDetails().getStartedTransactionId().isPresent());
+  assertEquals(transactionManager.getAllTransactionInfos().size(),1);
   TransactionInfo transactionInfo=transactionManager.getTransactionInfo(stateMachine.getQueryInfoWithoutDetails().getStartedTransactionId().get());
-  Assert.assertFalse(transactionInfo.isAutoCommitContext());
+  assertFalse(transactionInfo.isAutoCommitContext());
 }

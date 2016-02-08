@@ -4,17 +4,17 @@
     Connector c1=new TpchConnectorFactory(new InMemoryNodeManager()).create("c1",ImmutableMap.of());
     transactionManager.addConnector("c1",c1);
     TransactionId transactionId=transactionManager.beginTransaction(false);
-    Assert.assertEquals(transactionManager.getAllTransactionInfos().size(),1);
+    assertEquals(transactionManager.getAllTransactionInfos().size(),1);
     TransactionInfo transactionInfo=transactionManager.getTransactionInfo(transactionId);
-    Assert.assertFalse(transactionInfo.isAutoCommitContext());
-    Assert.assertTrue(transactionInfo.getConnectorIds().isEmpty());
-    Assert.assertFalse(transactionInfo.getWrittenConnectorId().isPresent());
+    assertFalse(transactionInfo.isAutoCommitContext());
+    assertTrue(transactionInfo.getConnectorIds().isEmpty());
+    assertFalse(transactionInfo.getWrittenConnectorId().isPresent());
     ConnectorMetadata metadata=transactionManager.getMetadata(transactionId,"c1");
     metadata.listSchemaNames(TEST_SESSION.toConnectorSession("c1"));
     transactionInfo=transactionManager.getTransactionInfo(transactionId);
-    Assert.assertEquals(transactionInfo.getConnectorIds(),ImmutableList.of("c1"));
-    Assert.assertFalse(transactionInfo.getWrittenConnectorId().isPresent());
+    assertEquals(transactionInfo.getConnectorIds(),ImmutableList.of("c1"));
+    assertFalse(transactionInfo.getWrittenConnectorId().isPresent());
     transactionManager.asyncAbort(transactionId).join();
-    Assert.assertTrue(transactionManager.getAllTransactionInfos().isEmpty());
+    assertTrue(transactionManager.getAllTransactionInfos().isEmpty());
   }
  }

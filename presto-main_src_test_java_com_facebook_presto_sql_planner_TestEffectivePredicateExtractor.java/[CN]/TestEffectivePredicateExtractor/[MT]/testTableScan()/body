@@ -2,17 +2,17 @@
   Map<Symbol,ColumnHandle> assignments=Maps.filterKeys(scanAssignments,Predicates.in(ImmutableList.of(A,B,C,D)));
   PlanNode node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(assignments.keySet()),assignments,Optional.empty(),TupleDomain.all(),null);
   Expression effectivePredicate=EffectivePredicateExtractor.extract(node,TYPES);
-  Assert.assertEquals(effectivePredicate,BooleanLiteral.TRUE_LITERAL);
+  assertEquals(effectivePredicate,BooleanLiteral.TRUE_LITERAL);
   node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(assignments.keySet()),assignments,Optional.empty(),TupleDomain.none(),null);
   effectivePredicate=EffectivePredicateExtractor.extract(node,TYPES);
-  Assert.assertEquals(effectivePredicate,FALSE_LITERAL);
+  assertEquals(effectivePredicate,FALSE_LITERAL);
   node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(assignments.keySet()),assignments,Optional.empty(),TupleDomain.withColumnDomains(ImmutableMap.of(scanAssignments.get(A),Domain.singleValue(BIGINT,1L))),null);
   effectivePredicate=EffectivePredicateExtractor.extract(node,TYPES);
-  Assert.assertEquals(normalizeConjuncts(effectivePredicate),normalizeConjuncts(equals(number(1L),AE)));
+  assertEquals(normalizeConjuncts(effectivePredicate),normalizeConjuncts(equals(number(1L),AE)));
   node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(assignments.keySet()),assignments,Optional.empty(),TupleDomain.withColumnDomains(ImmutableMap.of(scanAssignments.get(A),Domain.singleValue(BIGINT,1L),scanAssignments.get(B),Domain.singleValue(BIGINT,2L))),null);
   effectivePredicate=EffectivePredicateExtractor.extract(node,TYPES);
-  Assert.assertEquals(normalizeConjuncts(effectivePredicate),normalizeConjuncts(equals(number(2L),BE),equals(number(1L),AE)));
+  assertEquals(normalizeConjuncts(effectivePredicate),normalizeConjuncts(equals(number(2L),BE),equals(number(1L),AE)));
   node=new TableScanNode(newId(),DUAL_TABLE_HANDLE,ImmutableList.copyOf(assignments.keySet()),assignments,Optional.empty(),TupleDomain.all(),null);
   effectivePredicate=EffectivePredicateExtractor.extract(node,TYPES);
-  Assert.assertEquals(effectivePredicate,BooleanLiteral.TRUE_LITERAL);
+  assertEquals(effectivePredicate,BooleanLiteral.TRUE_LITERAL);
 }

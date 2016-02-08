@@ -2,20 +2,20 @@
   Session session=sessionBuilder().build();
   TransactionManager transactionManager=createTestTransactionManager();
   QueryStateMachine stateMachine=QueryStateMachine.begin(new QueryId("query"),"START TRANSACTION",session,URI.create("fake://uri"),true,transactionManager,executor);
-  Assert.assertFalse(stateMachine.getSession().getTransactionId().isPresent());
+  assertFalse(stateMachine.getSession().getTransactionId().isPresent());
   try {
     try {
       new StartTransactionTask().execute(new StartTransaction(ImmutableList.of()),transactionManager,metadata,new AllowAllAccessControl(),stateMachine).join();
-      Assert.fail();
+      fail();
     }
  catch (    CompletionException e) {
       throw Throwables.propagate(e.getCause());
     }
   }
  catch (  PrestoException e) {
-    Assert.assertEquals(e.getErrorCode(),INCOMPATIBLE_CLIENT.toErrorCode());
+    assertEquals(e.getErrorCode(),INCOMPATIBLE_CLIENT.toErrorCode());
   }
-  Assert.assertTrue(transactionManager.getAllTransactionInfos().isEmpty());
-  Assert.assertFalse(stateMachine.getQueryInfoWithoutDetails().isClearTransactionId());
-  Assert.assertFalse(stateMachine.getQueryInfoWithoutDetails().getStartedTransactionId().isPresent());
+  assertTrue(transactionManager.getAllTransactionInfos().isEmpty());
+  assertFalse(stateMachine.getQueryInfoWithoutDetails().isClearTransactionId());
+  assertFalse(stateMachine.getQueryInfoWithoutDetails().getStartedTransactionId().isPresent());
 }
