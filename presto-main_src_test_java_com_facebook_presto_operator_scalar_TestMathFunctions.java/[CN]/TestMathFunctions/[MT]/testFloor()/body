@@ -21,6 +21,21 @@
   assertFunction("floor(REAL '-123.0')",REAL,-123.0f);
   assertFunction("floor(REAL '123.45')",REAL,123.0f);
   assertFunction("floor(REAL '-123.45')",REAL,-124.0f);
-  assertFunction("floor(CAST(NULL as DOUBLE))",DOUBLE,null);
+  assertFunction("floor(DECIMAL '123')",createDecimalType(3),SqlDecimal.of("123"));
+  assertFunction("floor(DECIMAL '-123')",createDecimalType(3),SqlDecimal.of("-123"));
+  assertFunction("floor(DECIMAL '123.45')",createDecimalType(4),SqlDecimal.of("123"));
+  assertFunction("floor(DECIMAL '-123.45')",createDecimalType(4),SqlDecimal.of("-124"));
+  assertFunction("floor(DECIMAL '-999.9')",createDecimalType(4),SqlDecimal.of("-1000"));
+  assertFunction("floor(DECIMAL '123456789012345678')",createDecimalType(18),SqlDecimal.of("123456789012345678"));
+  assertFunction("floor(DECIMAL '-123456789012345678')",createDecimalType(18),SqlDecimal.of("-123456789012345678"));
+  assertFunction("floor(DECIMAL '123456789012345678.00')",createDecimalType(19),SqlDecimal.of("123456789012345678"));
+  assertFunction("floor(DECIMAL '123456789012345678.99')",createDecimalType(19),SqlDecimal.of("123456789012345678"));
+  assertFunction("floor(DECIMAL '-123456789012345678.99')",createDecimalType(19),SqlDecimal.of("-123456789012345679"));
+  assertFunction("floor(DECIMAL '-999999999999999999.9')",createDecimalType(19),SqlDecimal.of("-1000000000000000000"));
+  assertFunction("floor(DECIMAL '1234567890123456.78')",createDecimalType(17),SqlDecimal.of("1234567890123456"));
+  assertFunction("floor(DECIMAL '-1234567890123456.78')",createDecimalType(17),SqlDecimal.of("-1234567890123457"));
   assertFunction("floor(CAST(NULL as REAL))",REAL,null);
+  assertFunction("floor(CAST(NULL as DOUBLE))",DOUBLE,null);
+  assertFunction("floor(CAST(NULL as DECIMAL(1,0)))",createDecimalType(1),null);
+  assertFunction("floor(CAST(NULL as DECIMAL(25,5)))",createDecimalType(21),null);
 }
