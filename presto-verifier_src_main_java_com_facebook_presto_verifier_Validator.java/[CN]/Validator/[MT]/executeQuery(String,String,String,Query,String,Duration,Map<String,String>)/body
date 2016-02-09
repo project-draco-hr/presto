@@ -4,7 +4,6 @@
     for (    Map.Entry<String,String> entry : sessionProperties.entrySet()) {
       connection.unwrap(PrestoConnection.class).setSessionProperty(entry.getKey(),entry.getValue());
     }
-    long start=System.nanoTime();
     try (Statement statement=connection.createStatement()){
       TimeLimiter limiter=new SimpleTimeLimiter();
       Stopwatch stopwatch=Stopwatch.createStarted();
@@ -12,14 +11,23 @@
       if (explainOnly) {
         sql="EXPLAIN " + sql;
       }
+      PrestoStatement prestoStatement=limitedStatement.unwrap(PrestoStatement.class);
+      ProgressMonitor progressMonitor=new ProgressMonitor();
+      prestoStatement.setProgressMonitor(progressMonitor);
       try {
-        if (limitedStatement.execute(sql)) {
-          List<List<Object>> results=limiter.callWithTimeout(getResultSetConverter(limitedStatement.getResultSet()),timeout.toMillis() - stopwatch.elapsed(TimeUnit.MILLISECONDS),TimeUnit.MILLISECONDS,true);
-          return new QueryResult(State.SUCCESS,null,nanosSince(start),getCpuTime(limitedStatement.getResultSet()),results);
+        boolean isSelectQuery=limitedStatement.execute(sql);
+        List<List<Object>> results=null;
+        if (isSelectQuery) {
+          results=limiter.callWithTimeout(getResultSetConverter(limitedStatement.getResultSet()),timeout.toMillis() - stopwatch.elapsed(TimeUnit.MILLISECONDS),TimeUnit.MILLISECONDS,true);
         }
- else {
-          return new QueryResult(State.SUCCESS,null,nanosSince(start),null,null);
+        prestoStatement.clearProgressMonitor();
+        QueryStats queryStats=progressMonitor.getFinalQueryStats();
+        if (queryStats == null) {
+          throw new VerifierException("Cannot fetch query stats");
         }
+        Duration queryWallTime=new Duration(queryStats.getWallTimeMillis(),TimeUnit.MILLISECONDS);
+        Duration queryCpuTime=new Duration(queryStats.getCpuTimeMillis(),TimeUnit.MILLISECONDS);
+        return new QueryResult(State.SUCCESS,null,queryWallTime,queryCpuTime,results);
       }
  catch (      AssertionError e) {
         if (e.getMessage().startsWith("unimplemented type:")) {
