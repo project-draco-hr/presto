@@ -1,0 +1,11 @@
+{
+  PlanNode child=context.rewrite(node.getSource(),null);
+  if (!child.getOutputSymbols().equals(node.getSource().getOutputSymbols())) {
+    ImmutableMap.Builder<Symbol,Expression> assignments=ImmutableMap.builder();
+    for (    Symbol symbol : node.getSource().getOutputSymbols()) {
+      assignments.put(symbol,symbol.toQualifiedNameReference());
+    }
+    child=new ProjectNode(idAllocator.getNextId(),child,assignments.build());
+  }
+  return new EnforceSingleRowNode(node.getId(),child);
+}
