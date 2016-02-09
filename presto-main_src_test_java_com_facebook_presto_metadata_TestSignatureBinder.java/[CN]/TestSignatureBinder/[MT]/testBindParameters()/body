@@ -1,0 +1,16 @@
+{
+  BoundVariables boundVariables=BoundVariables.builder().setTypeVariable("T1",DoubleType.DOUBLE).setTypeVariable("T2",BigintType.BIGINT).setTypeVariable("T3",DecimalType.createDecimalType(5,3)).setLongVariable("p",1L).setLongVariable("s",2L).build();
+  assertThat("bigint",boundVariables,"bigint");
+  assertThat("T1",boundVariables,"double");
+  assertThat("T2",boundVariables,"bigint");
+  assertThat("array(T1)",boundVariables,"array(double)");
+  assertThat("array(T3)",boundVariables,"array(decimal(5,3))");
+  assertThat("array<T1>",boundVariables,"array(double)");
+  assertThat("map(T1,T2)",boundVariables,"map(double,bigint)");
+  assertThat("map<T1,T2>",boundVariables,"map(double,bigint)");
+  assertThat("bla(T1,42,T2)",boundVariables,"bla(double,42,bigint)");
+  assertThat("varchar(p)",boundVariables,"varchar(1)");
+  assertThat("decimal(p,s)",boundVariables,"decimal(1,2)");
+  assertThat("array(decimal(p,s))",boundVariables,"array(decimal(1,2))");
+  assertBindVariablesFails("T1(bigint)",boundVariables,"Unbounded parameters can not have parameters");
+}

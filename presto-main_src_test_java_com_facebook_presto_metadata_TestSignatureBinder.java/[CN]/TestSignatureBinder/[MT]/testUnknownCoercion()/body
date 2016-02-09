@@ -1,0 +1,10 @@
+{
+  Signature foo=functionSignature().returnType("boolean").argumentTypes("T","T").typeVariableConstraints(ImmutableList.of(typeVariable("T"))).build();
+  assertThat(foo).boundTo("unknown","unknown").produces(new BoundVariables(ImmutableMap.of("T",type("unknown")),ImmutableMap.of()));
+  assertThat(foo).boundTo("unknown","bigint").withCoercion().produces(new BoundVariables(ImmutableMap.of("T",type("bigint")),ImmutableMap.of()));
+  assertThat(foo).boundTo("varchar","bigint").withCoercion().fails();
+  Signature bar=functionSignature().returnType("boolean").argumentTypes("T","T").typeVariableConstraints(ImmutableList.of(comparableTypeParameter("T"))).build();
+  assertThat(bar).boundTo("unknown","bigint").withCoercion().produces(new BoundVariables(ImmutableMap.of("T",type("bigint")),ImmutableMap.of()));
+  assertThat(bar).boundTo("varchar","bigint").withCoercion().fails();
+  assertThat(bar).boundTo("HyperLogLog","HyperLogLog").withCoercion().fails();
+}
