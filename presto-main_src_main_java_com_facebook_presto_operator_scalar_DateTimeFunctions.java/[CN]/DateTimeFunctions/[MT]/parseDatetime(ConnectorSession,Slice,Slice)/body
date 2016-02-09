@@ -1,6 +1,8 @@
 {
-  String pattern=formatString.toStringUtf8();
-  DateTimeFormatter formatter=DateTimeFormat.forPattern(pattern).withChronology(getChronology(session.getTimeZoneKey())).withOffsetParsed().withLocale(session.getLocale());
-  String datetimeString=datetime.toStringUtf8();
-  return packDateTimeWithZone(parseDateTimeHelper(formatter,datetimeString));
+  try {
+    return packDateTimeWithZone(parseDateTimeHelper(DateTimeFormat.forPattern(formatString.toStringUtf8()).withChronology(getChronology(session.getTimeZoneKey())).withOffsetParsed().withLocale(session.getLocale()),datetime.toStringUtf8()));
+  }
+ catch (  IllegalArgumentException e) {
+    throw new PrestoException(INVALID_FUNCTION_ARGUMENT,e);
+  }
 }

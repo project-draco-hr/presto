@@ -1,6 +1,8 @@
 {
-  String pattern=formatString.toStringUtf8();
-  DateTimeFormatter formatter=DateTimeFormat.forPattern(pattern).withChronology(chronology).withLocale(locale);
-  String datetimeString=formatter.print(timestamp);
-  return utf8Slice(datetimeString);
+  try {
+    return utf8Slice(DateTimeFormat.forPattern(formatString.toStringUtf8()).withChronology(chronology).withLocale(locale).print(timestamp));
+  }
+ catch (  IllegalArgumentException e) {
+    throw new PrestoException(INVALID_FUNCTION_ARGUMENT,e);
+  }
 }
