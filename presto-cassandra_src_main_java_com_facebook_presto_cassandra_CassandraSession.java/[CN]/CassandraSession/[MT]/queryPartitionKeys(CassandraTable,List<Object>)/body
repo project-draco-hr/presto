@@ -21,6 +21,13 @@
   partitionKeys.limit(limit);
   partitionKeys.setFetchSize(fetchSizeForPartitionKeySelect);
   if (!fullPartitionKey) {
+    Set<Host> clusterHosts=getSession(schemaName).getCluster().getMetadata().getAllHosts();
+    if (!clusterHosts.isEmpty()) {
+      VersionNumber version=clusterHosts.iterator().next().getCassandraVersion();
+      if (version.getMajor() >= 3 || (version.getMajor() == 2 && version.getMinor() >= 2)) {
+        return null;
+      }
+    }
     addWhereClause(partitionKeys.where(),partitionKeyColumns,new ArrayList<>());
     ResultSetFuture partitionKeyFuture=executeWithSession(schemaName,new SessionCallable<ResultSetFuture>(){
       @Override public ResultSetFuture executeWithSession(      Session session){
