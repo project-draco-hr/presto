@@ -1,24 +1,13 @@
 {
-  validateColumnOrdering(tableMetadata);
+  validatePartitionColumns(tableMetadata);
   ImmutableList.Builder<HiveColumnHandle> columnHandles=ImmutableList.builder();
-  Set<String> foundPartitionColumns=new HashSet<>();
   int ordinal=0;
   for (  ColumnMetadata column : tableMetadata.getColumns()) {
-    boolean partitionKey=partitionColumnNames.contains(column.getName());
-    if (partitionKey) {
-      foundPartitionColumns.add(column.getName());
-    }
-    columnHandles.add(new HiveColumnHandle(connectorId,column.getName(),toHiveType(column.getType()),column.getType().getTypeSignature(),ordinal,partitionKey));
+    columnHandles.add(new HiveColumnHandle(connectorId,column.getName(),toHiveType(column.getType()),column.getType().getTypeSignature(),ordinal,partitionColumnNames.contains(column.getName())));
     ordinal++;
   }
   if (tableMetadata.isSampled()) {
     columnHandles.add(new HiveColumnHandle(connectorId,SAMPLE_WEIGHT_COLUMN_NAME,toHiveType(BIGINT),BIGINT.getTypeSignature(),ordinal,false));
-  }
-  if (!partitionColumnNames.equals(foundPartitionColumns)) {
-    throw new PrestoException(NOT_FOUND,format("Partition columns %s were not found",Sets.difference(partitionColumnNames,foundPartitionColumns)));
-  }
-  if (columnHandles.build().isEmpty()) {
-    throw new PrestoException(USER_ERROR,"Table contains only partition columns");
   }
   return columnHandles.build();
 }
