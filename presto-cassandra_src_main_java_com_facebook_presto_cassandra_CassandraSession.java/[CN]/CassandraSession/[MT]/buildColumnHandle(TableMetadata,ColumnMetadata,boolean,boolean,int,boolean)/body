@@ -14,6 +14,12 @@ default :
 throw new IllegalArgumentException("Invalid type arguments: " + typeArgs);
 }
 }
-boolean indexed=columnMeta.getIndex() != null;
+boolean indexed=false;
+for (IndexMetadata idx : tableMetadata.getIndexes()) {
+if (idx.getTarget().equals(columnMeta.getName())) {
+indexed=true;
+break;
+}
+}
 return new CassandraColumnHandle(connectorId,columnMeta.getName(),ordinalPosition,cassandraType,typeArguments,partitionKey,clusteringKey,indexed,hidden);
 }
