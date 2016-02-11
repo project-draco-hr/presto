@@ -8,8 +8,10 @@ synchronized (this) {
       }
       taskExecution=taskHolder.getTaskExecution();
       if (taskExecution == null) {
-        taskExecution=sqlTaskExecutionFactory.create(session,queryContext,taskStateMachine,sharedBuffer,fragment,sources);
+        checkState(fragment.isPresent(),"fragment must be present");
+        taskExecution=sqlTaskExecutionFactory.create(session,queryContext,taskStateMachine,sharedBuffer,fragment.get(),sources);
         taskHolderReference.compareAndSet(taskHolder,new TaskHolder(taskExecution));
+        needsPlan.set(false);
       }
     }
     if (taskExecution != null) {
