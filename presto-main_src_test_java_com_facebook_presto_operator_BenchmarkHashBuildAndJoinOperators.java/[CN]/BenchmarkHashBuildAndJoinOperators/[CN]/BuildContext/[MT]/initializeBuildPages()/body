@@ -1,0 +1,13 @@
+{
+  RowPagesBuilder buildPagesBuilder=rowPagesBuilder(buildHashEnabled,hashChannels,ImmutableList.of(VARCHAR,BIGINT,BIGINT));
+  int rows=0;
+  while (rows < BUILD_ROWS_NUMBER) {
+    int newRows=Math.min(BUILD_ROWS_NUMBER - rows,ROWS_PER_PAGE);
+    buildPagesBuilder.addSequencePage(newRows,rows + 20,rows + 30,rows + 40);
+    buildPagesBuilder.pageBreak();
+    rows+=newRows;
+  }
+  types=buildPagesBuilder.getTypes();
+  buildPages=buildPagesBuilder.build();
+  hashChannel=buildPagesBuilder.getHashChannel();
+}
