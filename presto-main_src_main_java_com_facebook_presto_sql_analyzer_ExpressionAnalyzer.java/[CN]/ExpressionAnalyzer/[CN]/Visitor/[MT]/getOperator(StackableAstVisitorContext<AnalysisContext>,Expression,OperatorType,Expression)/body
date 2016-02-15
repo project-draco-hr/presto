@@ -10,6 +10,12 @@
  catch (  OperatorNotFoundException e) {
     throw new SemanticException(TYPE_MISMATCH,node,"%s",e.getMessage());
   }
+catch (  PrestoException e) {
+    if (e.getErrorCode().getCode() == StandardErrorCode.AMBIGUOUS_FUNCTION_CALL.toErrorCode().getCode()) {
+      throw new SemanticException(SemanticErrorCode.AMBIGUOUS_FUNCTION_CALL,node,e.getMessage());
+    }
+    throw e;
+  }
   for (int i=0; i < arguments.length; i++) {
     Expression expression=arguments[i];
     Type type=typeManager.getType(operatorSignature.getArgumentTypes().get(i));

@@ -1,0 +1,11 @@
+{
+  ImmutableList.Builder<ApplicableFunction> applicableFunctions=ImmutableList.builder();
+  for (  SqlFunction function : candidates) {
+    Signature declaredSignature=function.getSignature();
+    Optional<Signature> boundSignature=new SignatureBinder(typeManager,declaredSignature,allowCoercion).bind(actualParameters);
+    if (boundSignature.isPresent()) {
+      applicableFunctions.add(new ApplicableFunction(declaredSignature,boundSignature.get()));
+    }
+  }
+  return applicableFunctions.build();
+}

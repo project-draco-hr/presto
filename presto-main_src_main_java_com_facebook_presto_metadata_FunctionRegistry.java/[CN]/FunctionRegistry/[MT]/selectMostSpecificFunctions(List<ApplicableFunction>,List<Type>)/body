@@ -1,0 +1,17 @@
+{
+  List<ApplicableFunction> mostSpecificFunctions=selectMostSpecificFunctions(applicableFunctions);
+  if (mostSpecificFunctions.size() > 1 && someParameterIsUnknown(parameters)) {
+    List<ApplicableFunction> unknownOnlyCastFunctions=getUnknownOnlyCastFunctions(applicableFunctions,parameters);
+    if (!unknownOnlyCastFunctions.isEmpty()) {
+      mostSpecificFunctions=unknownOnlyCastFunctions;
+    }
+    if (mostSpecificFunctions.size() == 1) {
+      return mostSpecificFunctions;
+    }
+    if (returnTypeIsTheSame(mostSpecificFunctions) && allReturnNullOnGivenInputTypes(mostSpecificFunctions,parameters)) {
+      ApplicableFunction selectedFunction=Ordering.usingToString().reverse().sortedCopy(mostSpecificFunctions).get(0);
+      return ImmutableList.of(selectedFunction);
+    }
+  }
+  return mostSpecificFunctions;
+}

@@ -1,0 +1,22 @@
+{
+  List<ApplicableFunction> applicableFunctions=identifyApplicableFunctions(candidates,parameters,coercionAllowed);
+  if (applicableFunctions.isEmpty()) {
+    return Optional.empty();
+  }
+  if (coercionAllowed) {
+    applicableFunctions=selectMostSpecificFunctions(applicableFunctions,parameters);
+    checkState(!applicableFunctions.isEmpty(),"at least single function must be left");
+  }
+  if (applicableFunctions.size() == 1) {
+    return Optional.of(getOnlyElement(applicableFunctions).getBoundSignature());
+  }
+  StringBuilder errorMessageBuilder=new StringBuilder();
+  errorMessageBuilder.append("Could not choose a best candidate operator. Explicit type casts must be added.\n");
+  errorMessageBuilder.append("Candidates are:\n");
+  for (  ApplicableFunction function : applicableFunctions) {
+    errorMessageBuilder.append("\t * ");
+    errorMessageBuilder.append(function.getBoundSignature().toString());
+    errorMessageBuilder.append("\n");
+  }
+  throw new PrestoException(AMBIGUOUS_FUNCTION_CALL,errorMessageBuilder.toString());
+}
