@@ -1,0 +1,10 @@
+{
+  if (excludedPoints.isEmpty()) {
+    return processRange(type,range,reference);
+  }
+  Expression excludedPointsExpression=new NotExpression(new InPredicate(reference,new InListExpression(excludedPoints)));
+  if (excludedPoints.size() == 1) {
+    excludedPointsExpression=new ComparisonExpression(NOT_EQUAL,reference,getOnlyElement(excludedPoints));
+  }
+  return combineConjuncts(processRange(type,range,reference),excludedPointsExpression);
+}
