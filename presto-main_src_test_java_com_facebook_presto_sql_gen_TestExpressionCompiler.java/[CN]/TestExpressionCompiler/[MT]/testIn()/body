@@ -34,5 +34,9 @@
     assertExecute(generateExpression("%s in (null, 'what?', 'foo', 'mellow', 'end')",value),BOOLEAN,value == null ? null : testValues.contains(value) ? true : null);
     assertExecute(generateExpression("%s in ('what?', null, 'foo', 'mellow', 'end')",value),BOOLEAN,value == null ? null : testValues.contains(value) ? true : null);
   }
+  assertExecute("1 in (100, 101, if(rand()>=0, 1), if(rand()<0, 1))",BOOLEAN,true);
+  assertExecute("1 in (100, 101, if(rand()<0, 1), if(rand()>=0, 1))",BOOLEAN,true);
+  assertExecute("2 in (100, 101, if(rand()>=0, 1), if(rand()<0, 1))",BOOLEAN,null);
+  assertExecute("2 in (100, 101, if(rand()<0, 1), if(rand()>=0, 1))",BOOLEAN,null);
   Futures.allAsList(futures).get();
 }
