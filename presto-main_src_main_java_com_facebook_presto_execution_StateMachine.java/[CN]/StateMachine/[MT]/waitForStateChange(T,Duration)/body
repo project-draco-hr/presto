@@ -2,14 +2,14 @@
   checkState(!Thread.holdsLock(lock),"Can not wait for state change while holding the lock");
   requireNonNull(currentState,"currentState is null");
   requireNonNull(maxWait,"maxWait is null");
-  if (!isPossibleStateChange(currentState)) {
+  if (isPossibleStateChange(currentState)) {
     return maxWait;
   }
   long remainingNanos=maxWait.roundTo(NANOSECONDS);
   long start=System.nanoTime();
   long end=start + remainingNanos;
 synchronized (lock) {
-    while (remainingNanos > 0 && isPossibleStateChange(currentState)) {
+    while (remainingNanos > 0 && !isPossibleStateChange(currentState)) {
       NANOSECONDS.timedWait(lock,remainingNanos);
       remainingNanos=end - System.nanoTime();
     }
