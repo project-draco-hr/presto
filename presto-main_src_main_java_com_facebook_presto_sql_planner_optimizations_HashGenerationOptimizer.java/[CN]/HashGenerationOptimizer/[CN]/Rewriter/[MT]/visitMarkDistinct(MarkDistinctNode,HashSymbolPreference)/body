@@ -1,0 +1,8 @@
+{
+  if (!canSkipHashGeneration(node.getDistinctSymbols())) {
+    return planSimpleNodeWithProperties(node,parentPreference);
+  }
+  PlanWithProperties child=planAndEnforce(node.getSource(),parentPreference.withHashSymbol(node,node.getDistinctSymbols()));
+  Symbol hashSymbol=child.getRequiredHashSymbol(node.getDistinctSymbols());
+  return new PlanWithProperties(new MarkDistinctNode(idAllocator.getNextId(),child.getNode(),node.getMarkerSymbol(),node.getDistinctSymbols(),Optional.of(hashSymbol)),child.getHashSymbols());
+}

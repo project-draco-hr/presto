@@ -1,0 +1,8 @@
+{
+  if (node.getPartitionBy().isEmpty()) {
+    return planSimpleNodeWithProperties(node,parentPreference);
+  }
+  PlanWithProperties child=planAndEnforce(node.getSource(),parentPreference.withHashSymbol(node,node.getPartitionBy()));
+  Symbol hashSymbol=child.getRequiredHashSymbol(node.getPartitionBy());
+  return new PlanWithProperties(new TopNRowNumberNode(idAllocator.getNextId(),child.getNode(),node.getPartitionBy(),node.getOrderBy(),node.getOrderings(),node.getRowNumberSymbol(),node.getMaxRowCountPerPartition(),node.isPartial(),Optional.of(hashSymbol)),child.getHashSymbols());
+}

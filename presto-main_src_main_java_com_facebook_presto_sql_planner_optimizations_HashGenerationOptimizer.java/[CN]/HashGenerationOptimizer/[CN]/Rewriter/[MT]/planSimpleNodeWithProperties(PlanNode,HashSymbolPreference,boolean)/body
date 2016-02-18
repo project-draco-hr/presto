@@ -1,0 +1,10 @@
+{
+  if (node.getSources().isEmpty()) {
+    return new PlanWithProperties(node,ImmutableMap.of());
+  }
+  PlanWithProperties source=planAndEnforce(Iterables.getOnlyElement(node.getSources()),parentPreference,alwaysPruneExtraHashSymbols);
+  PlanNode result=replaceChildren(node,ImmutableList.of(source.getNode()));
+  Map<List<Symbol>,Symbol> hashSymbols=new HashMap<>(source.getHashSymbols());
+  hashSymbols.keySet().retainAll(result.getOutputSymbols());
+  return new PlanWithProperties(result,hashSymbols);
+}

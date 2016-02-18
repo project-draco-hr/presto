@@ -5,7 +5,8 @@
   requireNonNull(symbolAllocator,"symbolAllocator is null");
   requireNonNull(idAllocator,"idAllocator is null");
   if (SystemSessionProperties.isOptimizeHashGenerationEnabled(session)) {
-    return SimplePlanRewriter.rewriteWith(new Rewriter(idAllocator,symbolAllocator,types),plan,null);
+    PlanWithProperties result=plan.accept(new Rewriter(idAllocator,symbolAllocator,types),new HashSymbolPreference());
+    return result.getNode();
   }
   return plan;
 }

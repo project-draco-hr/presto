@@ -1,0 +1,35 @@
+{
+  PlanWithProperties result=plan(node,parentPreference);
+  boolean preferenceSatisfied;
+  if (alwaysPruneExtraHashSymbols) {
+    preferenceSatisfied=result.getHashSymbols().keySet().equals(parentPreference.getPreferredHashSymbols());
+  }
+ else {
+    preferenceSatisfied=result.getHashSymbols().keySet().containsAll(parentPreference.getPreferredHashSymbols());
+  }
+  if (preferenceSatisfied) {
+    return result;
+  }
+  PlanNode source=result.getNode();
+  ImmutableMap.Builder<Symbol,Expression> assignments=ImmutableMap.builder();
+  Map<List<Symbol>,Symbol> outputHashSymbols=new HashMap<>();
+  Map<Symbol,List<Symbol>> resultHashSymbols=result.getHashSymbols().inverse();
+  for (  Symbol symbol : source.getOutputSymbols()) {
+    List<Symbol> partitionSymbols=resultHashSymbols.get(symbol);
+    if (partitionSymbols == null || parentPreference.getPreferredHashSymbols().contains(partitionSymbols)) {
+      assignments.put(symbol,new QualifiedNameReference(symbol.toQualifiedName()));
+      if (partitionSymbols != null) {
+        outputHashSymbols.put(partitionSymbols,symbol);
+      }
+    }
+  }
+  for (  List<Symbol> partitionSymbols : parentPreference.getPreferredHashSymbols()) {
+    if (!result.getHashSymbols().containsKey(partitionSymbols)) {
+      Expression hashExpression=getHashExpression(partitionSymbols);
+      Symbol hashSymbol=symbolAllocator.newHashSymbol();
+      assignments.put(hashSymbol,hashExpression);
+      outputHashSymbols.put(partitionSymbols,hashSymbol);
+    }
+  }
+  return new PlanWithProperties(new ProjectNode(idAllocator.getNextId(),source,assignments.build()),outputHashSymbols);
+}

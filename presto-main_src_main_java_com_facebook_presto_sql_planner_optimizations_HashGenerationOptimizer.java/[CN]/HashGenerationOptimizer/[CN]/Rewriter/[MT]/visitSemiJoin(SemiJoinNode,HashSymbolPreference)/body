@@ -1,0 +1,7 @@
+{
+  PlanWithProperties source=planAndEnforce(node.getSource(),new HashSymbolPreference(ImmutableList.of(node.getSourceJoinSymbol())));
+  Symbol sourceHashSymbol=source.getRequiredHashSymbol(ImmutableList.of(node.getSourceJoinSymbol()));
+  PlanWithProperties filteringSource=planAndEnforce(node.getFilteringSource(),new HashSymbolPreference(ImmutableList.of(node.getFilteringSourceJoinSymbol())),true);
+  Symbol filteringSourceHashSymbol=filteringSource.getRequiredHashSymbol(ImmutableList.of(node.getFilteringSourceJoinSymbol()));
+  return new PlanWithProperties(new SemiJoinNode(idAllocator.getNextId(),source.getNode(),filteringSource.getNode(),node.getSourceJoinSymbol(),node.getFilteringSourceJoinSymbol(),node.getSemiJoinOutput(),Optional.of(sourceHashSymbol),Optional.of(filteringSourceHashSymbol)),source.getHashSymbols());
+}
