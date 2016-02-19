@@ -1,6 +1,7 @@
 {
+  ConnectorMetadata metadata=newMetadata();
   ConnectorSession session=newSession();
-  ConnectorTableHandle tableHandle=getTableHandle(tablePartitionFormat);
+  ConnectorTableHandle tableHandle=getTableHandle(metadata,tablePartitionFormat);
   ConnectorTableMetadata tableMetadata=metadata.getTableMetadata(session,tableHandle);
   List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(session,tableHandle).values());
   Map<String,Integer> columnIndex=indexColumns(columnHandles);
@@ -15,7 +16,7 @@
     long dummyPartition=Long.parseLong(partitionKeys.get(2).getValue());
     long rowNumber=0;
     long completedBytes=0;
-    try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(session,hiveSplit,columnHandles)){
+    try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(newTransaction(),session,hiveSplit,columnHandles)){
       MaterializedResult result=materializeSourceDataStream(session,pageSource,getTypes(columnHandles));
       assertPageSourceType(pageSource,fileType);
       for (      MaterializedRow row : result) {

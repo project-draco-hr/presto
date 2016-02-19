@@ -1,7 +1,9 @@
 {
   HiveConnectorFactory connectorFactory=new HiveConnectorFactory("hive-test",ImmutableMap.<String,String>builder().put("node.environment","test").put("hive.metastore.uri",metastoreUri).build(),HiveConnector.class.getClassLoader(),null,new TypeRegistry(),new GroupByHashPageIndexerFactory());
   Connector connector=connectorFactory.create("hive-test",ImmutableMap.<String,String>of());
-  assertInstanceOf(connector.getMetadata(),ClassLoaderSafeConnectorMetadata.class);
+  ConnectorTransactionHandle transaction=connector.beginTransaction(READ_UNCOMMITTED,true);
+  assertInstanceOf(connector.getMetadata(transaction),ClassLoaderSafeConnectorMetadata.class);
   assertInstanceOf(connector.getSplitManager(),ClassLoaderSafeConnectorSplitManager.class);
   assertInstanceOf(connector.getPageSourceProvider(),ConnectorPageSourceProvider.class);
+  connector.commit(transaction);
 }

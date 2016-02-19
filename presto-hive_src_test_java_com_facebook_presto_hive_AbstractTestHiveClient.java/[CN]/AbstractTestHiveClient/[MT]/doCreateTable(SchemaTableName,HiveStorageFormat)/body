@@ -1,17 +1,19 @@
 {
   ConnectorSession session=newSession();
+  ConnectorTransactionHandle transaction=newTransaction();
+  ConnectorMetadata metadata=newMetadata();
   ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(tableName,CREATE_TABLE_COLUMNS,createTableProperties(storageFormat),session.getUser());
-  ConnectorOutputTableHandle outputHandle=metadata.beginCreateTable(session,tableMetadata);
-  ConnectorPageSink sink=pageSinkProvider.createPageSink(session,outputHandle);
+  ConnectorOutputTableHandle outputHandle=metadata.beginCreateTable(session,tableMetadata,Optional.empty());
+  ConnectorPageSink sink=pageSinkProvider.createPageSink(transaction,session,outputHandle);
   sink.appendPage(CREATE_TABLE_DATA.toPage(),null);
   Collection<Slice> fragments=sink.finish();
   for (  String filePath : listAllDataFiles(outputHandle)) {
     assertTrue(new Path(filePath).getName().startsWith(getFilePrefix(outputHandle)));
   }
-  metadata.commitCreateTable(session,outputHandle,fragments);
-  ConnectorTableHandle tableHandle=getTableHandle(tableName);
+  metadata.finishCreateTable(session,outputHandle,fragments);
+  ConnectorTableHandle tableHandle=getTableHandle(metadata,tableName);
   List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(session,tableHandle).values());
-  tableMetadata=metadata.getTableMetadata(session,getTableHandle(tableName));
+  tableMetadata=metadata.getTableMetadata(session,getTableHandle(metadata,tableName));
   assertEquals(tableMetadata.getOwner(),session.getUser());
   assertEquals(tableMetadata.getColumns(),CREATE_TABLE_COLUMNS);
   MaterializedResult result=readTable(tableHandle,columnHandles,session,TupleDomain.all(),OptionalInt.empty(),Optional.of(storageFormat));

@@ -1,13 +1,15 @@
 {
   try {
     ConnectorSession session=newSession();
+    ConnectorTransactionHandle transaction=newTransaction();
+    ConnectorMetadata metadata=newMetadata();
     ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(temporaryCreateRollbackTable,CREATE_TABLE_COLUMNS,createTableProperties(RCBINARY),session.getUser());
-    ConnectorOutputTableHandle outputHandle=metadata.beginCreateTable(session,tableMetadata);
-    ConnectorPageSink sink=pageSinkProvider.createPageSink(session,outputHandle);
+    ConnectorOutputTableHandle outputHandle=metadata.beginCreateTable(session,tableMetadata,Optional.empty());
+    ConnectorPageSink sink=pageSinkProvider.createPageSink(transaction,session,outputHandle);
     sink.appendPage(CREATE_TABLE_DATA.toPage(),null);
     sink.finish();
     assertFalse(listAllDataFiles(outputHandle).isEmpty());
-    metadata.rollbackCreateTable(session,outputHandle);
+    rollback(metadata);
     assertTrue(listAllDataFiles(outputHandle).isEmpty());
     assertNull(metadata.getTableHandle(session,temporaryCreateRollbackTable));
   }

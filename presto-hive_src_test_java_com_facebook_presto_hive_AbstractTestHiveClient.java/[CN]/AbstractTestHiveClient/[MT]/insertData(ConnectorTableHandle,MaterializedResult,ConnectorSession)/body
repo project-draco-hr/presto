@@ -1,7 +1,9 @@
 {
+  ConnectorMetadata metadata=newMetadata();
+  ConnectorTransactionHandle transaction=newTransaction();
   ConnectorInsertTableHandle insertTableHandle=metadata.beginInsert(session,tableHandle);
-  ConnectorPageSink sink=pageSinkProvider.createPageSink(session,insertTableHandle);
+  ConnectorPageSink sink=pageSinkProvider.createPageSink(transaction,session,insertTableHandle);
   sink.appendPage(data.toPage(),null);
   Collection<Slice> fragments=sink.finish();
-  metadata.commitInsert(session,insertTableHandle,fragments);
+  metadata.finishInsert(session,insertTableHandle,fragments);
 }
