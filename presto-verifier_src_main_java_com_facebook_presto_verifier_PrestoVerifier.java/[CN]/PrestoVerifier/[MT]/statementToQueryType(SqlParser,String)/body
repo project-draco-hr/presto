@@ -1,70 +1,8 @@
 {
-  Statement statement;
   try {
-    statement=parser.createStatement(sql);
+    return statementToQueryType(parser.createStatement(sql));
   }
  catch (  RuntimeException e) {
     throw new UnsupportedOperationException();
   }
-  if (statement instanceof AddColumn) {
-    return MODIFY;
-  }
-  if (statement instanceof CreateTable) {
-    return CREATE;
-  }
-  if (statement instanceof CreateTableAsSelect) {
-    return CREATE;
-  }
-  if (statement instanceof CreateView) {
-    if (((CreateView)statement).isReplace()) {
-      return MODIFY;
-    }
-    return CREATE;
-  }
-  if (statement instanceof Delete) {
-    return MODIFY;
-  }
-  if (statement instanceof DropTable) {
-    return MODIFY;
-  }
-  if (statement instanceof DropView) {
-    return MODIFY;
-  }
-  if (statement instanceof Explain) {
-    return READ;
-  }
-  if (statement instanceof Insert) {
-    return MODIFY;
-  }
-  if (statement instanceof com.facebook.presto.sql.tree.Query) {
-    return READ;
-  }
-  if (statement instanceof RenameColumn) {
-    return MODIFY;
-  }
-  if (statement instanceof RenameTable) {
-    return MODIFY;
-  }
-  if (statement instanceof ShowCatalogs) {
-    return READ;
-  }
-  if (statement instanceof ShowColumns) {
-    return READ;
-  }
-  if (statement instanceof ShowFunctions) {
-    return READ;
-  }
-  if (statement instanceof ShowPartitions) {
-    return READ;
-  }
-  if (statement instanceof ShowSchemas) {
-    return READ;
-  }
-  if (statement instanceof ShowSession) {
-    return READ;
-  }
-  if (statement instanceof ShowTables) {
-    return READ;
-  }
-  throw new UnsupportedOperationException();
 }
