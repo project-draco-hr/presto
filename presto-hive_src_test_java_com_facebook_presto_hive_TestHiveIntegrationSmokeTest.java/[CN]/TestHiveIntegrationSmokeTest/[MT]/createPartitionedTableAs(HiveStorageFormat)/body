@@ -6,7 +6,8 @@
   List<String> partitionedBy=ImmutableList.of("ship_priority","order_status");
   assertEquals(tableMetadata.getMetadata().getProperties().get(PARTITIONED_BY_PROPERTY),partitionedBy);
   for (  ColumnMetadata columnMetadata : tableMetadata.getColumns()) {
-    assertEquals(columnMetadata.isPartitionKey(),partitionedBy.contains(columnMetadata.getName()));
+    boolean partitionKey=partitionedBy.contains(columnMetadata.getName());
+    assertEquals(columnMetadata.getComment(),annotateColumnComment(null,partitionKey));
   }
   List<HivePartition> partitions=getPartitions("test_create_partitioned_table_as");
   assertEquals(partitions.size(),3);

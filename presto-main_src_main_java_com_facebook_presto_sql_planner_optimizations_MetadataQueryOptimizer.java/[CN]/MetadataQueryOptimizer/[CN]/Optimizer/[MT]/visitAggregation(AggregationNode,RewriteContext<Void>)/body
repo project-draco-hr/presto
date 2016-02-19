@@ -15,9 +15,6 @@
   for (  Symbol symbol : inputs) {
     ColumnHandle column=tableScan.getAssignments().get(symbol);
     ColumnMetadata columnMetadata=metadata.getColumnMetadata(session,tableScan.getTable(),column);
-    if (!columnMetadata.isPartitionKey()) {
-      return context.defaultRewrite(node);
-    }
     typesBuilder.put(symbol,columnMetadata.getType());
     columnBuilder.put(symbol,column);
   }
@@ -36,8 +33,12 @@
   if (layout == null || !layout.getDiscretePredicates().isPresent()) {
     return context.defaultRewrite(node);
   }
+  DiscretePredicates predicates=layout.getDiscretePredicates().get();
+  if (!predicates.getColumns().containsAll(columns.values())) {
+    return context.defaultRewrite(node);
+  }
   ImmutableList.Builder<List<Expression>> rowsBuilder=ImmutableList.builder();
-  for (  TupleDomain<ColumnHandle> domain : layout.getDiscretePredicates().get()) {
+  for (  TupleDomain<ColumnHandle> domain : predicates.getPredicates()) {
     if (!domain.isNone()) {
       Map<ColumnHandle,NullableValue> entries=TupleDomain.extractFixedValues(domain).get();
       ImmutableList.Builder<Expression> rowBuilder=ImmutableList.builder();

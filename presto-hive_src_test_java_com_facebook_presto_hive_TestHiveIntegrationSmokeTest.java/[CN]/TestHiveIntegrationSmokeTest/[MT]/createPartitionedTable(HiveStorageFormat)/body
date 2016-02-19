@@ -6,7 +6,8 @@
   List<String> partitionedBy=ImmutableList.of("_partition_varchar","_partition_bigint");
   assertEquals(tableMetadata.getMetadata().getProperties().get(PARTITIONED_BY_PROPERTY),partitionedBy);
   for (  ColumnMetadata columnMetadata : tableMetadata.getColumns()) {
-    assertEquals(columnMetadata.isPartitionKey(),partitionedBy.contains(columnMetadata.getName()));
+    boolean partitionKey=partitionedBy.contains(columnMetadata.getName());
+    assertEquals(columnMetadata.getComment(),annotateColumnComment(null,partitionKey));
   }
   MaterializedResult result=computeActual("SELECT * from test_partitioned_table");
   assertEquals(result.getRowCount(),0);
