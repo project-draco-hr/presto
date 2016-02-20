@@ -1,0 +1,13 @@
+{
+  String callName=call.getSignature().getName();
+  ImmutableList.Builder<RowExpression> newArguments=ImmutableList.builder();
+  for (  RowExpression argument : call.getArguments()) {
+    if (argument instanceof CallExpression && callName.equals(((CallExpression)argument).getSignature().getName())) {
+      newArguments.addAll(flattenNestedCallArgs((CallExpression)argument));
+    }
+ else {
+      newArguments.add(argument);
+    }
+  }
+  return newArguments.build();
+}

@@ -1,0 +1,39 @@
+{
+  int result=classComparator.compare(left.getClass(),right.getClass());
+  if (result != 0) {
+    return result;
+  }
+  if (left instanceof CallExpression) {
+    CallExpression leftCall=(CallExpression)left;
+    CallExpression rightCall=(CallExpression)right;
+    return ComparisonChain.start().compare(leftCall.getSignature().toString(),rightCall.getSignature().toString()).compare(leftCall.getArguments(),rightCall.getArguments(),argumentComparator).result();
+  }
+  if (left instanceof ConstantExpression) {
+    ConstantExpression leftConstant=(ConstantExpression)left;
+    ConstantExpression rightConstant=(ConstantExpression)right;
+    result=leftConstant.getType().getTypeSignature().toString().compareTo(right.getType().getTypeSignature().toString());
+    if (result != 0) {
+      return result;
+    }
+    Object leftValue=leftConstant.getValue();
+    Object rightValue=rightConstant.getValue();
+    Class<?> javaType=leftConstant.getType().getJavaType();
+    if (javaType == boolean.class) {
+      return ((Boolean)leftValue).compareTo((Boolean)rightValue);
+    }
+    if (javaType == byte.class || javaType == short.class || javaType == int.class || javaType == long.class) {
+      return Long.valueOf(((Number)leftValue).longValue()).compareTo(((Number)rightValue).longValue());
+    }
+    if (javaType == float.class || javaType == double.class) {
+      return Double.valueOf(((Number)leftValue).doubleValue()).compareTo(((Number)rightValue).doubleValue());
+    }
+    if (javaType == Slice.class) {
+      return ((Slice)leftValue).compareTo((Slice)rightValue);
+    }
+    return -1;
+  }
+  if (left instanceof InputReferenceExpression) {
+    return Integer.compare(((InputReferenceExpression)left).getField(),((InputReferenceExpression)right).getField());
+  }
+  throw new IllegalArgumentException("Unsupported RowExpression type " + left.getClass().getSimpleName());
+}
