@@ -9,5 +9,6 @@
   assertUpdate("INSERT INTO test_insert (orderkey, orderdate) VALUES (-2, DATE '2001-01-02')",1);
   assertUpdate("INSERT INTO test_insert (orderdate, orderkey) VALUES (DATE '2001-01-03', -3)",1);
   assertQuery("SELECT * FROM test_insert",query + " UNION ALL SELECT null, -1" + " UNION ALL SELECT DATE '2001-01-01', null"+ " UNION ALL SELECT DATE '2001-01-02', -2"+ " UNION ALL SELECT DATE '2001-01-03', -3");
+  assertUpdate("INSERT INTO test_insert (orderkey, orderdate) " + "SELECT orderkey, orderdate FROM orders " + "UNION ALL "+ "SELECT orderkey, orderdate FROM orders","SELECT 2 * count(*) FROM orders");
   assertUpdate("DROP TABLE test_insert");
 }
