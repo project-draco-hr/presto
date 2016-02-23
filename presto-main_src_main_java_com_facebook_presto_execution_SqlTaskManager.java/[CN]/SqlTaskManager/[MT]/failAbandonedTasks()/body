@@ -4,13 +4,14 @@
   for (  SqlTask sqlTask : tasks.asMap().values()) {
     try {
       TaskInfo taskInfo=sqlTask.getTaskInfo();
-      if (taskInfo.getState().isDone()) {
+      TaskStatus taskStatus=taskInfo.getTaskStatus();
+      if (taskStatus.getState().isDone()) {
         continue;
       }
       DateTime lastHeartbeat=taskInfo.getLastHeartbeat();
       if (lastHeartbeat != null && lastHeartbeat.isBefore(oldestAllowedHeartbeat)) {
-        log.info("Failing abandoned task %s",taskInfo.getTaskId());
-        sqlTask.failed(new PrestoException(ABANDONED_TASK,format("Task %s has not been accessed since %s: currentTime %s",taskInfo.getTaskId(),lastHeartbeat,now)));
+        log.info("Failing abandoned task %s",taskStatus.getTaskId());
+        sqlTask.failed(new PrestoException(ABANDONED_TASK,format("Task %s has not been accessed since %s: currentTime %s",taskStatus.getTaskId(),lastHeartbeat,now)));
       }
     }
  catch (    RuntimeException e) {

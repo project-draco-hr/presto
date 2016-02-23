@@ -1,12 +1,12 @@
 {
   SqlTask sqlTask=createInitialTask();
   TaskInfo taskInfo=sqlTask.updateTask(TEST_SESSION,Optional.of(PLAN_FRAGMENT),ImmutableList.of(new TaskSource(TABLE_SCAN_NODE_ID,ImmutableSet.of(SPLIT),true)),INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffer(OUT,0).withNoMoreBufferIds());
-  assertEquals(taskInfo.getState(),TaskState.RUNNING);
+  assertEquals(taskInfo.getTaskStatus().getState(),TaskState.RUNNING);
   taskInfo=sqlTask.getTaskInfo();
-  assertEquals(taskInfo.getState(),TaskState.RUNNING);
+  assertEquals(taskInfo.getTaskStatus().getState(),TaskState.RUNNING);
   sqlTask.abortTaskResults(OUT);
-  taskInfo=sqlTask.getTaskInfo(taskInfo.getState()).get(1,SECONDS);
-  assertEquals(taskInfo.getState(),TaskState.FINISHED);
+  taskInfo=sqlTask.getTaskInfo(taskInfo.getTaskStatus().getState()).get(1,SECONDS);
+  assertEquals(taskInfo.getTaskStatus().getState(),TaskState.FINISHED);
   taskInfo=sqlTask.getTaskInfo();
-  assertEquals(taskInfo.getState(),TaskState.FINISHED);
+  assertEquals(taskInfo.getTaskStatus().getState(),TaskState.FINISHED);
 }

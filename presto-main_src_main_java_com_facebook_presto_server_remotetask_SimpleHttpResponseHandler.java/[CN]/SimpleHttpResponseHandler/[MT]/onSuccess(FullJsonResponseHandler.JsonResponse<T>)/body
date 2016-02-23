@@ -1,0 +1,27 @@
+{
+  stats.updateSuccess();
+  stats.responseSize(response.getResponseSize());
+  try {
+    if (response.getStatusCode() == HttpStatus.OK.code() && response.hasValue()) {
+      callback.success(response.getValue());
+    }
+ else     if (response.getStatusCode() == HttpStatus.SERVICE_UNAVAILABLE.code()) {
+      callback.failed(new ServiceUnavailableException(uri));
+    }
+ else {
+      Exception cause=response.getException();
+      if (cause == null) {
+        if (response.getStatusCode() == HttpStatus.OK.code()) {
+          cause=new PrestoException(REMOTE_TASK_ERROR,format("Expected response from %s is empty",uri));
+        }
+ else {
+          cause=new PrestoException(REMOTE_TASK_ERROR,format("Expected response code from %s to be %s, but was %s: %s%n%s",uri,HttpStatus.OK.code(),response.getStatusCode(),response.getStatusMessage(),response.getResponseBody()));
+        }
+      }
+      callback.fatal(cause);
+    }
+  }
+ catch (  Throwable t) {
+    callback.fatal(t);
+  }
+}

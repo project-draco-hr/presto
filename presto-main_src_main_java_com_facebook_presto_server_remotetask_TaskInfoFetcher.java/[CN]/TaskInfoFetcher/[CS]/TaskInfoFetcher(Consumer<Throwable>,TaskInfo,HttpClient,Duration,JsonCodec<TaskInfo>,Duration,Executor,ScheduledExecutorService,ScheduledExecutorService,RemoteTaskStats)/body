@@ -1,0 +1,15 @@
+{
+  requireNonNull(initialTask,"initialTask is null");
+  requireNonNull(minErrorDuration,"minErrorDuration is null");
+  requireNonNull(errorScheduledExecutor,"errorScheduledExecutor is null");
+  this.taskId=initialTask.getTaskStatus().getTaskId();
+  this.onFail=requireNonNull(onFail,"onFail is null");
+  this.taskInfo=new StateMachine<>("task " + taskId,executor,initialTask);
+  this.taskInfoCodec=requireNonNull(taskInfoCodec,"taskInfoCodec is null");
+  this.updateIntervalMillis=requireNonNull(updateInterval,"updateInterval is null").toMillis();
+  this.updateScheduledExecutor=requireNonNull(updateScheduledExecutor,"updateScheduledExecutor is null");
+  this.errorTracker=new RequestErrorTracker(taskId,initialTask.getTaskStatus().getSelf(),minErrorDuration,errorScheduledExecutor,"getting info for task");
+  this.executor=requireNonNull(executor,"executor is null");
+  this.httpClient=requireNonNull(httpClient,"httpClient is null");
+  this.stats=requireNonNull(stats,"stats is null");
+}

@@ -1,9 +1,9 @@
 {
   SqlTask sqlTask=createInitialTask();
   TaskInfo taskInfo=sqlTask.updateTask(TEST_SESSION,Optional.of(PLAN_FRAGMENT),ImmutableList.of(new TaskSource(TABLE_SCAN_NODE_ID,ImmutableSet.of(SPLIT),true)),INITIAL_EMPTY_OUTPUT_BUFFERS.withBuffer(OUT,0).withNoMoreBufferIds());
-  assertEquals(taskInfo.getState(),TaskState.RUNNING);
+  assertEquals(taskInfo.getTaskStatus().getState(),TaskState.RUNNING);
   taskInfo=sqlTask.getTaskInfo();
-  assertEquals(taskInfo.getState(),TaskState.RUNNING);
+  assertEquals(taskInfo.getTaskStatus().getState(),TaskState.RUNNING);
   BufferResult results=sqlTask.getTaskResults(OUT,0,new DataSize(1,MEGABYTE)).get();
   assertEquals(results.isBufferComplete(),false);
   assertEquals(results.getPages().size(),1);
@@ -13,8 +13,8 @@
   assertEquals(results.getPages().size(),0);
   TaskInfo info=sqlTask.abortTaskResults(OUT);
   assertEquals(info.getOutputBuffers().getState(),BufferState.FINISHED);
-  taskInfo=sqlTask.getTaskInfo(taskInfo.getState()).get(1,SECONDS);
-  assertEquals(taskInfo.getState(),TaskState.FINISHED);
+  taskInfo=sqlTask.getTaskInfo(taskInfo.getTaskStatus().getState()).get(1,SECONDS);
+  assertEquals(taskInfo.getTaskStatus().getState(),TaskState.FINISHED);
   taskInfo=sqlTask.getTaskInfo();
-  assertEquals(taskInfo.getState(),TaskState.FINISHED);
+  assertEquals(taskInfo.getTaskStatus().getState(),TaskState.FINISHED);
 }

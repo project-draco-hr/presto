@@ -12,17 +12,18 @@
   for (  StageInfo stage : stages) {
     for (    TaskInfo task : stage.getTasks()) {
       int bufferedPages=0;
+      TaskStatus taskStatus=task.getTaskStatus();
       for (      BufferInfo bufferInfo : task.getOutputBuffers().getBuffers()) {
         bufferedPages+=bufferInfo.getBufferedPages();
         if (!bufferInfo.getBufferId().equals(OUTPUT_TASK_ID)) {
-          flows.add(new Flow(task.getTaskId().toString(),bufferInfo.getBufferId().toString(),bufferInfo.getPageBufferInfo().getPagesAdded(),bufferInfo.getBufferedPages(),bufferInfo.isFinished()));
+          flows.add(new Flow(taskStatus.getTaskId().toString(),bufferInfo.getBufferId().toString(),bufferInfo.getPageBufferInfo().getPagesAdded(),bufferInfo.getBufferedPages(),bufferInfo.isFinished()));
         }
       }
       long last=TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
       if (task.getStats().getEndTime() != null) {
         last=task.getStats().getEndTime().getMillis();
       }
-      tasks.add(new Task(task.getTaskId().toString(),task.getState().toString(),task.getSelf().getHost(),last - task.getStats().getCreateTime().getMillis(),task.getStats().getTotalCpuTime().roundTo(TimeUnit.MILLISECONDS),task.getStats().getTotalBlockedTime().roundTo(TimeUnit.MILLISECONDS),task.getStats().getRawInputDataSize().roundTo(DataSize.Unit.BYTE),task.getStats().getRawInputPositions(),task.getStats().getOutputDataSize().roundTo(DataSize.Unit.BYTE),task.getStats().getOutputPositions(),task.getStats().getMemoryReservation().roundTo(DataSize.Unit.BYTE),task.getStats().getQueuedDrivers(),task.getStats().getRunningDrivers(),task.getStats().getCompletedDrivers(),bufferedPages));
+      tasks.add(new Task(taskStatus.getTaskId().toString(),taskStatus.getState().toString(),taskStatus.getSelf().getHost(),last - task.getStats().getCreateTime().getMillis(),task.getStats().getTotalCpuTime().roundTo(TimeUnit.MILLISECONDS),task.getStats().getTotalBlockedTime().roundTo(TimeUnit.MILLISECONDS),task.getStats().getRawInputDataSize().roundTo(DataSize.Unit.BYTE),task.getStats().getRawInputPositions(),task.getStats().getOutputDataSize().roundTo(DataSize.Unit.BYTE),task.getStats().getOutputPositions(),task.getStats().getMemoryReservation().roundTo(DataSize.Unit.BYTE),task.getStats().getQueuedDrivers(),task.getStats().getRunningDrivers(),task.getStats().getCompletedDrivers(),bufferedPages));
     }
   }
   Map<String,Object> result=ImmutableMap.<String,Object>builder().put("tasks",tasks).put("flows",flows).build();

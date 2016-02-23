@@ -1,0 +1,12 @@
+{
+  requireNonNull(initialTaskStatus,"initialTaskStatus is null");
+  this.taskId=initialTaskStatus.getTaskId();
+  this.onFail=requireNonNull(onFail,"onFail is null");
+  this.taskStatus=new StateMachine<>("task-" + taskId,executor,initialTaskStatus);
+  this.refreshMaxWait=requireNonNull(refreshMaxWait,"refreshMaxWait is null");
+  this.taskStatusCodec=requireNonNull(taskStatusCodec,"taskStatusCodec is null");
+  this.executor=requireNonNull(executor,"executor is null");
+  this.httpClient=requireNonNull(httpClient,"httpClient is null");
+  this.errorTracker=new RequestErrorTracker(taskId,initialTaskStatus.getSelf(),minErrorDuration,errorScheduledExecutor,"getting task status");
+  this.stats=requireNonNull(stats,"stats is null");
+}

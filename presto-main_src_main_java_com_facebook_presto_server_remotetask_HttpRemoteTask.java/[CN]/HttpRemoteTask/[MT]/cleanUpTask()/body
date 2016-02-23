@@ -1,0 +1,13 @@
+{
+  checkState(getTaskStatus().getState().isDone(),"attempt to clean up a task that is not done yet");
+  pendingSplits.clear();
+  pendingSourceSplitCount=0;
+  partitionedSplitCountTracker.setPartitionedSplitCount(getPartitionedSplitCount());
+  if (currentRequest != null) {
+    currentRequest.cancel(true);
+    currentRequest=null;
+    currentRequestStartNanos=0;
+  }
+  taskStatusFetcher.stop();
+  taskInfoFetcher.taskStatusDone();
+}

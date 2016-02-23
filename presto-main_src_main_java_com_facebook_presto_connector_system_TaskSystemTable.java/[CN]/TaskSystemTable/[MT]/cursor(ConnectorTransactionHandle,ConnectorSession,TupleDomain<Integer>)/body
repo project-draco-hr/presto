@@ -2,7 +2,8 @@
   Builder table=InMemoryRecordSet.builder(TASK_TABLE);
   for (  TaskInfo taskInfo : taskManager.getAllTaskInfo()) {
     TaskStats stats=taskInfo.getStats();
-    table.addRow(nodeId,taskInfo.getTaskId().toString(),taskInfo.getTaskId().getStageId().toString(),taskInfo.getTaskId().getQueryId().toString(),taskInfo.getState().toString(),(long)stats.getTotalDrivers(),(long)stats.getQueuedDrivers(),(long)stats.getRunningDrivers(),(long)stats.getCompletedDrivers(),toMillis(stats.getTotalScheduledTime()),toMillis(stats.getTotalCpuTime()),toMillis(stats.getTotalUserTime()),toMillis(stats.getTotalBlockedTime()),toBytes(stats.getRawInputDataSize()),stats.getRawInputPositions(),toBytes(stats.getProcessedInputDataSize()),stats.getProcessedInputPositions(),toBytes(stats.getOutputDataSize()),stats.getOutputPositions(),toTimeStamp(stats.getCreateTime()),toTimeStamp(stats.getFirstStartTime()),toTimeStamp(taskInfo.getLastHeartbeat()),toTimeStamp(stats.getEndTime()));
+    TaskStatus taskStatus=taskInfo.getTaskStatus();
+    table.addRow(nodeId,taskStatus.getTaskId().toString(),taskStatus.getTaskId().getStageId().toString(),taskStatus.getTaskId().getQueryId().toString(),taskStatus.getState().toString(),(long)stats.getTotalDrivers(),(long)stats.getQueuedDrivers(),(long)stats.getRunningDrivers(),(long)stats.getCompletedDrivers(),toMillis(stats.getTotalScheduledTime()),toMillis(stats.getTotalCpuTime()),toMillis(stats.getTotalUserTime()),toMillis(stats.getTotalBlockedTime()),toBytes(stats.getRawInputDataSize()),stats.getRawInputPositions(),toBytes(stats.getProcessedInputDataSize()),stats.getProcessedInputPositions(),toBytes(stats.getOutputDataSize()),stats.getOutputPositions(),toTimeStamp(stats.getCreateTime()),toTimeStamp(stats.getFirstStartTime()),toTimeStamp(taskInfo.getLastHeartbeat()),toTimeStamp(stats.getEndTime()));
   }
   return table.build().cursor();
 }

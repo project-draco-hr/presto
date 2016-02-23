@@ -9,7 +9,7 @@
   }
   Set<String> uniqueNodes=new HashSet<>();
   for (  TaskInfo task : stageInfo.getTasks()) {
-    URI uri=task.getSelf();
+    URI uri=task.getTaskStatus().getSelf();
     uniqueNodes.add(uri.getHost() + ":" + uri.getPort());
   }
   return StageStats.builder().setStageId(String.valueOf(stageInfo.getStageId().getId())).setState(stageInfo.getState().toString()).setDone(stageInfo.getState().isDone()).setNodes(uniqueNodes.size()).setTotalSplits(stageStats.getTotalDrivers()).setQueuedSplits(stageStats.getQueuedDrivers()).setRunningSplits(stageStats.getRunningDrivers()).setCompletedSplits(stageStats.getCompletedDrivers()).setUserTimeMillis(stageStats.getTotalUserTime().toMillis()).setCpuTimeMillis(stageStats.getTotalCpuTime().toMillis()).setWallTimeMillis(stageStats.getTotalScheduledTime().toMillis()).setProcessedRows(stageStats.getRawInputPositions()).setProcessedBytes(stageStats.getRawInputDataSize().toBytes()).setSubStages(subStages.build()).build();

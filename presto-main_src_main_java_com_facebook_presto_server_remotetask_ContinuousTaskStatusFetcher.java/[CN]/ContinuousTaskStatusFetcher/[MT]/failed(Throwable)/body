@@ -1,0 +1,21 @@
+{
+  try (SetThreadName ignored=new SetThreadName("ContinuousTaskStatusFetcher-%s",taskId)){
+    updateStats(currentRequestStartNanos.get());
+    try {
+      TaskStatus taskStatus=getTaskStatus();
+      if (!taskStatus.getState().isDone()) {
+        errorTracker.requestFailed(cause);
+      }
+    }
+ catch (    Error e) {
+      onFail.accept(e);
+      throw e;
+    }
+catch (    RuntimeException e) {
+      onFail.accept(e);
+    }
+ finally {
+      scheduleNextRequest();
+    }
+  }
+ }
