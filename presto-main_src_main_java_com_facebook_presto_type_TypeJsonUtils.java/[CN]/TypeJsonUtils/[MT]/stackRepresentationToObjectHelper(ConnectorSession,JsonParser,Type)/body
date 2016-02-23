@@ -48,7 +48,10 @@
  else {
     blockBuilder=type.createBlockBuilder(new BlockBuilderStatus(),1,requireNonNull(sliceValue,"sliceValue is null").length());
   }
-  if (type.getJavaType() == boolean.class) {
+  if (type instanceof DecimalType) {
+    return getSqlDecimal((DecimalType)type,parser.getDecimalValue());
+  }
+ else   if (type.getJavaType() == boolean.class) {
     type.writeBoolean(blockBuilder,parser.getBooleanValue());
   }
  else   if (type.getJavaType() == long.class) {

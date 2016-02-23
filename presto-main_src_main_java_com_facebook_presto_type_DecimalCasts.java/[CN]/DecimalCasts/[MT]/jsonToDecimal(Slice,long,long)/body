@@ -1,0 +1,33 @@
+{
+  try (JsonParser parser=JSON_FACTORY.createParser(json.getInput())){
+    parser.nextToken();
+    BigDecimal result;
+switch (parser.getCurrentToken()) {
+case VALUE_NULL:
+      result=null;
+    break;
+case VALUE_STRING:
+  result=new BigDecimal(parser.getText());
+result=result.setScale((int)scale,ROUND_HALF_UP);
+break;
+case VALUE_NUMBER_FLOAT:
+case VALUE_NUMBER_INT:
+result=parser.getDecimalValue();
+result=result.setScale((int)scale,ROUND_HALF_UP);
+break;
+case VALUE_TRUE:
+result=BigDecimal.ONE.setScale((int)scale,ROUND_HALF_UP);
+break;
+case VALUE_FALSE:
+result=BigDecimal.ZERO.setScale((int)scale,ROUND_HALF_UP);
+break;
+default :
+throw new PrestoException(INVALID_CAST_ARGUMENT,format("Cannot cast '%s' to DECIMAL(%s,%s)",json.toStringUtf8(),precision,scale));
+}
+checkCondition(parser.nextToken() == null && (result == null || result.precision() <= precision),INVALID_CAST_ARGUMENT,"Cannot cast input json to DECIMAL(%s,%s)",precision,scale);
+return result;
+}
+ catch (IOException|NumberFormatException e) {
+throw new PrestoException(INVALID_CAST_ARGUMENT,format("Cannot cast '%s' to DECIMAL(%s,%s)",json.toStringUtf8(),precision,scale));
+}
+}

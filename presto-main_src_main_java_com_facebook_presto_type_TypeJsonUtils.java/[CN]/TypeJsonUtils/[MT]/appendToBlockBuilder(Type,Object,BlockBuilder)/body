@@ -31,7 +31,12 @@
     type.writeBoolean(blockBuilder,(Boolean)element);
   }
  else   if (javaType == long.class) {
-    type.writeLong(blockBuilder,((Number)element).longValue());
+    if (element instanceof SqlDecimal) {
+      type.writeLong(blockBuilder,((SqlDecimal)element).getUnscaledValue().longValue());
+    }
+ else {
+      type.writeLong(blockBuilder,((Number)element).longValue());
+    }
   }
  else   if (javaType == double.class) {
     type.writeDouble(blockBuilder,((Number)element).doubleValue());
@@ -42,6 +47,9 @@
     }
  else     if (element instanceof byte[]) {
       type.writeSlice(blockBuilder,Slices.wrappedBuffer((byte[])element));
+    }
+ else     if (element instanceof SqlDecimal) {
+      type.writeSlice(blockBuilder,Decimals.encodeUnscaledValue(((SqlDecimal)element).getUnscaledValue()));
     }
  else {
       type.writeSlice(blockBuilder,(Slice)element);

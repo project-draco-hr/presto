@@ -6,7 +6,11 @@
  else {
     blockBuilder=type.createBlockBuilder(new BlockBuilderStatus(),1,jsonKey.length());
   }
-  if (type.getJavaType() == boolean.class) {
+  if (type instanceof DecimalType) {
+    DecimalType decimalType=(DecimalType)type;
+    return getSqlDecimal(decimalType,new BigDecimal(jsonKey));
+  }
+ else   if (type.getJavaType() == boolean.class) {
     type.writeBoolean(blockBuilder,Boolean.parseBoolean(jsonKey));
   }
  else   if (type.getJavaType() == long.class) {

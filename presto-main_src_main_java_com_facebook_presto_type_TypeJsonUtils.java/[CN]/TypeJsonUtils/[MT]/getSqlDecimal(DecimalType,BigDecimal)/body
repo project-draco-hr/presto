@@ -1,0 +1,7 @@
+{
+  BigInteger unscaledValue=decimalValue.setScale(decimalType.getScale(),RoundingMode.HALF_UP).unscaledValue();
+  if (Decimals.overflows(unscaledValue,decimalType.getPrecision())) {
+    throw new PrestoException(StandardErrorCode.INVALID_FUNCTION_ARGUMENT,String.format("DECIMAL with unscaled value %s exceeds precision %s",unscaledValue,decimalType.getPrecision()));
+  }
+  return new SqlDecimal(unscaledValue,decimalType.getPrecision(),decimalType.getScale());
+}
