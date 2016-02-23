@@ -1,12 +1,11 @@
 {
   boolean queryCancelled=false;
   for (  QueryExecution queryExecution : queries.values()) {
-    QueryInfo queryInfo=queryExecution.getQueryInfo();
-    if (queryInfo.getState().isDone()) {
+    if (queryExecution.getState().isDone()) {
       continue;
     }
-    log.info("Server shutting down. Query %s has been cancelled",queryExecution.getQueryInfo().getQueryId());
-    queryExecution.fail(new PrestoException(SERVER_SHUTTING_DOWN,"Server is shutting down. Query " + queryInfo.getQueryId() + " has been cancelled"));
+    log.info("Server shutting down. Query %s has been cancelled",queryExecution.getQueryId());
+    queryExecution.fail(new PrestoException(SERVER_SHUTTING_DOWN,"Server is shutting down. Query " + queryExecution.getQueryId() + " has been cancelled"));
     queryCancelled=true;
   }
   if (queryCancelled) {
