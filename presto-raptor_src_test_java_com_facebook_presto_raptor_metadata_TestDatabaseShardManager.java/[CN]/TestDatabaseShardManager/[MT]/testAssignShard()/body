@@ -8,10 +8,17 @@
   shardManager.commitShards(transactionId,tableId,columns,shardNodes,Optional.empty());
   ShardNodes actual=getOnlyElement(getShardNodes(tableId,TupleDomain.all()));
   assertEquals(actual,new ShardNodes(shard,ImmutableSet.of("node1")));
-  shardManager.assignShard(tableId,shard,"node2");
+  try {
+    shardManager.assignShard(tableId,shard,"node2",true);
+    fail("expected exception");
+  }
+ catch (  PrestoException e) {
+    assertEquals(e.getErrorCode(),SERVER_STARTING_UP.toErrorCode());
+  }
+  shardManager.assignShard(tableId,shard,"node2",false);
   actual=getOnlyElement(getShardNodes(tableId,TupleDomain.all()));
   assertEquals(actual,new ShardNodes(shard,ImmutableSet.of("node1","node2")));
-  shardManager.assignShard(tableId,shard,"node2");
+  shardManager.assignShard(tableId,shard,"node2",false);
   shardManager.unassignShard(tableId,shard,"node1");
   actual=getOnlyElement(getShardNodes(tableId,TupleDomain.all()));
   assertEquals(actual,new ShardNodes(shard,ImmutableSet.of("node2")));

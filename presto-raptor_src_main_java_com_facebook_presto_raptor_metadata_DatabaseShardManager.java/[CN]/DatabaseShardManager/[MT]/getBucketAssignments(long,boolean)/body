@@ -6,6 +6,9 @@
     int bucket=bucketNode.getBucketNumber();
     String nodeId=bucketNode.getNodeIdentifier();
     if (!nodeIds.contains(nodeId)) {
+      if (gracePeriod && (nanosSince(startTime).compareTo(startupGracePeriod) < 0)) {
+        throw new PrestoException(SERVER_STARTING_UP,"Cannot reassign buckets while server is starting");
+      }
       String oldNodeId=nodeId;
       nodeId=nodeIterator.next();
       dao.updateBucketNode(distributionId,bucket,getOrCreateNodeId(nodeId));
