@@ -1,16 +1,22 @@
 {
   RelationPlan plan;
-  if (analysis.getCreateTableDestination().isPresent()) {
-    plan=createTableCreationPlan(analysis);
+  Statement statement=analysis.getStatement();
+  if (statement instanceof CreateTableAsSelect) {
+    checkState(analysis.getCreateTableDestination().isPresent(),"Table destination is missing");
+    plan=createTableCreationPlan(analysis,((CreateTableAsSelect)statement).getQuery());
   }
- else   if (analysis.getInsert().isPresent()) {
-    plan=createInsertPlan(analysis);
+ else   if (statement instanceof Insert) {
+    checkState(analysis.getInsert().isPresent(),"Insert handle is missing");
+    plan=createInsertPlan(analysis,(Insert)statement);
   }
- else   if (analysis.getDelete().isPresent()) {
-    plan=createDeletePlan(analysis);
+ else   if (statement instanceof Delete) {
+    plan=createDeletePlan(analysis,(Delete)statement);
+  }
+ else   if (statement instanceof Query) {
+    plan=createRelationPlan(analysis,(Query)statement);
   }
  else {
-    plan=createRelationPlan(analysis);
+    throw new PrestoException(NOT_SUPPORTED,"Unsupported statement type " + statement.getClass().getSimpleName());
   }
   PlanNode root=createOutputPlan(plan,analysis);
   PlanSanityChecker.validate(root);
