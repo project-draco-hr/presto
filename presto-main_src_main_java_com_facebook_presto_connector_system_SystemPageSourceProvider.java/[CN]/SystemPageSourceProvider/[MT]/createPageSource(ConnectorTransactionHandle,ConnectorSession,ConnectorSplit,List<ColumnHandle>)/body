@@ -29,5 +29,10 @@
     newConstraints.put(columnsByName.get(columnName),entry.getValue());
   }
   TupleDomain<Integer> newContraint=withColumnDomains(newConstraints.build());
-  return new MappedRecordSet(toRecordSet(systemTransaction.getTransactionHandle(),systemTable,session,newContraint),userToSystemFieldIndex.build());
+  try {
+    return new MappedPageSource(systemTable.pageSource(systemTransaction.getTransactionHandle(),session,newContraint),userToSystemFieldIndex.build());
+  }
+ catch (  UnsupportedOperationException e) {
+    return new RecordPageSource(new MappedRecordSet(toRecordSet(systemTransaction.getTransactionHandle(),systemTable,session,newContraint),userToSystemFieldIndex.build()));
+  }
 }
