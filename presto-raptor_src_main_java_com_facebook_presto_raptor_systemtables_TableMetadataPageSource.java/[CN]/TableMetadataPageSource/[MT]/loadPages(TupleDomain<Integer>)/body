@@ -1,0 +1,85 @@
+{
+  Map<Integer,Domain> domains=tupleDomain.getDomains().get();
+  Domain schemaNameDomain=domains.get(getColumnIndex(tableMetadata,SCHEMA_NAME));
+  Domain tableNameDomain=domains.get(getColumnIndex(tableMetadata,TABLE_NAME));
+  String schemaName=schemaNameDomain == null ? null : getStringValue(schemaNameDomain.getSingleValue()).toLowerCase(ENGLISH);
+  String tableName=tableNameDomain == null ? null : getStringValue(tableNameDomain.getSingleValue()).toLowerCase(ENGLISH);
+  ImmutableList.Builder<Page> pages=ImmutableList.builder();
+  PageBuilder pageBuilder=new PageBuilder(types);
+  List<TableMetadataRow> tableRows=dao.getTableMetadataRows(schemaName,tableName);
+  PeekingIterator<ColumnMetadataRow> columnRowIterator=peekingIterator(dao.getColumnMetadataRows(schemaName,tableName).iterator());
+  for (  TableMetadataRow tableRow : tableRows) {
+    while (columnRowIterator.hasNext() && columnRowIterator.peek().getTableId() < tableRow.getTableId()) {
+      columnRowIterator.next();
+    }
+    String temporalColumnName=null;
+    SortedMap<Integer,String> sortColumnNames=new TreeMap<>();
+    SortedMap<Integer,String> bucketColumnNames=new TreeMap<>();
+    OptionalLong temporalColumnId=tableRow.getTemporalColumnId();
+    while (columnRowIterator.hasNext() && columnRowIterator.peek().getTableId() == tableRow.getTableId()) {
+      ColumnMetadataRow columnRow=columnRowIterator.next();
+      if (temporalColumnId.isPresent() && columnRow.getColumnId() == temporalColumnId.getAsLong()) {
+        temporalColumnName=columnRow.getColumnName();
+      }
+      OptionalInt sortOrdinalPosition=columnRow.getSortOrdinalPosition();
+      if (sortOrdinalPosition.isPresent()) {
+        sortColumnNames.put(sortOrdinalPosition.getAsInt(),columnRow.getColumnName());
+      }
+      OptionalInt bucketOrdinalPosition=columnRow.getBucketOrdinalPosition();
+      if (bucketOrdinalPosition.isPresent()) {
+        bucketColumnNames.put(bucketOrdinalPosition.getAsInt(),columnRow.getColumnName());
+      }
+    }
+    pageBuilder.declarePosition();
+    VARCHAR.writeSlice(pageBuilder.getBlockBuilder(0),utf8Slice(tableRow.getSchemaName()));
+    VARCHAR.writeSlice(pageBuilder.getBlockBuilder(1),utf8Slice(tableRow.getTableName()));
+    if (temporalColumnId.isPresent()) {
+      if (temporalColumnName == null) {
+        throw new PrestoException(RAPTOR_CORRUPT_METADATA,format("Table ID %s has corrupt metadata (invalid temporal column ID)",tableRow.getTableId()));
+      }
+      VARCHAR.writeSlice(pageBuilder.getBlockBuilder(2),utf8Slice(temporalColumnName));
+    }
+ else {
+      pageBuilder.getBlockBuilder(2).appendNull();
+    }
+    if (!sortColumnNames.isEmpty()) {
+      BlockBuilder orderingColumnsBlockBuilder=pageBuilder.getBlockBuilder(3).beginBlockEntry();
+      for (      String sortColumnName : sortColumnNames.values()) {
+        VARCHAR.writeSlice(orderingColumnsBlockBuilder,utf8Slice(sortColumnName));
+      }
+      pageBuilder.getBlockBuilder(3).closeEntry();
+    }
+ else {
+      pageBuilder.getBlockBuilder(3).appendNull();
+    }
+    Optional<String> distributionName=tableRow.getDistributionName();
+    if (distributionName.isPresent()) {
+      VARCHAR.writeSlice(pageBuilder.getBlockBuilder(4),utf8Slice(distributionName.get()));
+    }
+ else {
+      pageBuilder.getBlockBuilder(4).appendNull();
+    }
+    OptionalInt bucketCount=tableRow.getBucketCount();
+    if (bucketCount.isPresent()) {
+      BIGINT.writeLong(pageBuilder.getBlockBuilder(5),bucketCount.getAsInt());
+    }
+ else {
+      pageBuilder.getBlockBuilder(5).appendNull();
+    }
+    if (!bucketColumnNames.isEmpty()) {
+      BlockBuilder bucketColumnsBlockBuilder=pageBuilder.getBlockBuilder(6).beginBlockEntry();
+      for (      String bucketColumnName : bucketColumnNames.values()) {
+        VARCHAR.writeSlice(bucketColumnsBlockBuilder,utf8Slice(bucketColumnName));
+      }
+      pageBuilder.getBlockBuilder(6).closeEntry();
+    }
+ else {
+      pageBuilder.getBlockBuilder(6).appendNull();
+    }
+    if (pageBuilder.isFull()) {
+      flushPage(pageBuilder,pages);
+    }
+  }
+  flushPage(pageBuilder,pages);
+  return pages.build().iterator();
+}
