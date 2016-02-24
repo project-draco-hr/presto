@@ -3,9 +3,16 @@
   MaterializedResult actualResults=computeActual("SELECT *, \"$shard_uuid\" FROM test_shard_uuid");
   assertEquals(actualResults.getTypes(),ImmutableList.of(DATE,BIGINT,VARCHAR));
   List<MaterializedRow> actualRows=actualResults.getMaterializedRows();
+  String arbitraryUuid=null;
   for (  MaterializedRow row : actualRows) {
     Object uuid=row.getField(2);
     assertInstanceOf(uuid,String.class);
     UUID.fromString((String)uuid);
+    arbitraryUuid=(String)uuid;
   }
+  assertNotNull(arbitraryUuid);
+  actualResults=computeActual(format("SELECT * FROM test_shard_uuid where \"$shard_uuid\" = '%s'",arbitraryUuid));
+  assertNotEquals(actualResults.getMaterializedRows().size(),0);
+  actualResults=computeActual("SELECT * FROM test_shard_uuid where \"$shard_uuid\" = 'foo'");
+  assertEquals(actualResults.getMaterializedRows().size(),0);
 }
