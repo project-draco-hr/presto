@@ -1,17 +1,13 @@
 {
-  try (Handle handle=dbi.open()){
-    ShardDao dao=shardDaoSupplier.attach(handle);
-    dao.dropTableTemporaryCreatedShards();
-    dao.createTableTemporaryCreatedShards();
-    dao.insertTemporaryCreatedShards();
-    dao.insertDeletedShardsFromCreated();
-    dao.deleteOldCreatedShards();
-    dao.dropTableTemporaryCreatedShards();
-    dao.dropTableTemporaryCreatedShardNodes();
-    dao.createTableTemporaryCreatedShardNodes();
-    dao.insertTemporaryCreatedShardNodes();
-    dao.insertDeletedShardNodesFromCreated();
-    dao.deleteOldCreatedShardNodes();
-    dao.dropTableTemporaryCreatedShardNodes();
+  while (!Thread.currentThread().isInterrupted()) {
+    List<UUID> shards=dao.getOldCreatedShardsBatch();
+    dao.insertDeletedShards(shards);
+    dao.deleteCreatedShards(shards);
+    List<ShardNodeId> shardNodes=dao.getOldCreatedShardNodesBatch();
+    dao.insertDeletedShardNodes(shardNodes);
+    dao.deleteCreatedShardNodes(shardNodes);
+    if (shards.isEmpty() && shardNodes.isEmpty()) {
+      break;
+    }
   }
- }
+}
