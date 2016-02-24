@@ -11,6 +11,7 @@
       if (explainOnly) {
         sql="EXPLAIN " + sql;
       }
+      long start=System.nanoTime();
       PrestoStatement prestoStatement=limitedStatement.unwrap(PrestoStatement.class);
       ProgressMonitor progressMonitor=new ProgressMonitor();
       prestoStatement.setProgressMonitor(progressMonitor);
@@ -25,9 +26,8 @@
         if (queryStats == null) {
           throw new VerifierException("Cannot fetch query stats");
         }
-        Duration queryWallTime=new Duration(queryStats.getWallTimeMillis(),TimeUnit.MILLISECONDS);
         Duration queryCpuTime=new Duration(queryStats.getCpuTimeMillis(),TimeUnit.MILLISECONDS);
-        return new QueryResult(State.SUCCESS,null,queryWallTime,queryCpuTime,results);
+        return new QueryResult(State.SUCCESS,null,nanosSince(start),queryCpuTime,results);
       }
  catch (      AssertionError e) {
         if (e.getMessage().startsWith("unimplemented type:")) {
