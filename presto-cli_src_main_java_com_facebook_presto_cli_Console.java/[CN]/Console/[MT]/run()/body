@@ -23,12 +23,14 @@
       throw new RuntimeException(format("Error reading from file %s: %s",clientOptions.file,e.getMessage()));
     }
   }
+  AtomicBoolean exiting=new AtomicBoolean();
+  interruptThreadOnExit(Thread.currentThread(),exiting);
   try (QueryRunner queryRunner=QueryRunner.create(session,Optional.ofNullable(clientOptions.socksProxy),Optional.ofNullable(clientOptions.keystorePath),Optional.ofNullable(clientOptions.keystorePassword),Optional.ofNullable(clientOptions.krb5Principal),Optional.ofNullable(clientOptions.krb5RemoteServiceName),clientOptions.authenticationEnabled,kerberosConfig)){
     if (hasQuery) {
       executeCommand(queryRunner,query,clientOptions.outputFormat);
     }
  else {
-      runConsole(queryRunner,session);
+      runConsole(queryRunner,session,exiting);
     }
   }
  }
