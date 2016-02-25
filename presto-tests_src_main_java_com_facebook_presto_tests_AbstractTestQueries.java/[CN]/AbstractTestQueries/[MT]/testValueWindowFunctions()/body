@@ -1,5 +1,5 @@
 {
   MaterializedResult actual=computeActual("SELECT * FROM (\n" + "  SELECT orderkey, orderstatus\n" + "    , first_value(orderkey + 1000) OVER (PARTITION BY orderstatus ORDER BY orderkey) fvalue\n"+ "    , nth_value(orderkey + 1000, 2) OVER (PARTITION BY orderstatus ORDER BY orderkey\n"+ "        ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) nvalue\n"+ "    FROM (SELECT * FROM orders ORDER BY orderkey LIMIT 10) x\n"+ "  ) x\n"+ "ORDER BY orderkey LIMIT 5");
-  MaterializedResult expected=resultBuilder(getSession(),BIGINT,VARCHAR,BIGINT,BIGINT).row(1,"O",1001,1002).row(2,"O",1001,1002).row(3,"F",1003,1005).row(4,"O",1001,1002).row(5,"F",1003,1005).build();
+  MaterializedResult expected=resultBuilder(getSession(),BIGINT,VARCHAR,BIGINT,BIGINT).row(1L,"O",1001L,1002L).row(2L,"O",1001L,1002L).row(3L,"F",1003L,1005L).row(4L,"O",1001L,1002L).row(5L,"F",1003L,1005L).build();
   assertEquals(actual,expected);
 }

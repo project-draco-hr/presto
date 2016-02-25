@@ -1,7 +1,7 @@
 {
-  List<Page> input=rowPagesBuilder(VARCHAR,VARCHAR,BIGINT,BOOLEAN,VARCHAR).row("b","A1",1,true,"").row("a","A2",1,false,"").row("a","B1",2,true,"").pageBreak().row("b","C1",2,false,"").row("a","C2",3,true,"").row("c","A3",1,true,"").build();
+  List<Page> input=rowPagesBuilder(VARCHAR,VARCHAR,BIGINT,BOOLEAN,VARCHAR).row("b","A1",1L,true,"").row("a","A2",1L,false,"").row("a","B1",2L,true,"").pageBreak().row("b","C1",2L,false,"").row("a","C2",3L,true,"").row("c","A3",1L,true,"").build();
   WindowOperatorFactory operatorFactory=createFactoryUnbounded(ImmutableList.of(VARCHAR,VARCHAR,BIGINT,BOOLEAN,VARCHAR),Ints.asList(0,1,2,3),FIRST_VALUE,Ints.asList(0),Ints.asList(2),ImmutableList.copyOf(new SortOrder[]{SortOrder.ASC_NULLS_LAST}));
   Operator operator=operatorFactory.createOperator(driverContext);
-  MaterializedResult expected=resultBuilder(driverContext.getSession(),VARCHAR,VARCHAR,BIGINT,BOOLEAN,VARCHAR).row("a","A2",1,false,"A2").row("a","B1",2,true,"A2").row("a","C2",3,true,"A2").row("b","A1",1,true,"A1").row("b","C1",2,false,"A1").row("c","A3",1,true,"A3").build();
+  MaterializedResult expected=resultBuilder(driverContext.getSession(),VARCHAR,VARCHAR,BIGINT,BOOLEAN,VARCHAR).row("a","A2",1L,false,"A2").row("a","B1",2L,true,"A2").row("a","C2",3L,true,"A2").row("b","A1",1L,true,"A1").row("b","C1",2L,false,"A1").row("c","A3",1L,true,"A3").build();
   assertOperatorEquals(operator,input,expected);
 }

@@ -1,5 +1,5 @@
 {
   MaterializedResult actual=computeActual("SELECT * FROM (\n" + "  SELECT orderkey, orderstatus\n" + "    , sum(orderkey + 1000) OVER (PARTITION BY orderstatus ORDER BY orderkey\n"+ "        ROWS BETWEEN mod(custkey, 2) PRECEDING AND custkey / 500 FOLLOWING)\n"+ "    FROM (SELECT * FROM orders ORDER BY orderkey LIMIT 10) x\n"+ "  ) x\n"+ "ORDER BY orderkey LIMIT 5");
-  MaterializedResult expected=resultBuilder(getSession(),BIGINT,VARCHAR,BIGINT).row(1,"O",1001).row(2,"O",3007).row(3,"F",3014).row(4,"O",4045).row(5,"F",2008).build();
+  MaterializedResult expected=resultBuilder(getSession(),BIGINT,VARCHAR,BIGINT).row(1L,"O",1001L).row(2L,"O",3007L).row(3L,"F",3014L).row(4L,"O",4045L).row(5L,"F",2008L).build();
   assertEquals(actual,expected);
 }

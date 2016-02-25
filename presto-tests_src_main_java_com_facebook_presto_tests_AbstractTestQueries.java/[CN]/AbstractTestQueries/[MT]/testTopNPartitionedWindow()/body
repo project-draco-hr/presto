@@ -1,11 +1,11 @@
 {
   MaterializedResult actual=computeActual("" + "SELECT * FROM (\n" + "   SELECT row_number() OVER (PARTITION BY orderstatus ORDER BY orderkey) rn, orderkey, orderstatus\n"+ "   FROM orders\n"+ ") WHERE rn <= 2");
-  MaterializedResult expected=resultBuilder(getSession(),BIGINT,BIGINT,VARCHAR).row(1,1,"O").row(2,2,"O").row(1,3,"F").row(2,5,"F").row(1,65,"P").row(2,197,"P").build();
+  MaterializedResult expected=resultBuilder(getSession(),BIGINT,BIGINT,VARCHAR).row(1L,1L,"O").row(2L,2L,"O").row(1L,3L,"F").row(2L,5L,"F").row(1L,65L,"P").row(2L,197L,"P").build();
   assertEqualsIgnoreOrder(actual.getMaterializedRows(),expected.getMaterializedRows());
   actual=computeActual("" + "SELECT * FROM (\n" + "   SELECT row_number() OVER (PARTITION BY orderstatus ORDER BY orderkey) rn, orderkey\n"+ "   FROM orders\n"+ ") WHERE rn <= 2");
-  expected=resultBuilder(getSession(),BIGINT,BIGINT).row(1,1).row(2,2).row(1,3).row(2,5).row(1,65).row(2,197).build();
+  expected=resultBuilder(getSession(),BIGINT,BIGINT).row(1L,1L).row(2L,2L).row(1L,3L).row(2L,5L).row(1L,65L).row(2L,197L).build();
   assertEqualsIgnoreOrder(actual.getMaterializedRows(),expected.getMaterializedRows());
   actual=computeActual("" + "SELECT * FROM (\n" + "   SELECT row_number() OVER (PARTITION BY orderstatus ORDER BY orderkey) rn, orderstatus\n"+ "   FROM orders\n"+ ") WHERE rn <= 2");
-  expected=resultBuilder(getSession(),BIGINT,VARCHAR).row(1,"O").row(2,"O").row(1,"F").row(2,"F").row(1,"P").row(2,"P").build();
+  expected=resultBuilder(getSession(),BIGINT,VARCHAR).row(1L,"O").row(2L,"O").row(1L,"F").row(2L,"F").row(1L,"P").row(2L,"P").build();
   assertEqualsIgnoreOrder(actual.getMaterializedRows(),expected.getMaterializedRows());
 }

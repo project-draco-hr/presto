@@ -1,5 +1,5 @@
 {
   MaterializedResult actual=computeActual("" + "SELECT * FROM (\n" + "  SELECT orderstatus, clerk, sales\n"+ "  , rank() OVER (PARTITION BY x.orderstatus ORDER BY sales DESC) rnk\n"+ "  FROM (\n"+ "    SELECT orderstatus, clerk, sum(totalprice) sales\n"+ "    FROM orders\n"+ "    GROUP BY orderstatus, clerk\n"+ "   ) x\n"+ ") x\n"+ "WHERE rnk <= 2\n"+ "ORDER BY orderstatus, rnk");
-  MaterializedResult expected=resultBuilder(getSession(),VARCHAR,VARCHAR,DOUBLE,BIGINT).row("F","Clerk#000000090",2784836.61,1).row("F","Clerk#000000084",2674447.15,2).row("O","Clerk#000000500",2569878.29,1).row("O","Clerk#000000050",2500162.92,2).row("P","Clerk#000000071",841820.99,1).row("P","Clerk#000001000",643679.49,2).build();
+  MaterializedResult expected=resultBuilder(getSession(),VARCHAR,VARCHAR,DOUBLE,BIGINT).row("F","Clerk#000000090",2784836.61,1L).row("F","Clerk#000000084",2674447.15,2L).row("O","Clerk#000000500",2569878.29,1L).row("O","Clerk#000000050",2500162.92,2L).row("P","Clerk#000000071",841820.99,1L).row("P","Clerk#000001000",643679.49,2L).build();
   assertEquals(actual,expected);
 }

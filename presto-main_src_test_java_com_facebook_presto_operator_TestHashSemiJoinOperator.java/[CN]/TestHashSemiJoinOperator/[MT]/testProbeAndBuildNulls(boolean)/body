@@ -3,7 +3,7 @@
   OperatorContext operatorContext=driverContext.addOperatorContext(0,new PlanNodeId("test"),ValuesOperator.class.getSimpleName());
   List<Type> buildTypes=ImmutableList.<Type>of(BIGINT);
   RowPagesBuilder rowPagesBuilder=rowPagesBuilder(hashEnabled,Ints.asList(0),buildTypes);
-  Operator buildOperator=new ValuesOperator(operatorContext,buildTypes,rowPagesBuilder.row(0).row(1).row((Object)null).row(3).build());
+  Operator buildOperator=new ValuesOperator(operatorContext,buildTypes,rowPagesBuilder.row(0L).row(1L).row((Object)null).row(3L).build());
   SetBuilderOperatorFactory setBuilderOperatorFactory=new SetBuilderOperatorFactory(1,new PlanNodeId("test"),buildOperator.getTypes().get(0),0,rowPagesBuilder.getHashChannel(),10);
   Operator setBuilderOperator=setBuilderOperatorFactory.createOperator(driverContext);
   Driver driver=new Driver(driverContext,buildOperator,setBuilderOperator);
@@ -12,9 +12,9 @@
   }
   List<Type> probeTypes=ImmutableList.<Type>of(BIGINT);
   RowPagesBuilder rowPagesBuilderProbe=rowPagesBuilder(hashEnabled,Ints.asList(0),probeTypes);
-  List<Page> probeInput=rowPagesBuilderProbe.row(0).row((Object)null).row(1).row(2).build();
+  List<Page> probeInput=rowPagesBuilderProbe.row(0L).row((Object)null).row(1L).row(2L).build();
   HashSemiJoinOperatorFactory joinOperatorFactory=new HashSemiJoinOperatorFactory(2,new PlanNodeId("test"),setBuilderOperatorFactory.getSetProvider(),rowPagesBuilderProbe.getTypes(),0);
   Operator joinOperator=joinOperatorFactory.createOperator(driverContext);
-  MaterializedResult expected=resultBuilder(driverContext.getSession(),concat(probeTypes,ImmutableList.of(BOOLEAN))).row(0,true).row(null,null).row(1,true).row(2,null).build();
+  MaterializedResult expected=resultBuilder(driverContext.getSession(),concat(probeTypes,ImmutableList.of(BOOLEAN))).row(0L,true).row(null,null).row(1L,true).row(2L,null).build();
   OperatorAssertion.assertOperatorEquals(joinOperator,probeInput,expected,hashEnabled,ImmutableList.of(probeTypes.size()));
 }
