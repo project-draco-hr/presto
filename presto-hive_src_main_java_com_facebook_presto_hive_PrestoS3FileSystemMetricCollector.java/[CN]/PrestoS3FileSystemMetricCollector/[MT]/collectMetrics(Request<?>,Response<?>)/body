@@ -1,10 +1,11 @@
 {
   AWSRequestMetrics metrics=request.getAWSRequestMetrics();
   TimingInfo timingInfo=metrics.getTimingInfo();
-  Number requestCounts=timingInfo.getCounter(Field.RequestCount.name());
-  Number retryCounts=timingInfo.getCounter(Field.HttpClientRetryCount.name());
-  Number throttleExceptions=timingInfo.getCounter(Field.ThrottleException.name());
-  TimingInfo requestTime=timingInfo.getSubMeasurement(Field.HttpRequestTime.name());
+  Number requestCounts=timingInfo.getCounter(RequestCount.name());
+  Number retryCounts=timingInfo.getCounter(HttpClientRetryCount.name());
+  Number throttleExceptions=timingInfo.getCounter(ThrottleException.name());
+  TimingInfo requestTime=timingInfo.getSubMeasurement(HttpRequestTime.name());
+  TimingInfo clientExecuteTime=timingInfo.getSubMeasurement(ClientExecuteTime.name());
   if (requestCounts != null) {
     stats.updateAwsRequestCount(requestCounts.longValue());
   }
@@ -16,5 +17,8 @@
   }
   if (requestTime != null && requestTime.getTimeTakenMillisIfKnown() != null) {
     stats.addAwsRequestTime(new Duration(requestTime.getTimeTakenMillisIfKnown(),MILLISECONDS));
+  }
+  if (clientExecuteTime != null && clientExecuteTime.getTimeTakenMillisIfKnown() != null) {
+    stats.addAwsClientExecuteTime(new Duration(clientExecuteTime.getTimeTakenMillisIfKnown(),MILLISECONDS));
   }
 }
