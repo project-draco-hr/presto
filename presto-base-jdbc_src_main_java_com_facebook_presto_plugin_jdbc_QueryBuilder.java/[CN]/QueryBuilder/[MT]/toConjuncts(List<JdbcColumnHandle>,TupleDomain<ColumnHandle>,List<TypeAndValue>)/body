@@ -2,10 +2,10 @@
   ImmutableList.Builder<String> builder=ImmutableList.builder();
   for (  JdbcColumnHandle column : columns) {
     Type type=column.getColumnType();
-    if (type.equals(BigintType.BIGINT) || type.equals(DoubleType.DOUBLE) || type.equals(BooleanType.BOOLEAN)) {
+    if (isAcceptedType(type)) {
       Domain domain=tupleDomain.getDomains().get().get(column);
       if (domain != null) {
-        builder.add(toPredicate(column.getColumnName(),domain));
+        builder.add(toPredicate(column.getColumnName(),domain,type,accumulator));
       }
     }
   }

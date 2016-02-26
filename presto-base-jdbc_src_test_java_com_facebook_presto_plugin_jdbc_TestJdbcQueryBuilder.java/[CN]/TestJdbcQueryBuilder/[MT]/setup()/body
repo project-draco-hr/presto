@@ -1,0 +1,20 @@
+{
+  dbi=new DBI("jdbc:h2:mem:test" + System.nanoTime());
+  dummyHandle=dbi.open();
+  Connection connection=dummyHandle.getConnection();
+  PreparedStatement preparedStatement=connection.prepareStatement("create table \"test_table\" (" + "" + "\"col_0\" BIGINT, "+ "\"col_1\" DOUBLE, "+ "\"col_2\" BOOLEAN, "+ ")");
+  preparedStatement.execute();
+  StringBuilder stringBuilder=new StringBuilder("insert into \"test_table\" values ");
+  int len=1000;
+  for (int i=0; i < len; i++) {
+    stringBuilder.append("(" + i + ", "+ (200000.0 + i / 2.0)+ ", "+ (i % 2 == 0)+ ")");
+    if (i != len - 1) {
+      stringBuilder.append(",");
+    }
+  }
+  PreparedStatement preparedStatement2=connection.prepareStatement(stringBuilder.toString());
+  preparedStatement2.execute();
+  cols.add(new JdbcColumnHandle("test_id","col_0",BigintType.BIGINT));
+  cols.add(new JdbcColumnHandle("test_id","col_1",DoubleType.DOUBLE));
+  cols.add(new JdbcColumnHandle("test_id","col_2",BooleanType.BOOLEAN));
+}

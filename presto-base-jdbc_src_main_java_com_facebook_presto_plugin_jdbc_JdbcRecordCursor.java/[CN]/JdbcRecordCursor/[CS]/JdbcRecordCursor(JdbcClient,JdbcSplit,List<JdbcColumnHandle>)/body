@@ -1,11 +1,10 @@
 {
   this.columnHandles=ImmutableList.copyOf(requireNonNull(columnHandles,"columnHandles is null"));
-  String sql=jdbcClient.buildSql(split,columnHandles);
   try {
     connection=jdbcClient.getConnection(split);
-    statement=jdbcClient.getStatement(connection);
-    log.debug("Executing: %s",sql);
-    resultSet=statement.executeQuery(sql);
+    statement=jdbcClient.buildSql(split,columnHandles);
+    log.debug("Executing: %s",statement.toString());
+    resultSet=statement.executeQuery();
   }
  catch (  SQLException e) {
     throw handleSqlException(e);
