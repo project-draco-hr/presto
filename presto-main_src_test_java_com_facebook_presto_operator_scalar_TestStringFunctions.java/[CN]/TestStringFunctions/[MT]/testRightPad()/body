@@ -1,0 +1,19 @@
+{
+  assertFunction("RPAD('text', 5, 'x')",VARCHAR,"textx");
+  assertFunction("RPAD('text', 4, 'x')",VARCHAR,"text");
+  assertFunction("RPAD('text', 6, 'xy')",VARCHAR,"textxy");
+  assertFunction("RPAD('text', 7, 'xy')",VARCHAR,"textxyx");
+  assertFunction("RPAD('text', 9, 'xyz')",VARCHAR,"textxyzxy");
+  assertFunction("RPAD('\u4FE1\u5FF5 \u7231 \u5E0C\u671B  ', 10, '\u671B')",VARCHAR,"\u4FE1\u5FF5 \u7231 \u5E0C\u671B  \u671B");
+  assertFunction("RPAD('\u4FE1\u5FF5 \u7231 \u5E0C\u671B  ', 11, '\u671B')",VARCHAR,"\u4FE1\u5FF5 \u7231 \u5E0C\u671B  \u671B\u671B");
+  assertFunction("RPAD('\u4FE1\u5FF5 \u7231 \u5E0C\u671B  ', 12, '\u5E0C\u671B')",VARCHAR,"\u4FE1\u5FF5 \u7231 \u5E0C\u671B  \u5E0C\u671B\u5E0C");
+  assertFunction("RPAD('\u4FE1\u5FF5 \u7231 \u5E0C\u671B  ', 13, '\u5E0C\u671B')",VARCHAR,"\u4FE1\u5FF5 \u7231 \u5E0C\u671B  \u5E0C\u671B\u5E0C\u671B");
+  assertFunction("RPAD('', 3, 'a')",VARCHAR,"aaa");
+  assertFunction("RPAD('abc', 0, 'e')",VARCHAR,"");
+  assertFunction("RPAD('text', 3, 'xy')",VARCHAR,"tex");
+  assertFunction("RPAD('\u4FE1\u5FF5 \u7231 \u5E0C\u671B  ', 5, '\u671B')",VARCHAR,"\u4FE1\u5FF5 \u7231 ");
+  assertInvalidFunction("RPAD('abc', 3, '')","Padding string must not be empty");
+  long maxSize=Integer.MAX_VALUE;
+  assertInvalidFunction("RPAD('abc', -1, 'foo')","Target length must be in the range [0.." + maxSize + "]");
+  assertInvalidFunction("RPAD('abc', " + (maxSize + 1) + ", '')","Target length must be in the range [0.." + maxSize + "]");
+}
