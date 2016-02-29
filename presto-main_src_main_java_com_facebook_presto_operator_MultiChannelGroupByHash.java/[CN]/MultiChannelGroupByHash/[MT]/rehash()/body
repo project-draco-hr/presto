@@ -6,6 +6,7 @@
   int newCapacity=(int)newCapacityLong;
   int newMask=newCapacity - 1;
   long[] newKey=new long[newCapacity];
+  byte[] rawHashes=new byte[newCapacity];
   Arrays.fill(newKey,-1);
   int[] newValue=new int[newCapacity];
   int oldIndex=0;
@@ -14,17 +15,20 @@
       oldIndex++;
     }
     long address=groupAddressByHash[oldIndex];
-    int pos=getHashPosition(hashPosition(address),newMask);
+    int rawHash=hashPosition(address);
+    int pos=getHashPosition(rawHash,newMask);
     while (newKey[pos] != -1) {
       pos=(pos + 1) & newMask;
     }
     newKey[pos]=address;
+    rawHashes[pos]=(byte)rawHash;
     newValue[pos]=groupIdsByHash[oldIndex];
     oldIndex++;
   }
   this.mask=newMask;
   this.maxFill=calculateMaxFill(newCapacity);
   this.groupAddressByHash=newKey;
+  this.rawHashByHashPosition=rawHashes;
   this.groupIdsByHash=newValue;
   groupAddressByGroupId.ensureCapacity(maxFill);
 }
