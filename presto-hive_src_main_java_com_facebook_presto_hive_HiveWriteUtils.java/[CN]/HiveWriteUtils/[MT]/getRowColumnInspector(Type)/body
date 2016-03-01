@@ -20,6 +20,10 @@
   if (type.equals(TimestampType.TIMESTAMP)) {
     return writableTimestampObjectInspector;
   }
+  if (type instanceof DecimalType) {
+    DecimalType decimalType=(DecimalType)type;
+    return getPrimitiveWritableObjectInspector(new DecimalTypeInfo(decimalType.getPrecision(),decimalType.getScale()));
+  }
   if (isArrayType(type) || isMapType(type) || isRowType(type)) {
     return getJavaObjectInspector(type);
   }

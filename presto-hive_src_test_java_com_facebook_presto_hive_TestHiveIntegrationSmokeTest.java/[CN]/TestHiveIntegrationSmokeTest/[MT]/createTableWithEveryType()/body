@@ -1,5 +1,5 @@
 {
-  @Language("SQL") String query="" + "CREATE TABLE test_types_table AS " + "SELECT"+ " 'foo' _varchar"+ ", cast('bar' as varbinary) _varbinary"+ ", 1 _bigint"+ ", 3.14 _double"+ ", true _boolean"+ ", DATE '1980-05-07' _date"+ ", TIMESTAMP '1980-05-07 11:22:33.456' _timestamp";
+  @Language("SQL") String query="" + "CREATE TABLE test_types_table AS " + "SELECT"+ " 'foo' _varchar"+ ", cast('bar' as varbinary) _varbinary"+ ", 1 _bigint"+ ", CAST('3.14' AS DOUBLE) _double"+ ", true _boolean"+ ", DATE '1980-05-07' _date"+ ", TIMESTAMP '1980-05-07 11:22:33.456' _timestamp"+ ", CAST('3.14' AS DECIMAL(3,2)) _decimal_short"+ ", CAST('12345678901234567890.0123456789' AS DECIMAL(30,10)) _decimal_long";
   assertUpdate(query,1);
   MaterializedResult results=queryRunner.execute(getSession(),"SELECT * FROM test_types_table").toJdbcTypes();
   assertEquals(results.getRowCount(),1);
@@ -11,6 +11,8 @@
   assertEquals(row.getField(4),true);
   assertEquals(row.getField(5),new Date(new DateTime(1980,5,7,0,0,0,UTC).getMillis()));
   assertEquals(row.getField(6),new Timestamp(new DateTime(1980,5,7,11,22,33,456,UTC).getMillis()));
+  assertEquals(row.getField(7),new BigDecimal("3.14"));
+  assertEquals(row.getField(8),new BigDecimal("12345678901234567890.0123456789"));
   assertUpdate("DROP TABLE test_types_table");
   assertFalse(queryRunner.tableExists(getSession(),"test_types_table"));
 }
