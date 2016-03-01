@@ -26,35 +26,43 @@
         currentPosition=0;
       }
       if (currentPage != null) {
-        if (columnarProcessingDictionaryEnabled) {
+switch (processingOptimization) {
+case COLUMNAR:
+{
+            Page page=pageProcessor.processColumnar(operatorContext.getSession().toConnectorSession(),currentPage,getTypes());
+            currentPage=null;
+            currentPosition=0;
+            return page;
+          }
+case COLUMNAR_DICTIONARY:
+{
           Page page=pageProcessor.processColumnarDictionary(operatorContext.getSession().toConnectorSession(),currentPage,getTypes());
           currentPage=null;
           currentPosition=0;
           return page;
         }
- else         if (columnarProcessingEnabled) {
-          Page page=pageProcessor.processColumnar(operatorContext.getSession().toConnectorSession(),currentPage,getTypes());
+case DISABLED:
+{
+        currentPosition=pageProcessor.process(operatorContext.getSession().toConnectorSession(),currentPage,currentPosition,currentPage.getPositionCount(),pageBuilder);
+        if (currentPosition == currentPage.getPositionCount()) {
           currentPage=null;
           currentPosition=0;
-          return page;
         }
- else {
-          currentPosition=pageProcessor.process(operatorContext.getSession().toConnectorSession(),currentPage,currentPosition,currentPage.getPositionCount(),pageBuilder);
-          if (currentPosition == currentPage.getPositionCount()) {
-            currentPage=null;
-            currentPosition=0;
-          }
-        }
+        break;
       }
-      pageSourceMemoryContext.setBytes(pageSource.getSystemMemoryUsage());
-    }
-  }
-  if (pageBuilder.isEmpty() || (!finishing && !pageBuilder.isFull())) {
-    pageBuilderMemoryContext.setBytes(pageBuilder.getRetainedSizeInBytes());
-    return null;
-  }
-  Page page=pageBuilder.build();
-  pageBuilder.reset();
-  pageBuilderMemoryContext.setBytes(pageBuilder.getRetainedSizeInBytes());
-  return page;
+default :
+    throw new IllegalStateException(String.format("Found unexpected value %s for processingOptimization",processingOptimization));
+}
+}
+pageSourceMemoryContext.setBytes(pageSource.getSystemMemoryUsage());
+}
+}
+if (pageBuilder.isEmpty() || (!finishing && !pageBuilder.isFull())) {
+pageBuilderMemoryContext.setBytes(pageBuilder.getRetainedSizeInBytes());
+return null;
+}
+Page page=pageBuilder.build();
+pageBuilder.reset();
+pageBuilderMemoryContext.setBytes(pageBuilder.getRetainedSizeInBytes());
+return page;
 }
