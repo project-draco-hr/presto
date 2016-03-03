@@ -1,6 +1,5 @@
 {
   requireNonNull(config,"config is null");
-  this.mbeanExporter=requireNonNull(mbeanExporter,"mbeanExporter is null");
   ImmutableList.Builder<QueryQueueRule> rules=ImmutableList.builder();
   if (config.getQueueConfigFile() == null) {
     QueryQueueDefinition global=new QueryQueueDefinition("global",config.getMaxConcurrentQueries(),config.getMaxQueuedQueries());
@@ -23,6 +22,6 @@
       rules.add(QueryQueueRule.createRule(rule.getUserRegex(),rule.getSourceRegex(),rule.getSessionPropertyRegexes(),rule.getQueues(),definitions));
     }
   }
+  checkIsDAG(rules.build());
   this.rules=rules.build();
-  checkIsDAG(this.rules);
 }
