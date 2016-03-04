@@ -1,9 +1,8 @@
 {
   requireNonNull(queryInfo,"queryInfo is null");
-  StageInfo outputStage=queryInfo.getOutputStage();
-  requireNonNull(outputStage,"outputStage is null");
+  checkArgument(queryInfo.getOutputStage().isPresent(),"outputStage is not present");
   List<String> names=queryInfo.getFieldNames();
-  List<Type> types=outputStage.getTypes();
+  List<Type> types=queryInfo.getOutputStage().get().getTypes();
   checkArgument(names.size() == types.size(),"names and types size mismatch");
   ImmutableList.Builder<Column> list=ImmutableList.builder();
   for (int i=0; i < names.size(); i++) {

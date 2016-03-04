@@ -5,14 +5,15 @@
     maxWait=queryManager.waitForStateChange(queryId,queryInfo.getState(),maxWait);
     queryInfo=queryManager.getQueryInfo(queryId);
   }
-  if (!isQueryStarted(queryInfo) || queryInfo.getOutputStage() == null) {
+  StageInfo outputStage=queryInfo.getOutputStage().orElse(null);
+  if (!isQueryStarted(queryInfo) || outputStage == null) {
     return null;
   }
   if (columns == null) {
     columns=createColumnsList(queryInfo);
   }
-  List<Type> types=queryInfo.getOutputStage().getTypes();
-  updateExchangeClient(queryInfo.getOutputStage());
+  List<Type> types=outputStage.getTypes();
+  updateExchangeClient(outputStage);
   ImmutableList.Builder<RowIterable> pages=ImmutableList.builder();
   long bytes=0;
   while (bytes < DESIRED_RESULT_BYTES) {

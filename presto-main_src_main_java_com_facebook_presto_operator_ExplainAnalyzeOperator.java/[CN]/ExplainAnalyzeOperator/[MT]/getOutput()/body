@@ -4,7 +4,8 @@
   }
   outputConsumed=true;
   QueryInfo queryInfo=queryPerformanceFetcher.getQueryInfo(operatorContext.getDriverContext().getTaskId().getQueryId());
-  String plan=textDistributedPlan(queryInfo.getOutputStage().getSubStages(),metadata,operatorContext.getSession());
+  checkState(queryInfo.getOutputStage().isPresent(),"Output stage is missing");
+  String plan=textDistributedPlan(queryInfo.getOutputStage().get().getSubStages(),metadata,operatorContext.getSession());
   BlockBuilder builder=VARCHAR.createBlockBuilder(new BlockBuilderStatus(),1);
   VARCHAR.writeString(builder,plan);
   return new Page(builder.build());

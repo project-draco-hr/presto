@@ -1,9 +1,10 @@
 {
   QueryInfo queryInfo=finalQueryInfo.get();
-  if (queryInfo == null || queryInfo.getOutputStage() == null) {
+  if (queryInfo == null || !queryInfo.getOutputStage().isPresent()) {
     return;
   }
-  StageInfo prunedOutputStage=new StageInfo(queryInfo.getOutputStage().getStageId(),queryInfo.getOutputStage().getState(),queryInfo.getOutputStage().getSelf(),null,queryInfo.getOutputStage().getTypes(),queryInfo.getOutputStage().getStageStats(),ImmutableList.of(),ImmutableList.of(),queryInfo.getOutputStage().getFailureCause());
-  QueryInfo prunedQueryInfo=new QueryInfo(queryInfo.getQueryId(),queryInfo.getSession(),queryInfo.getState(),getMemoryPool().getId(),queryInfo.isScheduled(),queryInfo.getSelf(),queryInfo.getFieldNames(),queryInfo.getQuery(),queryInfo.getQueryStats(),queryInfo.getSetSessionProperties(),queryInfo.getResetSessionProperties(),queryInfo.getStartedTransactionId(),queryInfo.isClearTransactionId(),queryInfo.getUpdateType(),prunedOutputStage,queryInfo.getFailureInfo(),queryInfo.getErrorCode(),queryInfo.getInputs());
+  StageInfo outputStage=queryInfo.getOutputStage().get();
+  StageInfo prunedOutputStage=new StageInfo(outputStage.getStageId(),outputStage.getState(),outputStage.getSelf(),null,outputStage.getTypes(),outputStage.getStageStats(),ImmutableList.of(),ImmutableList.of(),outputStage.getFailureCause());
+  QueryInfo prunedQueryInfo=new QueryInfo(queryInfo.getQueryId(),queryInfo.getSession(),queryInfo.getState(),getMemoryPool().getId(),queryInfo.isScheduled(),queryInfo.getSelf(),queryInfo.getFieldNames(),queryInfo.getQuery(),queryInfo.getQueryStats(),queryInfo.getSetSessionProperties(),queryInfo.getResetSessionProperties(),queryInfo.getStartedTransactionId(),queryInfo.isClearTransactionId(),queryInfo.getUpdateType(),Optional.of(prunedOutputStage),queryInfo.getFailureInfo(),queryInfo.getErrorCode(),queryInfo.getInputs());
   finalQueryInfo.compareAndSet(queryInfo,prunedQueryInfo);
 }
