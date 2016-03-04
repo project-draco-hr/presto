@@ -1,19 +1,26 @@
 {
-  RelationPlan plan;
+  PlanNode root;
   Statement statement=analysis.getStatement();
   if (statement instanceof CreateTableAsSelect) {
     checkState(analysis.getCreateTableDestination().isPresent(),"Table destination is missing");
-    plan=createTableCreationPlan(analysis,((CreateTableAsSelect)statement).getQuery());
+    if (analysis.isCreateTableAsSelectNoOp()) {
+      List<Expression> emptyRow=ImmutableList.of();
+      PlanNode source=new ValuesNode(idAllocator.getNextId(),ImmutableList.of(),ImmutableList.of(emptyRow));
+      root=new OutputNode(idAllocator.getNextId(),source,ImmutableList.of(),ImmutableList.of());
+    }
+ else {
+      root=createOutputPlan(createTableCreationPlan(analysis,((CreateTableAsSelect)statement).getQuery()),analysis);
+    }
   }
  else   if (statement instanceof Insert) {
     checkState(analysis.getInsert().isPresent(),"Insert handle is missing");
-    plan=createInsertPlan(analysis,(Insert)statement);
+    root=createOutputPlan(createInsertPlan(analysis,(Insert)statement),analysis);
   }
  else   if (statement instanceof Delete) {
-    plan=createDeletePlan(analysis,(Delete)statement);
+    root=createOutputPlan(createDeletePlan(analysis,(Delete)statement),analysis);
   }
  else   if (statement instanceof Query) {
-    plan=createRelationPlan(analysis,(Query)statement);
+    root=createOutputPlan(createRelationPlan(analysis,(Query)statement),analysis);
   }
  else   if (statement instanceof Explain && ((Explain)statement).isAnalyze()) {
     throw new PrestoException(NOT_SUPPORTED,"EXPLAIN ANALYZE not yet implemented");
@@ -21,7 +28,6 @@
  else {
     throw new PrestoException(NOT_SUPPORTED,"Unsupported statement type " + statement.getClass().getSimpleName());
   }
-  PlanNode root=createOutputPlan(plan,analysis);
   PlanSanityChecker.validate(root);
   for (  PlanOptimizer optimizer : planOptimizers) {
     root=optimizer.optimize(root,session,symbolAllocator.getTypes(),symbolAllocator,idAllocator);

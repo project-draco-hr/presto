@@ -1,4 +1,13 @@
 {
+  assertUpdate("CREATE TABLE test_create_table_as_if_not_exists (a bigint, b double)");
+  assertTrue(queryRunner.tableExists(getSession(),"test_create_table_as_if_not_exists"));
+  assertTableColumnNames("test_create_table_as_if_not_exists","a","b");
+  MaterializedResult materializedRows=computeActual("CREATE TABLE IF NOT EXISTS test_create_table_as_if_not_exists AS SELECT orderkey, discount FROM lineitem");
+  assertEquals(materializedRows.getRowCount(),0);
+  assertTrue(queryRunner.tableExists(getSession(),"test_create_table_as_if_not_exists"));
+  assertTableColumnNames("test_create_table_as_if_not_exists","a","b");
+  assertUpdate("DROP TABLE test_create_table_as_if_not_exists");
+  assertFalse(queryRunner.tableExists(getSession(),"test_create_table_as_if_not_exists"));
   assertCreateTableAsSelect("test_select","SELECT orderdate, orderkey, totalprice FROM orders","SELECT count(*) FROM orders");
   assertCreateTableAsSelect("test_group","SELECT orderstatus, sum(totalprice) x FROM orders GROUP BY orderstatus","SELECT count(DISTINCT orderstatus) FROM orders");
   assertCreateTableAsSelect("test_join","SELECT count(*) x FROM lineitem JOIN orders ON lineitem.orderkey = orders.orderkey","SELECT 1");
