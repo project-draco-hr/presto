@@ -13,7 +13,7 @@
     String ds=partitionKeys.get(0).getValue();
     String fileFormat=partitionKeys.get(1).getValue();
     HiveStorageFormat fileType=HiveStorageFormat.valueOf(fileFormat.toUpperCase());
-    long dummyPartition=Long.parseLong(partitionKeys.get(2).getValue());
+    int dummyPartition=Integer.parseInt(partitionKeys.get(2).getValue());
     long rowNumber=0;
     long completedBytes=0;
     try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(newTransaction(),session,hiveSplit,columnHandles)){
@@ -36,9 +36,9 @@
  else {
           assertEquals(row.getField(columnIndex.get("t_string")),"test");
         }
-        assertEquals(row.getField(columnIndex.get("t_tinyint")),1 + rowNumber);
-        assertEquals(row.getField(columnIndex.get("t_smallint")),2 + rowNumber);
-        assertEquals(row.getField(columnIndex.get("t_int")),3 + rowNumber);
+        assertEquals(row.getField(columnIndex.get("t_tinyint")),1 + (int)rowNumber);
+        assertEquals(row.getField(columnIndex.get("t_smallint")),2 + (int)rowNumber);
+        assertEquals(row.getField(columnIndex.get("t_int")),3 + (int)rowNumber);
         if (rowNumber % 13 == 0) {
           assertNull(row.getField(columnIndex.get("t_bigint")));
         }

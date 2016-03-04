@@ -1,9 +1,9 @@
 {
-  @Language("SQL") String createTable="" + "CREATE TABLE test_partitioned_table (" + "  _varchar VARCHAR"+ ", _bigint BIGINT"+ ", _double DOUBLE"+ ", _boolean BOOLEAN"+ ", _decimal_short DECIMAL(3,2)"+ ", _decimal_long DECIMAL(30,10)"+ ", _partition_varchar VARCHAR"+ ", _partition_bigint BIGINT"+ ", _partition_decimal_short DECIMAL(3,2)"+ ", _partition_decimal_long DECIMAL(30,10)"+ ") "+ "WITH ("+ "format = '" + storageFormat + "', "+ "partitioned_by = ARRAY[ '_partition_varchar', '_partition_bigint', '_partition_decimal_short', '_partition_decimal_long' ]"+ ") ";
+  @Language("SQL") String createTable="" + "CREATE TABLE test_partitioned_table (" + "  _varchar VARCHAR"+ ", _bigint BIGINT"+ ", _integer INTEGER"+ ", _double DOUBLE"+ ", _boolean BOOLEAN"+ ", _decimal_short DECIMAL(3,2)"+ ", _decimal_long DECIMAL(30,10)"+ ", _partition_varchar VARCHAR"+ ", _partition_integer INTEGER"+ ", _partition_bigint BIGINT"+ ", _partition_decimal_short DECIMAL(3,2)"+ ", _partition_decimal_long DECIMAL(30,10)"+ ") "+ "WITH ("+ "format = '" + storageFormat + "', "+ "partitioned_by = ARRAY[ '_partition_varchar', '_partition_integer', '_partition_bigint', '_partition_decimal_short', '_partition_decimal_long' ]"+ ") ";
   assertUpdate(createTable);
   TableMetadata tableMetadata=getTableMetadata("test_partitioned_table");
   assertEquals(tableMetadata.getMetadata().getProperties().get(STORAGE_FORMAT_PROPERTY),storageFormat);
-  List<String> partitionedBy=ImmutableList.of("_partition_varchar","_partition_bigint","_partition_decimal_short","_partition_decimal_long");
+  List<String> partitionedBy=ImmutableList.of("_partition_varchar","_partition_integer","_partition_bigint","_partition_decimal_short","_partition_decimal_long");
   assertEquals(tableMetadata.getMetadata().getProperties().get(PARTITIONED_BY_PROPERTY),partitionedBy);
   for (  ColumnMetadata columnMetadata : tableMetadata.getColumns()) {
     boolean partitionKey=partitionedBy.contains(columnMetadata.getName());
@@ -11,7 +11,7 @@
   }
   MaterializedResult result=computeActual("SELECT * from test_partitioned_table");
   assertEquals(result.getRowCount(),0);
-  @Language("SQL") String select="" + "SELECT" + " 'foo' _varchar"+ ", 1 _bigint"+ ", CAST('3.14' AS DOUBLE) _double"+ ", true _boolean"+ ", CAST('3.14' AS DECIMAL(3,2)) _decimal_short"+ ", CAST('12345678901234567890.0123456789' AS DECIMAL(30,10)) _decimal_long"+ ", 'foo' _varchar"+ ", 1 _bigint"+ ", CAST('3.14' AS DECIMAL(3,2)) _partition_decimal_short"+ ", CAST('12345678901234567890.0123456789' AS DECIMAL(30,10)) _partition_decimal_long";
+  @Language("SQL") String select="" + "SELECT" + " 'foo' _varchar"+ ", 1 _bigint"+ ", CAST(2 AS INTEGER) _integer"+ ", CAST('3.14' AS DOUBLE) _double"+ ", true _boolean"+ ", CAST('3.14' AS DECIMAL(3,2)) _decimal_short"+ ", CAST('12345678901234567890.0123456789' AS DECIMAL(30,10)) _decimal_long"+ ", 'foo' _varchar"+ ", CAST(1 AS INTEGER) _partition_integer"+ ", 1 _partition_bigint"+ ", CAST('3.14' AS DECIMAL(3,2)) _partition_decimal_short"+ ", CAST('12345678901234567890.0123456789' AS DECIMAL(30,10)) _partition_decimal_long";
   assertUpdate("INSERT INTO test_partitioned_table " + select,1);
   assertQuery("SELECT * from test_partitioned_table",select);
   assertUpdate("DROP TABLE test_partitioned_table");

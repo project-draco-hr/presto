@@ -3,14 +3,14 @@
   holder.map=new TreeMap<>();
   holder.map.put("twelve",new InnerStruct(13,14L));
   holder.map.put("fifteen",new InnerStruct(16,17L));
-  com.facebook.presto.spi.type.Type rowType=new RowType(ImmutableList.of(BIGINT,BIGINT),Optional.empty());
+  com.facebook.presto.spi.type.Type rowType=new RowType(ImmutableList.of(INTEGER,BIGINT),Optional.empty());
   com.facebook.presto.spi.type.Type mapOfVarcharRowType=new RowType(ImmutableList.of(new MapType(VARCHAR,rowType)),Optional.empty());
   Block actual=toBinaryBlock(mapOfVarcharRowType,holder,getInspector(MapHolder.class));
   BlockBuilder blockBuilder=new InterleavedBlockBuilder(ImmutableList.of(VARCHAR,rowType),new BlockBuilderStatus(),1024);
   VARCHAR.writeString(blockBuilder,"fifteen");
-  rowType.writeObject(blockBuilder,rowBlockOf(ImmutableList.of(BIGINT,BIGINT),16,17L));
+  rowType.writeObject(blockBuilder,rowBlockOf(ImmutableList.of(INTEGER,BIGINT),16,17L));
   VARCHAR.writeString(blockBuilder,"twelve");
-  rowType.writeObject(blockBuilder,rowBlockOf(ImmutableList.of(BIGINT,BIGINT),13,14L));
+  rowType.writeObject(blockBuilder,rowBlockOf(ImmutableList.of(INTEGER,BIGINT),13,14L));
   Block expected=rowBlockOf(ImmutableList.of(new MapType(VARCHAR,rowType)),blockBuilder);
   assertBlockEquals(actual,expected);
 }

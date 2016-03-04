@@ -4,12 +4,12 @@
   array.add(new InnerStruct(10,11L));
   ListHolder listHolder=new ListHolder();
   listHolder.array=array;
-  com.facebook.presto.spi.type.Type rowType=new RowType(ImmutableList.of(BIGINT,BIGINT),Optional.empty());
+  com.facebook.presto.spi.type.Type rowType=new RowType(ImmutableList.of(INTEGER,BIGINT),Optional.empty());
   com.facebook.presto.spi.type.Type arrayOfRowType=new RowType(ImmutableList.of(new ArrayType(rowType)),Optional.empty());
   Block actual=toBinaryBlock(arrayOfRowType,listHolder,getInspector(ListHolder.class));
   BlockBuilder blockBuilder=rowType.createBlockBuilder(new BlockBuilderStatus(),1024);
-  rowType.writeObject(blockBuilder,rowBlockOf(ImmutableList.of(BIGINT,BIGINT),8,9L));
-  rowType.writeObject(blockBuilder,rowBlockOf(ImmutableList.of(BIGINT,BIGINT),10,11L));
+  rowType.writeObject(blockBuilder,rowBlockOf(ImmutableList.of(INTEGER,BIGINT),8,9L));
+  rowType.writeObject(blockBuilder,rowBlockOf(ImmutableList.of(INTEGER,BIGINT),10,11L));
   Block expected=rowBlockOf(ImmutableList.of(new ArrayType(rowType)),blockBuilder.build());
   assertBlockEquals(actual,expected);
 }

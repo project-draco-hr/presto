@@ -11,6 +11,9 @@
  else       if (BOOLEAN.equals(type)) {
         fieldFromCursor=cursor.getBoolean(i);
       }
+ else       if (INTEGER.equals(type)) {
+        fieldFromCursor=cursor.getLong(i);
+      }
  else       if (BIGINT.equals(type)) {
         fieldFromCursor=cursor.getLong(i);
       }
@@ -49,6 +52,9 @@
       }
  else       if (testColumn.getObjectInspector().getTypeName().equals("float") || testColumn.getObjectInspector().getTypeName().equals("double")) {
         assertEquals((double)fieldFromCursor,(double)testColumn.getExpectedValue(),EPSILON);
+      }
+ else       if (testColumn.getObjectInspector().getTypeName().equals("tinyint") || testColumn.getObjectInspector().getTypeName().equals("smallint") || testColumn.getObjectInspector().getTypeName().equals("int")) {
+        assertEquals(((Number)fieldFromCursor).intValue(),testColumn.getExpectedValue());
       }
  else       if (testColumn.getObjectInspector().getCategory() == Category.PRIMITIVE) {
         assertEquals(fieldFromCursor,testColumn.getExpectedValue(),String.format("Wrong value for column %s",testColumn.getName()));
