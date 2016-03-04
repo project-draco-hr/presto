@@ -1,0 +1,19 @@
+{
+  boolean compression=compressionCodec != HiveCompressionCodec.NONE;
+  config.setBoolean(COMPRESSRESULT.varname,compression);
+  config.setBoolean("mapred.output.compress",compression);
+  config.setBoolean(FileOutputFormat.COMPRESS,compression);
+  config.set(HIVE_ORC_DEFAULT_COMPRESS.varname,compressionCodec.getOrcCompressionKind().name());
+  config.set(HIVE_ORC_COMPRESSION.varname,compressionCodec.getOrcCompressionKind().name());
+  config.set(OrcTableProperties.COMPRESSION.getPropName(),compressionCodec.getOrcCompressionKind().name());
+  if (compressionCodec.getCodec().isPresent()) {
+    config.set("mapred.output.compression.codec",compressionCodec.getCodec().get().getName());
+    config.set(FileOutputFormat.COMPRESS_CODEC,compressionCodec.getCodec().get().getName());
+  }
+ else {
+    config.unset("mapred.output.compression.codec");
+    config.unset(FileOutputFormat.COMPRESS_CODEC);
+  }
+  config.set(ParquetOutputFormat.COMPRESSION,compressionCodec.getParquetCompressionCodec().name());
+  config.set(FileOutputFormat.COMPRESS_TYPE,BLOCK.toString());
+}
