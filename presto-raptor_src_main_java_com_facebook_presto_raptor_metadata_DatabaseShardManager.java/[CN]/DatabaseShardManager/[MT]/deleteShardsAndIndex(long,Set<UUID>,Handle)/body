@@ -1,17 +1,12 @@
 {
   String args=Joiner.on(",").join(nCopies(shardUuids.size(),"?"));
   ImmutableSet.Builder<Long> shardIdSet=ImmutableSet.builder();
-  ImmutableList.Builder<ShardNodeId> shardNodesList=ImmutableList.builder();
-  String selectShardNodes=format("SELECT shard_id, shard_uuid, node_ids FROM %s WHERE shard_uuid IN (%s) FOR UPDATE",shardIndexTable(tableId),args);
+  String selectShardNodes=format("SELECT shard_id FROM %s WHERE shard_uuid IN (%s)",shardIndexTable(tableId),args);
   try (PreparedStatement statement=handle.getConnection().prepareStatement(selectShardNodes)){
     bindUuids(statement,shardUuids);
     try (ResultSet rs=statement.executeQuery()){
       while (rs.next()) {
         shardIdSet.add(rs.getLong("shard_id"));
-        UUID shardUuid=uuidFromBytes(rs.getBytes("shard_uuid"));
-        for (        Integer nodeId : intArrayFromBytes(rs.getBytes("node_ids"))) {
-          shardNodesList.add(new ShardNodeId(shardUuid,nodeId));
-        }
       }
     }
    }
@@ -21,7 +16,6 @@
   }
   ShardDao dao=shardDaoSupplier.attach(handle);
   dao.insertDeletedShards(shardUuids);
-  dao.insertDeletedShardNodes(shardNodesList.build());
   String where=" WHERE shard_id IN (" + args + ")";
   String deleteFromShardNodes="DELETE FROM shard_nodes " + where;
   String deleteFromShards="DELETE FROM shards " + where;

@@ -1,24 +1,31 @@
 {
-  TestingDao dao=dbi.onDemand(TestingDao.class);
   ShardDao shardDao=dbi.onDemand(ShardDao.class);
+  MetadataDao metadataDao=dbi.onDemand(MetadataDao.class);
+  long tableId=metadataDao.insertTable("test","test",false,null);
   UUID shard1=randomUUID();
   UUID shard2=randomUUID();
   UUID shard3=randomUUID();
   UUID shard4=randomUUID();
+  Set<UUID> shards=ImmutableSet.of(shard1,shard2,shard3,shard4);
+  for (  UUID shard : shards) {
+    shardDao.insertShard(shard,tableId,null,0,0,0);
+    createShardFile(shard);
+    assertTrue(shardFileExists(shard));
+  }
   int node1=shardDao.insertNode("node1");
   int node2=shardDao.insertNode("node2");
-  long now=System.currentTimeMillis();
-  Timestamp time1=new Timestamp(now - HOURS.toMillis(5));
-  Timestamp time2=new Timestamp(now - HOURS.toMillis(3));
-  dao.insertDeletedShardNode(shard1,node1,time1);
-  dao.insertDeletedShardNode(shard2,node1,time1);
-  dao.insertDeletedShardNode(shard3,node1,time2);
-  dao.insertDeletedShardNode(shard4,node2,time1);
-  createShardFiles(shard1,shard2,shard3,shard4);
+  shardDao.insertShardNode(shard1,node1);
+  shardDao.insertShardNode(shard4,node2);
   cleaner.cleanLocalShards();
-  assertFalse(shardFileExists(shard1));
+  for (  UUID shard : shards) {
+    assertTrue(shardFileExists(shard));
+  }
+  shardDao.insertShardNode(shard3,node1);
+  Duration cleanTime=new ShardCleanerConfig().getLocalCleanTime();
+  ticker.increment(cleanTime.toMillis() + 1,MILLISECONDS);
+  cleaner.cleanLocalShards();
+  assertTrue(shardFileExists(shard1));
   assertFalse(shardFileExists(shard2));
   assertTrue(shardFileExists(shard3));
-  assertTrue(shardFileExists(shard4));
-  assertQuery("SELECT shard_uuid, node_id, clean_time IS NULL FROM deleted_shard_nodes",row(shard1,node1,false),row(shard2,node1,false),row(shard3,node1,true),row(shard4,node2,true));
+  assertFalse(shardFileExists(shard4));
 }

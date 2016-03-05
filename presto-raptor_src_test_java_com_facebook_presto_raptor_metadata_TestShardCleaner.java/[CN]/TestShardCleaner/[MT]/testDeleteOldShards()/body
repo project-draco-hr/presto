@@ -3,24 +3,15 @@
   UUID shard1=randomUUID();
   UUID shard2=randomUUID();
   UUID shard3=randomUUID();
-  int node1=dao.insertNode("node1");
-  int node2=dao.insertNode("node2");
   long txn1=dao.insertTransaction();
   assertEquals(dao.finalizeTransaction(txn1,false),1);
   dao.insertCreatedShard(shard1,txn1);
-  dao.insertCreatedShardNode(shard1,node1,txn1);
   dao.insertCreatedShard(shard2,txn1);
-  dao.insertCreatedShardNode(shard2,node2,txn1);
   long txn2=dao.insertTransaction();
   dao.insertCreatedShard(shard3,txn2);
-  dao.insertCreatedShardNode(shard3,node1,txn2);
   assertQuery("SELECT shard_uuid, transaction_id FROM created_shards",row(shard1,txn1),row(shard2,txn1),row(shard3,txn2));
-  assertQuery("SELECT shard_uuid, node_id, transaction_id FROM created_shard_nodes",row(shard1,node1,txn1),row(shard2,node2,txn1),row(shard3,node1,txn2));
   assertQuery("SELECT shard_uuid FROM deleted_shards");
-  assertQuery("SELECT shard_uuid, node_id FROM deleted_shard_nodes");
   cleaner.deleteOldShards();
   assertQuery("SELECT shard_uuid, transaction_id FROM created_shards",row(shard3,txn2));
-  assertQuery("SELECT shard_uuid, node_id, transaction_id FROM created_shard_nodes",row(shard3,node1,txn2));
   assertQuery("SELECT shard_uuid FROM deleted_shards",row(shard1),row(shard2));
-  assertQuery("SELECT shard_uuid, node_id FROM deleted_shard_nodes",row(shard1,node1),row(shard2,node2));
 }
