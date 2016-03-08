@@ -1,4 +1,5 @@
 {
+  assertEquals(cleaner.getBackupShardsQueued().getTotalCount(),0);
   ShardDao dao=dbi.onDemand(ShardDao.class);
   UUID shard1=randomUUID();
   UUID shard2=randomUUID();
@@ -12,6 +13,7 @@
   assertQuery("SELECT shard_uuid, transaction_id FROM created_shards",row(shard1,txn1),row(shard2,txn1),row(shard3,txn2));
   assertQuery("SELECT shard_uuid FROM deleted_shards");
   cleaner.deleteOldShards();
+  assertEquals(cleaner.getBackupShardsQueued().getTotalCount(),2);
   assertQuery("SELECT shard_uuid, transaction_id FROM created_shards",row(shard3,txn2));
   assertQuery("SELECT shard_uuid FROM deleted_shards",row(shard1),row(shard2));
 }

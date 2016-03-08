@@ -1,4 +1,5 @@
 {
+  assertEquals(cleaner.getBackupShardsPurged().getTotalCount(),0);
   TestingDao dao=dbi.onDemand(TestingDao.class);
   UUID shard1=randomUUID();
   UUID shard2=randomUUID();
@@ -11,6 +12,7 @@
   dao.insertCleanedDeletedShard(shard3,time2);
   createShardBackups(shard1,shard2,shard3);
   cleaner.purgeBackupShards();
+  assertEquals(cleaner.getBackupShardsPurged().getTotalCount(),2);
   assertFalse(shardBackupExists(shard1));
   assertFalse(shardBackupExists(shard2));
   assertTrue(shardBackupExists(shard3));
