@@ -1,0 +1,66 @@
+{
+  if (actual == null) {
+    assertNull(expected);
+    return;
+  }
+  String baseType=type.getTypeSignature().getBase();
+  if (ARRAY.equals(baseType)) {
+    List<?> actualArray=(List<?>)actual;
+    List<?> expectedArray=(List<?>)expected;
+    assertEquals(actualArray.size(),expectedArray.size());
+    Type elementType=type.getTypeParameters().get(0);
+    for (int i=0; i < actualArray.size(); i++) {
+      Object actualElement=actualArray.get(i);
+      Object expectedElement=expectedArray.get(i);
+      assertColumnValueEquals(elementType,actualElement,expectedElement);
+    }
+  }
+ else   if (MAP.equals(baseType)) {
+    Map<?,?> actualMap=(Map<?,?>)actual;
+    Map<?,?> expectedMap=(Map<?,?>)expected;
+    assertEquals(actualMap.size(),expectedMap.size());
+    Type keyType=type.getTypeParameters().get(0);
+    Type valueType=type.getTypeParameters().get(1);
+    List<Entry<?,?>> expectedEntries=new ArrayList<>(expectedMap.entrySet());
+    for (    Entry<?,?> actualEntry : actualMap.entrySet()) {
+      Iterator<Entry<?,?>> iterator=expectedEntries.iterator();
+      while (iterator.hasNext()) {
+        Entry<?,?> expectedEntry=iterator.next();
+        try {
+          assertColumnValueEquals(keyType,actualEntry.getKey(),expectedEntry.getKey());
+          assertColumnValueEquals(valueType,actualEntry.getValue(),expectedEntry.getValue());
+          iterator.remove();
+        }
+ catch (        AssertionError ignored) {
+        }
+      }
+    }
+    assertTrue(expectedEntries.isEmpty(),"Unmatched entries " + expectedEntries);
+  }
+ else   if (ROW.equals(baseType)) {
+    List<Type> fieldTypes=type.getTypeParameters();
+    List<?> actualRow=(List<?>)actual;
+    List<?> expectedRow=(List<?>)expected;
+    assertEquals(actualRow.size(),fieldTypes.size());
+    assertEquals(actualRow.size(),expectedRow.size());
+    for (int fieldId=0; fieldId < actualRow.size(); fieldId++) {
+      Type fieldType=fieldTypes.get(fieldId);
+      Object actualElement=actualRow.get(fieldId);
+      Object expectedElement=expectedRow.get(fieldId);
+      assertColumnValueEquals(fieldType,actualElement,expectedElement);
+    }
+  }
+ else   if (type.equals(DOUBLE)) {
+    Double actualDouble=(Double)actual;
+    Double expectedDouble=(Double)expected;
+    if (actualDouble.isNaN()) {
+      assertTrue(expectedDouble.isNaN(),"expected double to be NaN");
+    }
+ else {
+      assertEquals(actualDouble,expectedDouble,0.001);
+    }
+  }
+ else   if (!Objects.equals(actual,expected)) {
+    assertEquals(actual,expected);
+  }
+}
