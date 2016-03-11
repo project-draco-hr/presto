@@ -1,0 +1,24 @@
+{
+  value=value.shiftLeft(1);
+  int sign=value.signum();
+  if (sign < 0) {
+    value=value.negate();
+    value=value.subtract(ONE);
+  }
+  int length=value.bitLength();
+  while (true) {
+    long lowBits=value.longValue() & 0x7fffffffffffffffL;
+    length-=63;
+    for (int i=0; i < 9; ++i) {
+      if (length <= 0 && (lowBits & ~0x7f) == 0) {
+        output.write((byte)lowBits);
+        return;
+      }
+ else {
+        output.write((byte)(0x80 | (lowBits & 0x7f)));
+        lowBits>>>=7;
+      }
+    }
+    value=value.shiftRight(63);
+  }
+}

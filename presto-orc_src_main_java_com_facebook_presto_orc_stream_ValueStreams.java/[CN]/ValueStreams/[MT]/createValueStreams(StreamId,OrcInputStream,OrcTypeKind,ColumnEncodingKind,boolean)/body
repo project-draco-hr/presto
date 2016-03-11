@@ -25,6 +25,8 @@ case BINARY:
 return new ByteArrayStream(inputStream);
 case TIMESTAMP:
 return createLongStream(inputStream,encoding,type,true,usesVInt);
+case DECIMAL:
+return new DecimalStream(inputStream);
 }
 }
 if (streamId.getStreamKind() == LENGTH) {
@@ -55,6 +57,9 @@ return new BooleanStream(inputStream);
 }
 if (type == TIMESTAMP && streamId.getStreamKind() == SECONDARY) {
 return createLongStream(inputStream,encoding,type,false,usesVInt);
+}
+if (type == DECIMAL && streamId.getStreamKind() == SECONDARY) {
+return createLongStream(inputStream,encoding,type,true,usesVInt);
 }
 if (streamId.getStreamKind() == DICTIONARY_DATA) {
 switch (type) {

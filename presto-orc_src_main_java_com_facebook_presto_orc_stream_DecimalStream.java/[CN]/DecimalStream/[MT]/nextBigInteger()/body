@@ -1,0 +1,36 @@
+{
+  BigInteger result=BigInteger.ZERO;
+  long work=0;
+  int offset=0;
+  long b;
+  do {
+    b=input.read();
+    if (b == -1) {
+      throw new OrcCorruptionException("Reading BigInteger past EOF from " + input);
+    }
+    work|=(0x7f & b) << (offset % 63);
+    if (offset >= 126 && (offset != 126 || work > 3)) {
+      throw new OrcCorruptionException("Decimal exceeds 128 bits");
+    }
+    offset+=7;
+    if (offset == 63) {
+      result=BigInteger.valueOf(work);
+      work=0;
+    }
+ else     if (offset % 63 == 0) {
+      result=result.or(BigInteger.valueOf(work).shiftLeft(offset - 63));
+      work=0;
+    }
+  }
+ while (b >= 0x80);
+  if (work != 0) {
+    result=result.or(BigInteger.valueOf(work).shiftLeft((offset / 63) * 63));
+  }
+  boolean isNegative=result.testBit(0);
+  if (isNegative) {
+    result=result.add(BigInteger.ONE);
+    result=result.negate();
+  }
+  result=result.shiftRight(1);
+  return result;
+}

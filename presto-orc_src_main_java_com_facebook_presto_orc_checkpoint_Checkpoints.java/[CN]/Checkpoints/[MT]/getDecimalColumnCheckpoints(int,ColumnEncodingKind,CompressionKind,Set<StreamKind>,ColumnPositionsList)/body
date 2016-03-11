@@ -1,0 +1,13 @@
+{
+  ImmutableMap.Builder<StreamId,StreamCheckpoint> checkpoints=ImmutableMap.builder();
+  if (availableStreams.contains(PRESENT)) {
+    checkpoints.put(new StreamId(column,PRESENT),new BooleanStreamCheckpoint(compressionKind,positionsList));
+  }
+  if (availableStreams.contains(DATA)) {
+    checkpoints.put(new StreamId(column,DATA),new DecimalStreamCheckpoint(compressionKind,positionsList));
+  }
+  if (availableStreams.contains(SECONDARY)) {
+    checkpoints.put(new StreamId(column,SECONDARY),createLongStreamCheckpoint(encoding,compressionKind,positionsList));
+  }
+  return checkpoints.build();
+}

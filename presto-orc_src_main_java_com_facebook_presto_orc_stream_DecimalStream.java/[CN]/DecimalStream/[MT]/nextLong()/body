@@ -1,0 +1,30 @@
+{
+  long result=0;
+  int offset=0;
+  long b;
+  do {
+    b=input.read();
+    if (b == -1) {
+      throw new OrcCorruptionException("Reading BigInteger past EOF from " + input);
+    }
+    long work=0x7f & b;
+    if (offset >= 63 && (offset != 63 || work > 1)) {
+      throw new OrcCorruptionException("Decimal does not fit long (invalid table schema?)");
+    }
+    result|=work << offset;
+    offset+=7;
+  }
+ while (b >= 0x80);
+  boolean isNegative=(result & 0x01) != 0;
+  if (isNegative) {
+    result+=1;
+    result=-result;
+    result=result >> 1;
+    result|=0x01L << 63;
+  }
+ else {
+    result=result >> 1;
+    result&=MAX_VALUE;
+  }
+  return result;
+}

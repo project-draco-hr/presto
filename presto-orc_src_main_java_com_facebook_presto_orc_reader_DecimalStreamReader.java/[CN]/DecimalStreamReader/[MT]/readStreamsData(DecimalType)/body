@@ -1,0 +1,36 @@
+{
+  if (presentStream == null) {
+    if (decimalStream == null) {
+      throw new OrcCorruptionException("Value is not null but decimal stream is not present");
+    }
+    if (scaleStream == null) {
+      throw new OrcCorruptionException("Value is not null but scale stream is not present");
+    }
+    Arrays.fill(nullVector,false);
+    if (decimalType.isShort()) {
+      decimalStream.nextLongVector(nextBatchSize,shortDecimalVector);
+    }
+ else {
+      decimalStream.nextBigIntegerVector(nextBatchSize,longDecimalVector);
+    }
+    scaleStream.nextLongVector(nextBatchSize,scaleVector);
+  }
+ else {
+    int nullValues=presentStream.getUnsetBits(nextBatchSize,nullVector);
+    if (nullValues != nextBatchSize) {
+      if (decimalStream == null) {
+        throw new OrcCorruptionException("Value is not null but decimal stream is not present");
+      }
+      if (scaleStream == null) {
+        throw new OrcCorruptionException("Value is not null but scale stream is not present");
+      }
+      if (decimalType.isShort()) {
+        decimalStream.nextLongVector(nextBatchSize,shortDecimalVector,nullVector);
+      }
+ else {
+        decimalStream.nextBigIntegerVector(nextBatchSize,longDecimalVector,nullVector);
+      }
+      scaleStream.nextLongVector(nextBatchSize,scaleVector,nullVector);
+    }
+  }
+}

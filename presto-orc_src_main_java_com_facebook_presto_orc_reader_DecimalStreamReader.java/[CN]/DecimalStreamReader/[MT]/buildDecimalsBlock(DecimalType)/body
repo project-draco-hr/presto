@@ -1,0 +1,27 @@
+{
+  BlockBuilder builder=decimalType.createBlockBuilder(new BlockBuilderStatus(),nextBatchSize);
+  if (decimalType.isShort()) {
+    for (int i=0; i < nextBatchSize; i++) {
+      if (!nullVector[i]) {
+        long rescaledDecimal=rescale(shortDecimalVector[i],(int)scaleVector[i],decimalType.getScale());
+        decimalType.writeLong(builder,rescaledDecimal);
+      }
+ else {
+        builder.appendNull();
+      }
+    }
+  }
+ else {
+    for (int i=0; i < nextBatchSize; i++) {
+      if (!nullVector[i]) {
+        BigInteger rescaledDecimal=rescale(longDecimalVector[i],(int)scaleVector[i],decimalType.getScale());
+        Slice slice=Decimals.encodeUnscaledValue(rescaledDecimal);
+        decimalType.writeSlice(builder,slice);
+      }
+ else {
+        builder.appendNull();
+      }
+    }
+  }
+  return builder.build();
+}
