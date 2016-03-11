@@ -8,7 +8,7 @@
     Map<String,Type> boundTypeParameters=operator.getSignature().bindTypeParameters(returnType,argumentTypes,false,typeManager);
     if (boundTypeParameters != null) {
       try {
-        return specializedScalarCache.getUnchecked(new SpecializedFunctionKey(operator,boundTypeParameters,signature.getArgumentTypes().size()));
+        return specializedScalarCache.getUnchecked(new SpecializedFunctionKey(operator,boundTypeParameters,signature.getArgumentTypes()));
       }
  catch (      UncheckedExecutionException e) {
         throw Throwables.propagate(e.getCause());
@@ -39,7 +39,7 @@
     SqlFunction fieldReference=getRowFieldReference(signature.getName(),signature.getArgumentTypes().get(0));
     if (fieldReference != null) {
       Map<String,Type> boundTypeParameters=fieldReference.getSignature().bindTypeParameters(returnType,argumentTypes,false,typeManager);
-      return specializedScalarCache.getUnchecked(new SpecializedFunctionKey(fieldReference,boundTypeParameters,signature.getArgumentTypes().size()));
+      return specializedScalarCache.getUnchecked(new SpecializedFunctionKey(fieldReference,boundTypeParameters,signature.getArgumentTypes()));
     }
   }
   throw new PrestoException(FUNCTION_IMPLEMENTATION_MISSING,format("%s not found",signature));

@@ -1,0 +1,25 @@
+{
+  checkArgument(types.size() == 1,"Can only construct arrays from exactly matching types");
+  ImmutableList.Builder<Class<?>> builder=ImmutableList.builder();
+  Type type=types.get("E");
+  for (int i=0; i < parameterTypes.size(); i++) {
+    if (type.getJavaType().isPrimitive()) {
+      builder.add(Primitives.wrap(type.getJavaType()));
+    }
+ else {
+      builder.add(type.getJavaType());
+    }
+  }
+  ImmutableList<Class<?>> stackTypes=builder.build();
+  Class<?> clazz=generateArrayConstructor(stackTypes,type);
+  MethodHandle methodHandle;
+  try {
+    Method method=clazz.getMethod("arrayConstructor",stackTypes.toArray(new Class<?>[stackTypes.size()]));
+    methodHandle=lookup().unreflect(method);
+  }
+ catch (  ReflectiveOperationException e) {
+    throw Throwables.propagate(e);
+  }
+  List<Boolean> nullableParameters=ImmutableList.copyOf(Collections.nCopies(stackTypes.size(),true));
+  return new ScalarFunctionImplementation(false,nullableParameters,methodHandle,isDeterministic());
+}
