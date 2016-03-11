@@ -1,14 +1,21 @@
 {
   List<TypeSignatureParameter> parameters=parameter.getParameters();
   if (boundParameters.containsKey(parameter.getBase())) {
-    checkArgument(parameters.isEmpty(),"Unexpected parameteric type");
-    if (allowCoercion) {
+    checkArgument(parameter.getParameters().isEmpty(),"Unexpected parametric type");
+    if (allowCoercion && !parameter.isCalculated()) {
       if (canCoerce(type,boundParameters.get(parameter.getBase()))) {
         return true;
       }
  else       if (canCoerce(boundParameters.get(parameter.getBase()),type) && typeParameters.get(parameter.getBase()).canBind(type)) {
         boundParameters.put(parameter.getBase(),type);
         return true;
+      }
+ else {
+        Optional<Type> commonSuperType=typeManager.getCommonSuperType(boundParameters.get(parameter.getBase()),type);
+        if (commonSuperType.isPresent() && typeParameters.get(parameter.getBase()).canBind(commonSuperType.get())) {
+          boundParameters.put(parameter.getBase(),commonSuperType.get());
+          return true;
+        }
       }
       return false;
     }
@@ -51,7 +58,7 @@
   if (parameterType == null) {
     return false;
   }
-  if (allowCoercion) {
+  if (allowCoercion && !parameter.isCalculated()) {
     return canCoerce(type,parameterType);
   }
  else   if (parametersMatched) {
