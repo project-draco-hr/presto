@@ -1,0 +1,27 @@
+{
+  try {
+    BigInteger result=aBigInteger.divide(bBigInteger);
+    BigInteger resultModTen=result.mod(TEN);
+    if (result.signum() > 0) {
+      if (resultModTen.compareTo(BigInteger.valueOf(5)) >= 0) {
+        result=result.divide(TEN).add(ONE);
+      }
+ else {
+        result=result.divide(TEN);
+      }
+    }
+ else {
+      if (resultModTen.compareTo(BigInteger.valueOf(5)) < 0 && !resultModTen.equals(ZERO)) {
+        result=result.divide(TEN).subtract(ONE);
+      }
+ else {
+        result=result.divide(TEN);
+      }
+    }
+    checkOverflow(result);
+    return Decimals.encodeUnscaledValue(result);
+  }
+ catch (  ArithmeticException e) {
+    throw new PrestoException(DIVISION_BY_ZERO,e);
+  }
+}
