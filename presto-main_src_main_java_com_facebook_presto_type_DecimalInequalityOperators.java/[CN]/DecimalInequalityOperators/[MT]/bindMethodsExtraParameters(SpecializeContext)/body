@@ -1,0 +1,11 @@
+{
+  long valuePrecision=context.getLiteral("value_precision");
+  long valueScale=context.getLiteral("value_scale");
+  long lowPrecision=context.getLiteral("low_precision");
+  long lowScale=context.getLiteral("low_scale");
+  long highPrecision=context.getLiteral("high_precision");
+  long highScale=context.getLiteral("high_scale");
+  MethodHandle lowerBoundTestMethodHandle=DECIMAL_LESS_THAN_OR_EQUAL_OPERATOR.specialize(ImmutableMap.of(),ImmutableList.of(DecimalType.createDecimalType((int)lowPrecision,(int)lowScale).getTypeSignature(),DecimalType.createDecimalType((int)valuePrecision,(int)valueScale).getTypeSignature()),context.getTypeManager(),context.getFunctionRegistry()).getMethodHandle();
+  MethodHandle upperBoundTestMethodHandle=DECIMAL_GREATER_THAN_OR_EQUAL_OPERATOR.specialize(ImmutableMap.of(),ImmutableList.of(DecimalType.createDecimalType((int)highPrecision,(int)highScale).getTypeSignature(),DecimalType.createDecimalType((int)valuePrecision,(int)valueScale).getTypeSignature()),context.getTypeManager(),context.getFunctionRegistry()).getMethodHandle();
+  return ImmutableList.of(lowerBoundTestMethodHandle,upperBoundTestMethodHandle);
+}
