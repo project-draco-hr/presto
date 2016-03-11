@@ -2,7 +2,10 @@
   try {
     copyFile(getBackupFile(uuid),target);
   }
- catch (  IOException e) {
-    throw new PrestoException(RAPTOR_ERROR,"Failed to copy backup shard: " + uuid,e);
+ catch (  FileNotFoundException e) {
+    throw new PrestoException(RAPTOR_BACKUP_NOT_FOUND,"Backup shard not found: " + uuid,e);
+  }
+catch (  IOException e) {
+    throw new PrestoException(RAPTOR_BACKUP_ERROR,"Failed to copy backup shard: " + uuid,e);
   }
 }
