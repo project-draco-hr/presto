@@ -1,6 +1,6 @@
 {
   parameterTypes=replaceSameArgumentsWithCommonSuperType(parameterTypes);
-  Map<String,OptionalLong> boundParameters=new HashMap<>();
+  Map<String,OptionalLong> boundVariables=new HashMap<>();
   for (int index=0; index < argumentTypes.size(); index++) {
     TypeSignature argument=argumentTypes.get(index);
     if (argument.isCalculated()) {
@@ -8,10 +8,10 @@
       Map<String,OptionalLong> matchedLiterals=TypeUtils.computeParameterBindings(argument,actualParameter);
       for (      String literal : matchedLiterals.keySet()) {
         OptionalLong value=matchedLiterals.get(literal);
-        checkArgument(boundParameters.getOrDefault(literal,value).equals(value),"Literal [%s] with value [%s] for argument [%s] has been previously matched to different value [%s]",literal,value,argument,boundParameters.get(literal));
+        checkArgument(boundVariables.getOrDefault(literal,value).equals(value),"Literal [%s] with value [%s] for argument [%s] has been previously matched to different value [%s]",literal,value,argument,boundVariables.get(literal));
       }
-      boundParameters.putAll(matchedLiterals);
+      boundVariables.putAll(matchedLiterals);
     }
   }
-  return boundParameters;
+  return boundVariables;
 }
