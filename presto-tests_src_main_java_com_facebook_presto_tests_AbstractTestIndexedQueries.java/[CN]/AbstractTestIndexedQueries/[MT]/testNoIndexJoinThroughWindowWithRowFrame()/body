@@ -1,0 +1,3 @@
+{
+  assertQuery("" + "SELECT l.orderkey, o.c\n" + "FROM (\n"+ "  SELECT *\n"+ "  FROM lineitem\n"+ "  WHERE partkey % 16 = 0) l\n"+ "JOIN (\n"+ "  SELECT *, COUNT(*) OVER (PARTITION BY orderkey ROWS 1 PRECEDING) as c\n"+ "  FROM orders) o\n"+ "  ON l.orderkey = o.orderkey","" + "SELECT l.orderkey, o.c\n" + "FROM (\n"+ "  SELECT *\n"+ "  FROM lineitem\n"+ "  WHERE partkey % 16 = 0) l\n"+ "JOIN (\n"+ "  SELECT *, 1 as c\n"+ "  FROM orders) o\n"+ "  ON l.orderkey = o.orderkey");
+}
