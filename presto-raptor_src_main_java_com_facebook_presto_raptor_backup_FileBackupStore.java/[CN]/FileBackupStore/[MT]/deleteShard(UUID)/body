@@ -1,3 +1,8 @@
 {
-  getBackupFile(uuid).delete();
+  try {
+    deleteIfExists(getBackupFile(uuid).toPath());
+  }
+ catch (  IOException e) {
+    throw new PrestoException(RAPTOR_BACKUP_ERROR,"Failed to delete backup shard: " + uuid,e);
+  }
 }
