@@ -1,6 +1,12 @@
 {
   if (parquetType.isPrimitive()) {
-    return new ParquetPrimitiveConverter(prestoType,fieldIndex);
+    if (parquetType.getOriginalType() == DECIMAL) {
+      DecimalMetadata decimalMetadata=((PrimitiveType)parquetType).getDecimalMetadata();
+      return new ParquetDecimalConverter(createDecimalType(decimalMetadata.getPrecision(),decimalMetadata.getScale()));
+    }
+ else {
+      return new ParquetPrimitiveConverter(prestoType,fieldIndex);
+    }
   }
   return createGroupConverter(prestoType,columnName,parquetType,fieldIndex);
 }

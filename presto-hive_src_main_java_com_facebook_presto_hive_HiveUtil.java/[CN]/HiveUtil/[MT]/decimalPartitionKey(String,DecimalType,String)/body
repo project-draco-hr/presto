@@ -1,0 +1,16 @@
+{
+  try {
+    if (value.endsWith(BIG_DECIMAL_POSTFIX)) {
+      value=value.substring(0,value.length() - BIG_DECIMAL_POSTFIX.length());
+    }
+    BigDecimal decimal=new BigDecimal(value);
+    decimal=decimal.setScale(type.getScale(),ROUND_UNNECESSARY);
+    if (decimal.precision() > type.getPrecision()) {
+      throw new PrestoException(HIVE_INVALID_PARTITION_VALUE,format("Invalid partition value '%s' for %s partition key: %s",value,type.toString(),name));
+    }
+    return decimal;
+  }
+ catch (  NumberFormatException e) {
+    throw new PrestoException(HIVE_INVALID_PARTITION_VALUE,format("Invalid partition value '%s' for %s partition key: %s",value,type.toString(),name));
+  }
+}

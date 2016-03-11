@@ -32,6 +32,15 @@
  else       if (isStructuralType(type)) {
         fieldFromCursor=cursor.getObject(i);
       }
+ else       if (type instanceof DecimalType) {
+        DecimalType decimalType=(DecimalType)type;
+        if (decimalType.isShort()) {
+          fieldFromCursor=new BigDecimal(BigInteger.valueOf(cursor.getLong(i)),decimalType.getScale());
+        }
+ else {
+          fieldFromCursor=new BigDecimal(Decimals.decodeUnscaledValue(cursor.getSlice(i)),decimalType.getScale());
+        }
+      }
  else {
         throw new RuntimeException("unknown type");
       }

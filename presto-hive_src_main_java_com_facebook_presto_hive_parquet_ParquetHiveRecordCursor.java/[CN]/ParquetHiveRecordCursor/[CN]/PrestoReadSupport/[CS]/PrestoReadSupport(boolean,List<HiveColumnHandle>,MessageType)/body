@@ -10,7 +10,13 @@
         continue;
       }
       if (parquetType.isPrimitive()) {
-        converters.add(new ParquetPrimitiveColumnConverter(i));
+        Optional<DecimalType> decimalType=getDecimalType(column.getHiveType());
+        if (decimalType.isPresent()) {
+          converters.add(new ParquetDecimalColumnConverter(i,decimalType.get()));
+        }
+ else {
+          converters.add(new ParquetPrimitiveColumnConverter(i));
+        }
       }
  else {
         converters.add(new ParquetColumnConverter(createGroupConverter(types[i],parquetType.getName(),parquetType,i),i));

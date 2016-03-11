@@ -1,0 +1,22 @@
+{
+  checkArgument(!isPartitionColumn[column],"Column is a partition key");
+  loaded[column]=true;
+  Object fieldData=rowInspector.getStructFieldData(rowData,structFields[column]);
+  if (fieldData == null) {
+    nulls[column]=true;
+  }
+ else {
+    Object fieldValue=((PrimitiveObjectInspector)fieldInspectors[column]).getPrimitiveJavaObject(fieldData);
+    checkState(fieldValue != null,"fieldValue should not be null");
+    HiveDecimal decimal=(HiveDecimal)fieldValue;
+    DecimalType columnType=(DecimalType)types[column];
+    BigInteger unscaledDecimal=rescale(decimal.unscaledValue(),decimal.scale(),columnType.getScale());
+    if (columnType.isShort()) {
+      longs[column]=unscaledDecimal.longValue();
+    }
+ else {
+      slices[column]=Decimals.encodeUnscaledValue(unscaledDecimal);
+    }
+    nulls[column]=false;
+  }
+}

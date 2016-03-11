@@ -1,6 +1,24 @@
 {
+  boolean isNull=HIVE_DEFAULT_DYNAMIC_PARTITION.equals(value);
+  Optional<DecimalType> decimalType=getDecimalType(hiveType);
+  if (decimalType.isPresent()) {
+    if (isNull) {
+      return NullableValue.asNull(decimalType.get());
+    }
+    if (decimalType.get().isShort()) {
+      if (value.isEmpty()) {
+        return NullableValue.of(decimalType.get(),0L);
+      }
+      return NullableValue.of(decimalType.get(),shortDecimalPartitionKey(value,decimalType.get(),partitionName));
+    }
+ else {
+      if (value.isEmpty()) {
+        return NullableValue.of(decimalType.get(),Decimals.encodeUnscaledValue(BigInteger.ZERO));
+      }
+      return NullableValue.of(decimalType.get(),longDecimalPartitionKey(value,decimalType.get(),partitionName));
+    }
+  }
   try {
-    boolean isNull=HIVE_DEFAULT_DYNAMIC_PARTITION.equals(value);
     if (HIVE_BOOLEAN.equals(hiveType)) {
       if (isNull) {
         return NullableValue.asNull(BOOLEAN);

@@ -1,0 +1,21 @@
+{
+  boolean wasNull;
+  if (length == 0 || (length == "\\N".length() && bytes[start] == '\\' && bytes[start + 1] == 'N')) {
+    wasNull=true;
+  }
+ else {
+    DecimalType columnType=(DecimalType)types[column];
+    BigDecimal decimal=new BigDecimal(new String(bytes,start,length,UTF_8));
+    checkState(decimal.scale() <= columnType.getScale(),"Read decimal value scale larger than column scale");
+    decimal=decimal.setScale(columnType.getScale(),ROUND_HALF_UP);
+    checkState(decimal.precision() <= columnType.getPrecision(),"Read decimal precision larger than column precision");
+    if (columnType.isShort()) {
+      longs[column]=decimal.unscaledValue().longValue();
+    }
+ else {
+      slices[column]=Decimals.encodeUnscaledValue(decimal.unscaledValue());
+    }
+    wasNull=false;
+  }
+  nulls[column]=wasNull;
+}
