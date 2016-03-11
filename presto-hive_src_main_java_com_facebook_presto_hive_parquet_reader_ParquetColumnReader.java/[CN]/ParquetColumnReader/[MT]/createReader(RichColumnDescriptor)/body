@@ -14,6 +14,14 @@ case DOUBLE:
 return new ParquetDoubleColumnReader(descriptor);
 case BINARY:
 return new ParquetBinaryColumnReader(descriptor);
+case FIXED_LEN_BYTE_ARRAY:
+if (descriptor.getPrimitiveType().getOriginalType() == OriginalType.DECIMAL) {
+DecimalMetadata decimalMetadata=descriptor.getPrimitiveType().getDecimalMetadata();
+return ParquetDecimalColumnReaderFactory.createReader(descriptor,decimalMetadata.getPrecision(),decimalMetadata.getScale());
+}
+ else {
+throw new PrestoException(NOT_SUPPORTED,"Parquet type FIXED_LEN_BYTE_ARRAY supported as DECIMAL; got " + descriptor.getPrimitiveType().getOriginalType());
+}
 default :
 throw new PrestoException(NOT_SUPPORTED,"Unsupported parquet type: " + descriptor.getType());
 }
