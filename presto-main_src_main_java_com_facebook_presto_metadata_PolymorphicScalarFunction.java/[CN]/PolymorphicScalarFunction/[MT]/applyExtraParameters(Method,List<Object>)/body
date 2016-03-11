@@ -1,0 +1,9 @@
+{
+  Signature signature=getSignature();
+  int expectedNumberOfArguments=signature.getArgumentTypes().size() + extraParameters.size();
+  int matchingMethodParameterCount=matchingMethod.getParameterCount();
+  checkState(matchingMethodParameterCount == expectedNumberOfArguments,"method %s has invalid number of arguments: %s (should have %s)",matchingMethod.getName(),matchingMethodParameterCount,expectedNumberOfArguments);
+  MethodHandle matchingMethodHandle=Reflection.methodHandle(matchingMethod);
+  matchingMethodHandle=MethodHandles.insertArguments(matchingMethodHandle,signature.getArgumentTypes().size(),extraParameters.toArray());
+  return matchingMethodHandle;
+}
