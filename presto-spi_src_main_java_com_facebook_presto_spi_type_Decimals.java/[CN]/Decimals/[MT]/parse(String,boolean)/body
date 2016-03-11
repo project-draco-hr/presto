@@ -1,0 +1,33 @@
+{
+  Matcher matcher=DECIMAL_PATTERN.matcher(stringValue);
+  if (!matcher.matches()) {
+    throw new IllegalArgumentException("invalid decimal value '" + stringValue + "'");
+  }
+  String sign=getMatcherGroup(matcher,1);
+  if (sign.isEmpty()) {
+    sign="+";
+  }
+  String leadingZeros=getMatcherGroup(matcher,3);
+  String integralPart=getMatcherGroup(matcher,4);
+  String fractionalPart=getMatcherGroup(matcher,6);
+  int scale=fractionalPart.length();
+  int precision;
+  if (includeLeadingZerosInPrecision) {
+    precision=leadingZeros.length() + integralPart.length() + scale;
+  }
+ else {
+    precision=integralPart.length() + scale;
+    if (precision == 0) {
+      precision=1;
+    }
+  }
+  String unscaledValue=sign + leadingZeros + integralPart+ fractionalPart;
+  Object value;
+  if (precision <= MAX_SHORT_PRECISION) {
+    value=Long.parseLong(unscaledValue);
+  }
+ else {
+    value=encodeUnscaledValue(new BigInteger(unscaledValue));
+  }
+  return new DecimalParseResult(value,createDecimalType(precision,scale));
+}
