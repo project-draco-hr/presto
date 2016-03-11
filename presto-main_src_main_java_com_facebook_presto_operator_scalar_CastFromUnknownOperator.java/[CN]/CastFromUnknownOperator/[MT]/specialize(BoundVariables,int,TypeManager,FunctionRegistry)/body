@@ -1,0 +1,20 @@
+{
+  Type toType=boundVariables.getTypeVariable("E");
+  MethodHandle methodHandle;
+  if (toType.getJavaType() == long.class) {
+    methodHandle=METHOD_HANDLE_LONG;
+  }
+ else   if (toType.getJavaType() == double.class) {
+    methodHandle=METHOD_HANDLE_DOUBLE;
+  }
+ else   if (toType.getJavaType() == boolean.class) {
+    methodHandle=METHOD_HANDLE_BOOLEAN;
+  }
+ else   if (toType.getJavaType() == Slice.class) {
+    methodHandle=METHOD_HANDLE_SLICE;
+  }
+ else {
+    methodHandle=METHOD_HANDLE_OBJECT.asType(METHOD_HANDLE_OBJECT.type().changeReturnType(toType.getJavaType()));
+  }
+  return new ScalarFunctionImplementation(true,ImmutableList.of(true),methodHandle,isDeterministic());
+}

@@ -8,7 +8,9 @@
     Map<String,Type> boundTypeParameters=operator.getSignature().bindTypeVariables(returnType,argumentTypes,false,typeManager);
     if (boundTypeParameters != null) {
       try {
-        return specializedWindowCache.getUnchecked(new SpecializedFunctionKey(operator,boundTypeParameters,signature.getArgumentTypes()));
+        Map<String,OptionalLong> boundLiteralParameters=operator.getSignature().bindLongVariables(signature.getArgumentTypes());
+        BoundVariables boundVariables=new BoundVariables(boundTypeParameters,boundLiteralParameters);
+        return specializedWindowCache.getUnchecked(new SpecializedFunctionKey(operator,boundVariables,argumentTypes.size()));
       }
  catch (      UncheckedExecutionException e) {
         throw Throwables.propagate(e.getCause());

@@ -4,14 +4,14 @@
   specializedScalarCache=CacheBuilder.newBuilder().maximumSize(1000).build(new CacheLoader<SpecializedFunctionKey,ScalarFunctionImplementation>(){
     @Override public ScalarFunctionImplementation load(    SpecializedFunctionKey key) throws Exception {
       SqlScalarFunction scalarFunction=checkType(key.getFunction(),SqlScalarFunction.class,"function");
-      return scalarFunction.specialize(key.getBoundTypeParameters(),key.getParameterTypes(),typeManager,FunctionRegistry.this);
+      return scalarFunction.specialize(key.getBoundVariables(),key.getArity(),typeManager,FunctionRegistry.this);
     }
   }
 );
   specializedAggregationCache=CacheBuilder.newBuilder().maximumSize(1000).build(new CacheLoader<SpecializedFunctionKey,InternalAggregationFunction>(){
     @Override public InternalAggregationFunction load(    SpecializedFunctionKey key) throws Exception {
       SqlAggregationFunction aggregationFunction=checkType(key.getFunction(),SqlAggregationFunction.class,"function");
-      return aggregationFunction.specialize(key.getBoundTypeParameters(),key.getParameterTypes(),typeManager,FunctionRegistry.this);
+      return aggregationFunction.specialize(key.getBoundVariables(),key.getArity(),typeManager,FunctionRegistry.this);
     }
   }
 );
@@ -23,7 +23,7 @@
       }
  else {
         SqlWindowFunction windowFunction=checkType(key.getFunction(),SqlWindowFunction.class,"function");
-        return windowFunction.specialize(key.getBoundTypeParameters(),key.getParameterTypes(),typeManager,FunctionRegistry.this);
+        return windowFunction.specialize(key.getBoundVariables(),key.getArity(),typeManager,FunctionRegistry.this);
       }
     }
   }

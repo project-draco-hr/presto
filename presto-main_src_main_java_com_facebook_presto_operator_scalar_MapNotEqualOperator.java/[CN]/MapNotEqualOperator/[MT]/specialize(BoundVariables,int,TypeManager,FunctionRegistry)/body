@@ -1,0 +1,9 @@
+{
+  Type keyType=boundVariables.getTypeVariable("K");
+  Type valueType=boundVariables.getTypeVariable("V");
+  MethodHandle keyEqualsFunction=functionRegistry.getScalarFunctionImplementation(internalOperator(EQUAL,BOOLEAN,ImmutableList.of(keyType,keyType))).getMethodHandle();
+  MethodHandle keyHashcodeFunction=functionRegistry.getScalarFunctionImplementation(internalOperator(HASH_CODE,BIGINT,ImmutableList.of(keyType))).getMethodHandle();
+  MethodHandle valueEqualsFunction=functionRegistry.getScalarFunctionImplementation(internalOperator(EQUAL,BOOLEAN,ImmutableList.of(valueType,valueType))).getMethodHandle();
+  MethodHandle method=METHOD_HANDLE.bindTo(keyEqualsFunction).bindTo(keyHashcodeFunction).bindTo(valueEqualsFunction).bindTo(keyType).bindTo(valueType);
+  return new ScalarFunctionImplementation(true,ImmutableList.of(false,false),method,isDeterministic());
+}

@@ -1,0 +1,29 @@
+{
+  Signature boundSignature=bindSignature(boundVariables,arity);
+  if (exactImplementations.containsKey(boundSignature)) {
+    Implementation implementation=exactImplementations.get(boundSignature);
+    return new ScalarFunctionImplementation(implementation.isNullable(),implementation.getNullableArguments(),implementation.getMethodHandle(),isDeterministic());
+  }
+  ScalarFunctionImplementation selectedImplementation=null;
+  for (  Implementation implementation : specializedImplementations) {
+    MethodHandleAndConstructor methodHandle=implementation.specialize(boundSignature,boundVariables,typeManager,functionRegistry);
+    if (methodHandle != null) {
+      checkCondition(selectedImplementation == null,AMBIGUOUS_FUNCTION_IMPLEMENTATION,"Ambiguous implementation for %s with bindings %s",getSignature(),boundVariables.getTypeVariables());
+      selectedImplementation=new ScalarFunctionImplementation(implementation.isNullable(),implementation.getNullableArguments(),methodHandle.getMethodHandle(),methodHandle.getConstructor(),isDeterministic());
+    }
+  }
+  if (selectedImplementation != null) {
+    return selectedImplementation;
+  }
+  for (  Implementation implementation : implementations) {
+    MethodHandleAndConstructor methodHandle=implementation.specialize(boundSignature,boundVariables,typeManager,functionRegistry);
+    if (methodHandle != null) {
+      checkCondition(selectedImplementation == null,AMBIGUOUS_FUNCTION_IMPLEMENTATION,"Ambiguous implementation for %s with bindings %s",getSignature(),boundVariables.getTypeVariables());
+      selectedImplementation=new ScalarFunctionImplementation(implementation.isNullable(),implementation.getNullableArguments(),methodHandle.getMethodHandle(),methodHandle.getConstructor(),isDeterministic());
+    }
+  }
+  if (selectedImplementation != null) {
+    return selectedImplementation;
+  }
+  throw new PrestoException(FUNCTION_IMPLEMENTATION_MISSING,format("Unsupported type parameters (%s) for %s",boundVariables,getSignature()));
+}

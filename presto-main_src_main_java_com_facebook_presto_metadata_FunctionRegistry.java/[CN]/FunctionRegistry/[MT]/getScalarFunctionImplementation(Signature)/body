@@ -8,7 +8,9 @@
     Map<String,Type> boundTypeParameters=operator.getSignature().bindTypeVariables(returnType,argumentTypes,false,typeManager);
     if (boundTypeParameters != null) {
       try {
-        return specializedScalarCache.getUnchecked(new SpecializedFunctionKey(operator,boundTypeParameters,signature.getArgumentTypes()));
+        Map<String,OptionalLong> boundLiteralParameters=operator.getSignature().bindLongVariables(signature.getArgumentTypes());
+        BoundVariables boundVariables=new BoundVariables(boundTypeParameters,boundLiteralParameters);
+        return specializedScalarCache.getUnchecked(new SpecializedFunctionKey(operator,boundVariables,argumentTypes.size()));
       }
  catch (      UncheckedExecutionException e) {
         throw Throwables.propagate(e.getCause());
@@ -39,7 +41,9 @@
     SqlFunction fieldReference=getRowFieldReference(signature.getName(),signature.getArgumentTypes().get(0));
     if (fieldReference != null) {
       Map<String,Type> boundTypeParameters=fieldReference.getSignature().bindTypeVariables(returnType,argumentTypes,false,typeManager);
-      return specializedScalarCache.getUnchecked(new SpecializedFunctionKey(fieldReference,boundTypeParameters,signature.getArgumentTypes()));
+      Map<String,OptionalLong> boundLiteralParameters=fieldReference.getSignature().bindLongVariables(signature.getArgumentTypes());
+      BoundVariables boundVariables=new BoundVariables(boundTypeParameters,boundLiteralParameters);
+      return specializedScalarCache.getUnchecked(new SpecializedFunctionKey(fieldReference,boundVariables,argumentTypes.size()));
     }
   }
   throw new PrestoException(FUNCTION_IMPLEMENTATION_MISSING,format("%s not found",signature));
