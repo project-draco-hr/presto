@@ -1,0 +1,29 @@
+{
+  if (varArgs) {
+    if (types.size() < argumentTypes.size() - 1) {
+      return false;
+    }
+  }
+ else {
+    if (argumentTypes.size() != types.size()) {
+      return false;
+    }
+  }
+  if (varArgs && types.size() >= argumentTypes.size()) {
+    Optional<Type> superType=typeManager.getCommonSuperType(types.subList(argumentTypes.size() - 1,types.size()));
+    if (!superType.isPresent()) {
+      return false;
+    }
+    if (!matchAndBind(boundParameters,typeVaraibleConstraints,argumentTypes.get(argumentTypes.size() - 1),superType.get(),allowCoercion,typeManager)) {
+      return false;
+    }
+  }
+  for (int i=0; i < types.size(); i++) {
+    TypeSignature typeSignature=argumentTypes.get(Math.min(i,argumentTypes.size() - 1));
+    Type type=types.get(i);
+    if (!matchAndBind(boundParameters,typeVaraibleConstraints,typeSignature,type,allowCoercion,typeManager)) {
+      return false;
+    }
+  }
+  return true;
+}

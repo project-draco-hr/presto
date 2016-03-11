@@ -1,0 +1,68 @@
+{
+  List<TypeSignatureParameter> parameters=parameter.getParameters();
+  if (boundParameters.containsKey(parameter.getBase())) {
+    checkArgument(parameter.getParameters().isEmpty(),"Unexpected parametric type");
+    if (allowCoercion && !parameter.isCalculated()) {
+      if (canCoerce(type,boundParameters.get(parameter.getBase()))) {
+        return true;
+      }
+ else       if (canCoerce(boundParameters.get(parameter.getBase()),type) && typeVariableConstraints.get(parameter.getBase()).canBind(type)) {
+        boundParameters.put(parameter.getBase(),type);
+        return true;
+      }
+ else {
+        Optional<Type> commonSuperType=typeManager.getCommonSuperType(boundParameters.get(parameter.getBase()),type);
+        if (commonSuperType.isPresent() && typeVariableConstraints.get(parameter.getBase()).canBind(commonSuperType.get())) {
+          boundParameters.put(parameter.getBase(),commonSuperType.get());
+          return true;
+        }
+      }
+      return false;
+    }
+ else {
+      return type.equals(boundParameters.get(parameter.getBase()));
+    }
+  }
+  TypeSignature typeSignature=type.getTypeSignature();
+  boolean parametersMatched=true;
+  if (!parameters.isEmpty()) {
+    if (typeSignature.getParameters().size() == parameters.size()) {
+      if (!matchAndBindParameters(boundParameters,typeVariableConstraints,parameter,type,allowCoercion,typeManager)) {
+        parametersMatched=false;
+      }
+    }
+ else {
+      parametersMatched=false;
+    }
+  }
+  if (typeVariableConstraints.containsKey(parameter.getBase())) {
+    TypeVariableConstraint typeVariableConstraint=typeVariableConstraints.get(parameter.getBase());
+    if (!typeVariableConstraint.canBind(type)) {
+      return false;
+    }
+    boundParameters.put(parameter.getBase(),type);
+    return true;
+  }
+  if (!parametersMatched && !typeSignature.getBase().equals(parameter.getBase())) {
+    if (allowCoercion && canCoerce(typeSignature,parameter)) {
+      return matchAndBind(boundParameters,typeVariableConstraints,parameter,requireNonNull(typeManager.getType(TypeRegistry.getUnmatchedSignature(parameter))),true,typeManager);
+    }
+ else {
+      return false;
+    }
+  }
+  if (parametersMatched && !parameters.isEmpty()) {
+    return typeSignature.getBase().equals(parameter.getBase());
+  }
+  Type parameterType=typeManager.getType(parameter);
+  if (parameterType == null) {
+    return false;
+  }
+  if (allowCoercion && !parameter.isCalculated()) {
+    return canCoerce(type,parameterType);
+  }
+ else   if (parametersMatched) {
+    return typeSignature.getBase().equals(parameterType.getTypeSignature().getBase());
+  }
+  return false;
+}

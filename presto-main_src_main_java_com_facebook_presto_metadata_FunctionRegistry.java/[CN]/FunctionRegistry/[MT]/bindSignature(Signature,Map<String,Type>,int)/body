@@ -3,10 +3,10 @@
   List<TypeSignature> argumentTypes=signature.getArgumentTypes();
   ImmutableList.Builder<TypeSignature> boundArguments=ImmutableList.builder();
   for (int i=0; i < argumentTypes.size() - 1; i++) {
-    boundArguments.add(argumentTypes.get(i).bindParameters(boundParameters));
+    boundArguments.add(argumentTypes.get(i).bindParameters(boundTypeVariables));
   }
   if (!argumentTypes.isEmpty()) {
-    TypeSignature lastArgument=argumentTypes.get(argumentTypes.size() - 1).bindParameters(boundParameters);
+    TypeSignature lastArgument=argumentTypes.get(argumentTypes.size() - 1).bindParameters(boundTypeVariables);
     if (signature.isVariableArity()) {
       for (int i=0; i < arity - (argumentTypes.size() - 1); i++) {
         boundArguments.add(lastArgument);
@@ -16,5 +16,5 @@
       boundArguments.add(lastArgument);
     }
   }
-  return new Signature(signature.getName(),signature.getKind(),signature.getReturnType().bindParameters(boundParameters),boundArguments.build());
+  return new Signature(signature.getName(),signature.getKind(),ImmutableList.of(),signature.getLongVariableConstraints(),signature.getReturnType().bindParameters(boundTypeVariables),boundArguments.build(),false);
 }
