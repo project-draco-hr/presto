@@ -12,6 +12,7 @@
   if (literalParametersAnnotation != null) {
     literalParameters=ImmutableSet.copyOf(literalParametersAnnotation.value());
   }
+  List<LongVariableConstraint> longVariableConstraints=getLongVariableConstraints(method);
   List<TypeSignature> argumentTypes=parameterTypeSignatures(method,literalParameters);
   TypeSignature returnTypeSignature;
   if (operatorType == OperatorType.HASH_CODE) {
@@ -24,6 +25,6 @@
     verifyMethodSignature(method,returnTypeSignature,argumentTypes,typeManager);
   }
   List<Boolean> nullableArguments=getNullableArguments(method);
-  operator(operatorType,returnTypeSignature,argumentTypes,methodHandle,instanceFactory,method.isAnnotationPresent(Nullable.class),nullableArguments,literalParameters);
+  operator(operatorType,ImmutableList.of(),longVariableConstraints,returnTypeSignature,argumentTypes,methodHandle,instanceFactory,method.isAnnotationPresent(Nullable.class),nullableArguments,literalParameters);
   return true;
 }

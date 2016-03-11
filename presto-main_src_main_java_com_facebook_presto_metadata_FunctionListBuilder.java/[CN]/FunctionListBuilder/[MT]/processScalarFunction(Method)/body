@@ -17,7 +17,8 @@
   if (literalParametersAnnotation != null) {
     literalParameters=ImmutableSet.copyOf(literalParametersAnnotation.value());
   }
-  Signature signature=new Signature(name.toLowerCase(ENGLISH),SCALAR,parseTypeSignature(returnTypeAnnotation.value(),literalParameters),parameterTypeSignatures(method,literalParameters));
+  List<LongVariableConstraint> longVariableConstraints=getLongVariableConstraints(method);
+  Signature signature=new Signature(name.toLowerCase(ENGLISH),SCALAR,ImmutableList.of(),longVariableConstraints,parseTypeSignature(returnTypeAnnotation.value(),literalParameters),parameterTypeSignatures(method,literalParameters),false);
   verifyMethodSignature(method,signature.getReturnType(),signature.getArgumentTypes(),typeManager);
   List<Boolean> nullableArguments=getNullableArguments(method);
   scalar(signature,methodHandle,instanceFactory,scalarFunction.deterministic(),getDescription(method),scalarFunction.hidden(),method.isAnnotationPresent(Nullable.class),nullableArguments,literalParameters);
