@@ -8,8 +8,8 @@
   if (!declaredType.getBase().equals(actualType.getBase())) {
     checkArgument(actualParameters.isEmpty(),"Expected empty argument list for actual type with different base");
     for (    TypeSignatureParameter parameter : declaredParameters) {
-      if (parameter.isLiteralCalculation()) {
-        inputs.put(parameter.getLiteralCalculation().getCalculation().toUpperCase(Locale.US),OptionalLong.empty());
+      if (parameter.isVariable()) {
+        inputs.put(parameter.getVariable().toUpperCase(Locale.US),OptionalLong.empty());
       }
     }
     return inputs;
@@ -26,12 +26,12 @@
         inputs.putAll(computeParameterBindings(declaredParameter.getTypeSignature(),actualParameter.getTypeSignature()));
       }
     }
- else     if (declaredParameter.isLiteralCalculation()) {
-      TypeLiteralCalculation calculation=declaredParameter.getLiteralCalculation();
+ else     if (declaredParameter.isVariable()) {
+      String variable=declaredParameter.getVariable();
       if (!actualParameter.isLongLiteral()) {
         throw new IllegalArgumentException(format("Expected type %s parameter %s to be a numeric literal",actualType,index));
       }
-      inputs.put(calculation.getCalculation().toUpperCase(Locale.US),OptionalLong.of(actualParameter.getLongLiteral()));
+      inputs.put(variable.toUpperCase(Locale.US),OptionalLong.of(actualParameter.getLongLiteral()));
     }
   }
   return inputs;
