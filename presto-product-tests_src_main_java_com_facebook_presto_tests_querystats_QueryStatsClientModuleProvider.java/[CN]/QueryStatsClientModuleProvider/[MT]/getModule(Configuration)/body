@@ -2,10 +2,12 @@
   return new PrivateModule(){
     @Override protected void configure(){
       bind(ObjectMapper.class).toProvider(ObjectMapperProvider.class);
-      bind(HttpClient.class).toInstance(new JettyHttpClient());
     }
-    @Inject @Provides @Exposed @Singleton QueryStatsClient getQueryStatsClient(    HttpClient httpClient,    ObjectMapper objectMapper,    @Named("presto_rest.base_uri") String prestoRestInterfaceBaseUri){
-      return new HttpQueryStatsClient(httpClient,objectMapper,URI.create(prestoRestInterfaceBaseUri));
+    @Inject @Provides @Exposed QueryStatsClient getQueryStatsClient(    ObjectMapper objectMapper,    @Named("presto_rest.base_uri") String prestoRestInterfaceBaseUri){
+      if (httpQueryStatsClient == null) {
+        httpQueryStatsClient=new HttpQueryStatsClient(new JettyHttpClient(),objectMapper,URI.create(prestoRestInterfaceBaseUri));
+      }
+      return httpQueryStatsClient;
     }
   }
 ;
