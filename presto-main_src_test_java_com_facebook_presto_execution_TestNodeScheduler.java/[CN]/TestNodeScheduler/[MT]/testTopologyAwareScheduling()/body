@@ -44,7 +44,7 @@
   assignments=nodeSelector.computeAssignments(nonRackLocalSplits,ImmutableList.copyOf(taskMap.values()));
   for (  Node node : assignments.keySet()) {
     RemoteTask remoteTask=taskMap.get(node);
-    remoteTask.addSplits(new PlanNodeId("sourceId"),assignments.get(node));
+    remoteTask.addSplits(ImmutableMultimap.<PlanNodeId,Split>builder().putAll(new PlanNodeId("sourceId"),assignments.get(node)).build());
   }
   nonRackLocalSplits=Sets.difference(nonRackLocalSplits,new HashSet<>(assignments.values()));
   assertEquals(nonRackLocalSplits.size(),3);
@@ -60,7 +60,7 @@
   assignments=nodeSelector.computeAssignments(rackLocalSplits.build(),ImmutableList.copyOf(taskMap.values()));
   for (  Node node : assignments.keySet()) {
     RemoteTask remoteTask=taskMap.get(node);
-    remoteTask.addSplits(new PlanNodeId("sourceId"),assignments.get(node));
+    remoteTask.addSplits(ImmutableMultimap.<PlanNodeId,Split>builder().putAll(new PlanNodeId("sourceId"),assignments.get(node)).build());
   }
   Set<Split> unassigned=Sets.difference(rackLocalSplits.build(),new HashSet<>(assignments.values()));
   boolean cacheRefreshed=false;
@@ -77,7 +77,7 @@
   assignments=nodeSelector.computeAssignments(unassigned,ImmutableList.copyOf(taskMap.values()));
   for (  Node node : assignments.keySet()) {
     RemoteTask remoteTask=taskMap.get(node);
-    remoteTask.addSplits(new PlanNodeId("sourceId"),assignments.get(node));
+    remoteTask.addSplits(ImmutableMultimap.<PlanNodeId,Split>builder().putAll(new PlanNodeId("sourceId"),assignments.get(node)).build());
   }
   unassigned=Sets.difference(unassigned,new HashSet<>(assignments.values()));
   assertEquals(unassigned.size(),3);

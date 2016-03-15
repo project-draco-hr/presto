@@ -1,0 +1,23 @@
+{
+  requireNonNull(fragmentId,"fragmentId is null");
+  requireNonNull(exchangeLocations,"exchangeLocations is null");
+  RemoteSourceNode remoteSource=exchangeSources.get(fragmentId);
+  checkArgument(remoteSource != null,"Unknown remote source %s. Known sources are %s",fragmentId,exchangeSources.keySet());
+  this.exchangeLocations.putAll(remoteSource.getId(),exchangeLocations);
+  for (  RemoteTask task : getAllTasks()) {
+    ImmutableMultimap.Builder<PlanNodeId,Split> newSplits=ImmutableMultimap.builder();
+    for (    URI exchangeLocation : exchangeLocations) {
+      newSplits.put(remoteSource.getId(),createRemoteSplitFor(task.getTaskInfo().getTaskId(),exchangeLocation));
+    }
+    task.addSplits(newSplits.build());
+  }
+  if (noMoreExchangeLocations) {
+    completeSourceFragments.add(fragmentId);
+    if (completeSourceFragments.containsAll(remoteSource.getSourceFragmentIds())) {
+      completeSources.add(remoteSource.getId());
+      for (      RemoteTask task : getAllTasks()) {
+        task.noMoreSplits(remoteSource.getId());
+      }
+    }
+  }
+}

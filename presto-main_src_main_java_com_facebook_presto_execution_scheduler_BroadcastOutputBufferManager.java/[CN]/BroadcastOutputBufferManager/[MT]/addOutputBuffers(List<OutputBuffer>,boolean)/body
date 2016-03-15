@@ -1,0 +1,18 @@
+{
+synchronized (this) {
+    if (outputBuffers.isNoMoreBufferIds()) {
+      return;
+    }
+    OutputBuffers originalOutputBuffers=outputBuffers;
+    for (    OutputBuffer newBuffer : newBuffers) {
+      outputBuffers=outputBuffers.withBuffer(newBuffer.getBufferId(),BROADCAST_PARTITION_ID);
+    }
+    if (noMoreBuffers) {
+      outputBuffers=outputBuffers.withNoMoreBufferIds();
+    }
+    if (outputBuffers == originalOutputBuffers) {
+      return;
+    }
+  }
+  outputBufferTarget.accept(outputBuffers);
+}

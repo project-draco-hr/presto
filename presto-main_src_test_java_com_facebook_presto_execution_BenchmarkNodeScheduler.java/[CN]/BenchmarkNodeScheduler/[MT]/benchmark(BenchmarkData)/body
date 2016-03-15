@@ -7,7 +7,7 @@
     Multimap<Node,Split> assignments=data.getNodeSelector().computeAssignments(batch,remoteTasks);
     for (    Node node : assignments.keySet()) {
       MockRemoteTaskFactory.MockRemoteTask remoteTask=data.getTaskMap().get(node);
-      remoteTask.addSplits(new PlanNodeId("sourceId"),assignments.get(node));
+      remoteTask.addSplits(ImmutableMultimap.<PlanNodeId,Split>builder().putAll(new PlanNodeId("sourceId"),assignments.get(node)).build());
       remoteTask.startSplits(MAX_SPLITS_PER_NODE);
     }
     if (assignments.size() == batch.size()) {
