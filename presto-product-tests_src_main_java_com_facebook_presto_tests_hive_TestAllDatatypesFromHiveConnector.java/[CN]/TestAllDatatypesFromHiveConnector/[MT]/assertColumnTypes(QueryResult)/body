@@ -1,3 +1,12 @@
 {
-  assertThat(queryResult).hasColumns(TINYINT,SMALLINT,INTEGER,BIGINT,REAL,DOUBLE,DECIMAL,DECIMAL,TIMESTAMP,DATE,LONGNVARCHAR,LONGNVARCHAR,CHAR,BOOLEAN,LONGVARBINARY);
+  Connection connection=defaultQueryExecutor().getConnection();
+  if (usingPrestoJdbcDriver(connection)) {
+    assertThat(queryResult).hasColumns(TINYINT,SMALLINT,INTEGER,BIGINT,REAL,DOUBLE,DECIMAL,DECIMAL,TIMESTAMP,DATE,LONGNVARCHAR,LONGNVARCHAR,CHAR,BOOLEAN,LONGVARBINARY);
+  }
+ else   if (usingTeradataJdbcDriver(connection)) {
+    assertThat(queryResult).hasColumns(TINYINT,SMALLINT,INTEGER,BIGINT,REAL,DOUBLE,DECIMAL,DECIMAL,TIMESTAMP,DATE,VARCHAR,VARCHAR,CHAR,BOOLEAN,VARBINARY);
+  }
+ else {
+    throw new IllegalStateException();
+  }
 }

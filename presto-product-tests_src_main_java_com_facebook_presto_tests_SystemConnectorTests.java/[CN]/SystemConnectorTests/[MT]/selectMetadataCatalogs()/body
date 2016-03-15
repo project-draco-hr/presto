@@ -1,3 +1,13 @@
 {
-  assertThat(query("select catalog_name, connector_id from system.metadata.catalogs")).hasColumns(LONGNVARCHAR,LONGNVARCHAR).hasAnyRows();
+  Connection connection=defaultQueryExecutor().getConnection();
+  String sql="select catalog_name, connector_id from system.metadata.catalogs";
+  if (usingPrestoJdbcDriver(connection)) {
+    assertThat(query(sql)).hasColumns(LONGNVARCHAR,LONGNVARCHAR).hasAnyRows();
+  }
+ else   if (usingTeradataJdbcDriver(connection)) {
+    assertThat(query(sql)).hasColumns(VARCHAR,VARCHAR).hasAnyRows();
+  }
+ else {
+    throw new IllegalStateException();
+  }
 }

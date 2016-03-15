@@ -1,3 +1,13 @@
 {
-  assertThat(query("SELECT node, vmname, vmversion FROM jmx.current.\"java.lang:type=runtime\"")).hasColumns(LONGNVARCHAR,LONGNVARCHAR,LONGNVARCHAR).hasAnyRows();
+  Connection connection=defaultQueryExecutor().getConnection();
+  String sql="SELECT node, vmname, vmversion FROM jmx.current.\"java.lang:type=runtime\"";
+  if (usingPrestoJdbcDriver(connection)) {
+    assertThat(query(sql)).hasColumns(LONGNVARCHAR,LONGNVARCHAR,LONGNVARCHAR).hasAnyRows();
+  }
+ else   if (usingTeradataJdbcDriver(connection)) {
+    assertThat(query(sql)).hasColumns(VARCHAR,VARCHAR,VARCHAR).hasAnyRows();
+  }
+ else {
+    throw new IllegalStateException();
+  }
 }

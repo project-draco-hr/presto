@@ -1,0 +1,28 @@
+{
+  if (usingTeradataJdbcDriver(connection)) {
+    assertThat(query("select {fn char(40)}")).containsExactly(row("("));
+    assertThat(query("select {fn convert('2016-10-10', SQL_DATE)}")).containsExactly(row(Date.valueOf("2016-10-10")));
+    assertThat(query("select {fn convert('1234.567', SQL_DECIMAL)}")).containsExactly(row(new BigDecimal(1235)));
+    assertThat(query("select {fn convert('123456', SQL_INTEGER)}")).containsExactly(row(123456));
+    assertThat(query("select {fn convert('123abcd', SQL_VARBINARY)}")).containsExactly(row("123abcd".getBytes()));
+    assertThat(query("select {fn dayofmonth(date '2016-10-20')}")).containsExactly(row(20));
+    assertThat(query("select {fn dayofweek(date '2016-10-20')}")).containsExactly(row(5));
+    assertThat(query("select {fn dayofyear(date '2016-10-20')}")).containsExactly(row(294));
+    assertThat(query("select {fn ifnull({fn ifnull(null, null)}, '2')}")).containsExactly(row("2"));
+    assertThat(query("select {fn ifnull('abc', '2')}")).containsExactly(row("abc"));
+    assertThat(query("select {fn ifnull(null, '2')}")).containsExactly(row("2"));
+    assertThat(query("select {fn lcase('ABC def 123')}")).containsExactly(row("abc def 123"));
+    assertThat(query("select {fn left('abc def', 2)}")).containsExactly(row("ab"));
+    assertThat(query("select {fn locate('d', 'abc def')}")).containsExactly(row(5));
+    assertThat(query("select {fn log(5)}")).containsExactly(row(1.60943791243));
+    assertThat(query("select {fn right('abc def', 2)}")).containsExactly(row("ef"));
+    assertThat(query("select {fn substring('abc def', 2)}")).containsExactly(row("bc def"));
+    assertThat(query("select {fn substring('abc def', 2, 2)}")).containsExactly(row("bc"));
+    assertThat(query("select {fn timestampadd(SQL_TSI_DAY, 21, date '2001-01-01')}")).containsExactly(row(Date.valueOf("2001-01-22")));
+    assertThat(query("select {fn timestampdiff(SQL_TSI_DAY,date '2001-01-01',date '2002-01-01')}")).containsExactly(row(365));
+    assertThat(query("select {fn ucase('ABC def 123')}")).containsExactly(row("ABC DEF 123"));
+  }
+ else {
+    LOGGER.warn("testSqlEscapeFunctions() only applies to TeradataJdbcDriver");
+  }
+}

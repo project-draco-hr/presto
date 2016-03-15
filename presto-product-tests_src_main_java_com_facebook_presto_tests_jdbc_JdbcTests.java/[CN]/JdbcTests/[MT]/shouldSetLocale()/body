@@ -1,7 +1,12 @@
 {
-  connection.setLocale(CHINESE);
-  try (Statement statement=connection.createStatement()){
-    QueryResult result=queryResult(statement,"SELECT date_format(TIMESTAMP '2001-01-09 09:04', '%M')");
-    assertThat(result).contains(row("??????"));
+  if (usingPrestoJdbcDriver(connection)) {
+    ((PrestoConnection)connection).setLocale(CHINESE);
+    try (Statement statement=connection.createStatement()){
+      QueryResult result=queryResult(statement,"SELECT date_format(TIMESTAMP '2001-01-09 09:04', '%M')");
+      assertThat(result).contains(row("??????"));
+    }
+   }
+ else {
+    LOGGER.warn("shouldSetLocale() only applies to PrestoJdbcDriver");
   }
- }
+}

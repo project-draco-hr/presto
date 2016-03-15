@@ -1,3 +1,13 @@
 {
-  assertThat(query("SELECT" + "  node_id," + "  query_id,"+ "  state,"+ "  user,"+ "  query,"+ "  queued_time_ms,"+ "  analysis_time_ms,"+ "  distributed_planning_time_ms,"+ "  created,"+ "  started,"+ "  last_heartbeat,"+ "  'end' "+ "FROM system.runtime.queries")).hasColumns(LONGNVARCHAR,LONGNVARCHAR,LONGNVARCHAR,LONGNVARCHAR,LONGNVARCHAR,BIGINT,BIGINT,BIGINT,TIMESTAMP,TIMESTAMP,TIMESTAMP,LONGNVARCHAR).hasAnyRows();
+  Connection connection=defaultQueryExecutor().getConnection();
+  String sql="SELECT" + "  node_id," + "  query_id,"+ "  state,"+ "  user,"+ "  query,"+ "  queued_time_ms,"+ "  analysis_time_ms,"+ "  distributed_planning_time_ms,"+ "  created,"+ "  started,"+ "  last_heartbeat,"+ "  'end' "+ "FROM system.runtime.queries";
+  if (usingPrestoJdbcDriver(connection)) {
+    assertThat(query(sql)).hasColumns(LONGNVARCHAR,LONGNVARCHAR,LONGNVARCHAR,LONGNVARCHAR,LONGNVARCHAR,BIGINT,BIGINT,BIGINT,TIMESTAMP,TIMESTAMP,TIMESTAMP,LONGNVARCHAR).hasAnyRows();
+  }
+ else   if (usingTeradataJdbcDriver(connection)) {
+    assertThat(query(sql)).hasColumns(VARCHAR,VARCHAR,VARCHAR,VARCHAR,VARCHAR,BIGINT,BIGINT,BIGINT,TIMESTAMP,TIMESTAMP,TIMESTAMP,VARCHAR).hasAnyRows();
+  }
+ else {
+    throw new IllegalStateException();
+  }
 }

@@ -1,4 +1,15 @@
 {
   QueryResult result=QueryResult.forResultSet(metaData().getColumns("hive","default","nation",null));
-  assertThat(result).matches(sqlResultDescriptorForResource("com/facebook/presto/tests/jdbc/get_nation_columns.result"));
+  if (usingPrestoJdbcDriver(connection)) {
+    assertThat(result).matches(sqlResultDescriptorForResource("com/facebook/presto/tests/jdbc/get_nation_columns.result"));
+  }
+ else   if (usingTeradataJdbc4Driver(connection)) {
+    assertThat(result).matches(sqlResultDescriptorForResource("com/facebook/presto/tests/jdbc/get_nation_columns_simba4.result"));
+  }
+ else   if (usingTeradataJdbcDriver(connection)) {
+    assertThat(result).matches(sqlResultDescriptorForResource("com/facebook/presto/tests/jdbc/get_nation_columns_simba.result"));
+  }
+ else {
+    throw new IllegalStateException();
+  }
 }

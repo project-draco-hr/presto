@@ -1,0 +1,14 @@
+{
+  if (usingPrestoJdbcDriver(connection)) {
+    PrestoConnection prestoConnection=connection.unwrap(PrestoConnection.class);
+    prestoConnection.setSessionProperty(key,value);
+  }
+ else   if (usingTeradataJdbcDriver(connection)) {
+    try (Statement statement=connection.createStatement()){
+      statement.execute(String.format("set session %s=%s",key,value));
+    }
+   }
+ else {
+    throw new IllegalStateException();
+  }
+}
