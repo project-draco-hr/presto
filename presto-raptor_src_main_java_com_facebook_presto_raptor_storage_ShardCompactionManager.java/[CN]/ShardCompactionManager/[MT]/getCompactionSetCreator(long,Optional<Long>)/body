@@ -1,0 +1,8 @@
+{
+  if (!temporalColumnId.isPresent()) {
+    return new FileCompactionSetCreator(maxShardSize,maxShardRows);
+  }
+  checkState(isValidTemporalColumn(tableId,temporalColumnId.get()),"invalid temporal column type");
+  Type type=metadataDao.getTableColumn(tableId,temporalColumnId.get()).getDataType();
+  return new TemporalCompactionSetCreator(maxShardSize,maxShardRows,type);
+}
