@@ -1,0 +1,14 @@
+{
+  if (!context.isDefaultRewrite()) {
+    Expression result=rewriter.rewriteAtTimeZone(node,context.get(),ExpressionTreeRewriter.this);
+    if (result != null) {
+      return result;
+    }
+  }
+  Expression value=rewrite(node.getValue(),context.get());
+  Expression timeZone=rewrite(node.getTimeZone(),context.get());
+  if (value != node.getValue() || timeZone != node.getTimeZone()) {
+    return new AtTimeZone(value,timeZone);
+  }
+  return node;
+}
