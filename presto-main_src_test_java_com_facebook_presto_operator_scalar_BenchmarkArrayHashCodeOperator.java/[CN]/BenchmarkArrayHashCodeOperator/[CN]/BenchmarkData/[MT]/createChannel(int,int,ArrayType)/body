@@ -1,0 +1,25 @@
+{
+  BlockBuilder blockBuilder=arrayType.createBlockBuilder(new BlockBuilderStatus(),positionCount);
+  for (int position=0; position < positionCount; position++) {
+    BlockBuilder entryBuilder=blockBuilder.beginBlockEntry();
+    for (int i=0; i < arraySize; i++) {
+      if (arrayType.getElementType().getJavaType() == long.class) {
+        arrayType.getElementType().writeLong(entryBuilder,ThreadLocalRandom.current().nextLong());
+      }
+ else       if (arrayType.getElementType().getJavaType() == double.class) {
+        arrayType.getElementType().writeDouble(entryBuilder,ThreadLocalRandom.current().nextDouble());
+      }
+ else       if (arrayType.getElementType().getJavaType() == boolean.class) {
+        arrayType.getElementType().writeBoolean(entryBuilder,ThreadLocalRandom.current().nextBoolean());
+      }
+ else       if (arrayType.getElementType().equals(VARCHAR)) {
+        arrayType.getElementType().writeSlice(entryBuilder,Slices.utf8Slice("test_string"));
+      }
+ else {
+        throw new UnsupportedOperationException();
+      }
+    }
+    blockBuilder.closeEntry();
+  }
+  return blockBuilder.build();
+}
