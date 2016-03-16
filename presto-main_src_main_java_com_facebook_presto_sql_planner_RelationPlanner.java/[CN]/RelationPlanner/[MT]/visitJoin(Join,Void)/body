@@ -21,6 +21,8 @@
   ImmutableList.Builder<JoinNode.EquiJoinClause> equiClauses=ImmutableList.builder();
   List<Expression> complexJoinExpressions=new ArrayList<>();
   List<Expression> postInnerJoinConditions=new ArrayList<>();
+  List<Expression> preLeftConditions=new ArrayList<>();
+  List<Expression> preRightConditions=new ArrayList<>();
   if (node.getType() != Join.Type.CROSS && node.getType() != Join.Type.IMPLICIT) {
     Expression criteria=analysis.getJoinCriteria(node);
     RelationType left=analysis.getOutputDescriptor(node.getLeft());
@@ -30,8 +32,23 @@
     List<ComparisonExpression.Type> joinConditionComparisonTypes=new ArrayList<>();
     for (    Expression conjunct : ExpressionUtils.extractConjuncts(criteria)) {
       conjunct=ExpressionUtils.normalize(conjunct);
+      if ((node.getType() == LEFT || node.getType() == RIGHT) && (!(node.getCriteria().get() instanceof JoinUsing))) {
+        Set<QualifiedName> dependencies=DependencyExtractor.extractNames(conjunct,analysis.getColumnReferences());
+        if (node.getType() == LEFT) {
+          if (dependencies.stream().allMatch(right.canResolvePredicate())) {
+            preRightConditions.add(rightPlanBuilder.rewrite(conjunct));
+            continue;
+          }
+        }
+ else         if (node.getType() == RIGHT) {
+          if (dependencies.stream().allMatch(left.canResolvePredicate())) {
+            preLeftConditions.add(leftPlanBuilder.rewrite(conjunct));
+            continue;
+          }
+        }
+      }
       if (!isEqualComparisonExpression(conjunct) && node.getType() != INNER) {
-        throw new SemanticException(NOT_SUPPORTED,node,"Non-equi joins only supported for inner join: %s",conjunct);
+        throw new SemanticException(NOT_SUPPORTED,node,"Non-equi joins only supported for inner join or must relate to inner side of outer join: %s",conjunct);
       }
       if (conjunct instanceof ComparisonExpression) {
         Expression firstExpression=((ComparisonExpression)conjunct).getLeft();
@@ -74,7 +91,7 @@
       }
     }
   }
-  PlanNode root=new JoinNode(idAllocator.getNextId(),JoinNode.Type.typeConvert(node.getType()),leftPlanBuilder.getRoot(),rightPlanBuilder.getRoot(),equiClauses.build(),Optional.empty(),Optional.empty());
+  PlanNode root=new JoinNode(idAllocator.getNextId(),JoinNode.Type.typeConvert(node.getType()),wrapWithFilterIfNeeded(leftPlanBuilder.getRoot(),preLeftConditions),wrapWithFilterIfNeeded(rightPlanBuilder.getRoot(),preRightConditions),equiClauses.build(),Optional.empty(),Optional.empty());
   Optional<Symbol> sampleWeight=Optional.empty();
   if (leftPlanBuilder.getSampleWeight().isPresent() || rightPlanBuilder.getSampleWeight().isPresent()) {
     Expression expression=new ArithmeticBinaryExpression(ArithmeticBinaryExpression.Type.MULTIPLY,oneIfNull(leftPlanBuilder.getSampleWeight()),oneIfNull(rightPlanBuilder.getSampleWeight()));
@@ -104,8 +121,6 @@
  else {
     postInnerJoinCriteria=new BooleanLiteral("TRUE");
   }
-  if (node.getType() == INNER) {
-    root=new FilterNode(idAllocator.getNextId(),root,postInnerJoinCriteria);
-  }
+  root=new FilterNode(idAllocator.getNextId(),root,postInnerJoinCriteria);
   return new RelationPlan(root,outputDescriptor,outputSymbols,sampleWeight);
 }
