@@ -1,0 +1,8 @@
+{
+  String stringValue=value.toString(UTF_8);
+  BigDecimal decimal=new BigDecimal(stringValue).setScale((int)scale,ROUND_HALF_UP);
+  if (overflows(decimal,precision)) {
+    throw new PrestoException(INVALID_CAST_ARGUMENT,format("Cannot cast VARCHAR '%s' to DECIMAL(%s, %s)",stringValue,precision,scale));
+  }
+  return encodeUnscaledValue(decimal.unscaledValue());
+}

@@ -20,6 +20,19 @@
   List<TypeSignatureParameter> firstTypeTypeParameters=firstType.getParameters();
   List<TypeSignatureParameter> secondTypeTypeParameters=secondType.getParameters();
   checkArgument(firstTypeTypeParameters.size() == secondTypeTypeParameters.size(),"Can not compare types [%s, %s] with different number of parameters. All default parameters should be expanded",firstType,secondType);
+  if (firstType.getBase().equals(DECIMAL) && secondType.getBase().equals(DECIMAL)) {
+    long firstPrecision=firstType.getParameters().get(0).getLongLiteral();
+    long secondPrecision=secondType.getParameters().get(0).getLongLiteral();
+    long firstScale=firstType.getParameters().get(1).getLongLiteral();
+    long secondScale=secondType.getParameters().get(1).getLongLiteral();
+    long targetScale=Math.max(firstScale,secondScale);
+    long targetPrecision=Math.max(firstPrecision - firstScale,secondPrecision - secondScale) + targetScale;
+    targetPrecision=Math.min(38,targetPrecision);
+    return Optional.of(new TypeSignature(DECIMAL,ImmutableList.of(TypeSignatureParameter.of(targetPrecision),TypeSignatureParameter.of(targetScale))));
+  }
+  if (firstTypeTypeParameters.size() != secondTypeTypeParameters.size()) {
+    return Optional.empty();
+  }
   ImmutableList.Builder<TypeSignatureParameter> typeParameters=ImmutableList.builder();
   for (int i=0; i < firstTypeTypeParameters.size(); i++) {
     TypeSignatureParameter firstParameter=firstTypeTypeParameters.get(i);
