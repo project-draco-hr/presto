@@ -1,3 +1,11 @@
 {
-  return new FunctionCall(QualifiedName.of("at_timezone"),ImmutableList.of(treeRewriter.rewrite(node.getValue(),context),treeRewriter.rewrite(node.getTimeZone(),context)));
+  Expression value=treeRewriter.rewrite(node.getValue(),context);
+  Type type=expressionTypes.get(value);
+  if (type.equals(TIME)) {
+    value=new Cast(value,TIME_WITH_TIME_ZONE.getDisplayName());
+  }
+ else   if (type.equals(TIMESTAMP)) {
+    value=new Cast(value,TIMESTAMP_WITH_TIME_ZONE.getDisplayName());
+  }
+  return new FunctionCall(QualifiedName.of("at_timezone"),ImmutableList.of(value,treeRewriter.rewrite(node.getTimeZone(),context)));
 }
