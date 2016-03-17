@@ -1,0 +1,14 @@
+{
+  if (!filterFunction.isPresent()) {
+    try {
+      LookupSourceFactory lookupSourceFactory=joinCompiler.compileLookupSourceFactory(types,joinChannels);
+      LookupSource lookupSource=lookupSourceFactory.createLookupSource(valueAddresses,ImmutableList.<List<Block>>copyOf(channels),hashChannel);
+      return lookupSource;
+    }
+ catch (    Exception e) {
+      log.error(e,"Lookup source compile failed for types=%s error=%s",types,e);
+    }
+  }
+  PagesHashStrategy hashStrategy=new SimplePagesHashStrategy(types,ImmutableList.<List<Block>>copyOf(channels),joinChannels,hashChannel,filterFunction);
+  return new InMemoryJoinHash(valueAddresses,hashStrategy);
+}

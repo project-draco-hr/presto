@@ -1,0 +1,11 @@
+{
+  Block[] blocks=hashChannelsPage.getBlocks();
+  long joinPosition=indexedData.getJoinPosition(position,hashChannelsPage);
+  if (joinPosition == UNLOADED_INDEX_KEY) {
+    indexedData.close();
+    indexedData=indexLoader.getIndexedDataForKeys(position,blocks);
+    joinPosition=indexedData.getJoinPosition(position,hashChannelsPage);
+    checkState(joinPosition != UNLOADED_INDEX_KEY);
+  }
+  return joinPosition;
+}

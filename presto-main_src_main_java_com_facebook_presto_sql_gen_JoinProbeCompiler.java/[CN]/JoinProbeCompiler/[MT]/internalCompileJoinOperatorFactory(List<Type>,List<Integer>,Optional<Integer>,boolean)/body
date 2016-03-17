@@ -1,0 +1,25 @@
+{
+  Class<? extends JoinProbe> joinProbeClass=compileJoinProbe(types,probeJoinChannel,probeHashChannel);
+  ClassDefinition classDefinition=new ClassDefinition(a(PUBLIC,FINAL),makeClassName("JoinProbeFactory"),type(Object.class),type(JoinProbeFactory.class));
+  classDefinition.declareDefaultConstructor(a(PUBLIC));
+  Parameter lookupSource=arg("lookupSource",LookupSource.class);
+  Parameter page=arg("page",Page.class);
+  MethodDefinition method=classDefinition.declareMethod(a(PUBLIC),"createJoinProbe",type(JoinProbe.class),lookupSource,page);
+  method.getBody().newObject(joinProbeClass).dup().append(lookupSource).append(page).invokeConstructor(joinProbeClass,LookupSource.class,Page.class).retObject();
+  DynamicClassLoader classLoader=new DynamicClassLoader(joinProbeClass.getClassLoader());
+  JoinProbeFactory joinProbeFactory;
+  if (filterFunctionPresent) {
+    joinProbeFactory=new SimpleJoinProbe.SimpleJoinProbeFactory(types,probeJoinChannel,probeHashChannel);
+  }
+ else {
+    Class<? extends JoinProbeFactory> joinProbeFactoryClass=defineClass(classDefinition,JoinProbeFactory.class,classLoader);
+    try {
+      joinProbeFactory=joinProbeFactoryClass.newInstance();
+    }
+ catch (    Exception e) {
+      throw Throwables.propagate(e);
+    }
+  }
+  Class<? extends OperatorFactory> operatorFactoryClass=IsolatedClass.isolateClass(classLoader,OperatorFactory.class,LookupJoinOperatorFactory.class,LookupJoinOperator.class);
+  return new HashJoinOperatorFactoryFactory(joinProbeFactory,operatorFactoryClass);
+}

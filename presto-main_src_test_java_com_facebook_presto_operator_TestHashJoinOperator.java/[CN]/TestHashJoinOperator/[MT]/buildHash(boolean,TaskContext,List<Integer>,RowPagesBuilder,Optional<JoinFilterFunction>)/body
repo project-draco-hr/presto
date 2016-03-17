@@ -1,0 +1,37 @@
+{
+  if (parallelBuild) {
+    LocalExchange localExchange=new LocalExchange(FIXED_HASH_DISTRIBUTION,PARTITION_COUNT,buildPages.getTypes(),hashChannels,buildPages.getHashChannel());
+    LocalExchangeSinkFactory sinkFactory=localExchange.createSinkFactory();
+    sinkFactory.noMoreSinkFactories();
+    DriverContext collectDriverContext=taskContext.addPipelineContext(true,true).addDriverContext();
+    ValuesOperatorFactory valuesOperatorFactory=new ValuesOperatorFactory(0,new PlanNodeId("values"),buildPages.getTypes(),buildPages.build());
+    LocalExchangeSinkOperatorFactory sinkOperatorFactory=new LocalExchangeSinkOperatorFactory(1,new PlanNodeId("sink"),sinkFactory,Function.identity());
+    Driver driver=new Driver(collectDriverContext,valuesOperatorFactory.createOperator(collectDriverContext),sinkOperatorFactory.createOperator(collectDriverContext));
+    valuesOperatorFactory.close();
+    sinkOperatorFactory.close();
+    while (!driver.isFinished()) {
+      driver.process();
+    }
+    LocalExchangeSourceOperatorFactory sourceOperatorFactory=new LocalExchangeSourceOperatorFactory(0,new PlanNodeId("source"),localExchange);
+    ParallelHashBuildOperatorFactory buildOperatorFactory=new ParallelHashBuildOperatorFactory(1,new PlanNodeId("build"),buildPages.getTypes(),ImmutableMap.of(),hashChannels,buildPages.getHashChannel(),false,filterFunction,100,PARTITION_COUNT);
+    PipelineContext buildPipeline=taskContext.addPipelineContext(true,true);
+    for (int i=0; i < PARTITION_COUNT; i++) {
+      DriverContext buildDriverContext=buildPipeline.addDriverContext();
+      Driver buildDriver=new Driver(buildDriverContext,sourceOperatorFactory.createOperator(buildDriverContext),buildOperatorFactory.createOperator(buildDriverContext));
+      while (!buildDriver.isFinished()) {
+        buildDriver.process();
+      }
+    }
+    return buildOperatorFactory.getLookupSourceSupplier();
+  }
+ else {
+    DriverContext driverContext=taskContext.addPipelineContext(true,true).addDriverContext();
+    ValuesOperatorFactory valuesOperatorFactory=new ValuesOperatorFactory(0,new PlanNodeId("test"),buildPages.getTypes(),buildPages.build());
+    HashBuilderOperatorFactory hashBuilderOperatorFactory=new HashBuilderOperatorFactory(1,new PlanNodeId("test"),buildPages.getTypes(),ImmutableMap.of(),hashChannels,buildPages.getHashChannel(),false,filterFunction,100);
+    Driver driver=new Driver(driverContext,valuesOperatorFactory.createOperator(driverContext),hashBuilderOperatorFactory.createOperator(driverContext));
+    while (!driver.isFinished()) {
+      driver.process();
+    }
+    return hashBuilderOperatorFactory.getLookupSourceSupplier();
+  }
+}

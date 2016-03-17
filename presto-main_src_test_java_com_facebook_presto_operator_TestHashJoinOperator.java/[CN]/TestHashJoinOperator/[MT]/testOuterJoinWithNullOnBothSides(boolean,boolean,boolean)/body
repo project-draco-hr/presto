@@ -1,11 +1,11 @@
 {
   TaskContext taskContext=createTaskContext();
   RowPagesBuilder buildPages=rowPagesBuilder(buildHashEnabled,Ints.asList(0),ImmutableList.of(VARCHAR)).row("a").row((String)null).row((String)null).row("a").row("b");
-  LookupSourceSupplier lookupSourceSupplier=buildHash(parallelBuild,taskContext,Ints.asList(0),buildPages);
+  LookupSourceSupplier lookupSourceSupplier=buildHash(parallelBuild,taskContext,Ints.asList(0),buildPages,Optional.empty());
   List<Type> probeTypes=ImmutableList.<Type>of(VARCHAR);
   RowPagesBuilder probePages=rowPagesBuilder(probeHashEnabled,Ints.asList(0),probeTypes);
   List<Page> probeInput=probePages.row("a").row("b").row((String)null).row("c").build();
-  OperatorFactory joinOperatorFactory=LookupJoinOperators.probeOuterJoin(0,new PlanNodeId("test"),lookupSourceSupplier,probePages.getTypes(),Ints.asList(0),probePages.getHashChannel());
+  OperatorFactory joinOperatorFactory=LookupJoinOperators.probeOuterJoin(0,new PlanNodeId("test"),lookupSourceSupplier,probePages.getTypes(),Ints.asList(0),probePages.getHashChannel(),false);
   Operator joinOperator=joinOperatorFactory.createOperator(taskContext.addPipelineContext(true,true).addDriverContext());
   MaterializedResult expected=MaterializedResult.resultBuilder(taskContext.getSession(),concat(probeTypes,buildPages.getTypes())).row("a","a").row("a","a").row("b","b").row(null,null).row("c",null).build();
   assertOperatorEquals(joinOperator,probeInput,expected,true,getHashChannels(probePages,buildPages));

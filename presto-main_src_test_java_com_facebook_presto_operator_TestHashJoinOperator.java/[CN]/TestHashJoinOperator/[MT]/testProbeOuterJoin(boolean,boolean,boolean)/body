@@ -2,11 +2,11 @@
   TaskContext taskContext=createTaskContext();
   List<Type> buildTypes=ImmutableList.<Type>of(VARCHAR,BIGINT,BIGINT);
   RowPagesBuilder buildPages=rowPagesBuilder(buildHashEnabled,Ints.asList(0),ImmutableList.of(VARCHAR,BIGINT,BIGINT)).addSequencePage(10,20,30,40);
-  LookupSourceSupplier lookupSourceSupplier=buildHash(parallelBuild,taskContext,Ints.asList(0),buildPages);
+  LookupSourceSupplier lookupSourceSupplier=buildHash(parallelBuild,taskContext,Ints.asList(0),buildPages,Optional.empty());
   List<Type> probeTypes=ImmutableList.<Type>of(VARCHAR,BIGINT,BIGINT);
   RowPagesBuilder probePages=rowPagesBuilder(probeHashEnabled,Ints.asList(0),probeTypes);
   List<Page> probeInput=probePages.addSequencePage(15,20,1020,2020).build();
-  OperatorFactory joinOperatorFactory=LookupJoinOperators.probeOuterJoin(0,new PlanNodeId("test"),lookupSourceSupplier,probePages.getTypes(),Ints.asList(0),probePages.getHashChannel());
+  OperatorFactory joinOperatorFactory=LookupJoinOperators.probeOuterJoin(0,new PlanNodeId("test"),lookupSourceSupplier,probePages.getTypes(),Ints.asList(0),probePages.getHashChannel(),false);
   Operator joinOperator=joinOperatorFactory.createOperator(taskContext.addPipelineContext(true,true).addDriverContext());
   MaterializedResult expected=MaterializedResult.resultBuilder(taskContext.getSession(),concat(probeTypes,buildTypes)).row("20",1020L,2020L,"20",30L,40L).row("21",1021L,2021L,"21",31L,41L).row("22",1022L,2022L,"22",32L,42L).row("23",1023L,2023L,"23",33L,43L).row("24",1024L,2024L,"24",34L,44L).row("25",1025L,2025L,"25",35L,45L).row("26",1026L,2026L,"26",36L,46L).row("27",1027L,2027L,"27",37L,47L).row("28",1028L,2028L,"28",38L,48L).row("29",1029L,2029L,"29",39L,49L).row("30",1030L,2030L,null,null,null).row("31",1031L,2031L,null,null,null).row("32",1032L,2032L,null,null,null).row("33",1033L,2033L,null,null,null).row("34",1034L,2034L,null,null,null).build();
   assertOperatorEquals(joinOperator,probeInput,expected,true,getHashChannels(probePages,buildPages));
