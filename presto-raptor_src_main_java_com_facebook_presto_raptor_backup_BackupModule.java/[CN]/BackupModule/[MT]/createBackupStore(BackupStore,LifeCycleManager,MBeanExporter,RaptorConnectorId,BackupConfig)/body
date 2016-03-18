@@ -4,5 +4,7 @@
   }
   BackupStore proxy=new TimeoutBackupStore(store,connectorId.toString(),config.getTimeout(),config.getTimeoutThreads());
   lifeCycleManager.addInstance(proxy);
-  return Optional.of(proxy);
+  BackupStore managed=new ManagedBackupStore(proxy);
+  exporter.export(generatedNameOf(BackupStore.class,connectorId.toString()),managed);
+  return Optional.of(managed);
 }
