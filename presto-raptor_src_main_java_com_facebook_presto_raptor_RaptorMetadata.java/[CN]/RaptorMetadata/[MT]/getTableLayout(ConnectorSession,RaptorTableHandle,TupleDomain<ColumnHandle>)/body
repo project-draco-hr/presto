@@ -1,0 +1,9 @@
+{
+  if (!handle.getDistributionId().isPresent()) {
+    return new ConnectorTableLayout(new RaptorTableLayoutHandle(handle,constraint,Optional.empty()));
+  }
+  List<RaptorColumnHandle> bucketColumnHandles=getBucketColumnHandles(handle.getTableId());
+  RaptorPartitioningHandle partitioning=getPartitioningHandle(handle.getDistributionId().getAsLong());
+  boolean oneSplitPerBucket=handle.getBucketCount().getAsInt() >= getOneSplitPerBucketThreshold(session);
+  return new ConnectorTableLayout(new RaptorTableLayoutHandle(handle,constraint,Optional.of(partitioning)),Optional.empty(),TupleDomain.all(),Optional.of(new ConnectorNodePartitioning(partitioning,ImmutableList.copyOf(bucketColumnHandles))),oneSplitPerBucket ? Optional.of(ImmutableSet.copyOf(bucketColumnHandles)) : Optional.empty(),Optional.empty(),ImmutableList.of());
+}
