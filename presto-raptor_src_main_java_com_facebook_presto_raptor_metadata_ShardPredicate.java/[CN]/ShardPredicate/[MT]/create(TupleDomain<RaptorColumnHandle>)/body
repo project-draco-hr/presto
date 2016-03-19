@@ -14,20 +14,7 @@
       continue;
     }
     if (handle.isShardUuid()) {
-      if (domain.isSingleValue()) {
-        Slice uuidText=checkType(entry.getValue().getSingleValue(),Slice.class,"value");
-        Slice uuidBytes;
-        try {
-          uuidBytes=uuidStringToBytes(uuidText);
-        }
- catch (        IllegalArgumentException e) {
-          predicate.add("false");
-          continue;
-        }
-        predicate.add("shard_uuid = ?");
-        types.add(jdbcType);
-        values.add(uuidBytes);
-      }
+      predicate.add(createShardPredicate(types,values,domain,jdbcType));
       continue;
     }
     if (!domain.getType().isOrderable()) {
