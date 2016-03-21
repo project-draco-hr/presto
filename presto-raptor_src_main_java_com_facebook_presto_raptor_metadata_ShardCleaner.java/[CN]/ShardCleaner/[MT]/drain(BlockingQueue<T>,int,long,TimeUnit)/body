@@ -1,0 +1,22 @@
+{
+  long start=System.nanoTime();
+  Collection<T> result=new ArrayList<>();
+  while (true) {
+    queue.drainTo(result);
+    if (result.size() >= desired) {
+      return result;
+    }
+    long elapsedNanos=System.nanoTime() - start;
+    long remainingNanos=unit.toNanos(timeout) - elapsedNanos;
+    if (remainingNanos <= 0) {
+      return result;
+    }
+    try {
+      result.add(queue.poll(remainingNanos,NANOSECONDS));
+    }
+ catch (    InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return result;
+    }
+  }
+}

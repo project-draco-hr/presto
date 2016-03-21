@@ -1,13 +1,2 @@
 {
-  while (!Thread.currentThread().isInterrupted()) {
-    List<UUID> uuids=dao.getCleanableShardsBatch(maxTimestamp(backupCleanTime));
-    if (uuids.isEmpty()) {
-      break;
-    }
-    long start=System.nanoTime();
-    executeDeletes(uuids);
-    dao.deleteCleanedShards(uuids);
-    backupShardsCleaned.update(uuids.size());
-    log.info("Cleaned %s backup shards in %s",uuids.size(),nanosSince(start));
-  }
 }
