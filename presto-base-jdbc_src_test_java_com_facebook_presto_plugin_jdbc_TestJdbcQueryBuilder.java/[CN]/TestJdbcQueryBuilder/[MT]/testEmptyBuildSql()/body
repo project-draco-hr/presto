@@ -1,7 +1,8 @@
 {
-  TupleDomain<ColumnHandle> tupleDomain=TupleDomain.withColumnDomains(ImmutableMap.of(cols.get(0),Domain.all(BigintType.BIGINT),cols.get(1),Domain.onlyNull(DoubleType.DOUBLE)));
+  TupleDomain<ColumnHandle> tupleDomain=TupleDomain.withColumnDomains(ImmutableMap.of(columns.get(0),Domain.all(BIGINT),columns.get(1),Domain.onlyNull(DOUBLE)));
   Connection connection=database.getConnection();
-  PreparedStatement preparedStatement=new QueryBuilder("\"").buildSql(jdbcClient,connection,"","","test_table",cols,tupleDomain);
-  ResultSet res=preparedStatement.executeQuery();
-  assertEquals(res.next(),false);
-}
+  try (PreparedStatement preparedStatement=new QueryBuilder("\"").buildSql(jdbcClient,connection,"","","test_table",columns,tupleDomain)){
+    ResultSet resultSet=preparedStatement.executeQuery();
+    assertEquals(resultSet.next(),false);
+  }
+ }

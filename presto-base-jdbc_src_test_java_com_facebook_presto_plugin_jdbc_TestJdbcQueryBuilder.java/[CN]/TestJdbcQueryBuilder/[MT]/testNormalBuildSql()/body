@@ -1,11 +1,12 @@
 {
-  TupleDomain<ColumnHandle> tupleDomain=TupleDomain.withColumnDomains(ImmutableMap.of(cols.get(0),Domain.create(SortedRangeSet.copyOf(BigintType.BIGINT,ImmutableList.of(Range.equal(BigintType.BIGINT,128L),Range.equal(BigintType.BIGINT,180L),Range.equal(BigintType.BIGINT,233L),Range.lessThan(BigintType.BIGINT,25L),Range.range(BigintType.BIGINT,66L,true,96L,true),Range.greaterThan(BigintType.BIGINT,192L))),false),cols.get(1),Domain.create(SortedRangeSet.copyOf(DoubleType.DOUBLE,ImmutableList.of(Range.equal(DoubleType.DOUBLE,200011.0),Range.equal(DoubleType.DOUBLE,200014.0),Range.equal(DoubleType.DOUBLE,200017.0),Range.equal(DoubleType.DOUBLE,200116.5),Range.range(DoubleType.DOUBLE,200030.0,true,200036.0,true),Range.range(DoubleType.DOUBLE,200048.0,true,200099.0,true))),false),cols.get(2),Domain.create(SortedRangeSet.copyOf(BooleanType.BOOLEAN,ImmutableList.of(Range.equal(BooleanType.BOOLEAN,true))),false)));
+  TupleDomain<ColumnHandle> tupleDomain=TupleDomain.withColumnDomains(ImmutableMap.of(columns.get(0),Domain.create(SortedRangeSet.copyOf(BIGINT,ImmutableList.of(Range.equal(BIGINT,128L),Range.equal(BIGINT,180L),Range.equal(BIGINT,233L),Range.lessThan(BIGINT,25L),Range.range(BIGINT,66L,true,96L,true),Range.greaterThan(BIGINT,192L))),false),columns.get(1),Domain.create(SortedRangeSet.copyOf(DOUBLE,ImmutableList.of(Range.equal(DOUBLE,200011.0),Range.equal(DOUBLE,200014.0),Range.equal(DOUBLE,200017.0),Range.equal(DOUBLE,200116.5),Range.range(DOUBLE,200030.0,true,200036.0,true),Range.range(DOUBLE,200048.0,true,200099.0,true))),false),columns.get(2),Domain.create(SortedRangeSet.copyOf(BOOLEAN,ImmutableList.of(Range.equal(BOOLEAN,true))),false)));
   Connection connection=database.getConnection();
-  PreparedStatement preparedStatement=new QueryBuilder("\"").buildSql(jdbcClient,connection,"","","test_table",cols,tupleDomain);
-  ResultSet res=preparedStatement.executeQuery();
-  ImmutableSet.Builder<Long> builder=ImmutableSet.builder();
-  while (res.next()) {
-    builder.add((Long)res.getObject("col_0"));
+  try (PreparedStatement preparedStatement=new QueryBuilder("\"").buildSql(jdbcClient,connection,"","","test_table",columns,tupleDomain)){
+    ResultSet resultSet=preparedStatement.executeQuery();
+    ImmutableSet.Builder<Long> builder=ImmutableSet.builder();
+    while (resultSet.next()) {
+      builder.add((Long)resultSet.getObject("col_0"));
+    }
+    assertEquals(builder.build(),ImmutableSet.of(22L,66L,68L,70L,72L,96L,128L,180L,194L,196L,198L));
   }
-  assertEquals(builder.build(),ImmutableSet.of(22L,66L,68L,70L,72L,96L,128L,180L,194L,196L,198L));
-}
+ }
