@@ -1,0 +1,11 @@
+{
+  TupleDomain<ColumnHandle> tupleDomain=TupleDomain.withColumnDomains(ImmutableMap.of(columns.get(3),Domain.create(SortedRangeSet.copyOf(VARCHAR,ImmutableList.of(Range.range(VARCHAR,utf8Slice("test_str_700"),true,utf8Slice("test_str_702"),false),Range.equal(VARCHAR,utf8Slice("test_str_180")),Range.equal(VARCHAR,utf8Slice("test_str_196")))),false)));
+  Connection connection=database.getConnection();
+  try (PreparedStatement preparedStatement=new QueryBuilder("\"").buildSql(jdbcClient,connection,"","","test_table",columns,tupleDomain);ResultSet resultSet=preparedStatement.executeQuery()){
+    ImmutableSet.Builder<String> builder=ImmutableSet.builder();
+    while (resultSet.next()) {
+      builder.add((String)resultSet.getObject("col_3"));
+    }
+    assertEquals(builder.build(),ImmutableSet.of("test_str_700","test_str_701","test_str_180","test_str_196"));
+  }
+ }
