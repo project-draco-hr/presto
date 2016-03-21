@@ -1,2 +1,65 @@
 {
+  checkArgument(domain.getType().isOrderable(),"Domain type must be orderable");
+  if (domain.getValues().isNone()) {
+    return domain.isNullAllowed() ? quote(columnName) + " IS NULL" : "FALSE";
+  }
+  if (domain.getValues().isAll()) {
+    return domain.isNullAllowed() ? "TRUE" : quote(columnName) + " IS NOT NULL";
+  }
+  List<String> disjuncts=new ArrayList<>();
+  List<Object> singleValues=new ArrayList<>();
+  for (  Range range : domain.getValues().getRanges().getOrderedRanges()) {
+    checkState(!range.isAll());
+    if (range.isSingleValue()) {
+      singleValues.add(range.getLow().getValue());
+    }
+ else {
+      List<String> rangeConjuncts=new ArrayList<>();
+      if (!range.getLow().isLowerUnbounded()) {
+switch (range.getLow().getBound()) {
+case ABOVE:
+          rangeConjuncts.add(toPredicate(columnName,">",range.getLow().getValue(),type,accumulator));
+        break;
+case EXACTLY:
+      rangeConjuncts.add(toPredicate(columnName,">=",range.getLow().getValue(),type,accumulator));
+    break;
+case BELOW:
+  throw new IllegalArgumentException("Low marker should never use BELOW bound");
+default :
+throw new AssertionError("Unhandled bound: " + range.getLow().getBound());
+}
+}
+if (!range.getHigh().isUpperUnbounded()) {
+switch (range.getHigh().getBound()) {
+case ABOVE:
+throw new IllegalArgumentException("High marker should never use ABOVE bound");
+case EXACTLY:
+rangeConjuncts.add(toPredicate(columnName,"<=",range.getHigh().getValue(),type,accumulator));
+break;
+case BELOW:
+rangeConjuncts.add(toPredicate(columnName,"<",range.getHigh().getValue(),type,accumulator));
+break;
+default :
+throw new AssertionError("Unhandled bound: " + range.getHigh().getBound());
+}
+}
+checkState(!rangeConjuncts.isEmpty());
+disjuncts.add("(" + Joiner.on(" AND ").join(rangeConjuncts) + ")");
+}
+}
+if (singleValues.size() == 1) {
+disjuncts.add(toPredicate(columnName,"=",getOnlyElement(singleValues),type,accumulator));
+}
+ else if (singleValues.size() > 1) {
+for (Object value : singleValues) {
+bindValue(value,type,accumulator);
+}
+String values=Joiner.on(",").join(nCopies(singleValues.size(),"?"));
+disjuncts.add(quote(columnName) + " IN (" + values+ ")");
+}
+checkState(!disjuncts.isEmpty());
+if (domain.isNullAllowed()) {
+disjuncts.add(quote(columnName) + " IS NULL");
+}
+return "(" + Joiner.on(" OR ").join(disjuncts) + ")";
 }
