@@ -1,0 +1,13 @@
+{
+  try {
+    String serverPrincipal=getServerPrincipal(hiveMetastoreServicePrincipal,hiveMetastoreHost);
+    String[] names=SaslRpcServer.splitKerberosName(serverPrincipal);
+    checkState(names.length == 3,"Kerberos principal name does NOT have the expected hostname part: %s",serverPrincipal);
+    Map<String,String> saslProps=ImmutableMap.of(Sasl.QOP,"auth",Sasl.SERVER_AUTH,"true");
+    TTransport saslTransport=new TSaslClientTransport(KERBEROS.getMechanismName(),null,names[0],names[1],saslProps,null,rawTransport);
+    return new TUGIAssumingTransport(saslTransport,authentication.getUserGroupInformation());
+  }
+ catch (  IOException e) {
+    throw Throwables.propagate(e);
+  }
+}
