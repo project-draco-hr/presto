@@ -1,0 +1,11 @@
+{
+  setSessionProperties(storageFormat);
+  String tableName="storage_formats_test_insert_into_" + storageFormat.getName().toLowerCase();
+  query(format("DROP TABLE IF EXISTS %s",tableName));
+  String createTable=format("CREATE TABLE %s(" + "   orderkey      BIGINT," + "   partkey       BIGINT,"+ "   suppkey       BIGINT,"+ "   linenumber    INTEGER,"+ "   quantity      DOUBLE,"+ "   extendedprice DOUBLE,"+ "   discount      DOUBLE,"+ "   tax           DOUBLE,"+ "   linestatus    VARCHAR,"+ "   shipinstruct  VARCHAR,"+ "   shipmode      VARCHAR,"+ "   comment       VARCHAR,"+ "   returnflag    VARCHAR"+ ") WITH (format='%s')",tableName,storageFormat.getName());
+  query(createTable);
+  String insertInto=format("INSERT INTO %s " + "SELECT " + "orderkey, partkey, suppkey, linenumber, quantity, extendedprice, discount, tax, "+ "linestatus, shipinstruct, shipmode, comment, returnflag "+ "FROM tpch.%s.lineitem",tableName,TPCH_SCHEMA);
+  query(insertInto);
+  assertSelect("select sum(tax), sum(discount), sum(linenumber) from %s",tableName);
+  query(format("DROP TABLE %s",tableName));
+}

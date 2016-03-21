@@ -1,0 +1,9 @@
+{
+  setSessionProperties(storageFormat);
+  String tableName="storage_formats_test_create_table_as_select_partitioned_" + storageFormat.getName().toLowerCase();
+  query(format("DROP TABLE IF EXISTS %s",tableName));
+  String createTableAsSelect=format("CREATE TABLE %s WITH (format='%s', partitioned_by = ARRAY['returnflag']) AS " + "SELECT " + "orderkey, partkey, suppkey, linenumber, quantity, extendedprice, discount, tax, "+ "linestatus, shipinstruct, shipmode, comment, returnflag "+ "FROM tpch.%s.lineitem",tableName,storageFormat.getName(),TPCH_SCHEMA);
+  query(createTableAsSelect);
+  assertSelect("select sum(tax), sum(discount), sum(length(returnflag)) from %s",tableName);
+  query(format("DROP TABLE %s",tableName));
+}

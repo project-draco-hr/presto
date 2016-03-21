@@ -1,0 +1,14 @@
+{
+  Connection connection=defaultQueryExecutor().getConnection();
+  try {
+    PrestoConnection prestoConnection=connection.unwrap(PrestoConnection.class);
+    prestoConnection.setSessionProperty("task_writer_count","4");
+    prestoConnection.setSessionProperty("redistribute_writes","false");
+    for (    Map.Entry<String,String> sessionProperty : sessionProperties.entrySet()) {
+      prestoConnection.setSessionProperty(sessionProperty.getKey(),sessionProperty.getValue());
+    }
+  }
+ catch (  SQLException e) {
+    throw Throwables.propagate(e);
+  }
+}
