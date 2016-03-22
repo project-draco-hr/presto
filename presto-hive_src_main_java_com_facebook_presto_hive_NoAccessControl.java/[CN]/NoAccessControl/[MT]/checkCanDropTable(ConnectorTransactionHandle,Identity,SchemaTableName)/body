@@ -2,4 +2,11 @@
   if (!allowDropTable) {
     denyDropTable(tableName.toString());
   }
+  Optional<Table> target=metastore.getTable(tableName.getSchemaName(),tableName.getTableName());
+  if (!target.isPresent()) {
+    denyDropTable(tableName.toString(),"Table not found");
+  }
+  if (!identity.getUser().equals(target.get().getOwner())) {
+    denyDropTable(tableName.toString(),"Owner of the table is different from session user");
+  }
 }
