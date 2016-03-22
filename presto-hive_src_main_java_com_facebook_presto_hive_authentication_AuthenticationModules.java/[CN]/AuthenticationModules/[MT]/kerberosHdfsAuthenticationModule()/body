@@ -1,0 +1,13 @@
+{
+  return new Module(){
+    @Override public void configure(    Binder binder){
+      binder.bind(HdfsAuthentication.class).to(DirectHdfsAuthentication.class).in(SINGLETON);
+    }
+    @Inject @Provides @Singleton @ForHdfs HadoopAuthentication createHadoopAuthentication(    HiveClientConfig hiveClientConfig){
+      String principal=hiveClientConfig.getHdfsPrestoPrincipal();
+      String keytabLocation=hiveClientConfig.getHdfsPrestoKeytab();
+      return createCachingKerberosHadoopAuthentication(principal,keytabLocation);
+    }
+  }
+;
+}
