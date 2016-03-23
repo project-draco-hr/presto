@@ -1,0 +1,15 @@
+{
+  ConnectorSession session=newSession();
+  String tableOwner=session.getUser();
+  String schemaName=schemaTableName.getSchemaName();
+  String tableName=schemaTableName.getTableName();
+  LocationService locationService=getLocationService(schemaName);
+  LocationHandle locationHandle=locationService.forNewTable(session.getUser(),session.getQueryId(),schemaName,tableName);
+  Path targetPath=locationService.targetPathRoot(locationHandle);
+  HiveWriteUtils.createDirectory(session.getUser(),hdfsEnvironment,targetPath);
+  Table.Builder tableBuilder=Table.builder().setDatabaseName(schemaName).setTableName(tableName).setOwner(tableOwner).setTableType(TableType.MANAGED_TABLE.name()).setParameters(ImmutableMap.of()).setDataColumns(columns).setPartitionColumns(partitionColumns);
+  tableBuilder.getStorageBuilder().setLocation(targetPath.toString()).setStorageFormat(StorageFormat.create(hiveStorageFormat.getSerDe(),hiveStorageFormat.getInputFormat(),hiveStorageFormat.getOutputFormat())).setSerdeParameters(ImmutableMap.of());
+  PrivilegeGrantInfo allPrivileges=new PrivilegeGrantInfo("all",0,tableOwner,PrincipalType.USER,true);
+  PrincipalPrivilegeSet principalPrivilegeSet=new PrincipalPrivilegeSet(ImmutableMap.of(session.getUser(),ImmutableList.of(allPrivileges)),ImmutableMap.of(),ImmutableMap.of());
+  getMetastoreClient(schemaName).createTable(tableBuilder.build(),principalPrivilegeSet);
+}

@@ -1,8 +1,8 @@
 {
-  if (!table.getSd().isSetBucketCols() || table.getSd().getBucketCols().isEmpty() || !table.getSd().isSetNumBuckets()|| (table.getSd().getNumBuckets() <= 0)|| bindings.isEmpty()) {
+  if (!table.getStorage().getBucketProperty().isPresent() || bindings.isEmpty()) {
     return Optional.empty();
   }
-  List<String> bucketColumns=table.getSd().getBucketCols();
+  List<String> bucketColumns=table.getStorage().getBucketProperty().get().getBucketedBy();
   Map<String,ObjectInspector> objectInspectors=new HashMap<>();
   for (  StructField field : getTableStructFields(table)) {
     objectInspectors.put(field.getFieldName(),field.getFieldObjectInspector());
@@ -30,5 +30,5 @@
   for (  String column : bucketColumns) {
     columnBindings.add(immutableEntry(objectInspectors.get(column),bucketBindings.get(column)));
   }
-  return getHiveBucket(columnBindings.build(),table.getSd().getNumBuckets());
+  return getHiveBucket(columnBindings.build(),table.getStorage().getBucketProperty().get().getBucketCount());
 }

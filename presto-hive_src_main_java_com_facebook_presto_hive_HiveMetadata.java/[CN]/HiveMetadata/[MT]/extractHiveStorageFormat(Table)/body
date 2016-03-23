@@ -1,18 +1,11 @@
 {
-  StorageDescriptor descriptor=table.getSd();
-  if (descriptor == null) {
-    throw new PrestoException(HIVE_INVALID_METADATA,"Table is missing storage descriptor");
-  }
-  SerDeInfo serdeInfo=descriptor.getSerdeInfo();
-  if (serdeInfo == null) {
-    throw new PrestoException(HIVE_INVALID_METADATA,"Table storage descriptor is missing SerDe info");
-  }
-  String outputFormat=descriptor.getOutputFormat();
-  String serializationLib=serdeInfo.getSerializationLib();
+  StorageFormat storageFormat=table.getStorage().getStorageFormat();
+  String outputFormat=storageFormat.getOutputFormat();
+  String serde=storageFormat.getSerDe();
   for (  HiveStorageFormat format : HiveStorageFormat.values()) {
-    if (format.getOutputFormat().equals(outputFormat) && format.getSerDe().equals(serializationLib)) {
+    if (format.getOutputFormat().equals(outputFormat) && format.getSerDe().equals(serde)) {
       return format;
     }
   }
-  throw new PrestoException(HIVE_UNSUPPORTED_FORMAT,format("Output format %s with SerDe %s is not supported",outputFormat,serializationLib));
+  throw new PrestoException(HIVE_UNSUPPORTED_FORMAT,format("Output format %s with SerDe %s is not supported",outputFormat,serde));
 }

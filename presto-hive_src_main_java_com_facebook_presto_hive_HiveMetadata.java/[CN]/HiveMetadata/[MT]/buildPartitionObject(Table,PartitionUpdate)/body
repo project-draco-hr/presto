@@ -1,15 +1,17 @@
 {
   List<String> values=HivePartitionManager.extractPartitionKeyValues(partitionUpdate.getName());
-  Partition partition=new Partition();
-  partition.setDbName(table.getDbName());
+  Partition.Builder partition=Partition.builder();
+  partition.setDatabaseName(table.getDatabaseName());
   partition.setTableName(table.getTableName());
   partition.setValues(values);
   if (respectTableFormat) {
-    partition.setSd(table.getSd().deepCopy());
-    partition.getSd().setLocation(partitionUpdate.getTargetPath().toString());
+    partition.getStorageBuilder().setStorageFormat(table.getStorage().getStorageFormat());
   }
  else {
-    partition.setSd(makeStorageDescriptor(table.getTableName(),defaultStorageFormat,partitionUpdate.getTargetPath(),table.getSd().getCols(),HiveBucketProperty.fromStorageDescriptor(table.getSd(),table.getTableName())));
+    partition.getStorageBuilder().setStorageFormat(fromHiveStorageFormat(defaultStorageFormat));
   }
-  return partition;
+  partition.getStorageBuilder().setLocation(partitionUpdate.getTargetPath().toString());
+  partition.getStorageBuilder().setBucketProperty(table.getStorage().getBucketProperty());
+  partition.setColumns(table.getDataColumns());
+  return partition.build();
 }

@@ -1,32 +1,21 @@
 {
   Map<String,String> properties=ImmutableMap.<String,String>builder().put("comment","Presto View").put(PRESTO_VIEW_FLAG,"true").build();
-  FieldSchema dummyColumn=new FieldSchema("dummy",STRING_TYPE_NAME,null);
-  StorageDescriptor sd=new StorageDescriptor();
-  sd.setCols(ImmutableList.of(dummyColumn));
-  sd.setSerdeInfo(new SerDeInfo());
-  Table table=new Table();
-  table.setDbName(viewName.getSchemaName());
-  table.setTableName(viewName.getTableName());
-  table.setOwner(session.getUser());
-  table.setTableType(TableType.VIRTUAL_VIEW.name());
-  table.setParameters(properties);
-  table.setViewOriginalText(encodeViewData(viewData));
-  table.setViewExpandedText("/* Presto View */");
-  table.setSd(sd);
-  table.setPartitionKeys(ImmutableList.of());
+  Column dummyColumn=new Column("dummy",HIVE_STRING,Optional.empty());
   PrivilegeGrantInfo allPrivileges=new PrivilegeGrantInfo("all",0,session.getUser(),PrincipalType.USER,true);
-  table.setPrivileges(new PrincipalPrivilegeSet(ImmutableMap.of(session.getUser(),ImmutableList.of(allPrivileges)),ImmutableMap.of(),ImmutableMap.of()));
+  Table.Builder tableBuilder=Table.builder().setDatabaseName(viewName.getSchemaName()).setTableName(viewName.getTableName()).setOwner(session.getUser()).setTableType(TableType.VIRTUAL_VIEW.name()).setDataColumns(ImmutableList.of(dummyColumn)).setPartitionColumns(ImmutableList.of()).setParameters(properties).setViewOriginalText(Optional.of(encodeViewData(viewData))).setViewExpandedText(Optional.of("/* Presto View */"));
+  tableBuilder.getStorageBuilder().setStorageFormat(VIEW_STORAGE_FORMAT).setLocation("");
+  Table table=tableBuilder.build();
+  PrincipalPrivilegeSet principalPrivilegeSet=new PrincipalPrivilegeSet(ImmutableMap.of(session.getUser(),ImmutableList.of(allPrivileges)),ImmutableMap.of(),ImmutableMap.of());
   Optional<Table> existing=metastore.getTable(viewName.getSchemaName(),viewName.getTableName());
   if (existing.isPresent()) {
     if (!replace || !HiveUtil.isPrestoView(existing.get())) {
       throw new ViewAlreadyExistsException(viewName);
     }
-    table.setViewOriginalText(encodeViewData(viewData));
-    metastore.alterTable(viewName.getSchemaName(),viewName.getTableName(),table);
+    metastore.replaceTable(viewName.getSchemaName(),viewName.getTableName(),table,principalPrivilegeSet);
     return;
   }
   try {
-    metastore.createTable(table);
+    metastore.createTable(table,principalPrivilegeSet);
   }
  catch (  TableAlreadyExistsException e) {
     throw new ViewAlreadyExistsException(e.getTableName());

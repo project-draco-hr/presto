@@ -7,7 +7,7 @@
     hiveClientConfig.setMetastoreSocksProxy(HostAndPort.fromString(proxy));
   }
   HiveCluster hiveCluster=new TestingHiveCluster(hiveClientConfig,host,port);
-  metastoreClient=new CachingHiveMetastore(hiveCluster,executor,Duration.valueOf("1m"),Duration.valueOf("15s"));
+  metastoreClient=new CachingHiveMetastore(new BridgingHiveMetastore(new ThriftHiveMetastore(hiveCluster)),executor,Duration.valueOf("1m"),Duration.valueOf("15s"));
   HiveConnectorId connectorId=new HiveConnectorId(connectorName);
   HdfsConfiguration hdfsConfiguration=new HiveHdfsConfiguration(new HdfsConfigurationUpdater(hiveClientConfig));
   hdfsEnvironment=new HdfsEnvironment(hdfsConfiguration,hiveClientConfig,new NoHdfsAuthentication());

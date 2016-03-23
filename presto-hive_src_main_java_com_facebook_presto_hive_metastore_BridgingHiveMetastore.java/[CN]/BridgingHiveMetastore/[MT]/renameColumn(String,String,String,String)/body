@@ -1,0 +1,13 @@
+{
+  Optional<org.apache.hadoop.hive.metastore.api.Table> source=delegate.getTable(databaseName,tableName);
+  if (!source.isPresent()) {
+    throw new TableNotFoundException(new SchemaTableName(databaseName,tableName));
+  }
+  org.apache.hadoop.hive.metastore.api.Table table=source.get();
+  for (  FieldSchema fieldSchema : table.getSd().getCols()) {
+    if (fieldSchema.getName().equals(oldColumnName)) {
+      fieldSchema.setName(newColumnName);
+    }
+  }
+  alterTable(databaseName,tableName,table);
+}

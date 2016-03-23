@@ -1,12 +1,4 @@
 {
   HiveTableHandle handle=checkType(tableHandle,HiveTableHandle.class,"tableHandle");
-  SchemaTableName tableName=schemaTableName(tableHandle);
-  Optional<Table> source=metastore.getTable(handle.getSchemaName(),handle.getTableName());
-  if (!source.isPresent()) {
-    throw new TableNotFoundException(tableName);
-  }
-  Table table=source.get();
-  table.setDbName(newTableName.getSchemaName());
-  table.setTableName(newTableName.getTableName());
-  metastore.alterTable(handle.getSchemaName(),handle.getTableName(),table);
+  metastore.renameTable(handle.getSchemaName(),handle.getTableName(),newTableName.getSchemaName(),newTableName.getTableName());
 }

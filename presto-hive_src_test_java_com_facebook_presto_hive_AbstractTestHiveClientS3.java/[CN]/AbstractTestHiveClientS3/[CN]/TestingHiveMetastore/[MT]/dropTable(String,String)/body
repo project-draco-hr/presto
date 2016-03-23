@@ -5,12 +5,11 @@
       throw new TableNotFoundException(new SchemaTableName(databaseName,tableName));
     }
     List<String> locations=listAllDataPaths(this,databaseName,tableName);
-    table.get().getSd().setLocation("/");
-    try (HiveMetastoreClient client=clientProvider.createMetastoreClient()){
-      client.alterTable(databaseName,tableName,table.get());
-      client.dropTable(databaseName,tableName,false);
-    }
-     for (    String location : locations) {
+    Table.Builder tableBuilder=Table.builder(table.get());
+    tableBuilder.getStorageBuilder().setLocation("/");
+    delegate.replaceTable(databaseName,tableName,tableBuilder.build(),new PrincipalPrivilegeSet());
+    delegate.dropTable(databaseName,tableName);
+    for (    String location : locations) {
       Path path=new Path(location);
       hdfsEnvironment.getFileSystem("user",path).delete(path,true);
     }

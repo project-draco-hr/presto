@@ -1,0 +1,20 @@
+{
+  if (!partition.isPresent()) {
+    return ImmutableList.of();
+  }
+  ImmutableList.Builder<HivePartitionKey> partitionKeys=ImmutableList.builder();
+  List<Column> keys=table.getPartitionColumns();
+  List<String> values=partition.get().getValues();
+  checkCondition(keys.size() == values.size(),HIVE_INVALID_METADATA,"Expected %s partition key values, but got %s",keys.size(),values.size());
+  for (int i=0; i < keys.size(); i++) {
+    String name=keys.get(i).getName();
+    HiveType hiveType=keys.get(i).getType();
+    if (!hiveType.isSupportedType()) {
+      throw new PrestoException(NOT_SUPPORTED,format("Unsupported Hive type %s found in partition keys of table %s.%s",hiveType,table.getDatabaseName(),table.getTableName()));
+    }
+    String value=values.get(i);
+    checkCondition(value != null,HIVE_INVALID_PARTITION_VALUE,"partition key value cannot be null for field: %s",name);
+    partitionKeys.add(new HivePartitionKey(name,hiveType,value));
+  }
+  return partitionKeys.build();
+}

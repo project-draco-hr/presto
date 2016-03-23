@@ -1,2 +1,19 @@
 {
+  requireNonNull(partitionNames,"partitionNames is null");
+  checkArgument(!Iterables.isEmpty(partitionNames),"partitionNames is empty");
+  HivePartitionName firstPartition=Iterables.get(partitionNames,0);
+  HiveTableName hiveTableName=firstPartition.getHiveTableName();
+  String databaseName=hiveTableName.getDatabaseName();
+  String tableName=hiveTableName.getTableName();
+  List<String> partitionsToFetch=new ArrayList<>();
+  for (  HivePartitionName partitionName : partitionNames) {
+    checkArgument(partitionName.getHiveTableName().equals(hiveTableName),"Expected table name %s but got %s",hiveTableName,partitionName.getHiveTableName());
+    partitionsToFetch.add(partitionName.getPartitionName());
+  }
+  ImmutableMap.Builder<HivePartitionName,Optional<Partition>> partitions=ImmutableMap.builder();
+  Map<String,Optional<Partition>> partitionsByNames=delegate.getPartitionsByNames(databaseName,tableName,partitionsToFetch);
+  for (  Entry<String,Optional<Partition>> entry : partitionsByNames.entrySet()) {
+    partitions.put(new HivePartitionName(hiveTableName,entry.getKey()),entry.getValue());
+  }
+  return partitions.build();
 }

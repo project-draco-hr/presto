@@ -1,15 +1,4 @@
 {
   HiveTableHandle handle=checkType(tableHandle,HiveTableHandle.class,"tableHandle");
-  Optional<Table> tableMetadata=metastore.getTable(handle.getSchemaName(),handle.getTableName());
-  if (!tableMetadata.isPresent()) {
-    throw new TableNotFoundException(handle.getSchemaTableName());
-  }
-  Table table=tableMetadata.get();
-  StorageDescriptor sd=table.getSd();
-  ImmutableList.Builder<FieldSchema> columns=ImmutableList.builder();
-  columns.addAll(sd.getCols());
-  columns.add(new FieldSchema(column.getName(),toHiveType(typeTranslator,column.getType()).getHiveTypeName(),column.getComment()));
-  sd.setCols(columns.build());
-  table.setSd(sd);
-  metastore.alterTable(handle.getSchemaName(),handle.getTableName(),table);
+  metastore.addColumn(handle.getSchemaName(),handle.getTableName(),column.getName(),toHiveType(typeTranslator,column.getType()),column.getComment());
 }

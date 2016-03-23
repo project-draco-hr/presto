@@ -5,11 +5,11 @@
   if (!table.isPresent()) {
     throw new TableNotFoundException(handle.getSchemaTableName());
   }
-  if (table.get().getPartitionKeysSize() == 0) {
+  if (table.get().getPartitionColumns().isEmpty()) {
     if (!table.get().getTableType().equals(TableType.MANAGED_TABLE.toString())) {
       throw new PrestoException(NOT_SUPPORTED,"Cannot delete from non-managed Hive table");
     }
-    String location=table.get().getSd().getLocation();
+    String location=table.get().getStorage().getLocation();
     List<String> notDeletedFiles=recursiveDeleteFilesStartingWith(session.getUser(),location,"");
     if (!notDeletedFiles.isEmpty()) {
       throw new PrestoException(HIVE_FILESYSTEM_ERROR,"Error deleting from unpartitioned table: " + handle.getSchemaTableName());

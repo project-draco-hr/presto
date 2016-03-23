@@ -1,0 +1,22 @@
+{
+  String tablePartitionDescription="Table '" + tableName + "'";
+  if (partitionName.isPresent()) {
+    tablePartitionDescription+=" partition '" + partitionName.get() + "'";
+  }
+  if (protectMode.offline) {
+    throw new TableOfflineException(tableName,format("%s is offline",tablePartitionDescription));
+  }
+  String prestoOffline=parameters.get(PRESTO_OFFLINE);
+  if (!isNullOrEmpty(prestoOffline)) {
+    throw new TableOfflineException(tableName,format("%s is offline for Presto: %s",tablePartitionDescription,prestoOffline));
+  }
+  if (protectMode.readOnly) {
+    throw new HiveReadOnlyException(tableName,partitionName);
+  }
+  if (storage.isSorted()) {
+    throw new PrestoException(NOT_SUPPORTED,format("Inserting into bucketed sorted tables is not supported. %s",tablePartitionDescription));
+  }
+  if (storage.isSkewed()) {
+    throw new PrestoException(NOT_SUPPORTED,format("Inserting into bucketed tables with skew is not supported. %s",tablePartitionDescription));
+  }
+}
