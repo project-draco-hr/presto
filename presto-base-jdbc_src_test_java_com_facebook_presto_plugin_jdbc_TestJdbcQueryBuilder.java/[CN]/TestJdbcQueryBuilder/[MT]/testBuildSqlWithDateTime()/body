@@ -1,0 +1,14 @@
+{
+  TupleDomain<ColumnHandle> tupleDomain=TupleDomain.withColumnDomains(ImmutableMap.of(columns.get(4),Domain.create(SortedRangeSet.copyOf(DATE,ImmutableList.of(Range.range(DATE,toDays(2016,6,7),true,toDays(2016,6,17),false),Range.equal(DATE,toDays(2016,6,3)),Range.equal(DATE,toDays(2016,10,21)))),false),columns.get(5),Domain.create(SortedRangeSet.copyOf(TIME,ImmutableList.of(Range.range(TIME,toTime(2016,6,7,6,12,23).getTime(),false,toTime(2016,6,7,8,23,37).getTime(),true),Range.equal(TIME,toTime(2016,6,1,2,3,4).getTime()),Range.equal(TIME,toTime(2016,10,21,20,23,37).getTime()))),false)));
+  Connection connection=database.getConnection();
+  try (PreparedStatement preparedStatement=new QueryBuilder("\"").buildSql(jdbcClient,connection,"","","test_table",columns,tupleDomain);ResultSet resultSet=preparedStatement.executeQuery()){
+    ImmutableSet.Builder<Date> dateBuilder=ImmutableSet.builder();
+    ImmutableSet.Builder<Time> timeBuilder=ImmutableSet.builder();
+    while (resultSet.next()) {
+      dateBuilder.add((Date)resultSet.getObject("col_4"));
+      timeBuilder.add((Time)resultSet.getObject("col_5"));
+    }
+    assertEquals(dateBuilder.build(),ImmutableSet.of(toDate(2016,6,7),toDate(2016,6,13),toDate(2016,10,21)));
+    assertEquals(timeBuilder.build(),ImmutableSet.of(toTime(2016,6,7,8,23,37),toTime(2016,10,21,20,23,37)));
+  }
+ }
