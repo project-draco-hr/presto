@@ -6,11 +6,12 @@
   Path path=new Path(getPartitionLocation(table,partition.getPartition()));
   Configuration configuration=hdfsEnvironment.getConfiguration(path);
   InputFormat<?,?> inputFormat=getInputFormat(configuration,schema,false);
+  FileSystem fs=hdfsEnvironment.getFileSystem(session.getUser(),path);
   if (inputFormat instanceof SymlinkTextInputFormat) {
     if (bucketHandle.isPresent()) {
       throw new PrestoException(StandardErrorCode.NOT_SUPPORTED,"Bucketed table in SymlinkTextInputFormat is not yet supported");
     }
-    for (    Path targetPath : getTargetPathsFromSymlink(configuration,path)) {
+    for (    Path targetPath : getTargetPathsFromSymlink(fs,path)) {
       TextInputFormat targetInputFormat=new TextInputFormat();
       Configuration targetConfiguration=hdfsEnvironment.getConfiguration(targetPath);
       JobConf targetJob=new JobConf(targetConfiguration);
@@ -20,7 +21,7 @@
       InputSplit[] targetSplits=targetInputFormat.getSplits(targetJob,0);
       for (      InputSplit inputSplit : targetSplits) {
         FileSplit split=(FileSplit)inputSplit;
-        FileSystem targetFilesystem=split.getPath().getFileSystem(targetConfiguration);
+        FileSystem targetFilesystem=hdfsEnvironment.getFileSystem(session.getUser(),split.getPath());
         FileStatus file=targetFilesystem.getFileStatus(split.getPath());
         hiveSplitSource.addToQueue(createHiveSplits(partitionName,file.getPath().toString(),targetFilesystem.getFileBlockLocations(file,split.getStart(),split.getLength()),split.getStart(),split.getLength(),schema,partitionKeys,false,session,OptionalInt.empty(),effectivePredicate));
         if (stopped) {
@@ -30,7 +31,6 @@
     }
     return;
   }
-  FileSystem fs=hdfsEnvironment.getFileSystem(path);
   HiveFileIterator iterator=new HiveFileIterator(path,fs,directoryLister,namenodeStats,partitionName,inputFormat,schema,partitionKeys,effectivePredicate);
   if (bucket.isPresent()) {
     List<LocatedFileStatus> locatedFileStatuses=listAndSortBucketFiles(iterator,bucket.get().getBucketCount());
@@ -45,7 +45,7 @@
     List<LocatedFileStatus> list=listAndSortBucketFiles(iterator,bucketCount);
     for (int bucketIndex=0; bucketIndex < bucketCount; bucketIndex++) {
       LocatedFileStatus file=list.get(bucketIndex);
-      boolean splittable=isSplittable(iterator.getInputFormat(),hdfsEnvironment.getFileSystem(file.getPath()),file.getPath());
+      boolean splittable=isSplittable(iterator.getInputFormat(),hdfsEnvironment.getFileSystem(session.getUser(),file.getPath()),file.getPath());
       hiveSplitSource.addToQueue(createHiveSplits(iterator.getPartitionName(),file.getPath().toString(),file.getBlockLocations(),0,file.getLen(),iterator.getSchema(),iterator.getPartitionKeys(),splittable,session,OptionalInt.of(bucketIndex),iterator.getEffectivePredicate()));
     }
     return;

@@ -4,9 +4,9 @@
   String schemaName=schemaTableName.getSchemaName();
   String tableName=schemaTableName.getTableName();
   LocationService locationService=getLocationService(schemaName);
-  LocationHandle locationHandle=locationService.forNewTable(session.getQueryId(),schemaName,tableName);
+  LocationHandle locationHandle=locationService.forNewTable(session.getUser(),session.getQueryId(),schemaName,tableName);
   Path targetPath=locationService.targetPathRoot(locationHandle);
-  HiveWriteUtils.createDirectory(hdfsEnvironment,targetPath);
+  HiveWriteUtils.createDirectory(session.getUser(),hdfsEnvironment,targetPath);
   SerDeInfo serdeInfo=new SerDeInfo();
   serdeInfo.setName(tableName);
   serdeInfo.setSerializationLib(hiveStorageFormat.getSerDe());
