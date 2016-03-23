@@ -1,0 +1,51 @@
+{
+  if (!bucketCount.isPresent()) {
+    if (pageIndexer.getMaxIndex() >= writers.length) {
+      writers=Arrays.copyOf(writers,pageIndexer.getMaxIndex() + 1);
+    }
+    for (int position=0; position < page.getPositionCount(); position++) {
+      int writerIndex=indexes[position];
+      HiveRecordWriter writer=writers[writerIndex];
+      if (writer == null) {
+        for (int field=0; field < partitionBlocks.length; field++) {
+          Object value=getField(partitionColumnTypes.get(field),partitionBlocks[field],position);
+          partitionRow.set(field,value);
+        }
+        writer=createWriter(partitionRow,filePrefix + "_" + randomUUID());
+        writers[writerIndex]=writer;
+      }
+      writer.addRow(dataBlocks,position);
+    }
+  }
+ else {
+    int bucketCount=this.bucketCount.getAsInt();
+    Block[] bucketBlocks=new Block[bucketColumns.length];
+    for (int i=0; i < bucketColumns.length; i++) {
+      bucketBlocks[i]=page.getBlock(bucketColumns[i]);
+    }
+    Page bucketColumnsPage=new Page(page.getPositionCount(),bucketBlocks);
+    for (int i=bucketWriters.size(); i <= pageIndexer.getMaxIndex(); i++) {
+      bucketWriters.add(new Int2ObjectOpenHashMap<>());
+    }
+    for (int position=0; position < page.getPositionCount(); position++) {
+      int writerIndex=indexes[position];
+      Int2ObjectMap<HiveRecordWriter> writers=bucketWriters.get(writerIndex);
+      int bucket=HiveBucketing.getHiveBucket(bucketColumnTypes,bucketColumnsPage,position,bucketCount);
+      HiveRecordWriter writer=writers.get(bucket);
+      if (writer == null) {
+        if (bucketWriterCount >= maxOpenPartitions) {
+          throw new PrestoException(HIVE_TOO_MANY_OPEN_PARTITIONS,"Too many open writers for partitions and buckets");
+        }
+        bucketWriterCount++;
+        for (int field=0; field < partitionBlocks.length; field++) {
+          Object value=getField(partitionColumnTypes.get(field),partitionBlocks[field],position);
+          partitionRow.set(field,value);
+        }
+        writer=createWriter(partitionRow,filePrefix + "_bucket-" + Strings.padStart(Integer.toString(bucket),BUCKET_NUMBER_PADDING,'0'));
+        writers.put(bucket,writer);
+      }
+      writer.addRow(dataBlocks,position);
+    }
+  }
+  return NOT_BLOCKED;
+}

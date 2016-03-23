@@ -1,22 +1,2 @@
 {
-  ImmutableList.Builder<Slice> partitionUpdates=ImmutableList.builder();
-  if (!bucketCount.isPresent()) {
-    for (    HiveRecordWriter writer : writers) {
-      if (writer != null) {
-        writer.commit();
-        PartitionUpdate partitionUpdate=writer.getPartitionUpdate();
-        partitionUpdates.add(wrappedBuffer(partitionUpdateCodec.toJsonBytes(partitionUpdate)));
-      }
-    }
-  }
- else {
-    for (    Int2ObjectMap<HiveRecordWriter> writers : bucketWriters) {
-      for (      HiveRecordWriter writer : writers.values()) {
-        writer.commit();
-        PartitionUpdate partitionUpdate=writer.getPartitionUpdate();
-        partitionUpdates.add(wrappedBuffer(partitionUpdateCodec.toJsonBytes(partitionUpdate)));
-      }
-    }
-  }
-  return partitionUpdates.build();
 }
