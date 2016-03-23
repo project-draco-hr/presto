@@ -1,0 +1,12 @@
+{
+  OptionalLong maxFileDescriptorCount=getMaxFileDescriptorCount();
+  if (!maxFileDescriptorCount.isPresent()) {
+    failRequirement("Cannot read OS file descriptor limit");
+  }
+  if (maxFileDescriptorCount.getAsLong() < MIN_FILE_DESCRIPTORS) {
+    failRequirement("Presto requires at least %s file descriptors (found %s)",MIN_FILE_DESCRIPTORS,maxFileDescriptorCount.getAsLong());
+  }
+  if (maxFileDescriptorCount.getAsLong() < RECOMMENDED_FILE_DESCRIPTORS) {
+    warnRequirement("Current OS file descriptor limit is %s. Presto recommends at least %s",maxFileDescriptorCount.getAsLong(),RECOMMENDED_FILE_DESCRIPTORS);
+  }
+}
