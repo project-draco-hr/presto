@@ -1,12 +1,12 @@
 {
   TestColumn writeColumn=new TestColumn("varchar_column",getPrimitiveJavaObjectInspector(new VarcharTypeInfo(4)),new HiveVarchar("test",4),utf8Slice("test"));
   TestColumn readColumn=new TestColumn("varchar_column",getPrimitiveJavaObjectInspector(new VarcharTypeInfo(3)),new HiveVarchar("tes",3),utf8Slice("tes"));
-  assertThatFileFormat(RCTEXT).withWriteColumns(ImmutableList.of(writeColumn)).withReadColumns(ImmutableList.of(readColumn)).isReadableByRecordCursor(new ColumnarTextHiveRecordCursorProvider(HDFS_ENVIRONMENT)).isReadableByRecordCursor(new GenericHiveRecordCursorProvider());
-  assertThatFileFormat(RCBINARY).withWriteColumns(ImmutableList.of(writeColumn)).withReadColumns(ImmutableList.of(readColumn)).isReadableByRecordCursor(new ColumnarBinaryHiveRecordCursorProvider(HDFS_ENVIRONMENT)).isReadableByRecordCursor(new GenericHiveRecordCursorProvider());
+  assertThatFileFormat(RCTEXT).withWriteColumns(ImmutableList.of(writeColumn)).withReadColumns(ImmutableList.of(readColumn)).isReadableByRecordCursor(new ColumnarTextHiveRecordCursorProvider(HDFS_ENVIRONMENT)).isReadableByRecordCursor(new GenericHiveRecordCursorProvider(HDFS_ENVIRONMENT));
+  assertThatFileFormat(RCBINARY).withWriteColumns(ImmutableList.of(writeColumn)).withReadColumns(ImmutableList.of(readColumn)).isReadableByRecordCursor(new ColumnarBinaryHiveRecordCursorProvider(HDFS_ENVIRONMENT)).isReadableByRecordCursor(new GenericHiveRecordCursorProvider(HDFS_ENVIRONMENT));
   assertThatFileFormat(ORC).withWriteColumns(ImmutableList.of(writeColumn)).withReadColumns(ImmutableList.of(readColumn)).isReadableByPageSource(new OrcPageSourceFactory(TYPE_MANAGER,false,HDFS_ENVIRONMENT));
   assertThatFileFormat(PARQUET).withWriteColumns(ImmutableList.of(writeColumn)).withReadColumns(ImmutableList.of(readColumn)).isReadableByRecordCursor(new ParquetRecordCursorProvider(false,HDFS_ENVIRONMENT));
   TestingConnectorSession session=new TestingConnectorSession(new HiveSessionProperties(new HiveClientConfig().setParquetOptimizedReaderEnabled(true)).getSessionProperties());
   assertThatFileFormat(PARQUET).withWriteColumns(ImmutableList.of(writeColumn)).withReadColumns(ImmutableList.of(readColumn)).withSession(session).isReadableByPageSource(new ParquetPageSourceFactory(TYPE_MANAGER,false,HDFS_ENVIRONMENT));
-  assertThatFileFormat(SEQUENCEFILE).withWriteColumns(ImmutableList.of(writeColumn)).withReadColumns(ImmutableList.of(readColumn)).isReadableByRecordCursor(new GenericHiveRecordCursorProvider());
-  assertThatFileFormat(TEXTFILE).withWriteColumns(ImmutableList.of(writeColumn)).withReadColumns(ImmutableList.of(readColumn)).isReadableByRecordCursor(new GenericHiveRecordCursorProvider());
+  assertThatFileFormat(SEQUENCEFILE).withWriteColumns(ImmutableList.of(writeColumn)).withReadColumns(ImmutableList.of(readColumn)).isReadableByRecordCursor(new GenericHiveRecordCursorProvider(HDFS_ENVIRONMENT));
+  assertThatFileFormat(TEXTFILE).withWriteColumns(ImmutableList.of(writeColumn)).withReadColumns(ImmutableList.of(readColumn)).isReadableByRecordCursor(new GenericHiveRecordCursorProvider(HDFS_ENVIRONMENT));
 }
