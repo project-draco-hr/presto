@@ -1,0 +1,6 @@
+{
+  PlanFragment buildFragment=createTableScanPlanFragment("build");
+  PlanFragment joinFragment=createBroadcastJoinPlanFragment("join",buildFragment);
+  List<Set<PlanFragmentId>> phases=PhasedExecutionSchedule.extractPhases(ImmutableList.of(joinFragment,buildFragment));
+  assertEquals(phases,ImmutableList.of(ImmutableSet.of(joinFragment.getId(),buildFragment.getId())));
+}
