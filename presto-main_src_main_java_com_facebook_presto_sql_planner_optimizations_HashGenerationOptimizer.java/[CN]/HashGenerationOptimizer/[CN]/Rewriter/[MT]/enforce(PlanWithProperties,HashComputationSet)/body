@@ -1,0 +1,24 @@
+{
+  ImmutableMap.Builder<Symbol,Expression> assignments=ImmutableMap.builder();
+  Map<HashComputation,Symbol> outputHashSymbols=new HashMap<>();
+  Map<Symbol,HashComputation> resultHashSymbols=planWithProperties.getHashSymbols().inverse();
+  for (  Symbol symbol : planWithProperties.getNode().getOutputSymbols()) {
+    HashComputation partitionSymbols=resultHashSymbols.get(symbol);
+    if (partitionSymbols == null || requiredHashes.getHashes().contains(partitionSymbols)) {
+      assignments.put(symbol,new QualifiedNameReference(symbol.toQualifiedName()));
+      if (partitionSymbols != null) {
+        outputHashSymbols.put(partitionSymbols,symbol);
+      }
+    }
+  }
+  for (  HashComputation hashComputation : requiredHashes.getHashes()) {
+    if (!planWithProperties.getHashSymbols().containsKey(hashComputation)) {
+      Expression hashExpression=hashComputation.getHashExpression();
+      Symbol hashSymbol=symbolAllocator.newHashSymbol();
+      assignments.put(hashSymbol,hashExpression);
+      outputHashSymbols.put(hashComputation,hashSymbol);
+    }
+  }
+  ProjectNode projectNode=new ProjectNode(idAllocator.getNextId(),planWithProperties.getNode(),assignments.build());
+  return new PlanWithProperties(projectNode,outputHashSymbols);
+}

@@ -1,0 +1,10 @@
+{
+  Optional<HashComputation> sourceHashComputation=computeHash(ImmutableList.of(node.getSourceJoinSymbol()));
+  PlanWithProperties source=planAndEnforce(node.getSource(),new HashComputationSet(sourceHashComputation),true,new HashComputationSet(sourceHashComputation));
+  Symbol sourceHashSymbol=source.getRequiredHashSymbol(sourceHashComputation.get());
+  Optional<HashComputation> filterHashComputation=computeHash(ImmutableList.of(node.getFilteringSourceJoinSymbol()));
+  HashComputationSet requiredHashes=new HashComputationSet(filterHashComputation);
+  PlanWithProperties filteringSource=planAndEnforce(node.getFilteringSource(),requiredHashes,true,requiredHashes);
+  Symbol filteringSourceHashSymbol=filteringSource.getRequiredHashSymbol(filterHashComputation.get());
+  return new PlanWithProperties(new SemiJoinNode(idAllocator.getNextId(),source.getNode(),filteringSource.getNode(),node.getSourceJoinSymbol(),node.getFilteringSourceJoinSymbol(),node.getSemiJoinOutput(),Optional.of(sourceHashSymbol),Optional.of(filteringSourceHashSymbol)),source.getHashSymbols());
+}

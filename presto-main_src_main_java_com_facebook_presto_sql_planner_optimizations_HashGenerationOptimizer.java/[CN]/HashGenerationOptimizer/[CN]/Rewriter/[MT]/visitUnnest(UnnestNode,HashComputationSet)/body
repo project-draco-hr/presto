@@ -1,0 +1,6 @@
+{
+  PlanWithProperties child=plan(node.getSource(),parentPreference.pruneSymbols(node.getSource().getOutputSymbols()));
+  Map<HashComputation,Symbol> hashSymbols=new HashMap<>(child.getHashSymbols());
+  hashSymbols.keySet().retainAll(parentPreference.getHashes());
+  return new PlanWithProperties(new UnnestNode(idAllocator.getNextId(),child.getNode(),ImmutableList.<Symbol>builder().addAll(node.getReplicateSymbols()).addAll(hashSymbols.values()).build(),node.getUnnestSymbols(),node.getOrdinalitySymbol()),hashSymbols);
+}

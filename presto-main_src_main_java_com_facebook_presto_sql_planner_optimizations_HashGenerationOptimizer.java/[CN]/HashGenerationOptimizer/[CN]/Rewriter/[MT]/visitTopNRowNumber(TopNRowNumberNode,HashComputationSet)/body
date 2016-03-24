@@ -1,0 +1,9 @@
+{
+  if (node.getPartitionBy().isEmpty()) {
+    return planSimpleNodeWithProperties(node,parentPreference);
+  }
+  Optional<HashComputation> hashComputation=computeHash(node.getPartitionBy());
+  PlanWithProperties child=planAndEnforce(node.getSource(),new HashComputationSet(hashComputation),false,parentPreference.withHashComputation(node,hashComputation));
+  Symbol hashSymbol=child.getRequiredHashSymbol(hashComputation.get());
+  return new PlanWithProperties(new TopNRowNumberNode(idAllocator.getNextId(),child.getNode(),node.getPartitionBy(),node.getOrderBy(),node.getOrderings(),node.getRowNumberSymbol(),node.getMaxRowCountPerPartition(),node.isPartial(),Optional.of(hashSymbol)),child.getHashSymbols());
+}
