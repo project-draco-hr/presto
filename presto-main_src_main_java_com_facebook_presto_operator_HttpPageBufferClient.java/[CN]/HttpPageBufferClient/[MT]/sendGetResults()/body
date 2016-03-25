@@ -25,7 +25,7 @@ synchronized (HttpPageBufferClient.this) {
         }
       }
  catch (      PrestoException e) {
-        handleFailure(e);
+        handleFailure(e,resultFuture);
         return;
       }
       for (      Page page : pages) {
@@ -36,9 +36,11 @@ synchronized (HttpPageBufferClient.this) {
         if (result.isClientComplete()) {
           completed=true;
         }
-        future=null;
+        if (future == resultFuture) {
+          future=null;
+          errorDelayMillis=0;
+        }
         lastUpdate=DateTime.now();
-        errorDelayMillis=0;
       }
       requestsCompleted.incrementAndGet();
       clientCallback.requestComplete(HttpPageBufferClient.this);
@@ -52,7 +54,7 @@ synchronized (HttpPageBufferClient.this) {
         String message=format("%s (%s - requests failed for %s)",WORKER_NODE_ERROR,uri,errorDuration);
         t=new PageTransportTimeoutException(message,t);
       }
-      handleFailure(t);
+      handleFailure(t,resultFuture);
     }
   }
 ,executor);

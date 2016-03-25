@@ -6,9 +6,11 @@
       checkNotHoldsLock();
 synchronized (HttpPageBufferClient.this) {
         closed=true;
-        future=null;
+        if (future == resultFuture) {
+          future=null;
+          errorDelayMillis=0;
+        }
         lastUpdate=DateTime.now();
-        errorDelayMillis=0;
       }
       requestsCompleted.incrementAndGet();
       clientCallback.clientFinished(HttpPageBufferClient.this);
@@ -21,7 +23,7 @@ synchronized (HttpPageBufferClient.this) {
         String message=format("Error closing remote buffer (%s - requests failed for %s)",location,errorDuration);
         t=new PrestoException(REMOTE_BUFFER_CLOSE_FAILED,message,t);
       }
-      handleFailure(t);
+      handleFailure(t,resultFuture);
     }
   }
 ,executor);
