@@ -19,5 +19,7 @@
   if (future != null) {
     httpRequestState=future.getState();
   }
-  return new PageBufferClientStatus(location,state,lastUpdate,rowsReceived.get(),pagesReceived.get(),requestsScheduled.get(),requestsCompleted.get(),requestsFailed.get(),httpRequestState);
+  long rejectedRows=rowsRejected.get();
+  int rejectedPages=pagesRejected.get();
+  return new PageBufferClientStatus(location,state,lastUpdate,rowsReceived.get(),pagesReceived.get(),rejectedRows == 0 ? OptionalLong.empty() : OptionalLong.of(rejectedRows),rejectedPages == 0 ? OptionalInt.empty() : OptionalInt.of(rejectedPages),requestsScheduled.get(),requestsCompleted.get(),requestsFailed.get(),httpRequestState);
 }
