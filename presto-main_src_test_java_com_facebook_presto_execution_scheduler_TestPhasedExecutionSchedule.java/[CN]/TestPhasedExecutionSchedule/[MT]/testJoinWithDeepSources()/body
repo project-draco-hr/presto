@@ -5,7 +5,7 @@
   PlanFragment probeSourceFragment=createTableScanPlanFragment("probeSource");
   PlanFragment probeMiddleFragment=createExchangePlanFragment("probeMiddle",probeSourceFragment);
   PlanFragment probeTopFragment=createExchangePlanFragment("probeTop",probeMiddleFragment);
-  PlanFragment joinFragment=createJoinPlanFragment("join",buildTopFragment,probeTopFragment);
+  PlanFragment joinFragment=createJoinPlanFragment(INNER,"join",buildTopFragment,probeTopFragment);
   List<Set<PlanFragmentId>> phases=PhasedExecutionSchedule.extractPhases(ImmutableList.of(joinFragment,buildTopFragment,buildMiddleFragment,buildSourceFragment,probeTopFragment,probeMiddleFragment,probeSourceFragment));
   assertEquals(phases,ImmutableList.of(ImmutableSet.of(joinFragment.getId()),ImmutableSet.of(buildTopFragment.getId()),ImmutableSet.of(buildMiddleFragment.getId()),ImmutableSet.of(buildSourceFragment.getId()),ImmutableSet.of(probeTopFragment.getId()),ImmutableSet.of(probeMiddleFragment.getId()),ImmutableSet.of(probeSourceFragment.getId())));
 }
