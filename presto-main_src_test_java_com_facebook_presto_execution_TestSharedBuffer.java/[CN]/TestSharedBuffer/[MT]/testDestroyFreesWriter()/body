@@ -9,9 +9,10 @@
   ListenableFuture<?> secondEnqueuePage=enqueuePage(sharedBuffer,createPage(6));
   assertBufferResultEquals(TYPES,getBufferResult(sharedBuffer,QUEUE,0,sizeOfPages(1),MAX_WAIT),bufferResult(0,createPage(0)));
   sharedBuffer.get(QUEUE,1,sizeOfPages(1)).cancel(true);
-  assertTrue(firstEnqueuePage.isDone());
+  assertFalse(firstEnqueuePage.isDone());
   assertFalse(secondEnqueuePage.isDone());
   sharedBuffer.destroy();
   assertFinished(sharedBuffer);
+  assertTrue(firstEnqueuePage.isDone());
   assertTrue(secondEnqueuePage.isDone());
 }
