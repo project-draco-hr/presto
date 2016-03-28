@@ -1,0 +1,17 @@
+{
+  try {
+    ByteArrayInputStream inputStream=new ByteArrayInputStream(data);
+    PageHeader pageHeader=Util.readPageHeader(inputStream);
+    if (pageHeader.type != PageType.DICTIONARY_PAGE) {
+      return Optional.empty();
+    }
+    Slice compressedData=wrappedBuffer(data,data.length - inputStream.available(),pageHeader.getCompressed_page_size());
+    DictionaryPageHeader dicHeader=pageHeader.getDictionary_page_header();
+    ParquetEncoding encoding=getParquetEncoding(Encoding.valueOf(dicHeader.getEncoding().name()));
+    int dictionarySize=dicHeader.getNum_values();
+    return Optional.of(new ParquetDictionaryPage(decompress(codecName,compressedData,pageHeader.getUncompressed_page_size()),dictionarySize,encoding));
+  }
+ catch (  IOException ignored) {
+    return Optional.empty();
+  }
+}

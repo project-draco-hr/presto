@@ -3,18 +3,18 @@
     return null;
   }
   ColumnDescriptor columnDescriptor=dictionaryDescriptor.getColumnDescriptor();
-  DictionaryPage dictionaryPage=dictionaryDescriptor.getDictionaryPage();
-  if (dictionaryPage == null) {
+  Optional<ParquetDictionaryPage> dictionaryPage=dictionaryDescriptor.getDictionaryPage();
+  if (!dictionaryPage.isPresent()) {
     return null;
   }
-  Dictionary dictionary;
+  ParquetDictionary dictionary;
   try {
-    dictionary=dictionaryPage.getEncoding().initDictionary(columnDescriptor,dictionaryPage);
+    dictionary=dictionaryPage.get().getEncoding().initDictionary(columnDescriptor,dictionaryPage.get());
   }
  catch (  Exception e) {
     return null;
   }
-  int dictionarySize=dictionaryPage.getDictionarySize();
+  int dictionarySize=dictionaryPage.get().getDictionarySize();
   if (type.equals(BIGINT) && columnDescriptor.getType() == PrimitiveTypeName.INT64) {
     List<Domain> domains=new ArrayList<>();
     for (int i=0; i < dictionarySize; i++) {

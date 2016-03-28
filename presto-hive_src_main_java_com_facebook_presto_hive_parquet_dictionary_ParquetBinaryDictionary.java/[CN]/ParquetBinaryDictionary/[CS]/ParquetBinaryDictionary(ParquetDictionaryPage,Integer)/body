@@ -1,0 +1,21 @@
+{
+  super(dictionaryPage.getEncoding());
+  byte[] dictionaryBytes=dictionaryPage.getSlice().getBytes();
+  content=new Binary[dictionaryPage.getDictionarySize()];
+  int offset=0;
+  if (length == null) {
+    for (int i=0; i < content.length; i++) {
+      int len=readIntLittleEndian(dictionaryBytes,offset);
+      offset+=4;
+      content[i]=Binary.fromByteArray(dictionaryBytes,offset,len);
+      offset+=len;
+    }
+  }
+ else {
+    checkArgument(length > 0,"Invalid byte array length: " + length);
+    for (int i=0; i < content.length; i++) {
+      content[i]=Binary.fromByteArray(dictionaryBytes,offset,length);
+      offset+=length;
+    }
+  }
+}
