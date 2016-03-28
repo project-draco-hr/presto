@@ -1,0 +1,15 @@
+{
+  if (finish.getSource() instanceof ExchangeNode) {
+    ExchangeNode exchange=(ExchangeNode)finish.getSource();
+    if (exchange.getSources().size() == 1 && (getOnlyElement(exchange.getSources()) instanceof DeleteNode)) {
+      DeleteNode delete=(DeleteNode)getOnlyElement(exchange.getSources());
+      if (delete.getSource() instanceof ValuesNode) {
+        ValuesNode values=(ValuesNode)delete.getSource();
+        if (values.getRows().isEmpty()) {
+          return new ValuesNode(finish.getId(),finish.getOutputSymbols(),ImmutableList.of(ImmutableList.of(new LongLiteral("0"))));
+        }
+      }
+    }
+  }
+  return finish;
+}

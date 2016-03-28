@@ -20,6 +20,9 @@
   assertUpdate("CREATE TABLE test_delete AS SELECT * FROM orders","SELECT count(*) FROM orders");
   assertUpdate("DELETE FROM test_delete WHERE rand() < 0",0);
   assertUpdate("DROP TABLE test_delete");
+  assertUpdate("CREATE TABLE test_delete AS SELECT * FROM orders","SELECT count(*) FROM orders");
+  assertUpdate("DELETE FROM test_delete WHERE orderkey > 5 AND orderkey < 4",0);
+  assertUpdate("DROP TABLE test_delete");
   assertUpdate("CREATE TABLE test_delete AS SELECT * FROM lineitem","SELECT count(*) FROM lineitem");
   assertUpdate("DELETE FROM test_delete WHERE orderkey IN (SELECT orderkey FROM orders WHERE orderstatus = 'F')","SELECT count(*) FROM lineitem WHERE orderkey IN (SELECT orderkey FROM orders WHERE orderstatus = 'F')");
   assertQuery("SELECT * FROM test_delete","SELECT * FROM lineitem WHERE orderkey IN (SELECT orderkey FROM orders WHERE orderstatus <> 'F')");
