@@ -3,7 +3,19 @@
     return createEmptyPagesResponse(getTaskInstanceId(response),getToken(response),getNextToken(response),getComplete(response));
   }
   if (response.getStatusCode() != HttpStatus.OK.code()) {
-    throw new PageTransportErrorException(format("Expected response code to be 200, but was %s %s: %s",response.getStatusCode(),response.getStatusMessage(),request.getUri()));
+    StringBuilder body=new StringBuilder();
+    try (BufferedReader reader=new BufferedReader(new InputStreamReader(response.getInputStream()))){
+      for (int i=0; i < 1000; i++) {
+        String line=reader.readLine();
+        if (line == null || body.length() + line.length() > 100 * 1024) {
+          break;
+        }
+        body.append(line + "\n");
+      }
+    }
+ catch (    RuntimeException|IOException e) {
+    }
+    throw new PageTransportErrorException(format("Expected response code to be 200, but was %s %s: %s%n%s",response.getStatusCode(),response.getStatusMessage(),request.getUri(),body.toString()));
   }
   String contentType=response.getHeader(CONTENT_TYPE);
   if (contentType == null) {
