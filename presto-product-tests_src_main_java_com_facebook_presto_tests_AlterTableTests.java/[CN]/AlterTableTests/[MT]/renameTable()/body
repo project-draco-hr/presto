@@ -1,10 +1,15 @@
 {
-  String tableName="to_be_renamed_table_name";
+  String tableName="to_be_renamed";
   String renamedTableName="renamed_table_name";
   query(format("DROP TABLE IF EXISTS %s",tableName));
   query(format("DROP TABLE IF EXISTS %s",renamedTableName));
-  query(format("CREATE TABLE %s AS SELECT * FROM nation",tableName));
-  assertThat(query(format("ALTER TABLE %s RENAME TO %s",tableName,renamedTableName),UPDATE)).hasRowsCount(1);
-  assertThat(query(format("SELECT * FROM %s",renamedTableName))).hasRowsCount(25);
-  assertThat(query(format("ALTER TABLE %s RENAME TO %s",renamedTableName,tableName),UPDATE)).hasRowsCount(1);
+  try {
+    query(format("CREATE TABLE %s AS SELECT * FROM nation",tableName));
+    assertThat(query(format("ALTER TABLE %s RENAME TO %s",tableName,renamedTableName),UPDATE)).hasRowsCount(1);
+    assertThat(query(format("SELECT * FROM %s",renamedTableName))).hasRowsCount(25);
+    assertThat(query(format("ALTER TABLE %s RENAME TO %s",renamedTableName,tableName),UPDATE)).hasRowsCount(1);
+  }
+  finally {
+    query(format("DROP TABLE %s",tableName));
+  }
 }
