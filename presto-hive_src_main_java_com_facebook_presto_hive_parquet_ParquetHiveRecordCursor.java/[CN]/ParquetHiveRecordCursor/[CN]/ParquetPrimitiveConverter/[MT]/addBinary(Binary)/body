@@ -3,6 +3,9 @@
   if (type == TIMESTAMP) {
     type.writeLong(builder,ParquetTimestampUtils.getTimestampMillis(value));
   }
+ else   if (isVarcharType(type)) {
+    type.writeSlice(builder,truncateToLength(wrappedBuffer(value.getBytes()),type));
+  }
  else {
     type.writeSlice(builder,wrappedBuffer(value.getBytes()));
   }

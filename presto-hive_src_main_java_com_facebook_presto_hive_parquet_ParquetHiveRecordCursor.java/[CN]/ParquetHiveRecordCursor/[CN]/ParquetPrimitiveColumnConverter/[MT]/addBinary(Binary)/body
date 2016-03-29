@@ -1,7 +1,11 @@
 {
   nulls[fieldIndex]=false;
-  if (types[fieldIndex] == TIMESTAMP) {
+  Type type=types[fieldIndex];
+  if (type == TIMESTAMP) {
     longs[fieldIndex]=ParquetTimestampUtils.getTimestampMillis(value);
+  }
+ else   if (isVarcharType(type)) {
+    slices[fieldIndex]=truncateToLength(wrappedBuffer(value.getBytes()),type);
   }
  else {
     slices[fieldIndex]=wrappedBuffer(value.getBytes());
