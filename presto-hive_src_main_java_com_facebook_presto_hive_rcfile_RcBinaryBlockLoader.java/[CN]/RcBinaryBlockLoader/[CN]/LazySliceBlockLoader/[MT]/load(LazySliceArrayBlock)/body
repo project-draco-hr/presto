@@ -13,12 +13,17 @@
       if (length > 0) {
         byte[] bytes=writable.getData();
         int start=writable.getStart();
+        Slice value;
         if ((length == 1) && bytes[start] == HIVE_EMPTY_STRING_BYTE) {
-          vector[i]=Slices.EMPTY_SLICE;
+          value=Slices.EMPTY_SLICE;
         }
  else {
-          vector[i]=Slices.wrappedBuffer(Arrays.copyOfRange(bytes,start,start + length));
+          value=Slices.wrappedBuffer(Arrays.copyOfRange(bytes,start,start + length));
         }
+        if (isVarcharType(type)) {
+          value=truncateToLength(value,type);
+        }
+        vector[i]=value;
       }
     }
     block.setValues(vector);

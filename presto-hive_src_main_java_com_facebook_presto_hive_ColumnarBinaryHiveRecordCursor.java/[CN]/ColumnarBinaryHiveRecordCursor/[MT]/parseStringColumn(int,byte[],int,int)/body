@@ -9,7 +9,14 @@
       slices[column]=Slices.EMPTY_SLICE;
     }
  else {
-      slices[column]=Slices.wrappedBuffer(Arrays.copyOfRange(bytes,start,start + length));
+      Slice value=Slices.wrappedBuffer(Arrays.copyOfRange(bytes,start,start + length));
+      Type type=types[column];
+      if (isVarcharType(type)) {
+        slices[column]=truncateToLength(value,type);
+      }
+ else {
+        slices[column]=value;
+      }
     }
   }
 }

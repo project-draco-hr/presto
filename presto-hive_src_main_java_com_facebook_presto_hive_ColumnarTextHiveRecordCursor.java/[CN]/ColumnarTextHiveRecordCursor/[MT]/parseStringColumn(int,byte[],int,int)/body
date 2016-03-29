@@ -4,9 +4,16 @@
     wasNull=true;
   }
  else {
-    slices[column]=Slices.wrappedBuffer(Arrays.copyOfRange(bytes,start,start + length));
-    if (hiveTypes[column].equals(HiveType.HIVE_BINARY)) {
-      slices[column]=base64Decode(slices[column].getBytes());
+    Type type=types[column];
+    Slice value=Slices.wrappedBuffer(Arrays.copyOfRange(bytes,start,start + length));
+    if (isVarcharType(type)) {
+      slices[column]=truncateToLength(value,type);
+    }
+ else     if (type.equals(VARBINARY)) {
+      slices[column]=base64Decode(value.getBytes());
+    }
+ else {
+      slices[column]=value;
     }
     wasNull=false;
   }
