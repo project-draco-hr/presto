@@ -1,13 +1,13 @@
 {
   Parameter position=arg("position",int.class);
   Parameter blocks=arg("blocks",Block[].class);
-  MethodDefinition hashRowMethod=classDefinition.declareMethod(a(PUBLIC),"hashRow",type(int.class),position,blocks);
-  Variable resultVariable=hashRowMethod.getScope().declareVariable(int.class,"result");
-  hashRowMethod.getBody().push(0).putVariable(resultVariable);
+  MethodDefinition hashRowMethod=classDefinition.declareMethod(a(PUBLIC),"hashRow",type(long.class),position,blocks);
+  Variable resultVariable=hashRowMethod.getScope().declareVariable(long.class,"result");
+  hashRowMethod.getBody().push(0L).putVariable(resultVariable);
   for (int index=0; index < joinChannelTypes.size(); index++) {
     BytecodeExpression type=constantType(callSiteBinder,joinChannelTypes.get(index));
     BytecodeExpression block=blocks.getElement(index).cast(Block.class);
-    hashRowMethod.getBody().getVariable(resultVariable).push(31).append(OpCode.IMUL).append(typeHashCode(type,block,position)).append(OpCode.IADD).putVariable(resultVariable);
+    hashRowMethod.getBody().getVariable(resultVariable).push(31L).append(OpCode.LMUL).append(typeHashCode(type,block,position)).append(OpCode.LADD).putVariable(resultVariable);
   }
-  hashRowMethod.getBody().getVariable(resultVariable).retInt();
+  hashRowMethod.getBody().getVariable(resultVariable).retLong();
 }
