@@ -10,6 +10,9 @@
     fail("expected failure");
   }
  catch (  PrestoException e) {
-    assertEquals(e.getMessage(),"Inserting into Hive table with column type smallint not supported");
+    String expected="Inserting into Hive table .* with column type smallint not supported";
+    if (!e.getMessage().matches(expected)) {
+      throw new TestException("The exception was thrown with the wrong message:" + " expected \"" + expected + "\""+ " but got \""+ e.getMessage()+ "\"",e);
+    }
   }
 }

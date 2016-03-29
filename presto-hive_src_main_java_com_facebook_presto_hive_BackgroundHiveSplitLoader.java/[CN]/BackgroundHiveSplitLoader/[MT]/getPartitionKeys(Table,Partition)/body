@@ -9,6 +9,9 @@
   for (int i=0; i < keys.size(); i++) {
     String name=keys.get(i).getName();
     HiveType hiveType=HiveType.valueOf(keys.get(i).getType());
+    if (!hiveType.isSupportedType()) {
+      throw new PrestoException(NOT_SUPPORTED,format("Unsupported Hive type %s found in partition keys of table %s.%s",hiveType,table.getDbName(),table.getTableName()));
+    }
     String value=values.get(i);
     checkCondition(value != null,HIVE_INVALID_PARTITION_VALUE,"partition key value cannot be null for field: %s",name);
     partitionKeys.add(new HivePartitionKey(name,hiveType,value));

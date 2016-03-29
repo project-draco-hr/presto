@@ -3,7 +3,10 @@
   List<FieldSchema> partitionKeys=table.getPartitionKeys();
   for (  FieldSchema field : partitionKeys) {
     HiveType hiveType=HiveType.valueOf(field.getType());
-    columns.add(new HiveColumnHandle(connectorId,field.getName(),hiveType,HiveType.valueOf(field.getType()).getTypeSignature(),-1,true));
+    if (!hiveType.isSupportedType()) {
+      throw new PrestoException(NOT_SUPPORTED,format("Unsupported Hive type %s found in partition keys of table %s.%s",hiveType,table.getDbName(),table.getTableName()));
+    }
+    columns.add(new HiveColumnHandle(connectorId,field.getName(),hiveType,hiveType.getTypeSignature(),-1,true));
   }
   return columns.build();
 }
