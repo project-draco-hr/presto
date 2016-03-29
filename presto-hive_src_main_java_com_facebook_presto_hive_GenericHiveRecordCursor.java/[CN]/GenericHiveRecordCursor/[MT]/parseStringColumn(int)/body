@@ -8,18 +8,24 @@
  else {
     Object fieldValue=((PrimitiveObjectInspector)fieldInspectors[column]).getPrimitiveJavaObject(fieldData);
     checkState(fieldValue != null,"fieldValue should not be null");
+    Slice value;
     if (fieldValue instanceof String) {
-      slices[column]=Slices.utf8Slice((String)fieldValue);
+      value=Slices.utf8Slice((String)fieldValue);
     }
  else     if (fieldValue instanceof byte[]) {
-      slices[column]=Slices.wrappedBuffer((byte[])fieldValue);
+      value=Slices.wrappedBuffer((byte[])fieldValue);
     }
  else     if (fieldValue instanceof HiveVarchar) {
-      slices[column]=Slices.utf8Slice(((HiveVarchar)fieldValue).getValue());
+      value=Slices.utf8Slice(((HiveVarchar)fieldValue).getValue());
     }
  else {
       throw new IllegalStateException("unsupported string field type: " + fieldValue.getClass().getName());
     }
+    Type type=types[column];
+    if (isVarcharType(type)) {
+      value=truncateToLength(value,type);
+    }
+    slices[column]=value;
     nulls[column]=false;
   }
 }
