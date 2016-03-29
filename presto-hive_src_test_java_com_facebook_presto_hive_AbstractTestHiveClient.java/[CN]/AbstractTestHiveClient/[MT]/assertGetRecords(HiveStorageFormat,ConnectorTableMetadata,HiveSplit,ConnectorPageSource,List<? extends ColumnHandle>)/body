@@ -14,12 +14,17 @@
       }
       rowNumber++;
       Integer index;
+      Object value;
       index=columnIndex.get("t_string");
-      if ((rowNumber % 19) == 0) {
-        assertNull(row.getField(index));
+      value=row.getField(index);
+      if (rowNumber % 19 == 0) {
+        assertNull(value);
+      }
+ else       if (rowNumber % 19 == 1) {
+        assertEquals(value,"");
       }
  else {
-        assertEquals(row.getField(index),((rowNumber % 19) == 1) ? "" : "test");
+        assertEquals(value,"test");
       }
       assertEquals(row.getField(columnIndex.get("t_tinyint")),1 + (int)rowNumber);
       assertEquals(row.getField(columnIndex.get("t_smallint")),2 + (int)rowNumber);
@@ -67,6 +72,24 @@
  else {
           SqlDate expected=new SqlDate(Ints.checkedCast(TimeUnit.MILLISECONDS.toDays(new DateTime(2013,8,9,0,0,0,DateTimeZone.UTC).getMillis())));
           assertEquals(row.getField(index),expected);
+        }
+      }
+      index=columnIndex.get("t_varchar");
+      if (index != null) {
+        value=row.getField(index);
+        if (rowNumber % 39 == 0) {
+          assertNull(value);
+        }
+ else         if (rowNumber % 39 == 1) {
+          if (hiveStorageFormat == RCBINARY) {
+            assertNull(value);
+          }
+ else {
+            assertEquals(value,"");
+          }
+        }
+ else {
+          assertEquals(value,"test varchar");
         }
       }
       index=columnIndex.get("t_map");

@@ -27,14 +27,31 @@
           throw new RuntimeException("row " + rowNumber,e);
         }
         rowNumber++;
+        Object value;
+        value=row.getField(columnIndex.get("t_string"));
         if (rowNumber % 19 == 0) {
-          assertNull(row.getField(columnIndex.get("t_string")));
+          assertNull(value);
         }
  else         if (rowNumber % 19 == 1) {
-          assertEquals(row.getField(columnIndex.get("t_string")),"");
+          assertEquals(value,"");
         }
  else {
-          assertEquals(row.getField(columnIndex.get("t_string")),"test");
+          assertEquals(value,"test");
+        }
+        value=row.getField(columnIndex.get("t_varchar"));
+        if (rowNumber % 39 == 0) {
+          assertNull(value);
+        }
+ else         if (rowNumber % 39 == 1) {
+          if (fileType == RCBINARY) {
+            assertNull(value);
+          }
+ else {
+            assertEquals(value,"");
+          }
+        }
+ else {
+          assertEquals(value,"test varchar");
         }
         assertEquals(row.getField(columnIndex.get("t_tinyint")),1 + (int)rowNumber);
         assertEquals(row.getField(columnIndex.get("t_smallint")),2 + (int)rowNumber);
