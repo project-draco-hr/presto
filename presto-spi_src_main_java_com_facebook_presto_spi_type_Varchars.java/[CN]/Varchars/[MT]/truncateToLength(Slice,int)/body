@@ -1,0 +1,18 @@
+{
+  requireNonNull(slice,"slice is null");
+  if (maxLength < 0) {
+    throw new IllegalArgumentException("Max length must be greater or equal than zero");
+  }
+  if (maxLength == 0) {
+    return Slices.EMPTY_SLICE;
+  }
+  int sizeInBytes=slice.length();
+  if (sizeInBytes <= maxLength) {
+    return slice;
+  }
+  int indexEnd=offsetOfCodePoint(slice,maxLength);
+  if (indexEnd < 0) {
+    return slice;
+  }
+  return slice.slice(0,indexEnd);
+}
