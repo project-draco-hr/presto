@@ -1,0 +1,15 @@
+{
+  TestColumn partitionColumn=new TestColumn("partition_column",getPrimitiveJavaObjectInspector(new VarcharTypeInfo(3)),"test",utf8Slice("tes"),true);
+  TestColumn varcharColumn=new TestColumn("varchar_column",getPrimitiveJavaObjectInspector(new VarcharTypeInfo(3)),new HiveVarchar("tes",3),utf8Slice("tes"));
+  List<TestColumn> columns=ImmutableList.of(partitionColumn,varcharColumn);
+  HiveErrorCode expectedErrorCode=HiveErrorCode.HIVE_INVALID_PARTITION_VALUE;
+  String expectedMessage="Invalid partition value 'test' for varchar(3) partition key: partition_column";
+  assertThatFileFormat(RCTEXT).withColumns(columns).isFailingForRecordCursor(new ColumnarTextHiveRecordCursorProvider(),expectedErrorCode,expectedMessage).isFailingForRecordCursor(new GenericHiveRecordCursorProvider(),expectedErrorCode,expectedMessage);
+  assertThatFileFormat(RCBINARY).withColumns(columns).isFailingForRecordCursor(new ColumnarBinaryHiveRecordCursorProvider(),expectedErrorCode,expectedMessage).isFailingForRecordCursor(new GenericHiveRecordCursorProvider(),expectedErrorCode,expectedMessage);
+  assertThatFileFormat(ORC).withColumns(columns).isFailingForPageSource(new OrcPageSourceFactory(TYPE_MANAGER,false),expectedErrorCode,expectedMessage);
+  assertThatFileFormat(PARQUET).withColumns(columns).isFailingForRecordCursor(new ParquetRecordCursorProvider(false),expectedErrorCode,expectedMessage);
+  TestingConnectorSession session=new TestingConnectorSession(new HiveSessionProperties(new HiveClientConfig().setParquetOptimizedReaderEnabled(true)).getSessionProperties());
+  assertThatFileFormat(PARQUET).withColumns(columns).withSession(session).isFailingForPageSource(new ParquetPageSourceFactory(TYPE_MANAGER,false),expectedErrorCode,expectedMessage);
+  assertThatFileFormat(SEQUENCEFILE).withColumns(columns).isFailingForRecordCursor(new GenericHiveRecordCursorProvider(),expectedErrorCode,expectedMessage);
+  assertThatFileFormat(TEXTFILE).withColumns(columns).isFailingForRecordCursor(new GenericHiveRecordCursorProvider(),expectedErrorCode,expectedMessage);
+}

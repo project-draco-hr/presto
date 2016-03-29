@@ -1,0 +1,23 @@
+{
+  assertNotNull(outputFormat,"outputFormat must be specified");
+  assertNotNull(inputFormat,"inputFormat must be specified");
+  assertNotNull(serde,"serde must be specified");
+  assertNotNull(writeColumns,"writeColumns must be specified");
+  assertNotNull(readColumns,"readColumns must be specified");
+  assertNotNull(session,"session must be specified");
+  assertTrue(rowsCount >= 0,"rowsCount must be greater than zero");
+  File file=File.createTempFile("presto_test",formatName);
+  file.delete();
+  try {
+    FileSplit split=createTestFile(file.getAbsolutePath(),outputFormat,serde,compressionCodec.orElse(null),writeColumns,rowsCount);
+    if (pageSourceFactory.isPresent()) {
+      testPageSourceFactory(pageSourceFactory.get(),split,inputFormat,serde,readColumns,session,rowsCount);
+    }
+    if (cursorProvider.isPresent()) {
+      testCursorProvider(cursorProvider.get(),split,inputFormat,serde,readColumns,rowsCount);
+    }
+  }
+  finally {
+    file.delete();
+  }
+}

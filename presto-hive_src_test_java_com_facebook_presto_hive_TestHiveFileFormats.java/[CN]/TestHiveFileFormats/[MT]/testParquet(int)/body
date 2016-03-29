@@ -1,16 +1,4 @@
 {
   List<TestColumn> testColumns=getTestColumnsSupportedByParquet();
-  HiveOutputFormat<?,?> outputFormat=new MapredParquetOutputFormat();
-  InputFormat<?,?> inputFormat=new MapredParquetInputFormat();
-  @SuppressWarnings("deprecation") SerDe serde=new ParquetHiveSerDe();
-  File file=File.createTempFile("presto_test","parquet");
-  file.delete();
-  try {
-    FileSplit split=createTestFile(file.getAbsolutePath(),outputFormat,serde,null,testColumns,rowCount);
-    HiveRecordCursorProvider cursorProvider=new ParquetRecordCursorProvider(false);
-    testCursorProvider(cursorProvider,split,inputFormat,serde,testColumns,rowCount);
-  }
-  finally {
-    file.delete();
-  }
+  assertThatFileFormat(PARQUET).withColumns(testColumns).withRowsCount(rowCount).isReadableByRecordCursor(new ParquetRecordCursorProvider(false));
 }

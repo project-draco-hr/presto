@@ -1,14 +1,3 @@
 {
-  HiveOutputFormat<?,?> outputFormat=new RCFileOutputFormat();
-  InputFormat<?,?> inputFormat=new RCFileInputFormat<>();
-  @SuppressWarnings("deprecation") SerDe serde=new LazyBinaryColumnarSerDe();
-  File file=File.createTempFile("presto_test","rc-binary");
-  file.delete();
-  try {
-    FileSplit split=createTestFile(file.getAbsolutePath(),outputFormat,serde,null,TEST_COLUMNS,rowCount);
-    testPageSourceFactory(new RcFilePageSourceFactory(TYPE_MANAGER),split,inputFormat,serde,TEST_COLUMNS,rowCount);
-  }
-  finally {
-    file.delete();
-  }
+  assertThatFileFormat(RCBINARY).withColumns(TEST_COLUMNS).withRowsCount(rowCount).isReadableByPageSource(new RcFilePageSourceFactory(TYPE_MANAGER));
 }
