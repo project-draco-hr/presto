@@ -1,7 +1,7 @@
 {
   String empClassName=hadoopConfig.get(S3_ENCRYPTION_MATERIALS_PROVIDER);
   if (empClassName == null) {
-    return null;
+    return Optional.empty();
   }
   try {
     Object instance=Class.forName(empClassName).getConstructor().newInstance();
@@ -12,7 +12,7 @@
     if (emp instanceof Configurable) {
       ((Configurable)emp).setConf(hadoopConfig);
     }
-    return emp;
+    return Optional.of(emp);
   }
  catch (  ReflectiveOperationException e) {
     throw new RuntimeException("Unable to load or create S3 encryption materials provider: " + empClassName,e);

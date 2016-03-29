@@ -1,9 +1,9 @@
 {
   AWSCredentialsProvider credentials=getAwsCredentialsProvider(uri,hadoopConfig);
-  EncryptionMaterialsProvider emp=createEncryptionMaterialsProvider(hadoopConfig);
+  Optional<EncryptionMaterialsProvider> emp=createEncryptionMaterialsProvider(hadoopConfig);
   AmazonS3Client client;
-  if (emp != null) {
-    client=new AmazonS3EncryptionClient(credentials,emp,clientConfig,new CryptoConfiguration(),METRIC_COLLECTOR);
+  if (emp.isPresent()) {
+    client=new AmazonS3EncryptionClient(credentials,emp.get(),clientConfig,new CryptoConfiguration(),METRIC_COLLECTOR);
   }
  else {
     client=new AmazonS3Client(credentials,clientConfig,METRIC_COLLECTOR);
