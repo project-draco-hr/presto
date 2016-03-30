@@ -1,4 +1,10 @@
 {
+  assertFunction("abs(TINYINT'123')",TINYINT,(byte)123);
+  assertFunction("abs(TINYINT'-123')",TINYINT,(byte)123);
+  assertFunction("abs(CAST(NULL AS TINYINT))",TINYINT,null);
+  assertFunction("abs(SMALLINT'123')",SMALLINT,(short)123);
+  assertFunction("abs(SMALLINT'-123')",SMALLINT,(short)123);
+  assertFunction("abs(CAST(NULL AS SMALLINT))",SMALLINT,null);
   assertFunction("abs(123)",INTEGER,123);
   assertFunction("abs(-123)",INTEGER,123);
   assertFunction("abs(CAST(NULL AS INTEGER))",INTEGER,null);
@@ -12,5 +18,7 @@
   assertFunction("abs(123.45)",DOUBLE,123.45);
   assertFunction("abs(-123.45)",DOUBLE,123.45);
   assertFunction("abs(CAST(NULL AS DOUBLE))",DOUBLE,null);
+  assertInvalidFunction("abs(TINYINT'" + Byte.MIN_VALUE + "')",NUMERIC_VALUE_OUT_OF_RANGE);
+  assertInvalidFunction("abs(SMALLINT'" + Short.MIN_VALUE + "')",NUMERIC_VALUE_OUT_OF_RANGE);
   assertInvalidFunction("abs(-9223372036854775807 - if(rand() < 10, 1, 1))",NUMERIC_VALUE_OUT_OF_RANGE);
 }
