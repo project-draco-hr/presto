@@ -1,19 +1,19 @@
 {
-  @Language("SQL") String createTable="" + "CREATE TABLE test_insert_format_table " + "("+ "  _string VARCHAR,"+ "  _varchar VARCHAR(65535),"+ "  _bigint BIGINT,"+ "  _integer INTEGER,"+ "  _double DOUBLE,"+ "  _boolean BOOLEAN,"+ "  _decimal_short DECIMAL(3,2),"+ "  _decimal_long DECIMAL(30,10)"+ ") "+ "WITH (format = '" + storageFormat + "') ";
+  @Language("SQL") String createTable="" + "CREATE TABLE test_insert_format_table " + "("+ "  _string VARCHAR,"+ "  _varchar VARCHAR(65535),"+ "  _bigint BIGINT,"+ "  _integer INTEGER,"+ "  _smallint SMALLINT,"+ "  _tinyint TINYINT,"+ "  _double DOUBLE,"+ "  _boolean BOOLEAN,"+ "  _decimal_short DECIMAL(3,2),"+ "  _decimal_long DECIMAL(30,10)"+ ") "+ "WITH (format = '" + storageFormat + "') ";
   assertUpdate(createTable);
   TableMetadata tableMetadata=getTableMetadata("test_insert_format_table");
   assertEquals(tableMetadata.getMetadata().getProperties().get(STORAGE_FORMAT_PROPERTY),storageFormat);
   assertColumnType(tableMetadata,"_string",createUnboundedVarcharType());
   assertColumnType(tableMetadata,"_varchar",createVarcharType(65535));
-  @Language("SQL") String select="SELECT" + " 'foo' _string" + ", 'bar' _varchar"+ ", 1 _bigint"+ ", CAST(42 AS INTEGER) _integer"+ ", CAST('3.14' AS DOUBLE) _double"+ ", true _boolean"+ ", CAST('3.14' AS DECIMAL(3,2)) _decimal_short"+ ", CAST('12345678901234567890.0123456789' AS DECIMAL(30,10)) _decimal_long";
+  @Language("SQL") String select="SELECT" + " 'foo' _string" + ", 'bar' _varchar"+ ", 1 _bigint"+ ", CAST(42 AS INTEGER) _integer"+ ", CAST(43 AS SMALLINT) _smallint"+ ", CAST(44 AS TINYINT) _tinyint"+ ", CAST('3.14' AS DOUBLE) _double"+ ", true _boolean"+ ", CAST('3.14' AS DECIMAL(3,2)) _decimal_short"+ ", CAST('12345678901234567890.0123456789' AS DECIMAL(30,10)) _decimal_long";
   assertUpdate("INSERT INTO test_insert_format_table " + select,1);
   assertQuery("SELECT * from test_insert_format_table",select);
-  assertUpdate("INSERT INTO test_insert_format_table (_integer, _bigint, _double) SELECT CAST(1 AS INTEGER), 2, 14.3",1);
-  assertQuery("SELECT * from test_insert_format_table where _bigint = 2","SELECT null, null, 2, 1, 14.3, null, null, null");
+  assertUpdate("INSERT INTO test_insert_format_table (_tinyint, _smallint, _integer, _bigint, _double) SELECT CAST(1 AS TINYINT), CAST(2 AS SMALLINT), 3, 4, 14.3",1);
+  assertQuery("SELECT * from test_insert_format_table where _bigint = 4","SELECT null, null, 4, 3, 2, 1, 14.3, null, null, null");
   assertUpdate("INSERT INTO test_insert_format_table (_double, _bigint) SELECT 2.72, 3",1);
-  assertQuery("SELECT * from test_insert_format_table where _bigint = 3","SELECT null, null, 3, null, 2.72, null, null, null");
+  assertQuery("SELECT * from test_insert_format_table where _bigint = 3","SELECT null, null, 3, null, null, null, 2.72, null, null, null");
   assertUpdate("INSERT INTO test_insert_format_table (_decimal_short, _decimal_long) SELECT DECIMAL '2.72', DECIMAL '98765432101234567890.0123456789'",1);
-  assertQuery("SELECT * from test_insert_format_table where _decimal_long = DECIMAL '98765432101234567890.0123456789'","SELECT null, null, null, null, null, null, 2.72, 98765432101234567890.0123456789");
+  assertQuery("SELECT * from test_insert_format_table where _decimal_long = DECIMAL '98765432101234567890.0123456789'","SELECT null, null, null, null, null, null, null, null, 2.72, 98765432101234567890.0123456789");
   assertUpdate("DROP TABLE test_insert_format_table");
   assertFalse(queryRunner.tableExists(getSession(),"test_insert_format_table"));
 }
