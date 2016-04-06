@@ -15,10 +15,10 @@
     }
     finalCalls.put(entry.getKey(),new FunctionCall(QualifiedName.of(signature.getName()),ImmutableList.<Expression>of(new QualifiedNameReference(intermediateSymbol.toQualifiedName()))));
   }
-  PlanWithProperties partial=withDerivedProperties(new AggregationNode(idAllocator.getNextId(),newChild.getNode(),node.getGroupBy(),intermediateCalls,intermediateFunctions,intermediateMask,PARTIAL,node.getSampleWeight(),node.getConfidence(),node.getHashSymbol()),newChild.getProperties());
+  PlanWithProperties partial=withDerivedProperties(new AggregationNode(idAllocator.getNextId(),newChild.getNode(),node.getGroupBy(),intermediateCalls,intermediateFunctions,intermediateMask,node.getGroupingSets(),PARTIAL,node.getSampleWeight(),node.getConfidence(),node.getHashSymbol()),newChild.getProperties());
   PlanNode source=partial.getNode();
   if (exchanger != null) {
     source=exchanger.apply(source);
   }
-  return withDerivedProperties(new AggregationNode(node.getId(),source,node.getGroupBy(),finalCalls,node.getFunctions(),ImmutableMap.of(),FINAL,Optional.empty(),node.getConfidence(),node.getHashSymbol()),deriveProperties(source,partial.getProperties()));
+  return withDerivedProperties(new AggregationNode(node.getId(),source,node.getGroupBy(),finalCalls,node.getFunctions(),ImmutableMap.of(),node.getGroupingSets(),FINAL,Optional.empty(),node.getConfidence(),node.getHashSymbol()),deriveProperties(source,partial.getProperties()));
 }
