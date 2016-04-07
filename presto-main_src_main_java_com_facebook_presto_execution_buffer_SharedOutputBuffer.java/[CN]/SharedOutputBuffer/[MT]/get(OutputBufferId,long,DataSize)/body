@@ -1,0 +1,12 @@
+{
+  requireNonNull(bufferId,"outputId is null");
+  checkArgument(maxSize.toBytes() > 0,"maxSize must be at least 1 byte");
+  BufferState state=this.state.get();
+  if (state != FAILED && !state.canAddBuffers() && namedBuffers.get(bufferId) == null) {
+    return completedFuture(emptyResults(taskInstanceId,0,true));
+  }
+  GetBufferResult getBufferResult=new GetBufferResult(bufferId,startingSequenceId,maxSize);
+  stateChangeListeners.add(getBufferResult);
+  updateState();
+  return getBufferResult.getFuture();
+}

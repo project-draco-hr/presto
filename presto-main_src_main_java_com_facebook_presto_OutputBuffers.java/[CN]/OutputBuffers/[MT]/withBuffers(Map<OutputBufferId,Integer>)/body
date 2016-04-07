@@ -1,0 +1,19 @@
+{
+  requireNonNull(buffers,"buffers is null");
+  Map<OutputBufferId,Integer> newBuffers=new HashMap<>();
+  for (  Entry<OutputBufferId,Integer> entry : buffers.entrySet()) {
+    OutputBufferId bufferId=entry.getKey();
+    int partition=entry.getValue();
+    if (this.buffers.containsKey(bufferId)) {
+      checkHasBuffer(bufferId,partition);
+      continue;
+    }
+    newBuffers.put(bufferId,partition);
+  }
+  if (newBuffers.isEmpty()) {
+    return this;
+  }
+  checkState(!noMoreBufferIds,"No more buffer ids already set");
+  newBuffers.putAll(this.buffers);
+  return new OutputBuffers(version + 1,false,newBuffers);
+}
