@@ -1,0 +1,27 @@
+{
+  ClientBuffer buffer=new ClientBuffer(TASK_INSTANCE_ID,BUFFER_ID);
+  for (int i=0; i < 3; i++) {
+    addPage(buffer,createPage(i));
+  }
+  assertBufferInfo(buffer,3,0);
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,0,sizeOfPages(10),NO_WAIT),bufferResult(0,createPage(0),createPage(1),createPage(2)));
+  assertBufferInfo(buffer,3,0);
+  buffer.getPages(3,sizeOfPages(10)).cancel(true);
+  assertBufferInfo(buffer,0,3);
+  for (int i=3; i < 6; i++) {
+    addPage(buffer,createPage(i));
+  }
+  assertBufferInfo(buffer,3,3);
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,3,sizeOfPages(1),NO_WAIT),bufferResult(3,createPage(3)));
+  assertBufferInfo(buffer,3,3);
+  buffer.setNoMorePages();
+  assertBufferInfo(buffer,3,3);
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,4,sizeOfPages(1),NO_WAIT),bufferResult(4,createPage(4)));
+  assertBufferInfo(buffer,2,4);
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,5,sizeOfPages(30),NO_WAIT),bufferResult(5,createPage(5)));
+  assertBufferInfo(buffer,1,5);
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,6,sizeOfPages(10),NO_WAIT),emptyResults(TASK_INSTANCE_ID,6,true));
+  assertBufferInfo(buffer,0,6);
+  buffer.destroy();
+  assertBufferDestroyed(buffer,6);
+}

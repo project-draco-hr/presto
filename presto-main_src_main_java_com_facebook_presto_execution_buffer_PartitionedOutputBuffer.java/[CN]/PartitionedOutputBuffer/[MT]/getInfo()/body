@@ -1,0 +1,14 @@
+{
+  BufferState state=this.state.get();
+  int totalBufferedBytes=0;
+  int totalBufferedPages=0;
+  ImmutableList.Builder<BufferInfo> infos=ImmutableList.builder();
+  for (  ClientBuffer partition : partitions) {
+    BufferInfo bufferInfo=partition.getInfo();
+    infos.add(bufferInfo);
+    PageBufferInfo pageBufferInfo=bufferInfo.getPageBufferInfo();
+    totalBufferedPages+=pageBufferInfo.getBufferedPages();
+    totalBufferedBytes+=pageBufferInfo.getBufferedBytes();
+  }
+  return new OutputBufferInfo("PARTITIONED",state,state.canAddBuffers(),state.canAddPages(),totalBufferedBytes,totalBufferedPages,totalRowsAdded.get(),totalPagesAdded.get(),infos.build());
+}

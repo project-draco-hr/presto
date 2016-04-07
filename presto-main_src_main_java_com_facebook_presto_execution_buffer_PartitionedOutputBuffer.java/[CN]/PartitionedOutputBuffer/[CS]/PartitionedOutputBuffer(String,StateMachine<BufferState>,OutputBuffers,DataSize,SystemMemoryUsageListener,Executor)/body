@@ -1,0 +1,17 @@
+{
+  this.state=requireNonNull(state,"state is null");
+  requireNonNull(outputBuffers,"outputBuffers is null");
+  checkArgument(outputBuffers.getType() == PARTITIONED,"Expected a PARTITIONED output buffer descriptor");
+  checkArgument(outputBuffers.isNoMoreBufferIds(),"Expected a final output buffer descriptor");
+  this.outputBuffers=outputBuffers;
+  this.memoryManager=new OutputBufferMemoryManager(requireNonNull(maxBufferSize,"maxBufferSize is null").toBytes(),requireNonNull(systemMemoryUsageListener,"systemMemoryUsageListener is null"),requireNonNull(notificationExecutor,"notificationExecutor is null"));
+  ImmutableList.Builder<ClientBuffer> partitions=ImmutableList.builder();
+  for (  OutputBufferId bufferId : outputBuffers.getBuffers().keySet()) {
+    ClientBuffer partition=new ClientBuffer(taskInstanceId,bufferId);
+    partitions.add(partition);
+  }
+  this.partitions=partitions.build();
+  state.compareAndSet(OPEN,NO_MORE_BUFFERS);
+  state.compareAndSet(NO_MORE_PAGES,FLUSHING);
+  checkFlushComplete();
+}

@@ -1,0 +1,17 @@
+{
+  PartitionedOutputBuffer buffer=createPartitionedBuffer(createInitialEmptyOutputBuffers(PARTITIONED).withBuffer(FIRST,0).withNoMoreBufferIds(),sizeOfPages(5));
+  assertFalse(buffer.isFinished());
+  for (int i=0; i < 5; i++) {
+    addPage(buffer,createPage(i));
+  }
+  ListenableFuture<?> firstEnqueuePage=enqueuePage(buffer,createPage(5));
+  ListenableFuture<?> secondEnqueuePage=enqueuePage(buffer,createPage(6));
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,FIRST,0,sizeOfPages(1),MAX_WAIT),bufferResult(0,createPage(0)));
+  buffer.get(FIRST,1,sizeOfPages(1)).cancel(true);
+  assertFalse(firstEnqueuePage.isDone());
+  assertFalse(secondEnqueuePage.isDone());
+  buffer.fail();
+  assertFalse(buffer.isFinished());
+  assertFutureIsDone(firstEnqueuePage);
+  assertFutureIsDone(secondEnqueuePage);
+}

@@ -1,11 +1,11 @@
 {
   try (SqlTaskManager sqlTaskManager=createSqlTaskManager(new TaskManagerConfig())){
     TaskId taskId=TASK_ID;
-    TaskInfo taskInfo=sqlTaskManager.updateTask(TEST_SESSION,taskId,Optional.of(PLAN_FRAGMENT),ImmutableList.<TaskSource>of(),createInitialEmptyOutputBuffers(BROADCAST));
+    TaskInfo taskInfo=sqlTaskManager.updateTask(TEST_SESSION,taskId,Optional.of(PLAN_FRAGMENT),ImmutableList.<TaskSource>of(),createInitialEmptyOutputBuffers(PARTITIONED).withNoMoreBufferIds());
     assertEquals(taskInfo.getTaskStatus().getState(),TaskState.RUNNING);
     taskInfo=sqlTaskManager.getTaskInfo(taskId);
     assertEquals(taskInfo.getTaskStatus().getState(),TaskState.RUNNING);
-    taskInfo=sqlTaskManager.updateTask(TEST_SESSION,taskId,Optional.of(PLAN_FRAGMENT),ImmutableList.of(new TaskSource(TABLE_SCAN_NODE_ID,ImmutableSet.<ScheduledSplit>of(),true)),createInitialEmptyOutputBuffers(BROADCAST).withNoMoreBufferIds());
+    taskInfo=sqlTaskManager.updateTask(TEST_SESSION,taskId,Optional.of(PLAN_FRAGMENT),ImmutableList.of(new TaskSource(TABLE_SCAN_NODE_ID,ImmutableSet.<ScheduledSplit>of(),true)),createInitialEmptyOutputBuffers(PARTITIONED).withNoMoreBufferIds());
     assertEquals(taskInfo.getTaskStatus().getState(),TaskState.FINISHED);
     taskInfo=sqlTaskManager.getTaskInfo(taskId);
     assertEquals(taskInfo.getTaskStatus().getState(),TaskState.FINISHED);

@@ -1,7 +1,7 @@
 {
   try (SqlTaskManager sqlTaskManager=createSqlTaskManager(new TaskManagerConfig())){
     TaskId taskId=TASK_ID;
-    TaskInfo taskInfo=sqlTaskManager.updateTask(TEST_SESSION,taskId,Optional.of(PLAN_FRAGMENT),ImmutableList.of(new TaskSource(TABLE_SCAN_NODE_ID,ImmutableSet.of(SPLIT),true)),createInitialEmptyOutputBuffers(BROADCAST).withBuffer(OUT,0).withNoMoreBufferIds());
+    TaskInfo taskInfo=sqlTaskManager.updateTask(TEST_SESSION,taskId,Optional.of(PLAN_FRAGMENT),ImmutableList.of(new TaskSource(TABLE_SCAN_NODE_ID,ImmutableSet.of(SPLIT),true)),createInitialEmptyOutputBuffers(PARTITIONED).withBuffer(OUT,0).withNoMoreBufferIds());
     assertEquals(taskInfo.getTaskStatus().getState(),TaskState.RUNNING);
     taskInfo=sqlTaskManager.getTaskInfo(taskId);
     assertEquals(taskInfo.getTaskStatus().getState(),TaskState.RUNNING);
@@ -9,7 +9,9 @@
     assertEquals(results.isBufferComplete(),false);
     assertEquals(results.getPages().size(),1);
     assertEquals(results.getPages().get(0).getPositionCount(),1);
-    results=sqlTaskManager.getTaskResults(taskId,OUT,results.getToken() + results.getPages().size(),new DataSize(1,Unit.MEGABYTE)).get();
+    for (boolean moreResults=true; moreResults; moreResults=!results.isBufferComplete()) {
+      results=sqlTaskManager.getTaskResults(taskId,OUT,results.getToken() + results.getPages().size(),new DataSize(1,Unit.MEGABYTE)).get();
+    }
     assertEquals(results.isBufferComplete(),true);
     assertEquals(results.getPages().size(),0);
     TaskInfo info=sqlTaskManager.abortTaskResults(taskId,OUT);

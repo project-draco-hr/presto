@@ -1,0 +1,20 @@
+{
+  ClientBuffer buffer=new ClientBuffer(TASK_INSTANCE_ID,BUFFER_ID);
+  AtomicBoolean page0HasReference=addPage(buffer,createPage(0));
+  AtomicBoolean page1HasReference=addPage(buffer,createPage(1));
+  assertTrue(page0HasReference.get());
+  assertTrue(page1HasReference.get());
+  assertBufferInfo(buffer,2,0);
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,0,sizeOfPages(0),NO_WAIT),bufferResult(0,createPage(0)));
+  assertTrue(page0HasReference.get());
+  assertTrue(page1HasReference.get());
+  assertBufferInfo(buffer,2,0);
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,1,sizeOfPages(1),NO_WAIT),bufferResult(1,createPage(1)));
+  assertFalse(page0HasReference.get());
+  assertTrue(page1HasReference.get());
+  assertBufferInfo(buffer,1,1);
+  buffer.destroy();
+  assertFalse(page0HasReference.get());
+  assertFalse(page1HasReference.get());
+  assertBufferDestroyed(buffer,1);
+}

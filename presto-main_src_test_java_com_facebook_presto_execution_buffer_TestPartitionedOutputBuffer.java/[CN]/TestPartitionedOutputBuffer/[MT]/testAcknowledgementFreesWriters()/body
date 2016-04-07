@@ -1,0 +1,15 @@
+{
+  int firstPartition=0;
+  int secondPartition=1;
+  PartitionedOutputBuffer buffer=createPartitionedBuffer(createInitialEmptyOutputBuffers(PARTITIONED).withBuffer(FIRST,firstPartition).withBuffer(SECOND,secondPartition).withNoMoreBufferIds(),sizeOfPages(2));
+  addPage(buffer,createPage(1),firstPartition);
+  addPage(buffer,createPage(2),firstPartition);
+  assertQueueState(buffer,FIRST,2,0);
+  ListenableFuture<?> future=enqueuePage(buffer,createPage(3),secondPartition);
+  assertFalse(future.isDone());
+  assertQueueState(buffer,FIRST,2,0);
+  assertQueueState(buffer,SECOND,1,0);
+  buffer.get(FIRST,2,sizeOfPages(10)).cancel(true);
+  assertFutureIsDone(future);
+  assertQueueState(buffer,SECOND,1,0);
+}

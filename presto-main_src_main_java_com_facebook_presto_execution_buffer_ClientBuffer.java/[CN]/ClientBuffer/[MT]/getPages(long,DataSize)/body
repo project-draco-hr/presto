@@ -1,0 +1,21 @@
+{
+  checkArgument(sequenceId >= 0,"Invalid sequence id");
+  acknowledgePages(sequenceId);
+  PendingRead oldPendingRead=null;
+  try {
+synchronized (this) {
+      oldPendingRead=this.pendingRead;
+      this.pendingRead=null;
+      if (!pages.isEmpty() || noMorePages || sequenceId != currentSequenceId.get()) {
+        return completedFuture(processRead(sequenceId,maxSize));
+      }
+      pendingRead=new PendingRead(taskInstanceId,sequenceId,maxSize);
+      return pendingRead.getResultFuture();
+    }
+  }
+  finally {
+    if (oldPendingRead != null) {
+      oldPendingRead.completeResultFutureWithEmpty();
+    }
+  }
+}

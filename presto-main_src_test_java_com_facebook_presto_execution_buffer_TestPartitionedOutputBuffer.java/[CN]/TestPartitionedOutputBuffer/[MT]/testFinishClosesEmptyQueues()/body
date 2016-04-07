@@ -1,0 +1,10 @@
+{
+  PartitionedOutputBuffer buffer=createPartitionedBuffer(createInitialEmptyOutputBuffers(PARTITIONED).withBuffer(FIRST,0).withBuffer(SECOND,1).withNoMoreBufferIds(),sizeOfPages(10));
+  buffer.setNoMorePages();
+  assertQueueState(buffer,FIRST,0,0);
+  assertQueueState(buffer,SECOND,0,0);
+  buffer.abort(FIRST);
+  buffer.abort(SECOND);
+  assertQueueClosed(buffer,FIRST,0);
+  assertQueueClosed(buffer,SECOND,0);
+}

@@ -8,8 +8,9 @@
   assertEquals(results.isBufferComplete(),false);
   assertEquals(results.getPages().size(),1);
   assertEquals(results.getPages().get(0).getPositionCount(),1);
-  results=sqlTask.getTaskResults(OUT,results.getToken() + results.getPages().size(),new DataSize(1,MEGABYTE)).get();
-  assertEquals(results.isBufferComplete(),true);
+  for (boolean moreResults=true; moreResults; moreResults=!results.isBufferComplete()) {
+    results=sqlTask.getTaskResults(OUT,results.getToken() + results.getPages().size(),new DataSize(1,MEGABYTE)).get();
+  }
   assertEquals(results.getPages().size(),0);
   TaskInfo info=sqlTask.abortTaskResults(OUT);
   assertEquals(info.getOutputBuffers().getState(),BufferState.FINISHED);

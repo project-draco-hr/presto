@@ -1,0 +1,14 @@
+{
+  PartitionedOutputBuffer buffer=createPartitionedBuffer(createInitialEmptyOutputBuffers(PARTITIONED).withBuffer(FIRST,0).withNoMoreBufferIds(),sizeOfPages(10));
+  for (int i=0; i < 3; i++) {
+    addPage(buffer,createPage(i));
+  }
+  assertQueueState(buffer,FIRST,3,0);
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,FIRST,0,sizeOfPages(10),NO_WAIT),bufferResult(0,createPage(0),createPage(1),createPage(2)));
+  assertQueueState(buffer,FIRST,3,0);
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,FIRST,0,sizeOfPages(10),NO_WAIT),bufferResult(0,createPage(0),createPage(1),createPage(2)));
+  assertQueueState(buffer,FIRST,3,0);
+  buffer.get(FIRST,3,sizeOfPages(10)).cancel(true);
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,FIRST,0,sizeOfPages(10),NO_WAIT),emptyResults(TASK_INSTANCE_ID,0,false));
+  assertQueueState(buffer,FIRST,0,3);
+}
