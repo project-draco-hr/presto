@@ -7,7 +7,9 @@
     return;
   }
   stateMachine.setOutputFieldNames(outputStageExecutionPlan.getFieldNames());
-  SqlQueryScheduler scheduler=new SqlQueryScheduler(stateMachine,locationFactory,outputStageExecutionPlan,nodePartitioningManager,nodeScheduler,remoteTaskFactory,stateMachine.getSession(),plan.isSummarizeTaskInfos(),scheduleSplitBatchSize,queryExecutor,ROOT_OUTPUT_BUFFERS,nodeTaskMap,executionPolicy);
+  PartitioningHandle partitioningHandle=plan.getRoot().getFragment().getPartitioningScheme().getPartitioning().getHandle();
+  OutputBuffers rootOutputBuffers=createInitialEmptyOutputBuffers(partitioningHandle).withBuffer(OUTPUT_BUFFER_ID,BROADCAST_PARTITION_ID).withNoMoreBufferIds();
+  SqlQueryScheduler scheduler=new SqlQueryScheduler(stateMachine,locationFactory,outputStageExecutionPlan,nodePartitioningManager,nodeScheduler,remoteTaskFactory,stateMachine.getSession(),plan.isSummarizeTaskInfos(),scheduleSplitBatchSize,queryExecutor,rootOutputBuffers,nodeTaskMap,executionPolicy);
   queryScheduler.set(scheduler);
   if (stateMachine.isDone()) {
     scheduler.abort();
