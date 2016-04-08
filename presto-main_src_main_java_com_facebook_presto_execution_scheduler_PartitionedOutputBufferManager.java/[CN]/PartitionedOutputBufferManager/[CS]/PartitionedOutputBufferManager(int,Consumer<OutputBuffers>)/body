@@ -1,0 +1,10 @@
+{
+  checkArgument(partitionCount >= 1,"partitionCount must be at least 1");
+  ImmutableMap.Builder<OutputBufferId,Integer> partitions=ImmutableMap.builder();
+  for (int partition=0; partition < partitionCount; partition++) {
+    partitions.put(new OutputBufferId(partition),partition);
+  }
+  OutputBuffers outputBuffers=createInitialEmptyOutputBuffers().withBuffers(partitions.build()).withNoMoreBufferIds();
+  outputBufferTarget.accept(outputBuffers);
+  this.outputBuffers=outputBuffers.getBuffers();
+}

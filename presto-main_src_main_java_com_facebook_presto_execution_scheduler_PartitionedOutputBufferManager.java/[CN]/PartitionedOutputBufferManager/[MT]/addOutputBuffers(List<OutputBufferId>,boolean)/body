@@ -1,17 +1,11 @@
 {
-  OutputBuffers outputBuffers;
-synchronized (this) {
-    if (noMoreBufferIds) {
-      return;
+  for (  OutputBufferId newBuffer : newBuffers) {
+    Integer existingBufferId=outputBuffers.get(newBuffer);
+    if (existingBufferId == null) {
+      throw new IllegalStateException("Unexpected new output buffer " + newBuffer);
     }
-    for (    OutputBufferId newBuffer : newBuffers) {
-      partitions.put(newBuffer,newBuffer.getId());
+    if (newBuffer.getId() != existingBufferId) {
+      throw new IllegalStateException("newOutputBuffers has changed the assignment for task " + newBuffer);
     }
-    if (!noMoreBuffers) {
-      return;
-    }
-    noMoreBufferIds=true;
-    outputBuffers=createInitialEmptyOutputBuffers().withBuffers(partitions).withNoMoreBufferIds();
   }
-  outputBufferTarget.accept(outputBuffers);
 }
