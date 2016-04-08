@@ -8,13 +8,17 @@
     queryRunner.createCatalog("tpch_sampled","tpch_sampled");
     File baseDir=queryRunner.getCoordinator().getBaseDataDir().resolve("hive_data").toFile();
     InMemoryHiveMetastore metastore=new InMemoryHiveMetastore(baseDir);
-    metastore.createDatabase(createDatabaseMetastoreObject(baseDir,"tpch"));
-    metastore.createDatabase(createDatabaseMetastoreObject(baseDir,"tpch_sampled"));
+    metastore.createDatabase(createDatabaseMetastoreObject(baseDir,TPCH_SCHEMA));
+    metastore.createDatabase(createDatabaseMetastoreObject(baseDir,TPCH_SAMPLED_SCHEMA));
+    metastore.createDatabase(createDatabaseMetastoreObject(baseDir,TPCH_BUCKETED_SCHEMA));
     queryRunner.installPlugin(new HivePlugin(HIVE_CATALOG,metastore));
     Map<String,String> hiveProperties=ImmutableMap.<String,String>builder().put("hive.metastore.uri","thrift://localhost:8080").put("hive.allow-add-column","true").put("hive.allow-drop-table","true").put("hive.allow-rename-table","true").put("hive.allow-rename-column","true").put("hive.time-zone",TIME_ZONE.getID()).put("hive.security","sql-standard").build();
+    Map<String,String> hiveBucketedProperties=ImmutableMap.<String,String>builder().putAll(hiveProperties).put("hive.max-initial-split-size","10kB").put("hive.max-split-size","10kB").put("hive.storage-format","TEXTFILE").put("hive.compression-codec","NONE").build();
     queryRunner.createCatalog(HIVE_CATALOG,HIVE_CATALOG,hiveProperties);
+    queryRunner.createCatalog(HIVE_BUCKETED_CATALOG,HIVE_CATALOG,hiveBucketedProperties);
     copyTpchTables(queryRunner,"tpch",TINY_SCHEMA_NAME,createSession(),tables);
     copyTpchTables(queryRunner,"tpch_sampled",TINY_SCHEMA_NAME,createSampledSession(),tables);
+    copyTpchTablesBucketed(queryRunner,"tpch",TINY_SCHEMA_NAME,createBucketedSession(),tables);
     return queryRunner;
   }
  catch (  Exception e) {

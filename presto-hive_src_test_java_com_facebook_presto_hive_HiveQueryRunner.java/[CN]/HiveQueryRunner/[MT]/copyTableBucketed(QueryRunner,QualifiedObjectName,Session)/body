@@ -1,0 +1,27 @@
+{
+  long start=System.nanoTime();
+  log.info("Running import for %s",table.getObjectName());
+  @Language("SQL") String sql;
+switch (table.getObjectName()) {
+case "part":
+case "partsupp":
+case "supplier":
+case "nation":
+case "region":
+    sql=format("CREATE TABLE %s AS SELECT * FROM %s",table.getObjectName(),table);
+  break;
+case "lineitem":
+sql=format("CREATE TABLE %s WITH (bucketed_by=array['orderkey'], bucket_count=11) AS SELECT * FROM %s",table.getObjectName(),table);
+break;
+case "customer":
+sql=format("CREATE TABLE %s WITH (bucketed_by=array['custkey'], bucket_count=11) AS SELECT * FROM %s",table.getObjectName(),table);
+break;
+case "orders":
+sql=format("CREATE TABLE %s WITH (bucketed_by=array['custkey'], bucket_count=11) AS SELECT * FROM %s",table.getObjectName(),table);
+break;
+default :
+throw new UnsupportedOperationException();
+}
+long rows=checkType(queryRunner.execute(session,sql).getMaterializedRows().get(0).getField(0),Long.class,"rows");
+log.info("Imported %s rows for %s in %s",rows,table.getObjectName(),nanosSince(start).convertToMostSuccinctTimeUnit());
+}
