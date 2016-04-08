@@ -35,13 +35,5 @@
     checkArgument(methodHandle != null,"Expected type %s to use (or can be converted into) Java type %s, but Java type is %s",type,parameterType.getJavaType(),type.getJavaType());
     return new ScalarFunctionImplementation(false,ImmutableList.of(false),methodHandle,true);
   }
-  if (!signature.getArgumentTypes().isEmpty() && signature.getArgumentTypes().get(0).getBase().equals(StandardTypes.ROW)) {
-    SqlFunction fieldReference=getRowFieldReference(signature.getName(),signature.getArgumentTypes().get(0));
-    if (fieldReference != null) {
-      Optional<BoundVariables> boundVariables=new SignatureBinder(typeManager,fieldReference.getSignature(),false).bindVariables(argumentTypes,returnType);
-      checkState(boundVariables.isPresent());
-      return specializedScalarCache.getUnchecked(new SpecializedFunctionKey(fieldReference,boundVariables.get(),argumentTypes.size()));
-    }
-  }
   throw new PrestoException(FUNCTION_IMPLEMENTATION_MISSING,format("%s not found",signature));
 }

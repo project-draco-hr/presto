@@ -1,0 +1,15 @@
+{
+  RowType rowType=checkType(types.get(node.getBase()),RowType.class,"type");
+  List<RowField> fields=rowType.getFields();
+  int index=-1;
+  for (int i=0; i < fields.size(); i++) {
+    RowField field=fields.get(i);
+    if (field.getName().isPresent() && field.getName().get().equalsIgnoreCase(node.getFieldName())) {
+      checkArgument(index < 0,"Ambiguous field %s in type %s",field,rowType.getDisplayName());
+      index=i;
+    }
+  }
+  checkState(index >= 0,"could not find field name: %s",node.getFieldName());
+  Type returnType=types.get(node);
+  return call(dereferenceSignature(returnType,rowType),returnType,process(node.getBase(),context),constant(index,INTEGER));
+}

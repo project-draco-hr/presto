@@ -24,13 +24,7 @@
       if (analysis.getFieldIndex(node).isPresent()) {
         return rewriteExpressionWithResolvedName(node);
       }
-      QualifiedName mangledName=QualifiedName.of(mangleFieldReference(node.getFieldName()));
-      FunctionCall functionCall=new FunctionCall(mangledName,ImmutableList.of(node.getBase()));
-      IdentityHashMap<Expression,Type> functionType=new IdentityHashMap<>();
-      functionType.put(functionCall,analysis.getType(node));
-      analysis.addTypes(functionType);
-      Expression rewrittenExpression=rewriteFunctionCall(functionCall,context,treeRewriter);
-      return coerceIfNecessary(node,rewrittenExpression);
+      return rewriteExpression(node,context,treeRewriter);
     }
     private Expression coerceIfNecessary(    Expression original,    Expression rewritten){
       Type coercion=analysis.getCoercion(original);

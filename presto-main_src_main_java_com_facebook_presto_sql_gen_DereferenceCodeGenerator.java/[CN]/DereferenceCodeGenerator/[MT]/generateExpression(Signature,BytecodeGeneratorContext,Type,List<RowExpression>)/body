@@ -1,0 +1,21 @@
+{
+  checkArgument(arguments.size() == 2);
+  CallSiteBinder callSiteBinder=generator.getCallSiteBinder();
+  BytecodeBlock block=new BytecodeBlock().comment("DEREFERENCE").setDescription("DEREFERENCE");
+  Variable wasNull=generator.wasNull();
+  Variable rowBlock=generator.getScope().createTempVariable(Block.class);
+  int index=(int)((ConstantExpression)arguments.get(1)).getValue();
+  block.append(generator.generate(arguments.get(0))).putVariable(rowBlock);
+  IfStatement ifRowBlockIsNull=new IfStatement("if row block is null...").condition(wasNull);
+  Class<?> javaType=returnType.getJavaType();
+  LabelNode end=new LabelNode("end");
+  ifRowBlockIsNull.ifTrue().comment("if row block is null, push null to the stack and goto 'end' label (return)").putVariable(wasNull,true).pushJavaDefault(javaType).gotoLabel(end);
+  block.append(ifRowBlockIsNull);
+  IfStatement ifFieldIsNull=new IfStatement("if row field is null...");
+  ifFieldIsNull.condition().comment("call rowBlock.isNull(index)").append(rowBlock).push(index).invokeInterface(Block.class,"isNull",boolean.class,int.class);
+  ifFieldIsNull.ifTrue().comment("if the field is null, push null to stack").putVariable(wasNull,true).pushJavaDefault(javaType);
+  BytecodeExpression value=constantType(callSiteBinder,returnType).getValue(rowBlock,constantInt(index));
+  ifFieldIsNull.ifFalse().comment("otherwise call type.getTYPE(rowBlock, index)").append(value);
+  block.append(ifFieldIsNull).visitLabel(end);
+  return block;
+}

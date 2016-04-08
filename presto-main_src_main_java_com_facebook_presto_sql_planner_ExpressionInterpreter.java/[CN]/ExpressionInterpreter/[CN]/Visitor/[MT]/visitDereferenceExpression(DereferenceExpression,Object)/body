@@ -1,3 +1,43 @@
 {
-  return node;
+  Type type=expressionTypes.get(node.getBase());
+  if (type == null) {
+    return node;
+  }
+  Object base=process(node.getBase(),context);
+  if (hasUnresolvedValue(base)) {
+    return new DereferenceExpression(toExpression(base,type),node.getFieldName());
+  }
+  RowType rowType=checkType(type,RowType.class,"type");
+  Block row=(Block)base;
+  Type returnType=expressionTypes.get(node);
+  List<RowField> fields=rowType.getFields();
+  int index=-1;
+  for (int i=0; i < fields.size(); i++) {
+    RowField field=fields.get(i);
+    if (field.getName().isPresent() && field.getName().get().equalsIgnoreCase(node.getFieldName())) {
+      checkArgument(index < 0,"Ambiguous field %s in type %s",field,rowType.getDisplayName());
+      index=i;
+    }
+  }
+  checkState(index >= 0,"could not find field name: %s",node.getFieldName());
+  if (row.isNull(index)) {
+    return null;
+  }
+  Class<?> javaType=returnType.getJavaType();
+  if (javaType == long.class) {
+    return returnType.getLong(row,index);
+  }
+ else   if (javaType == double.class) {
+    return returnType.getDouble(row,index);
+  }
+ else   if (javaType == boolean.class) {
+    return returnType.getBoolean(row,index);
+  }
+ else   if (javaType == Slice.class) {
+    return returnType.getSlice(row,index);
+  }
+ else   if (!javaType.isPrimitive()) {
+    return returnType.getObject(row,index);
+  }
+  throw new UnsupportedOperationException("Dereference a unsupported primitive type: " + javaType.getName());
 }
