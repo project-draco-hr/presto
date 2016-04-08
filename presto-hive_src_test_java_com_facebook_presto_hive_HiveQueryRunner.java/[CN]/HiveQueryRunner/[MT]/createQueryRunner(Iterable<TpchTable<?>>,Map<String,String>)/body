@@ -1,0 +1,24 @@
+{
+  assertEquals(DateTimeZone.getDefault(),TIME_ZONE,"Timezone not configured correctly. Add -Duser.timezone=Asia/Katmandu to your JVM arguments");
+  DistributedQueryRunner queryRunner=new DistributedQueryRunner(createSession(),4,extraProperties);
+  try {
+    queryRunner.installPlugin(new TpchPlugin());
+    queryRunner.createCatalog("tpch","tpch");
+    queryRunner.installPlugin(new SampledTpchPlugin());
+    queryRunner.createCatalog("tpch_sampled","tpch_sampled");
+    File baseDir=queryRunner.getCoordinator().getBaseDataDir().resolve("hive_data").toFile();
+    InMemoryHiveMetastore metastore=new InMemoryHiveMetastore(baseDir);
+    metastore.createDatabase(createDatabaseMetastoreObject(baseDir,"tpch"));
+    metastore.createDatabase(createDatabaseMetastoreObject(baseDir,"tpch_sampled"));
+    queryRunner.installPlugin(new HivePlugin(HIVE_CATALOG,metastore));
+    Map<String,String> hiveProperties=ImmutableMap.<String,String>builder().put("hive.metastore.uri","thrift://localhost:8080").put("hive.allow-add-column","true").put("hive.allow-drop-table","true").put("hive.allow-rename-table","true").put("hive.allow-rename-column","true").put("hive.time-zone",TIME_ZONE.getID()).put("hive.security","sql-standard").build();
+    queryRunner.createCatalog(HIVE_CATALOG,HIVE_CATALOG,hiveProperties);
+    copyTpchTables(queryRunner,"tpch",TINY_SCHEMA_NAME,createSession(),tables);
+    copyTpchTables(queryRunner,"tpch_sampled",TINY_SCHEMA_NAME,createSampledSession(),tables);
+    return queryRunner;
+  }
+ catch (  Exception e) {
+    queryRunner.close();
+    throw e;
+  }
+}
