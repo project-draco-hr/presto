@@ -12,7 +12,8 @@
     }
     Session viewSession=Session.builder(metadata.getSessionPropertyManager()).setQueryId(session.getQueryId()).setTransactionId(session.getTransactionId().orElse(null)).setIdentity(identity).setSource(session.getSource().orElse(null)).setCatalog(catalog.orElse(null)).setSchema(schema.orElse(null)).setTimeZoneKey(session.getTimeZoneKey()).setLocale(session.getLocale()).setRemoteUserAddress(session.getRemoteUserAddress().orElse(null)).setUserAgent(session.getUserAgent().orElse(null)).setStartTime(session.getStartTime()).build();
     StatementAnalyzer analyzer=new StatementAnalyzer(analysis,metadata,sqlParser,viewAccessControl,viewSession,experimentalSyntaxEnabled,Optional.empty());
-    return analyzer.process(query,new AnalysisContext());
+    RelationType descriptor=analyzer.process(query,new AnalysisContext());
+    return descriptor.withAlias(name.getObjectName(),null);
   }
  catch (  RuntimeException e) {
     throw new SemanticException(VIEW_ANALYSIS_ERROR,node,"Failed analyzing stored view '%s': %s",name,e.getMessage());
