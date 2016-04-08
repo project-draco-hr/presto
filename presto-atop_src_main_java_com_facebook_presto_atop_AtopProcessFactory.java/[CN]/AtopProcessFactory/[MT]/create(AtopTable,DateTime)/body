@@ -1,0 +1,16 @@
+{
+  checkArgument(date.getZone().equals(timeZone),"Split date (%s) is not in the local timezone (%s)",date.getZone(),timeZone);
+  ProcessBuilder processBuilder=new ProcessBuilder(executablePath);
+  processBuilder.command().add("-P");
+  processBuilder.command().add(table.getAtopLabel());
+  processBuilder.command().add("-r");
+  processBuilder.command().add(DATE_FORMATTER.print(date));
+  Process process;
+  try {
+    process=processBuilder.start();
+  }
+ catch (  IOException e) {
+    throw new PrestoException(ATOP_CANNOT_START_PROCESS_ERROR,format("Cannot start %s",processBuilder.command()),e);
+  }
+  return new AtopProcess(process,readTimeout,executor);
+}

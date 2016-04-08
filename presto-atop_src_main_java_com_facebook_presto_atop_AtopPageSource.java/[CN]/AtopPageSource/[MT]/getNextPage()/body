@@ -1,0 +1,60 @@
+{
+  if (atop == null) {
+    try {
+      readerPermits.acquire();
+    }
+ catch (    InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw Throwables.propagate(e);
+    }
+    try {
+      atop=atopFactory.create(table,date);
+    }
+ catch (    RuntimeException e) {
+      atop=null;
+      readerPermits.release();
+      throw e;
+    }
+  }
+  while (!pageBuilder.isFull()) {
+    if (!atop.hasNext()) {
+      close();
+      break;
+    }
+    String row=atop.next();
+    if (row.equals("SEP")) {
+      continue;
+    }
+    if (table == AtopTable.REBOOTS) {
+      if (!row.equals("RESET")) {
+        continue;
+      }
+      if (!atop.hasNext()) {
+        close();
+        break;
+      }
+      row=atop.next();
+    }
+ else {
+      if (row.equals("RESET")) {
+        if (atop.hasNext()) {
+          atop.next();
+        }
+        continue;
+      }
+    }
+    List<String> fields=Splitter.on(" ").splitToList(row);
+    pageBuilder.declarePosition();
+    for (int i=0; i < columns.size(); i++) {
+      if (columns.get(i) == AtopColumn.HOST_IP) {
+        types.get(i).writeSlice(pageBuilder.getBlockBuilder(i),hostIp);
+      }
+ else {
+        columns.get(i).getParser().parse(fields,types.get(i),pageBuilder.getBlockBuilder(i),session);
+      }
+    }
+  }
+  Page page=pageBuilder.build();
+  pageBuilder.reset();
+  return page;
+}

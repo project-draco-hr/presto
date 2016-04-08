@@ -1,0 +1,11 @@
+{
+  String columnName=checkType(columnHandle,AtopColumnHandle.class,"columnHandle").getName();
+  for (  ColumnMetadata column : getTableMetadata(session,tableHandle).getColumns()) {
+    if (column.getName().equals(columnName)) {
+      return column;
+    }
+  }
+  AtopTableHandle atopTableHandle=checkType(tableHandle,AtopTableHandle.class,"tableHandle");
+  SchemaTableName tableName=new SchemaTableName(atopTableHandle.getSchema(),atopTableHandle.getTable().getName());
+  throw new ColumnNotFoundException(tableName,columnName);
+}

@@ -1,0 +1,20 @@
+{
+  if (line == null) {
+    throw new NoSuchElementException();
+  }
+  String currentLine=line;
+  try {
+    line=reader.readLine();
+  }
+ catch (  IOException e) {
+    line=null;
+  }
+  if (currentLine.equals("SEP") || currentLine.equals("RESET")) {
+    return currentLine;
+  }
+  List<String> fields=new ArrayList<>(Splitter.on(" ").splitToList(currentLine));
+  long secondsSinceEpoch=date.getMillis() / 1000;
+  secondsSinceEpoch+=Integer.parseInt(fields.get(2));
+  fields.set(2,String.valueOf(secondsSinceEpoch));
+  return Joiner.on(" ").join(fields);
+}

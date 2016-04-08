@@ -1,0 +1,19 @@
+{
+  try {
+    underlyingReader.close();
+  }
+ catch (  IOException e) {
+  }
+ finally {
+    process.destroy();
+    try {
+      if (!process.waitFor(5,TimeUnit.SECONDS)) {
+        process.destroyForcibly();
+      }
+    }
+ catch (    InterruptedException e) {
+      Thread.currentThread().interrupt();
+      process.destroyForcibly();
+    }
+  }
+}
