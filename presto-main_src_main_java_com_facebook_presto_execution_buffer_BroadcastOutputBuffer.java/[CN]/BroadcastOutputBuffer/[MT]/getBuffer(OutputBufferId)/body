@@ -1,0 +1,17 @@
+{
+  ClientBuffer buffer=buffers.get(id);
+  if (buffer != null) {
+    return buffer;
+  }
+  checkState(state.get().canAddBuffers(),"No more buffers already set");
+  buffer=new ClientBuffer(taskInstanceId,id);
+  buffer.enqueuePages(initialPagesForNewBuffers);
+  if (!state.get().canAddPages()) {
+    buffer.setNoMorePages();
+  }
+  if (state.get() == FINISHED) {
+    buffer.destroy();
+  }
+  buffers.put(id,buffer);
+  return buffer;
+}

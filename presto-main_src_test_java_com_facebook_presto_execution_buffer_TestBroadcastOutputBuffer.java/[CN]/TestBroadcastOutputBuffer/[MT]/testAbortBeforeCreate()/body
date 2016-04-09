@@ -1,0 +1,9 @@
+{
+  BroadcastOutputBuffer buffer=createBroadcastBuffer(createInitialEmptyOutputBuffers(BROADCAST),sizeOfPages(2));
+  assertFalse(buffer.isFinished());
+  CompletableFuture<BufferResult> future=buffer.get(FIRST,0,sizeOfPages(1));
+  assertFalse(future.isDone());
+  buffer.abort(FIRST);
+  assertTrue(future.isDone());
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,FIRST,0,sizeOfPages(10),NO_WAIT),emptyResults(TASK_INSTANCE_ID,0,true));
+}

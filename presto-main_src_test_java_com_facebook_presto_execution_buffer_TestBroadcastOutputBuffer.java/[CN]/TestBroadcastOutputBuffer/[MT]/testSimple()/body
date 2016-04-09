@@ -1,0 +1,72 @@
+{
+  OutputBuffers outputBuffers=createInitialEmptyOutputBuffers(BROADCAST);
+  BroadcastOutputBuffer buffer=createBroadcastBuffer(outputBuffers,sizeOfPages(10));
+  for (int i=0; i < 3; i++) {
+    addPage(buffer,createPage(i));
+  }
+  outputBuffers=createInitialEmptyOutputBuffers(BROADCAST).withBuffer(FIRST,BROADCAST_PARTITION_ID);
+  buffer.setOutputBuffers(outputBuffers);
+  assertQueueState(buffer,FIRST,3,0);
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,FIRST,0,sizeOfPages(10),NO_WAIT),bufferResult(0,createPage(0),createPage(1),createPage(2)));
+  assertQueueState(buffer,FIRST,3,0);
+  buffer.get(FIRST,3,sizeOfPages(10)).cancel(true);
+  assertQueueState(buffer,FIRST,0,3);
+  for (int i=3; i < 10; i++) {
+    addPage(buffer,createPage(i));
+  }
+  assertQueueState(buffer,FIRST,7,3);
+  ListenableFuture<?> future=enqueuePage(buffer,createPage(10));
+  assertFalse(future.isDone());
+  assertQueueState(buffer,FIRST,8,3);
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,FIRST,3,sizeOfPages(1),NO_WAIT),bufferResult(3,createPage(3)));
+  assertQueueState(buffer,FIRST,8,3);
+  assertFalse(future.isDone());
+  outputBuffers=outputBuffers.withBuffer(SECOND,BROADCAST_PARTITION_ID);
+  buffer.setOutputBuffers(outputBuffers);
+  assertQueueState(buffer,SECOND,11,0);
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,SECOND,0,sizeOfPages(10),NO_WAIT),bufferResult(0,createPage(0),createPage(1),createPage(2),createPage(3),createPage(4),createPage(5),createPage(6),createPage(7),createPage(8),createPage(9)));
+  assertQueueState(buffer,SECOND,11,0);
+  buffer.get(SECOND,10,sizeOfPages(10)).cancel(true);
+  assertQueueState(buffer,SECOND,1,10);
+  outputBuffers=outputBuffers.withNoMoreBufferIds();
+  buffer.setOutputBuffers(outputBuffers);
+  assertQueueState(buffer,FIRST,8,3);
+  assertQueueState(buffer,SECOND,1,10);
+  assertFutureIsDone(future);
+  addPage(buffer,createPage(11));
+  addPage(buffer,createPage(12));
+  future=enqueuePage(buffer,createPage(13));
+  assertFalse(future.isDone());
+  assertQueueState(buffer,FIRST,11,3);
+  assertQueueState(buffer,SECOND,4,10);
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,FIRST,4,sizeOfPages(1),NO_WAIT),bufferResult(4,createPage(4)));
+  assertFutureIsDone(future);
+  assertQueueState(buffer,FIRST,10,4);
+  assertQueueState(buffer,SECOND,4,10);
+  assertFalse(buffer.isFinished());
+  buffer.setNoMorePages();
+  assertQueueState(buffer,FIRST,10,4);
+  assertQueueState(buffer,SECOND,4,10);
+  assertFalse(buffer.isFinished());
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,FIRST,5,sizeOfPages(1),NO_WAIT),bufferResult(5,createPage(5)));
+  assertQueueState(buffer,FIRST,9,5);
+  assertQueueState(buffer,SECOND,4,10);
+  assertFalse(buffer.isFinished());
+  BufferResult x=getBufferResult(buffer,FIRST,6,sizeOfPages(10),NO_WAIT);
+  assertBufferResultEquals(TYPES,x,bufferResult(6,createPage(6),createPage(7),createPage(8),createPage(9),createPage(10),createPage(11),createPage(12),createPage(13)));
+  assertQueueState(buffer,FIRST,8,6);
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,FIRST,14,sizeOfPages(10),NO_WAIT),emptyResults(TASK_INSTANCE_ID,14,true));
+  buffer.abort(FIRST);
+  assertQueueClosed(buffer,FIRST,14);
+  assertQueueState(buffer,SECOND,4,10);
+  assertFalse(buffer.isFinished());
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,SECOND,10,sizeOfPages(10),NO_WAIT),bufferResult(10,createPage(10),createPage(11),createPage(12),createPage(13)));
+  assertQueueState(buffer,SECOND,4,10);
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,SECOND,14,sizeOfPages(10),NO_WAIT),emptyResults(TASK_INSTANCE_ID,14,true));
+  buffer.abort(SECOND);
+  assertQueueClosed(buffer,FIRST,14);
+  assertQueueClosed(buffer,SECOND,14);
+  assertFinished(buffer);
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,FIRST,14,sizeOfPages(10),NO_WAIT),emptyResults(TASK_INSTANCE_ID,14,true));
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,SECOND,14,sizeOfPages(10),NO_WAIT),emptyResults(TASK_INSTANCE_ID,14,true));
+}

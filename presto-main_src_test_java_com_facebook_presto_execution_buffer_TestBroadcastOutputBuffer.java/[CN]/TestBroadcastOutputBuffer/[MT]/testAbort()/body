@@ -1,0 +1,16 @@
+{
+  BroadcastOutputBuffer bufferedBuffer=createBroadcastBuffer(createInitialEmptyOutputBuffers(BROADCAST).withBuffer(FIRST,BROADCAST_PARTITION_ID).withBuffer(SECOND,BROADCAST_PARTITION_ID).withNoMoreBufferIds(),sizeOfPages(10));
+  for (int i=0; i < 10; i++) {
+    addPage(bufferedBuffer,createPage(i));
+  }
+  bufferedBuffer.setNoMorePages();
+  assertBufferResultEquals(TYPES,getBufferResult(bufferedBuffer,FIRST,0,sizeOfPages(1),NO_WAIT),bufferResult(0,createPage(0)));
+  bufferedBuffer.abort(FIRST);
+  assertQueueClosed(bufferedBuffer,FIRST,0);
+  assertBufferResultEquals(TYPES,getBufferResult(bufferedBuffer,FIRST,1,sizeOfPages(1),NO_WAIT),emptyResults(TASK_INSTANCE_ID,0,true));
+  assertBufferResultEquals(TYPES,getBufferResult(bufferedBuffer,SECOND,0,sizeOfPages(1),NO_WAIT),bufferResult(0,createPage(0)));
+  bufferedBuffer.abort(SECOND);
+  assertQueueClosed(bufferedBuffer,SECOND,0);
+  assertFinished(bufferedBuffer);
+  assertBufferResultEquals(TYPES,getBufferResult(bufferedBuffer,SECOND,1,sizeOfPages(1),NO_WAIT),emptyResults(TASK_INSTANCE_ID,0,true));
+}

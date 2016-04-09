@@ -1,0 +1,15 @@
+{
+  BroadcastOutputBuffer buffer=createBroadcastBuffer(createInitialEmptyOutputBuffers(BROADCAST).withBuffer(FIRST,BROADCAST_PARTITION_ID).withBuffer(SECOND,BROADCAST_PARTITION_ID).withNoMoreBufferIds(),sizeOfPages(2));
+  addPage(buffer,createPage(1));
+  addPage(buffer,createPage(2));
+  assertQueueState(buffer,FIRST,2,0);
+  ListenableFuture<?> future=enqueuePage(buffer,createPage(3));
+  assertFalse(future.isDone());
+  assertQueueState(buffer,FIRST,3,0);
+  assertQueueState(buffer,SECOND,3,0);
+  buffer.get(FIRST,2,sizeOfPages(10)).cancel(true);
+  assertFalse(future.isDone());
+  buffer.get(SECOND,2,sizeOfPages(10)).cancel(true);
+  assertFutureIsDone(future);
+  assertQueueState(buffer,SECOND,1,2);
+}

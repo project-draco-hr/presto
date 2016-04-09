@@ -1,0 +1,27 @@
+{
+  requireNonNull(newOutputBuffers,"newOutputBuffers is null");
+synchronized (this) {
+    BufferState state=this.state.get();
+    if (state.isTerminal() || outputBuffers.getVersion() >= newOutputBuffers.getVersion()) {
+      return;
+    }
+    outputBuffers.checkValidTransition(newOutputBuffers);
+    outputBuffers=newOutputBuffers;
+    for (    Entry<OutputBufferId,Integer> entry : outputBuffers.getBuffers().entrySet()) {
+      if (!buffers.containsKey(entry.getKey())) {
+        ClientBuffer buffer=getBuffer(entry.getKey());
+        if (!state.canAddPages()) {
+          buffer.setNoMorePages();
+        }
+      }
+    }
+    if (outputBuffers.isNoMoreBufferIds()) {
+      this.state.compareAndSet(OPEN,NO_MORE_BUFFERS);
+      this.state.compareAndSet(NO_MORE_PAGES,FLUSHING);
+    }
+  }
+  if (!state.get().canAddBuffers()) {
+    noMoreBuffers();
+  }
+  checkFlushComplete();
+}

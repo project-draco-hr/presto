@@ -1,0 +1,10 @@
+{
+  BroadcastOutputBuffer buffer=createBroadcastBuffer(createInitialEmptyOutputBuffers(BROADCAST).withBuffer(FIRST,BROADCAST_PARTITION_ID).withBuffer(SECOND,BROADCAST_PARTITION_ID).withNoMoreBufferIds(),sizeOfPages(10));
+  buffer.setNoMorePages();
+  assertQueueState(buffer,FIRST,0,0);
+  assertQueueState(buffer,SECOND,0,0);
+  buffer.abort(FIRST);
+  buffer.abort(SECOND);
+  assertQueueClosed(buffer,FIRST,0);
+  assertQueueClosed(buffer,SECOND,0);
+}

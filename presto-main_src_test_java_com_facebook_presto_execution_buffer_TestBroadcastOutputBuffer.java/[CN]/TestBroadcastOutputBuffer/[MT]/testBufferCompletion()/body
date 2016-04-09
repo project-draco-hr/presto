@@ -1,0 +1,16 @@
+{
+  BroadcastOutputBuffer buffer=createBroadcastBuffer(createInitialEmptyOutputBuffers(BROADCAST).withBuffer(FIRST,BROADCAST_PARTITION_ID).withNoMoreBufferIds(),sizeOfPages(5));
+  assertFalse(buffer.isFinished());
+  List<Page> pages=new ArrayList<>();
+  for (int i=0; i < 5; i++) {
+    Page page=createPage(i);
+    addPage(buffer,page);
+    pages.add(page);
+  }
+  buffer.setNoMorePages();
+  assertBufferResultEquals(TYPES,getBufferResult(buffer,FIRST,0,sizeOfPages(5),MAX_WAIT),bufferResult(0,pages));
+  assertFalse(buffer.isFinished());
+  assertFalse(buffer.isFinished());
+  buffer.abort(FIRST);
+  assertTrue(buffer.isFinished());
+}
