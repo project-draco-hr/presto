@@ -2,6 +2,17 @@
   if (nativeValue == null) {
     return null;
   }
+  if (type instanceof DecimalType) {
+    BigInteger unscaledValue;
+    DecimalType decimalType=(DecimalType)type;
+    if (decimalType.isShort()) {
+      unscaledValue=BigInteger.valueOf((long)nativeValue);
+    }
+ else {
+      unscaledValue=Decimals.decodeUnscaledValue((Slice)nativeValue);
+    }
+    return HiveDecimal.create(unscaledValue,decimalType.getScale());
+  }
   if (type.getJavaType() == boolean.class) {
     return nativeValue;
   }
