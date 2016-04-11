@@ -4,6 +4,7 @@
   analyze("INSERT INTO t3 SELECT * FROM t3");
   analyze("INSERT INTO t3 SELECT a, b FROM t3");
   assertFails(MISMATCHED_SET_COLUMN_TYPES,"INSERT INTO t1 VALUES (1, 2)");
+  analyze("INSERT INTO t5 (a) VALUES(null)");
   analyze("INSERT INTO t5 VALUES (1)");
   assertFails(MISMATCHED_SET_COLUMN_TYPES,"INSERT INTO t5 VALUES (1, 2)");
   analyze("INSERT INTO t6 (a) SELECT a from t6");
@@ -15,4 +16,9 @@
   assertFails(MISSING_COLUMN,"INSERT INTO t6 (unknown) SELECT * FROM t6");
   assertFails(DUPLICATE_COLUMN_NAME,"INSERT INTO t6 (a, a) SELECT * FROM t6");
   assertFails(DUPLICATE_COLUMN_NAME,"INSERT INTO t6 (a, A) SELECT * FROM t6");
+  analyze("INSERT INTO t7 (b) SELECT (a) FROM t7 ");
+  assertFails(MISMATCHED_SET_COLUMN_TYPES,"INSERT INTO t7 (a) SELECT (b) FROM t7");
+  analyze("INSERT INTO t7 (d) SELECT (c) FROM t7 ");
+  assertFails(MISMATCHED_SET_COLUMN_TYPES,"INSERT INTO t7 (c) SELECT (d) FROM t7 ");
+  analyze("INSERT INTO t7 (d) VALUES (ARRAY[null])");
 }
