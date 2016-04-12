@@ -1,0 +1,34 @@
+{
+  List<Type> toTypes=toType.getTypeParameters();
+  List<Type> fromTypes=fromType.getTypeParameters();
+  CallSiteBinder binder=new CallSiteBinder();
+  byte[] md5Suffix=Hashing.md5().hashBytes((fromType + "$" + toType).getBytes()).asBytes();
+  ClassDefinition definition=new ClassDefinition(a(PUBLIC,FINAL),CompilerUtils.makeClassName(Joiner.on("$").join("RowCast",BaseEncoding.base16().encode(md5Suffix))),type(Object.class));
+  Parameter session=arg("session",ConnectorSession.class);
+  Parameter value=arg("value",Block.class);
+  MethodDefinition method=definition.declareMethod(a(PUBLIC,STATIC),"castRow",type(Block.class),session,value);
+  Scope scope=method.getScope();
+  BytecodeBlock body=method.getBody();
+  Variable wasNull=scope.declareVariable(boolean.class,"wasNull");
+  Variable blockBuilder=scope.createTempVariable(BlockBuilder.class);
+  body.append(wasNull.set(constantBoolean(false)));
+  CachedInstanceBinder cachedInstanceBinder=new CachedInstanceBinder(definition,binder);
+  body.newObject(InterleavedBlockBuilder.class).dup().append(constantType(binder,toType).invoke("getTypeParameters",List.class)).append(newInstance(BlockBuilderStatus.class)).append(constantInt(toTypes.size())).invokeConstructor(InterleavedBlockBuilder.class,List.class,BlockBuilderStatus.class,int.class).putVariable(blockBuilder);
+  for (int i=0; i < toTypes.size(); i++) {
+    Signature signature=internalOperator(CAST.name(),toTypes.get(i).getTypeSignature(),ImmutableList.of(fromTypes.get(i).getTypeSignature()));
+    ScalarFunctionImplementation function=functionRegistry.getScalarFunctionImplementation(signature);
+    BytecodeExpression fromElement=constantType(binder,fromTypes.get(i)).getValue(value,constantInt(i));
+    BytecodeExpression toElement=invokeFunction(scope,cachedInstanceBinder,signature.getName(),function,fromElement);
+    IfStatement ifElementNull=new IfStatement("if the element in the row type is null...");
+    ifElementNull.condition(value.invoke("isNull",boolean.class,constantInt(i))).ifTrue(blockBuilder.invoke("appendNull",BlockBuilder.class).pop()).ifFalse(constantType(binder,toTypes.get(i)).writeValue(blockBuilder,toElement));
+    body.append(ifElementNull);
+  }
+  body.append(blockBuilder.invoke("build",Block.class)).retObject();
+  MethodDefinition constructorDefinition=definition.declareConstructor(a(PUBLIC));
+  BytecodeBlock constructorBody=constructorDefinition.getBody();
+  Variable thisVariable=constructorDefinition.getThis();
+  constructorBody.comment("super();").append(thisVariable).invokeConstructor(Object.class);
+  cachedInstanceBinder.generateInitializations(thisVariable,constructorBody);
+  constructorBody.ret();
+  return defineClass(definition,Object.class,binder.getBindings(),RowToRowCast.class.getClassLoader());
+}
