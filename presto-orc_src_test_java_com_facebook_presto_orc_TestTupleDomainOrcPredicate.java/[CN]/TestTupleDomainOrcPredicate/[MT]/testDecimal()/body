@@ -1,0 +1,23 @@
+{
+  assertEquals(getDomain(SHORT_DECIMAL,0,null),none(SHORT_DECIMAL));
+  assertEquals(getDomain(LONG_DECIMAL,10,null),all(LONG_DECIMAL));
+  assertEquals(getDomain(SHORT_DECIMAL,0,decimalColumnStats(null,null,null)),none(SHORT_DECIMAL));
+  assertEquals(getDomain(LONG_DECIMAL,0,decimalColumnStats(0L,null,null)),none(LONG_DECIMAL));
+  assertEquals(getDomain(SHORT_DECIMAL,0,decimalColumnStats(0L,"-999.99","999.99")),none(SHORT_DECIMAL));
+  assertEquals(getDomain(LONG_DECIMAL,10,decimalColumnStats(0L,null,null)),onlyNull(LONG_DECIMAL));
+  assertEquals(getDomain(SHORT_DECIMAL,10,decimalColumnStats(10L,null,null)),notNull(SHORT_DECIMAL));
+  assertEquals(getDomain(SHORT_DECIMAL,10,decimalColumnStats(10L,"999.99","999.99")),singleValue(SHORT_DECIMAL,shortDecimal("999.99")));
+  assertEquals(getDomain(LONG_DECIMAL,10,decimalColumnStats(10L,"1234567890.0987654321","1234567890.0987654321")),singleValue(LONG_DECIMAL,longDecimal("1234567890.0987654321")));
+  assertEquals(getDomain(SHORT_DECIMAL,10,decimalColumnStats(10L,"-999.99","999.99")),create(ValueSet.ofRanges(range(SHORT_DECIMAL,shortDecimal("-999.99"),true,shortDecimal("999.99"),true)),false));
+  assertEquals(getDomain(SHORT_DECIMAL,10,decimalColumnStats(10L,null,"999.99")),create(ValueSet.ofRanges(lessThanOrEqual(SHORT_DECIMAL,shortDecimal("999.99"))),false));
+  assertEquals(getDomain(SHORT_DECIMAL,10,decimalColumnStats(10L,"-999.99",null)),create(ValueSet.ofRanges(greaterThanOrEqual(SHORT_DECIMAL,shortDecimal("-999.99"))),false));
+  assertEquals(getDomain(LONG_DECIMAL,10,decimalColumnStats(10L,"-1234567890.0987654321","1234567890.0987654321")),create(ValueSet.ofRanges(range(LONG_DECIMAL,longDecimal("-1234567890.0987654321"),true,longDecimal("1234567890.0987654321"),true)),false));
+  assertEquals(getDomain(LONG_DECIMAL,10,decimalColumnStats(10L,null,"1234567890.0987654321")),create(ValueSet.ofRanges(lessThanOrEqual(LONG_DECIMAL,longDecimal("1234567890.0987654321"))),false));
+  assertEquals(getDomain(LONG_DECIMAL,10,decimalColumnStats(10L,"-1234567890.0987654321",null)),create(ValueSet.ofRanges(greaterThanOrEqual(LONG_DECIMAL,longDecimal("-1234567890.0987654321"))),false));
+  assertEquals(getDomain(SHORT_DECIMAL,10,decimalColumnStats(5L,"-999.99","999.99")),create(ValueSet.ofRanges(range(SHORT_DECIMAL,shortDecimal("-999.99"),true,shortDecimal("999.99"),true)),true));
+  assertEquals(getDomain(SHORT_DECIMAL,10,decimalColumnStats(5L,null,"999.99")),create(ValueSet.ofRanges(lessThanOrEqual(SHORT_DECIMAL,shortDecimal("999.99"))),true));
+  assertEquals(getDomain(SHORT_DECIMAL,10,decimalColumnStats(5L,"-999.99",null)),create(ValueSet.ofRanges(greaterThanOrEqual(SHORT_DECIMAL,shortDecimal("-999.99"))),true));
+  assertEquals(getDomain(LONG_DECIMAL,10,decimalColumnStats(5L,"-1234567890.0987654321","1234567890.0987654321")),create(ValueSet.ofRanges(range(LONG_DECIMAL,longDecimal("-1234567890.0987654321"),true,longDecimal("1234567890.0987654321"),true)),true));
+  assertEquals(getDomain(LONG_DECIMAL,10,decimalColumnStats(5L,null,"1234567890.0987654321")),create(ValueSet.ofRanges(lessThanOrEqual(LONG_DECIMAL,longDecimal("1234567890.0987654321"))),true));
+  assertEquals(getDomain(LONG_DECIMAL,10,decimalColumnStats(5L,"-1234567890.0987654321",null)),create(ValueSet.ofRanges(greaterThanOrEqual(LONG_DECIMAL,longDecimal("-1234567890.0987654321"))),true));
+}
