@@ -1,6 +1,7 @@
 {
-  LocalExchange exchange=new LocalExchange(SINGLE_DISTRIBUTION,8,TYPES,ImmutableList.of(),Optional.empty());
+  LocalExchange exchange=new LocalExchange(SINGLE_DISTRIBUTION,8,TYPES,ImmutableList.of(),Optional.empty(),new DataSize(sizeOfPages(99),BYTE));
   assertEquals(exchange.getBufferCount(),1);
+  assertExchangeTotalBufferPages(exchange,0);
   LocalExchangeSinkFactory sinkFactory=exchange.createSinkFactory();
   LocalExchangeSource source=exchange.getSource(0);
   assertSource(source,0);
@@ -11,24 +12,31 @@
   assertSource(source,0);
   ListenableFuture<?> readFuture=source.waitForReading();
   assertFalse(readFuture.isDone());
-  sink.addPage(SequencePageBuilder.createSequencePage(TYPES,100,0));
+  sink.addPage(createPage(0));
   assertTrue(readFuture.isDone());
+  assertExchangeTotalBufferPages(exchange,1);
   assertSource(source,1);
-  sink.addPage(SequencePageBuilder.createSequencePage(TYPES,100,100));
+  sink.addPage(createPage(1));
   assertSource(source,2);
-  assertRemovePage(source);
+  assertExchangeTotalBufferPages(exchange,2);
+  assertRemovePage(source,createPage(0));
   assertSource(source,1);
-  assertRemovePage(source);
+  assertExchangeTotalBufferPages(exchange,1);
+  assertRemovePage(source,createPage(1));
   assertSource(source,0);
-  sink.addPage(SequencePageBuilder.createSequencePage(TYPES,100,100));
-  sink.addPage(SequencePageBuilder.createSequencePage(TYPES,100,100));
+  assertExchangeTotalBufferPages(exchange,0);
+  sink.addPage(createPage(2));
+  sink.addPage(createPage(3));
   assertSource(source,2);
+  assertExchangeTotalBufferPages(exchange,2);
   sink.finish();
   assertSinkFinished(sink);
   assertSource(source,2);
-  assertRemovePage(source);
+  assertRemovePage(source,createPage(2));
   assertSource(source,1);
   assertSinkFinished(sink);
-  assertRemovePage(source);
+  assertExchangeTotalBufferPages(exchange,1);
+  assertRemovePage(source,createPage(3));
   assertSourceFinished(source);
+  assertExchangeTotalBufferPages(exchange,0);
 }

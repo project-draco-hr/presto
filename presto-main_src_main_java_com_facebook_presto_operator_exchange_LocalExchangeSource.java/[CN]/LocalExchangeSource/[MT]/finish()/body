@@ -1,0 +1,14 @@
+{
+  checkNotHoldsLock();
+  SettableFuture<?> notEmptyFuture;
+synchronized (lock) {
+    if (finishing) {
+      return;
+    }
+    finishing=true;
+    notEmptyFuture=this.notEmptyFuture;
+    this.notEmptyFuture=NOT_EMPTY;
+  }
+  notEmptyFuture.set(null);
+  checkFinished();
+}

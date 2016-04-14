@@ -1,0 +1,12 @@
+{
+  SettableFuture<?> future;
+synchronized (this) {
+    bufferedBytes.addAndGet(bytesAdded);
+    if (bufferedBytes.get() > maxBufferedBytes || notFullFuture.isDone()) {
+      return;
+    }
+    future=notFullFuture;
+    notFullFuture=NOT_FULL;
+  }
+  future.set(null);
+}

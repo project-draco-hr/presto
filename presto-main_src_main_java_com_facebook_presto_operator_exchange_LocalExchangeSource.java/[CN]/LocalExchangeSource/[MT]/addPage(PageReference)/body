@@ -1,0 +1,18 @@
+{
+  checkNotHoldsLock();
+  boolean added=false;
+  SettableFuture<?> notEmptyFuture;
+synchronized (lock) {
+    if (!finishing) {
+      bufferedBytes.addAndGet(pageReference.getSizeInBytes());
+      buffer.add(pageReference);
+      added=true;
+    }
+    notEmptyFuture=this.notEmptyFuture;
+    this.notEmptyFuture=NOT_EMPTY;
+  }
+  if (!added) {
+    pageReference.removePage();
+  }
+  notEmptyFuture.set(null);
+}
