@@ -1,0 +1,18 @@
+{
+  java.nio.file.Path tmpdir=Paths.get(StandardSystemProperty.JAVA_IO_TMPDIR.value());
+  java.nio.file.Path stagingParent=Files.createTempDirectory(tmpdir,"test");
+  java.nio.file.Path staging=Paths.get(stagingParent.toString(),"staging");
+  try (PrestoS3FileSystem fs=new PrestoS3FileSystem()){
+    MockAmazonS3 s3=new MockAmazonS3();
+    Configuration conf=new Configuration();
+    conf.set(PrestoS3FileSystem.S3_STAGING_DIRECTORY,staging.toString());
+    fs.initialize(new URI("s3n://test-bucket/"),conf);
+    fs.setS3Client(s3);
+    FSDataOutputStream stream=fs.create(new Path("s3n://test-bucket/test"));
+    stream.close();
+    assertTrue(Files.exists(staging));
+  }
+  finally {
+    deleteRecursively(stagingParent.toFile());
+  }
+}

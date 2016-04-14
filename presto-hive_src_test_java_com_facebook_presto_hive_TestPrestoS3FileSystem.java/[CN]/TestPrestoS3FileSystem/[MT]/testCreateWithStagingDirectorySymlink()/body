@@ -1,0 +1,27 @@
+{
+  java.nio.file.Path tmpdir=Paths.get(StandardSystemProperty.JAVA_IO_TMPDIR.value());
+  java.nio.file.Path staging=Files.createTempDirectory(tmpdir,"staging");
+  java.nio.file.Path link=Paths.get(staging + ".symlink");
+  try {
+    try {
+      Files.createSymbolicLink(link,staging);
+    }
+ catch (    UnsupportedOperationException e) {
+      throw new SkipException("Filesystem does not support symlinks",e);
+    }
+    try (PrestoS3FileSystem fs=new PrestoS3FileSystem()){
+      MockAmazonS3 s3=new MockAmazonS3();
+      Configuration conf=new Configuration();
+      conf.set(PrestoS3FileSystem.S3_STAGING_DIRECTORY,link.toString());
+      fs.initialize(new URI("s3n://test-bucket/"),conf);
+      fs.setS3Client(s3);
+      FSDataOutputStream stream=fs.create(new Path("s3n://test-bucket/test"));
+      stream.close();
+      assertTrue(Files.exists(link));
+    }
+   }
+  finally {
+    deleteRecursively(link.toFile());
+    deleteRecursively(staging.toFile());
+  }
+}
