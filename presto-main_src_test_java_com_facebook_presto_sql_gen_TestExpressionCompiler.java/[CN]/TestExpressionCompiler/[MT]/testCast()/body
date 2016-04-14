@@ -1,13 +1,15 @@
 {
   for (  Boolean value : booleanValues) {
     assertExecute(generateExpression("cast(%s as boolean)",value),BOOLEAN,value == null ? null : (value ? true : false));
+    assertExecute(generateExpression("cast(%s as integer)",value),INTEGER,value == null ? null : (value ? 1 : 0));
     assertExecute(generateExpression("cast(%s as bigint)",value),BIGINT,value == null ? null : (value ? 1L : 0L));
     assertExecute(generateExpression("cast(%s as double)",value),DOUBLE,value == null ? null : (value ? 1.0 : 0.0));
     assertExecute(generateExpression("cast(%s as varchar)",value),VARCHAR,value == null ? null : (value ? "true" : "false"));
   }
-  for (  Long value : longLefts) {
+  for (  Integer value : intLefts) {
     assertExecute(generateExpression("cast(%s as boolean)",value),BOOLEAN,value == null ? null : (value != 0L ? true : false));
-    assertExecute(generateExpression("cast(%s as bigint)",value),BIGINT,value == null ? null : value);
+    assertExecute(generateExpression("cast(%s as integer)",value),INTEGER,value == null ? null : value);
+    assertExecute(generateExpression("cast(%s as bigint)",value),BIGINT,value == null ? null : (long)value);
     assertExecute(generateExpression("cast(%s as double)",value),DOUBLE,value == null ? null : value.doubleValue());
     assertExecute(generateExpression("cast(%s as varchar)",value),VARCHAR,value == null ? null : String.valueOf(value));
   }
@@ -28,9 +30,10 @@
   assertExecute("cast('F' as BOOLEAN)",BOOLEAN,false);
   assertExecute("cast('1' as BOOLEAN)",BOOLEAN,true);
   assertExecute("cast('0' as BOOLEAN)",BOOLEAN,false);
-  for (  Long value : longLefts) {
+  for (  Integer value : intLefts) {
     if (value != null) {
-      assertExecute(generateExpression("cast(%s as bigint)",String.valueOf(value)),BIGINT,value == null ? null : value);
+      assertExecute(generateExpression("cast(%s as integer)",String.valueOf(value)),INTEGER,value == null ? null : value);
+      assertExecute(generateExpression("cast(%s as bigint)",String.valueOf(value)),BIGINT,value == null ? null : (long)value);
     }
   }
   for (  Double value : doubleLefts) {

@@ -3,12 +3,19 @@
   assertOptimizedEquals("case null " + "when true then 33 " + "end","null");
   assertOptimizedEquals("case null " + "when true then 33 " + "else 33 "+ "end","33");
   assertOptimizedEquals("case 33 " + "when null then 1 " + "else 33 "+ "end","33");
+  assertOptimizedEquals("case null " + "when true then 3300000000 " + "end","null");
+  assertOptimizedEquals("case null " + "when true then 3300000000 " + "else 3300000000 "+ "end","3300000000");
+  assertOptimizedEquals("case 33 " + "when null then 3300000000 " + "else 33 "+ "end","33");
   assertOptimizedEquals("case true " + "when true then 33 " + "end","33");
   assertOptimizedEquals("case true " + "when false then 1 " + "else 33 end","33");
   assertOptimizedEquals("case bound_long " + "when 1234 then 33 " + "end","33");
   assertOptimizedEquals("case 1234 " + "when bound_long then 33 " + "end","33");
   assertOptimizedEquals("case true " + "when true then bound_long " + "end","1234");
   assertOptimizedEquals("case true " + "when false then 1 " + "else bound_long "+ "end","1234");
+  assertOptimizedEquals("case bound_integer " + "when 1234 then 33 " + "end","33");
+  assertOptimizedEquals("case 1234 " + "when bound_integer then 33 " + "end","33");
+  assertOptimizedEquals("case true " + "when true then bound_integer " + "end","1234");
+  assertOptimizedEquals("case true " + "when false then 1 " + "else bound_integer "+ "end","1234");
   assertOptimizedEquals("case bound_long " + "when 1234 then 33 " + "else unbound_long "+ "end","33");
   assertOptimizedEquals("case true " + "when true then bound_long " + "else unbound_long "+ "end","1234");
   assertOptimizedEquals("case true " + "when false then unbound_long " + "else bound_long "+ "end","1234");
@@ -22,6 +29,6 @@
   assertOptimizedEquals("case bound_long " + "when 123 * 10 + unbound_long then 1 = 1 " + "else 1 = 2 "+ "end","" + "case bound_long when 1230 + unbound_long then true " + "else false "+ "end");
   assertOptimizedEquals("case bound_long " + "when unbound_long then 2 + 2 " + "end","" + "case bound_long " + "when unbound_long then 4 "+ "end");
   assertOptimizedEquals("case bound_long " + "when unbound_long then 2 + 2 " + "when 1 then null "+ "when 2 then null "+ "end","" + "case bound_long " + "when unbound_long then 4 "+ "end");
-  assertOptimizedMatches("case 1 " + "when unbound_long then 1 " + "when 0 / 0 then 2 "+ "else 1 "+ "end","" + "case 1 " + "when unbound_long then 1 "+ "when cast(fail() AS bigint) then 2 "+ "else 1 "+ "end");
-  assertOptimizedMatches("case 1 " + "when 0 / 0 then 1 " + "when 0 / 0 then 2 "+ "else 1 "+ "end","" + "case 1 " + "when cast(fail() as bigint) then 1 "+ "when cast(fail() as bigint) then 2 "+ "else 1 "+ "end");
+  assertOptimizedMatches("case 1 " + "when unbound_long then 1 " + "when 0 / 0 then 2 "+ "else 1 "+ "end","" + "case BIGINT '1' " + "when unbound_long then 1 "+ "when cast(fail() AS integer) then 2 "+ "else 1 "+ "end");
+  assertOptimizedMatches("case 1 " + "when 0 / 0 then 1 " + "when 0 / 0 then 2 "+ "else 1 "+ "end","" + "case 1 " + "when cast(fail() as integer) then 1 "+ "when cast(fail() as integer) then 2 "+ "else 1 "+ "end");
 }

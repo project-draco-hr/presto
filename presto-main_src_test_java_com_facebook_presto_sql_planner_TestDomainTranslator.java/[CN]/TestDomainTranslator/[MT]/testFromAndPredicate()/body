@@ -1,13 +1,13 @@
 {
-  Expression originalPredicate=and(and(greaterThan(A,longLiteral(1L)),unprocessableExpression1(A)),and(lessThan(A,longLiteral(5L)),unprocessableExpression2(A)));
+  Expression originalPredicate=and(and(greaterThan(A,bigintLiteral(1L)),unprocessableExpression1(A)),and(lessThan(A,bigintLiteral(5L)),unprocessableExpression2(A)));
   ExtractionResult result=fromPredicate(originalPredicate);
   assertEquals(result.getRemainingExpression(),and(unprocessableExpression1(A),unprocessableExpression2(A)));
   assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(A,Domain.create(ValueSet.ofRanges(Range.range(BIGINT,1L,false,5L,false)),false))));
-  originalPredicate=not(and(and(greaterThan(A,longLiteral(1L)),unprocessableExpression1(A)),and(lessThan(A,longLiteral(5L)),unprocessableExpression2(A))));
+  originalPredicate=not(and(and(greaterThan(A,bigintLiteral(1L)),unprocessableExpression1(A)),and(lessThan(A,bigintLiteral(5L)),unprocessableExpression2(A))));
   result=fromPredicate(originalPredicate);
   assertEquals(result.getRemainingExpression(),originalPredicate);
   assertTrue(result.getTupleDomain().isAll());
-  originalPredicate=not(and(not(and(greaterThan(A,longLiteral(1L)),unprocessableExpression1(A))),not(and(lessThan(A,longLiteral(5L)),unprocessableExpression2(A)))));
+  originalPredicate=not(and(not(and(greaterThan(A,bigintLiteral(1L)),unprocessableExpression1(A))),not(and(lessThan(A,bigintLiteral(5L)),unprocessableExpression2(A)))));
   result=fromPredicate(originalPredicate);
   assertEquals(result.getRemainingExpression(),originalPredicate);
   assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(A,Domain.notNull(BIGINT))));

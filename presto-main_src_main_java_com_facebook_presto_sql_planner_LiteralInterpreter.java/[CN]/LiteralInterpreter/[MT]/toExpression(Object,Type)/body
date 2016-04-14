@@ -9,10 +9,17 @@
     }
     return new Cast(new NullLiteral(),type.getTypeSignature().toString(),false,true);
   }
-  checkArgument(Primitives.wrap(type.getJavaType()).isInstance(object),"object.getClass (%s) and type.getJavaType (%s) do not agree",object.getClass(),type.getJavaType());
-  if (type.equals(BIGINT)) {
+  if (type.equals(INTEGER)) {
     return new LongLiteral(object.toString());
   }
+  if (type.equals(BIGINT)) {
+    LongLiteral expression=new LongLiteral(object.toString());
+    if (expression.getValue() >= Integer.MIN_VALUE && expression.getValue() <= Integer.MAX_VALUE) {
+      return new GenericLiteral("BIGINT",object.toString());
+    }
+    return new LongLiteral(object.toString());
+  }
+  checkArgument(Primitives.wrap(type.getJavaType()).isInstance(object),"object.getClass (%s) and type.getJavaType (%s) do not agree",object.getClass(),type.getJavaType());
   if (type.equals(DOUBLE)) {
     Double value=(Double)object;
     if (value.isNaN()) {

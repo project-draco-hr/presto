@@ -1,9 +1,14 @@
 {
-  assertFunction("case " + "when true then 33 " + "end",BIGINT,33L);
-  assertFunction("case " + "when false then 1 " + "else 33 "+ "end",BIGINT,33L);
-  assertFunction("case " + "when false then 1 " + "when false then 1 "+ "when true then 33 "+ "else 1 "+ "end",BIGINT,33L);
-  assertFunction("case " + "when false then 1 " + "end",BIGINT,null);
+  assertFunction("case " + "when true then 33 " + "end",INTEGER,33);
+  assertFunction("case " + "when true then BIGINT '33' " + "end",BIGINT,33L);
+  assertFunction("case " + "when false then 1 " + "else 33 "+ "end",INTEGER,33);
+  assertFunction("case " + "when false then 10000000000 " + "else 33 "+ "end",BIGINT,33L);
+  assertFunction("case " + "when false then 1 " + "when false then 1 "+ "when true then 33 "+ "else 1 "+ "end",INTEGER,33);
+  assertFunction("case " + "when false then BIGINT '1' " + "when false then 1 "+ "when true then 33 "+ "else 1 "+ "end",BIGINT,33L);
+  assertFunction("case " + "when false then 10000000000 " + "when false then 1 "+ "when true then 33 "+ "else 1 "+ "end",BIGINT,33L);
+  assertFunction("case " + "when false then 1 " + "end",INTEGER,null);
   assertFunction("case " + "when true then null " + "else 'foo' "+ "end",createVarcharType(3),null);
-  assertFunction("case " + "when null then 1 " + "when true then 33 "+ "end",BIGINT,33L);
+  assertFunction("case " + "when null then 1 " + "when true then 33 "+ "end",INTEGER,33);
+  assertFunction("case " + "when null then 10000000000 " + "when true then 33 "+ "end",BIGINT,33L);
   assertFunction("case " + "when false then 1.0 " + "when true then 33 "+ "end",DOUBLE,33.0);
 }

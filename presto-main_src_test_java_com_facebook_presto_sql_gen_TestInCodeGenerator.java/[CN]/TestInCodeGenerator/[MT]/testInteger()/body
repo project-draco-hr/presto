@@ -1,0 +1,17 @@
+{
+  List<RowExpression> values=new ArrayList<>();
+  values.add(new ConstantExpression(Integer.MIN_VALUE,INTEGER));
+  values.add(new ConstantExpression(Integer.MAX_VALUE,INTEGER));
+  values.add(new ConstantExpression(3,INTEGER));
+  assertEquals(checkSwitchGenerationCase(INTEGER,values),DIRECT_SWITCH);
+  values.add(new ConstantExpression(null,INTEGER));
+  assertEquals(checkSwitchGenerationCase(INTEGER,values),DIRECT_SWITCH);
+  values.add(new CallExpression(new Signature(CAST,SCALAR,INTEGER.getDisplayName(),DOUBLE.getDisplayName()),INTEGER,Collections.singletonList(new ConstantExpression(12345678901234.0,DOUBLE))));
+  assertEquals(checkSwitchGenerationCase(INTEGER,values),DIRECT_SWITCH);
+  for (int i=6; i <= 32; ++i) {
+    values.add(new ConstantExpression(i,INTEGER));
+  }
+  assertEquals(checkSwitchGenerationCase(INTEGER,values),DIRECT_SWITCH);
+  values.add(new ConstantExpression(33,INTEGER));
+  assertEquals(checkSwitchGenerationCase(INTEGER,values),SET_CONTAINS);
+}

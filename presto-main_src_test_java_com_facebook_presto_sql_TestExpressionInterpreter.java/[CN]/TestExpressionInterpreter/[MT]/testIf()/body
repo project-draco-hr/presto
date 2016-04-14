@@ -1,6 +1,8 @@
 {
   assertOptimizedEquals("IF(2 = 2, 3, 4)","3");
   assertOptimizedEquals("IF(1 = 2, 3, 4)","4");
+  assertOptimizedEquals("IF(1 = 2, BIGINT '3', 4)","4");
+  assertOptimizedEquals("IF(1 = 2, 3000000000, 4)","4");
   assertOptimizedEquals("IF(true, 3, 4)","3");
   assertOptimizedEquals("IF(false, 3, 4)","4");
   assertOptimizedEquals("IF(null, 3, 4)","4");
@@ -15,4 +17,5 @@
   assertOptimizedEquals("IF(true, 'foo', 'bar')","'foo'");
   assertOptimizedEquals("IF(false, 'foo', 'bar')","'bar'");
   assertOptimizedEquals("IF(unbound_boolean, 1 + 2, 3 + 4)","CASE WHEN unbound_boolean THEN (1 + 2) ELSE (3 + 4) END");
+  assertOptimizedEquals("IF(unbound_boolean, BIGINT '1' + 2, 3 + 4)","CASE WHEN unbound_boolean THEN (BIGINT '1' + 2) ELSE (3 + 4) END");
 }

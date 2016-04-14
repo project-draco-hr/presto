@@ -1,13 +1,20 @@
 {
   assertOptimizedEquals("case " + "when true then 33 " + "end","33");
   assertOptimizedEquals("case " + "when false then 1 " + "else 33 "+ "end","33");
+  assertOptimizedEquals("case " + "when false then 10000000000 " + "else 33 "+ "end","33");
   assertOptimizedEquals("case " + "when bound_long = 1234 then 33 " + "end","33");
   assertOptimizedEquals("case " + "when true then bound_long " + "end","1234");
   assertOptimizedEquals("case " + "when false then 1 " + "else bound_long "+ "end","1234");
+  assertOptimizedEquals("case " + "when bound_integer = 1234 then 33 " + "end","33");
+  assertOptimizedEquals("case " + "when true then bound_integer " + "end","1234");
+  assertOptimizedEquals("case " + "when false then 1 " + "else bound_integer "+ "end","1234");
   assertOptimizedEquals("case " + "when bound_long = 1234 then 33 " + "else unbound_long "+ "end","33");
   assertOptimizedEquals("case " + "when true then bound_long " + "else unbound_long "+ "end","1234");
   assertOptimizedEquals("case " + "when false then unbound_long " + "else bound_long "+ "end","1234");
+  assertOptimizedEquals("case " + "when bound_integer = 1234 then 33 " + "else unbound_integer "+ "end","33");
+  assertOptimizedEquals("case " + "when true then bound_integer " + "else unbound_integer "+ "end","1234");
+  assertOptimizedEquals("case " + "when false then unbound_integer " + "else bound_integer "+ "end","1234");
   assertOptimizedEquals("case " + "when unbound_long = 1234 then 33 " + "else 1 "+ "end","" + "case " + "when unbound_long = 1234 then 33 "+ "else 1 "+ "end");
   assertOptimizedMatches("case when 0 / 0 = 0 then 1 end","case when cast(fail() as boolean) then 1 end");
-  assertOptimizedMatches("if(false, 1, 0 / 0)","cast(fail() as bigint)");
+  assertOptimizedMatches("if(false, 1, 0 / 0)","cast(fail() as integer)");
 }
