@@ -7,12 +7,13 @@
   Symbol symbol=Symbol.fromQualifiedName(normalized.getNameReference().getName());
   Type fieldType=checkedTypeLookup(symbol);
   NullableValue value=normalized.getValue();
-  if (value.getType().equals(DOUBLE) && fieldType.equals(BIGINT)) {
-    return process(coerceDoubleToLongComparison(normalized),complement);
-  }
   Optional<NullableValue> coercedValue=coerce(value,fieldType);
-  if (!coercedValue.isPresent()) {
-    return super.visitComparisonExpression(node,complement);
+  if (coercedValue.isPresent()) {
+    return createComparisonExtractionResult(normalized.getComparisonType(),symbol,fieldType,coercedValue.get().getValue(),complement);
   }
-  return createComparisonExtractionResult(normalized.getComparisonType(),symbol,fieldType,coercedValue.get().getValue(),complement);
+  Optional<Expression> coercedExpression=coerceComparisonWithRounding(fieldType,normalized.getNameReference(),value.getType(),value.getValue(),normalized.getComparisonType());
+  if (coercedExpression.isPresent()) {
+    return process(coercedExpression.get(),complement);
+  }
+  return super.visitComparisonExpression(node,complement);
 }

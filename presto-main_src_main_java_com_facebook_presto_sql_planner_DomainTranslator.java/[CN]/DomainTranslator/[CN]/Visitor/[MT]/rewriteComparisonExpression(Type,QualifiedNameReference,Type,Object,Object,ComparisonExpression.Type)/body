@@ -1,0 +1,57 @@
+{
+  int originalComparedToCoerced=compareOriginalValueToCoerced(valueType,originalValue,fieldType,coercedValue);
+  boolean coercedValueIsEqualToOriginal=originalComparedToCoerced == 0;
+  boolean coercedValueIsLessThanOriginal=originalComparedToCoerced > 0;
+  boolean coercedValueIsGreaterThanOriginal=originalComparedToCoerced < 0;
+  Expression coercedLiteral=toExpression(coercedValue,fieldType);
+switch (comparisonType) {
+case GREATER_THAN_OR_EQUAL:
+case GREATER_THAN:
+{
+      if (coercedValueIsGreaterThanOriginal) {
+        return new ComparisonExpression(GREATER_THAN_OR_EQUAL,fieldReference,coercedLiteral);
+      }
+ else       if (coercedValueIsEqualToOriginal) {
+        return new ComparisonExpression(comparisonType,fieldReference,coercedLiteral);
+      }
+ else       if (coercedValueIsLessThanOriginal) {
+        return new ComparisonExpression(GREATER_THAN,fieldReference,coercedLiteral);
+      }
+    }
+case LESS_THAN_OR_EQUAL:
+case LESS_THAN:
+{
+    if (coercedValueIsLessThanOriginal) {
+      return new ComparisonExpression(LESS_THAN_OR_EQUAL,fieldReference,coercedLiteral);
+    }
+ else     if (coercedValueIsEqualToOriginal) {
+      return new ComparisonExpression(comparisonType,fieldReference,coercedLiteral);
+    }
+ else     if (coercedValueIsGreaterThanOriginal) {
+      return new ComparisonExpression(LESS_THAN,fieldReference,coercedLiteral);
+    }
+  }
+case EQUAL:
+{
+  if (coercedValueIsEqualToOriginal) {
+    return new ComparisonExpression(EQUAL,fieldReference,coercedLiteral);
+  }
+  return and(new ComparisonExpression(EQUAL,fieldReference,coercedLiteral),new ComparisonExpression(NOT_EQUAL,fieldReference,coercedLiteral));
+}
+case NOT_EQUAL:
+{
+if (coercedValueIsEqualToOriginal) {
+  return new ComparisonExpression(comparisonType,fieldReference,coercedLiteral);
+}
+return or(new ComparisonExpression(EQUAL,fieldReference,coercedLiteral),new ComparisonExpression(NOT_EQUAL,fieldReference,coercedLiteral));
+}
+case IS_DISTINCT_FROM:
+{
+if (coercedValueIsEqualToOriginal) {
+return new ComparisonExpression(comparisonType,fieldReference,coercedLiteral);
+}
+return TRUE_LITERAL;
+}
+}
+throw new IllegalArgumentException("Unhandled type: " + comparisonType);
+}
