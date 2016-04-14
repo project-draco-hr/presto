@@ -1,0 +1,12 @@
+{
+  checkState(Thread.holdsLock(root),"Must hold lock to enqueue a query");
+synchronized (root) {
+    queuedQueries.add(query);
+    ResourceGroup group=this;
+    while (group.parent.isPresent()) {
+      group.parent.get().descendantQueuedQueries++;
+      group=group.parent.get();
+    }
+    updateEligiblility();
+  }
+}

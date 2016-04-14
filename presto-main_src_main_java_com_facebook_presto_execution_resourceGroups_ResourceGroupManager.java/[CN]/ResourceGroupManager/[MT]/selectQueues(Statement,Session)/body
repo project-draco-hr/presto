@@ -1,0 +1,11 @@
+{
+  for (  ResourceGroupSelector selector : selectors) {
+    Optional<List<QueryQueueDefinition>> queues=selector.match(statement,session.toSessionRepresentation());
+    if (queues.isPresent()) {
+      List<QueryQueueDefinition> definitions=queues.get();
+      checkState(!definitions.isEmpty(),selector + " returned empty list of queue definitions");
+      return definitions;
+    }
+  }
+  throw new PrestoException(USER_ERROR,"Query did not match any selection rule");
+}

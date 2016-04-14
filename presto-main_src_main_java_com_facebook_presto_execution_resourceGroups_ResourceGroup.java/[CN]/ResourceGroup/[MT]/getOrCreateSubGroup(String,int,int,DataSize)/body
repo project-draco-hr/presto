@@ -1,0 +1,12 @@
+{
+  requireNonNull(name,"name is null");
+synchronized (root) {
+    checkArgument(runningQueries.isEmpty() && queuedQueries.isEmpty(),"Cannot add sub group to %s while queries are running",id);
+    if (subGroups.containsKey(name)) {
+      return subGroups.get(name);
+    }
+    ResourceGroup subGroup=new ResourceGroup(Optional.of(this),name,maxRunningQueries,maxQueuedQueries,softMemoryLimit.toBytes(),executor);
+    subGroups.put(name,subGroup);
+    return subGroup;
+  }
+}

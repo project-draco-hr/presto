@@ -1,0 +1,24 @@
+{
+synchronized (root) {
+    if (!runningQueries.contains(query) && !queuedQueries.contains(query)) {
+      return;
+    }
+    if (runningQueries.contains(query)) {
+      runningQueries.remove(query);
+      ResourceGroup group=this;
+      while (group.parent.isPresent()) {
+        group.parent.get().descendantRunningQueries--;
+        group=group.parent.get();
+      }
+    }
+ else {
+      queuedQueries.remove(query);
+      ResourceGroup group=this;
+      while (group.parent.isPresent()) {
+        group.parent.get().descendantQueuedQueries--;
+        group=group.parent.get();
+      }
+    }
+    updateEligiblility();
+  }
+}

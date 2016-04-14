@@ -1,0 +1,24 @@
+{
+  checkState(Thread.holdsLock(root),"Must hold lock to find next query");
+synchronized (root) {
+    if (!canRunMore()) {
+      return false;
+    }
+    QueryExecution query=queuedQueries.poll();
+    if (query != null) {
+      startInBackground(query);
+      return true;
+    }
+    ResourceGroup subGroup=eligibleSubGroups.poll();
+    if (subGroup == null) {
+      return false;
+    }
+    boolean started=subGroup.internalStartNext();
+    checkState(started,"Eligible sub group had no queries to run");
+    descendantQueuedQueries--;
+    if (subGroup.isEligibleToStartNext()) {
+      eligibleSubGroups.add(subGroup);
+    }
+    return true;
+  }
+}

@@ -1,0 +1,26 @@
+{
+  RootResourceGroup root=new RootResourceGroup("root",1,4,new DataSize(1,MEGABYTE),MoreExecutors.directExecutor());
+  ResourceGroup group1=root.getOrCreateSubGroup("1",2,4,new DataSize(1,MEGABYTE));
+  ResourceGroup group2=root.getOrCreateSubGroup("2",2,4,new DataSize(1,MEGABYTE));
+  MockQueryExecution query1a=new MockQueryExecution(0);
+  group1.add(query1a);
+  assertEquals(query1a.getState(),RUNNING);
+  MockQueryExecution query1b=new MockQueryExecution(0);
+  group1.add(query1b);
+  assertEquals(query1b.getState(),QUEUED);
+  MockQueryExecution query1c=new MockQueryExecution(0);
+  group1.add(query1c);
+  assertEquals(query1c.getState(),QUEUED);
+  MockQueryExecution query2a=new MockQueryExecution(0);
+  group2.add(query2a);
+  assertEquals(query2a.getState(),QUEUED);
+  query1a.complete();
+  root.processQueuedQueries();
+  assertEquals(query1b.getState(),RUNNING);
+  assertEquals(query1c.getState(),QUEUED);
+  assertEquals(query2a.getState(),QUEUED);
+  query1b.complete();
+  root.processQueuedQueries();
+  assertEquals(query2a.getState(),RUNNING);
+  assertEquals(query1c.getState(),QUEUED);
+}

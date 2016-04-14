@@ -1,16 +1,3 @@
 {
-  Map<String,String> properties=ImmutableMap.<String,String>builder().put("query.queue-config-file",getResourceFilePath("queue_config_dashboard.json")).build();
-  try (DistributedQueryRunner queryRunner=createQueryRunner(properties)){
-    QueryId firstDashboardQuery=createQuery(queryRunner,newDashboardSession(),LONG_LASTING_QUERY);
-    waitForQueryState(queryRunner,firstDashboardQuery,RUNNING);
-    QueryId secondDashboardQuery=createQuery(queryRunner,newDashboardSession(),LONG_LASTING_QUERY);
-    waitForQueryState(queryRunner,secondDashboardQuery,QUEUED);
-    QueryId firstNonDashboardQuery=createQuery(queryRunner,newSession(),LONG_LASTING_QUERY);
-    waitForQueryState(queryRunner,firstNonDashboardQuery,RUNNING);
-    QueryId secondNonDashboardQuery=createQuery(queryRunner,newSession(),LONG_LASTING_QUERY);
-    waitForQueryState(queryRunner,secondNonDashboardQuery,RUNNING);
-    cancelQuery(queryRunner,firstDashboardQuery);
-    waitForQueryState(queryRunner,firstDashboardQuery,FAILED);
-    waitForQueryState(queryRunner,secondDashboardQuery,RUNNING);
-  }
- }
+  testBasic(false);
+}
