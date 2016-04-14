@@ -1,12 +1,13 @@
 {
   JdbcRecordSetProvider recordSetProvider=new JdbcRecordSetProvider(jdbcClient);
-  RecordSet recordSet=recordSetProvider.getRecordSet(SESSION,split,ImmutableList.of(textColumn,valueColumn));
+  RecordSet recordSet=recordSetProvider.getRecordSet(SESSION,split,ImmutableList.of(textColumn,textShortColumn,valueColumn));
   assertNotNull(recordSet,"recordSet is null");
   RecordCursor cursor=recordSet.cursor();
   assertNotNull(cursor,"cursor is null");
   Map<String,Long> data=new LinkedHashMap<>();
   while (cursor.advanceNextPosition()) {
-    data.put(cursor.getSlice(0).toStringUtf8(),cursor.getLong(1));
+    data.put(cursor.getSlice(0).toStringUtf8(),cursor.getLong(2));
+    assertEquals(cursor.getSlice(0),cursor.getSlice(1));
   }
   assertEquals(data,ImmutableMap.<String,Long>builder().put("one",1L).put("two",2L).put("three",3L).put("ten",10L).put("eleven",11L).put("twelve",12L).build());
 }

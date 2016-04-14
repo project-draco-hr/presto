@@ -1,0 +1,26 @@
+{
+  assertUpdate("CREATE TABLE presto_test_parameterized_varchar AS SELECT " + "CAST('a' AS varchar(10)) text_a," + "CAST('b' AS varchar(255)) text_b,"+ "CAST('c' AS varchar(256)) text_c,"+ "CAST('d' AS varchar(65535)) text_d,"+ "CAST('e' AS varchar(65536)) text_e,"+ "CAST('f' AS varchar(16777215)) text_f,"+ "CAST('g' AS varchar(16777216)) text_g,"+ "CAST('h' AS varchar(" + VarcharType.MAX_LENGTH + ")) text_h,"+ "CAST('unbounded' AS varchar) text_unbounded",1);
+  assertTrue(queryRunner.tableExists(getSession(),"presto_test_parameterized_varchar"));
+  assertTableColumnNames("presto_test_parameterized_varchar","text_a","text_b","text_c","text_d","text_e","text_f","text_g","text_h","text_unbounded");
+  MaterializedResult materializedRows=computeActual("SELECT * from presto_test_parameterized_varchar");
+  assertEquals(materializedRows.getTypes().get(0),createVarcharType(255));
+  assertEquals(materializedRows.getTypes().get(1),createVarcharType(255));
+  assertEquals(materializedRows.getTypes().get(2),createVarcharType(65535));
+  assertEquals(materializedRows.getTypes().get(3),createVarcharType(65535));
+  assertEquals(materializedRows.getTypes().get(4),createVarcharType(16777215));
+  assertEquals(materializedRows.getTypes().get(5),createVarcharType(16777215));
+  assertEquals(materializedRows.getTypes().get(6),createUnboundedVarcharType());
+  assertEquals(materializedRows.getTypes().get(7),createUnboundedVarcharType());
+  assertEquals(materializedRows.getTypes().get(8),createUnboundedVarcharType());
+  MaterializedRow row=getOnlyElement(materializedRows);
+  assertEquals(row.getField(0),"a");
+  assertEquals(row.getField(1),"b");
+  assertEquals(row.getField(2),"c");
+  assertEquals(row.getField(3),"d");
+  assertEquals(row.getField(4),"e");
+  assertEquals(row.getField(5),"f");
+  assertEquals(row.getField(6),"g");
+  assertEquals(row.getField(7),"h");
+  assertEquals(row.getField(8),"unbounded");
+  assertUpdate("DROP TABLE presto_test_parameterized_varchar");
+}

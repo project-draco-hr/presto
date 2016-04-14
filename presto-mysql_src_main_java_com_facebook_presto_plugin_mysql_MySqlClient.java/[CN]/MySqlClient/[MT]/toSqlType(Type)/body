@@ -1,12 +1,23 @@
 {
+  if (Varchars.isVarcharType(type)) {
+    VarcharType varcharType=(VarcharType)type;
+    if (varcharType.getLength() <= 255) {
+      return "tinytext";
+    }
+    if (varcharType.getLength() <= 65535) {
+      return "text";
+    }
+    if (varcharType.getLength() <= 16777215) {
+      return "mediumtext";
+    }
+    return "longtext";
+  }
   String sqlType=super.toSqlType(type);
 switch (sqlType) {
-case "varchar":
-    return "mediumtext";
 case "varbinary":
-  return "mediumblob";
+    return "mediumblob";
 case "time with timezone":
-return "time";
+  return "time";
 case "timestamp":
 case "timestamp with timezone":
 return "datetime";

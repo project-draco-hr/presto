@@ -1,0 +1,13 @@
+{
+  execute("CREATE TABLE tpch.postgresql_test_parameterized_varchar (" + "text_a varchar(32), " + "text_b varchar(20000), "+ "text_c text)");
+  execute("INSERT INTO tpch.postgresql_test_parameterized_varchar VALUES('a', 'b', 'c')");
+  MaterializedResult materializedRows=computeActual("SELECT * from postgresql_test_parameterized_varchar");
+  assertEquals(materializedRows.getTypes().get(0),createVarcharType(32));
+  assertEquals(materializedRows.getTypes().get(1),createVarcharType(20000));
+  assertEquals(materializedRows.getTypes().get(2),createUnboundedVarcharType());
+  MaterializedRow row=getOnlyElement(materializedRows);
+  assertEquals(row.getField(0),"a");
+  assertEquals(row.getField(1),"b");
+  assertEquals(row.getField(2),"c");
+  assertUpdate("DROP TABLE postgresql_test_parameterized_varchar");
+}
