@@ -1,0 +1,27 @@
+{
+  this.types=unmodifiableList(new ArrayList<>(requireNonNull(types,"types is null")));
+  int maxBlockSizeInBytes;
+  if (!types.isEmpty()) {
+    maxBlockSizeInBytes=(int)(1.0 * maxPageBytes / types.size());
+    maxBlockSizeInBytes=Math.min(DEFAULT_MAX_BLOCK_SIZE_IN_BYTES,maxBlockSizeInBytes);
+  }
+ else {
+    maxBlockSizeInBytes=0;
+  }
+  pageBuilderStatus=new PageBuilderStatus(maxPageBytes,maxBlockSizeInBytes);
+  int expectedEntries=Math.min(maxBlockSizeInBytes,initialExpectedEntries);
+  for (  Type type : types) {
+    if (type instanceof FixedWidthType) {
+      int fixedSize=Math.max(((FixedWidthType)type).getFixedSize(),1);
+      expectedEntries=Math.min(expectedEntries,maxBlockSizeInBytes / fixedSize);
+    }
+ else {
+      expectedEntries=Math.min(expectedEntries,maxBlockSizeInBytes / 32);
+    }
+  }
+  blockBuilders=new BlockBuilder[types.size()];
+  for (int i=0; i < blockBuilders.length; i++) {
+    blockBuilders[i]=types.get(i).createBlockBuilder(pageBuilderStatus.createBlockBuilderStatus(),expectedEntries,pageBuilderStatus.getMaxBlockSizeInBytes() / expectedEntries);
+  }
+  this.initialExpectedEntries=expectedEntries;
+}
