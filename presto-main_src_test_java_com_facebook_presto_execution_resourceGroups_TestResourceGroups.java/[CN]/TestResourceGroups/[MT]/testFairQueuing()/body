@@ -1,7 +1,16 @@
 {
-  RootResourceGroup root=new RootResourceGroup("root",1,4,new DataSize(1,MEGABYTE),MoreExecutors.directExecutor());
-  ResourceGroup group1=root.getOrCreateSubGroup("1",2,4,new DataSize(1,MEGABYTE));
-  ResourceGroup group2=root.getOrCreateSubGroup("2",2,4,new DataSize(1,MEGABYTE));
+  RootResourceGroup root=new RootResourceGroup("root",directExecutor());
+  root.setSoftMemoryLimit(new DataSize(1,MEGABYTE));
+  root.setMaxQueuedQueries(4);
+  root.setMaxRunningQueries(1);
+  ResourceGroup group1=root.getOrCreateSubGroup("1");
+  group1.setSoftMemoryLimit(new DataSize(1,MEGABYTE));
+  group1.setMaxQueuedQueries(4);
+  group1.setMaxRunningQueries(2);
+  ResourceGroup group2=root.getOrCreateSubGroup("2");
+  group2.setSoftMemoryLimit(new DataSize(1,MEGABYTE));
+  group2.setMaxQueuedQueries(4);
+  group2.setMaxRunningQueries(2);
   MockQueryExecution query1a=new MockQueryExecution(0);
   group1.add(query1a);
   assertEquals(query1a.getState(),RUNNING);
