@@ -1,0 +1,23 @@
+{
+  if (userRegex.isPresent() && !userRegex.get().matcher(session.getUser()).matches()) {
+    return Optional.empty();
+  }
+  if (sourceRegex.isPresent()) {
+    String source=session.getSource().orElse("");
+    if (!sourceRegex.get().matcher(source).matches()) {
+      return Optional.empty();
+    }
+  }
+  for (  Map.Entry<String,Pattern> entry : sessionPropertyRegexes.entrySet()) {
+    String value=session.getSystemProperties().getOrDefault(entry.getKey(),"");
+    if (!entry.getValue().matcher(value).matches()) {
+      return Optional.empty();
+    }
+  }
+  List<QueryQueueDefinition> definitions=new ArrayList<>();
+  for (  String segment : group.expandTemplate(session).getSegments()) {
+    definitions.add(new QueryQueueDefinition(segment,1,1));
+  }
+  Collections.reverse(definitions);
+  return Optional.of(definitions);
+}

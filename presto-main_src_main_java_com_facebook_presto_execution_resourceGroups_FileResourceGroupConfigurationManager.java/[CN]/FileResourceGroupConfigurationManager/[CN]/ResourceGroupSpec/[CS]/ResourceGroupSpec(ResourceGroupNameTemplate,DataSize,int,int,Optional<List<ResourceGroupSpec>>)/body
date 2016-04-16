@@ -1,0 +1,14 @@
+{
+  this.name=requireNonNull(name,"name is null");
+  checkArgument(maxQueued >= 0,"maxQueued is negative");
+  this.maxQueued=maxQueued;
+  checkArgument(maxRunning >= 0,"maxRunning is negative");
+  this.maxRunning=maxRunning;
+  this.softMemoryLimit=requireNonNull(softMemoryLimit,"softMemoryLimit is null");
+  this.subGroups=ImmutableList.copyOf(requireNonNull(subGroups,"subGroups is null").orElse(ImmutableList.of()));
+  Set<ResourceGroupNameTemplate> names=new HashSet<>();
+  for (  ResourceGroupSpec subGroup : this.subGroups) {
+    checkArgument(!names.contains(subGroup.getName()),"Duplicated sub group: %s",subGroup.getName());
+    names.add(subGroup.getName());
+  }
+}

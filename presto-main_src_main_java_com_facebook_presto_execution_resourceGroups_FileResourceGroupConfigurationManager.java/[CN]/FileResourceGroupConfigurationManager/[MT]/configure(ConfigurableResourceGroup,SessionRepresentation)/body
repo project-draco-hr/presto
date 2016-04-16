@@ -1,0 +1,34 @@
+{
+  List<ResourceGroupSpec> candidates=rootGroups;
+  List<String> segments=group.getId().getSegments();
+  ResourceGroupSpec match=null;
+  for (int i=0; i < segments.size(); i++) {
+    List<ResourceGroupSpec> nextCandidates=null;
+    ResourceGroupSpec nextCandidatesParent=null;
+    for (    ResourceGroupSpec candidate : candidates) {
+      if (candidate.getName().expandTemplate(session).equals(segments.get(i))) {
+        if (i == segments.size() - 1) {
+          if (match != null) {
+            throw new IllegalStateException(format("Ambiguous configuration for %s. Matches %s and %s",group.getId(),match.getName(),candidate.getName()));
+          }
+          match=candidate;
+        }
+ else {
+          if (nextCandidatesParent != null) {
+            throw new IllegalStateException(format("Ambiguous configuration for %s. Matches %s and %s",group.getId(),nextCandidatesParent.getName(),candidate.getName()));
+          }
+          nextCandidates=candidate.getSubGroups();
+          nextCandidatesParent=candidate;
+        }
+      }
+    }
+    if (nextCandidates == null) {
+      break;
+    }
+    candidates=nextCandidates;
+  }
+  checkState(match != null,"No matching configuration found for: %s",group.getId());
+  group.setSoftMemoryLimit(match.getSoftMemoryLimit());
+  group.setMaxQueuedQueries(match.getMaxQueued());
+  group.setMaxRunningQueries(match.getMaxRunning());
+}

@@ -1,0 +1,10 @@
+{
+  this.name=requireNonNull(name,"name is null");
+  checkArgument(!name.isEmpty(),"Resource group name is empty");
+  checkArgument(name.indexOf('.') < 0,"Invalid resource group name. '%s' contains a '.'",name);
+  Matcher matcher=PARAMETER_PATTERN.matcher(name);
+  while (matcher.find()) {
+    String group=matcher.group(1);
+    checkArgument(group.equals("USER") || group.equals("SOURCE"),"Unsupported template parameter: ${%s}",group);
+  }
+}
