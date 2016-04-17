@@ -1,0 +1,12 @@
+{
+  checkCondition(step != 0,INVALID_FUNCTION_ARGUMENT,"interval must not be zero");
+  checkCondition(step > 0 ? end >= start : end <= start,INVALID_FUNCTION_ARGUMENT,"sequence end value should be greater than or equal to start value if step is greater than zero otherwise end should be less than start");
+  int length=Ints.checkedCast(DateTimeFunctions.diffTimestamp(session,MONTH,start,end) / step + 1);
+  BlockBuilder blockBuilder=BIGINT.createBlockBuilder(new BlockBuilderStatus(),length);
+  int value=0;
+  for (int i=0; i < length; ++i) {
+    BIGINT.writeLong(blockBuilder,DateTimeOperators.timestampPlusIntervalYearToMonth(session,start,value));
+    value+=step;
+  }
+  return blockBuilder.build();
+}
