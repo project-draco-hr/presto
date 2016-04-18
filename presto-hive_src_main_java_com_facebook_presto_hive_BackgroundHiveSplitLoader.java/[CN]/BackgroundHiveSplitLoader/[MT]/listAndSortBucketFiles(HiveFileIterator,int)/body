@@ -3,15 +3,12 @@
   while (hiveFileIterator.hasNext()) {
     LocatedFileStatus next=hiveFileIterator.next();
     if (isDirectory(next)) {
-      throw new PrestoException(HIVE_PARTITION_SCHEMA_MISMATCH,"Found sub-directory in bucket directory");
-    }
-    if (list.size() >= bucketCount) {
-      throw new PrestoException(HIVE_PARTITION_SCHEMA_MISMATCH,"There are more files in the directory than the specified bucket count: " + bucketCount);
+      throw new PrestoException(HIVE_INVALID_BUCKET_FILES,format("%s Found sub-directory in bucket directory for partition: %s",CORRUPT_BUCKETING,hiveFileIterator.getPartitionName()));
     }
     list.add(next);
   }
   if (list.size() != bucketCount) {
-    throw new PrestoException(HIVE_PARTITION_SCHEMA_MISMATCH,"There are less files in the directory than the specified bucket count: " + bucketCount);
+    throw new PrestoException(HIVE_INVALID_BUCKET_FILES,format("%s The number of files in the directory (%s) does not match the declared bucket count (%s) for partition: %s",CORRUPT_BUCKETING,list.size(),bucketCount,hiveFileIterator.getPartitionName()));
   }
   list.sort(null);
   return list;
