@@ -1,7 +1,7 @@
 {
   assertUpdate("CREATE TABLE test_shard_uuid AS SELECT orderdate, orderkey FROM orders","SELECT count(*) FROM orders");
   MaterializedResult actualResults=computeActual("SELECT *, \"$shard_uuid\" FROM test_shard_uuid");
-  assertEquals(actualResults.getTypes(),ImmutableList.of(DATE,BIGINT,VARCHAR));
+  assertEquals(actualResults.getTypes(),ImmutableList.of(DATE,BIGINT,SHARD_UUID_COLUMN_TYPE));
   UUID arbitraryUuid=null;
   for (  MaterializedRow row : actualResults.getMaterializedRows()) {
     Object uuid=row.getField(2);

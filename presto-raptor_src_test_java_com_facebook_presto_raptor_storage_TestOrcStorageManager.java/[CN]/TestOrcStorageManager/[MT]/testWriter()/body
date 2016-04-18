@@ -1,7 +1,7 @@
 {
   OrcStorageManager manager=createOrcStorageManager();
   List<Long> columnIds=ImmutableList.of(3L,7L);
-  List<Type> columnTypes=ImmutableList.<Type>of(BIGINT,VARCHAR);
+  List<Type> columnTypes=ImmutableList.<Type>of(BIGINT,createVarcharType(10));
   StoragePageSink sink=createStoragePageSink(manager,columnIds,columnTypes);
   List<Page> pages=rowPagesBuilder(columnTypes).row(123L,"hello").row(456L,"bye").build();
   sink.appendPages(pages);
@@ -34,9 +34,9 @@
     assertEquals(column0.isNull(1),false);
     assertEquals(BIGINT.getLong(column0,0),123L);
     assertEquals(BIGINT.getLong(column0,1),456L);
-    Block column1=reader.readBlock(VARCHAR,1);
-    assertEquals(VARCHAR.getSlice(column1,0),utf8Slice("hello"));
-    assertEquals(VARCHAR.getSlice(column1,1),utf8Slice("bye"));
+    Block column1=reader.readBlock(createVarcharType(10),1);
+    assertEquals(createVarcharType(10).getSlice(column1,0),utf8Slice("hello"));
+    assertEquals(createVarcharType(10).getSlice(column1,1),utf8Slice("bye"));
     assertEquals(reader.nextBatch(),-1);
   }
  }
