@@ -1,8 +1,5 @@
 {
-  Request.Builder builder=preparePost().setUri(uriBuilderFrom(session.getServer()).replacePath("/v1/statement").build()).setBodyGenerator(createStaticBodyGenerator(query,UTF_8));
-  if (session.getUser() != null) {
-    builder.setHeader(PrestoHeaders.PRESTO_USER,session.getUser());
-  }
+  Request.Builder builder=prepareRequest(preparePost(),uriBuilderFrom(session.getServer()).replacePath("/v1/statement").build()).setBodyGenerator(createStaticBodyGenerator(query,UTF_8));
   if (session.getSource() != null) {
     builder.setHeader(PrestoHeaders.PRESTO_SOURCE,session.getSource());
   }
@@ -14,7 +11,6 @@
   }
   builder.setHeader(PrestoHeaders.PRESTO_TIME_ZONE,session.getTimeZoneId());
   builder.setHeader(PrestoHeaders.PRESTO_LANGUAGE,session.getLocale().toLanguageTag());
-  builder.setHeader(USER_AGENT,USER_AGENT_VALUE);
   Map<String,String> property=session.getProperties();
   for (  Entry<String,String> entry : property.entrySet()) {
     builder.addHeader(PrestoHeaders.PRESTO_SESSION,entry.getKey() + "=" + entry.getValue());
