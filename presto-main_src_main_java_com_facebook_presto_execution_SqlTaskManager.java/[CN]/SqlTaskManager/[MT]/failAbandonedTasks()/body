@@ -10,7 +10,7 @@
       DateTime lastHeartbeat=taskInfo.getLastHeartbeat();
       if (lastHeartbeat != null && lastHeartbeat.isBefore(oldestAllowedHeartbeat)) {
         log.info("Failing abandoned task %s",taskInfo.getTaskId());
-        sqlTask.failed(new AbandonedException("Task " + taskInfo.getTaskId(),lastHeartbeat,now));
+        sqlTask.failed(new PrestoException(ABANDONED_TASK,format("Task %s has not been accessed since %s: currentTime %s",taskInfo.getTaskId(),lastHeartbeat,now)));
       }
     }
  catch (    RuntimeException e) {

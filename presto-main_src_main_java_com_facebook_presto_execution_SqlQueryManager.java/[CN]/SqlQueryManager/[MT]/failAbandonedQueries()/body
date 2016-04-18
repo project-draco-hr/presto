@@ -6,7 +6,7 @@
     }
     if (isAbandoned(queryExecution)) {
       log.info("Failing abandoned query %s",queryExecution.getQueryId());
-      queryExecution.fail(new AbandonedException("Query " + queryInfo.getQueryId(),queryInfo.getQueryStats().getLastHeartbeat(),DateTime.now()));
+      queryExecution.fail(new PrestoException(ABANDONED_QUERY,format("Query %s has not been accessed since %s: currentTime %s",queryInfo.getQueryId(),queryInfo.getQueryStats().getLastHeartbeat(),DateTime.now())));
     }
   }
 }
