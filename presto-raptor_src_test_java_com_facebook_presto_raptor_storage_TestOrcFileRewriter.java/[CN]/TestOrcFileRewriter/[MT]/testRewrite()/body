@@ -66,6 +66,8 @@
     assertTrue(arrayBlocksEqual(arrayType,arrayOfArrayType.getObject(column4,3),arrayBlockOf(arrayType,null,arrayBlockOf(BIGINT,8),null)));
     assertTrue(arrayBlocksEqual(arrayType,arrayOfArrayType.getObject(column4,4),arrayBlockOf(arrayType,arrayBlockOf(BIGINT,9,10))));
     assertEquals(reader.nextBatch(),-1);
+    OrcFileMetadata orcFileMetadata=METADATA_CODEC.fromJson(reader.getUserMetadata().get(OrcFileMetadata.KEY).getBytes());
+    assertEquals(orcFileMetadata,new OrcFileMetadata(ImmutableMap.<Long,TypeSignature>builder().put(3L,BIGINT.getTypeSignature()).put(7L,VARCHAR.getTypeSignature()).put(9L,arrayType.getTypeSignature()).put(10L,mapType.getTypeSignature()).put(11L,arrayOfArrayType.getTypeSignature()).build()));
   }
    BitSet rowsToDelete=new BitSet(5);
   rowsToDelete.set(1);
@@ -117,5 +119,7 @@
     assertTrue(arrayBlocksEqual(arrayType,arrayOfArrayType.getObject(column4,0),arrayBlockOf(arrayType,arrayBlockOf(BIGINT,5))));
     assertTrue(arrayBlocksEqual(arrayType,arrayOfArrayType.getObject(column4,1),arrayBlockOf(arrayType,arrayBlockOf(BIGINT,7))));
     assertEquals(reader.nextBatch(),-1);
+    OrcFileMetadata orcFileMetadata=METADATA_CODEC.fromJson(reader.getUserMetadata().get(OrcFileMetadata.KEY).getBytes());
+    assertEquals(orcFileMetadata,new OrcFileMetadata(ImmutableMap.<Long,TypeSignature>builder().put(3L,BIGINT.getTypeSignature()).put(7L,VARCHAR.getTypeSignature()).put(9L,arrayType.getTypeSignature()).put(10L,mapType.getTypeSignature()).put(11L,arrayOfArrayType.getTypeSignature()).build()));
   }
  }
