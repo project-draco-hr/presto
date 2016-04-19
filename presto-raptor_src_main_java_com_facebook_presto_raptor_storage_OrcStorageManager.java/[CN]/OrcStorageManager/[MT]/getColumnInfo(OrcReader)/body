@@ -1,12 +1,7 @@
 {
-  List<String> names=reader.getColumnNames();
-  Type rowType=getType(reader.getFooter().getTypes(),0);
-  if (names.size() != rowType.getTypeParameters().size()) {
-    throw new PrestoException(RAPTOR_ERROR,"Column names and types do not match");
+  Optional<OrcFileMetadata> metadata=getOrcFileMetadata(reader);
+  if (metadata.isPresent()) {
+    return getColumnInfoFromOrcUserMetadata(metadata.get());
   }
-  ImmutableList.Builder<ColumnInfo> list=ImmutableList.builder();
-  for (int i=0; i < names.size(); i++) {
-    list.add(new ColumnInfo(Long.parseLong(names.get(i)),rowType.getTypeParameters().get(i)));
-  }
-  return list.build();
+  return getColumnInfoFromOrcColumnTypes(reader.getColumnNames(),reader.getFooter().getTypes());
 }
