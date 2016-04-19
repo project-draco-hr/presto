@@ -27,10 +27,10 @@ case DOUBLE:
 DoubleType.DOUBLE.writeDouble(builder,((DoubleObjectInspector)inspector).get(object));
 return;
 case STRING:
-VarcharType.VARCHAR.writeSlice(builder,Slices.utf8Slice(((StringObjectInspector)inspector).getPrimitiveJavaObject(object)));
+type.writeSlice(builder,Slices.utf8Slice(((StringObjectInspector)inspector).getPrimitiveJavaObject(object)));
 return;
 case VARCHAR:
-VarcharType.VARCHAR.writeSlice(builder,Slices.utf8Slice(((HiveVarcharObjectInspector)inspector).getPrimitiveJavaObject(object).getValue()));
+type.writeSlice(builder,Slices.utf8Slice(((HiveVarcharObjectInspector)inspector).getPrimitiveJavaObject(object).getValue()));
 return;
 case DATE:
 DateType.DATE.writeLong(builder,formatDateAsLong(object,(DateObjectInspector)inspector));
@@ -42,7 +42,7 @@ case BINARY:
 VARBINARY.writeSlice(builder,Slices.wrappedBuffer(((BinaryObjectInspector)inspector).getPrimitiveJavaObject(object)));
 return;
 case DECIMAL:
-DecimalType decimalType=createDecimalType(inspector.precision(),inspector.scale());
+DecimalType decimalType=checkType(type,DecimalType.class,"type");
 HiveDecimalWritable hiveDecimal=((HiveDecimalObjectInspector)inspector).getPrimitiveWritableObject(object);
 if (decimalType.isShort()) {
 decimalType.writeLong(builder,DecimalUtils.getShortDecimalValue(hiveDecimal,decimalType.getScale()));

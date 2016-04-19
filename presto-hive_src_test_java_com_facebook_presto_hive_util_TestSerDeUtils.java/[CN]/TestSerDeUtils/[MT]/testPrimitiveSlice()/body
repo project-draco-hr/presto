@@ -21,7 +21,7 @@
   Block actualDouble=toBinaryBlock(DOUBLE,30.12d,getInspector(Double.class));
   assertBlockEquals(actualDouble,expectedDouble);
   Block expectedString=VARBINARY.createBlockBuilder(new BlockBuilderStatus(),1).writeBytes(utf8Slice("abdd"),0,4).closeEntry().build();
-  Block actualString=toBinaryBlock(VARCHAR,"abdd",getInspector(String.class));
+  Block actualString=toBinaryBlock(createUnboundedVarcharType(),"abdd",getInspector(String.class));
   assertBlockEquals(actualString,expectedString);
   DateTime dateTime=new DateTime(2008,10,28,16,7,15,0);
   Block expectedTimestamp=VARBINARY.createBlockBuilder(new BlockBuilderStatus(),1).writeLong(dateTime.getMillis()).closeEntry().build();
@@ -29,6 +29,6 @@
   assertBlockEquals(actualTimestamp,expectedTimestamp);
   byte[] byteArray={81,82,84,85};
   Block expectedBinary=VARBINARY.createBlockBuilder(new BlockBuilderStatus(),1).writeBytes(Slices.wrappedBuffer(byteArray),0,4).closeEntry().build();
-  Block actualBinary=toBinaryBlock(VARCHAR,byteArray,getInspector(byte[].class));
+  Block actualBinary=toBinaryBlock(createUnboundedVarcharType(),byteArray,getInspector(byte[].class));
   assertBlockEquals(actualBinary,expectedBinary);
 }
