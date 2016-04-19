@@ -1,6 +1,10 @@
 {
-  TestClass testClass=new TestClass(Strings.repeat("a",1000));
   ObjectMapper objectMapper=new ObjectMapperProvider().get();
+  TestClass testClass=new TestClass(Strings.repeat("a",1000));
   assertNull(QueryMonitor.toJsonWithLengthLimit(objectMapper,testClass,1011));
   assertNotNull(QueryMonitor.toJsonWithLengthLimit(objectMapper,testClass,1012));
+  TestClassComplex testClassComplex=new TestClassComplex(Collections.nCopies(10,testClass));
+  assertNull(QueryMonitor.toJsonWithLengthLimit(objectMapper,testClassComplex,9000));
+  assertNull(QueryMonitor.toJsonWithLengthLimit(objectMapper,testClassComplex,10000));
+  assertNotNull(QueryMonitor.toJsonWithLengthLimit(objectMapper,testClassComplex,10140));
 }
