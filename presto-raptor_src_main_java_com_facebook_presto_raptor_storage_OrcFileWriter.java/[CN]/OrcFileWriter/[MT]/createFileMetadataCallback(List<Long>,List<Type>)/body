@@ -1,0 +1,15 @@
+{
+  return new OrcFile.WriterCallback(){
+    @Override public void preStripeWrite(    OrcFile.WriterContext context) throws IOException {
+    }
+    @Override public void preFooterWrite(    OrcFile.WriterContext context) throws IOException {
+      ImmutableMap.Builder<Long,TypeSignature> columnTypesMap=ImmutableMap.builder();
+      for (int i=0; i < columnIds.size(); i++) {
+        columnTypesMap.put(columnIds.get(i),columnTypes.get(i).getTypeSignature());
+      }
+      byte[] bytes=METADATA_CODEC.toJsonBytes(new OrcFileMetadata(columnTypesMap.build()));
+      context.getWriter().addUserMetadata(OrcFileMetadata.KEY,ByteBuffer.wrap(bytes));
+    }
+  }
+;
+}

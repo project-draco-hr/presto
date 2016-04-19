@@ -1,6 +1,6 @@
 {
   try (ThreadContextClassLoader ignored=new ThreadContextClassLoader(FileSystem.class.getClassLoader());FileSystem fileSystem=new SyncingFileSystem(CONFIGURATION)){
-    OrcFile.WriterOptions options=new OrcWriterOptions(conf).memory(new NullMemoryManager(conf)).fileSystem(fileSystem).compress(SNAPPY);
+    OrcFile.WriterOptions options=new OrcWriterOptions(conf).memory(new NullMemoryManager(conf)).fileSystem(fileSystem).callback(createFileMetadataCallback(columnIds,columnTypes)).compress(SNAPPY);
     return WRITER_CONSTRUCTOR.newInstance(target,options);
   }
  catch (  ReflectiveOperationException|IOException e) {
