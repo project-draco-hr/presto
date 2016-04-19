@@ -11,8 +11,15 @@
   if (type.equals(DoubleType.DOUBLE)) {
     return writableDoubleObjectInspector;
   }
-  if (type.equals(VarcharType.VARCHAR)) {
-    return writableStringObjectInspector;
+  if (type instanceof VarcharType) {
+    VarcharType varcharType=(VarcharType)type;
+    int varcharLength=varcharType.getLength();
+    if (varcharLength <= HiveVarchar.MAX_VARCHAR_LENGTH) {
+      return getPrimitiveWritableObjectInspector(getVarcharTypeInfo(varcharLength));
+    }
+ else     if (varcharLength == VarcharType.MAX_LENGTH) {
+      return writableStringObjectInspector;
+    }
   }
   if (type.equals(VarbinaryType.VARBINARY)) {
     return writableBinaryObjectInspector;
