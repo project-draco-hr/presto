@@ -1,0 +1,9 @@
+{
+  TypeRegistry typeManager=new TypeRegistry();
+  ExpressionOptimizer optimizer=new ExpressionOptimizer(new FunctionRegistry(typeManager,new BlockEncodingManager(typeManager),false),typeManager,TEST_SESSION);
+  Signature signature=new Signature("TRY",SCALAR,BIGINT.getTypeSignature());
+  RowExpression tryExpression=new CallExpression(signature,BIGINT,ImmutableList.of(new ConstantExpression(1L,BIGINT)));
+  assertEquals(optimizer.optimize(tryExpression),new ConstantExpression(1L,BIGINT));
+  tryExpression=new CallExpression(signature,BIGINT,ImmutableList.of(new InputReferenceExpression(1,BIGINT)));
+  assertEquals(optimizer.optimize(tryExpression),new InputReferenceExpression(1,BIGINT));
+}
