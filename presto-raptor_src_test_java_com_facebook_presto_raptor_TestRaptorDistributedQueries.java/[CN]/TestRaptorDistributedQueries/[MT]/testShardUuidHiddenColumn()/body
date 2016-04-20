@@ -2,13 +2,11 @@
   assertUpdate("CREATE TABLE test_shard_uuid AS SELECT orderdate, orderkey FROM orders","SELECT count(*) FROM orders");
   MaterializedResult actualResults=computeActual("SELECT *, \"$shard_uuid\" FROM test_shard_uuid");
   assertEquals(actualResults.getTypes(),ImmutableList.of(DATE,BIGINT,VARCHAR));
-  List<MaterializedRow> actualRows=actualResults.getMaterializedRows();
-  String arbitraryUuid=null;
-  for (  MaterializedRow row : actualRows) {
+  UUID arbitraryUuid=null;
+  for (  MaterializedRow row : actualResults.getMaterializedRows()) {
     Object uuid=row.getField(2);
     assertInstanceOf(uuid,String.class);
-    UUID.fromString((String)uuid);
-    arbitraryUuid=(String)uuid;
+    arbitraryUuid=UUID.fromString((String)uuid);
   }
   assertNotNull(arbitraryUuid);
   actualResults=computeActual(format("SELECT * FROM test_shard_uuid where \"$shard_uuid\" = '%s'",arbitraryUuid));
