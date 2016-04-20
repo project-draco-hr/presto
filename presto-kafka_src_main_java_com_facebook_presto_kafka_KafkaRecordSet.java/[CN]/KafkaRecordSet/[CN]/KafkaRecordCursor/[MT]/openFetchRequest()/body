@@ -2,7 +2,7 @@
   if (messageAndOffsetIterator == null) {
     log.debug("Fetching %d bytes from offset %d (%d - %d). %d messages read so far",KAFKA_READ_BUFFER_SIZE,cursorOffset,split.getStart(),split.getEnd(),totalMessages);
     FetchRequest req=new FetchRequestBuilder().clientId("presto-worker-" + Thread.currentThread().getName()).addFetch(split.getTopicName(),split.getPartitionId(),cursorOffset,KAFKA_READ_BUFFER_SIZE).build();
-    SimpleConsumer consumer=consumerManager.getConsumer(split.getNodes().get(0));
+    SimpleConsumer consumer=consumerManager.getConsumer(split.getLeader());
     FetchResponse fetchResponse=consumer.fetch(req);
     if (fetchResponse.hasError()) {
       short errorCode=fetchResponse.errorCode(split.getTopicName(),split.getPartitionId());
