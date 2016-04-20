@@ -1,10 +1,15 @@
 {
-  checkArgument(SUPPORTED_TYPES.contains(type),"Unsupported type [%s]",type);
+  checkArgument(isSupportedType(type),"Unsupported type [%s]",type);
   BlockBuilder builder;
   if (type instanceof FixedWidthType) {
     builder=type.createBlockBuilder(new BlockBuilderStatus(),rowsCount);
   }
  else {
+    if (type instanceof VarcharType) {
+      if (constantSlice.length() > ((VarcharType)type).getLength()) {
+        constantSlice=constantSlice.slice(0,((VarcharType)type).getLength());
+      }
+    }
     builder=type.createBlockBuilder(new BlockBuilderStatus(),rowsCount,constantSlice.length());
   }
   for (int i=0; i < rowsCount; i++) {
