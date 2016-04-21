@@ -17,7 +17,14 @@
       return isNull() ? 0.0d : Double.parseDouble(value.trim());
     }
     @Override public Slice getSlice(){
-      return isNull() ? EMPTY_SLICE : utf8Slice(value);
+      if (isNull()) {
+        return EMPTY_SLICE;
+      }
+      Slice slice=utf8Slice(value);
+      if (isVarcharType(columnHandle.getType())) {
+        slice=truncateToLength(slice,columnHandle.getType());
+      }
+      return slice;
     }
   }
 ;
