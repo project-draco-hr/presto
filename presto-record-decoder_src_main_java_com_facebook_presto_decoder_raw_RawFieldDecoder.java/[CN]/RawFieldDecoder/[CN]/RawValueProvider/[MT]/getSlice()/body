@@ -3,7 +3,11 @@
     return Slices.EMPTY_SLICE;
   }
   if (fieldType == FieldType.BYTE) {
-    return Slices.wrappedBuffer(value.slice());
+    Slice slice=Slices.wrappedBuffer(value.slice());
+    if (Varchars.isVarcharType(columnHandle.getType())) {
+      slice=Varchars.truncateToLength(slice,columnHandle.getType());
+    }
+    return slice;
   }
   throw new PrestoException(DECODER_CONVERSION_NOT_SUPPORTED,format("conversion %s to Slice not supported",fieldType));
 }
