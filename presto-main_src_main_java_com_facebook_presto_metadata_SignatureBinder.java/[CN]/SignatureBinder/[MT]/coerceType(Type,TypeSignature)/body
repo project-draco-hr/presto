@@ -1,0 +1,17 @@
+{
+  if (actual.getTypeSignature().getBase().equals(UnknownType.NAME)) {
+    if (expected.getBase().equals(StandardTypes.DECIMAL)) {
+      return Optional.of(createDecimalType(1,0));
+    }
+    if (expected.getBase().equals(StandardTypes.VARCHAR)) {
+      return Optional.of(createVarcharType(0));
+    }
+  }
+  if (expected.isCalculated()) {
+    return Optional.empty();
+  }
+  if (!typeManager.canCoerce(actual,expected)) {
+    return Optional.empty();
+  }
+  return typeManager.getCommonSuperType(actual,expected);
+}

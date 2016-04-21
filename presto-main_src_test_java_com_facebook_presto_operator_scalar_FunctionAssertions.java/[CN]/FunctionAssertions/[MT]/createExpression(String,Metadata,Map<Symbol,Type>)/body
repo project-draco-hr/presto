@@ -4,10 +4,9 @@
   Expression rewrittenExpression=ExpressionTreeRewriter.rewriteWith(new ExpressionRewriter<Void>(){
     @Override public Expression rewriteExpression(    Expression node,    Void context,    ExpressionTreeRewriter<Void> treeRewriter){
       Expression rewrittenExpression=treeRewriter.defaultRewrite(node,context);
-      Type type=analysis.getType(node);
       Type coercion=analysis.getCoercion(node);
       if (coercion != null) {
-        rewrittenExpression=new Cast(rewrittenExpression,coercion.getTypeSignature().toString(),false,isTypeOnlyCoercion(type,coercion));
+        rewrittenExpression=new Cast(rewrittenExpression,coercion.getTypeSignature().toString(),false,analysis.isTypeOnlyCoercion(node));
       }
       return rewrittenExpression;
     }

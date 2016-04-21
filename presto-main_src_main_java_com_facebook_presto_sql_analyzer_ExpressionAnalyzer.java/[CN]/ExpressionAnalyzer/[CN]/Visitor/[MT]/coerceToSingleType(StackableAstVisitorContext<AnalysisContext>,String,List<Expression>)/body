@@ -10,10 +10,13 @@
   for (  Expression expression : expressions) {
     Type type=process(expression,context);
     if (!type.equals(superType)) {
-      if (!canCoerce(type,superType)) {
+      if (!typeManager.canCoerce(type,superType)) {
         throw new SemanticException(TYPE_MISMATCH,expression,message,superType);
       }
       expressionCoercions.put(expression,superType);
+      if (typeManager.isTypeOnlyCoercion(type,superType)) {
+        typeOnlyCoercions.add(expression);
+      }
     }
   }
   return superType;

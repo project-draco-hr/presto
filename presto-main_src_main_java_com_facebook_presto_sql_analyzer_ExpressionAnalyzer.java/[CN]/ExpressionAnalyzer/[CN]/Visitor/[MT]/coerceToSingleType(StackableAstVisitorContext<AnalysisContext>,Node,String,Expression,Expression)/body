@@ -16,12 +16,18 @@
   if (firstType.equals(secondType)) {
     return firstType;
   }
-  if (canCoerce(firstType,secondType)) {
+  if (typeManager.canCoerce(firstType,secondType)) {
     expressionCoercions.put(first,secondType);
+    if (typeManager.isTypeOnlyCoercion(firstType,secondType)) {
+      typeOnlyCoercions.add(first);
+    }
     return secondType;
   }
-  if (canCoerce(secondType,firstType)) {
+  if (typeManager.canCoerce(secondType,firstType)) {
     expressionCoercions.put(second,firstType);
+    if (typeManager.isTypeOnlyCoercion(secondType,firstType)) {
+      typeOnlyCoercions.add(second);
+    }
     return firstType;
   }
   throw new SemanticException(TYPE_MISMATCH,node,message,firstType,secondType);
