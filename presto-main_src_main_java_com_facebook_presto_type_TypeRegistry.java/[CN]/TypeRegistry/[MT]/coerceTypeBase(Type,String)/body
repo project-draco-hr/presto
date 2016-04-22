@@ -1,0 +1,112 @@
+{
+  String sourceTypeName=sourceType.getTypeSignature().getBase();
+  if (sourceTypeName.equals(resultTypeBase)) {
+    return Optional.of(sourceType);
+  }
+switch (sourceTypeName) {
+case UnknownType.NAME:
+{
+switch (resultTypeBase) {
+case StandardTypes.BOOLEAN:
+case StandardTypes.BIGINT:
+case StandardTypes.INTEGER:
+case StandardTypes.DOUBLE:
+case StandardTypes.VARBINARY:
+case StandardTypes.DATE:
+case StandardTypes.TIME:
+case StandardTypes.TIME_WITH_TIME_ZONE:
+case StandardTypes.TIMESTAMP:
+case StandardTypes.TIMESTAMP_WITH_TIME_ZONE:
+case StandardTypes.HYPER_LOG_LOG:
+case StandardTypes.P4_HYPER_LOG_LOG:
+case StandardTypes.JSON:
+case StandardTypes.INTERVAL_YEAR_TO_MONTH:
+case StandardTypes.INTERVAL_DAY_TO_SECOND:
+case RegexpType.NAME:
+case LikePatternType.NAME:
+case JsonPathType.NAME:
+case ColorType.NAME:
+        return Optional.of(getType(new TypeSignature(resultTypeBase)));
+case StandardTypes.VARCHAR:
+      return Optional.of(createVarcharType(0));
+case StandardTypes.DECIMAL:
+    return Optional.of(createDecimalType(1,0));
+default :
+  return Optional.empty();
+}
+}
+case StandardTypes.INTEGER:
+{
+switch (resultTypeBase) {
+case StandardTypes.BIGINT:
+return Optional.of(BIGINT);
+case StandardTypes.DOUBLE:
+return Optional.of(DOUBLE);
+default :
+return Optional.empty();
+}
+}
+case StandardTypes.BIGINT:
+{
+switch (resultTypeBase) {
+case StandardTypes.DOUBLE:
+return Optional.of(DOUBLE);
+default :
+return Optional.empty();
+}
+}
+case StandardTypes.DATE:
+{
+switch (resultTypeBase) {
+case StandardTypes.TIMESTAMP:
+return Optional.of(TIMESTAMP);
+case StandardTypes.TIMESTAMP_WITH_TIME_ZONE:
+return Optional.of(TIMESTAMP_WITH_TIME_ZONE);
+default :
+return Optional.empty();
+}
+}
+case StandardTypes.TIME:
+{
+switch (resultTypeBase) {
+case StandardTypes.TIME_WITH_TIME_ZONE:
+return Optional.of(TIME_WITH_TIME_ZONE);
+default :
+return Optional.empty();
+}
+}
+case StandardTypes.TIMESTAMP:
+{
+switch (resultTypeBase) {
+case StandardTypes.TIMESTAMP_WITH_TIME_ZONE:
+return Optional.of(TIMESTAMP_WITH_TIME_ZONE);
+default :
+return Optional.empty();
+}
+}
+case StandardTypes.VARCHAR:
+{
+switch (resultTypeBase) {
+case RegexpType.NAME:
+return Optional.of(REGEXP);
+case LikePatternType.NAME:
+return Optional.of(LIKE_PATTERN);
+case JsonPathType.NAME:
+return Optional.of(JSON_PATH);
+default :
+return Optional.empty();
+}
+}
+case StandardTypes.P4_HYPER_LOG_LOG:
+{
+switch (resultTypeBase) {
+case StandardTypes.HYPER_LOG_LOG:
+return Optional.of(HYPER_LOG_LOG);
+default :
+return Optional.empty();
+}
+}
+default :
+return Optional.empty();
+}
+}

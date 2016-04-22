@@ -18,14 +18,11 @@
   }
   String sourceTypeBase=source.getTypeSignature().getBase();
   String resultTypeBase=result.getTypeSignature().getBase();
-  if (sourceTypeBase.equals(resultTypeBase)) {
+  if (sourceTypeBase.equals(resultTypeBase) && isCovariantParametrizedType(source)) {
     List<Type> sourceTypeParameters=source.getTypeParameters();
     List<Type> resultTypeParameters=result.getTypeParameters();
     checkState(sourceTypeParameters.size() == resultTypeParameters.size());
     for (int i=0; i < sourceTypeParameters.size(); i++) {
-      if (!isCovariantParameterPosition(sourceTypeBase,i)) {
-        return false;
-      }
       if (!isTypeOnlyCoercion(sourceTypeParameters.get(i),resultTypeParameters.get(i))) {
         return false;
       }

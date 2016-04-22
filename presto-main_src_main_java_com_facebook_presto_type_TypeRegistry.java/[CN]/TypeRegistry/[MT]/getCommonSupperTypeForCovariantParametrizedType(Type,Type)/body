@@ -1,0 +1,16 @@
+{
+  checkState(firstType.getClass().equals(secondType.getClass()));
+  ImmutableList.Builder<TypeSignatureParameter> commonParameterTypes=ImmutableList.builder();
+  List<Type> firstTypeParameters=firstType.getTypeParameters();
+  List<Type> secondTypeParameters=secondType.getTypeParameters();
+  checkState(firstTypeParameters.size() == secondTypeParameters.size());
+  for (int i=0; i < firstTypeParameters.size(); i++) {
+    Optional<Type> commonParameterType=getCommonSuperType(firstTypeParameters.get(i),secondTypeParameters.get(i));
+    if (!commonParameterType.isPresent()) {
+      return Optional.empty();
+    }
+    commonParameterTypes.add(TypeSignatureParameter.of(commonParameterType.get().getTypeSignature()));
+  }
+  String typeName=firstType.getTypeSignature().getBase();
+  return Optional.of(getType(new TypeSignature(typeName,commonParameterTypes.build())));
+}

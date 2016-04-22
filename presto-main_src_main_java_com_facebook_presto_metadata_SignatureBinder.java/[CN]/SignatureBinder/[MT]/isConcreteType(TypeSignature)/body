@@ -1,0 +1,30 @@
+{
+  if (isTypeVariable(typeSignature)) {
+    return false;
+  }
+  for (  TypeSignatureParameter typeSignatureParameter : typeSignature.getParameters()) {
+switch (typeSignatureParameter.getKind()) {
+case LONG:
+      continue;
+case VARIABLE:
+    return false;
+case TYPE:
+{
+    if (!isConcreteType(typeSignatureParameter.getTypeSignature())) {
+      return false;
+    }
+    continue;
+  }
+case NAMED_TYPE:
+{
+  if (!isConcreteType(typeSignatureParameter.getNamedTypeSignature().getTypeSignature())) {
+    return false;
+  }
+  continue;
+}
+default :
+throw new UnsupportedOperationException("Unsupported TypeSignatureParameter kind: " + typeSignatureParameter.getKind());
+}
+}
+return true;
+}

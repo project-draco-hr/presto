@@ -1,2 +1,34 @@
 {
+  if (firstType.equals(secondType)) {
+    return Optional.of(secondType);
+  }
+  if (firstType.equals(UnknownType.UNKNOWN)) {
+    return Optional.of(secondType);
+  }
+  if (secondType.equals(UnknownType.UNKNOWN)) {
+    return Optional.of(firstType);
+  }
+  String firstTypeBaseName=firstType.getTypeSignature().getBase();
+  String secondTypeBaseName=secondType.getTypeSignature().getBase();
+  if (firstTypeBaseName.equals(secondTypeBaseName)) {
+    if (firstTypeBaseName.equals(StandardTypes.DECIMAL)) {
+      return Optional.of(getCommonSuperTypeForDecimal(checkType(firstType,DecimalType.class,"firstType"),checkType(secondType,DecimalType.class,"secondType")));
+    }
+    if (firstTypeBaseName.equals(StandardTypes.VARCHAR)) {
+      return Optional.of(getCommonSuperTypeForVarchar(checkType(firstType,VarcharType.class,"firstType"),checkType(secondType,VarcharType.class,"secondType")));
+    }
+    if (isCovariantParametrizedType(firstType)) {
+      return getCommonSupperTypeForCovariantParametrizedType(firstType,secondType);
+    }
+    return Optional.empty();
+  }
+  Optional<Type> coercedType=coerceTypeBase(firstType,secondType.getTypeSignature().getBase());
+  if (coercedType.isPresent()) {
+    return getCommonSuperType(coercedType.get(),secondType);
+  }
+  coercedType=coerceTypeBase(secondType,firstType.getTypeSignature().getBase());
+  if (coercedType.isPresent()) {
+    return getCommonSuperType(firstType,coercedType.get());
+  }
+  return Optional.empty();
 }

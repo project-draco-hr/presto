@@ -1,19 +1,32 @@
 {
-  if (isTypeVariable(expected)) {
-    String variable=expected.getBase();
-    return matchAndBindTypeVariable(variable,actual,variableBinder);
+  if (isTypeVariable(expectedSignature)) {
+    String variable=expectedSignature.getBase();
+    return matchAndBindTypeVariable(variable,actualType,variableBinder);
   }
-  TypeSignature actualArgumentSignature=actual.getTypeSignature();
-  if (baseTypesAreEqual(expected,actualArgumentSignature) && matchAndBindTypeParameters(expected,actual,variableBinder)) {
-    return true;
+  if (expectedSignature.getBase().equals(StandardTypes.VARCHAR) && expectedSignature.getParameters().isEmpty()) {
+    return actualType.getTypeSignature().getBase().equals(StandardTypes.VARCHAR) || (allowCoercion && typeManager.coerceTypeBase(actualType,StandardTypes.VARCHAR).isPresent());
+  }
+  if (isConcreteType(expectedSignature)) {
+    Type expectedType=typeManager.getType(expectedSignature);
+    if (allowCoercion) {
+      return typeManager.canCoerce(actualType,expectedType);
+    }
+ else {
+      return actualType.equals(expectedType);
+    }
+  }
+  String actualTypeBase=actualType.getTypeSignature().getBase();
+  String expectedTypeBase=expectedSignature.getBase();
+  if (actualTypeBase.equals(expectedTypeBase)) {
+    return matchAndBindTypeParameters(expectedSignature,actualType,variableBinder);
   }
  else   if (allowCoercion) {
-    if (actual.equals(UnknownType.UNKNOWN) && isTypeParametrized(expected)) {
-      return true;
+    Optional<Type> coercionResult=typeManager.coerceTypeBase(actualType,expectedTypeBase);
+    if (coercionResult.isPresent()) {
+      return matchAndBindTypeParameters(expectedSignature,coercionResult.get(),variableBinder);
     }
-    Optional<Type> coercedType=coerceType(actual,expected);
-    if (coercedType.isPresent()) {
-      return matchAndBindTypeParameters(expected,coercedType.get(),variableBinder);
+    if (actualType.equals(UnknownType.UNKNOWN)) {
+      return true;
     }
   }
   return false;
