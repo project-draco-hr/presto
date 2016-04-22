@@ -1,3 +1,36 @@
 {
-  return canCoerce(actualType,expectedType) && isTypeOnlyCoercion(actualType.getTypeSignature(),expectedType.getTypeSignature());
+  if (source.equals(result)) {
+    return true;
+  }
+  if (!canCoerce(source,result)) {
+    return false;
+  }
+  if (source instanceof VarcharType && result instanceof VarcharType) {
+    return true;
+  }
+  if (source instanceof DecimalType && result instanceof DecimalType) {
+    DecimalType sourceDecimal=(DecimalType)source;
+    DecimalType resultDecimal=(DecimalType)result;
+    boolean sameDecimalSubtype=(sourceDecimal.isShort() && resultDecimal.isShort()) || (!sourceDecimal.isShort() && !resultDecimal.isShort());
+    boolean sameScale=sourceDecimal.getScale() == resultDecimal.getScale();
+    boolean sourcePrecisionIsLessOrEqualToResultPrecision=sourceDecimal.getPrecision() <= resultDecimal.getPrecision();
+    return sameDecimalSubtype && sameScale && sourcePrecisionIsLessOrEqualToResultPrecision;
+  }
+  String sourceTypeBase=source.getTypeSignature().getBase();
+  String resultTypeBase=result.getTypeSignature().getBase();
+  if (sourceTypeBase.equals(resultTypeBase)) {
+    List<Type> sourceTypeParameters=source.getTypeParameters();
+    List<Type> resultTypeParameters=result.getTypeParameters();
+    checkState(sourceTypeParameters.size() == resultTypeParameters.size());
+    for (int i=0; i < sourceTypeParameters.size(); i++) {
+      if (!isCovariantParameterPosition(sourceTypeBase,i)) {
+        return false;
+      }
+      if (!isTypeOnlyCoercion(sourceTypeParameters.get(i),resultTypeParameters.get(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
 }
