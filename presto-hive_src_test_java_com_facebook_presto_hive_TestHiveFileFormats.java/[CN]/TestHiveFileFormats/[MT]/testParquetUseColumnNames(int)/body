@@ -1,0 +1,17 @@
+{
+  List<TestColumn> testColumns=getTestColumnsSupportedByParquet();
+  HiveOutputFormat<?,?> outputFormat=new MapredParquetOutputFormat();
+  InputFormat<?,?> inputFormat=new MapredParquetInputFormat();
+  @SuppressWarnings("deprecation") SerDe serde=new ParquetHiveSerDe();
+  File file=File.createTempFile("presto_test","parquet");
+  file.delete();
+  try {
+    FileSplit split=createTestFile(file.getAbsolutePath(),outputFormat,serde,null,testColumns,rowCount);
+    Collections.reverse(testColumns);
+    HiveRecordCursorProvider cursorProvider=new ParquetRecordCursorProvider(true);
+    testCursorProvider(cursorProvider,split,inputFormat,serde,testColumns,rowCount);
+  }
+  finally {
+    file.delete();
+  }
+}
