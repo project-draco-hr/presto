@@ -5,5 +5,5 @@
   Expression rewrittenBeforeSubqueries=subPlan.rewrite(predicate);
   subPlan=handleSubqueries(subPlan,rewrittenBeforeSubqueries,node);
   Expression rewrittenAfterSubqueries=subPlan.rewrite(predicate);
-  return new PlanBuilder(subPlan.getTranslations(),new FilterNode(idAllocator.getNextId(),subPlan.getRoot(),rewrittenAfterSubqueries),subPlan.getSampleWeight());
+  return subPlan.withNewRoot(new FilterNode(idAllocator.getNextId(),subPlan.getRoot(),rewrittenAfterSubqueries));
 }

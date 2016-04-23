@@ -1,11 +1,8 @@
 {
   if (orderBy.isEmpty() && limit.isPresent()) {
-    if (limit.get().equalsIgnoreCase("all")) {
-      return subPlan;
-    }
- else {
+    if (!limit.get().equalsIgnoreCase("all")) {
       long limitValue=Long.parseLong(limit.get());
-      return new PlanBuilder(subPlan.getTranslations(),new LimitNode(idAllocator.getNextId(),subPlan.getRoot(),limitValue),subPlan.getSampleWeight());
+      subPlan=subPlan.withNewRoot(new LimitNode(idAllocator.getNextId(),subPlan.getRoot(),limitValue));
     }
   }
   return subPlan;
