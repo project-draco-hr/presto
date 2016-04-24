@@ -4,7 +4,20 @@
   this.maxQueued=maxQueued;
   checkArgument(maxRunning >= 0,"maxRunning is negative");
   this.maxRunning=maxRunning;
-  this.softMemoryLimit=requireNonNull(softMemoryLimit,"softMemoryLimit is null");
+  requireNonNull(softMemoryLimit,"softMemoryLimit is null");
+  Optional<DataSize> absoluteSize;
+  Optional<Double> fraction;
+  Matcher matcher=PERCENT_PATTERN.matcher(softMemoryLimit);
+  if (matcher.matches()) {
+    absoluteSize=Optional.empty();
+    fraction=Optional.of(Double.parseDouble(matcher.group(1)) / 100.0);
+  }
+ else {
+    absoluteSize=Optional.of(DataSize.valueOf(softMemoryLimit));
+    fraction=Optional.empty();
+  }
+  this.softMemoryLimit=absoluteSize;
+  this.softMemoryLimitFraction=fraction;
   this.subGroups=ImmutableList.copyOf(requireNonNull(subGroups,"subGroups is null").orElse(ImmutableList.of()));
   Set<ResourceGroupNameTemplate> names=new HashSet<>();
   for (  ResourceGroupSpec subGroup : this.subGroups) {

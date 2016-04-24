@@ -28,7 +28,16 @@
     candidates=nextCandidates;
   }
   checkState(match != null,"No matching configuration found for: %s",group.getId());
-  group.setSoftMemoryLimit(match.getSoftMemoryLimit());
+  if (match.getSoftMemoryLimit().isPresent()) {
+    group.setSoftMemoryLimit(match.getSoftMemoryLimit().get());
+  }
+ else {
+synchronized (generalPoolMemoryFraction) {
+      double fraction=match.getSoftMemoryLimitFraction().get();
+      generalPoolMemoryFraction.put(group,fraction);
+      group.setSoftMemoryLimit(new DataSize(generalPoolBytes * fraction,BYTE));
+    }
+  }
   group.setMaxQueuedQueries(match.getMaxQueued());
   group.setMaxRunningQueries(match.getMaxRunning());
 }
