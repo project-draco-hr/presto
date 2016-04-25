@@ -9,6 +9,11 @@
       }
       return rewrittenExpression;
     }
+    @Override public Expression rewriteFieldReference(    FieldReference node,    Void context,    ExpressionTreeRewriter<Void> treeRewriter){
+      Symbol symbol=rewriteBase.getSymbol(node.getFieldIndex());
+      checkState(symbol != null,"No symbol mapping for node '%s' (%s)",node,node.getFieldIndex());
+      return new QualifiedNameReference(symbol.toQualifiedName());
+    }
     @Override public Expression rewriteQualifiedNameReference(    QualifiedNameReference node,    Void context,    ExpressionTreeRewriter<Void> treeRewriter){
       return rewriteExpressionWithResolvedName(node);
     }

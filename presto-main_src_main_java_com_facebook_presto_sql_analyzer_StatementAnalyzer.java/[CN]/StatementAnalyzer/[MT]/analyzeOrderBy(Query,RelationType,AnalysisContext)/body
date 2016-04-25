@@ -1,22 +1,18 @@
 {
   List<SortItem> items=node.getOrderBy();
-  ImmutableList.Builder<FieldOrExpression> orderByFieldsBuilder=ImmutableList.builder();
+  ImmutableList.Builder<Expression> orderByFieldsBuilder=ImmutableList.builder();
   for (  SortItem item : items) {
     Expression expression=item.getSortKey();
-    FieldOrExpression orderByField;
     if (expression instanceof LongLiteral) {
       long ordinal=((LongLiteral)expression).getValue();
       if (ordinal < 1 || ordinal > tupleDescriptor.getVisibleFieldCount()) {
         throw new SemanticException(INVALID_ORDINAL,expression,"ORDER BY position %s is not in select list",ordinal);
       }
-      orderByField=new FieldOrExpression(Ints.checkedCast(ordinal - 1));
+      expression=new FieldReference(Ints.checkedCast(ordinal - 1));
     }
- else {
-      orderByField=new FieldOrExpression(expression);
-      ExpressionAnalysis expressionAnalysis=ExpressionAnalyzer.analyzeExpression(session,metadata,accessControl,sqlParser,tupleDescriptor,analysis,experimentalSyntaxEnabled,context,orderByField.getExpression());
-      analysis.recordSubqueries(node,expressionAnalysis);
-    }
-    orderByFieldsBuilder.add(orderByField);
+    ExpressionAnalysis expressionAnalysis=ExpressionAnalyzer.analyzeExpression(session,metadata,accessControl,sqlParser,tupleDescriptor,analysis,experimentalSyntaxEnabled,context,expression);
+    analysis.recordSubqueries(node,expressionAnalysis);
+    orderByFieldsBuilder.add(expression);
   }
   analysis.setOrderByExpressions(node,orderByFieldsBuilder.build());
 }
