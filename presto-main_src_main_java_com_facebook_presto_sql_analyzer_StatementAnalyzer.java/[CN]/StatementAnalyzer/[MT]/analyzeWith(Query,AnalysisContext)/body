@@ -7,15 +7,19 @@
     throw new SemanticException(NOT_SUPPORTED,with,"Recursive WITH queries are not supported");
   }
   for (  WithQuery withQuery : with.getQueries()) {
-    if (withQuery.getColumnNames() != null && !withQuery.getColumnNames().isEmpty()) {
-      throw new SemanticException(NOT_SUPPORTED,withQuery,"Column alias not supported in WITH queries");
-    }
     Query query=withQuery.getQuery();
     process(query,context);
     String name=withQuery.getName();
     if (context.isNamedQueryDeclared(name)) {
       throw new SemanticException(DUPLICATE_RELATION,withQuery,"WITH query name '%s' specified more than once",name);
     }
-    context.addNamedQuery(name,query);
+    if (withQuery.getColumnNames().isPresent()) {
+      List<String> columnNames=withQuery.getColumnNames().get();
+      RelationType queryDescriptor=analysis.getOutputDescriptor(query);
+      if (columnNames.size() != queryDescriptor.getVisibleFieldCount()) {
+        throw new SemanticException(MISMATCHED_COLUMN_ALIASES,withQuery,"WITH column alias list has %s entries but WITH query(%s) has %s columns",columnNames.size(),name,queryDescriptor.getVisibleFieldCount());
+      }
+    }
+    context.addNamedQuery(name,withQuery);
   }
 }
