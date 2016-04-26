@@ -2,6 +2,6 @@
   requireNonNull(store,"store is null");
   requireNonNull(connectorId,"connectorId is null");
   requireNonNull(timeout,"timeout is null");
-  this.executor=newCachedThreadPool(daemonThreadsNamed("backup-proxy-" + connectorId + "-%s"));
-  this.store=timeLimited(store,BackupStore.class,timeout,executor,maxThreads);
+  this.executor=newBoundedThreadPool(maxThreads,daemonThreadsNamed("backup-proxy-" + connectorId + "-%s"));
+  this.store=timeLimited(store,BackupStore.class,timeout,executor);
 }

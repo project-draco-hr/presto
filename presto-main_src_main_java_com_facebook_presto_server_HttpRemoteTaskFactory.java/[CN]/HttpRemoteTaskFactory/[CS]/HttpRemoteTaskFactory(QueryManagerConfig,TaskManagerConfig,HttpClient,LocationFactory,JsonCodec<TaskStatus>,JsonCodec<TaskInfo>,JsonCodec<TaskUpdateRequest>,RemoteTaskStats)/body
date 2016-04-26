@@ -7,9 +7,8 @@
   this.minErrorDuration=config.getRemoteTaskMinErrorDuration();
   this.taskStatusRefreshMaxWait=taskConfig.getStatusRefreshMaxWait();
   this.taskInfoUpdateInterval=taskConfig.getInfoUpdateInterval();
-  this.coreExecutor=newCachedThreadPool(daemonThreadsNamed("remote-task-callback-%s"));
-  this.executor=new BoundedExecutor(coreExecutor,config.getRemoteTaskMaxCallbackThreads());
-  this.executorMBean=new ThreadPoolExecutorMBean((ThreadPoolExecutor)coreExecutor);
+  this.executor=newBoundedThreadPool(config.getRemoteTaskMaxCallbackThreads(),daemonThreadsNamed("remote-task-callback-%s"));
+  this.executorMBean=new ThreadPoolExecutorMBean((ThreadPoolExecutor)executor);
   this.stats=requireNonNull(stats,"stats is null");
   this.updateScheduledExecutor=newSingleThreadScheduledExecutor(daemonThreadsNamed("task-info-update-scheduler-%s"));
   this.errorScheduledExecutor=newSingleThreadScheduledExecutor(daemonThreadsNamed("remote-task-error-delay-%s"));
