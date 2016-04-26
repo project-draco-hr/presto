@@ -1,0 +1,25 @@
+{
+  if (method == null) {
+    return null;
+  }
+  ImmutableList.Builder<ParameterMetadata> builder=ImmutableList.builder();
+  builder.add(new ParameterMetadata(STATE));
+  Annotation[][] annotations=method.getParameterAnnotations();
+  String methodName=method.getDeclaringClass() + "." + method.getName();
+  for (int i=1; i < annotations.length; i++) {
+    Annotation baseTypeAnnotation=baseTypeAnnotation(annotations[i],methodName);
+    if (baseTypeAnnotation instanceof SqlType) {
+      builder.add(fromSqlType(inputTypes.get(i - 1),isParameterBlock(annotations[i]),isParameterNullable(annotations[i]),methodName));
+    }
+ else     if (baseTypeAnnotation instanceof BlockIndex) {
+      builder.add(new ParameterMetadata(BLOCK_INDEX));
+    }
+ else     if (baseTypeAnnotation instanceof SampleWeight) {
+      builder.add(new ParameterMetadata(SAMPLE_WEIGHT));
+    }
+ else {
+      throw new IllegalArgumentException("Unsupported annotation: " + annotations[i]);
+    }
+  }
+  return builder.build();
+}

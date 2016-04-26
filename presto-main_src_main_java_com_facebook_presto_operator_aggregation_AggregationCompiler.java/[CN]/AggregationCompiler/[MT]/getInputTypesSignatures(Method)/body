@@ -1,0 +1,14 @@
+{
+  ImmutableList.Builder<TypeSignature> builder=ImmutableList.builder();
+  Set<String> literalParameters=getLiteralParameter(inputFunction);
+  Annotation[][] parameterAnnotations=inputFunction.getParameterAnnotations();
+  for (  Annotation[] annotations : parameterAnnotations) {
+    for (    Annotation annotation : annotations) {
+      if (annotation instanceof SqlType) {
+        String typeName=((SqlType)annotation).value();
+        builder.add(parseTypeSignature(typeName,literalParameters));
+      }
+    }
+  }
+  return builder.build();
+}

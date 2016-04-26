@@ -1,0 +1,19 @@
+{
+  AggregationFunction aggregationAnnotation=aggregationDefinition.getAnnotation(AggregationFunction.class);
+  requireNonNull(aggregationAnnotation,"aggregationAnnotation is null");
+  DynamicClassLoader classLoader=new DynamicClassLoader(aggregationDefinition.getClassLoader());
+  ImmutableList.Builder<BindableAggregationFunction> builder=ImmutableList.builder();
+  for (  Class<?> stateClass : getStateClasses(aggregationDefinition)) {
+    AccumulatorStateSerializer<?> stateSerializer=new StateCompiler().generateStateSerializer(stateClass,classLoader);
+    for (    Method outputFunction : getOutputFunctions(aggregationDefinition,stateClass)) {
+      for (      Method inputFunction : getInputFunctions(aggregationDefinition,stateClass)) {
+        for (        String name : getNames(outputFunction,aggregationAnnotation)) {
+          List<TypeSignature> inputTypes=getInputTypesSignatures(inputFunction);
+          TypeSignature outputType=TypeSignature.parseTypeSignature(outputFunction.getAnnotation(OutputFunction.class).value());
+          builder.add(new BindableAggregationFunction(new Signature(name,aggregationAnnotation.approximate() ? FunctionKind.APPROXIMATE_AGGREGATE : FunctionKind.AGGREGATE,ImmutableList.of(),ImmutableList.of(),outputType,inputTypes,false),getDescription(aggregationDefinition,outputFunction),aggregationAnnotation.approximate(),aggregationAnnotation.decomposable(),aggregationDefinition,stateClass,inputFunction,outputFunction));
+        }
+      }
+    }
+  }
+  return builder.build();
+}
