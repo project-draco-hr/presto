@@ -3,7 +3,7 @@
   projection=ExpressionTreeRewriter.rewriteWith(new SymbolToInputRewriter(INPUT_MAPPING),projection);
   IdentityHashMap<Expression,Type> expressionTypes=getExpressionTypesFromInput(TEST_SESSION,metadata,SQL_PARSER,INPUT_TYPES,ImmutableList.of(filter,projection));
   try {
-    CursorProcessor cursorProcessor=compiler.compileCursorProcessor(toRowExpression(filter,expressionTypes),ImmutableList.of(toRowExpression(projection,expressionTypes)),SOURCE_ID);
+    Supplier<CursorProcessor> cursorProcessor=compiler.compileCursorProcessor(toRowExpression(filter,expressionTypes),ImmutableList.of(toRowExpression(projection,expressionTypes)),SOURCE_ID);
     Supplier<PageProcessor> pageProcessor=compiler.compilePageProcessor(toRowExpression(filter,expressionTypes),ImmutableList.of(toRowExpression(projection,expressionTypes)));
     return new ScanFilterAndProjectOperator.ScanFilterAndProjectOperatorFactory(0,new PlanNodeId("test"),SOURCE_ID,PAGE_SOURCE_PROVIDER,cursorProcessor,pageProcessor,ImmutableList.<ColumnHandle>of(),ImmutableList.of(expressionTypes.get(projection)));
   }
