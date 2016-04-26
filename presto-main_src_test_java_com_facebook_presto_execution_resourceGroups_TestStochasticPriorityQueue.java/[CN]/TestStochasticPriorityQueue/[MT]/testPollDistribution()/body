@@ -1,0 +1,41 @@
+{
+  StochasticPriorityQueue<String> queue=new StochasticPriorityQueue<>();
+  for (int i=0; i < 100; i++) {
+    assertTrue(queue.addOrUpdate("foo" + i,1));
+  }
+  for (int i=0; i < 100; i++) {
+    assertTrue(queue.addOrUpdate("bar" + i,1));
+  }
+  int foo=0;
+  for (int i=0; i < 1000; i++) {
+    String value=queue.poll();
+    if (value.startsWith("foo")) {
+      foo++;
+    }
+    assertTrue(queue.addOrUpdate(value,1));
+  }
+  BinomialDistribution binomial=new BinomialDistribution(1000,0.5);
+  int lowerBound=binomial.inverseCumulativeProbability(0.000001);
+  int upperBound=binomial.inverseCumulativeProbability(0.999999);
+  assertLessThan(foo,upperBound);
+  assertGreaterThan(foo,lowerBound);
+  for (int i=0; i < 100; i++) {
+    assertFalse(queue.addOrUpdate("foo" + i,2));
+  }
+  foo=0;
+  for (int i=0; i < 1000; i++) {
+    String value=queue.poll();
+    if (value.startsWith("foo")) {
+      foo++;
+      assertTrue(queue.addOrUpdate(value,2));
+    }
+ else {
+      assertTrue(queue.addOrUpdate(value,1));
+    }
+  }
+  binomial=new BinomialDistribution(1000,2.0 / 3.0);
+  lowerBound=binomial.inverseCumulativeProbability(0.000001);
+  upperBound=binomial.inverseCumulativeProbability(0.999999);
+  assertLessThan(foo,upperBound);
+  assertGreaterThan(foo,lowerBound);
+}

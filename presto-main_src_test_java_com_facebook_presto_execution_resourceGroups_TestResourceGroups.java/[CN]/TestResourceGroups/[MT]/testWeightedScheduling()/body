@@ -1,0 +1,45 @@
+{
+  RootResourceGroup root=new RootResourceGroup("root",directExecutor());
+  root.setSoftMemoryLimit(new DataSize(1,MEGABYTE));
+  root.setMaxQueuedQueries(4);
+  root.setMaxRunningQueries(0);
+  root.setSchedulingPolicy(WEIGHTED);
+  ResourceGroup group1=root.getOrCreateSubGroup("1");
+  group1.setSoftMemoryLimit(new DataSize(1,MEGABYTE));
+  group1.setMaxQueuedQueries(2);
+  group1.setMaxRunningQueries(2);
+  ResourceGroup group2=root.getOrCreateSubGroup("2");
+  group2.setSoftMemoryLimit(new DataSize(1,MEGABYTE));
+  group2.setMaxQueuedQueries(2);
+  group2.setMaxRunningQueries(2);
+  group2.setSchedulingWeight(2);
+  Set<MockQueryExecution> group1Queries=fillGroupTo(group1,ImmutableSet.of(),2);
+  Set<MockQueryExecution> group2Queries=fillGroupTo(group2,ImmutableSet.of(),2);
+  root.setMaxRunningQueries(1);
+  int group2Ran=0;
+  for (int i=0; i < 1000; i++) {
+    for (Iterator<MockQueryExecution> iterator=group1Queries.iterator(); iterator.hasNext(); ) {
+      MockQueryExecution query=iterator.next();
+      if (query.getState() == RUNNING) {
+        query.complete();
+        iterator.remove();
+      }
+    }
+    for (Iterator<MockQueryExecution> iterator=group2Queries.iterator(); iterator.hasNext(); ) {
+      MockQueryExecution query=iterator.next();
+      if (query.getState() == RUNNING) {
+        query.complete();
+        iterator.remove();
+        group2Ran++;
+      }
+    }
+    root.processQueuedQueries();
+    group1Queries=fillGroupTo(group1,group1Queries,2);
+    group2Queries=fillGroupTo(group2,group2Queries,2);
+  }
+  BinomialDistribution binomial=new BinomialDistribution(1000,2.0 / 3.0);
+  int lowerBound=binomial.inverseCumulativeProbability(0.000001);
+  int upperBound=binomial.inverseCumulativeProbability(0.999999);
+  assertLessThan(group2Ran,upperBound);
+  assertGreaterThan(group2Ran,lowerBound);
+}

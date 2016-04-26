@@ -1,0 +1,24 @@
+{
+synchronized (root) {
+    if (policy == schedulingPolicy) {
+      return;
+    }
+    UpdateablePriorityQueue<ResourceGroup> queue;
+switch (policy) {
+case FAIR:
+      queue=new FifoQueue<>();
+    break;
+case WEIGHTED:
+  queue=new StochasticPriorityQueue<>();
+break;
+default :
+throw new UnsupportedOperationException("Unsupported scheduling policy: " + policy);
+}
+while (!eligibleSubGroups.isEmpty()) {
+ResourceGroup group=eligibleSubGroups.poll();
+queue.addOrUpdate(group,group.getSchedulingWeight());
+}
+eligibleSubGroups=queue;
+schedulingPolicy=policy;
+}
+}
