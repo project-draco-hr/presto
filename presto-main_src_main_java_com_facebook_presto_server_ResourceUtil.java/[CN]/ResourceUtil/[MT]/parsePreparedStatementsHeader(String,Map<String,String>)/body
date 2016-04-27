@@ -1,0 +1,24 @@
+{
+  List<String> nameValue=Splitter.on('=').limit(2).trimResults().splitToList(header);
+  assertRequest(nameValue.size() == 2,"Invalid %s header",PRESTO_PREPARED_STATEMENT);
+  String statementName;
+  String sqlString;
+  try {
+    statementName=URLDecoder.decode(nameValue.get(0),"UTF-8");
+    sqlString=URLDecoder.decode(nameValue.get(1),"UTF-8");
+  }
+ catch (  UnsupportedEncodingException e) {
+    throw new AssertionError(e);
+  }
+catch (  IllegalArgumentException e) {
+    throw badRequest(format("Invalid %s header: %s",PRESTO_PREPARED_STATEMENT,e.getMessage()));
+  }
+  SqlParser sqlParser=new SqlParser();
+  try {
+    sqlParser.createStatement(sqlString);
+  }
+ catch (  ParsingException e) {
+    throw badRequest(format("Invalid %s header: %s",PRESTO_PREPARED_STATEMENT,e.getMessage()));
+  }
+  preparedStatements.put(statementName,sqlString);
+}
