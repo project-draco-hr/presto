@@ -1,7 +1,7 @@
 {
   checkState(Thread.holdsLock(root),"Must hold lock to enqueue a query");
 synchronized (root) {
-    queuedQueries.addOrUpdate(query,DEFAULT_WEIGHT);
+    queuedQueries.addOrUpdate(query,getQueryPriority(query.getSession()));
     ResourceGroup group=this;
     while (group.parent.isPresent()) {
       group.parent.get().descendantQueuedQueries++;
