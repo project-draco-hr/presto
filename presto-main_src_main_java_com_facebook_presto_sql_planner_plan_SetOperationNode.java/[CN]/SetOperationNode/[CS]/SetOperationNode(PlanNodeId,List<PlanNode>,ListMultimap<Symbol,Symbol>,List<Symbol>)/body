@@ -1,0 +1,18 @@
+{
+  super(id);
+  requireNonNull(sources,"sources is null");
+  checkArgument(!sources.isEmpty(),"Must have at least one source");
+  requireNonNull(outputToInputs,"outputToInputs is null");
+  requireNonNull(outputs,"outputs is null");
+  this.sources=ImmutableList.copyOf(sources);
+  this.outputToInputs=ImmutableListMultimap.copyOf(outputToInputs);
+  this.outputs=ImmutableList.copyOf(outputs);
+  for (  Collection<Symbol> inputs : this.outputToInputs.asMap().values()) {
+    checkArgument(inputs.size() == this.sources.size(),"Every source needs to map its symbols to an output %s operation symbol",this.getClass().getSimpleName());
+  }
+  for (int i=0; i < sources.size(); i++) {
+    for (    Collection<Symbol> expectedInputs : this.outputToInputs.asMap().values()) {
+      checkArgument(sources.get(i).getOutputSymbols().contains(Iterables.get(expectedInputs,i)),"Source does not provide required symbols");
+    }
+  }
+}
