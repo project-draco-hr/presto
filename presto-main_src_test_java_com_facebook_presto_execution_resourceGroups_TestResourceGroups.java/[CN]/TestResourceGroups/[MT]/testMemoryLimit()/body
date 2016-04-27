@@ -1,20 +1,2 @@
 {
-  RootResourceGroup root=new RootResourceGroup("root",directExecutor());
-  root.setSoftMemoryLimit(new DataSize(1,BYTE));
-  root.setMaxQueuedQueries(4);
-  root.setMaxRunningQueries(3);
-  MockQueryExecution query1=new MockQueryExecution(1);
-  root.add(query1);
-  root.processQueuedQueries();
-  assertEquals(query1.getState(),RUNNING);
-  MockQueryExecution query2=new MockQueryExecution(0);
-  root.add(query2);
-  assertEquals(query2.getState(),QUEUED);
-  MockQueryExecution query3=new MockQueryExecution(0);
-  root.add(query3);
-  assertEquals(query3.getState(),QUEUED);
-  query1.complete();
-  root.processQueuedQueries();
-  assertEquals(query2.getState(),RUNNING);
-  assertEquals(query3.getState(),RUNNING);
 }
