@@ -1,2 +1,9 @@
 {
+  checkArgument(!node.getRelations().isEmpty(),"No relations specified for UNION");
+  SetOperationPlan setOperationPlan=process(node);
+  PlanNode planNode=new UnionNode(idAllocator.getNextId(),setOperationPlan.getSources(),setOperationPlan.getSymbolMapping(),ImmutableList.copyOf(setOperationPlan.getSymbolMapping().keySet()));
+  if (node.isDistinct()) {
+    planNode=distinct(planNode);
+  }
+  return new RelationPlan(planNode,analysis.getOutputDescriptor(node),planNode.getOutputSymbols(),setOperationPlan.getOutputSampleWeight());
 }

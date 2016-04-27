@@ -1,0 +1,21 @@
+{
+  for (int i=0; i < node.getSources().size(); i++) {
+    PlanNode subplan=node.getSources().get(i);
+    PlanNode rewrittenSource=context.rewrite(subplan,context.get());
+    Class<?> setOperationClass=node.getClass();
+    if (setOperationClass.isInstance(rewrittenSource)) {
+      SetOperationNode rewrittenSetOperation=(SetOperationNode)rewrittenSource;
+      flattenedSources.addAll(rewrittenSetOperation.getSources());
+      for (      Map.Entry<Symbol,Collection<Symbol>> entry : node.getSymbolMapping().asMap().entrySet()) {
+        Symbol inputSymbol=Iterables.get(entry.getValue(),i);
+        flattenedSymbolMap.putAll(entry.getKey(),rewrittenSetOperation.getSymbolMapping().get(inputSymbol));
+      }
+    }
+ else {
+      flattenedSources.add(rewrittenSource);
+      for (      Map.Entry<Symbol,Collection<Symbol>> entry : node.getSymbolMapping().asMap().entrySet()) {
+        flattenedSymbolMap.put(entry.getKey(),Iterables.get(entry.getValue(),i));
+      }
+    }
+  }
+}

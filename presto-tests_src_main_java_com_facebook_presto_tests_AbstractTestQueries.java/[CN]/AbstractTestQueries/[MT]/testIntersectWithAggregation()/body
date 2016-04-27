@@ -1,0 +1,8 @@
+{
+  assertQuery("SELECT COUNT(*) FROM nation INTERSECT SELECT COUNT(regionkey) FROM nation HAVING SUM(regionkey) IS NOT NULL","SELECT 25");
+  assertQuery("SELECT SUM(nationkey), COUNT(name) FROM (SELECT nationkey,name FROM nation INTERSECT SELECT regionkey,name FROM nation)n","VALUES (5, 3)");
+  assertQuery("SELECT COUNT(*) * 2 FROM nation INTERSECT (SELECT SUM(nationkey) FROM nation GROUP BY regionkey ORDER BY 1 LIMIT 2)","SELECT 50");
+  assertQuery("SELECT COUNT(a) FROM (SELECT nationkey AS a FROM (SELECT nationkey FROM nation INTERSECT SELECT regionkey FROM nation)n1 INTERSECT SELECT regionkey FROM nation) n2","SELECT 5");
+  assertQuery("SELECT count(*),SUM(2), regionkey FROM (SELECT nationkey, regionkey FROM nation INTERSECT SELECT regionkey, regionkey FROM nation)n GROUP BY regionkey","VALUES (1, 2, 0), (1, 2, 1), (1, 2, 4)");
+  assertQuery("SELECT count(*) FROM (SELECT nationkey FROM nation INTERSECT SELECT 2)n1 INTERSECT SELECT regionkey FROM nation","SELECT 1");
+}
