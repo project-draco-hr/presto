@@ -1,0 +1,10 @@
+{
+  subPlan=appendProjections(subPlan,ImmutableList.of(inPredicate.getValue()));
+  checkState(inPredicate.getValueList() instanceof SubqueryExpression);
+  RelationPlan valueListRelation=createRelationPlan((SubqueryExpression)inPredicate.getValueList());
+  TranslationMap translationMap=copyTranslations(subPlan);
+  QualifiedNameReference valueList=getOnlyElement(valueListRelation.getOutputSymbols()).toQualifiedNameReference();
+  translationMap.setExpressionAsAlreadyTranslated(valueList);
+  translationMap.put(inPredicate,new InPredicate(inPredicate.getValue(),valueList));
+  return new PlanBuilder(translationMap,new ApplyNode(idAllocator.getNextId(),subPlan.getRoot(),valueListRelation.getRoot(),ImmutableList.of()),subPlan.getSampleWeight());
+}

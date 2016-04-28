@@ -59,8 +59,8 @@
     }
     Analysis.JoinInPredicates joinInPredicates=analysis.getJoinInPredicates(node);
     if (joinInPredicates != null) {
-      leftPlanBuilder=appendSemiJoins(leftPlanBuilder,joinInPredicates.getLeftInPredicates());
-      rightPlanBuilder=appendSemiJoins(rightPlanBuilder,joinInPredicates.getRightInPredicates());
+      leftPlanBuilder=appendInPredicateApplyNodes(leftPlanBuilder,joinInPredicates.getLeftInPredicates());
+      rightPlanBuilder=appendInPredicateApplyNodes(rightPlanBuilder,joinInPredicates.getRightInPredicates());
     }
     leftPlanBuilder=appendProjections(leftPlanBuilder,leftComparisonExpressions);
     rightPlanBuilder=appendProjections(rightPlanBuilder,rightComparisonExpressions);
@@ -95,7 +95,7 @@
   translationMap.putExpressionMappingsFrom(leftPlanBuilder.getTranslations());
   translationMap.putExpressionMappingsFrom(rightPlanBuilder.getTranslations());
   PlanBuilder rootPlanBuilder=new PlanBuilder(translationMap,root,sampleWeight);
-  rootPlanBuilder=appendSemiJoins(rootPlanBuilder,analysis.getInPredicateSubqueries(node));
+  rootPlanBuilder=appendInPredicateApplyNodes(rootPlanBuilder,analysis.getInPredicateSubqueries(node));
   for (  Expression expression : complexJoinExpressions) {
     postInnerJoinConditions.add(rootPlanBuilder.rewrite(expression));
   }

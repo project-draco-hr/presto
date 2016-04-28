@@ -1,0 +1,14 @@
+{
+  if (node.getOutputSymbols().contains(symbol)) {
+    return node;
+  }
+ else   if (node.getSource().getOutputSymbols().contains(symbol)) {
+    ImmutableMap.Builder<Symbol,Expression> builder=ImmutableMap.builder();
+    builder.putAll(node.getAssignments());
+    builder.put(symbol,symbol.toQualifiedNameReference());
+    return new ProjectNode(node.getId(),node.getSource(),builder.build());
+  }
+ else {
+    return node;
+  }
+}

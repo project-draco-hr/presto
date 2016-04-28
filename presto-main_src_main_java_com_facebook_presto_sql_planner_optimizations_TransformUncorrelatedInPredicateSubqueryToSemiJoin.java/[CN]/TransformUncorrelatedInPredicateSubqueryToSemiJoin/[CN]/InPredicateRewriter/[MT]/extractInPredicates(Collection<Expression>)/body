@@ -1,0 +1,15 @@
+{
+  ImmutableList.Builder<InPredicate> inPredicates=ImmutableList.builder();
+  for (  Expression expression : expressions) {
+    new DefaultTraversalVisitor<Void,Void>(){
+      @Override protected Void visitInPredicate(      InPredicate node,      Void context){
+        if (node.getValueList() instanceof QualifiedNameReference) {
+          inPredicates.add(node);
+        }
+        return null;
+      }
+    }
+.process(expression,null);
+  }
+  return inPredicates.build();
+}

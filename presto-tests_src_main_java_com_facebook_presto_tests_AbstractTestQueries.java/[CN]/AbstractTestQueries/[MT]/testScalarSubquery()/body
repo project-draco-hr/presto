@@ -9,6 +9,7 @@
   assertQuery("SELECT (SELECT 1) = (SELECT 3)");
   assertQuery("SELECT (SELECT 1) < (SELECT 3)");
   assertQuery("SELECT COUNT(*) FROM lineitem WHERE " + "(SELECT min(orderkey) FROM orders)" + "<"+ "(SELECT max(orderkey) FROM orders)");
+  assertQuery("SELECT (SELECT 1), (SELECT 2), (SELECT 3)");
   assertQuery("SELECT DISTINCT orderkey FROM lineitem " + "WHERE orderkey BETWEEN" + "   (SELECT avg(orderkey) FROM orders) - 10 "+ "   AND"+ "   (SELECT avg(orderkey) FROM orders) + 10");
   for (  String joinType : ImmutableList.of("INNER","LEFT OUTER")) {
     assertQuery("SELECT l.orderkey, COUNT(*) " + "FROM lineitem l " + joinType + " JOIN orders o ON l.orderkey = o.orderkey "+ "WHERE l.orderkey BETWEEN"+ "   (SELECT avg(orderkey) FROM orders) - 10 "+ "   AND"+ "   (SELECT avg(orderkey) FROM orders) + 10 "+ "GROUP BY l.orderkey");

@@ -1,0 +1,11 @@
+{
+  List<InPredicate> inPredicates=extractInPredicates(expressions);
+  ImmutableMap.Builder<InPredicate,Expression> inPredicateMapping=ImmutableMap.builder();
+  PlanNode rewrittenNode=node;
+  for (  InPredicate inPredicate : inPredicates) {
+    InsertSemiJoinRewriter rewriter=new InsertSemiJoinRewriter(idAllocator,symbolAllocator,inPredicate);
+    rewrittenNode=rewriteWith(rewriter,rewrittenNode,null);
+    inPredicateMapping.putAll(rewriter.getInPredicateMapping());
+  }
+  return new InPredicateRewriteResult(rewrittenNode,inPredicateMapping.build());
+}
