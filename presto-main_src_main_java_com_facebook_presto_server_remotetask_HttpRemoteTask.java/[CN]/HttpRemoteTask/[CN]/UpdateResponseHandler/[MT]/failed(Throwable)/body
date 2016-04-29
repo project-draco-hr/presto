@@ -1,10 +1,12 @@
 {
   try (SetThreadName ignored=new SetThreadName("UpdateResponseHandler-%s",taskId)){
-    updateStats(currentRequestStartNanos);
     try {
+      long currentRequestStartNanos;
 synchronized (HttpRemoteTask.this) {
         currentRequest=null;
+        currentRequestStartNanos=HttpRemoteTask.this.currentRequestStartNanos;
       }
+      updateStats(currentRequestStartNanos);
       needsUpdate.set(true);
       TaskStatus taskStatus=getTaskStatus();
       if (!taskStatus.getState().isDone()) {
