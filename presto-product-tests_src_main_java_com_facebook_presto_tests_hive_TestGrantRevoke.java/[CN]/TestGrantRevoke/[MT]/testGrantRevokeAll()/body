@@ -1,0 +1,15 @@
+{
+  String tableName="alice_owned_table";
+  QueryExecutor queryExecutorForAlice=connectToPresto("alice@presto");
+  QueryExecutor queryExecutorForBob=connectToPresto("bob@presto");
+  queryExecutorForAlice.executeQuery(format("DROP TABLE IF EXISTS %s",tableName));
+  queryExecutorForAlice.executeQuery(format("CREATE TABLE %s(month bigint, day bigint)",tableName));
+  assertAccessDeniedOnAllOperationsOnTable(queryExecutorForBob,tableName);
+  queryExecutorForAlice.executeQuery(format("GRANT ALL PRIVILEGES ON %s TO bob",tableName));
+  assertThat(queryExecutorForBob.executeQuery(format("INSERT INTO %s VALUES (4, 13)",tableName))).hasRowsCount(1);
+  assertThat(queryExecutorForBob.executeQuery(format("SELECT * FROM %s",tableName))).hasRowsCount(1);
+  queryExecutorForBob.executeQuery(format("DELETE FROM %s",tableName));
+  assertThat(queryExecutorForBob.executeQuery(format("SELECT * FROM %s",tableName))).hasNoRows();
+  queryExecutorForAlice.executeQuery(format("REVOKE ALL PRIVILEGES ON %s FROM bob",tableName));
+  assertAccessDeniedOnAllOperationsOnTable(queryExecutorForBob,tableName);
+}

@@ -1,6 +1,9 @@
 {
   if (!authentication) {
-    launchPrestoCli(ImmutableList.<String>builder().add("--server",serverAddress).add(arguments).build());
+    ImmutableList.Builder<String> prestoClientOptions=ImmutableList.builder();
+    prestoClientOptions.add("--server",serverAddress,"--user",jdbcUser);
+    prestoClientOptions.add(arguments);
+    launchPrestoCli(prestoClientOptions.build());
   }
  else {
     requireNonNull(kerberosPrincipal,"databases.presto.cli_kerberos_principal is null");
@@ -10,7 +13,7 @@
     requireNonNull(keystorePath,"databases.presto.cli_keystore is null");
     requireNonNull(keystorePassword,"databases.presto.cli_keystore_password is null");
     ImmutableList.Builder<String> prestoClientOptions=ImmutableList.builder();
-    prestoClientOptions.add("--server",serverAddress,"--enable-authentication","--krb5-principal",kerberosPrincipal,"--krb5-keytab-path",kerberosKeytab,"--krb5-remote-service-name",kerberosServiceName,"--krb5-config-path",kerberosConfigPath,"--keystore-path",keystorePath,"--keystore-password",keystorePassword);
+    prestoClientOptions.add("--server",serverAddress,"--user",jdbcUser,"--enable-authentication","--krb5-principal",kerberosPrincipal,"--krb5-keytab-path",kerberosKeytab,"--krb5-remote-service-name",kerberosServiceName,"--krb5-config-path",kerberosConfigPath,"--keystore-path",keystorePath,"--keystore-password",keystorePassword);
     if (!kerberosUseCanonicalHostname) {
       prestoClientOptions.add("--krb5-disable-remote-service-hostname-canonicalization");
     }
