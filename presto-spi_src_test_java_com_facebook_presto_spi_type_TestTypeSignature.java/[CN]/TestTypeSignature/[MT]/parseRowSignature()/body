@@ -6,4 +6,10 @@
   assertRowSignature("array(row(col0 bigint,col1 double))",array(rowSignature(namedParameter("col0",signature("bigint")),namedParameter("col1",signature("double")))));
   assertRowSignature("row(col0 array(row(col0 bigint,col1 double)))",rowSignature(namedParameter("col0",array(rowSignature(namedParameter("col0",signature("bigint")),namedParameter("col1",signature("double")))))));
   assertRowSignature("row(a decimal(p1,s1),b decimal(p2,s2))",ImmutableSet.of("p1","s1","p2","s2"),rowSignature(namedParameter("a",decimal("p1","s1")),namedParameter("b",decimal("p2","s2"))));
+  assertOldRowSignature("row<bigint,varchar>('a','b')",rowSignature(namedParameter("a",signature("bigint")),namedParameter("b",varchar())));
+  assertOldRowSignature("row<bigint,array(bigint),row<bigint>('a')>('a','b','c')",rowSignature(namedParameter("a",signature("bigint")),namedParameter("b",array(signature("bigint"))),namedParameter("c",rowSignature(namedParameter("a",signature("bigint"))))));
+  assertOldRowSignature("row<varchar(10),row<bigint>('a')>('a','b')",rowSignature(namedParameter("a",varchar(10)),namedParameter("b",rowSignature(namedParameter("a",signature("bigint"))))));
+  assertOldRowSignature("array(row<bigint,double>('col0','col1'))",array(rowSignature(namedParameter("col0",signature("bigint")),namedParameter("col1",signature("double")))));
+  assertOldRowSignature("row<array(row<bigint,double>('col0','col1'))>('col0')",rowSignature(namedParameter("col0",array(rowSignature(namedParameter("col0",signature("bigint")),namedParameter("col1",signature("double")))))));
+  assertOldRowSignature("row<decimal(p1,s1),decimal(p2,s2)>('a','b')",ImmutableSet.of("p1","s1","p2","s2"),rowSignature(namedParameter("a",decimal("p1","s1")),namedParameter("b",decimal("p2","s2"))));
 }
