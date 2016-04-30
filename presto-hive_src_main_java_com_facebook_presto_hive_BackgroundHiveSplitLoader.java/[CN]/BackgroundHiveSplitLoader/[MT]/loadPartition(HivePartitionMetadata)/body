@@ -10,16 +10,22 @@
     if (bucketHandle.isPresent()) {
       throw new PrestoException(StandardErrorCode.NOT_SUPPORTED,"Bucketed table in SymlinkTextInputFormat is not yet supported");
     }
-    JobConf jobConf=new JobConf(configuration);
-    FileInputFormat.setInputPaths(jobConf,path);
-    InputSplit[] splits=inputFormat.getSplits(jobConf,0);
-    for (    InputSplit rawSplit : splits) {
-      FileSplit split=((SymlinkTextInputFormat.SymlinkTextInputSplit)rawSplit).getTargetSplit();
-      FileSystem targetFilesystem=hdfsEnvironment.getFileSystem(split.getPath());
-      FileStatus file=targetFilesystem.getFileStatus(split.getPath());
-      hiveSplitSource.addToQueue(createHiveSplits(partitionName,file.getPath().toString(),targetFilesystem.getFileBlockLocations(file,split.getStart(),split.getLength()),split.getStart(),split.getLength(),schema,partitionKeys,false,session,OptionalInt.empty(),effectivePredicate));
-      if (stopped) {
-        return;
+    for (    Path targetPath : getTargetPathsFromSymlink(configuration,path)) {
+      TextInputFormat targetInputFormat=new TextInputFormat();
+      Configuration targetConfiguration=hdfsEnvironment.getConfiguration(targetPath);
+      JobConf targetJob=new JobConf(targetConfiguration);
+      targetJob.setInputFormat(TextInputFormat.class);
+      targetInputFormat.configure(targetJob);
+      FileInputFormat.setInputPaths(targetJob,targetPath);
+      InputSplit[] targetSplits=targetInputFormat.getSplits(targetJob,0);
+      for (      InputSplit inputSplit : targetSplits) {
+        FileSplit split=(FileSplit)inputSplit;
+        FileSystem targetFilesystem=split.getPath().getFileSystem(targetConfiguration);
+        FileStatus file=targetFilesystem.getFileStatus(split.getPath());
+        hiveSplitSource.addToQueue(createHiveSplits(partitionName,file.getPath().toString(),targetFilesystem.getFileBlockLocations(file,split.getStart(),split.getLength()),split.getStart(),split.getLength(),schema,partitionKeys,false,session,OptionalInt.empty(),effectivePredicate));
+        if (stopped) {
+          return;
+        }
       }
     }
     return;
