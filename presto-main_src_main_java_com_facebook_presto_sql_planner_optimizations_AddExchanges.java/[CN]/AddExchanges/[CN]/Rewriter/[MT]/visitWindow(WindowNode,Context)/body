@@ -6,7 +6,7 @@
   for (  Symbol symbol : node.getOrderBy()) {
     desiredProperties.add(new SortingProperty<>(symbol,node.getOrderings().get(symbol)));
   }
-  PlanWithProperties child=planChild(node,context.withPreferredProperties(PreferredProperties.derivePreferences(context.getPreferredProperties(),ImmutableSet.copyOf(node.getPartitionBy()),desiredProperties)));
+  PlanWithProperties child=planChild(node,context.withPreferredProperties(PreferredProperties.partitionedWithLocal(ImmutableSet.copyOf(node.getPartitionBy()),desiredProperties).mergeWithParent(context.getPreferredProperties())));
   if (!child.getProperties().isStreamPartitionedOn(node.getPartitionBy())) {
     if (node.getPartitionBy().isEmpty()) {
       child=withDerivedProperties(gatheringExchange(idAllocator.getNextId(),REMOTE,child.getNode()),child.getProperties());
