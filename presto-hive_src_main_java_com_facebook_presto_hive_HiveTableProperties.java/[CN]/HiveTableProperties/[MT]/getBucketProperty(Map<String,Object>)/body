@@ -1,14 +1,14 @@
 {
-  List<String> clusteredBy=getClusteredBy(tableProperties);
+  List<String> bucketedBy=getBucketedBy(tableProperties);
   int bucketCount=(Integer)tableProperties.get(BUCKET_COUNT_PROPERTY);
-  if ((clusteredBy.isEmpty()) && (bucketCount == 0)) {
+  if ((bucketedBy.isEmpty()) && (bucketCount == 0)) {
     return Optional.empty();
   }
   if (bucketCount < 0) {
     throw new PrestoException(INVALID_TABLE_PROPERTY,format("%s must be greater than zero",BUCKET_COUNT_PROPERTY));
   }
-  if (clusteredBy.isEmpty() || bucketCount == 0) {
-    throw new PrestoException(INVALID_TABLE_PROPERTY,format("%s and %s must be specified together",CLUSTERED_BY_PROPERTY,BUCKET_COUNT_PROPERTY));
+  if (bucketedBy.isEmpty() || bucketCount == 0) {
+    throw new PrestoException(INVALID_TABLE_PROPERTY,format("%s and %s must be specified together",BUCKETED_BY_PROPERTY,BUCKET_COUNT_PROPERTY));
   }
-  return Optional.of(new HiveBucketProperty(clusteredBy,bucketCount));
+  return Optional.of(new HiveBucketProperty(bucketedBy,bucketCount));
 }
