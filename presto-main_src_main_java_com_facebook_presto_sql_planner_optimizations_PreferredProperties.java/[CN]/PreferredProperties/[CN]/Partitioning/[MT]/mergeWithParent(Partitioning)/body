@@ -2,8 +2,8 @@
   if (hashingOrder.isPresent()) {
     return this;
   }
-  if (parent.hashingOrder.isPresent() && partitioningColumns.equals(parent.partitioningColumns)) {
-    return parent;
+  if (parent.hashingOrder.isPresent()) {
+    return partitioningColumns.containsAll(parent.partitioningColumns) ? parent : this;
   }
   Set<Symbol> common=Sets.intersection(partitioningColumns,parent.partitioningColumns);
   return common.isEmpty() ? this : partitioned(common);
