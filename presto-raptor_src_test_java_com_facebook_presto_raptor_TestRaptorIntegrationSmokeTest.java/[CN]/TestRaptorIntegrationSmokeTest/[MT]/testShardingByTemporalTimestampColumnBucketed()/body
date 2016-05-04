@@ -1,0 +1,20 @@
+{
+  assertEquals(computeActual("SELECT count(DISTINCT orderdate) >= 2 FROM orders WHERE orderdate < date '1992-02-08'").getOnlyValue(),true);
+  assertUpdate("" + "CREATE TABLE test_shard_temporal_timestamp_bucketed(col1 BIGINT, col2 TIMESTAMP) " + "WITH (temporal_column = 'col2', bucket_count = 3, bucketed_on = ARRAY ['col1'])");
+  int rows=100;
+  StringJoiner joiner=new StringJoiner(", ","INSERT INTO test_shard_temporal_timestamp_bucketed VALUES ","");
+  for (int i=0; i < rows; i++) {
+    joiner.add(format("(%s, TIMESTAMP '2016-08-08 01:00' + interval '%s' hour)",i,i));
+  }
+  assertUpdate(joiner.toString(),format("VALUES(%s)",rows));
+  MaterializedResult results=computeActual("" + "SELECT format_datetime(col2, 'yyyyMMdd'), \"$shard_uuid\" " + "FROM test_shard_temporal_timestamp_bucketed");
+  assertEquals(results.getRowCount(),rows);
+  SetMultimap<String,String> shardDateMap=HashMultimap.create();
+  for (  MaterializedRow row : results.getMaterializedRows()) {
+    shardDateMap.put((String)row.getField(1),(String)row.getField(0));
+  }
+  for (  Collection<String> dates : shardDateMap.asMap().values()) {
+    assertEquals(dates.size(),1);
+  }
+  assertLessThan(shardDateMap.size(),rows);
+}

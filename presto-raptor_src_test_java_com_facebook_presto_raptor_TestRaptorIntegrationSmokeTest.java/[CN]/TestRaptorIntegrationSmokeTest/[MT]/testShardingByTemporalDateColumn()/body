@@ -1,0 +1,13 @@
+{
+  assertEquals(computeActual("SELECT count(DISTINCT orderdate) >= 2 FROM orders WHERE orderdate < date '1992-02-08'").getOnlyValue(),true);
+  assertUpdate("CREATE TABLE test_shard_temporal_date " + "WITH (temporal_column = 'orderdate') AS " + "SELECT orderdate, orderkey "+ "FROM orders "+ "WHERE orderdate < date '1992-02-08'","SELECT count(*) " + "FROM orders " + "WHERE orderdate < date '1992-02-08'");
+  MaterializedResult results=computeActual("SELECT orderdate, \"$shard_uuid\" FROM test_shard_temporal_date");
+  SetMultimap<String,Date> shardDateMap=HashMultimap.create();
+  for (  MaterializedRow row : results.getMaterializedRows()) {
+    shardDateMap.put((String)row.getField(1),(Date)row.getField(0));
+  }
+  for (  Collection<Date> dates : shardDateMap.asMap().values()) {
+    assertEquals(dates.size(),1);
+  }
+  assertQuery("SELECT orderdate, orderkey FROM test_shard_temporal_date","SELECT orderdate, orderkey FROM orders WHERE orderdate < date '1992-02-08'");
+}
