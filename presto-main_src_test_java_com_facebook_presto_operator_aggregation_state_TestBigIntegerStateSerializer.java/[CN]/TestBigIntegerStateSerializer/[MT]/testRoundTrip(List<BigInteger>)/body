@@ -1,0 +1,16 @@
+{
+  BigIntegerStateSerializer serializer=new BigIntegerStateSerializer();
+  BlockBuilder blockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),expected.size(),2);
+  BigIntegerState state=new BigIntegerStateFactory.SingleBigIntegerState();
+  for (  BigInteger bigInteger : expected) {
+    state.setBigInteger(bigInteger);
+    serializer.serialize(state,blockBuilder);
+  }
+  Block block=blockBuilder.build();
+  List<BigInteger> actual=new ArrayList<>(expected.size());
+  for (int i=0; i < expected.size(); i++) {
+    serializer.deserialize(block,i,state);
+    actual.add(state.getBigInteger());
+  }
+  assertEquals(actual,expected);
+}

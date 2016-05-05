@@ -1,0 +1,17 @@
+{
+  BigIntegerAndLongStateSerializer serializer=new BigIntegerAndLongStateSerializer();
+  BigIntegerAndLongState state=new BigIntegerAndLongStateFactory.SingleBigIntegerAndLongState();
+  BlockBuilder blockBuilder=new VariableWidthBlockBuilder(new BlockBuilderStatus(),expected.size(),3);
+  for (  BigIntegerAndLong bigIntegerAndLong : expected) {
+    state.setBigInteger(bigIntegerAndLong.getBigInteger());
+    state.setLong(bigIntegerAndLong.getLong());
+    serializer.serialize(state,blockBuilder);
+  }
+  Block block=blockBuilder.build();
+  List<BigIntegerAndLong> actual=new ArrayList<>();
+  for (int i=0; i < expected.size(); i++) {
+    serializer.deserialize(block,i,state);
+    actual.add(bigIntegerAndLong(state.getBigInteger(),state.getLong()));
+  }
+  assertEquals(actual,expected);
+}
