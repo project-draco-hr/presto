@@ -1,0 +1,15 @@
+{
+  for (int position=0; position < map.getPositionCount(); position+=2) {
+    try {
+      if ((boolean)keyEqualsMethod.invokeExact(keyType.getSlice(map,position),key)) {
+        return readNativeValue(valueType,map,position + 1);
+      }
+    }
+ catch (    Throwable t) {
+      Throwables.propagateIfInstanceOf(t,Error.class);
+      Throwables.propagateIfInstanceOf(t,PrestoException.class);
+      throw new PrestoException(INTERNAL_ERROR,t);
+    }
+  }
+  return null;
+}
