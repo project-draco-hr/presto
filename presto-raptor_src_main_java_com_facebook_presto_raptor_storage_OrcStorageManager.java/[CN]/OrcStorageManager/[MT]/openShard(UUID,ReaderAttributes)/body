@@ -1,6 +1,6 @@
 {
   File file=storageService.getStorageFile(shardUuid).getAbsoluteFile();
-  if (!file.exists() && backupExists(shardUuid)) {
+  if (!file.exists() && backupStore.isPresent()) {
     try {
       Future<?> future=recoveryManager.recoverShard(shardUuid);
       future.get(recoveryTimeout.toMillis(),TimeUnit.MILLISECONDS);
@@ -10,6 +10,7 @@
       throw Throwables.propagate(e);
     }
 catch (    ExecutionException e) {
+      propagateIfInstanceOf(e.getCause(),PrestoException.class);
       throw new PrestoException(RAPTOR_RECOVERY_ERROR,"Error recovering shard " + shardUuid,e.getCause());
     }
 catch (    TimeoutException e) {
