@@ -1,4 +1,20 @@
 {
+  boolean taskCanceled=false;
+  for (  SqlTask task : tasks.asMap().values()) {
+    if (task.getTaskInfo().getTaskStatus().getState().isDone()) {
+      continue;
+    }
+    task.failed(new PrestoException(SERVER_SHUTTING_DOWN,format("Server is shutting down. Task %s has been canceled",task.getTaskId())));
+    taskCanceled=true;
+  }
+  if (taskCanceled) {
+    try {
+      TimeUnit.SECONDS.sleep(5);
+    }
+ catch (    InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+  }
   taskNotificationExecutor.shutdownNow();
   taskManagementExecutor.shutdownNow();
 }
