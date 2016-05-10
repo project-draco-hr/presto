@@ -1,0 +1,21 @@
+{
+  int biggestCardinality=0;
+  for (  Block array : arrays) {
+    biggestCardinality=Math.max(biggestCardinality,array.getPositionCount());
+  }
+  RowType rowType=new RowType(types,Optional.empty());
+  BlockBuilder outputBuilder=rowType.createBlockBuilder(new BlockBuilderStatus(),biggestCardinality);
+  for (int outputPosition=0; outputPosition < biggestCardinality; outputPosition++) {
+    BlockBuilder rowBuilder=outputBuilder.beginBlockEntry();
+    for (int fieldIndex=0; fieldIndex < arrays.length; fieldIndex++) {
+      if (arrays[fieldIndex].getPositionCount() <= outputPosition) {
+        rowBuilder.appendNull();
+      }
+ else {
+        types.get(fieldIndex).appendTo(arrays[fieldIndex],outputPosition,rowBuilder);
+      }
+    }
+    outputBuilder.closeEntry();
+  }
+  return outputBuilder.build();
+}
