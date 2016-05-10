@@ -1,18 +1,18 @@
 {
-  TranslationMap translations=subPlan.copyTranslations();
+  TranslationMap translations=copyTranslations();
   ImmutableMap.Builder<Symbol,Expression> projections=ImmutableMap.builder();
-  for (  Symbol symbol : subPlan.getRoot().getOutputSymbols()) {
+  for (  Symbol symbol : getRoot().getOutputSymbols()) {
     Expression expression=new QualifiedNameReference(symbol.toQualifiedName());
     projections.put(symbol,expression);
   }
   ImmutableMap.Builder<Symbol,Expression> newTranslations=ImmutableMap.builder();
   for (  Expression expression : expressions) {
-    Symbol symbol=symbolAllocator.newSymbol(expression,analysis.getTypeWithCoercions(expression));
+    Symbol symbol=symbolAllocator.newSymbol(expression,getAnalysis().getTypeWithCoercions(expression));
     projections.put(symbol,translations.rewrite(expression));
     newTranslations.put(symbol,expression);
   }
   for (  Map.Entry<Symbol,Expression> entry : newTranslations.build().entrySet()) {
     translations.put(entry.getValue(),entry.getKey());
   }
-  return new PlanBuilder(translations,new ProjectNode(idAllocator.getNextId(),subPlan.getRoot(),projections.build()),subPlan.getSampleWeight());
+  return new PlanBuilder(translations,new ProjectNode(idAllocator.getNextId(),getRoot(),projections.build()),getSampleWeight());
 }
