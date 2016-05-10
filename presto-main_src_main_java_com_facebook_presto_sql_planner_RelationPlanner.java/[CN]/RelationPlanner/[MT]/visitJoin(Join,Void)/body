@@ -57,11 +57,8 @@
         complexJoinExpressions.add(conjunct);
       }
     }
-    Analysis.JoinInPredicates joinInPredicates=analysis.getJoinInPredicates(node);
-    if (joinInPredicates != null) {
-      leftPlanBuilder=appendInPredicateApplyNodes(leftPlanBuilder,joinInPredicates.getLeftInPredicates());
-      rightPlanBuilder=appendInPredicateApplyNodes(rightPlanBuilder,joinInPredicates.getRightInPredicates());
-    }
+    leftPlanBuilder=subqueryPlanner.handleSubqueries(leftPlanBuilder,leftComparisonExpressions,node);
+    rightPlanBuilder=subqueryPlanner.handleSubqueries(rightPlanBuilder,rightComparisonExpressions,node);
     leftPlanBuilder=leftPlanBuilder.appendProjections(leftComparisonExpressions,symbolAllocator,idAllocator);
     rightPlanBuilder=rightPlanBuilder.appendProjections(rightComparisonExpressions,symbolAllocator,idAllocator);
     for (int i=0; i < leftComparisonExpressions.size(); i++) {
@@ -95,7 +92,7 @@
   translationMap.putExpressionMappingsFrom(leftPlanBuilder.getTranslations());
   translationMap.putExpressionMappingsFrom(rightPlanBuilder.getTranslations());
   PlanBuilder rootPlanBuilder=new PlanBuilder(translationMap,root,sampleWeight);
-  rootPlanBuilder=appendInPredicateApplyNodes(rootPlanBuilder,analysis.getInPredicateSubqueries(node));
+  rootPlanBuilder=subqueryPlanner.handleSubqueries(rootPlanBuilder,complexJoinExpressions,node);
   for (  Expression expression : complexJoinExpressions) {
     postInnerJoinConditions.add(rootPlanBuilder.rewrite(expression));
   }
