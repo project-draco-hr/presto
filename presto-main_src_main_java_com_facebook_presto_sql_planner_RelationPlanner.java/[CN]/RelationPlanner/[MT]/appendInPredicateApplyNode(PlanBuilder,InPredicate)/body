@@ -4,8 +4,7 @@
   RelationPlanner relationPlanner=new RelationPlanner(analysis,symbolAllocator,idAllocator,metadata,session);
   PlanNode valueListRelation=relationPlanner.process(subqueryExpression.getQuery(),null).getRoot();
   subPlan=appendProjections(subPlan,ImmutableList.of(inPredicate.getValue()));
-  TranslationMap translations=new TranslationMap(subPlan.getRelationPlan(),analysis);
-  translations.copyMappingsFrom(subPlan.getTranslations());
+  TranslationMap translations=subPlan.copyTranslations();
   QualifiedNameReference valueList=Iterables.getOnlyElement(valueListRelation.getOutputSymbols()).toQualifiedNameReference();
   translations.setExpressionAsAlreadyTranslated(valueList);
   translations.put(inPredicate,new InPredicate(inPredicate.getValue(),valueList));
