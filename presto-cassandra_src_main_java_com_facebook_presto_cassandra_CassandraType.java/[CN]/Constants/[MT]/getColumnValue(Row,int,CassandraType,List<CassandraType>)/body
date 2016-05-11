@@ -1,0 +1,50 @@
+{
+  Type nativeType=cassandraType.getNativeType();
+  if (row.isNull(i)) {
+    return NullableValue.asNull(nativeType);
+  }
+ else {
+switch (cassandraType) {
+case ASCII:
+case TEXT:
+case VARCHAR:
+      return NullableValue.of(nativeType,utf8Slice(row.getString(i)));
+case INT:
+    return NullableValue.of(nativeType,(long)row.getInt(i));
+case BIGINT:
+case COUNTER:
+  return NullableValue.of(nativeType,row.getLong(i));
+case BOOLEAN:
+return NullableValue.of(nativeType,row.getBool(i));
+case DOUBLE:
+return NullableValue.of(nativeType,row.getDouble(i));
+case FLOAT:
+return NullableValue.of(nativeType,(double)row.getFloat(i));
+case DECIMAL:
+return NullableValue.of(nativeType,row.getDecimal(i).doubleValue());
+case UUID:
+case TIMEUUID:
+return NullableValue.of(nativeType,utf8Slice(row.getUUID(i).toString()));
+case TIMESTAMP:
+return NullableValue.of(nativeType,row.getTimestamp(i).getTime());
+case INET:
+return NullableValue.of(nativeType,utf8Slice(toAddrString(row.getInet(i))));
+case VARINT:
+return NullableValue.of(nativeType,utf8Slice(row.getVarint(i).toString()));
+case BLOB:
+case CUSTOM:
+return NullableValue.of(nativeType,wrappedBuffer(row.getBytesUnsafe(i)));
+case SET:
+checkTypeArguments(cassandraType,1,typeArguments);
+return NullableValue.of(nativeType,utf8Slice(buildSetValue(row,i,typeArguments.get(0))));
+case LIST:
+checkTypeArguments(cassandraType,1,typeArguments);
+return NullableValue.of(nativeType,utf8Slice(buildListValue(row,i,typeArguments.get(0))));
+case MAP:
+checkTypeArguments(cassandraType,2,typeArguments);
+return NullableValue.of(nativeType,utf8Slice(buildMapValue(row,i,typeArguments.get(0),typeArguments.get(1))));
+default :
+throw new IllegalStateException("Handling of type " + cassandraType + " is not implemented");
+}
+}
+}

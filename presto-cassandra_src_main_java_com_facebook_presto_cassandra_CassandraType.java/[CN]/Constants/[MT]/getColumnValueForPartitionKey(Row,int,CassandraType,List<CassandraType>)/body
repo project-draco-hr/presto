@@ -1,0 +1,17 @@
+{
+  Type nativeType=cassandraType.getNativeType();
+  if (row.isNull(i)) {
+    return NullableValue.asNull(nativeType);
+  }
+switch (cassandraType) {
+case ASCII:
+case TEXT:
+case VARCHAR:
+    return NullableValue.of(nativeType,utf8Slice(row.getString(i)));
+case UUID:
+case TIMEUUID:
+  return NullableValue.of(nativeType,utf8Slice(row.getUUID(i).toString()));
+default :
+return getColumnValue(row,i,cassandraType,typeArguments);
+}
+}

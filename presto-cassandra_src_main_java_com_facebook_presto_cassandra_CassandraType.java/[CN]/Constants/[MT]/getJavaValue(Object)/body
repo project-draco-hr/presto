@@ -1,0 +1,36 @@
+{
+switch (this) {
+case ASCII:
+case TEXT:
+case VARCHAR:
+    return ((Slice)nativeValue).toStringUtf8();
+case BIGINT:
+case BOOLEAN:
+case DOUBLE:
+case COUNTER:
+  return nativeValue;
+case INET:
+return InetAddresses.forString(((Slice)nativeValue).toStringUtf8());
+case INT:
+return ((Long)nativeValue).intValue();
+case FLOAT:
+return ((Double)nativeValue).floatValue();
+case DECIMAL:
+return new BigDecimal(nativeValue.toString());
+case TIMESTAMP:
+return new Date((Long)nativeValue);
+case UUID:
+case TIMEUUID:
+return java.util.UUID.fromString(((Slice)nativeValue).toStringUtf8());
+case BLOB:
+case CUSTOM:
+return ((Slice)nativeValue).toStringUtf8();
+case VARINT:
+return new BigInteger(((Slice)nativeValue).toStringUtf8());
+case SET:
+case LIST:
+case MAP:
+default :
+throw new IllegalStateException("Back conversion not implemented for " + this);
+}
+}

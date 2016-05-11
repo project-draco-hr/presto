@@ -1,0 +1,40 @@
+{
+  if (row.isNull(i)) {
+    return null;
+  }
+ else {
+switch (cassandraType) {
+case ASCII:
+case TEXT:
+case VARCHAR:
+      return CassandraCqlUtils.quoteStringLiteral(row.getString(i));
+case INT:
+    return Integer.toString(row.getInt(i));
+case BIGINT:
+case COUNTER:
+  return Long.toString(row.getLong(i));
+case BOOLEAN:
+return Boolean.toString(row.getBool(i));
+case DOUBLE:
+return Double.toString(row.getDouble(i));
+case FLOAT:
+return Float.toString(row.getFloat(i));
+case DECIMAL:
+return row.getDecimal(i).toString();
+case UUID:
+case TIMEUUID:
+return row.getUUID(i).toString();
+case TIMESTAMP:
+return Long.toString(row.getTimestamp(i).getTime());
+case INET:
+return CassandraCqlUtils.quoteStringLiteral(toAddrString(row.getInet(i)));
+case VARINT:
+return row.getVarint(i).toString();
+case BLOB:
+case CUSTOM:
+return Bytes.toHexString(row.getBytesUnsafe(i));
+default :
+throw new IllegalStateException("Handling of type " + cassandraType + " is not implemented");
+}
+}
+}
