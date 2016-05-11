@@ -2,11 +2,14 @@
   if (!finishing) {
     return null;
   }
-  outputConsumed=true;
   QueryInfo queryInfo=queryPerformanceFetcher.getQueryInfo(operatorContext.getDriverContext().getTaskId().getQueryId());
   checkState(queryInfo.getOutputStage().isPresent(),"Output stage is missing");
+  if (!hasFinalStageInfo(queryInfo.getOutputStage().get())) {
+    return null;
+  }
   String plan=textDistributedPlan(queryInfo.getOutputStage().get().getSubStages(),metadata,operatorContext.getSession());
   BlockBuilder builder=VARCHAR.createBlockBuilder(new BlockBuilderStatus(),1);
   VARCHAR.writeString(builder,plan);
+  outputConsumed=true;
   return new Page(builder.build());
 }
