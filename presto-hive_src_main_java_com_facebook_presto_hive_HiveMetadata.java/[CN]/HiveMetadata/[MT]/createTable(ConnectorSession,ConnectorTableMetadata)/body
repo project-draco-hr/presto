@@ -5,7 +5,7 @@
   String tableName=schemaTableName.getTableName();
   List<String> partitionedBy=getPartitionedBy(tableMetadata.getProperties());
   Optional<HiveBucketProperty> bucketProperty=getBucketProperty(tableMetadata.getProperties());
-  if (bucketProperty.isPresent()) {
+  if (bucketProperty.isPresent() && !bucketWritingEnabled) {
     throw new PrestoException(NOT_SUPPORTED,"Writing to bucketed Hive table has been temporarily disabled");
   }
   List<HiveColumnHandle> columnHandles=getColumnHandles(connectorId,tableMetadata,ImmutableSet.copyOf(partitionedBy));
