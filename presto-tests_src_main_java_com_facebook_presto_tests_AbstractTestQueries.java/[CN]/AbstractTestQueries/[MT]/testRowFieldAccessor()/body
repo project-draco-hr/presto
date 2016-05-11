@@ -1,12 +1,12 @@
 {
-  assertQuery("SELECT a.col0 FROM (VALUES ROW (test_row(1, 2))) AS t (a)","SELECT 1");
-  assertQuery("SELECT a.col0 FROM (VALUES ROW (test_row(1.0, 2.0))) AS t (a)","SELECT 1.0");
-  assertQuery("SELECT a.col0 FROM (VALUES ROW (test_row(TRUE, FALSE))) AS t (a)","SELECT TRUE");
-  assertQuery("SELECT a.col1 FROM (VALUES ROW (test_row(1.0, 'kittens'))) AS t (a)","SELECT 'kittens'");
-  assertQuery("SELECT a.col2.col1 FROM (VALUES ROW(test_row(1.0, ARRAY[2], test_row(3, 4.0)))) t(a)","SELECT 4.0");
-  assertQuery("SELECT test_row(1, t.x).col1 FROM (VALUES 1, 2, 3) t(x)","SELECT * FROM (VALUES 1, 2, 3)");
-  assertQuery("SELECT Y.col1 FROM (SELECT test_row(1, t.x) AS Y FROM (VALUES 1, 2, 3) t(x)) test_t","SELECT * FROM (VALUES 1, 2, 3)");
-  assertQuery("SELECT a.col1[2] FROM (VALUES ROW(test_row(1.0, ARRAY[22, 33, 44, 55], test_row(3, 4.0)))) t(a)","SELECT 33");
-  assertQuery("SELECT a.col1[2].col0, a.col1[2].col1 FROM (VALUES ROW(test_row(1.0, ARRAY[test_row(31, 4.1), test_row(32, 4.2)], test_row(3, 4.0)))) t(a)","SELECT 32, 4.2");
-  assertQuery("SELECT test_row(11, 12).col0","SELECT 11");
+  assertQuery("SELECT a.col0 FROM (VALUES ROW (CAST(ROW(1, 2) AS ROW(col0 integer, col1 integer)))) AS t (a)","SELECT 1");
+  assertQuery("SELECT a.col0 FROM (VALUES ROW (CAST(ROW(1.0, 2.0) AS ROW(col0 integer, col1 integer)))) AS t (a)","SELECT 1.0");
+  assertQuery("SELECT a.col0 FROM (VALUES ROW (CAST(ROW(TRUE, FALSE) AS ROW(col0 boolean, col1 boolean)))) AS t (a)","SELECT TRUE");
+  assertQuery("SELECT a.col1 FROM (VALUES ROW (CAST(ROW(1.0, 'kittens') AS ROW(col0 varchar, col1 varchar)))) AS t (a)","SELECT 'kittens'");
+  assertQuery("SELECT a.col2.col1 FROM (VALUES ROW(CAST(ROW(1.0, ARRAY[2], row(3, 4.0)) AS ROW(col0 double, col1 array(integer), col2 row(col0 integer, col1 double))))) t(a)","SELECT 4.0");
+  assertQuery("SELECT cast(row(1, t.x) as row(col0 bigint, col1 bigint)).col1 FROM (VALUES 1, 2, 3) t(x)","SELECT * FROM (VALUES 1, 2, 3)");
+  assertQuery("SELECT Y.col1 FROM (SELECT cast(row(1, t.x) as row(col0 bigint, col1 bigint)) AS Y FROM (VALUES 1, 2, 3) t(x)) test_t","SELECT * FROM (VALUES 1, 2, 3)");
+  assertQuery("SELECT a.col1[2] FROM (VALUES ROW(CAST(ROW(1.0, ARRAY[22, 33, 44, 55], row(3, 4.0)) AS ROW(col0 double, col1 array(integer), col2 row(col0 integer, col1 double))))) t(a)","SELECT 33");
+  assertQuery("SELECT a.col1[2].col0, a.col1[2].col1 FROM (VALUES ROW(cast(row(1.0, ARRAY[row(31, 4.1), row(32, 4.2)], row(3, 4.0)) AS ROW(col0 double, col1 array(row(col0 integer, col1 double)), col2 row(col0 integer, col1 double))))) t(a)","SELECT 32, 4.2");
+  assertQuery("SELECT cast(row(11, 12) as row(col0 bigint, col1 bigint)).col0","SELECT 11");
 }

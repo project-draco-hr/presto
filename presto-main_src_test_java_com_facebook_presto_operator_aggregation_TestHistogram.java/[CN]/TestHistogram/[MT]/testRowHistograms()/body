@@ -3,8 +3,8 @@
   MapType mapType=new MapType(innerRowType,BIGINT);
   InternalAggregationFunction aggregationFunction=metadata.getFunctionRegistry().getAggregateFunctionImplementation(new Signature(NAME,AGGREGATE,mapType.getTypeSignature(),innerRowType.getTypeSignature()));
   BlockBuilder builder=innerRowType.createBlockBuilder(new BlockBuilderStatus(),3);
-  innerRowType.writeObject(builder,testRowBigintBigint(1L,1.0));
-  innerRowType.writeObject(builder,testRowBigintBigint(2L,2.0));
-  innerRowType.writeObject(builder,testRowBigintBigint(3L,3.0));
+  innerRowType.writeObject(builder,toRow(ImmutableList.of(BIGINT,DOUBLE),1L,1.0));
+  innerRowType.writeObject(builder,toRow(ImmutableList.of(BIGINT,DOUBLE),2L,2.0));
+  innerRowType.writeObject(builder,toRow(ImmutableList.of(BIGINT,DOUBLE),3L,3.0));
   assertAggregation(aggregationFunction,1.0,ImmutableMap.of(ImmutableList.of(1L,1.0),1L,ImmutableList.of(2L,2.0),1L,ImmutableList.of(3L,3.0),1L),builder.build());
 }
