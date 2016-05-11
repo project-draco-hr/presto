@@ -5,7 +5,13 @@
   int i=0;
   for (  Entry<ObjectInspector,Object> entry : columnBindings) {
     objectInspectors[i]=entry.getKey();
-    deferredObjects[i]=new GenericUDF.DeferredJavaObject(entry.getValue());
+    if (entry.getValue() != null && entry.getKey() instanceof JavaHiveVarcharObjectInspector) {
+      JavaHiveVarcharObjectInspector varcharObjectInspector=(JavaHiveVarcharObjectInspector)entry.getKey();
+      deferredObjects[i]=new GenericUDF.DeferredJavaObject(new HiveVarchar(((String)entry.getValue()),varcharObjectInspector.getMaxLength()));
+    }
+ else {
+      deferredObjects[i]=new GenericUDF.DeferredJavaObject(entry.getValue());
+    }
     i++;
   }
   ObjectInspector udfInspector=udf.initialize(objectInspectors);

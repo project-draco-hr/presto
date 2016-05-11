@@ -4,35 +4,41 @@
   }
 switch (type.getCategory()) {
 case PRIMITIVE:
-    PrimitiveCategory primitiveCategory=((PrimitiveTypeInfo)type).getPrimitiveCategory();
+{
+      PrimitiveTypeInfo typeInfo=(PrimitiveTypeInfo)type;
+      PrimitiveCategory primitiveCategory=typeInfo.getPrimitiveCategory();
+      Type prestoType=requireNonNull(HiveType.getPrimitiveType(typeInfo));
 switch (primitiveCategory) {
 case BOOLEAN:
-    return BOOLEAN.getBoolean(block,position) ? 1 : 0;
+        return prestoType.getBoolean(block,position) ? 1 : 0;
 case BYTE:
-  return SignedBytes.checkedCast(INTEGER.getLong(block,position));
+      return SignedBytes.checkedCast(prestoType.getLong(block,position));
 case SHORT:
-return Shorts.checkedCast(INTEGER.getLong(block,position));
+    return Shorts.checkedCast(prestoType.getLong(block,position));
 case INT:
-return Ints.checkedCast(INTEGER.getLong(block,position));
+  return Ints.checkedCast(prestoType.getLong(block,position));
 case LONG:
-long bigintValue=BIGINT.getLong(block,position);
+long bigintValue=prestoType.getLong(block,position);
 return (int)((bigintValue >>> 32) ^ bigintValue);
 case FLOAT:
-return Float.floatToIntBits((float)DOUBLE.getDouble(block,position));
+return Float.floatToIntBits((float)prestoType.getDouble(block,position));
 case DOUBLE:
-long doubleValue=doubleToLongBits(DOUBLE.getDouble(block,position));
+long doubleValue=doubleToLongBits(prestoType.getDouble(block,position));
 return (int)((doubleValue >>> 32) ^ doubleValue);
 case STRING:
-return hashBytes(0,createUnboundedVarcharType().getSlice(block,position));
+return hashBytes(0,prestoType.getSlice(block,position));
+case VARCHAR:
+return hashBytes(1,prestoType.getSlice(block,position));
 case DATE:
-long days=DATE.getLong(block,position);
+long days=prestoType.getLong(block,position);
 return Ints.checkedCast(days);
 case TIMESTAMP:
-long millisSinceEpoch=TIMESTAMP.getLong(block,position);
+long millisSinceEpoch=prestoType.getLong(block,position);
 long secondsAndNanos=(Math.floorDiv(millisSinceEpoch,1000L) << 30) + Math.floorMod(millisSinceEpoch,1000);
 return (int)((secondsAndNanos >>> 32) ^ secondsAndNanos);
 default :
 throw new UnsupportedOperationException("Computation of Hive bucket hashCode is not supported for Hive primitive category: " + primitiveCategory.toString() + ".");
+}
 }
 case LIST:
 {
