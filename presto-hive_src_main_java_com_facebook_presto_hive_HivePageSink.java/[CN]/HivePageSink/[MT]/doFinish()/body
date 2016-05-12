@@ -11,11 +11,26 @@
   }
  else {
     for (    Int2ObjectMap<HiveRecordWriter> writers : bucketWriters) {
+      PartitionUpdate firstPartitionUpdate=null;
+      ImmutableList.Builder<String> fileNamesBuilder=ImmutableList.builder();
       for (      HiveRecordWriter writer : writers.values()) {
         writer.commit();
         PartitionUpdate partitionUpdate=writer.getPartitionUpdate();
-        partitionUpdates.add(wrappedBuffer(partitionUpdateCodec.toJsonBytes(partitionUpdate)));
+        if (firstPartitionUpdate == null) {
+          firstPartitionUpdate=partitionUpdate;
+        }
+ else {
+          verify(firstPartitionUpdate.getName().equals(partitionUpdate.getName()));
+          verify(firstPartitionUpdate.isNew() == partitionUpdate.isNew());
+          verify(firstPartitionUpdate.getTargetPath().equals(partitionUpdate.getTargetPath()));
+          verify(firstPartitionUpdate.getWritePath().equals(partitionUpdate.getWritePath()));
+        }
+        fileNamesBuilder.addAll(partitionUpdate.getFileNames());
       }
+      if (firstPartitionUpdate == null) {
+        continue;
+      }
+      partitionUpdates.add(wrappedBuffer(partitionUpdateCodec.toJsonBytes(new PartitionUpdate(firstPartitionUpdate.getName(),firstPartitionUpdate.isNew(),firstPartitionUpdate.getWritePath(),firstPartitionUpdate.getTargetPath(),fileNamesBuilder.build()))));
     }
   }
   return partitionUpdates.build();
