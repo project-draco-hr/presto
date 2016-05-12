@@ -2,7 +2,7 @@
   PreferredProperties preferredChildProperties=PreferredProperties.partitionedWithLocal(ImmutableSet.copyOf(node.getDistinctSymbols()),grouped(node.getDistinctSymbols())).mergeWithParent(context.getPreferredProperties());
   PlanWithProperties child=node.getSource().accept(this,context.withPreferredProperties(preferredChildProperties));
   if (child.getProperties().isSingleNode() || !child.getProperties().isStreamPartitionedOn(node.getDistinctSymbols())) {
-    child=withDerivedProperties(partitionedExchange(idAllocator.getNextId(),REMOTE,child.getNode(),node.getDistinctSymbols(),node.getHashSymbol()),child.getProperties());
+    child=withDerivedProperties(partitionedExchange(idAllocator.getNextId(),REMOTE,child.getNode(),node.getDistinctSymbols(),node.getHashSymbol(),getHashPartitionCount(session)),child.getProperties());
   }
   return rebaseAndDeriveProperties(node,child);
 }
