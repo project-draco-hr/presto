@@ -1,0 +1,10 @@
+{
+  ImmutableList.Builder<PartitionUpdate> partitionUpdatesForMissingBucketsBuilder=ImmutableList.builder();
+  HiveStorageFormat storageFormat=table.getPartitionKeys().isEmpty() ? handle.getTableStorageFormat() : handle.getPartitionStorageFormat();
+  for (  PartitionUpdate partitionUpdate : partitionUpdates) {
+    int bucketCount=handle.getBucketProperty().get().getBucketCount();
+    List<String> fileNamesForMissingBuckets=computeFileNamesForMissingBuckets(storageFormat,partitionUpdate.getTargetPath(),handle.getFilePrefix(),bucketCount,partitionUpdate);
+    partitionUpdatesForMissingBucketsBuilder.add(new PartitionUpdate(partitionUpdate.getName(),partitionUpdate.isNew(),partitionUpdate.getWritePath(),partitionUpdate.getTargetPath(),fileNamesForMissingBuckets));
+  }
+  return partitionUpdatesForMissingBucketsBuilder.build();
+}

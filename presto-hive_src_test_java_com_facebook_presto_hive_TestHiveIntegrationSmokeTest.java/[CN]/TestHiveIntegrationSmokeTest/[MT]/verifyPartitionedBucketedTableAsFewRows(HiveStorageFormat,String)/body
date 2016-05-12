@@ -1,0 +1,17 @@
+{
+  TableMetadata tableMetadata=getTableMetadata(catalog,TPCH_SCHEMA,tableName);
+  assertEquals(tableMetadata.getMetadata().getProperties().get(STORAGE_FORMAT_PROPERTY),storageFormat);
+  List<String> partitionedBy=ImmutableList.of("partition_key");
+  assertEquals(tableMetadata.getMetadata().getProperties().get(PARTITIONED_BY_PROPERTY),partitionedBy);
+  for (  ColumnMetadata columnMetadata : tableMetadata.getColumns()) {
+    boolean partitionKey=partitionedBy.contains(columnMetadata.getName());
+    assertEquals(columnMetadata.getComment(),annotateColumnComment(null,partitionKey));
+  }
+  assertEquals(tableMetadata.getMetadata().getProperties().get(BUCKETED_BY_PROPERTY),ImmutableList.of("bucket_key"));
+  assertEquals(tableMetadata.getMetadata().getProperties().get(BUCKET_COUNT_PROPERTY),11);
+  List<?> partitions=getPartitions(tableName);
+  assertEquals(partitions.size(),3);
+  MaterializedResult actual=computeActual("SELECT * from " + tableName);
+  MaterializedResult expected=resultBuilder(getSession(),createUnboundedVarcharType(),createUnboundedVarcharType(),createUnboundedVarcharType()).row("a","b","c").row("aa","bb","cc").row("aaa","bbb","ccc").build();
+  assertEqualsIgnoreOrder(actual.getMaterializedRows(),expected.getMaterializedRows());
+}

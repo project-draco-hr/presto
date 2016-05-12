@@ -1,0 +1,15 @@
+{
+  String tableName="test_insert_partitioned_bucketed_table_few_rows";
+  assertUpdate("" + "CREATE TABLE " + tableName + " ("+ "  bucket_key varchar,"+ "  col varchar,"+ "  partition_key varchar)"+ "WITH ("+ "format = '"+ storageFormat+ "', "+ "partitioned_by = ARRAY[ 'partition_key' ], "+ "bucketed_by = ARRAY[ 'bucket_key' ], "+ "bucket_count = 11)");
+  assertUpdate(getSession().withSystemProperty("task_writer_count","3"),"INSERT INTO " + tableName + " "+ "VALUES "+ "  (VARCHAR 'a', VARCHAR 'b', VARCHAR 'c'), "+ "  ('aa', 'bb', 'cc'), "+ "  ('aaa', 'bbb', 'ccc')",3);
+  verifyPartitionedBucketedTableAsFewRows(storageFormat,tableName);
+  try {
+    assertUpdate("INSERT INTO test_insert_partitioned_bucketed_table_few_rows VALUES ('a0', 'b0', 'c')",1);
+    fail("expected failure");
+  }
+ catch (  Exception e) {
+    assertEquals(e.getMessage(),"Can not insert into existing partitions of bucketed Hive table");
+  }
+  assertUpdate("DROP TABLE test_insert_partitioned_bucketed_table_few_rows");
+  assertFalse(queryRunner.tableExists(getSession(),tableName));
+}
