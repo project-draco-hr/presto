@@ -3,8 +3,9 @@
   NodeAssignmentStats assignmentStats=new NodeAssignmentStats(nodeTaskMap,nodeMap,existingTasks);
   for (  Split split : splits) {
     Node node=partitioning.getNode(split);
-    if (assignmentStats.getTotalSplitCount(node) < maxSplitsPerNode) {
+    if (assignmentStats.getTotalSplitCount(node) < maxSplitsPerNode || assignmentStats.getQueuedSplitCountForStage(node) < maxPendingSplitsPerNodePerStageWhenFull) {
       assignments.put(node,split);
+      assignmentStats.addAssignedSplit(node);
     }
   }
   return ImmutableMultimap.copyOf(assignments);
