@@ -1,0 +1,16 @@
+{
+  if (parentPreference.getPartitioning().isPresent()) {
+    return parentPreference.getPartitioning().get();
+  }
+  boolean nullsReplicated=parentPreference.isNullsReplicated();
+  for (int sourceIndex=0; sourceIndex < node.getSources().size(); sourceIndex++) {
+    PreferredProperties.PartitioningProperties childPartitioning=parentPreference.translate(outputToInputTranslator(node,sourceIndex)).get();
+    PreferredProperties childPreferred=PreferredProperties.builder().global(PreferredProperties.Global.distributed(childPartitioning.withNullsReplicated(nullsReplicated))).build();
+    PlanWithProperties child=node.getSources().get(sourceIndex).accept(this,context.withPreferredProperties(childPreferred));
+    if (child.getProperties().isNodePartitionedOn(childPartitioning.getPartitioningColumns(),nullsReplicated)) {
+      Function<Symbol,Optional<Symbol>> childToParent=createTranslator(createMapping(node.sourceOutputLayout(sourceIndex),node.getOutputSymbols()));
+      return child.getProperties().translate(childToParent).getNodePartitioning().get();
+    }
+  }
+  return Partitioning.create(FIXED_HASH_DISTRIBUTION,ImmutableList.copyOf(parentPreference.getPartitioningColumns()));
+}

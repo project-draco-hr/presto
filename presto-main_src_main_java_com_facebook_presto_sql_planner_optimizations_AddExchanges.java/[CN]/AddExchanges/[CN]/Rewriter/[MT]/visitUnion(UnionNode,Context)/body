@@ -2,20 +2,17 @@
   PreferredProperties parentPreference=context.getPreferredProperties();
   Optional<PreferredProperties.Global> parentGlobal=parentPreference.getGlobalProperties();
   if (parentGlobal.isPresent() && parentGlobal.get().isDistributed() && parentGlobal.get().getPartitioningProperties().isPresent()) {
-    PreferredProperties.PartitioningProperties partitioningPreference=parentGlobal.get().getPartitioningProperties().get();
-    List<Symbol> hashingColumns=partitioningPreference.getHashingOrder().orElse(ImmutableList.copyOf(partitioningPreference.getPartitioningColumns()));
+    PreferredProperties.PartitioningProperties parentPartitioningPreference=parentGlobal.get().getPartitioningProperties().get();
+    boolean nullsReplicated=parentPartitioningPreference.isNullsReplicated();
+    Partitioning desiredParentPartitioning=selectUnionPartitioning(node,context,parentPartitioningPreference);
     ImmutableList.Builder<PlanNode> partitionedSources=ImmutableList.builder();
     ImmutableListMultimap.Builder<Symbol,Symbol> outputToSourcesMapping=ImmutableListMultimap.builder();
     for (int sourceIndex=0; sourceIndex < node.getSources().size(); sourceIndex++) {
-      ImmutableList.Builder<Symbol> hashColumnsBuilder=ImmutableList.builder();
-      for (      Symbol column : hashingColumns) {
-        hashColumnsBuilder.add(node.getSymbolMapping().get(column).get(sourceIndex));
-      }
-      List<Symbol> sourceHashColumns=hashColumnsBuilder.build();
-      PreferredProperties childPreferred=PreferredProperties.builder().global(PreferredProperties.Global.distributed(PreferredProperties.PartitioningProperties.hashPartitioned(sourceHashColumns).withNullsReplicated(partitioningPreference.isNullsReplicated()))).build();
+      Partitioning childPartitioning=desiredParentPartitioning.translate(createDirectTranslator(createMapping(node.getOutputSymbols(),node.sourceOutputLayout(sourceIndex))));
+      PreferredProperties childPreferred=PreferredProperties.builder().global(PreferredProperties.Global.distributed(PreferredProperties.PartitioningProperties.partitioned(childPartitioning).withNullsReplicated(nullsReplicated))).build();
       PlanWithProperties source=node.getSources().get(sourceIndex).accept(this,context.withPreferredProperties(childPreferred));
-      if (!source.getProperties().isNodePartitionedOn(Partitioning.create(FIXED_HASH_DISTRIBUTION,sourceHashColumns),partitioningPreference.isNullsReplicated())) {
-        source=withDerivedProperties(partitionedExchange(idAllocator.getNextId(),REMOTE,source.getNode(),sourceHashColumns,Optional.empty(),partitioningPreference.isNullsReplicated()),source.getProperties());
+      if (!source.getProperties().isNodePartitionedOn(childPartitioning,nullsReplicated)) {
+        source=withDerivedProperties(partitionedExchange(idAllocator.getNextId(),REMOTE,source.getNode(),new PartitioningScheme(childPartitioning,source.getNode().getOutputSymbols(),Optional.<Symbol>empty(),nullsReplicated,Optional.<int[]>empty())),source.getProperties());
       }
       partitionedSources.add(source.getNode());
       for (int column=0; column < node.getOutputSymbols().size(); column++) {
@@ -23,7 +20,7 @@
       }
     }
     UnionNode newNode=new UnionNode(node.getId(),partitionedSources.build(),outputToSourcesMapping.build(),ImmutableList.copyOf(outputToSourcesMapping.build().keySet()));
-    return new PlanWithProperties(newNode,ActualProperties.builder().global(partitionedOn(FIXED_HASH_DISTRIBUTION,hashingColumns,Optional.of(hashingColumns))).build().withReplicatedNulls(partitioningPreference.isNullsReplicated()));
+    return new PlanWithProperties(newNode,ActualProperties.builder().global(partitionedOn(desiredParentPartitioning,Optional.of(desiredParentPartitioning))).build().withReplicatedNulls(parentPartitioningPreference.isNullsReplicated()));
   }
   List<PlanNode> unpartitionedChildren=new ArrayList<>();
   List<List<Symbol>> unpartitionedOutputLayouts=new ArrayList<>();
