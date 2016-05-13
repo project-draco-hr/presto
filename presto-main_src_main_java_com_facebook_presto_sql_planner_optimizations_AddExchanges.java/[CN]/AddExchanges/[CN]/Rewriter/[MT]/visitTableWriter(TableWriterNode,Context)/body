@@ -2,7 +2,7 @@
   PlanWithProperties source=node.getSource().accept(this,context);
   Optional<PartitioningScheme> partitioningScheme=node.getPartitioningScheme();
   if (!partitioningScheme.isPresent() && redistributeWrites) {
-    partitioningScheme=Optional.of(new PartitioningScheme(FIXED_RANDOM_DISTRIBUTION,source.getNode().getOutputSymbols(),ImmutableList.of()));
+    partitioningScheme=Optional.of(new PartitioningScheme(Partitioning.create(FIXED_RANDOM_DISTRIBUTION,ImmutableList.of()),source.getNode().getOutputSymbols()));
   }
   if (partitioningScheme.isPresent()) {
     source=withDerivedProperties(partitionedExchange(idAllocator.getNextId(),REMOTE,source.getNode(),partitioningScheme.get()),source.getProperties());
