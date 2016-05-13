@@ -2,7 +2,7 @@
   PreferredProperties parentPreference=context.getPreferredProperties();
   Optional<PreferredProperties.Global> parentGlobal=parentPreference.getGlobalProperties();
   if (parentGlobal.isPresent() && parentGlobal.get().isDistributed() && parentGlobal.get().getPartitioningProperties().isPresent()) {
-    PreferredProperties.Partitioning partitioningPreference=parentGlobal.get().getPartitioningProperties().get();
+    PreferredProperties.PartitioningProperties partitioningPreference=parentGlobal.get().getPartitioningProperties().get();
     List<Symbol> hashingColumns=partitioningPreference.getHashingOrder().orElse(ImmutableList.copyOf(partitioningPreference.getPartitioningColumns()));
     ImmutableList.Builder<PlanNode> partitionedSources=ImmutableList.builder();
     ImmutableListMultimap.Builder<Symbol,Symbol> outputToSourcesMapping=ImmutableListMultimap.builder();
@@ -12,7 +12,7 @@
         hashColumnsBuilder.add(node.getSymbolMapping().get(column).get(sourceIndex));
       }
       List<Symbol> sourceHashColumns=hashColumnsBuilder.build();
-      PreferredProperties childPreferred=PreferredProperties.builder().global(PreferredProperties.Global.distributed(PreferredProperties.Partitioning.hashPartitioned(sourceHashColumns).withNullsReplicated(partitioningPreference.isNullsReplicated()))).build();
+      PreferredProperties childPreferred=PreferredProperties.builder().global(PreferredProperties.Global.distributed(PreferredProperties.PartitioningProperties.hashPartitioned(sourceHashColumns).withNullsReplicated(partitioningPreference.isNullsReplicated()))).build();
       PlanWithProperties source=node.getSources().get(sourceIndex).accept(this,context.withPreferredProperties(childPreferred));
       if (!source.getProperties().isNodePartitionedOn(Partitioning.create(FIXED_HASH_DISTRIBUTION,sourceHashColumns),partitioningPreference.isNullsReplicated())) {
         source=withDerivedProperties(partitionedExchange(idAllocator.getNextId(),REMOTE,source.getNode(),sourceHashColumns,Optional.empty(),partitioningPreference.isNullsReplicated()),source.getProperties());
