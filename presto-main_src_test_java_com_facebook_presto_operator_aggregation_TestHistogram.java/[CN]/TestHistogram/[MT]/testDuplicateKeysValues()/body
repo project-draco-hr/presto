@@ -1,9 +1,9 @@
 {
   MapType mapType=new MapType(VARCHAR,BIGINT);
-  InternalAggregationFunction aggregationFunction=metadata.getFunctionRegistry().getAggregateFunctionImplementation(new Signature(NAME,AGGREGATE,mapType.getTypeSignature().toString(),StandardTypes.VARCHAR));
+  InternalAggregationFunction aggregationFunction=metadata.getFunctionRegistry().getAggregateFunctionImplementation(new Signature(NAME,AGGREGATE,mapType.getTypeSignature(),parseTypeSignature(StandardTypes.VARCHAR)));
   assertAggregation(aggregationFunction,1.0,ImmutableMap.of("a",2L,"b",1L),createStringsBlock("a","b","a"));
   mapType=new MapType(TIMESTAMP_WITH_TIME_ZONE,BIGINT);
-  aggregationFunction=metadata.getFunctionRegistry().getAggregateFunctionImplementation(new Signature(NAME,AGGREGATE,mapType.getTypeSignature().toString(),StandardTypes.TIMESTAMP_WITH_TIME_ZONE));
+  aggregationFunction=metadata.getFunctionRegistry().getAggregateFunctionImplementation(new Signature(NAME,AGGREGATE,mapType.getTypeSignature(),parseTypeSignature(StandardTypes.TIMESTAMP_WITH_TIME_ZONE)));
   long timestampWithTimeZone1=packDateTimeWithZone(new DateTime(1970,1,1,0,0,0,0,DATE_TIME_ZONE).getMillis(),TIME_ZONE_KEY);
   long timestampWithTimeZone2=packDateTimeWithZone(new DateTime(2015,1,1,0,0,0,0,DATE_TIME_ZONE).getMillis(),TIME_ZONE_KEY);
   assertAggregation(aggregationFunction,1.0,ImmutableMap.of(new SqlTimestampWithTimeZone(timestampWithTimeZone1),2L,new SqlTimestampWithTimeZone(timestampWithTimeZone2),1L),createLongsBlock(timestampWithTimeZone1,timestampWithTimeZone1,timestampWithTimeZone2));

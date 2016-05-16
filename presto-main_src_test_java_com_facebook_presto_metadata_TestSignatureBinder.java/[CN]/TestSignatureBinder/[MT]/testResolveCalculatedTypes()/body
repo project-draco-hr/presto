@@ -1,5 +1,7 @@
 {
-  Signature function=functionSignature().returnType("boolean").argumentTypes("varchar(x)","varchar(y)").literalParameters("x","y").build();
+  TypeSignature leftType=parseTypeSignature("varchar(x)",ImmutableSet.of("x"));
+  TypeSignature rightType=parseTypeSignature("varchar(y)",ImmutableSet.of("y"));
+  Signature function=functionSignature().returnType(parseTypeSignature(StandardTypes.BOOLEAN)).argumentTypes(leftType,rightType).build();
   assertThat(function).boundTo("varchar(42)","varchar(44)").produces(new BoundVariables(ImmutableMap.of(),ImmutableMap.of("x",42L,"y",44L)));
   assertThat(function).boundTo("unknown","varchar(44)").withCoercion().produces(new BoundVariables(ImmutableMap.of(),ImmutableMap.of("x",0L,"y",44L)));
 }
