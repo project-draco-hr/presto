@@ -19,6 +19,14 @@
  else     if (this.columnIndexes[i] == SHARD_UUID_COLUMN) {
       constantBlocks[i]=buildSingleValueBlock(columnTypes.get(i),utf8Slice(shardUuid.toString()));
     }
+ else     if (this.columnIndexes[i] == BUCKET_NUMBER_COLUMN) {
+      if (bucketNumber.isPresent()) {
+        constantBlocks[i]=buildSingleValueBlock(columnTypes.get(i),(long)bucketNumber.getAsInt());
+      }
+ else {
+        constantBlocks[i]=buildSingleValueBlock(columnTypes.get(i),null);
+      }
+    }
   }
   this.systemMemoryContext=requireNonNull(systemMemoryContext,"systemMemoryContext is null");
 }

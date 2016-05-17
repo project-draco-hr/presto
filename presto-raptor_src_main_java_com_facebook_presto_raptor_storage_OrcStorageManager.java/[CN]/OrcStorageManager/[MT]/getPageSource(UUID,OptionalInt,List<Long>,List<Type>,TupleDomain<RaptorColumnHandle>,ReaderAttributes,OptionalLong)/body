@@ -8,17 +8,13 @@
     ImmutableList.Builder<Integer> columnIndexes=ImmutableList.builder();
     for (int i=0; i < columnIds.size(); i++) {
       long columnId=columnIds.get(i);
-      if (isShardRowIdColumn(columnId)) {
-        columnIndexes.add(OrcPageSource.ROWID_COLUMN);
-        continue;
-      }
-      if (isShardUuidColumn(columnId)) {
-        columnIndexes.add(OrcPageSource.SHARD_UUID_COLUMN);
+      if (isHiddenColumn(columnId)) {
+        columnIndexes.add(toSpecialIndex(columnId));
         continue;
       }
       Integer index=indexMap.get(columnId);
       if (index == null) {
-        columnIndexes.add(OrcPageSource.NULL_COLUMN);
+        columnIndexes.add(NULL_COLUMN);
       }
  else {
         columnIndexes.add(index);
@@ -31,7 +27,7 @@
     if (transactionId.isPresent()) {
       shardRewriter=Optional.of(createShardRewriter(transactionId.getAsLong(),bucketNumber,shardUuid));
     }
-    return new OrcPageSource(shardRewriter,recordReader,dataSource,columnIds,columnTypes,columnIndexes.build(),shardUuid,systemMemoryUsage);
+    return new OrcPageSource(shardRewriter,recordReader,dataSource,columnIds,columnTypes,columnIndexes.build(),shardUuid,bucketNumber,systemMemoryUsage);
   }
  catch (  IOException|RuntimeException e) {
     try {
