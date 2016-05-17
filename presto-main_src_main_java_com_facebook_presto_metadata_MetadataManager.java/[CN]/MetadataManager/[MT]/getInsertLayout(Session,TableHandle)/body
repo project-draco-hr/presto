@@ -1,2 +1,8 @@
 {
+  ConnectorEntry entry=getConnectorMetadata(table.getConnectorId());
+  Optional<ConnectorNewTableLayout> insertLayout=entry.getMetadataForWrite(session).getInsertLayout(session.toConnectorSession(entry.getCatalog()),table.getConnectorHandle());
+  if (!insertLayout.isPresent()) {
+    return Optional.empty();
+  }
+  return Optional.of(new NewTableLayout(entry.getConnectorId(),entry.getTransactionHandle(session),insertLayout.get()));
 }
