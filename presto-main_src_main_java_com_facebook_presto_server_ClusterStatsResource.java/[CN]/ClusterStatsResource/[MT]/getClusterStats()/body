@@ -1,0 +1,35 @@
+{
+  long runningQueries=0;
+  long blockedQueries=0;
+  long queuedQueries=0;
+  long activeNodes=nodeManager.getNodes(NodeState.ACTIVE).size();
+  long runningDrivers=0;
+  double memoryReservation=0;
+  double rowInputRate=0;
+  double byteInputRate=0;
+  double cpuTimeRate=0;
+  for (  QueryInfo query : queryManager.getAllQueryInfo()) {
+    if (query.getState() == QueryState.QUEUED) {
+      queuedQueries++;
+    }
+ else     if (query.getState() == QueryState.RUNNING) {
+      if (query.getQueryStats().isFullyBlocked()) {
+        blockedQueries++;
+      }
+ else {
+        runningQueries++;
+      }
+    }
+    if (!query.getState().isDone()) {
+      double totalExecutionTimeSeconds=query.getQueryStats().getElapsedTime().getValue(SECONDS);
+      if (totalExecutionTimeSeconds != 0) {
+        byteInputRate+=query.getQueryStats().getProcessedInputDataSize().toBytes() / totalExecutionTimeSeconds;
+        rowInputRate+=query.getQueryStats().getProcessedInputPositions() / totalExecutionTimeSeconds;
+        cpuTimeRate+=(query.getQueryStats().getTotalCpuTime().getValue(SECONDS)) / totalExecutionTimeSeconds;
+      }
+      memoryReservation+=query.getQueryStats().getTotalMemoryReservation().toBytes();
+      runningDrivers+=query.getQueryStats().getRunningDrivers();
+    }
+  }
+  return new ClusterStats(runningQueries,blockedQueries,queuedQueries,activeNodes,runningDrivers,memoryReservation,rowInputRate,byteInputRate,cpuTimeRate);
+}
