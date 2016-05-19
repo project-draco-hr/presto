@@ -1,0 +1,18 @@
+{
+  Matcher matcher=re2jPattern.matcher(source);
+  int group=checkedCast(groupIndex);
+  validateGroup(group,matcher.groupCount());
+  BlockBuilder blockBuilder=VARCHAR.createBlockBuilder(new BlockBuilderStatus(),32);
+  while (true) {
+    if (!matcher.find()) {
+      break;
+    }
+    Slice searchedGroup=matcher.group(group);
+    if (searchedGroup == null) {
+      blockBuilder.appendNull();
+      continue;
+    }
+    VARCHAR.writeSlice(blockBuilder,searchedGroup);
+  }
+  return blockBuilder.build();
+}

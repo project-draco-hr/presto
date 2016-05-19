@@ -1,0 +1,16 @@
+{
+  this.dfaStatesLimit=dfaStatesLimit;
+  this.dfaRetries=dfaRetries;
+  Options options=Options.builder().setAlgorithm(DFA_FALLBACK_TO_NFA).setMaximumNumberOfDFAStates(dfaStatesLimit).setNumberOfDFARetries(dfaRetries).setEventsListener(new RE2JEventsListener()).build();
+  String patternString=pattern.toStringUtf8();
+  re2jPattern=Pattern.compile(patternString,options);
+  java.util.regex.Matcher dotStarPrefixMatcher=DOT_STAR_PREFIX_PATTERN.matcher(patternString);
+  checkState(dotStarPrefixMatcher.matches());
+  String patternStringWithoutDotStartPrefix=dotStarPrefixMatcher.group(CORE_PATTERN_INDEX);
+  if (!patternStringWithoutDotStartPrefix.equals(patternString)) {
+    re2jPatternWithoutDotStartPrefix=Pattern.compile(patternStringWithoutDotStartPrefix,options);
+  }
+ else {
+    re2jPatternWithoutDotStartPrefix=re2jPattern;
+  }
+}

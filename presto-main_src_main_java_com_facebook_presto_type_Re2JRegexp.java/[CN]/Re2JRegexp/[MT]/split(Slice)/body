@@ -1,0 +1,12 @@
+{
+  Matcher matcher=re2jPattern.matcher(source);
+  BlockBuilder blockBuilder=VARCHAR.createBlockBuilder(new BlockBuilderStatus(),32);
+  int lastEnd=0;
+  while (matcher.find()) {
+    Slice slice=source.slice(lastEnd,matcher.start() - lastEnd);
+    lastEnd=matcher.end();
+    VARCHAR.writeSlice(blockBuilder,slice);
+  }
+  VARCHAR.writeSlice(blockBuilder,source.slice(lastEnd,source.length() - lastEnd));
+  return blockBuilder.build();
+}
