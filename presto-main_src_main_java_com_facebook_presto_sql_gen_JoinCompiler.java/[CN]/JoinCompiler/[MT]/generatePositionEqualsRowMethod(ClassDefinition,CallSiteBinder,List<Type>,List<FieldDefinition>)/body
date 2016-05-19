@@ -2,13 +2,13 @@
   Parameter leftBlockIndex=arg("leftBlockIndex",int.class);
   Parameter leftBlockPosition=arg("leftBlockPosition",int.class);
   Parameter rightPosition=arg("rightPosition",int.class);
-  Parameter rightBlocks=arg("rightBlocks",Block[].class);
-  MethodDefinition positionEqualsRowMethod=classDefinition.declareMethod(a(PUBLIC),"positionEqualsRow",type(boolean.class),leftBlockIndex,leftBlockPosition,rightPosition,rightBlocks);
+  Parameter rightPage=arg("rightPage",Page.class);
+  MethodDefinition positionEqualsRowMethod=classDefinition.declareMethod(a(PUBLIC),"positionEqualsRow",type(boolean.class),leftBlockIndex,leftBlockPosition,rightPosition,rightPage);
   Variable thisVariable=positionEqualsRowMethod.getThis();
   for (int index=0; index < joinChannelTypes.size(); index++) {
     BytecodeExpression type=constantType(callSiteBinder,joinChannelTypes.get(index));
     BytecodeExpression leftBlock=thisVariable.getField(joinChannelFields.get(index)).invoke("get",Object.class,leftBlockIndex).cast(Block.class);
-    BytecodeExpression rightBlock=rightBlocks.getElement(index);
+    BytecodeExpression rightBlock=rightPage.invoke("getBlock",Block.class,constantInt(index));
     LabelNode checkNextField=new LabelNode("checkNextField");
     positionEqualsRowMethod.getBody().append(typeEquals(type,leftBlock,leftBlockPosition,rightBlock,rightPosition)).ifTrueGoto(checkNextField).push(false).retBoolean().visitLabel(checkNextField);
   }
