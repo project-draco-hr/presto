@@ -35,6 +35,21 @@
       return new DoubleLiteral(object.toString());
     }
   }
+  if (type.equals(FLOAT)) {
+    Float value=intBitsToFloat(((Long)object).intValue());
+    if (value.isNaN()) {
+      return new FunctionCall(new QualifiedName("fnan"),ImmutableList.of());
+    }
+ else     if (value.equals(Float.NEGATIVE_INFINITY)) {
+      return ArithmeticUnaryExpression.negative(new FunctionCall(new QualifiedName("finfinity"),ImmutableList.of()));
+    }
+ else     if (value.equals(Float.POSITIVE_INFINITY)) {
+      return new FunctionCall(new QualifiedName("finfinity"),ImmutableList.of());
+    }
+ else {
+      return new GenericLiteral("FLOAT",value.toString());
+    }
+  }
   if (type instanceof VarcharType) {
     if (object instanceof String) {
       object=Slices.utf8Slice((String)object);
