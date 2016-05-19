@@ -1,15 +1,7 @@
 {
-  String statementName="existing_query";
-  String query1="SELECT bar, baz from foo";
-  Session session=TEST_SESSION.withPreparedStatement(statementName,query1);
-  Query query2=simpleQuery(selectList(new AllColumns()),table(QualifiedName.of("foo")));
-  String sqlString="PREPARE existing_query FROM SELECT * FROM foo";
-  try {
-    executePrepare(statementName,query2,sqlString,session);
-    fail("expected exception");
-  }
- catch (  PrestoException e) {
-    assertEquals(e.getErrorCode(),ALREADY_EXISTS.toErrorCode());
-    assertEquals(e.getMessage(),"Prepared statement already exists: existing_query");
-  }
+  Session session=TEST_SESSION.withPreparedStatement("my_query","SELECT bar, baz from foo");
+  Query query=simpleQuery(selectList(new AllColumns()),table(QualifiedName.of("foo")));
+  String sqlString="PREPARE my_query FROM SELECT * FROM foo";
+  Map<String,String> statements=executePrepare("my_query",query,sqlString,session);
+  assertEquals(statements,ImmutableMap.of("my_query","SELECT *\nFROM\n  foo\n"));
 }
