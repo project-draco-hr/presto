@@ -2,7 +2,9 @@
   Signature boundSignature=SignatureBinder.bindVariables(getSignature(),boundVariables,arity);
   if (exactImplementations.containsKey(boundSignature)) {
     Implementation implementation=exactImplementations.get(boundSignature);
-    return new ScalarFunctionImplementation(implementation.isNullable(),implementation.getNullableArguments(),implementation.getMethodHandle(),isDeterministic());
+    MethodHandleAndConstructor methodHandleAndConstructor=implementation.specialize(boundSignature,boundVariables,typeManager,functionRegistry);
+    checkCondition(methodHandleAndConstructor != null,FUNCTION_IMPLEMENTATION_ERROR,String.format("Exact implementation of %s do not match expected java types.",boundSignature.getName()));
+    return new ScalarFunctionImplementation(implementation.isNullable(),implementation.getNullableArguments(),methodHandleAndConstructor.getMethodHandle(),methodHandleAndConstructor.getConstructor(),isDeterministic());
   }
   ScalarFunctionImplementation selectedImplementation=null;
   for (  Implementation implementation : specializedImplementations) {

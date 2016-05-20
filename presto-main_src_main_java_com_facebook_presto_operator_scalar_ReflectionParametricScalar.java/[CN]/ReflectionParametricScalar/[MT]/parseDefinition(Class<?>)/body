@@ -1,2 +1,12 @@
 {
+  ScalarFunction scalarAnnotation=clazz.getAnnotation(ScalarFunction.class);
+  ScalarOperator operatorAnnotation=clazz.getAnnotation(ScalarOperator.class);
+  Description descriptionAnnotation=clazz.getAnnotation(Description.class);
+  if (scalarAnnotation != null) {
+    return ImmutableList.of(createReflectionParametricScalar(scalarAnnotation.value(),scalarAnnotation.hidden(),scalarAnnotation.deterministic(),descriptionAnnotation,findPublicMethodsWithAnnotation(clazz,SqlType.class),clazz.getSimpleName(),findConstructors(clazz)));
+  }
+ else   if (operatorAnnotation != null) {
+    return ImmutableList.of(createReflectionParametricScalar(mangleOperatorName(operatorAnnotation.value()),true,true,descriptionAnnotation,findPublicMethodsWithAnnotation(clazz,SqlType.class),clazz.getSimpleName(),findConstructors(clazz)));
+  }
+  throw new PrestoException(FUNCTION_NOT_FOUND,format("The class %s does not define neither @ScalarFunction nor @ScalarOperator.",clazz.getSimpleName()));
 }
