@@ -9,16 +9,23 @@
   }
   Map<String,String> properties=builder.build();
   try (DistributedQueryRunner queryRunner=createQueryRunner(properties)){
+    QueryManager queryManager=queryRunner.getCoordinator().getQueryManager();
     QueryId firstDashboardQuery=createQuery(queryRunner,newDashboardSession(),LONG_LASTING_QUERY);
     waitForQueryState(queryRunner,firstDashboardQuery,RUNNING);
+    assertEquals(queryManager.getStats().getRunningQueries(),1);
     QueryId secondDashboardQuery=createQuery(queryRunner,newDashboardSession(),LONG_LASTING_QUERY);
     waitForQueryState(queryRunner,secondDashboardQuery,QUEUED);
+    assertEquals(queryManager.getStats().getRunningQueries(),1);
     QueryId firstNonDashboardQuery=createQuery(queryRunner,newSession(),LONG_LASTING_QUERY);
     waitForQueryState(queryRunner,firstNonDashboardQuery,RUNNING);
+    assertEquals(queryManager.getStats().getRunningQueries(),2);
     QueryId secondNonDashboardQuery=createQuery(queryRunner,newSession(),LONG_LASTING_QUERY);
     waitForQueryState(queryRunner,secondNonDashboardQuery,RUNNING);
+    assertEquals(queryManager.getStats().getRunningQueries(),3);
     cancelQuery(queryRunner,firstDashboardQuery);
     waitForQueryState(queryRunner,firstDashboardQuery,FAILED);
     waitForQueryState(queryRunner,secondDashboardQuery,RUNNING);
+    assertEquals(queryManager.getStats().getRunningQueries(),3);
+    assertEquals(queryManager.getStats().getCompletedQueries().getTotalCount(),1);
   }
  }
