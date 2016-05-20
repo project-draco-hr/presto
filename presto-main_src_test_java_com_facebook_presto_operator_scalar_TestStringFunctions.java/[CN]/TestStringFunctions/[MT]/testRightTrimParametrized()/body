@@ -1,0 +1,21 @@
+{
+  assertFunction("RTRIM('', '')",createVarcharType(0),"");
+  assertFunction("RTRIM('   ', '')",createVarcharType(3),"   ");
+  assertFunction("RTRIM('  hello  ', '')",createVarcharType(9),"  hello  ");
+  assertFunction("RTRIM('  hello  ', ' ')",createVarcharType(9),"  hello");
+  assertFunction("RTRIM('  hello  ', 'lo ')",createVarcharType(9),"  he");
+  assertFunction("RTRIM('hello  ', ' ')",createVarcharType(7),"hello");
+  assertFunction("RTRIM('hello  ', 'l o')",createVarcharType(7),"he");
+  assertFunction("RTRIM('hello  ', 'l')",createVarcharType(7),"hello  ");
+  assertFunction("RTRIM(' hello world ', ' ')",createVarcharType(13)," hello world");
+  assertFunction("RTRIM(' hello world ', ' ld')",createVarcharType(13)," hello wor");
+  assertFunction("RTRIM(' hello world ', ' ehlowrd')",createVarcharType(13),"");
+  assertFunction("RTRIM(' hello world ', ' x')",createVarcharType(13)," hello world");
+  assertFunction("RTRIM('\u017a\u00f3\u0142\u0107', '\u0107\u0142')",createVarcharType(4),"\u017a\u00f3");
+  assertFunction("CAST(RTRIM(utf8(from_hex('81')), ' ') AS VARBINARY)",VARBINARY,varbinary(0x81));
+  assertFunction("CAST(RTRIM(CONCAT(utf8(from_hex('81')), ' '), ' ') AS VARBINARY)",VARBINARY,varbinary(0x81));
+  assertFunction("CAST(RTRIM(CONCAT(' ', utf8(from_hex('81'))), ' ') AS VARBINARY)",VARBINARY,varbinary(' ',0x81));
+  assertFunction("CAST(RTRIM(CONCAT(' ', utf8(from_hex('81')), ' '), ' ') AS VARBINARY)",VARBINARY,varbinary(' ',0x81));
+  assertInvalidFunction("RTRIM('hello world', utf8(from_hex('81')))","Invalid UTF-8 encoding in characters to trim: ???");
+  assertInvalidFunction("RTRIM('hello world', utf8(from_hex('3281')))","Invalid UTF-8 encoding in characters to trim: 2???");
+}
