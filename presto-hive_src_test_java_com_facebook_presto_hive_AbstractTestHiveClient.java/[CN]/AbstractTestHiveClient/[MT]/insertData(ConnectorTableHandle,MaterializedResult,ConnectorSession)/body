@@ -6,4 +6,10 @@
   sink.appendPage(data.toPage(),null);
   Collection<Slice> fragments=sink.finish();
   metadata.finishInsert(session,insertTableHandle,fragments);
+  Path writePath=getStagingPathRoot(insertTableHandle);
+  Path targetPath=getTargetPathRoot(insertTableHandle);
+  if (!writePath.equals(targetPath)) {
+    FileSystem fileSystem=hdfsEnvironment.getFileSystem("user",writePath);
+    assertFalse(fileSystem.exists(writePath));
+  }
 }
