@@ -1,0 +1,10 @@
+{
+  long versionNumber=nextTaskInfoVersion.getAndIncrement();
+  TaskState state=taskStateMachine.getState();
+  List<ExecutionFailureInfo> failures=ImmutableList.of();
+  if (state == TaskState.FAILED) {
+    failures=toFailures(taskStateMachine.getFailureCauses());
+  }
+  TaskStats taskStats=getTaskStats(taskHolder);
+  return new TaskStatus(taskStateMachine.getTaskId(),taskInstanceId,versionNumber,state,location,failures,taskStats.getQueuedPartitionedDrivers(),taskStats.getRunningPartitionedDrivers(),taskStats.getMemoryReservation());
+}
