@@ -1,0 +1,15 @@
+{
+  Request request=prepareGet().addHeader(PRESTO_ENVIRONMENT,environment).setUri(shardUri(uuid)).build();
+  try {
+    StatusResponse status=httpClient.execute(request,new FileResponseHandler(target));
+    if (isNotFound(status) || isGone(status)) {
+      throw new PrestoException(RAPTOR_BACKUP_ERROR,"Backup shard not found: " + uuid);
+    }
+    if (!isOk(status)) {
+      throw badResponse(status);
+    }
+  }
+ catch (  IOException|RuntimeException e) {
+    throw new PrestoException(RAPTOR_BACKUP_ERROR,"Failed to restore shard: " + uuid,e);
+  }
+}

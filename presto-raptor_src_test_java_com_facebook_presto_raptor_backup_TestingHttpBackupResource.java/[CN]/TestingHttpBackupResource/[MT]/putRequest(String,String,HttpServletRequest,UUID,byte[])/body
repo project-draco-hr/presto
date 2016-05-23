@@ -1,0 +1,17 @@
+{
+  checkEnvironment(environment);
+  if ((request.getContentLength() < 0) || (bytes.length != request.getContentLength())) {
+    return Response.status(BAD_REQUEST).build();
+  }
+  if (parseUnsignedLong(hexHash,16) != XxHash64.hash(Slices.wrappedBuffer(bytes))) {
+    return Response.status(BAD_REQUEST).build();
+  }
+  if (shards.containsKey(uuid)) {
+    byte[] existing=shards.get(uuid);
+    if ((existing == null) || !Arrays.equals(bytes,existing)) {
+      return Response.status(FORBIDDEN).build();
+    }
+  }
+  shards.put(uuid,bytes);
+  return Response.noContent().build();
+}
