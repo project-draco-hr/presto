@@ -32,7 +32,7 @@
   sink.appendPage(CREATE_TABLE_DATA.toPage(),null);
   sink.finish();
   assertEquals(listAllDataFiles(tableName.getSchemaName(),tableName.getTableName()),existingFiles);
-  Set<String> tempFiles=listAllDataFiles(insertTableHandle);
+  Set<String> tempFiles=listAllDataFiles(getStagingPathRoot(insertTableHandle));
   assertTrue(!tempFiles.isEmpty());
   for (  String filePath : tempFiles) {
     assertTrue(new Path(filePath).getName().startsWith(getFilePrefix(insertTableHandle)));
@@ -41,5 +41,5 @@
   MaterializedResult result=readTable(tableHandle,columnHandles,session,TupleDomain.<ColumnHandle>all(),OptionalInt.empty(),Optional.empty());
   assertEqualsIgnoreOrder(result.getMaterializedRows(),resultBuilder.build().getMaterializedRows());
   assertEquals(listAllDataFiles(tableName.getSchemaName(),tableName.getTableName()),existingFiles);
-  assertTrue(listAllDataFiles(insertTableHandle).isEmpty());
+  assertTrue(listAllDataFiles(getStagingPathRoot(insertTableHandle)).isEmpty());
 }
