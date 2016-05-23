@@ -1,0 +1,15 @@
+{
+  ImmutableList.Builder<Expression> rows=ImmutableList.builder();
+  List<SessionPropertyValue> sessionProperties=metadata.getSessionPropertyManager().getAllSessionProperties(session);
+  for (  SessionPropertyValue sessionProperty : sessionProperties) {
+    if (sessionProperty.isHidden()) {
+      continue;
+    }
+    String value=sessionProperty.getValue();
+    String defaultValue=sessionProperty.getDefaultValue();
+    rows.add(row(new StringLiteral(sessionProperty.getFullyQualifiedName()),new StringLiteral(nullToEmpty(value)),new StringLiteral(nullToEmpty(defaultValue)),new StringLiteral(sessionProperty.getType()),new StringLiteral(sessionProperty.getDescription()),TRUE_LITERAL));
+  }
+  StringLiteral empty=new StringLiteral("");
+  rows.add(row(empty,empty,empty,empty,empty,FALSE_LITERAL));
+  return simpleQuery(selectList(aliasedName("name","Name"),aliasedName("value","Value"),aliasedName("default","Default"),aliasedName("type","Type"),aliasedName("description","Description")),aliased(new Values(rows.build()),"session",ImmutableList.of("name","value","default","type","description","include")),nameReference("include"));
+}
