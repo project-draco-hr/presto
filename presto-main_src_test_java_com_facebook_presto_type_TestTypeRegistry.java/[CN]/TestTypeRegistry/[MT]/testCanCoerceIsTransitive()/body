@@ -1,11 +1,13 @@
 {
   Set<Type> types=getStandardPrimitiveTypes();
-  for (  Type sourceType : types) {
+  for (  Type transitiveType : types) {
     for (    Type resultType : types) {
-      if (typeRegistry.canCoerce(sourceType,resultType)) {
-        for (        Type transitiveType : types) {
-          if (typeRegistry.canCoerce(transitiveType,sourceType) && !typeRegistry.canCoerce(transitiveType,resultType)) {
-            fail(format("'%s' -> '%s' coercion is missing when transitive coercion is possible: '%s' -> '%s' -> '%s'",transitiveType,resultType,transitiveType,sourceType,resultType));
+      if (typeRegistry.canCoerce(transitiveType,resultType)) {
+        for (        Type sourceType : types) {
+          if (typeRegistry.canCoerce(sourceType,transitiveType)) {
+            if (!typeRegistry.canCoerce(sourceType,resultType)) {
+              fail(format("'%s' -> '%s' coercion is missing when transitive coercion is possible: '%s' -> '%s' -> '%s'",sourceType,resultType,sourceType,transitiveType,resultType));
+            }
           }
         }
       }
