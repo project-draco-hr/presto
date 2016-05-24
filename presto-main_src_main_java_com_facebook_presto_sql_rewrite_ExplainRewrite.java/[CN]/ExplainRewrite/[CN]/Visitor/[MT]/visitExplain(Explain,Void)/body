@@ -1,0 +1,23 @@
+{
+  if (node.isAnalyze()) {
+    Statement statement=(Statement)process(node.getStatement(),context);
+    return new Explain(statement,node.isAnalyze(),node.getOptions());
+  }
+  ExplainType.Type planType=LOGICAL;
+  ExplainFormat.Type planFormat=TEXT;
+  List<ExplainOption> options=node.getOptions();
+  for (  ExplainOption option : options) {
+    if (option instanceof ExplainType) {
+      planType=((ExplainType)option).getType();
+      break;
+    }
+  }
+  for (  ExplainOption option : options) {
+    if (option instanceof ExplainFormat) {
+      planFormat=((ExplainFormat)option).getType();
+      break;
+    }
+  }
+  String plan=getQueryPlan(node,planType,planFormat);
+  return singleValueQuery("Query Plan",plan);
+}
