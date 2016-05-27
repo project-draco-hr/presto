@@ -1,0 +1,16 @@
+{
+  for (int width=1; width <= WIDTHS; width++) {
+    for (int offset=0; offset < OFFSETS; offset++) {
+      long[] expected=new long[length + offset];
+      long[] actual=new long[length + offset];
+      RandomByteInputStream expectedInput=new RandomByteInputStream();
+      unpackGeneric(expected,offset,length,width,expectedInput);
+      RandomByteInputStream actualInput=new RandomByteInputStream();
+      packer.unpack(actual,offset,length,width,actualInput);
+      for (int i=offset; i < length + offset; i++) {
+        assertEquals(actual[i],expected[i],format("index = %s, length = %s, width = %s, offset = %s",i,length,width,offset));
+      }
+      assertEquals(actualInput.getReadBytes(),expectedInput.getReadBytes(),format("Wrong number of bytes read for length = %s, width = %s, offset = %s",length,width,offset));
+    }
+  }
+}
