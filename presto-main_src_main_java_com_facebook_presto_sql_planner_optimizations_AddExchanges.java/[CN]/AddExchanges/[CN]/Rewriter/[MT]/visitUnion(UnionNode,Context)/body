@@ -12,7 +12,7 @@
       PreferredProperties childPreferred=PreferredProperties.builder().global(PreferredProperties.Global.distributed(PreferredProperties.PartitioningProperties.partitioned(childPartitioning).withNullsReplicated(nullsReplicated))).build();
       PlanWithProperties source=node.getSources().get(sourceIndex).accept(this,context.withPreferredProperties(childPreferred));
       if (!source.getProperties().isNodePartitionedOn(childPartitioning,nullsReplicated)) {
-        source=withDerivedProperties(partitionedExchange(idAllocator.getNextId(),REMOTE,source.getNode(),new PartitioningScheme(childPartitioning,source.getNode().getOutputSymbols(),Optional.<Symbol>empty(),nullsReplicated,Optional.<int[]>empty())),source.getProperties());
+        source=withDerivedProperties(partitionedExchange(idAllocator.getNextId(),REMOTE,source.getNode(),new PartitioningScheme(childPartitioning,source.getNode().getOutputSymbols(),Optional.empty(),nullsReplicated,Optional.empty())),source.getProperties());
       }
       partitionedSources.add(source.getNode());
       for (int column=0; column < node.getOutputSymbols().size(); column++) {
