@@ -1,0 +1,20 @@
+{
+  checkArgument(!isPrefilledColumn[column],"Column is a partition key");
+  loaded[column]=true;
+  if (hiveColumnIndexes[column] >= value.size()) {
+    nulls[column]=true;
+  }
+ else {
+    BytesRefWritable fieldData=value.unCheckedGet(hiveColumnIndexes[column]);
+    byte[] bytes;
+    try {
+      bytes=fieldData.getData();
+    }
+ catch (    IOException e) {
+      throw Throwables.propagate(e);
+    }
+    int start=fieldData.getStart();
+    int length=fieldData.getLength();
+    parseCharColumn(column,bytes,start,length);
+  }
+}

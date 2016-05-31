@@ -18,12 +18,18 @@
  else     if (fieldValue instanceof HiveVarchar) {
       value=Slices.utf8Slice(((HiveVarchar)fieldValue).getValue());
     }
+ else     if (fieldValue instanceof HiveChar) {
+      value=Slices.utf8Slice(((HiveChar)fieldValue).getValue());
+    }
  else {
       throw new IllegalStateException("unsupported string field type: " + fieldValue.getClass().getName());
     }
     Type type=types[column];
     if (isVarcharType(type)) {
       value=truncateToLength(value,type);
+    }
+    if (isCharType(type)) {
+      value=trimSpacesAndTruncateToLength(value,type);
     }
     slices[column]=value;
     nulls[column]=false;

@@ -32,6 +32,11 @@ return;
 case VARCHAR:
 type.writeSlice(builder,Slices.utf8Slice(((HiveVarcharObjectInspector)inspector).getPrimitiveJavaObject(object).getValue()));
 return;
+case CHAR:
+CharType charType=checkType(type,CharType.class,"type");
+HiveChar hiveChar=((HiveCharObjectInspector)inspector).getPrimitiveJavaObject(object);
+type.writeSlice(builder,trimSpacesAndTruncateToLength(Slices.utf8Slice(hiveChar.getValue()),charType.getLength()));
+return;
 case DATE:
 DateType.DATE.writeLong(builder,formatDateAsLong(object,(DateObjectInspector)inspector));
 return;

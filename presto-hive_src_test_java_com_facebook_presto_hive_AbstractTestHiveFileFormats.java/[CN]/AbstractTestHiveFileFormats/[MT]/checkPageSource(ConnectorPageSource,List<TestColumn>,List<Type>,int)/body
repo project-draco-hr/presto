@@ -28,6 +28,9 @@
           SqlTimestamp expectedTimestamp=new SqlTimestamp((Long)expectedValue,SESSION.getTimeZoneKey());
           assertEquals(actualValue,expectedTimestamp,"Wrong value for column " + testColumn.getName());
         }
+ else         if (testColumn.getObjectInspector().getTypeName().startsWith("char")) {
+          assertEquals(actualValue,padEnd((String)expectedValue,((CharType)type).getLength(),' '),"Wrong value for column " + testColumn.getName());
+        }
  else         if (testColumn.getObjectInspector().getCategory() == Category.PRIMITIVE) {
           if (expectedValue instanceof Slice) {
             expectedValue=((Slice)expectedValue).toStringUtf8();
