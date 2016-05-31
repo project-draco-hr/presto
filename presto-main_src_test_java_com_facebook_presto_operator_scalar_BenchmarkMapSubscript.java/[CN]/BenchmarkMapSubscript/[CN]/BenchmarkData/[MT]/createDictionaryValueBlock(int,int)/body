@@ -1,0 +1,15 @@
+{
+  double distinctRatio=0.82;
+  int dictionarySize=(int)(positionCount * mapSize * distinctRatio);
+  List<String> dictionaryStrings=new ArrayList<>(dictionarySize);
+  for (int i=0; i < dictionarySize; i++) {
+    int wordLength=ThreadLocalRandom.current().nextInt(5,10);
+    dictionaryStrings.add(randomString(wordLength));
+  }
+  Block dictionaryBlock=createSliceArrayBlock(dictionaryStrings);
+  int[] keyIds=new int[positionCount * mapSize];
+  for (int i=0; i < keyIds.length; i++) {
+    keyIds[i]=ThreadLocalRandom.current().nextInt(0,dictionarySize);
+  }
+  return new DictionaryBlock(positionCount * mapSize,dictionaryBlock,Slices.wrappedIntArray(keyIds));
+}
