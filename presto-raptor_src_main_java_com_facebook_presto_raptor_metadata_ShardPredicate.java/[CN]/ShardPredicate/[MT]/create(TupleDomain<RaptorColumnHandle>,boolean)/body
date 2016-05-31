@@ -39,8 +39,20 @@
         maxValue=range.getHigh().getValue();
       }
     }
-    String min=minColumn(handle.getColumnId());
-    String max=maxColumn(handle.getColumnId());
+    String min;
+    String max;
+    if (handle.isBucketNumber()) {
+      if (!bucketed) {
+        predicate.add("false");
+        continue;
+      }
+      min="bucket_number";
+      max="bucket_number";
+    }
+ else {
+      min=minColumn(handle.getColumnId());
+      max=maxColumn(handle.getColumnId());
+    }
     if (minValue != null) {
       predicate.add(format("(%s >= ? OR %s IS NULL)",max,max));
       types.add(jdbcType);

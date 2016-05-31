@@ -2,7 +2,7 @@
   Slice uuid0=utf8Slice(randomUUID().toString());
   Slice uuid1=utf8Slice(randomUUID().toString());
   TupleDomain<RaptorColumnHandle> tupleDomain=withColumnDomains(ImmutableMap.of(shardUuidColumnHandle("test"),create(SortedRangeSet.copyOf(VARCHAR,ImmutableList.of(equal(VARCHAR,uuid0),equal(VARCHAR,uuid1))),false)));
-  ShardPredicate shardPredicate=ShardPredicate.create(tupleDomain);
+  ShardPredicate shardPredicate=ShardPredicate.create(tupleDomain,bucketed);
   assertEquals(shardPredicate.getPredicate(),"shard_uuid = ? OR shard_uuid = ?");
   assertEquals(shardPredicate.getTypes(),ImmutableList.of(VARBINARY,VARBINARY));
   assertEquals(ImmutableSet.copyOf(shardPredicate.getValues()),ImmutableSet.of(uuidStringToBytes(uuid0),uuidStringToBytes(uuid1)));
