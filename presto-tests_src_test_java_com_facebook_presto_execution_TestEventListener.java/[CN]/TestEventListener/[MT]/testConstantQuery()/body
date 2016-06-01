@@ -1,0 +1,11 @@
+{
+  EventsBuilder events=generateEvents("SELECT 1");
+  assertEquals(events.getQueryCreatedEvents().size(),1);
+  QueryCreatedEvent queryCreatedEvent=getOnlyElement(events.getQueryCreatedEvents());
+  assertEquals(queryCreatedEvent.getContext().getEnvironment(),"testing");
+  assertEquals(queryCreatedEvent.getMetadata().getQuery(),"SELECT 1");
+  assertEquals(events.getQueryCompletedEvents().size(),1);
+  QueryCompletedEvent queryCompletedEvent=getOnlyElement(events.getQueryCompletedEvents());
+  assertEquals(queryCompletedEvent.getStatistics().getTotalRows(),0L);
+  assertTrue(events.getSplitCompletedEvents().size() >= queryCompletedEvent.getStatistics().getCompletedSplits());
+}
