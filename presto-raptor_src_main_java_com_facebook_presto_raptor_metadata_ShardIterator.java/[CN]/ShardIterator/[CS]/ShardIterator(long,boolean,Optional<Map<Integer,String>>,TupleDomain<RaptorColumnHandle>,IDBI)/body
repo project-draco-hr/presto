@@ -1,10 +1,10 @@
 {
-  this.bucketed=bucketed;
   this.merged=merged;
-  ShardPredicate predicate=ShardPredicate.create(effectivePredicate,bucketed);
+  this.bucketToNode=bucketToNode.orElse(null);
+  ShardPredicate predicate=ShardPredicate.create(effectivePredicate,bucketToNode.isPresent());
   String sql;
-  if (bucketed) {
-    sql="SELECT shard_uuid, node_ids, bucket_number FROM %s WHERE %s ORDER BY bucket_number";
+  if (bucketToNode.isPresent()) {
+    sql="SELECT shard_uuid, bucket_number FROM %s WHERE %s ORDER BY bucket_number";
   }
  else {
     sql="SELECT shard_uuid, node_ids FROM %s WHERE %s";

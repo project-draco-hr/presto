@@ -3,8 +3,17 @@
     return endOfData();
   }
   UUID shardUuid=uuidFromBytes(resultSet.getBytes("shard_uuid"));
-  List<Integer> nodeIds=intArrayFromBytes(resultSet.getBytes("node_ids"));
-  OptionalInt bucketNumber=bucketed ? OptionalInt.of(resultSet.getInt("bucket_number")) : OptionalInt.empty();
-  ShardNodes shard=new ShardNodes(shardUuid,getNodeIdentifiers(nodeIds,shardUuid));
+  Set<String> nodeIdentifiers;
+  OptionalInt bucketNumber=OptionalInt.empty();
+  if (bucketToNode != null) {
+    int bucket=resultSet.getInt("bucket_number");
+    bucketNumber=OptionalInt.of(bucket);
+    nodeIdentifiers=ImmutableSet.of(getBucketNode(bucket));
+  }
+ else {
+    List<Integer> nodeIds=intArrayFromBytes(resultSet.getBytes("node_ids"));
+    nodeIdentifiers=getNodeIdentifiers(nodeIds,shardUuid);
+  }
+  ShardNodes shard=new ShardNodes(shardUuid,nodeIdentifiers);
   return new BucketShards(bucketNumber,ImmutableSet.of(shard));
 }

@@ -1,0 +1,14 @@
+{
+  this.tableId=tableId;
+  this.effectivePredicate=requireNonNull(effectivePredicate,"effectivePredicate is null");
+  this.transactionId=requireNonNull(transactionId,"transactionId is null");
+  this.bucketToNode=requireNonNull(bucketToNode,"bucketToNode is null");
+  ResultIterator<BucketShards> iterator;
+  if (bucketToNode.isPresent()) {
+    iterator=shardManager.getShardNodesBucketed(tableId,merged,bucketToNode.get(),effectivePredicate);
+  }
+ else {
+    iterator=shardManager.getShardNodes(tableId,effectivePredicate);
+  }
+  this.iterator=new SynchronizedResultIterator<>(iterator);
+}

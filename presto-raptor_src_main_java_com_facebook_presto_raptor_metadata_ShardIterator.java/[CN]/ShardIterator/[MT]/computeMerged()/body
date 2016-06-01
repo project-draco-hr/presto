@@ -12,8 +12,8 @@
   ImmutableSet.Builder<ShardNodes> shards=ImmutableSet.builder();
   do {
     UUID shardUuid=uuidFromBytes(resultSet.getBytes("shard_uuid"));
-    List<Integer> nodeIds=intArrayFromBytes(resultSet.getBytes("node_ids"));
-    Set<String> nodeIdentifiers=getNodeIdentifiers(nodeIds,shardUuid);
+    int bucket=resultSet.getInt("bucket_number");
+    Set<String> nodeIdentifiers=ImmutableSet.of(getBucketNode(bucket));
     shards.add(new ShardNodes(shardUuid,nodeIdentifiers));
   }
  while (resultSet.next() && resultSet.getInt("bucket_number") == bucketNumber);

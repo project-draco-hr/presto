@@ -1,13 +1,13 @@
 {
   statement.setLong(1,shardId);
   statement.setBytes(2,uuidToBytes(shardUuid));
-  statement.setBytes(3,intArrayToBytes(nodeIds));
   if (bucketed) {
     checkArgument(bucketNumber.isPresent(),"shard bucket missing for bucketed table");
-    statement.setInt(4,bucketNumber.getAsInt());
+    statement.setInt(3,bucketNumber.getAsInt());
   }
  else {
     checkArgument(!bucketNumber.isPresent(),"shard bucket present for non-bucketed table");
+    statement.setBytes(3,intArrayToBytes(nodeIds));
   }
   for (  ColumnInfo column : columns) {
     int index=indexes.get(column.getColumnId());
