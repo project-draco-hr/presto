@@ -1,15 +1,15 @@
 {
   if (target instanceof TableWriterNode.CreateName) {
     TableWriterNode.CreateName create=(TableWriterNode.CreateName)target;
-    return new TableWriterNode.CreateHandle(metadata.beginCreateTable(session,create.getCatalog(),create.getTableMetadata(),create.getLayout()));
+    return new TableWriterNode.CreateHandle(metadata.beginCreateTable(session,create.getCatalog(),create.getTableMetadata(),create.getLayout()),create.getTableMetadata().getTable());
   }
   if (target instanceof TableWriterNode.InsertReference) {
     TableWriterNode.InsertReference insert=(TableWriterNode.InsertReference)target;
-    return new TableWriterNode.InsertHandle(metadata.beginInsert(session,insert.getHandle()));
+    return new TableWriterNode.InsertHandle(metadata.beginInsert(session,insert.getHandle()),metadata.getTableMetadata(session,insert.getHandle()).getTable());
   }
   if (target instanceof TableWriterNode.DeleteHandle) {
     TableWriterNode.DeleteHandle delete=(TableWriterNode.DeleteHandle)target;
-    return new TableWriterNode.DeleteHandle(metadata.beginDelete(session,delete.getHandle()));
+    return new TableWriterNode.DeleteHandle(metadata.beginDelete(session,delete.getHandle()),delete.getSchemaTableName());
   }
   throw new IllegalArgumentException("Unhandled target type: " + target.getClass().getSimpleName());
 }
