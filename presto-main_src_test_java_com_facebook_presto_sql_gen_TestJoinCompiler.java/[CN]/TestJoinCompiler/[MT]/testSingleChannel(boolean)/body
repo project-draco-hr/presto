@@ -20,13 +20,15 @@
     PageBuilder pageBuilder=new PageBuilder(ImmutableList.of(VARCHAR));
     for (int leftBlockPosition=0; leftBlockPosition < leftBlock.getPositionCount(); leftBlockPosition++) {
       assertEquals(hashStrategy.hashPosition(leftBlockIndex,leftBlockPosition),hashPosition(VARCHAR,leftBlock,leftBlockPosition));
-      assertTrue(hashStrategy.positionEqualsPosition(leftBlockIndex,leftBlockPosition,leftBlockIndex,leftBlockPosition));
+      assertTrue(hashStrategy.positionEqualsPositionIgnoreNulls(leftBlockIndex,leftBlockPosition,leftBlockIndex,leftBlockPosition));
       for (int rightBlockIndex=0; rightBlockIndex < channel.size(); rightBlockIndex++) {
         Block rightBlock=channel.get(rightBlockIndex);
         for (int rightBlockPosition=0; rightBlockPosition < rightBlock.getPositionCount(); rightBlockPosition++) {
           boolean expected=positionEqualsPosition(VARCHAR,leftBlock,leftBlockPosition,rightBlock,rightBlockPosition);
           assertEquals(hashStrategy.positionEqualsRow(leftBlockIndex,leftBlockPosition,rightBlockPosition,new Page(rightBlock)),expected);
           assertEquals(hashStrategy.rowEqualsRow(leftBlockPosition,new Page(leftBlock),rightBlockPosition,new Page(rightBlock)),expected);
+          assertEquals(hashStrategy.positionEqualsRowIgnoreNulls(leftBlockIndex,leftBlockPosition,rightBlockPosition,new Page(rightBlock)),expected);
+          assertEquals(hashStrategy.positionEqualsPositionIgnoreNulls(leftBlockIndex,leftBlockPosition,rightBlockIndex,rightBlockPosition),expected);
           assertEquals(hashStrategy.positionEqualsPosition(leftBlockIndex,leftBlockPosition,rightBlockIndex,rightBlockPosition),expected);
         }
       }
@@ -36,6 +38,8 @@
           boolean expected=positionEqualsPosition(VARCHAR,leftBlock,leftBlockPosition,rightBlock,rightBlockPosition);
           assertEquals(hashStrategy.positionEqualsRow(leftBlockIndex,leftBlockPosition,rightBlockPosition,new Page(rightBlock)),expected);
           assertEquals(hashStrategy.rowEqualsRow(leftBlockPosition,new Page(leftBlock),rightBlockPosition,new Page(rightBlock)),expected);
+          assertEquals(hashStrategy.positionEqualsRowIgnoreNulls(leftBlockIndex,leftBlockPosition,rightBlockPosition,new Page(rightBlock)),expected);
+          assertEquals(hashStrategy.positionEqualsPositionIgnoreNulls(leftBlockIndex,leftBlockPosition,rightBlockIndex,rightBlockPosition),expected);
           assertEquals(hashStrategy.positionEqualsPosition(leftBlockIndex,leftBlockPosition,rightBlockIndex,rightBlockPosition),expected);
         }
       }

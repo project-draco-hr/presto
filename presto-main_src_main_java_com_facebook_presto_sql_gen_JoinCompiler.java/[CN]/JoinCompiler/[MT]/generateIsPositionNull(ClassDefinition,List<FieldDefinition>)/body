@@ -1,0 +1,13 @@
+{
+  Parameter blockIndex=arg("blockIndex",int.class);
+  Parameter blockPosition=arg("blockPosition",int.class);
+  MethodDefinition isPositionNullMethod=classDefinition.declareMethod(a(PUBLIC),"isPositionNull",type(boolean.class),blockIndex,blockPosition);
+  for (  FieldDefinition joinChannelField : joinChannelFields) {
+    BytecodeExpression block=isPositionNullMethod.getThis().getField(joinChannelField).invoke("get",Object.class,blockIndex).cast(Block.class);
+    IfStatement ifStatement=new IfStatement();
+    ifStatement.condition(block.invoke("isNull",boolean.class,blockPosition));
+    ifStatement.ifTrue(constantTrue().ret());
+    isPositionNullMethod.getBody().append(ifStatement);
+  }
+  isPositionNullMethod.getBody().append(constantFalse().ret());
+}

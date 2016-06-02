@@ -3,14 +3,21 @@
   Parameter leftBlockPosition=arg("leftBlockPosition",int.class);
   Parameter rightPosition=arg("rightPosition",int.class);
   Parameter rightPage=arg("rightPage",Page.class);
-  MethodDefinition positionEqualsRowMethod=classDefinition.declareMethod(a(PUBLIC),"positionEqualsRow",type(boolean.class),leftBlockIndex,leftBlockPosition,rightPosition,rightPage);
+  MethodDefinition positionEqualsRowMethod=classDefinition.declareMethod(a(PUBLIC),ignoreNulls ? "positionEqualsRowIgnoreNulls" : "positionEqualsRow",type(boolean.class),leftBlockIndex,leftBlockPosition,rightPosition,rightPage);
   Variable thisVariable=positionEqualsRowMethod.getThis();
   for (int index=0; index < joinChannelTypes.size(); index++) {
     BytecodeExpression type=constantType(callSiteBinder,joinChannelTypes.get(index));
     BytecodeExpression leftBlock=thisVariable.getField(joinChannelFields.get(index)).invoke("get",Object.class,leftBlockIndex).cast(Block.class);
     BytecodeExpression rightBlock=rightPage.invoke("getBlock",Block.class,constantInt(index));
+    BytecodeNode equalityCondition;
+    if (ignoreNulls) {
+      equalityCondition=typeEqualsIgnoreNulls(type,leftBlock,leftBlockPosition,rightBlock,rightPosition);
+    }
+ else {
+      equalityCondition=typeEquals(type,leftBlock,leftBlockPosition,rightBlock,rightPosition);
+    }
     LabelNode checkNextField=new LabelNode("checkNextField");
-    positionEqualsRowMethod.getBody().append(typeEquals(type,leftBlock,leftBlockPosition,rightBlock,rightPosition)).ifTrueGoto(checkNextField).push(false).retBoolean().visitLabel(checkNextField);
+    positionEqualsRowMethod.getBody().append(equalityCondition).ifTrueGoto(checkNextField).push(false).retBoolean().visitLabel(checkNextField);
   }
   positionEqualsRowMethod.getBody().push(true).retInt();
 }
