@@ -21,8 +21,6 @@
   ImmutableList.Builder<JoinNode.EquiJoinClause> equiClauses=ImmutableList.builder();
   List<Expression> complexJoinExpressions=new ArrayList<>();
   List<Expression> postInnerJoinConditions=new ArrayList<>();
-  List<Expression> preLeftConditions=new ArrayList<>();
-  List<Expression> preRightConditions=new ArrayList<>();
   if (node.getType() != Join.Type.CROSS && node.getType() != Join.Type.IMPLICIT) {
     Expression criteria=analysis.getJoinCriteria(node);
     RelationType left=analysis.getOutputDescriptor(node.getLeft());
@@ -32,21 +30,6 @@
     List<ComparisonExpression.Type> joinConditionComparisonTypes=new ArrayList<>();
     for (    Expression conjunct : ExpressionUtils.extractConjuncts(criteria)) {
       conjunct=ExpressionUtils.normalize(conjunct);
-      if ((node.getType() == LEFT || node.getType() == RIGHT) && (!(node.getCriteria().get() instanceof JoinUsing))) {
-        Set<QualifiedName> dependencies=DependencyExtractor.extractNames(conjunct,analysis.getColumnReferences());
-        if (node.getType() == LEFT) {
-          if (dependencies.stream().allMatch(right.canResolvePredicate())) {
-            preRightConditions.add(rightPlanBuilder.rewrite(conjunct));
-            continue;
-          }
-        }
- else         if (node.getType() == RIGHT) {
-          if (dependencies.stream().allMatch(left.canResolvePredicate())) {
-            preLeftConditions.add(leftPlanBuilder.rewrite(conjunct));
-            continue;
-          }
-        }
-      }
       if (!isEqualComparisonExpression(conjunct) && node.getType() != INNER) {
         complexJoinExpressions.add(conjunct);
         continue;
@@ -92,7 +75,7 @@
       }
     }
   }
-  PlanNode root=new JoinNode(idAllocator.getNextId(),JoinNode.Type.typeConvert(node.getType()),wrapWithFilterIfNeeded(leftPlanBuilder.getRoot(),preLeftConditions),wrapWithFilterIfNeeded(rightPlanBuilder.getRoot(),preRightConditions),equiClauses.build(),Optional.empty(),Optional.empty(),Optional.empty());
+  PlanNode root=new JoinNode(idAllocator.getNextId(),JoinNode.Type.typeConvert(node.getType()),leftPlanBuilder.getRoot(),rightPlanBuilder.getRoot(),equiClauses.build(),Optional.empty(),Optional.empty(),Optional.empty());
   Optional<Symbol> sampleWeight=Optional.empty();
   RelationPlan intermediateRootRelationPlan=new RelationPlan(root,outputDescriptor,outputSymbols,sampleWeight);
   TranslationMap translationMap=new TranslationMap(intermediateRootRelationPlan,analysis);
@@ -102,7 +85,7 @@
   if (node.getType() != INNER && !complexJoinExpressions.isEmpty()) {
     Expression joinedFilterCondition=ExpressionUtils.and(complexJoinExpressions);
     Expression rewritenFilterCondition=translationMap.rewrite(joinedFilterCondition);
-    root=new JoinNode(idAllocator.getNextId(),JoinNode.Type.typeConvert(node.getType()),wrapWithFilterIfNeeded(leftPlanBuilder.getRoot(),preLeftConditions),wrapWithFilterIfNeeded(rightPlanBuilder.getRoot(),preRightConditions),equiClauses.build(),Optional.of(rewritenFilterCondition),Optional.empty(),Optional.empty());
+    root=new JoinNode(idAllocator.getNextId(),JoinNode.Type.typeConvert(node.getType()),leftPlanBuilder.getRoot(),rightPlanBuilder.getRoot(),equiClauses.build(),Optional.of(rewritenFilterCondition),Optional.empty(),Optional.empty());
   }
   if (leftPlanBuilder.getSampleWeight().isPresent() || rightPlanBuilder.getSampleWeight().isPresent()) {
     Expression expression=new ArithmeticBinaryExpression(ArithmeticBinaryExpression.Type.MULTIPLY,oneIfNull(leftPlanBuilder.getSampleWeight()),oneIfNull(rightPlanBuilder.getSampleWeight()));

@@ -56,20 +56,6 @@
     final Set<Expression> rightExpressions=new HashSet<>();
     for (    Expression conjunct : ExpressionUtils.extractConjuncts((Expression)optimizedExpression)) {
       conjunct=ExpressionUtils.normalize(conjunct);
-      if (node.getType() == Join.Type.RIGHT) {
-        Set<QualifiedName> names=DependencyExtractor.extractNames(conjunct,analyzer.getColumnReferences());
-        if (names.stream().allMatch(left.canResolvePredicate())) {
-          analyzeExpression(conjunct,left,context);
-          continue;
-        }
-      }
-      if (node.getType() == Join.Type.LEFT) {
-        Set<QualifiedName> names=DependencyExtractor.extractNames(conjunct,analyzer.getColumnReferences());
-        if (names.stream().allMatch(right.canResolvePredicate())) {
-          analyzeExpression(conjunct,right,context);
-          continue;
-        }
-      }
       if (conjunct instanceof ComparisonExpression && (((ComparisonExpression)conjunct).getType() == EQUAL || node.getType() == Join.Type.INNER)) {
         Expression conjunctFirst=((ComparisonExpression)conjunct).getLeft();
         Expression conjunctSecond=((ComparisonExpression)conjunct).getRight();
