@@ -1,0 +1,14 @@
+{
+  visitPlan(node,context);
+  for (  Map.Entry<Symbol,Expression> entry : node.getAssignments().entrySet()) {
+    Type expectedType=types.get(entry.getKey());
+    if (entry.getValue() instanceof SymbolReference) {
+      SymbolReference symbolReference=(SymbolReference)entry.getValue();
+      verifyTypeSignature(entry.getKey(),expectedType.getTypeSignature(),types.get(Symbol.from(symbolReference)).getTypeSignature());
+      continue;
+    }
+    Type actualType=getExpressionTypes(session,metadata,sqlParser,types,entry.getValue()).get(entry.getValue());
+    verifyTypeSignature(entry.getKey(),expectedType.getTypeSignature(),actualType.getTypeSignature());
+  }
+  return null;
+}
