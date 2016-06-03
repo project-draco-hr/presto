@@ -1,0 +1,24 @@
+{
+  if (arrayOffset < 0) {
+    throw new IllegalArgumentException("arrayOffset is negative");
+  }
+  this.arrayOffset=arrayOffset;
+  if (positionCount < 0) {
+    throw new IllegalArgumentException("positionCount is negative");
+  }
+  this.positionCount=positionCount;
+  if (slice == null) {
+    throw new IllegalArgumentException("slice is null");
+  }
+  this.slice=slice;
+  if (offsets.length - arrayOffset < (positionCount + 1)) {
+    throw new IllegalArgumentException("offsets length is less than positionCount");
+  }
+  this.offsets=offsets;
+  if (valueIsNull.length - arrayOffset < positionCount) {
+    throw new IllegalArgumentException("valueIsNull length is less than positionCount");
+  }
+  this.valueIsNull=valueIsNull;
+  sizeInBytes=intSaturatedCast(slice.length() + ((Integer.BYTES + Byte.BYTES) * (long)positionCount));
+  retainedSizeInBytes=intSaturatedCast(INSTANCE_SIZE + slice.getRetainedSize() + sizeOf(valueIsNull)+ sizeOf(offsets));
+}

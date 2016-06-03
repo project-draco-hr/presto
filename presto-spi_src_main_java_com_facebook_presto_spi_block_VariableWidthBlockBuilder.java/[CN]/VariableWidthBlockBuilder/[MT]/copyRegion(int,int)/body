@@ -3,7 +3,7 @@
   if (positionOffset < 0 || length < 0 || positionOffset + length > positionCount) {
     throw new IndexOutOfBoundsException("Invalid position " + positionOffset + " in block with "+ positionCount+ " positions");
   }
-  Slice newOffsets=Slices.copyOf(offsets.getUnderlyingSlice(),positionOffset * SIZE_OF_INT,(length + 1) * SIZE_OF_INT);
-  Slice newValueIsNull=Slices.copyOf(valueIsNull.getUnderlyingSlice(),positionOffset,length);
+  int[] newOffsets=Arrays.copyOfRange(offsets,positionOffset,positionOffset + length + 1);
+  boolean[] newValueIsNull=Arrays.copyOfRange(valueIsNull,positionOffset,positionOffset + length);
   return new VariableWidthBlock(length,sliceOutput.slice(),newOffsets,newValueIsNull);
 }
