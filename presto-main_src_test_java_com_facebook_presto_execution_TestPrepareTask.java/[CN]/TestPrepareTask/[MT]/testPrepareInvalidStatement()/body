@@ -1,0 +1,12 @@
+{
+  Statement statement=new Execute("foo");
+  String sqlString="PREPARE my_query FROM EXECUTE foo";
+  try {
+    executePrepare("my_query",statement,sqlString,TEST_SESSION);
+    fail("expected exception");
+  }
+ catch (  PrestoException e) {
+    assertEquals(e.getErrorCode(),NOT_SUPPORTED.toErrorCode());
+    assertEquals(e.getMessage(),"Invalid statement type for prepared statement: EXECUTE");
+  }
+}
