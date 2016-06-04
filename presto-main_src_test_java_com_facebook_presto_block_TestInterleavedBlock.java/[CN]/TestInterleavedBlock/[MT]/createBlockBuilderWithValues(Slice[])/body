@@ -1,0 +1,27 @@
+{
+  InterleavedBlockBuilder blockBuilder=new InterleavedBlockBuilder(TYPES,new BlockBuilderStatus(),expectedValues.length);
+  int valueIndex=0;
+  while (valueIndex < expectedValues.length) {
+    for (    Type type : TYPES) {
+      Class<?> javaType=type.getJavaType();
+      Slice expectedValue=expectedValues[valueIndex];
+      if (expectedValue == null) {
+        blockBuilder.appendNull();
+      }
+ else       if (javaType == boolean.class) {
+        type.writeBoolean(blockBuilder,expectedValue.getByte(0) != 0);
+      }
+ else       if (javaType == long.class) {
+        type.writeLong(blockBuilder,expectedValue.getLong(0));
+      }
+ else       if (javaType == double.class) {
+        type.writeDouble(blockBuilder,expectedValue.getDouble(0));
+      }
+ else {
+        blockBuilder.writeBytes(expectedValue,0,expectedValue.length()).closeEntry();
+      }
+      valueIndex++;
+    }
+  }
+  return blockBuilder;
+}

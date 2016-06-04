@@ -1,12 +1,13 @@
 {
-  assertPositionValue(block,position,expectedValue);
-  assertPositionValue(block.getSingleValueBlock(position),0,expectedValue);
-  assertPositionValue(block.getRegion(position,1),0,expectedValue);
-  assertPositionValue(block.getRegion(0,position + 1),position,expectedValue);
-  assertPositionValue(block.getRegion(position,block.getPositionCount() - position),0,expectedValue);
-  assertPositionValue(block.copyRegion(position,1),0,expectedValue);
-  assertPositionValue(block.copyRegion(0,position + 1),position,expectedValue);
-  assertPositionValue(block.copyRegion(position,block.getPositionCount() - position),0,expectedValue);
+  assertInterleavedPosition(TYPES,block,position,expectedValue);
+  Type type=TYPES.get(position % TYPES.size());
+  assertInterleavedPosition(ImmutableList.of(type),block.getSingleValueBlock(position),0,expectedValue);
+  assertInterleavedPosition(ImmutableList.of(type),block.getRegion(position,1),0,expectedValue);
+  assertInterleavedPosition(TYPES,block.getRegion(0,position + 1),position,expectedValue);
+  assertInterleavedPosition(ImmutableList.of(type),block.getRegion(position,block.getPositionCount() - position),0,expectedValue);
+  assertInterleavedPosition(ImmutableList.of(type),block.copyRegion(position,1),0,expectedValue);
+  assertInterleavedPosition(TYPES,block.copyRegion(0,position + 1),position,expectedValue);
+  assertInterleavedPosition(ImmutableList.of(type),block.copyRegion(position,block.getPositionCount() - position),0,expectedValue);
   int positionFloored=position / COLUMN_COUNT * COLUMN_COUNT;
-  assertPositionValue(block.copyPositions(IntStream.range(positionFloored,positionFloored + COLUMN_COUNT).boxed().collect(Collectors.toList())),position % COLUMN_COUNT,expectedValue);
+  assertInterleavedPosition(TYPES,block.copyPositions(IntStream.range(positionFloored,positionFloored + COLUMN_COUNT).boxed().collect(Collectors.toList())),position % COLUMN_COUNT,expectedValue);
 }

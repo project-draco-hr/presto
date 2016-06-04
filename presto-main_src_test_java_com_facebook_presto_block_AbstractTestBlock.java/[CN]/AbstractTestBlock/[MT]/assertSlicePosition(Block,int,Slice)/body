@@ -1,0 +1,21 @@
+{
+  int length=block.getLength(position);
+  assertEquals(length,expectedSliceValue.length());
+  Block expectedBlock=toSingeValuedBlock(expectedSliceValue);
+  for (int offset=0; offset < length - 3; offset++) {
+    assertEquals(block.getSlice(position,offset,3),expectedSliceValue.slice(offset,3));
+    assertTrue(block.bytesEqual(position,offset,expectedSliceValue,offset,3));
+    assertFalse(block.bytesEqual(position,offset,Slices.utf8Slice("XXX"),0,3));
+    assertEquals(block.bytesCompare(position,offset,3,expectedSliceValue,offset,3),0);
+    assertTrue(block.bytesCompare(position,offset,3,expectedSliceValue,offset,2) > 0);
+    Slice greaterSlice=createGreaterValue(expectedSliceValue,offset,3);
+    assertTrue(block.bytesCompare(position,offset,3,greaterSlice,0,greaterSlice.length()) < 0);
+    assertTrue(block.equals(position,offset,expectedBlock,0,offset,3));
+    assertEquals(block.compareTo(position,offset,3,expectedBlock,0,offset,3),0);
+    BlockBuilder blockBuilder=VARBINARY.createBlockBuilder(new BlockBuilderStatus(),1);
+    block.writeBytesTo(position,offset,3,blockBuilder);
+    blockBuilder.closeEntry();
+    Block segment=blockBuilder.build();
+    assertTrue(block.equals(position,offset,segment,0,0,3));
+  }
+}

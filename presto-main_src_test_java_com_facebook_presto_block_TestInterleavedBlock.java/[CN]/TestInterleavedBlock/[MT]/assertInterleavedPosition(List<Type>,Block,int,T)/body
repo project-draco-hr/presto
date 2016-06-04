@@ -1,0 +1,19 @@
+{
+  assertPositionValue(block,position,expectedValue);
+  Type type=types.get(position % types.size());
+  if (expectedValue == null) {
+    assertTrue(block.isNull(position));
+  }
+ else   if (BIGINT.equals(type)) {
+    Slice expectedSliceValue=(Slice)expectedValue;
+    assertEquals(expectedSliceValue.length(),Longs.BYTES);
+    assertEquals(block.getLong(position,0),expectedSliceValue.getLong(0));
+  }
+ else   if (VARCHAR.equals(type)) {
+    Slice expectedSliceValue=(Slice)expectedValue;
+    assertSlicePosition(block,position,expectedSliceValue);
+  }
+ else {
+    throw new IllegalArgumentException("Unsupported type " + type);
+  }
+}
