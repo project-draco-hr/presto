@@ -1,0 +1,4 @@
+{
+  @Language("SQL") String sql="select " + "sum(quantity) over (partition by suppkey order by orderkey rows between unbounded preceding and current row) sum_quantity_A, " + "lag(quantity, 1, 0.0) over (partition by suppkey order by orderkey rows between UNBOUNDED preceding and CURRENT ROW) sum_quantity_B, "+ "sum(discount) over (partition by suppkey order by orderkey rows between unbounded preceding and current row) sum_discount_A "+ "from lineitem";
+  assertUnitPlan(sql,anyTree(window(ImmutableList.of(functionCall("sum",windowA,false,"discount"),functionCall("lag",windowA,false,"quantity","*","*")),project(window(ImmutableList.of(functionCall("sum",windowA,false,"quantity")),any())))));
+}

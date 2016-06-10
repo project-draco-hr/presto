@@ -1,0 +1,4 @@
+{
+  @Language("SQL") String sql="with foo as (" + "select " + "suppkey, orderkey, partkey, "+ "sum(discount) over (partition by orderkey order by shipdate rows between UNBOUNDED preceding and CURRENT ROW) a "+ "from lineitem where (partkey = 272 or partkey = 273) and suppkey > 50 "+ "), "+ "bar as ( "+ "select "+ "suppkey, orderkey, partkey, "+ "avg(quantity) over (partition by orderkey order by shipdate rows between UNBOUNDED preceding and CURRENT ROW) b "+ "from lineitem where (partkey = 272 or partkey = 273) and suppkey > 50 "+ ")"+ "select * from foo, bar where foo.a = bar.b";
+  assertUnitPlan(sql,anyTree(join(JoinNode.Type.INNER,ImmutableList.of(),any(window(ImmutableList.of(functionCall("sum","*")),anyTree())),any(window(ImmutableList.of(functionCall("avg","*")),anyTree())))));
+}
