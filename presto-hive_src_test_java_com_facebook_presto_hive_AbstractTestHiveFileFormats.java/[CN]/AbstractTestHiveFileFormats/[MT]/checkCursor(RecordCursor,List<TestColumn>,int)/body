@@ -23,6 +23,9 @@
  else       if (BIGINT.equals(type)) {
         fieldFromCursor=cursor.getLong(i);
       }
+ else       if (REAL.equals(type)) {
+        fieldFromCursor=cursor.getLong(i);
+      }
  else       if (DOUBLE.equals(type)) {
         fieldFromCursor=cursor.getDouble(i);
       }
@@ -59,7 +62,11 @@
       if (fieldFromCursor == null) {
         assertEquals(null,testColumn.getExpectedValue(),String.format("Expected null for column %s",testColumn.getName()));
       }
- else       if (testColumn.getObjectInspector().getTypeName().equals("float") || testColumn.getObjectInspector().getTypeName().equals("double")) {
+ else       if (testColumn.getObjectInspector().getTypeName().equals("float")) {
+        int intBits=(int)((long)fieldFromCursor);
+        assertEquals(intBitsToFloat(intBits),(float)testColumn.getExpectedValue(),(float)EPSILON);
+      }
+ else       if (testColumn.getObjectInspector().getTypeName().equals("double")) {
         assertEquals((double)fieldFromCursor,(double)testColumn.getExpectedValue(),EPSILON);
       }
  else       if (testColumn.getObjectInspector().getTypeName().equals("tinyint")) {

@@ -3,19 +3,10 @@
     nulls[column]=true;
   }
  else {
+    checkState(hiveTypes[column].equals(HIVE_DOUBLE),"%s is not a valid DOUBLE type",hiveTypes[column]);
     nulls[column]=false;
-    if (hiveTypes[column].equals(HIVE_FLOAT)) {
-      checkState(length == SIZE_OF_INT,"Float should be 4 bytes");
-      int intBits=ByteArrays.getInt(bytes,start);
-      doubles[column]=Float.intBitsToFloat(Integer.reverseBytes(intBits));
-    }
- else     if (hiveTypes[column].equals(HIVE_DOUBLE)) {
-      checkState(length == SIZE_OF_LONG,"Double should be 8 bytes");
-      long longBits=ByteArrays.getLong(bytes,start);
-      doubles[column]=Double.longBitsToDouble(Long.reverseBytes(longBits));
-    }
- else {
-      throw new RuntimeException(format("%s is not a valid DOUBLE type",hiveTypes[column]));
-    }
+    checkState(length == SIZE_OF_LONG,"Double should be 8 bytes");
+    long longBits=ByteArrays.getLong(bytes,start);
+    doubles[column]=Double.longBitsToDouble(Long.reverseBytes(longBits));
   }
 }

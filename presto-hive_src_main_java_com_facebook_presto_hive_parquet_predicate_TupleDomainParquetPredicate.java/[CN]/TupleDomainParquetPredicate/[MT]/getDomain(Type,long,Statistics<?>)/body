@@ -41,22 +41,20 @@
     }
     return createDomain(type,hasNullValue,parquetIntegerStatistics);
   }
- else   if (type.equals(DOUBLE) && (statistics instanceof DoubleStatistics || statistics instanceof FloatStatistics)) {
-    ParquetDoubleStatistics parquetDoubleStatistics;
-    if (statistics instanceof DoubleStatistics) {
-      DoubleStatistics doubleStatistics=(DoubleStatistics)statistics;
-      if (doubleStatistics.genericGetMin() > doubleStatistics.genericGetMax()) {
-        return Domain.create(ValueSet.all(type),hasNullValue);
-      }
-      parquetDoubleStatistics=new ParquetDoubleStatistics(doubleStatistics.genericGetMin(),doubleStatistics.genericGetMax());
+ else   if (type.equals(REAL) && statistics instanceof FloatStatistics) {
+    FloatStatistics floatStatistics=(FloatStatistics)statistics;
+    if (floatStatistics.genericGetMin() > floatStatistics.genericGetMax()) {
+      return Domain.create(ValueSet.all(type),hasNullValue);
     }
- else {
-      FloatStatistics floatStatistics=(FloatStatistics)statistics;
-      if (floatStatistics.genericGetMin() > floatStatistics.genericGetMax()) {
-        return Domain.create(ValueSet.all(type),hasNullValue);
-      }
-      parquetDoubleStatistics=new ParquetDoubleStatistics((double)floatStatistics.getMin(),(double)floatStatistics.getMax());
+    ParquetIntegerStatistics parquetStatistics=new ParquetIntegerStatistics((long)floatToRawIntBits(floatStatistics.getMin()),(long)floatToRawIntBits(floatStatistics.getMax()));
+    return createDomain(type,hasNullValue,parquetStatistics);
+  }
+ else   if (type.equals(DOUBLE) && statistics instanceof DoubleStatistics) {
+    DoubleStatistics doubleStatistics=(DoubleStatistics)statistics;
+    if (doubleStatistics.genericGetMin() > doubleStatistics.genericGetMax()) {
+      return Domain.create(ValueSet.all(type),hasNullValue);
     }
+    ParquetDoubleStatistics parquetDoubleStatistics=new ParquetDoubleStatistics(doubleStatistics.genericGetMin(),doubleStatistics.genericGetMax());
     return createDomain(type,hasNullValue,parquetDoubleStatistics);
   }
  else   if (isVarcharType(type) && statistics instanceof BinaryStatistics) {
