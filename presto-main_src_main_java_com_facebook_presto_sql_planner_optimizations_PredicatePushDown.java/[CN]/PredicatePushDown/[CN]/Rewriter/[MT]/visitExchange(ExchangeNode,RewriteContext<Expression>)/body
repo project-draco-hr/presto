@@ -2,9 +2,9 @@
   boolean modified=false;
   ImmutableList.Builder<PlanNode> builder=ImmutableList.builder();
   for (int i=0; i < node.getSources().size(); i++) {
-    Map<Symbol,QualifiedNameReference> outputsToInputs=new HashMap<>();
+    Map<Symbol,SymbolReference> outputsToInputs=new HashMap<>();
     for (int index=0; index < node.getInputs().get(i).size(); index++) {
-      outputsToInputs.put(node.getOutputSymbols().get(index),node.getInputs().get(i).get(index).toQualifiedNameReference());
+      outputsToInputs.put(node.getOutputSymbols().get(index),node.getInputs().get(i).get(index).toSymbolReference());
     }
     Expression sourcePredicate=ExpressionTreeRewriter.rewriteWith(new ExpressionSymbolInliner(outputsToInputs),context.get());
     PlanNode source=node.getSources().get(i);

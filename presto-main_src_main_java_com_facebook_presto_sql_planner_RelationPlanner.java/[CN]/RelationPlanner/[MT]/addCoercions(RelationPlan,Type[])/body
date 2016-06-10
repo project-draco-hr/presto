@@ -10,15 +10,15 @@
     Type inputType=symbolAllocator.getTypes().get(inputSymbol);
     Type outputType=targetColumnTypes[i];
     if (outputType != inputType && !metadata.getTypeManager().isTypeOnlyCoercion(inputType,outputType)) {
-      Expression cast=new Cast(new QualifiedNameReference(inputSymbol.toQualifiedName()),outputType.getTypeSignature().toString());
+      Expression cast=new Cast(inputSymbol.toSymbolReference(),outputType.getTypeSignature().toString());
       Symbol outputSymbol=symbolAllocator.newSymbol(cast,outputType);
       assignments.put(outputSymbol,cast);
       newSymbols.add(outputSymbol);
     }
  else {
-      QualifiedNameReference qualifiedNameReference=new QualifiedNameReference(inputSymbol.toQualifiedName());
-      Symbol outputSymbol=symbolAllocator.newSymbol(qualifiedNameReference,outputType);
-      assignments.put(outputSymbol,qualifiedNameReference);
+      SymbolReference symbolReference=inputSymbol.toSymbolReference();
+      Symbol outputSymbol=symbolAllocator.newSymbol(symbolReference,outputType);
+      assignments.put(outputSymbol,symbolReference);
       newSymbols.add(outputSymbol);
     }
     Field oldField=oldDescriptor.getFieldByIndex(i);

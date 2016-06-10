@@ -2,11 +2,11 @@
   IdentityHashMap<Expression,Type> expressionTypes=ExpressionAnalyzer.getExpressionTypes(session,metadata,new SqlParser(),types,comparison);
   Object left=ExpressionInterpreter.expressionOptimizer(comparison.getLeft(),metadata,session,expressionTypes).optimize(NoOpSymbolResolver.INSTANCE);
   Object right=ExpressionInterpreter.expressionOptimizer(comparison.getRight(),metadata,session,expressionTypes).optimize(NoOpSymbolResolver.INSTANCE);
-  if (left instanceof QualifiedNameReference && !(right instanceof Expression)) {
-    return Optional.of(new NormalizedSimpleComparison((QualifiedNameReference)left,comparison.getType(),new NullableValue(expressionTypes.get(comparison.getRight()),right)));
+  if (left instanceof SymbolReference && !(right instanceof Expression)) {
+    return Optional.of(new NormalizedSimpleComparison((SymbolReference)left,comparison.getType(),new NullableValue(expressionTypes.get(comparison.getRight()),right)));
   }
-  if (right instanceof QualifiedNameReference && !(left instanceof Expression)) {
-    return Optional.of(new NormalizedSimpleComparison((QualifiedNameReference)right,comparison.getType().flip(),new NullableValue(expressionTypes.get(comparison.getLeft()),left)));
+  if (right instanceof SymbolReference && !(left instanceof Expression)) {
+    return Optional.of(new NormalizedSimpleComparison((SymbolReference)right,comparison.getType().flip(),new NullableValue(expressionTypes.get(comparison.getLeft()),left)));
   }
   return Optional.empty();
 }

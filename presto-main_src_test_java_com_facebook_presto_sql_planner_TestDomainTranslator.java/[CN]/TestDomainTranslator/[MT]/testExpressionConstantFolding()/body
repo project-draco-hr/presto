@@ -1,9 +1,9 @@
 {
-  Expression originalExpression=comparison(GREATER_THAN,reference(L),function("from_hex",stringLiteral("123456")));
+  Expression originalExpression=comparison(GREATER_THAN,L.toSymbolReference(),function("from_hex",stringLiteral("123456")));
   ExtractionResult result=fromPredicate(originalExpression);
   assertEquals(result.getRemainingExpression(),TRUE_LITERAL);
   Slice value=Slices.wrappedBuffer(BaseEncoding.base16().decode("123456"));
   assertEquals(result.getTupleDomain(),withColumnDomains(ImmutableMap.of(L,Domain.create(ValueSet.ofRanges(Range.greaterThan(VARBINARY,value)),false))));
   Expression expression=toPredicate(result.getTupleDomain());
-  assertEquals(expression,comparison(GREATER_THAN,reference(L),varbinaryLiteral(value)));
+  assertEquals(expression,comparison(GREATER_THAN,L.toSymbolReference(),varbinaryLiteral(value)));
 }
