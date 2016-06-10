@@ -1,9 +1,6 @@
 {
   return ExpressionTreeRewriter.rewriteWith(new ExpressionRewriter<Void>(){
     @Override public Expression rewriteExpression(    Expression node,    Void context,    ExpressionTreeRewriter<Void> treeRewriter){
-      if (translatedExpressions.contains(node)) {
-        return node;
-      }
       Expression rewrittenExpression=treeRewriter.defaultRewrite(node,context);
       return coerceIfNecessary(node,rewrittenExpression);
     }
@@ -13,9 +10,6 @@
       return symbol.toSymbolReference();
     }
     @Override public Expression rewriteQualifiedNameReference(    QualifiedNameReference node,    Void context,    ExpressionTreeRewriter<Void> treeRewriter){
-      if (translatedExpressions.contains(node)) {
-        return node;
-      }
       return rewriteExpressionWithResolvedName(node);
     }
     private Expression rewriteExpressionWithResolvedName(    Expression node){
@@ -27,9 +21,6 @@
       return coerceIfNecessary(node,rewrittenExpression);
     }
     @Override public Expression rewriteDereferenceExpression(    DereferenceExpression node,    Void context,    ExpressionTreeRewriter<Void> treeRewriter){
-      if (translatedExpressions.contains(node)) {
-        return node;
-      }
       if (analysis.getFieldIndex(node).isPresent()) {
         return rewriteExpressionWithResolvedName(node);
       }
