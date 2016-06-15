@@ -1,0 +1,20 @@
+{
+  if (value.equals(LONG_MIN_VALUE)) {
+    return Long.MIN_VALUE;
+  }
+  long signum=1;
+  if (value.startsWith("-")) {
+    signum=-1;
+    value=value.substring(1);
+  }
+  Matcher matcher=FORMAT.matcher(value);
+  if (!matcher.matches()) {
+    throw new IllegalArgumentException("Invalid day-time interval: " + value);
+  }
+  long days=parseLong(matcher.group(1));
+  long hours=parseLong(matcher.group(2));
+  long minutes=parseLong(matcher.group(3));
+  long seconds=parseLong(matcher.group(4));
+  long millis=parseLong(matcher.group(5));
+  return toMillis(days,hours,minutes,seconds,millis) * signum;
+}
