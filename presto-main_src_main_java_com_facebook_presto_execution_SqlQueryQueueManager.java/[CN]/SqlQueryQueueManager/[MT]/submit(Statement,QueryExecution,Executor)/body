@@ -5,13 +5,13 @@
   }
  catch (  PrestoException e) {
     queryExecution.fail(e);
-    return false;
+    return;
   }
   for (  QueryQueue queue : queues) {
     if (!queue.reserve(queryExecution)) {
-      return false;
+      queryExecution.fail(new PrestoException(QUERY_QUEUE_FULL,"Too many queued queries!"));
+      return;
     }
   }
   queues.get(0).enqueue(createQueuedExecution(queryExecution,queues.subList(1,queues.size()),executor));
-  return true;
 }
