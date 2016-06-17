@@ -49,4 +49,23 @@ synchronized (generalPoolMemoryFraction) {
   if (match.getJmxExport().isPresent()) {
     group.setJmxExport(match.getJmxExport().get());
   }
+  if (match.getSoftCpuLimit().isPresent() || match.getHardCpuLimit().isPresent()) {
+    checkState(cpuQuotaPeriodMillis.isPresent());
+    Duration limit;
+    if (match.getHardCpuLimit().isPresent()) {
+      limit=match.getHardCpuLimit().get();
+    }
+ else {
+      limit=match.getSoftCpuLimit().get();
+    }
+    long rate=(long)Math.min(1000.0 * limit.toMillis() / (double)cpuQuotaPeriodMillis.get().toMillis(),Long.MAX_VALUE);
+    rate=Math.max(1,rate);
+    group.setCpuQuotaGenerationMillisPerSecond(rate);
+  }
+  if (match.getSoftCpuLimit().isPresent()) {
+    group.setSoftCpuLimit(match.getSoftCpuLimit().get());
+  }
+  if (match.getHardCpuLimit().isPresent()) {
+    group.setHardCpuLimit(match.getHardCpuLimit().get());
+  }
 }

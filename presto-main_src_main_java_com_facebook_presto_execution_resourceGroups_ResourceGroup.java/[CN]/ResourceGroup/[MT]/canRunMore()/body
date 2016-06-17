@@ -1,6 +1,16 @@
 {
   checkState(Thread.holdsLock(root),"Must hold lock");
 synchronized (root) {
-    return runningQueries.size() + descendantRunningQueries < maxRunningQueries && cachedMemoryUsageBytes < softMemoryLimitBytes;
+    if (cpuUsageMillis >= hardCpuLimitMillis) {
+      return false;
+    }
+    int maxRunning=maxRunningQueries;
+    if (cpuUsageMillis >= softCpuLimitMillis) {
+      double penalty=(cpuUsageMillis - softCpuLimitMillis) / (double)(hardCpuLimitMillis - softCpuLimitMillis);
+      maxRunning=(int)Math.floor(maxRunning * (1 - penalty));
+      maxRunning=Math.min(maxRunningQueries - 1,maxRunning);
+      maxRunning=Math.max(1,maxRunning);
+    }
+    return runningQueries.size() + descendantRunningQueries < maxRunning && cachedMemoryUsageBytes < softMemoryLimitBytes;
   }
 }

@@ -3,6 +3,18 @@ synchronized (root) {
     if (!runningQueries.contains(query) && !queuedQueries.contains(query)) {
       return;
     }
+    if (query.getState() == QueryState.FINISHED || query.getQueryInfo().getErrorType() == USER_ERROR) {
+      ResourceGroup group=this;
+      while (group != null) {
+        try {
+          group.cpuUsageMillis=Math.addExact(group.cpuUsageMillis,query.getTotalCpuTime().toMillis());
+        }
+ catch (        ArithmeticException e) {
+          group.cpuUsageMillis=Long.MAX_VALUE;
+        }
+        group=group.parent.orElse(null);
+      }
+    }
     if (runningQueries.contains(query)) {
       runningQueries.remove(query);
       ResourceGroup group=this;
