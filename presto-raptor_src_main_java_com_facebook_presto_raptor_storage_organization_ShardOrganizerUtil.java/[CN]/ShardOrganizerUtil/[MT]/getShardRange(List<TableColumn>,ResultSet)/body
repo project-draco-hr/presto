@@ -1,0 +1,18 @@
+{
+  ImmutableList.Builder<Object> minValuesBuilder=ImmutableList.builder();
+  ImmutableList.Builder<Object> maxValuesBuilder=ImmutableList.builder();
+  ImmutableList.Builder<Type> typeBuilder=ImmutableList.builder();
+  for (  TableColumn tableColumn : columns) {
+    long columnId=tableColumn.getColumnId();
+    Type type=tableColumn.getDataType();
+    Object min=getValue(resultSet,type,minColumn(columnId));
+    Object max=getValue(resultSet,type,maxColumn(columnId));
+    minValuesBuilder.add(min);
+    maxValuesBuilder.add(max);
+    typeBuilder.add(type);
+  }
+  List<Type> types=typeBuilder.build();
+  Tuple minTuple=new Tuple(types,minValuesBuilder.build());
+  Tuple maxTuple=new Tuple(types,maxValuesBuilder.build());
+  return Optional.of(ShardRange.of(minTuple,maxTuple));
+}

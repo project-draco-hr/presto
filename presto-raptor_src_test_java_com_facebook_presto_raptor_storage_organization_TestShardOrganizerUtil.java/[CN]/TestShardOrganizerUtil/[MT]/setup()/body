@@ -1,0 +1,10 @@
+{
+  dbi=new DBI("jdbc:h2:mem:test" + System.nanoTime());
+  dbi.registerMapper(new TableColumn.Mapper(new TypeRegistry()));
+  dummyHandle=dbi.open();
+  dataDir=Files.createTempDir();
+  metadata=new RaptorMetadata("raptor",dbi,createShardManager(dbi),SHARD_INFO_CODEC,SHARD_DELTA_CODEC);
+  createTablesWithRetry(dbi);
+  metadataDao=dbi.onDemand(MetadataDao.class);
+  shardManager=createShardManager(dbi);
+}

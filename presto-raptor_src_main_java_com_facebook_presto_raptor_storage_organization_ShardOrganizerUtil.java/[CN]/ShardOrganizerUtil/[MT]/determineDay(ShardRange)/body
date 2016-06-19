@@ -1,0 +1,13 @@
+{
+  Tuple min=shardRange.getMinTuple();
+  Tuple max=shardRange.getMaxTuple();
+  verify(min.getTypes().equals(max.getTypes()));
+  Type type=getOnlyElement(min.getTypes());
+  verify(type.equals(DATE) || type.equals(TimestampType.TIMESTAMP));
+  if (type.equals(DATE)) {
+    return ((Integer)getOnlyElement(min.getValues())).longValue();
+  }
+  Long minValue=(Long)getOnlyElement(min.getValues());
+  Long maxValue=(Long)getOnlyElement(max.getValues());
+  return determineDay(minValue,maxValue);
+}

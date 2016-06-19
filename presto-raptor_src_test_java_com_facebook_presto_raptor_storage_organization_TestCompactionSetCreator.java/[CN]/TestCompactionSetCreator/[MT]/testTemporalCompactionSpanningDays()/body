@@ -1,12 +1,12 @@
 {
-  CompactionSetCreator compactionSetCreator=new TemporalCompactionSetCreator(new DataSize(100,BYTE),MAX_SHARD_ROWS,TIMESTAMP);
-  long tableId=1L;
   long day1=Duration.ofDays(Duration.ofNanos(System.nanoTime()).toDays()).toMillis();
   long day2=Duration.ofDays(Duration.ofMillis(day1).toDays() + 1).toMillis();
   long day3=Duration.ofDays(Duration.ofMillis(day1).toDays() + 2).toMillis();
   long day4=Duration.ofDays(Duration.ofMillis(day1).toDays() + 3).toMillis();
-  List<ShardMetadata> inputShards=ImmutableList.of(shardWithRange(10,day1,day3),shardWithRange(10,day2,day2),shardWithRange(10,day1,day1),shardWithRange(10,day1 + 100,day2 + 100),shardWithRange(10,day1 - 100,day2 - 100),shardWithRange(10,day2 - 100,day3 - 100),shardWithRange(10,day1,day4));
-  Set<OrganizationSet> compactionSets=compactionSetCreator.createCompactionSets(tableId,ImmutableSet.copyOf(inputShards));
+  List<ShardIndexInfo> inputShards=ImmutableList.of(shardWithTemporalRange(TIMESTAMP,day1,day3),shardWithTemporalRange(TIMESTAMP,day2,day2),shardWithTemporalRange(TIMESTAMP,day1,day1),shardWithTemporalRange(TIMESTAMP,day1 + 100,day2 + 100),shardWithTemporalRange(TIMESTAMP,day1 - 100,day2 - 100),shardWithTemporalRange(TIMESTAMP,day2 - 100,day3 - 100),shardWithTemporalRange(TIMESTAMP,day1,day4));
+  long tableId=temporalTableInfo.getTableId();
+  CompactionSetCreator compactionSetCreator=new TemporalCompactionSetCreator(MAX_SHARD_SIZE,MAX_SHARD_ROWS);
+  Set<OrganizationSet> compactionSets=compactionSetCreator.createCompactionSets(temporalTableInfo,inputShards);
   assertEquals(compactionSets.size(),2);
   Set<OrganizationSet> expected=ImmutableSet.of(new OrganizationSet(tableId,extractIndexes(inputShards,0,1,5,6),OptionalInt.empty()),new OrganizationSet(tableId,extractIndexes(inputShards,2,3,4),OptionalInt.empty()));
   assertEquals(compactionSets,expected);
