@@ -1,7 +1,6 @@
 {
   List<ShardIndexInfo> inputShards=ImmutableList.of(shardWithBucket(1),shardWithBucket(2),shardWithBucket(2),shardWithBucket(1),shardWithBucket(2),shardWithBucket(1));
   long tableId=bucketedTableInfo.getTableId();
-  CompactionSetCreator compactionSetCreator=new FileCompactionSetCreator(MAX_SHARD_SIZE,MAX_SHARD_ROWS);
   Set<OrganizationSet> actual=compactionSetCreator.createCompactionSets(bucketedTableInfo,inputShards);
   assertEquals(actual.size(),2);
   Set<OrganizationSet> expected=ImmutableSet.of(new OrganizationSet(tableId,extractIndexes(inputShards,0,3,5),OptionalInt.of(1)),new OrganizationSet(tableId,extractIndexes(inputShards,1,2,4),OptionalInt.of(2)));

@@ -3,7 +3,6 @@
   long day2=Duration.ofDays(Duration.ofMillis(day1).toDays() + 1).toMillis();
   long day3=Duration.ofDays(Duration.ofMillis(day1).toDays() + 2).toMillis();
   List<ShardIndexInfo> inputShards=ImmutableList.of(shardWithTemporalRange(TIMESTAMP,day1,day1),shardWithTemporalRange(TIMESTAMP,day2,day2),shardWithTemporalRange(TIMESTAMP,day2,day2),shardWithTemporalRange(TIMESTAMP,day1,day1),shardWithTemporalRange(TIMESTAMP,day3,day3));
-  CompactionSetCreator compactionSetCreator=new TemporalCompactionSetCreator(MAX_SHARD_SIZE,MAX_SHARD_ROWS);
   Set<OrganizationSet> actual=compactionSetCreator.createCompactionSets(temporalTableInfo,inputShards);
   assertEquals(actual.size(),2);
   Set<OrganizationSet> expected=ImmutableSet.of(new OrganizationSet(temporalTableInfo.getTableId(),extractIndexes(inputShards,0,3),OptionalInt.empty()),new OrganizationSet(temporalTableInfo.getTableId(),extractIndexes(inputShards,1,2),OptionalInt.empty()));
