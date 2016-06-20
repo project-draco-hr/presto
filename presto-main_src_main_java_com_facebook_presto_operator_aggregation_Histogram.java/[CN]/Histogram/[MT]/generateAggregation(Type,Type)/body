@@ -1,12 +1,2 @@
 {
-  DynamicClassLoader classLoader=new DynamicClassLoader(Histogram.class.getClassLoader());
-  List<Type> inputTypes=ImmutableList.of(keyType);
-  Type outputType=new MapType(keyType,valueType);
-  HistogramStateSerializer stateSerializer=new HistogramStateSerializer(keyType);
-  Type intermediateType=stateSerializer.getSerializedType();
-  MethodHandle inputFunction=INPUT_FUNCTION.bindTo(keyType);
-  MethodHandle outputFunction=OUTPUT_FUNCTION.bindTo(outputType);
-  AggregationMetadata metadata=new AggregationMetadata(generateAggregationName(NAME,outputType,inputTypes),createInputParameterMetadata(keyType),inputFunction,null,null,COMBINE_FUNCTION,outputFunction,HistogramState.class,stateSerializer,new HistogramStateFactory(),outputType,false);
-  GenericAccumulatorFactoryBinder factory=new AccumulatorCompiler().generateAccumulatorFactoryBinder(metadata,classLoader);
-  return new InternalAggregationFunction(NAME,inputTypes,intermediateType,outputType,true,false,factory);
 }
