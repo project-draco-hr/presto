@@ -17,7 +17,12 @@
   for (int i=0; i < toTypes.size(); i++) {
     Signature signature=internalOperator(CAST.name(),toTypes.get(i).getTypeSignature(),ImmutableList.of(fromTypes.get(i).getTypeSignature()));
     ScalarFunctionImplementation function=functionRegistry.getScalarFunctionImplementation(signature);
-    BytecodeExpression fromElement=constantType(binder,fromTypes.get(i)).getValue(value,constantInt(i));
+    Type currentFromType=fromTypes.get(i);
+    if (currentFromType.equals(UNKNOWN)) {
+      body.append(blockBuilder.invoke("appendNull",BlockBuilder.class).pop());
+      continue;
+    }
+    BytecodeExpression fromElement=constantType(binder,currentFromType).getValue(value,constantInt(i));
     BytecodeExpression toElement=invokeFunction(scope,cachedInstanceBinder,signature.getName(),function,fromElement);
     IfStatement ifElementNull=new IfStatement("if the element in the row type is null...");
     ifElementNull.condition(value.invoke("isNull",boolean.class,constantInt(i))).ifTrue(blockBuilder.invoke("appendNull",BlockBuilder.class).pop()).ifFalse(constantType(binder,toTypes.get(i)).writeValue(blockBuilder,toElement));
