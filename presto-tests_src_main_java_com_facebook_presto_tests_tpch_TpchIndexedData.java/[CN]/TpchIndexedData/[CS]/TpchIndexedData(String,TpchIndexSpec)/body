@@ -1,22 +1,2 @@
 {
-  requireNonNull(connectorId,"connectorId is null");
-  requireNonNull(tpchIndexSpec,"tpchIndexSpec is null");
-  TpchMetadata tpchMetadata=new TpchMetadata(connectorId);
-  TpchRecordSetProvider tpchRecordSetProvider=new TpchRecordSetProvider();
-  ImmutableMap.Builder<Set<TpchScaledColumn>,IndexedTable> indexedTablesBuilder=ImmutableMap.builder();
-  Set<TpchScaledTable> tables=tpchIndexSpec.listIndexedTables();
-  for (  TpchScaledTable table : tables) {
-    SchemaTableName tableName=new SchemaTableName("sf" + table.getScaleFactor(),table.getTableName());
-    TpchTableHandle tableHandle=tpchMetadata.getTableHandle(null,tableName);
-    Map<String,ColumnHandle> columnHandles=new LinkedHashMap<>(tpchMetadata.getColumnHandles(null,tableHandle));
-    for (    Set<String> columnNames : tpchIndexSpec.getColumnIndexes(table)) {
-      List<String> keyColumnNames=ImmutableList.copyOf(columnNames);
-      Set<TpchScaledColumn> keyColumns=FluentIterable.from(keyColumnNames).transform(TpchScaledColumn.columnFunction(table)).toSet();
-      TpchTable<?> tpchTable=TpchTable.getTable(table.getTableName());
-      RecordSet recordSet=tpchRecordSetProvider.getRecordSet(tpchTable,ImmutableList.copyOf(columnHandles.values()),table.getScaleFactor(),0,1);
-      IndexedTable indexedTable=indexTable(recordSet,ImmutableList.copyOf(columnHandles.keySet()),keyColumnNames);
-      indexedTablesBuilder.put(keyColumns,indexedTable);
-    }
-  }
-  indexedTables=indexedTablesBuilder.build();
 }
