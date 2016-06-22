@@ -1,14 +1,28 @@
 {
-  MethodHandle method=registry.getScalarFunctionImplementation(function).getMethodHandle();
+  ScalarFunctionImplementation implementation=registry.getScalarFunctionImplementation(function);
+  MethodHandle method=implementation.getMethodHandle();
   List<Object> actualArguments=new ArrayList<>(arguments.size() + 1);
   Iterator<Object> iterator=arguments.iterator();
   for (int i=0; i < method.type().parameterCount(); i++) {
-    if (method.type().parameterType(i) == ConnectorSession.class) {
+    Class<?> parameterType=method.type().parameterType(i);
+    if (parameterType == ConnectorSession.class) {
       actualArguments.add(session);
     }
  else {
       checkArgument(iterator.hasNext(),"Not enough arguments provided for method: %s",method.type());
-      actualArguments.add(iterator.next());
+      Object argument=iterator.next();
+      if (implementation.getNullFlags().get(i)) {
+        boolean isNull=argument == null;
+        if (isNull) {
+          argument=Defaults.defaultValue(parameterType);
+        }
+        actualArguments.add(argument);
+        actualArguments.add(isNull);
+        i++;
+      }
+ else {
+        actualArguments.add(argument);
+      }
     }
   }
   checkArgument(!iterator.hasNext(),"Too many arguments provided for method: %s",method.type());

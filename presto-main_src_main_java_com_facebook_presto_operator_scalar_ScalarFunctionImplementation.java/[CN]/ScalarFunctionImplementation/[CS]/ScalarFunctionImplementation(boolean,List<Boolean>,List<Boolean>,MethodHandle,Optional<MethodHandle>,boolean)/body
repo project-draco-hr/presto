@@ -1,11 +1,17 @@
 {
   this.nullable=nullable;
   this.nullableArguments=ImmutableList.copyOf(requireNonNull(nullableArguments,"nullableArguments is null"));
+  this.nullFlags=ImmutableList.copyOf(requireNonNull(nullFlags,"nullFlags is null"));
   this.methodHandle=requireNonNull(methodHandle,"methodHandle is null");
   this.instanceFactory=requireNonNull(instanceFactory,"instanceFactory is null");
   this.deterministic=deterministic;
   if (instanceFactory.isPresent()) {
     Class<?> instanceType=instanceFactory.get().type().returnType();
     checkArgument(instanceType.equals(methodHandle.type().parameterType(0)),"methodHandle is not an instance method");
+  }
+  for (int i=0; i < nullFlags.size(); i++) {
+    if (nullFlags.get(i)) {
+      checkArgument(nullableArguments.get(i),"argument %s marked as @IsNull is not nullable in method: %s",i,methodHandle);
+    }
   }
 }
