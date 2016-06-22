@@ -9,12 +9,12 @@
   for (  Expression conjunct : Iterables.concat(EqualityInference.nonInferrableConjuncts(inheritedPredicate),EqualityInference.nonInferrableConjuncts(sourceEffectivePredicate))) {
     Expression rewrittenConjunct=joinInference.rewriteExpression(conjunct,equalTo(node.getFilteringSourceJoinSymbol()));
     if (rewrittenConjunct != null && DeterminismEvaluator.isDeterministic(rewrittenConjunct)) {
-      Expression rewrittenConjunctOrNull=expressionOrNullSymbols(equalTo(node.getFilteringSourceJoinSymbol())).apply(rewrittenConjunct);
+      Expression rewrittenConjunctOrNull=expressionOrNullSymbols(Predicate.isEqual(node.getFilteringSourceJoinSymbol())).apply(rewrittenConjunct);
       filteringSourceConjuncts.add(rewrittenConjunctOrNull);
     }
   }
   EqualityInference.EqualityPartition joinInferenceEqualityPartition=joinInference.generateEqualitiesPartitionedBy(equalTo(node.getFilteringSourceJoinSymbol()));
-  filteringSourceConjuncts.addAll(ImmutableList.copyOf(transform(joinInferenceEqualityPartition.getScopeEqualities(),expressionOrNullSymbols(equalTo(node.getFilteringSourceJoinSymbol())))));
+  filteringSourceConjuncts.addAll(joinInferenceEqualityPartition.getScopeEqualities().stream().map(expressionOrNullSymbols(Predicate.isEqual(node.getFilteringSourceJoinSymbol()))).collect(Collectors.toList()));
   EqualityInference inheritedInference=createEqualityInference(inheritedPredicate);
   for (  Expression conjunct : EqualityInference.nonInferrableConjuncts(inheritedPredicate)) {
     Expression rewrittenConjunct=inheritedInference.rewriteExpression(conjunct,in(node.getSource().getOutputSymbols()));
