@@ -2,7 +2,8 @@
   JdbcTableLayoutHandle layoutHandle=new JdbcTableLayoutHandle(jdbcTableHandle,domain);
   ConnectorSplitSource splits=jdbcClient.getSplits(layoutHandle);
   JdbcSplit split=(JdbcSplit)getOnlyElement(getFutureValue(splits.getNextBatch(1000)));
+  ConnectorTransactionHandle transaction=new JdbcTransactionHandle();
   JdbcRecordSetProvider recordSetProvider=new JdbcRecordSetProvider(jdbcClient);
-  RecordSet recordSet=recordSetProvider.getRecordSet(SESSION,split,columns);
+  RecordSet recordSet=recordSetProvider.getRecordSet(transaction,SESSION,split,columns);
   return recordSet.cursor();
 }
