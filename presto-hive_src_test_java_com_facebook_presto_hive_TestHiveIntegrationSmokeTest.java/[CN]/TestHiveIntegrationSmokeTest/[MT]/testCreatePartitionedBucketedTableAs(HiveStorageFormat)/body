@@ -1,7 +1,7 @@
 {
   @Language("SQL") String createTable="" + "CREATE TABLE test_create_partitioned_bucketed_table_as " + "WITH ("+ "format = '" + storageFormat + "', "+ "partitioned_by = ARRAY[ 'orderstatus' ], "+ "bucketed_by = ARRAY[ 'custkey' ], "+ "bucket_count = 11 "+ ") "+ "AS "+ "SELECT custkey, comment, orderstatus "+ "FROM tpch.tiny.orders";
   assertUpdate(getSession().withSystemProperty("task_writer_count","3"),createTable,"SELECT count(*) from orders");
-  TableMetadata tableMetadata=getTableMetadata("test_create_partitioned_bucketed_table_as");
+  TableMetadata tableMetadata=getTableMetadata(catalog,TPCH_SCHEMA,"test_create_partitioned_bucketed_table_as");
   assertEquals(tableMetadata.getMetadata().getProperties().get(STORAGE_FORMAT_PROPERTY),storageFormat);
   List<String> partitionedBy=ImmutableList.of("orderstatus");
   assertEquals(tableMetadata.getMetadata().getProperties().get(PARTITIONED_BY_PROPERTY),partitionedBy);

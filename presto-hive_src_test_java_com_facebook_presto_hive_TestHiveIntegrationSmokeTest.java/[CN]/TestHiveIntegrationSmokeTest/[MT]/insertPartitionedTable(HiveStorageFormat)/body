@@ -1,7 +1,7 @@
 {
   @Language("SQL") String createTable="" + "CREATE TABLE test_insert_partitioned_table " + "("+ "  ORDER_KEY BIGINT,"+ "  SHIP_PRIORITY INTEGER,"+ "  ORDER_STATUS VARCHAR"+ ") "+ "WITH ("+ "format = '" + storageFormat + "', "+ "partitioned_by = ARRAY[ 'SHIP_PRIORITY', 'ORDER_STATUS' ]"+ ") ";
   assertUpdate(createTable);
-  TableMetadata tableMetadata=getTableMetadata("test_insert_partitioned_table");
+  TableMetadata tableMetadata=getTableMetadata(catalog,TPCH_SCHEMA,"test_insert_partitioned_table");
   assertEquals(tableMetadata.getMetadata().getProperties().get(STORAGE_FORMAT_PROPERTY),storageFormat);
   assertEquals(tableMetadata.getMetadata().getProperties().get(PARTITIONED_BY_PROPERTY),ImmutableList.of("ship_priority","order_status"));
   assertQuery("SHOW PARTITIONS FROM test_insert_partitioned_table","SELECT shippriority, orderstatus FROM orders LIMIT 0");

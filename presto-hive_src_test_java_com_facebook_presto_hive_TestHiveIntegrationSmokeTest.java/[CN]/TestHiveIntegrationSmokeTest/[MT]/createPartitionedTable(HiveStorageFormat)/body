@@ -1,7 +1,7 @@
 {
   @Language("SQL") String createTable="" + "CREATE TABLE test_partitioned_table (" + "  _string VARCHAR"+ ",  _varchar VARCHAR(65535)"+ ", _bigint BIGINT"+ ", _integer INTEGER"+ ", _smallint SMALLINT"+ ", _tinyint TINYINT"+ ", _double DOUBLE"+ ", _boolean BOOLEAN"+ ", _decimal_short DECIMAL(3,2)"+ ", _decimal_long DECIMAL(30,10)"+ ", _partition_string VARCHAR"+ ", _partition_varchar VARCHAR(65535)"+ ", _partition_tinyint TINYINT"+ ", _partition_smallint SMALLINT"+ ", _partition_integer INTEGER"+ ", _partition_bigint BIGINT"+ ", _partition_decimal_short DECIMAL(3,2)"+ ", _partition_decimal_long DECIMAL(30,10)"+ ") "+ "WITH ("+ "format = '" + storageFormat + "', "+ "partitioned_by = ARRAY[ '_partition_string', '_partition_varchar', '_partition_tinyint', '_partition_smallint', '_partition_integer', '_partition_bigint', '_partition_decimal_short', '_partition_decimal_long' ]"+ ") ";
   assertUpdate(createTable);
-  TableMetadata tableMetadata=getTableMetadata("test_partitioned_table");
+  TableMetadata tableMetadata=getTableMetadata(catalog,TPCH_SCHEMA,"test_partitioned_table");
   assertEquals(tableMetadata.getMetadata().getProperties().get(STORAGE_FORMAT_PROPERTY),storageFormat);
   List<String> partitionedBy=ImmutableList.of("_partition_string","_partition_varchar","_partition_tinyint","_partition_smallint","_partition_integer","_partition_bigint","_partition_decimal_short","_partition_decimal_long");
   assertEquals(tableMetadata.getMetadata().getProperties().get(PARTITIONED_BY_PROPERTY),partitionedBy);
