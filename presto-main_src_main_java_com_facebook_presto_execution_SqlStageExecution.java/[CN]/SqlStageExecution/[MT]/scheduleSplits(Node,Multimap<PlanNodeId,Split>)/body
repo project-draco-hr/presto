@@ -1,11 +1,13 @@
 {
   requireNonNull(node,"node is null");
   requireNonNull(splits,"splits is null");
+  splitsScheduled.set(true);
   checkArgument(stateMachine.getFragment().getPartitionedSources().containsAll(splits.keySet()),"Invalid splits");
   ImmutableSet.Builder<RemoteTask> newTasks=ImmutableSet.builder();
   Collection<RemoteTask> tasks=this.tasks.get(node);
   if (tasks == null) {
-    newTasks.add(scheduleTask(node,partition,splits));
+    TaskId taskId=new TaskId(stateMachine.getStageId(),nextTaskId.getAndIncrement());
+    newTasks.add(scheduleTask(node,taskId,splits));
   }
  else {
     RemoteTask task=tasks.iterator().next();

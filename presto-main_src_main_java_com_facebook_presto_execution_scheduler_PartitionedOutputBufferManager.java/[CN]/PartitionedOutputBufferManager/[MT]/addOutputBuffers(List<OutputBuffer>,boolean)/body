@@ -1,16 +1,17 @@
 {
+  OutputBuffers outputBuffers;
 synchronized (this) {
     if (noMoreBufferIds) {
       return;
     }
     for (    OutputBuffer newBuffer : newBuffers) {
-      partitions.put(newBuffer.getBufferId(),newBuffer.getPartition());
+      partitions.put(newBuffer.getBufferId(),newBuffer.getBufferId().getId());
     }
     if (!noMoreBuffers) {
       return;
     }
     noMoreBufferIds=true;
+    outputBuffers=createInitialEmptyOutputBuffers().withBuffers(partitions).withNoMoreBufferIds();
   }
-  OutputBuffers outputBuffers=createInitialEmptyOutputBuffers().withBuffers(partitions).withNoMoreBufferIds();
   outputBufferTarget.accept(outputBuffers);
 }
