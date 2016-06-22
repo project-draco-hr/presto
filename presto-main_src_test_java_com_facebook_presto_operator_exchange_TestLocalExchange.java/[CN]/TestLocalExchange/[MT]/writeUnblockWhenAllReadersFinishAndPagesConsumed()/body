@@ -1,7 +1,7 @@
 {
   LocalExchange exchange=new LocalExchange(FIXED_BROADCAST_DISTRIBUTION,2,TYPES,ImmutableList.of(),Optional.empty(),new DataSize(1,BYTE));
   assertEquals(exchange.getBufferCount(),2);
-  assertExchangeTotalBufferPages(exchange,0);
+  assertExchangeTotalBufferedBytes(exchange,0);
   LocalExchangeSinkFactory sinkFactory=exchange.createSinkFactory();
   LocalExchangeSink sinkA=sinkFactory.createSink();
   assertSinkCanWrite(sinkA);
@@ -18,12 +18,12 @@
   ListenableFuture<?> sinkBFuture=assertSinkWriteBlocked(sinkB);
   assertSource(sourceA,1);
   assertSource(sourceB,1);
-  assertExchangeTotalBufferPages(exchange,1);
+  assertExchangeTotalBufferedBytes(exchange,1);
   sourceA.finish();
   assertSource(sourceA,1);
   assertRemovePage(sourceA,createPage(0));
   assertSourceFinished(sourceA);
-  assertExchangeTotalBufferPages(exchange,1);
+  assertExchangeTotalBufferedBytes(exchange,1);
   assertSource(sourceB,1);
   assertSinkWriteBlocked(sinkA);
   assertSinkWriteBlocked(sinkB);
@@ -31,7 +31,7 @@
   assertSource(sourceB,1);
   assertRemovePage(sourceB,createPage(0));
   assertSourceFinished(sourceB);
-  assertExchangeTotalBufferPages(exchange,0);
+  assertExchangeTotalBufferedBytes(exchange,0);
   assertTrue(sinkAFuture.isDone());
   assertTrue(sinkBFuture.isDone());
   assertSinkFinished(sinkA);

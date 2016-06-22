@@ -1,7 +1,7 @@
 {
   LocalExchange exchange=new LocalExchange(FIXED_RANDOM_DISTRIBUTION,2,TYPES,ImmutableList.of(),Optional.empty());
   assertEquals(exchange.getBufferCount(),2);
-  assertExchangeTotalBufferPages(exchange,0);
+  assertExchangeTotalBufferedBytes(exchange,0);
   LocalExchangeSinkFactory sinkFactory=exchange.createSinkFactory();
   LocalExchangeSink sink=sinkFactory.createSink();
   assertSinkCanWrite(sink);
@@ -14,7 +14,7 @@
   for (int i=0; i < 100; i++) {
     Page page=createPage(0);
     sink.addPage(page);
-    assertExchangeTotalBufferPages(exchange,i + 1);
+    assertExchangeTotalBufferedBytes(exchange,i + 1);
     LocalExchangeBufferInfo bufferInfoA=sourceA.getBufferInfo();
     LocalExchangeBufferInfo bufferInfoB=sourceB.getBufferInfo();
     assertEquals(bufferInfoA.getBufferedBytes() + bufferInfoB.getBufferedBytes(),sizeOfPages(i + 1));
@@ -22,5 +22,5 @@
   }
   assertTrue(sourceA.getBufferInfo().getBufferedPages() > 0);
   assertTrue(sourceB.getBufferInfo().getBufferedPages() > 0);
-  assertExchangeTotalBufferPages(exchange,100);
+  assertExchangeTotalBufferedBytes(exchange,100);
 }
