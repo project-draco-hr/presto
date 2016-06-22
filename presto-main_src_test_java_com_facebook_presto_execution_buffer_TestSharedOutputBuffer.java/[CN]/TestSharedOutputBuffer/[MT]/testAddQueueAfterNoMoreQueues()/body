@@ -1,0 +1,17 @@
+{
+  SharedOutputBuffer sharedBuffer=new SharedOutputBuffer(TASK_ID,TASK_INSTANCE_ID,stateNotificationExecutor,retainedSizeOfPages(10));
+  assertFalse(sharedBuffer.isFinished());
+  sharedBuffer.setOutputBuffers(createInitialEmptyOutputBuffers().withNoMoreBufferIds());
+  assertFalse(sharedBuffer.isFinished());
+  sharedBuffer.setOutputBuffers(createInitialEmptyOutputBuffers().withNoMoreBufferIds());
+  assertFalse(sharedBuffer.isFinished());
+  sharedBuffer.setOutputBuffers(createInitialEmptyOutputBuffers().withNoMoreBufferIds());
+  assertFalse(sharedBuffer.isFinished());
+  try {
+    OutputBuffers outputBuffers=createInitialEmptyOutputBuffers().withBuffer(FOO,0).withNoMoreBufferIds();
+    sharedBuffer.setOutputBuffers(outputBuffers);
+    fail("Expected IllegalStateException from addQueue after noMoreQueues has been called");
+  }
+ catch (  IllegalStateException ignored) {
+  }
+}

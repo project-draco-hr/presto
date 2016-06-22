@@ -1,0 +1,18 @@
+{
+  checkHoldsLock();
+  checkArgument(maxSize.toBytes() > 0,"maxSize must be at least 1 byte");
+  long sequenceId=this.sequenceId.get();
+  checkArgument(startingSequenceId >= sequenceId,"startingSequenceId is before the beginning of the buffer");
+  if (startingSequenceId > sequenceId) {
+    this.sequenceId.set(startingSequenceId);
+    sequenceId=startingSequenceId;
+  }
+  if (isFinished()) {
+    return emptyResults(taskInstanceId,startingSequenceId,true);
+  }
+  List<Page> pages=partition.getPages(maxSize,sequenceId);
+  if (pages.isEmpty() && !state.get().canAddPages() && !partition.hasMorePages(sequenceId)) {
+    return emptyResults(taskInstanceId,startingSequenceId,true);
+  }
+  return new BufferResult(taskInstanceId,startingSequenceId,startingSequenceId + pages.size(),false,pages);
+}

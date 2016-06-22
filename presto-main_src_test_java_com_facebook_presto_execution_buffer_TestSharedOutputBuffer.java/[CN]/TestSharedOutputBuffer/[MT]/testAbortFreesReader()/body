@@ -1,0 +1,14 @@
+{
+  SharedOutputBuffer sharedBuffer=new SharedOutputBuffer(TASK_ID,TASK_INSTANCE_ID,stateNotificationExecutor,retainedSizeOfPages(5));
+  sharedBuffer.setOutputBuffers(createInitialEmptyOutputBuffers().withBuffer(QUEUE,0));
+  assertFalse(sharedBuffer.isFinished());
+  CompletableFuture<BufferResult> future=sharedBuffer.get(QUEUE,0,sizeOfPages(10));
+  assertFalse(future.isDone());
+  addPage(sharedBuffer,createPage(0));
+  assertBufferResultEquals(TYPES,getFuture(future,NO_WAIT),bufferResult(0,createPage(0)));
+  future=sharedBuffer.get(QUEUE,1,sizeOfPages(10));
+  assertFalse(future.isDone());
+  sharedBuffer.abort(QUEUE);
+  assertQueueClosed(sharedBuffer,QUEUE,1);
+  assertBufferResultEquals(TYPES,getFuture(future,NO_WAIT),emptyResults(TASK_INSTANCE_ID,1,true));
+}

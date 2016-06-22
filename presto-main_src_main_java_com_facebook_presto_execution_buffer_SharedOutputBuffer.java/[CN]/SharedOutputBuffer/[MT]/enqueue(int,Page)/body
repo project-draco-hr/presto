@@ -1,0 +1,11 @@
+{
+  requireNonNull(page,"page is null");
+  if (!state.get().canAddPages()) {
+    return immediateFuture(true);
+  }
+  SharedOutputBufferPartition partitionBuffer=createOrGetPartitionBuffer(partition);
+  partitionBuffer.enqueuePage(page);
+  processPendingReads();
+  updateState();
+  return memoryManager.getNotFullFuture();
+}
