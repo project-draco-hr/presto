@@ -1,0 +1,25 @@
+{
+  TableMetadata tableMetadata=getTableMetadata(catalog,TPCH_SCHEMA,tableName);
+  assertEquals(tableMetadata.getMetadata().getProperties().get(STORAGE_FORMAT_PROPERTY),storageFormat);
+  List<String> partitionedBy=ImmutableList.of("orderstatus");
+  assertEquals(tableMetadata.getMetadata().getProperties().get(PARTITIONED_BY_PROPERTY),partitionedBy);
+  for (  ColumnMetadata columnMetadata : tableMetadata.getColumns()) {
+    boolean partitionKey=partitionedBy.contains(columnMetadata.getName());
+    assertEquals(columnMetadata.getComment(),annotateColumnComment(null,partitionKey));
+  }
+  assertEquals(tableMetadata.getMetadata().getProperties().get(BUCKETED_BY_PROPERTY),ImmutableList.of("custkey"));
+  assertEquals(tableMetadata.getMetadata().getProperties().get(BUCKET_COUNT_PROPERTY),11);
+  List<?> partitions=getPartitions(tableName);
+  assertEquals(partitions.size(),3);
+  assertQuery("SELECT * from " + tableName,"SELECT custkey, comment, orderstatus FROM orders");
+  for (int i=1; i <= 30; i++) {
+    assertQuery(format("SELECT * from " + tableName + " where custkey = %d",i),format("SELECT custkey, comment, orderstatus FROM orders where custkey = %d",i));
+  }
+  try {
+    assertUpdate("INSERT INTO " + tableName + " VALUES (1, 'comment', 'O')",1);
+    fail("expected failure");
+  }
+ catch (  Exception e) {
+    assertEquals(e.getMessage(),"Can not insert into existing partitions of bucketed Hive table");
+  }
+}

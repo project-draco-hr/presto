@@ -4,12 +4,12 @@
   assertUpdate(getSession().withSystemProperty("task_writer_count","3"),createTable,3);
   verifyPartitionedBucketedTableAsFewRows(storageFormat,tableName);
   try {
-    assertUpdate("INSERT INTO test_create_partitioned_bucketed_table_as_few_rows VALUES ('a0', 'b0', 'c')",1);
+    assertUpdate("INSERT INTO " + tableName + " VALUES ('a0', 'b0', 'c')",1);
     fail("expected failure");
   }
  catch (  Exception e) {
     assertEquals(e.getMessage(),"Can not insert into existing partitions of bucketed Hive table");
   }
-  assertUpdate("DROP TABLE test_create_partitioned_bucketed_table_as_few_rows");
+  assertUpdate("DROP TABLE " + tableName);
   assertFalse(queryRunner.tableExists(getSession(),tableName));
 }
