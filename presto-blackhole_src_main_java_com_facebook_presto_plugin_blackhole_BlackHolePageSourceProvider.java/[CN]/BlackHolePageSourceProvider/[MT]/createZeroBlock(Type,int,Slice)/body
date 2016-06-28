@@ -1,16 +1,21 @@
 {
   checkArgument(isSupportedType(type),"Unsupported type [%s]",type);
+  Slice slice;
+  if (isVarcharType(type)) {
+    slice=constantSlice.slice(0,Math.min(((VarcharType)type).getLength(),constantSlice.length()));
+  }
+ else   if (isLongDecimal(type)) {
+    slice=encodeScaledValue(ZERO);
+  }
+ else {
+    slice=constantSlice;
+  }
   BlockBuilder builder;
   if (type instanceof FixedWidthType) {
     builder=type.createBlockBuilder(new BlockBuilderStatus(),rowsCount);
   }
  else {
-    if (type instanceof VarcharType) {
-      if (constantSlice.length() > ((VarcharType)type).getLength()) {
-        constantSlice=constantSlice.slice(0,((VarcharType)type).getLength());
-      }
-    }
-    builder=type.createBlockBuilder(new BlockBuilderStatus(),rowsCount,constantSlice.length());
+    builder=type.createBlockBuilder(new BlockBuilderStatus(),rowsCount,slice.length());
   }
   for (int i=0; i < rowsCount; i++) {
     Class<?> javaType=type.getJavaType();
@@ -24,7 +29,8 @@
       type.writeDouble(builder,0.0);
     }
  else     if (javaType == Slice.class) {
-      type.writeSlice(builder,constantSlice,0,constantSlice.length());
+      requireNonNull(slice,"slice is null");
+      type.writeSlice(builder,slice,0,slice.length());
     }
  else {
       throw new UnsupportedOperationException("Unknown javaType: " + javaType.getName());
