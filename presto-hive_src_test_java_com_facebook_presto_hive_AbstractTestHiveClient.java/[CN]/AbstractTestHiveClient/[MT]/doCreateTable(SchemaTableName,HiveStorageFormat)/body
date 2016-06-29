@@ -12,9 +12,9 @@
   }
   metadata.finishCreateTable(session,outputHandle,fragments);
   ConnectorTableHandle tableHandle=getTableHandle(metadata,tableName);
-  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(session,tableHandle).values());
+  List<ColumnHandle> columnHandles=filterNonHiddenColumnHandles(metadata.getColumnHandles(session,tableHandle).values());
   tableMetadata=metadata.getTableMetadata(session,getTableHandle(metadata,tableName));
-  assertEquals(tableMetadata.getColumns(),CREATE_TABLE_COLUMNS);
+  assertEquals(filterNonHiddenColumnMetadata(tableMetadata.getColumns()),CREATE_TABLE_COLUMNS);
   MaterializedResult result=readTable(tableHandle,columnHandles,session,TupleDomain.all(),OptionalInt.empty(),Optional.of(storageFormat));
   assertEqualsIgnoreOrder(result.getMaterializedRows(),CREATE_TABLE_DATA.getMaterializedRows());
 }

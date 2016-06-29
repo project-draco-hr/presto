@@ -19,7 +19,7 @@
     ImmutableMap.Builder<Integer,Type> includedColumns=ImmutableMap.builder();
     ImmutableList.Builder<ColumnReference<HiveColumnHandle>> columnReferences=ImmutableList.builder();
     for (    HiveColumnHandle column : physicalColumns) {
-      if (!column.isPartitionKey()) {
+      if (column.getColumnType() == REGULAR) {
         Type type=typeManager.getType(column.getTypeSignature());
         includedColumns.put(column.getHiveColumnIndex(),type);
         columnReferences.add(new ColumnReference<>(column,column.getHiveColumnIndex(),type));
@@ -27,7 +27,7 @@
     }
     OrcPredicate predicate=new TupleDomainOrcPredicate<>(effectivePredicate,columnReferences.build());
     OrcRecordReader recordReader=reader.createRecordReader(includedColumns.build(),predicate,start,length,hiveStorageTimeZone,systemMemoryUsage);
-    return new OrcPageSource(recordReader,orcDataSource,partitionKeys,physicalColumns,hiveStorageTimeZone,typeManager,systemMemoryUsage);
+    return new OrcPageSource(recordReader,orcDataSource,partitionKeys,physicalColumns,hiveStorageTimeZone,typeManager,systemMemoryUsage,path);
   }
  catch (  Exception e) {
     try {

@@ -3,11 +3,21 @@
   ImmutableList.Builder<HiveColumnHandle> columnHandles=ImmutableList.builder();
   int ordinal=0;
   for (  ColumnMetadata column : tableMetadata.getColumns()) {
-    columnHandles.add(new HiveColumnHandle(connectorId,column.getName(),toHiveType(typeTranslator,column.getType()),column.getType().getTypeSignature(),ordinal,partitionColumnNames.contains(column.getName())));
+    HiveColumnHandle.ColumnType columnType;
+    if (partitionColumnNames.contains(column.getName())) {
+      columnType=PARTITION_KEY;
+    }
+ else     if (column.isHidden()) {
+      columnType=HIDDEN;
+    }
+ else {
+      columnType=REGULAR;
+    }
+    columnHandles.add(new HiveColumnHandle(connectorId,column.getName(),toHiveType(typeTranslator,column.getType()),column.getType().getTypeSignature(),ordinal,columnType));
     ordinal++;
   }
   if (tableMetadata.isSampled()) {
-    columnHandles.add(new HiveColumnHandle(connectorId,SAMPLE_WEIGHT_COLUMN_NAME,toHiveType(typeTranslator,BIGINT),BIGINT.getTypeSignature(),ordinal,false));
+    columnHandles.add(new HiveColumnHandle(connectorId,SAMPLE_WEIGHT_COLUMN_NAME,toHiveType(typeTranslator,BIGINT),BIGINT.getTypeSignature(),ordinal,REGULAR));
   }
   return columnHandles.build();
 }
