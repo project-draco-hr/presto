@@ -1,0 +1,19 @@
+{
+  if (statementToQueryType(parser,query.getQuery()) == READ) {
+    return query;
+  }
+  if (!query.getPreQueries().isEmpty()) {
+    throw new QueryRewriteException("Cannot rewrite queries that use pre-queries");
+  }
+  if (!query.getPostQueries().isEmpty()) {
+    throw new QueryRewriteException("Cannot rewrite queries that use post-queries");
+  }
+  Statement statement=parser.createStatement(query.getQuery());
+  try (Connection connection=DriverManager.getConnection(gatewayUrl,usernameOverride.orElse(query.getUsername()),passwordOverride.orElse(query.getPassword()))){
+    trySetConnectionProperties(query,connection);
+    if (statement instanceof CreateTableAsSelect) {
+      return rewriteCreateTableAsSelect(connection,query,(CreateTableAsSelect)statement);
+    }
+  }
+   throw new QueryRewriteException("Unsupported query type: " + statement.getClass());
+}

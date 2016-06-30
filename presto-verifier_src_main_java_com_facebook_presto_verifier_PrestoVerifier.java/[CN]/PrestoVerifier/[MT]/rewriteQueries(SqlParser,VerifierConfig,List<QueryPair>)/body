@@ -1,0 +1,16 @@
+{
+  QueryRewriter testRewriter=new QueryRewriter(parser,config.getTestGateway(),config.getShadowTestTablePrefix(),Optional.ofNullable(config.getTestCatalogOverride()),Optional.ofNullable(config.getTestSchemaOverride()),Optional.ofNullable(config.getTestUsernameOverride()),Optional.ofNullable(config.getTestPasswordOverride()),config.getDoublePrecision(),config.getTestTimeout());
+  QueryRewriter controlRewriter=new QueryRewriter(parser,config.getControlGateway(),config.getShadowControlTablePrefix(),Optional.ofNullable(config.getControlCatalogOverride()),Optional.ofNullable(config.getControlSchemaOverride()),Optional.ofNullable(config.getControlUsernameOverride()),Optional.ofNullable(config.getControlPasswordOverride()),config.getDoublePrecision(),config.getControlTimeout());
+  ImmutableList.Builder<QueryPair> builder=ImmutableList.builder();
+  for (  QueryPair pair : queries) {
+    try {
+      Query testQuery=testRewriter.shadowQuery(pair.getTest());
+      Query controlQuery=controlRewriter.shadowQuery(pair.getControl());
+      builder.add(new QueryPair(pair.getSuite(),pair.getName(),testQuery,controlQuery));
+    }
+ catch (    SQLException|QueryRewriter.QueryRewriteException e) {
+      LOG.warn(e,"Failed to rewrite %s for shadowing. Skipping.",pair.getName());
+    }
+  }
+  return builder.build();
+}

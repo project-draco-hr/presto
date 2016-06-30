@@ -1,0 +1,21 @@
+{
+  handle.execute("CREATE TABLE \"my_test_table\" (column1 BIGINT, column2 DOUBLE)");
+  SqlParser parser=new SqlParser();
+  Query query=new Query(CATALOG,SCHEMA,ImmutableList.of(),"CREATE TABLE my_test_table AS SELECT 1 column1, CAST(2.0 AS DOUBLE) column2",ImmutableList.of(),null,null,ImmutableMap.of());
+  QueryRewriter rewriter=new QueryRewriter(parser,URL,QualifiedName.of("tmp_"),Optional.empty(),Optional.empty(),Optional.empty(),Optional.empty(),1,new Duration(10,SECONDS));
+  Query rewrittenQuery=rewriter.shadowQuery(query);
+  assertEquals(rewrittenQuery.getPreQueries().size(),1);
+  assertEquals(rewrittenQuery.getPostQueries().size(),1);
+  CreateTableAsSelect createTableAs=checkType(parser.createStatement(rewrittenQuery.getPreQueries().get(0)),CreateTableAsSelect.class,"statement");
+  assertEquals(createTableAs.getName().getParts().size(),1);
+  assertTrue(createTableAs.getName().getSuffix().startsWith("tmp_"));
+  assertFalse(createTableAs.getName().getSuffix().contains("my_test_table"));
+  assertEquals(PrestoVerifier.statementToQueryType(parser,rewrittenQuery.getQuery()),READ);
+  Table table=new Table(createTableAs.getName());
+  SingleColumn column1=new SingleColumn(new FunctionCall(QualifiedName.of("checksum"),ImmutableList.of(new QualifiedNameReference(QualifiedName.of("column1")))));
+  SingleColumn column2=new SingleColumn(new FunctionCall(QualifiedName.of("checksum"),ImmutableList.of(new FunctionCall(QualifiedName.of("round"),ImmutableList.of(new QualifiedNameReference(QualifiedName.of("column2")),new LongLiteral("1"))))));
+  Select select=new Select(false,ImmutableList.of(column1,column2));
+  QuerySpecification querySpecification=new QuerySpecification(select,Optional.of(table),Optional.empty(),Optional.empty(),Optional.empty(),ImmutableList.of(),Optional.empty());
+  assertEquals(parser.createStatement(rewrittenQuery.getQuery()),new com.facebook.presto.sql.tree.Query(Optional.empty(),querySpecification,ImmutableList.of(),Optional.empty(),Optional.empty()));
+  assertEquals(parser.createStatement(rewrittenQuery.getPostQueries().get(0)),new DropTable(createTableAs.getName(),true));
+}

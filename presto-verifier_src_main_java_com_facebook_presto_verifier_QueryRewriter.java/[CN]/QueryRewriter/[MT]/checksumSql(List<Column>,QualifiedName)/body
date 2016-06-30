@@ -1,0 +1,12 @@
+{
+  ImmutableList.Builder<SelectItem> selectItems=ImmutableList.builder();
+  for (  Column column : columns) {
+    Expression expression=new QualifiedNameReference(QualifiedName.of(column.getName()));
+    if (column.isApproximateType()) {
+      expression=new FunctionCall(QualifiedName.of("round"),ImmutableList.of(expression,new LongLiteral(Integer.toString(doublePrecision))));
+    }
+    selectItems.add(new SingleColumn(new FunctionCall(QualifiedName.of("checksum"),ImmutableList.of(expression))));
+  }
+  Select select=new Select(false,selectItems.build());
+  return formatSql(new QuerySpecification(select,Optional.of(new Table(table)),Optional.empty(),Optional.empty(),Optional.empty(),ImmutableList.of(),Optional.empty()));
+}
