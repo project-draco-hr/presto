@@ -1,0 +1,11 @@
+{
+  ImmutableList.Builder<SqlScalarFunction> scalars=ImmutableList.builder();
+  for (  Method method : clazz.getMethods()) {
+    if (canParseMethodDefinition(method)) {
+      scalars.addAll(parseDefinition(method));
+    }
+  }
+  List<SqlScalarFunction> resultScalars=scalars.build();
+  checkArgument(!resultScalars.isEmpty(),"Expected class %s to contain at least one method annotated with @%s or @%s",clazz.getName(),ScalarFunction.class.getSimpleName(),ScalarOperator.class.getSimpleName());
+  return resultScalars;
+}
