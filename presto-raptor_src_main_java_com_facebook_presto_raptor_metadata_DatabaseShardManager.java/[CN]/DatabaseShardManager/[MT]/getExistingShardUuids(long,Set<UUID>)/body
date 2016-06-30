@@ -1,0 +1,19 @@
+{
+  try (Handle handle=dbi.open()){
+    String args=Joiner.on(",").join(nCopies(shardUuids.size(),"?"));
+    String selectShards=format("SELECT shard_uuid FROM %s WHERE shard_uuid IN (%s)",shardIndexTable(tableId),args);
+    ImmutableSet.Builder<UUID> existingShards=ImmutableSet.builder();
+    try (PreparedStatement statement=handle.getConnection().prepareStatement(selectShards)){
+      bindUuids(statement,shardUuids);
+      try (ResultSet rs=statement.executeQuery()){
+        while (rs.next()) {
+          existingShards.add(uuidFromBytes(rs.getBytes("shard_uuid")));
+        }
+      }
+     }
+     return existingShards.build();
+  }
+ catch (  SQLException e) {
+    throw Throwables.propagate(e);
+  }
+}
