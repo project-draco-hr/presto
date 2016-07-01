@@ -1,11 +1,7 @@
 {
-  ImmutableList.Builder<SqlScalarFunction> scalars=ImmutableList.builder();
-  for (  Method method : clazz.getMethods()) {
-    if (canParseMethodDefinition(method)) {
-      scalars.addAll(parseDefinition(method));
-    }
+  ImmutableList.Builder<SqlScalarFunction> builder=ImmutableList.builder();
+  for (  ScalarHeaderAndMethods methods : ScalarHeaderAndMethods.fromFunctionSetClassAnnotations(clazz)) {
+    builder.add(parseScalarImplementations(methods,findConstructors(clazz),clazz.getSimpleName()));
   }
-  List<SqlScalarFunction> resultScalars=scalars.build();
-  checkArgument(!resultScalars.isEmpty(),"Expected class %s to contain at least one method annotated with @%s or @%s",clazz.getName(),ScalarFunction.class.getSimpleName(),ScalarOperator.class.getSimpleName());
-  return resultScalars;
+  return builder.build();
 }
