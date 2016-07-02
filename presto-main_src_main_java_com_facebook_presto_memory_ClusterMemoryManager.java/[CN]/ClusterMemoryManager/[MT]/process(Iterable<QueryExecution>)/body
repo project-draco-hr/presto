@@ -14,12 +14,12 @@
     long queryMemoryLimit=Math.min(maxQueryMemory.toBytes(),sessionMaxQueryMemory.toBytes());
     totalBytes+=bytes;
     if (resourceOvercommit(query.getSession()) && outOfMemory) {
-      DataSize memory=succinctDataSize(bytes,BYTE);
+      DataSize memory=succinctBytes(bytes);
       query.fail(new PrestoException(CLUSTER_OUT_OF_MEMORY,format("The cluster is out of memory and %s=true, so this query was killed. It was using %s of memory",RESOURCE_OVERCOMMIT,memory)));
       queryKilled=true;
     }
     if (!resourceOvercommit(query.getSession()) && bytes > queryMemoryLimit) {
-      DataSize maxMemory=succinctDataSize(queryMemoryLimit,BYTE);
+      DataSize maxMemory=succinctBytes(queryMemoryLimit);
       query.fail(exceededGlobalLimit(maxMemory));
       queryKilled=true;
     }
