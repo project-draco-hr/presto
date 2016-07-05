@@ -1,0 +1,26 @@
+{
+  assertQuery("SELECT EXISTS(SELECT NOT EXISTS(SELECT EXISTS(SELECT 1)))");
+  assertQuery("SELECT COUNT(*) FROM lineitem WHERE " + "EXISTS(SELECT max(orderkey) FROM orders)");
+  assertQuery("SELECT COUNT(*) FROM lineitem WHERE " + "NOT EXISTS(SELECT max(orderkey) FROM orders)");
+  assertQuery("SELECT COUNT(*) FROM lineitem WHERE " + "NOT EXISTS(SELECT orderkey FROM orders WHERE false)");
+  assertQuery("SELECT COUNT(*) FROM lineitem WHERE " + "EXISTS(SELECT orderkey FROM orders WHERE false)");
+  assertQuery("SELECT COUNT(*) FROM lineitem WHERE " + "NOT EXISTS(SELECT orderkey FROM orders WHERE false)");
+  assertQuery("SELECT (EXISTS(SELECT 1)) IN (false)","SELECT false");
+  assertQuery("SELECT (NOT EXISTS(SELECT 1)) IN (false)","SELECT true");
+  assertQuery("SELECT (EXISTS(SELECT 1)) IN (true, false)","SELECT true");
+  assertQuery("SELECT (NOT EXISTS(SELECT 1)) IN (true, false)","SELECT true");
+  assertQuery("SELECT (EXISTS(SELECT 1 WHERE false)) IN (true, false)","SELECT true");
+  assertQuery("SELECT (NOT EXISTS(SELECT 1 WHERE false)) IN (true, false)","SELECT true");
+  assertQuery("SELECT (EXISTS(SELECT 1 WHERE false)) IN (false)","SELECT true");
+  assertQuery("SELECT (NOT EXISTS(SELECT 1 WHERE false)) IN (false)","SELECT false");
+  assertQuery("SELECT (EXISTS(SELECT 1)) = (EXISTS(SELECT 1)) WHERE NOT EXISTS(SELECT 1)","SELECT true WHERE false");
+  assertQuery("SELECT (EXISTS(SELECT 1)) = (EXISTS(SELECT 3)) WHERE NOT EXISTS(SELECT 1 WHERE false)","SELECT true");
+  assertQuery("SELECT COUNT(*) FROM lineitem WHERE " + "(EXISTS(SELECT min(orderkey) FROM orders))" + "="+ "(NOT EXISTS(SELECT orderkey FROM orders WHERE false))","SELECT count(*) FROM lineitem");
+  assertQuery("SELECT EXISTS(SELECT 1), EXISTS(SELECT 1), EXISTS(SELECT 3), NOT EXISTS(SELECT 1), NOT EXISTS(SELECT 1 WHERE false)");
+  assertQuery("SELECT DISTINCT orderkey FROM lineitem " + "WHERE EXISTS(SELECT avg(orderkey) FROM orders)");
+  for (  String joinType : ImmutableList.of("INNER","LEFT OUTER")) {
+    assertQuery("SELECT l.orderkey, COUNT(*) " + "FROM lineitem l " + joinType + " JOIN orders o ON l.orderkey = o.orderkey "+ "WHERE EXISTS(SELECT avg(orderkey) FROM orders) "+ "GROUP BY l.orderkey");
+  }
+  assertQuery("SELECT orderkey, totalprice FROM orders ORDER BY EXISTS(SELECT 2)");
+  assertQuery("SELECT orderkey, totalprice FROM orders ORDER BY NOT(EXISTS(SELECT 2))");
+}

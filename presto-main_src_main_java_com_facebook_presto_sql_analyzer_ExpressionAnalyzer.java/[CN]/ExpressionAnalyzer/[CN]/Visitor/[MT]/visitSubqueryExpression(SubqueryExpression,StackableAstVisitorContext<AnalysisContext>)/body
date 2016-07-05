@@ -4,9 +4,9 @@
   if (descriptor.getVisibleFieldCount() != 1) {
     throw new SemanticException(MULTIPLE_FIELDS_FROM_SUBQUERY,node,"Multiple columns returned by subquery are not yet supported. Found %s",descriptor.getVisibleFieldCount());
   }
-  Optional<Node> previousNode=context.getPreviousNode();
-  if (previousNode.isPresent() && previousNode.get() instanceof InPredicate && ((InPredicate)previousNode.get()).getValue() != node) {
-    subqueryInPredicates.add((InPredicate)previousNode.get());
+  Node previousNode=context.getPreviousNode().orElse(null);
+  if (previousNode instanceof InPredicate && ((InPredicate)previousNode).getValue() != node) {
+    subqueryInPredicates.add((InPredicate)previousNode);
   }
  else {
     scalarSubqueries.add(node);

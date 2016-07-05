@@ -1,0 +1,15 @@
+{
+  if (subPlan.canTranslate(subqueryExpression)) {
+    return subPlan;
+  }
+  PlanNode subqueryNode=subqueryPlanner.apply(subquery);
+  TranslationMap translations=subPlan.copyTranslations();
+  translations.put(subqueryExpression,getOnlyElement(subqueryNode.getOutputSymbols()));
+  PlanNode root=subPlan.getRoot();
+  if (root.getOutputSymbols().isEmpty()) {
+    return new PlanBuilder(translations,subqueryNode,subPlan.getSampleWeight());
+  }
+ else {
+    return new PlanBuilder(translations,new ApplyNode(idAllocator.getNextId(),root,subqueryNode,ImmutableList.of()),subPlan.getSampleWeight());
+  }
+}
