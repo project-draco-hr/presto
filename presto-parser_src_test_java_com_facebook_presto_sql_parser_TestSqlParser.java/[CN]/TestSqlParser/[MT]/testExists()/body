@@ -1,0 +1,6 @@
+{
+  assertStatement("SELECT EXISTS(SELECT 1)",simpleQuery(selectList(new ExistsPredicate(simpleQuery(selectList(new LongLiteral("1")))))));
+  assertStatement("SELECT EXISTS(SELECT 1) = EXISTS(SELECT 2)",simpleQuery(selectList(new ComparisonExpression(ComparisonExpression.Type.EQUAL,new ExistsPredicate(simpleQuery(selectList(new LongLiteral("1")))),new ExistsPredicate(simpleQuery(selectList(new LongLiteral("2"))))))));
+  assertStatement("SELECT NOT EXISTS(SELECT 1) = EXISTS(SELECT 2)",simpleQuery(selectList(new NotExpression(new ComparisonExpression(ComparisonExpression.Type.EQUAL,new ExistsPredicate(simpleQuery(selectList(new LongLiteral("1")))),new ExistsPredicate(simpleQuery(selectList(new LongLiteral("2")))))))));
+  assertStatement("SELECT (NOT EXISTS(SELECT 1)) = EXISTS(SELECT 2)",simpleQuery(selectList(new ComparisonExpression(ComparisonExpression.Type.EQUAL,new NotExpression(new ExistsPredicate(simpleQuery(selectList(new LongLiteral("1"))))),new ExistsPredicate(simpleQuery(selectList(new LongLiteral("2"))))))));
+}
