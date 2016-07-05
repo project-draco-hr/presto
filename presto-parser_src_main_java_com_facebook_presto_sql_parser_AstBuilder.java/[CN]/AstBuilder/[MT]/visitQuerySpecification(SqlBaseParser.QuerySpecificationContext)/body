@@ -1,5 +1,6 @@
 {
   Optional<Relation> from=Optional.empty();
+  List<SelectItem> selectItems=visit(context.selectItem(),SelectItem.class);
   List<Relation> relations=visit(context.relation(),Relation.class);
   if (!relations.isEmpty()) {
     Iterator<Relation> iterator=relations.iterator();
@@ -9,5 +10,5 @@
     }
     from=Optional.of(relation);
   }
-  return new QuerySpecification(getLocation(context),new Select(getLocation(context.SELECT()),isDistinct(context.setQuantifier()),visit(context.selectItem(),SelectItem.class)),from,visitIfPresent(context.where,Expression.class),visitIfPresent(context.groupBy(),GroupBy.class),visitIfPresent(context.having,Expression.class),ImmutableList.of(),Optional.<String>empty());
+  return new QuerySpecification(getLocation(context),new Select(getLocation(context.SELECT()),isDistinct(context.setQuantifier()),selectItems),from,visitIfPresent(context.where,Expression.class),visitIfPresent(context.groupBy(),GroupBy.class),visitIfPresent(context.having,Expression.class),ImmutableList.of(),Optional.empty());
 }
