@@ -1,0 +1,5 @@
+{
+  Session session=getSession().withPreparedStatement("my_query","SELECT * FROM orders where orderkey < ?");
+  MaterializedResult result=computeActual(session,"EXPLAIN (TYPE LOGICAL) EXECUTE my_query USING 7");
+  assertEquals(getOnlyElement(result.getOnlyColumnAsSet()),getExplainPlan("SELECT * FROM orders where orderkey < 7",LOGICAL));
+}

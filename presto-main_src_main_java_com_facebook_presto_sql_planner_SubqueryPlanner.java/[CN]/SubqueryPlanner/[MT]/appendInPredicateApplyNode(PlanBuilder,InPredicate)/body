@@ -4,7 +4,9 @@
   SubqueryExpression subqueryExpression=(SubqueryExpression)inPredicate.getValueList();
   RelationPlan valueListRelation=createRelationPlan(subqueryExpression.getQuery());
   TranslationMap translationMap=subPlan.copyTranslations();
+  InPredicate parametersReplaced=ExpressionTreeRewriter.rewriteWith(new ParameterRewriter(parameters,analysis),inPredicate);
+  translationMap.addIntermediateMapping(inPredicate,parametersReplaced);
   SymbolReference valueList=getOnlyElement(valueListRelation.getOutputSymbols()).toSymbolReference();
-  translationMap.put(inPredicate,new InPredicate(inPredicate.getValue(),valueList));
-  return new PlanBuilder(translationMap,new ApplyNode(idAllocator.getNextId(),subPlan.getRoot(),valueListRelation.getRoot(),ImmutableList.of()),subPlan.getSampleWeight());
+  translationMap.addIntermediateMapping(parametersReplaced,new InPredicate(parametersReplaced.getValue(),valueList));
+  return new PlanBuilder(translationMap,new ApplyNode(idAllocator.getNextId(),subPlan.getRoot(),valueListRelation.getRoot(),ImmutableList.of()),subPlan.getSampleWeight(),analysis.getParameters());
 }

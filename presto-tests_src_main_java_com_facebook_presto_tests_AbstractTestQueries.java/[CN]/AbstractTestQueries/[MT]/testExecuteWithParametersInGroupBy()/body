@@ -1,0 +1,14 @@
+{
+  try {
+    String query="SELECT a + ?, count(1) FROM (VALUES 1, 2, 3, 2) t(a) GROUP BY a + ?";
+    Session session=getSession().withPreparedStatement("my_query",query);
+    computeActual(session,"EXECUTE my_query USING 1, 1");
+    fail("parameters in group by and select should fail");
+  }
+ catch (  SemanticException e) {
+    assertEquals(e.getCode(),MUST_BE_AGGREGATE_OR_GROUP_BY);
+  }
+catch (  RuntimeException e) {
+    assertEquals(e.getMessage(),"line 1:10: '(\"a\" + ?)' must be an aggregate expression or appear in GROUP BY clause");
+  }
+}

@@ -1,0 +1,5 @@
+{
+  String query="SELECT a + 1, count(?) FROM (VALUES 1, 2, 3, 2) t1(a) JOIN (VALUES 1, 2, 3, 4) t2(b) ON b < ? WHERE a < ? GROUP BY a + 1 HAVING count(1) > ?";
+  Session session=getSession().withPreparedStatement("my_query",query);
+  assertQuery(session,"EXECUTE my_query USING 1, 5, 4, 0","VALUES (2, 4), (3, 8), (4, 4)");
+}

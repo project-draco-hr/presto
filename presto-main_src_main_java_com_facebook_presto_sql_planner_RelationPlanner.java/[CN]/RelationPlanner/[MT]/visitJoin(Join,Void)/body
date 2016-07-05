@@ -83,6 +83,7 @@
   translationMap.putExpressionMappingsFrom(rightPlanBuilder.getTranslations());
   if (node.getType() != INNER && !complexJoinExpressions.isEmpty()) {
     Expression joinedFilterCondition=ExpressionUtils.and(complexJoinExpressions);
+    joinedFilterCondition=ExpressionTreeRewriter.rewriteWith(new ParameterRewriter(analysis.getParameters(),analysis),joinedFilterCondition);
     Expression rewritenFilterCondition=translationMap.rewrite(joinedFilterCondition);
     root=new JoinNode(idAllocator.getNextId(),JoinNode.Type.typeConvert(node.getType()),leftPlanBuilder.getRoot(),rightPlanBuilder.getRoot(),equiClauses.build(),Optional.of(rewritenFilterCondition),Optional.empty(),Optional.empty());
   }
@@ -97,7 +98,7 @@
     root=new ProjectNode(idAllocator.getNextId(),root,projections.build());
   }
   if (node.getType() == INNER) {
-    PlanBuilder rootPlanBuilder=new PlanBuilder(translationMap,root,sampleWeight);
+    PlanBuilder rootPlanBuilder=new PlanBuilder(translationMap,root,sampleWeight,analysis.getParameters());
     rootPlanBuilder=subqueryPlanner.handleSubqueries(rootPlanBuilder,complexJoinExpressions,node);
     for (    Expression expression : complexJoinExpressions) {
       postInnerJoinConditions.add(rootPlanBuilder.rewrite(expression));

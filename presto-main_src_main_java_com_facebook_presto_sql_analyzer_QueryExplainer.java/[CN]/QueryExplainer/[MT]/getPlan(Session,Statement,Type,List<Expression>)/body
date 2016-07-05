@@ -1,0 +1,15 @@
+{
+  DataDefinitionTask<?> task=dataDefinitionTask.get(statement.getClass());
+  if (task != null) {
+    return explainTask(statement,task,parameters);
+  }
+switch (planType) {
+case LOGICAL:
+    Plan plan=getLogicalPlan(session,statement,parameters);
+  return PlanPrinter.textLogicalPlan(plan.getRoot(),plan.getTypes(),metadata,session);
+case DISTRIBUTED:
+SubPlan subPlan=getDistributedPlan(session,statement,parameters);
+return PlanPrinter.textDistributedPlan(subPlan,metadata,session);
+}
+throw new IllegalArgumentException("Unhandled plan type: " + planType);
+}

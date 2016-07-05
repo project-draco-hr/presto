@@ -2,8 +2,10 @@
   if (predicate == null) {
     return subPlan;
   }
+  predicate=ExpressionTreeRewriter.rewriteWith(new ParameterRewriter(analysis.getParameters(),analysis),predicate);
   Expression rewrittenBeforeSubqueries=subPlan.rewrite(predicate);
   subPlan=subqueryPlanner.handleSubqueries(subPlan,rewrittenBeforeSubqueries,node);
+  predicate=ExpressionTreeRewriter.rewriteWith(new ParameterRewriter(analysis.getParameters(),analysis),predicate);
   Expression rewrittenAfterSubqueries=subPlan.rewrite(predicate);
   return subPlan.withNewRoot(new FilterNode(idAllocator.getNextId(),subPlan.getRoot(),rewrittenAfterSubqueries));
 }

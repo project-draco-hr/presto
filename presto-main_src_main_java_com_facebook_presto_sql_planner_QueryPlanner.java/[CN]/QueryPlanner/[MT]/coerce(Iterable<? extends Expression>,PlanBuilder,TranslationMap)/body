@@ -4,12 +4,14 @@
     Type type=analysis.getType(expression);
     Type coercion=analysis.getCoercion(expression);
     Symbol symbol=symbolAllocator.newSymbol(expression,firstNonNull(coercion,type));
+    Expression parametersReplaced=ExpressionTreeRewriter.rewriteWith(new ParameterRewriter(analysis.getParameters(),analysis),expression);
+    translations.addIntermediateMapping(expression,parametersReplaced);
     Expression rewritten=subPlan.rewrite(expression);
     if (coercion != null) {
       rewritten=new Cast(rewritten,coercion.getTypeSignature().toString(),false,metadata.getTypeManager().isTypeOnlyCoercion(type,coercion));
     }
     projections.put(symbol,rewritten);
-    translations.put(expression,symbol);
+    translations.put(parametersReplaced,symbol);
   }
   return projections.build();
 }

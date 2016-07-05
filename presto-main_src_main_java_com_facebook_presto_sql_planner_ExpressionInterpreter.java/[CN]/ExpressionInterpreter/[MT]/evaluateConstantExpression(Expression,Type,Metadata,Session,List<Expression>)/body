@@ -1,0 +1,12 @@
+{
+  ExpressionAnalyzer analyzer=createConstantAnalyzer(metadata,session,parameters);
+  analyzer.analyze(expression,Scope.builder().build());
+  Type actualType=analyzer.getExpressionTypes().get(expression);
+  if (!metadata.getTypeManager().canCoerce(actualType,expectedType)) {
+    throw new SemanticException(SemanticErrorCode.TYPE_MISMATCH,expression,String.format("Cannot cast type %s to %s",expectedType.getTypeSignature(),actualType.getTypeSignature()));
+  }
+  IdentityHashMap<Expression,Type> coercions=new IdentityHashMap<>();
+  coercions.putAll(analyzer.getExpressionCoercions());
+  coercions.put(expression,expectedType);
+  return evaluateConstantExpression(expression,coercions,metadata,session,ImmutableSet.of(),parameters);
+}

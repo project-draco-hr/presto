@@ -1,0 +1,21 @@
+{
+  requireNonNull(columnReferences,"columnReferences is null");
+  verifyExpressionIsConstant(columnReferences,expression);
+  Expression rewrite=ExpressionTreeRewriter.rewriteWith(new ExpressionRewriter<Void>(){
+    @Override public Expression rewriteExpression(    Expression node,    Void context,    ExpressionTreeRewriter<Void> treeRewriter){
+      Expression rewrittenExpression=treeRewriter.defaultRewrite(node,context);
+      Type coerceToType=coercions.get(node);
+      if (coerceToType != null) {
+        rewrittenExpression=new Cast(rewrittenExpression,coerceToType.getTypeSignature().toString());
+      }
+      return rewrittenExpression;
+    }
+  }
+,expression);
+  Expression canonicalized=CanonicalizeExpressions.canonicalizeExpression(rewrite);
+  ExpressionAnalyzer analyzer=createConstantAnalyzer(metadata,session,parameters);
+  analyzer.analyze(canonicalized,Scope.builder().build());
+  Object result=expressionInterpreter(canonicalized,metadata,session,analyzer.getExpressionTypes()).evaluate(0);
+  verify(!(result instanceof Expression),"Expression interpreter returned an unresolved expression");
+  return result;
+}

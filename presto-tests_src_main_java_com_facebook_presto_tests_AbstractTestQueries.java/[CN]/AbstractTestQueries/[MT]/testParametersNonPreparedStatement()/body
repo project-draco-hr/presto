@@ -1,3 +1,12 @@
 {
-  assertQueryFails("SELECT ?, 1","line 1:8: Parameters are only allowed in prepared statements");
+  try {
+    computeActual("SELECT ?, 1");
+    fail("parameters not in prepared statements should fail");
+  }
+ catch (  SemanticException e) {
+    assertEquals(e.getCode(),INVALID_PARAMETER_USAGE);
+  }
+catch (  RuntimeException e) {
+    assertEquals(e.getMessage(),"line 1:1: Incorrect number of parameters: expected 1 but found 0");
+  }
 }

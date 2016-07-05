@@ -1,0 +1,39 @@
+{
+  Map<String,PropertyMetadata<?>> supportedTableProperties=catalogTableProperties.get(catalog);
+  if (supportedTableProperties == null) {
+    throw new PrestoException(NOT_FOUND,"Catalog not found: " + catalog);
+  }
+  ImmutableMap.Builder<String,Object> properties=ImmutableMap.builder();
+  for (  Map.Entry<String,Expression> sqlProperty : sqlPropertyValues.entrySet()) {
+    String property=sqlProperty.getKey().toLowerCase(ENGLISH);
+    PropertyMetadata<?> tableProperty=supportedTableProperties.get(property);
+    if (tableProperty == null) {
+      throw new PrestoException(INVALID_TABLE_PROPERTY,format("Catalog '%s' does not support table property '%s'",catalog,property));
+    }
+    Object sqlObjectValue;
+    try {
+      sqlObjectValue=evaluatePropertyValue(sqlProperty.getValue(),tableProperty.getSqlType(),session,metadata,parameters);
+    }
+ catch (    SemanticException e) {
+      throw new PrestoException(INVALID_TABLE_PROPERTY,format("Invalid value for table property '%s': Cannot convert '%s' to %s",tableProperty.getName(),sqlProperty.getValue(),tableProperty.getSqlType()),e);
+    }
+    Object value;
+    try {
+      value=tableProperty.decode(sqlObjectValue);
+    }
+ catch (    Exception e) {
+      throw new PrestoException(INVALID_TABLE_PROPERTY,format("Unable to set table property '%s' to '%s': %s",tableProperty.getName(),sqlProperty.getValue(),e.getMessage()),e);
+    }
+    properties.put(tableProperty.getName(),value);
+  }
+  Map<String,Object> userSpecifiedProperties=properties.build();
+  for (  PropertyMetadata<?> tableProperty : supportedTableProperties.values()) {
+    if (!userSpecifiedProperties.containsKey(tableProperty.getName())) {
+      Object value=tableProperty.getDefaultValue();
+      if (value != null) {
+        properties.put(tableProperty.getName(),value);
+      }
+    }
+  }
+  return properties.build();
+}

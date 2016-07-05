@@ -3,7 +3,7 @@
   TransactionManager transactionManager=createTestTransactionManager();
   QueryStateMachine stateMachine=QueryStateMachine.begin(new QueryId("query"),"START TRANSACTION",session,URI.create("fake://uri"),true,transactionManager,executor);
   assertFalse(stateMachine.getSession().getTransactionId().isPresent());
-  new StartTransactionTask().execute(new StartTransaction(ImmutableList.of()),transactionManager,metadata,new AllowAllAccessControl(),stateMachine).join();
+  new StartTransactionTask().execute(new StartTransaction(ImmutableList.of()),transactionManager,metadata,new AllowAllAccessControl(),stateMachine,emptyList()).join();
   assertFalse(stateMachine.getQueryInfoWithoutDetails().isClearTransactionId());
   assertTrue(stateMachine.getQueryInfoWithoutDetails().getStartedTransactionId().isPresent());
   assertEquals(transactionManager.getAllTransactionInfos().size(),1);

@@ -1,3 +1,11 @@
 {
-  throw new SemanticException(INVALID_PARAMETER_USAGE,node,"Parameters are only allowed in prepared statements");
+  if (parameters.size() == 0) {
+    throw new SemanticException(INVALID_PARAMETER_USAGE,node,"query takes no parameters");
+  }
+  if (node.getPosition() >= parameters.size()) {
+    throw new SemanticException(INVALID_PARAMETER_USAGE,node,"invalid parameter index %s, max value is %s",node.getPosition(),parameters.size() - 1);
+  }
+  Type resultType=process(parameters.get(node.getPosition()),context);
+  expressionTypes.put(node,resultType);
+  return resultType;
 }

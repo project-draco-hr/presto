@@ -1,0 +1,11 @@
+{
+  try {
+    Session session=TEST_SESSION.withPreparedStatement("my_query","SELECT * FROM foo where col1 = ?");
+    Statement statement=SQL_PARSER.createStatement("EXECUTE my_query USING 1,2");
+    validateParameters(unwrapExecuteStatement(statement,SQL_PARSER,session),((Execute)statement).getParameters());
+    fail("expected exception");
+  }
+ catch (  SemanticException e) {
+    assertEquals(e.getCode(),INVALID_PARAMETER_USAGE);
+  }
+}

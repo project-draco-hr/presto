@@ -4,9 +4,11 @@
   projections.putAll(coerce(uncoerced,subPlan,translations));
   for (  Expression expression : alreadyCoerced) {
     Symbol symbol=symbolAllocator.newSymbol(expression,analysis.getType(expression));
+    Expression parametersReplaced=ExpressionTreeRewriter.rewriteWith(new ParameterRewriter(analysis.getParameters(),analysis),expression);
+    translations.addIntermediateMapping(expression,parametersReplaced);
     Expression rewritten=subPlan.rewrite(expression);
     projections.put(symbol,rewritten);
-    translations.put(expression,symbol);
+    translations.put(parametersReplaced,symbol);
   }
-  return new PlanBuilder(translations,new ProjectNode(idAllocator.getNextId(),subPlan.getRoot(),projections.build()),subPlan.getSampleWeight());
+  return new PlanBuilder(translations,new ProjectNode(idAllocator.getNextId(),subPlan.getRoot(),projections.build()),subPlan.getSampleWeight(),analysis.getParameters());
 }

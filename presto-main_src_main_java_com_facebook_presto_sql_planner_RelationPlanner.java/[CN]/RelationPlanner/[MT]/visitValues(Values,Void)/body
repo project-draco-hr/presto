@@ -12,12 +12,14 @@
       List<Expression> items=((Row)row).getItems();
       for (int i=0; i < items.size(); i++) {
         Expression expression=items.get(i);
-        Object constantValue=evaluateConstantExpression(expression,analysis.getCoercions(),metadata,session,analysis.getColumnReferences());
+        expression=ExpressionTreeRewriter.rewriteWith(new ParameterRewriter(analysis.getParameters(),analysis),expression);
+        Object constantValue=evaluateConstantExpression(expression,analysis.getCoercions(),metadata,session,analysis.getColumnReferences(),analysis.getParameters());
         values.add(LiteralInterpreter.toExpression(constantValue,scope.getRelationType().getFieldByIndex(i).getType()));
       }
     }
  else {
-      Object constantValue=evaluateConstantExpression(row,analysis.getCoercions(),metadata,session,analysis.getColumnReferences());
+      row=ExpressionTreeRewriter.rewriteWith(new ParameterRewriter(analysis.getParameters(),analysis),row);
+      Object constantValue=evaluateConstantExpression(row,analysis.getCoercions(),metadata,session,analysis.getColumnReferences(),analysis.getParameters());
       values.add(LiteralInterpreter.toExpression(constantValue,scope.getRelationType().getFieldByIndex(0).getType()));
     }
     rows.add(values.build());

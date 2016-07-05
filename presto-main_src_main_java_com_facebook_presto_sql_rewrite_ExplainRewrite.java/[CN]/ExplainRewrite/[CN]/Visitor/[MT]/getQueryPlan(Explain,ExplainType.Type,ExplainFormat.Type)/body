@@ -1,10 +1,13 @@
 {
-  Statement statement=unwrapExecuteStatement(node.getStatement(),parser,session);
+  Statement wrappedStatement=node.getStatement();
+  Statement statement=unwrapExecuteStatement(wrappedStatement,parser,session);
+  List<Expression> parameters=wrappedStatement instanceof Execute ? ((Execute)wrappedStatement).getParameters() : emptyList();
+  validateParameters(statement,parameters);
 switch (planFormat) {
 case GRAPHVIZ:
-    return queryExplainer.get().getGraphvizPlan(session,statement,planType);
+    return queryExplainer.get().getGraphvizPlan(session,statement,planType,parameters);
 case TEXT:
-  return queryExplainer.get().getPlan(session,statement,planType);
+  return queryExplainer.get().getPlan(session,statement,planType,parameters);
 }
 throw new IllegalArgumentException("Invalid Explain Format: " + planFormat.toString());
 }

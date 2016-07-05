@@ -5,13 +5,16 @@
     projections.put(symbol,symbol.toSymbolReference());
   }
   ImmutableMap.Builder<Symbol,Expression> newTranslations=ImmutableMap.builder();
+  ParameterRewriter parameterRewriter=new ParameterRewriter(parameters,getAnalysis());
   for (  Expression expression : expressions) {
-    Symbol symbol=symbolAllocator.newSymbol(expression,getAnalysis().getTypeWithCoercions(expression));
-    projections.put(symbol,translations.rewrite(expression));
-    newTranslations.put(symbol,expression);
+    Expression rewritten=ExpressionTreeRewriter.rewriteWith(parameterRewriter,expression);
+    translations.addIntermediateMapping(expression,rewritten);
+    Symbol symbol=symbolAllocator.newSymbol(rewritten,getAnalysis().getTypeWithCoercions(expression));
+    projections.put(symbol,translations.rewrite(rewritten));
+    newTranslations.put(symbol,rewritten);
   }
   for (  Map.Entry<Symbol,Expression> entry : newTranslations.build().entrySet()) {
     translations.put(entry.getValue(),entry.getKey());
   }
-  return new PlanBuilder(translations,new ProjectNode(idAllocator.getNextId(),getRoot(),projections.build()),getSampleWeight());
+  return new PlanBuilder(translations,new ProjectNode(idAllocator.getNextId(),getRoot(),projections.build()),getSampleWeight(),parameters);
 }
