@@ -1,0 +1,12 @@
+{
+  node.getLeft().accept(this,boundSymbols);
+  node.getRight().accept(this,boundSymbols);
+  verifyUniqueId(node);
+  Set<Symbol> leftInputs=createInputs(node.getLeft(),boundSymbols);
+  Set<Symbol> rightInputs=createInputs(node.getRight(),boundSymbols);
+  for (  JoinNode.EquiJoinClause clause : node.getCriteria()) {
+    checkArgument(leftInputs.contains(clause.getLeft()),"Symbol from join clause (%s) not in left source (%s)",clause.getLeft(),node.getLeft().getOutputSymbols());
+    checkArgument(rightInputs.contains(clause.getRight()),"Symbol from join clause (%s) not in right source (%s)",clause.getRight(),node.getRight().getOutputSymbols());
+  }
+  return null;
+}

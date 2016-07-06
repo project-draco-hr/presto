@@ -1,0 +1,10 @@
+{
+  PlanNode source=node.getSource();
+  source.accept(this,boundSymbols);
+  verifyUniqueId(node);
+  Set<Symbol> inputs=createInputs(source,boundSymbols);
+  checkDependencies(inputs,node.getOutputSymbols(),"Invalid node. Output symbols (%s) not in source plan output (%s)",node.getOutputSymbols(),node.getSource().getOutputSymbols());
+  Set<Symbol> dependencies=DependencyExtractor.extractUnique(node.getPredicate());
+  checkDependencies(inputs,dependencies,"Invalid node. Predicate dependencies (%s) not in source plan output (%s)",dependencies,node.getSource().getOutputSymbols());
+  return null;
+}

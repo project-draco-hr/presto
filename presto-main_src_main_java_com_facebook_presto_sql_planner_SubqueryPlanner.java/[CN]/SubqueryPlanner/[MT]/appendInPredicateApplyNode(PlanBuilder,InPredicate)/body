@@ -1,12 +1,14 @@
 {
   subPlan=subPlan.appendProjections(ImmutableList.of(inPredicate.getValue()),symbolAllocator,idAllocator);
   checkState(inPredicate.getValueList() instanceof SubqueryExpression);
-  SubqueryExpression subqueryExpression=(SubqueryExpression)inPredicate.getValueList();
-  RelationPlan valueListRelation=createRelationPlan(subqueryExpression.getQuery());
+  PlanNode subquery=createRelationPlan(((SubqueryExpression)inPredicate.getValueList()).getQuery()).getRoot();
+  Map<Expression,Symbol> correlation=extractCorrelation(subPlan,subquery);
+  subPlan=subPlan.appendProjections(correlation.keySet(),symbolAllocator,idAllocator);
+  subquery=replaceExpressionsWithSymbols(subquery,correlation);
   TranslationMap translationMap=subPlan.copyTranslations();
   InPredicate parametersReplaced=ExpressionTreeRewriter.rewriteWith(new ParameterRewriter(parameters,analysis),inPredicate);
   translationMap.addIntermediateMapping(inPredicate,parametersReplaced);
-  SymbolReference valueList=getOnlyElement(valueListRelation.getOutputSymbols()).toSymbolReference();
+  SymbolReference valueList=getOnlyElement(subquery.getOutputSymbols()).toSymbolReference();
   translationMap.addIntermediateMapping(parametersReplaced,new InPredicate(parametersReplaced.getValue(),valueList));
-  return new PlanBuilder(translationMap,new ApplyNode(idAllocator.getNextId(),subPlan.getRoot(),valueListRelation.getRoot(),ImmutableList.of()),subPlan.getSampleWeight(),analysis.getParameters());
+  return new PlanBuilder(translationMap,new ApplyNode(idAllocator.getNextId(),subPlan.getRoot(),subquery,ImmutableList.copyOf(correlation.values())),subPlan.getSampleWeight(),analysis.getParameters());
 }

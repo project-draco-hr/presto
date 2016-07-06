@@ -3,6 +3,9 @@
     return subPlan;
   }
   PlanNode subqueryNode=subqueryPlanner.apply(subquery);
+  Map<Expression,Symbol> correlation=extractCorrelation(subPlan,subqueryNode);
+  subPlan=subPlan.appendProjections(correlation.keySet(),symbolAllocator,idAllocator);
+  subqueryNode=replaceExpressionsWithSymbols(subqueryNode,correlation);
   TranslationMap translations=subPlan.copyTranslations();
   translations.put(subqueryExpression,getOnlyElement(subqueryNode.getOutputSymbols()));
   PlanNode root=subPlan.getRoot();
@@ -10,6 +13,6 @@
     return new PlanBuilder(translations,subqueryNode,subPlan.getSampleWeight(),analysis.getParameters());
   }
  else {
-    return new PlanBuilder(translations,new ApplyNode(idAllocator.getNextId(),root,subqueryNode,ImmutableList.of()),subPlan.getSampleWeight(),analysis.getParameters());
+    return new PlanBuilder(translations,new ApplyNode(idAllocator.getNextId(),root,subqueryNode,ImmutableList.copyOf(correlation.values())),subPlan.getSampleWeight(),analysis.getParameters());
   }
 }

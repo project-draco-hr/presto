@@ -1,0 +1,10 @@
+{
+  ProjectNode rewrittenNode=(ProjectNode)context.defaultRewrite(node);
+  ImmutableMap.Builder<Symbol,Expression> assignments=ImmutableMap.builder();
+  for (  Map.Entry<Symbol,Expression> assignment : rewrittenNode.getAssignments().entrySet()) {
+    Expression expression=assignment.getValue();
+    Expression rewritten=replaceExpression(expression,mapping);
+    assignments.put(assignment.getKey(),rewritten);
+  }
+  return new ProjectNode(idAllocator.getNextId(),rewrittenNode.getSource(),assignments.build());
+}

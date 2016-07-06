@@ -1,0 +1,11 @@
+{
+  PlanNode source=node.getSource();
+  source.accept(this,boundSymbols);
+  verifyUniqueId(node);
+  Set<Symbol> inputs=createInputs(source,boundSymbols);
+  for (  Expression expression : node.getAssignments().values()) {
+    Set<Symbol> dependencies=DependencyExtractor.extractUnique(expression);
+    checkDependencies(inputs,dependencies,"Invalid node. Expression dependencies (%s) not in source plan output (%s)",dependencies,inputs);
+  }
+  return null;
+}
