@@ -62,9 +62,9 @@
     leftPlanBuilder=leftPlanBuilder.appendProjections(leftComparisonExpressions,symbolAllocator,idAllocator);
     rightPlanBuilder=rightPlanBuilder.appendProjections(rightComparisonExpressions,symbolAllocator,idAllocator);
     for (int i=0; i < leftComparisonExpressions.size(); i++) {
-      Symbol leftSymbol=leftPlanBuilder.translate(leftComparisonExpressions.get(i));
-      Symbol rightSymbol=rightPlanBuilder.translate(rightComparisonExpressions.get(i));
       if (joinConditionComparisonTypes.get(i) == ComparisonExpression.Type.EQUAL) {
+        Symbol leftSymbol=leftPlanBuilder.translate(leftComparisonExpressions.get(i));
+        Symbol rightSymbol=rightPlanBuilder.translate(rightComparisonExpressions.get(i));
         equiClauses.add(new JoinNode.EquiJoinClause(leftSymbol,rightSymbol));
       }
  else {
@@ -75,6 +75,17 @@
     }
   }
   PlanNode root=new JoinNode(idAllocator.getNextId(),JoinNode.Type.typeConvert(node.getType()),leftPlanBuilder.getRoot(),rightPlanBuilder.getRoot(),equiClauses.build(),Optional.empty(),Optional.empty(),Optional.empty());
+  if (node.getType() != INNER) {
+    List<InPredicate> inPredicateSubqueries=analysis.getInPredicateSubqueries(node);
+    for (    Expression complexExpression : complexJoinExpressions) {
+      for (      InPredicate inPredicate : inPredicateSubqueries) {
+        if (nodeContains(complexExpression,inPredicate)) {
+          throw new SemanticException(NOT_SUPPORTED,inPredicate,"IN with subquery predicate in join condition not supported");
+        }
+      }
+    }
+    leftPlanBuilder=subqueryPlanner.handleSubqueries(leftPlanBuilder,complexJoinExpressions,node);
+  }
   Optional<Symbol> sampleWeight=Optional.empty();
   RelationPlan intermediateRootRelationPlan=new RelationPlan(root,analysis.getScope(node),outputSymbols,sampleWeight);
   TranslationMap translationMap=new TranslationMap(intermediateRootRelationPlan,analysis);
