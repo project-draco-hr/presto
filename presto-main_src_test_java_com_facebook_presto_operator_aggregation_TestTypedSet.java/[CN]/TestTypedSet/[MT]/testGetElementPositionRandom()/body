@@ -1,0 +1,19 @@
+{
+  BlockBuilder keys=VARCHAR.createBlockBuilder(new BlockBuilderStatus(),5);
+  VARCHAR.writeSlice(keys,utf8Slice("hello"));
+  VARCHAR.writeSlice(keys,utf8Slice("bye"));
+  VARCHAR.writeSlice(keys,utf8Slice("abc"));
+  TypedSet set=new TypedSet(VARCHAR,keys.getPositionCount());
+  for (int i=0; i < keys.getPositionCount(); i++) {
+    set.add(keys,i);
+  }
+  BlockBuilder values=VARCHAR.createBlockBuilder(new BlockBuilderStatus(),5);
+  VARCHAR.writeSlice(values,utf8Slice("bye"));
+  VARCHAR.writeSlice(values,utf8Slice("abc"));
+  VARCHAR.writeSlice(values,utf8Slice("hello"));
+  VARCHAR.writeSlice(values,utf8Slice("bad"));
+  assertEquals(set.positionOf(values,2),0);
+  assertEquals(set.positionOf(values,1),2);
+  assertEquals(set.positionOf(values,0),1);
+  assertFalse(set.contains(values,3));
+}
