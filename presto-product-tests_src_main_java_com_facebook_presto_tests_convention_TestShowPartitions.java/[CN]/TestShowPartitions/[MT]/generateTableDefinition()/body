@@ -1,0 +1,11 @@
+{
+  StringBuilder createTableDdl=new StringBuilder();
+  createTableDdl.append("CREATE EXTERNAL TABLE %NAME%(");
+  createTableDdl.append("   col INT");
+  createTableDdl.append(") ");
+  createTableDdl.append("PARTITIONED BY (part_col INT) ");
+  createTableDdl.append(" STORED AS ORC");
+  HiveDataSource dataSource=createResourceDataSource(TABLE_NAME,"" + currentTimeMillis(),"com/facebook/presto/tests/hive/data/single_int_column/data.orc");
+  HiveDataSource invalidData=createStringDataSource(TABLE_NAME,"" + currentTimeMillis(),"INVALID DATA");
+  return HiveTableDefinition.builder(TABLE_NAME).setCreateTableDDLTemplate(createTableDdl.toString()).addPartition("part_col = 1",invalidData).addPartition("part_col = 2",dataSource).build();
+}
