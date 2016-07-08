@@ -3,14 +3,14 @@
     return Optional.empty();
   }
   Constructor<?> constructor=constructors.get(typeParameters);
-  requireNonNull(constructor,format("%s is an instance method and requires a public constructor to be declared with %s type parameters",method.getName(),typeParameters));
+  checkArgument(constructor != null,"Method [%s] is an instance method and requires a public constructor to be declared with %s type parameters",method,typeParameters);
   for (int i=0; i < constructor.getParameterCount(); i++) {
     Annotation[] annotations=constructor.getParameterAnnotations()[i];
-    checkArgument(containsMetaParameter(annotations),"Constructors may only have meta parameters");
-    checkArgument(annotations.length == 1,"Meta parameters may only have a single annotation");
+    checkArgument(containsMetaParameter(annotations),"Constructors may only have meta parameters [%s]",constructor);
+    checkArgument(annotations.length == 1,"Meta parameters may only have a single annotation [%s]",constructor);
     Annotation annotation=annotations[0];
     if (annotation instanceof TypeParameter) {
-      checkArgument(typeParameters.contains(annotation),"Injected type parameters must be declared with @TypeParameter annotation on the constructor");
+      checkArgument(typeParameters.contains(annotation),"Injected type parameters must be declared with @TypeParameter annotation on the constructor [%s]",constructor);
     }
     constructorDependencies.add(parseDependency(annotation));
   }

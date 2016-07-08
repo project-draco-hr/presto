@@ -1,0 +1,14 @@
+{
+  ImmutableSet.Builder<Method> methods=ImmutableSet.builder();
+  for (  Method method : clazz.getDeclaredMethods()) {
+    for (    Annotation annotation : method.getAnnotations()) {
+      for (      Class<?> annotationClass : annotationClasses) {
+        if (annotationClass.isInstance(annotation)) {
+          checkArgument(Modifier.isPublic(method.getModifiers()),"Method [%s] annotated with @%s must be public",method,annotationClass.getSimpleName());
+          methods.add(method);
+        }
+      }
+    }
+  }
+  return methods.build();
+}
