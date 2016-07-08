@@ -1,0 +1,48 @@
+{
+switch (operatorType) {
+case ADD:
+case SUBTRACT:
+case MULTIPLY:
+case DIVIDE:
+case MODULUS:
+    validateOperatorSignature(operatorType,returnType,argumentTypes,2);
+  break;
+case NEGATION:
+validateOperatorSignature(operatorType,returnType,argumentTypes,1);
+break;
+case EQUAL:
+case NOT_EQUAL:
+case LESS_THAN:
+case LESS_THAN_OR_EQUAL:
+case GREATER_THAN:
+case GREATER_THAN_OR_EQUAL:
+validateComparisonOperatorSignature(operatorType,returnType,argumentTypes,2);
+break;
+case BETWEEN:
+validateComparisonOperatorSignature(operatorType,returnType,argumentTypes,3);
+break;
+case CAST:
+validateOperatorSignature(operatorType,returnType,argumentTypes,1);
+break;
+case SUBSCRIPT:
+validateOperatorSignature(operatorType,returnType,argumentTypes,2);
+checkArgument(argumentTypes.get(0).getBase().equals(StandardTypes.ARRAY) || argumentTypes.get(0).getBase().equals(StandardTypes.MAP),"First argument must be an ARRAY or MAP");
+if (argumentTypes.get(0).getBase().equals(StandardTypes.ARRAY)) {
+checkArgument(argumentTypes.get(1).getBase().equals(StandardTypes.BIGINT),"Second argument must be a BIGINT");
+TypeSignature elementType=argumentTypes.get(0).getTypeParametersAsTypeSignatures().get(0);
+checkArgument(returnType.equals(elementType),"[] return type does not match ARRAY element type");
+}
+ else {
+TypeSignature valueType=argumentTypes.get(0).getTypeParametersAsTypeSignatures().get(1);
+checkArgument(returnType.equals(valueType),"[] return type does not match MAP value type");
+}
+break;
+case HASH_CODE:
+validateOperatorSignature(operatorType,returnType,argumentTypes,1);
+checkArgument(returnType.getBase().equals(StandardTypes.BIGINT),"%s operator must return a BIGINT: %s",operatorType,formatSignature(operatorType,returnType,argumentTypes));
+break;
+case SATURATED_FLOOR_CAST:
+validateOperatorSignature(operatorType,returnType,argumentTypes,1);
+break;
+}
+}
