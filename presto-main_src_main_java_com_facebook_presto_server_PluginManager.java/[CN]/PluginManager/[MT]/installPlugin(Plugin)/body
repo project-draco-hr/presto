@@ -1,9 +1,4 @@
 {
-  plugin.setNodeManager(nodeManager);
-  plugin.setTypeManager(typeRegistry);
-  plugin.setBlockEncodingSerde(blockEncodingManager);
-  plugin.setPageSorter(pageSorter);
-  plugin.setPageIndexerFactory(pageIndexerFactory);
   plugin.setOptionalConfig(optionalConfig);
   for (  BlockEncodingFactory<?> blockEncodingFactory : plugin.getServices(BlockEncodingFactory.class)) {
     log.info("Registering block encoding %s",blockEncodingFactory.getName());
@@ -17,11 +12,11 @@
     log.info("Registering parametric type %s",parametricType.getName());
     typeRegistry.addParametricType(parametricType);
   }
-  for (  com.facebook.presto.spi.ConnectorFactory connectorFactory : plugin.getServices(com.facebook.presto.spi.ConnectorFactory.class)) {
+  for (  com.facebook.presto.spi.ConnectorFactory connectorFactory : plugin.getLegacyConnectorFactories(connectorFactoryContext)) {
     log.info("Registering legacy connector %s",connectorFactory.getName());
     connectorManager.addConnectorFactory(connectorFactory);
   }
-  for (  ConnectorFactory connectorFactory : plugin.getServices(ConnectorFactory.class)) {
+  for (  ConnectorFactory connectorFactory : plugin.getConnectorFactories(connectorFactoryContext)) {
     log.info("Registering connector %s",connectorFactory.getName());
     connectorManager.addConnectorFactory(connectorFactory);
   }

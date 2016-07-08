@@ -1,11 +1,6 @@
 {
   RaptorPlugin plugin=loadPlugin(RaptorPlugin.class);
-  plugin.setNodeManager(new InMemoryNodeManager());
-  TypeRegistry typeRegistry=new TypeRegistry();
-  plugin.setTypeManager(typeRegistry);
-  plugin.setPageSorter(new PagesIndexPageSorter());
-  List<ConnectorFactory> factories=plugin.getServices(ConnectorFactory.class);
-  ConnectorFactory factory=getOnlyElement(factories);
+  ConnectorFactory factory=getOnlyElement(plugin.getConnectorFactories(new TestingConnectorFactoryContext()));
   assertInstanceOf(factory,RaptorConnectorFactory.class);
   File tmpDir=Files.createTempDir();
   try {
