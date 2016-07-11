@@ -1,0 +1,23 @@
+{
+  if (!expectedConstraint.isPresent()) {
+    return true;
+  }
+  TupleDomain<ColumnHandle> actualConstraint=tableScanNode.getCurrentConstraint();
+  if (expectedConstraint.isPresent() && !actualConstraint.getDomains().isPresent()) {
+    return false;
+  }
+  Map<String,ColumnHandle> columnHandles=metadata.getColumnHandles(session,tableScanNode.getTable());
+  for (  Map.Entry<String,Domain> expectedColumnConstraint : expectedConstraint.get().entrySet()) {
+    if (!columnHandles.containsKey(expectedColumnConstraint.getKey())) {
+      return false;
+    }
+    ColumnHandle columnHandle=columnHandles.get(expectedColumnConstraint.getKey());
+    if (!actualConstraint.getDomains().get().containsKey(columnHandle)) {
+      return false;
+    }
+    if (!expectedColumnConstraint.getValue().contains(actualConstraint.getDomains().get().get(columnHandle))) {
+      return false;
+    }
+  }
+  return true;
+}

@@ -1,0 +1,4 @@
+{
+  Map<String,Domain> tableScanConstraint=ImmutableMap.<String,Domain>builder().put("name",singleValue(createVarcharType(25),utf8Slice("blah"))).build();
+  assertPlan("SELECT nationkey FROM nation LEFT OUTER JOIN region " + "ON nation.regionkey = region.regionkey and nation.name = region.name WHERE nation.name = 'blah'",anyTree(join(LEFT,ImmutableList.of(aliasPair("name","name_1"),aliasPair("regionkey","regionkey_0")),anyTree(tableScan("nation",tableScanConstraint)),anyTree(tableScan("region",tableScanConstraint)))));
+}
