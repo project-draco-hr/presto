@@ -1,10 +1,10 @@
 {
   ImmutableList.Builder<ScalarHeaderAndMethods> builder=ImmutableList.builder();
   List<ScalarImplementationHeader> classHeaders=ScalarImplementationHeader.fromAnnotatedElement(annotated);
-  checkArgument(!classHeaders.isEmpty(),"Class that defines function must be annotated with @ScalarFunction or @ScalarOperator.");
+  checkArgument(!classHeaders.isEmpty(),"Class [%s] that defines function must be annotated with @ScalarFunction or @ScalarOperator",annotated.getName());
   for (  ScalarImplementationHeader header : classHeaders) {
     Set<Method> methods=findPublicMethodsWithAnnotation(annotated,SqlType.class,ScalarFunction.class,ScalarOperator.class);
-    checkArgument(!methods.isEmpty(),"Parametric class %s does not have any annotated methods",annotated.getName());
+    checkArgument(!methods.isEmpty(),"Parametric class [%s] does not have any annotated methods",annotated.getName());
     for (    Method method : methods) {
       checkArgument(method.getAnnotation(ScalarFunction.class) == null,"Parametric class method [%s] is annotated with @ScalarFunction",method);
       checkArgument(method.getAnnotation(ScalarOperator.class) == null,"Parametric class method [%s] is annotated with @ScalarOperator",method);
