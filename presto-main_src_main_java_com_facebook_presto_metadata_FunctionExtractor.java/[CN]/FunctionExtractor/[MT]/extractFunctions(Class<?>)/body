@@ -1,0 +1,13 @@
+{
+  if (WindowFunction.class.isAssignableFrom(clazz)) {
+    @SuppressWarnings("unchecked") Class<? extends WindowFunction> windowClazz=(Class<? extends WindowFunction>)clazz;
+    return WindowAnnotationsParser.parseFunctionDefinition(windowClazz);
+  }
+  if (clazz.isAnnotationPresent(AggregationFunction.class)) {
+    return SqlAggregationFunction.createByAnnotations(clazz);
+  }
+  if (clazz.isAnnotationPresent(ScalarFunction.class) || clazz.isAnnotationPresent(ScalarOperator.class)) {
+    return ScalarFromAnnotationsParser.parseFunctionDefinition(clazz);
+  }
+  return ScalarFromAnnotationsParser.parseFunctionDefinitions(clazz);
+}
