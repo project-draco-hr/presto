@@ -1,8 +1,8 @@
 {
   analysis.setUpdateType("CREATE VIEW");
-  StatementAnalyzer analyzer=new StatementAnalyzer(analysis,metadata,sqlParser,new ViewAccessControl(accessControl),session,experimentalSyntaxEnabled);
-  RelationType descriptor=analyzer.process(node.getQuery(),new AnalysisContext());
   QualifiedObjectName viewName=createQualifiedObjectName(session,node,node.getName());
+  StatementAnalyzer analyzer=new StatementAnalyzer(analysis,metadata,sqlParser,new ViewAccessControl(accessControl,viewName),session,experimentalSyntaxEnabled);
+  RelationType descriptor=analyzer.process(node.getQuery(),new AnalysisContext());
   accessControl.checkCanCreateView(session.getRequiredTransactionId(),session.getIdentity(),viewName);
   validateColumns(node,descriptor);
   return descriptor;
