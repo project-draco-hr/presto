@@ -1,0 +1,12 @@
+{
+  ImmutableList.Builder<HiveColumnHandle> columns=ImmutableList.builder();
+  List<Column> partitionKeys=table.getPartitionColumns();
+  for (  Column field : partitionKeys) {
+    HiveType hiveType=field.getType();
+    if (!hiveType.isSupportedType()) {
+      throw new PrestoException(NOT_SUPPORTED,format("Unsupported Hive type %s found in partition keys of table %s.%s",hiveType,table.getDatabaseName(),table.getTableName()));
+    }
+    columns.add(new HiveColumnHandle(connectorId,field.getName(),hiveType,hiveType.getTypeSignature(forceIntegralToBigint),-1,true));
+  }
+  return columns.build();
+}

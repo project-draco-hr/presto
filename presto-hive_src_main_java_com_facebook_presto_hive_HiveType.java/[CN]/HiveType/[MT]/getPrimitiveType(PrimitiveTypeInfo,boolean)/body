@@ -1,0 +1,43 @@
+{
+  if (forceIntegralToBigint) {
+switch (typeInfo.getPrimitiveCategory()) {
+case BYTE:
+      return BIGINT;
+case SHORT:
+    return BIGINT;
+case INT:
+  return BIGINT;
+}
+}
+switch (typeInfo.getPrimitiveCategory()) {
+case BOOLEAN:
+return BOOLEAN;
+case BYTE:
+return TINYINT;
+case SHORT:
+return SMALLINT;
+case INT:
+return INTEGER;
+case LONG:
+return BIGINT;
+case FLOAT:
+return DOUBLE;
+case DOUBLE:
+return DOUBLE;
+case STRING:
+return createUnboundedVarcharType();
+case VARCHAR:
+return createVarcharType(((VarcharTypeInfo)typeInfo).getLength());
+case DATE:
+return DATE;
+case TIMESTAMP:
+return TIMESTAMP;
+case BINARY:
+return VARBINARY;
+case DECIMAL:
+DecimalTypeInfo decimalTypeInfo=(DecimalTypeInfo)typeInfo;
+return createDecimalType(decimalTypeInfo.precision(),decimalTypeInfo.scale());
+default :
+return null;
+}
+}
