@@ -1,0 +1,15 @@
+{
+  int arrayLength=block.getPositionCount();
+  if (arrayLength < 2) {
+    return block;
+  }
+  if (pageBuilder.isFull()) {
+    pageBuilder.reset();
+  }
+  BlockBuilder blockBuilder=pageBuilder.getBlockBuilder(0);
+  for (int i=arrayLength - 1; i >= 0; i--) {
+    type.appendTo(block,i,blockBuilder);
+  }
+  pageBuilder.declarePositions(arrayLength);
+  return blockBuilder.getRegion(blockBuilder.getPositionCount() - arrayLength,arrayLength);
+}
