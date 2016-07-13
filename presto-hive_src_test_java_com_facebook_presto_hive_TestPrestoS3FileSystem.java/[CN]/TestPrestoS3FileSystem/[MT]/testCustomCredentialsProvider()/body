@@ -1,0 +1,9 @@
+{
+  Configuration config=new Configuration();
+  config.set(S3_USE_INSTANCE_CREDENTIALS,"false");
+  config.set(S3_CREDENTIALS_PROVIDER,TestCredentialsProvider.class.getName());
+  try (PrestoS3FileSystem fs=new PrestoS3FileSystem()){
+    fs.initialize(new URI("s3n://test-bucket/"),config);
+    assertInstanceOf(getAwsCredentialsProvider(fs),TestCredentialsProvider.class);
+  }
+ }
