@@ -8,11 +8,11 @@
   }
   Optional<List<Symbol>> requiredPartitionColumns=requiredProperties.getPartitioningColumns();
   if (!requiredPartitionColumns.isPresent()) {
-    ExchangeNode exchangeNode=partitionedExchange(idAllocator.getNextId(),LOCAL,planWithProperties.getNode(),new PartitioningScheme(fixedRandomPartitioning(getTaskConcurrency(session)),planWithProperties.getNode().getOutputSymbols()));
+    ExchangeNode exchangeNode=partitionedExchange(idAllocator.getNextId(),LOCAL,planWithProperties.getNode(),new PartitioningScheme(Partitioning.create(FIXED_RANDOM_DISTRIBUTION,ImmutableList.of()),planWithProperties.getNode().getOutputSymbols()));
     return deriveProperties(exchangeNode,planWithProperties.getProperties());
   }
   if (requiredProperties.isParallelPreferred()) {
-    ExchangeNode exchangeNode=partitionedExchange(idAllocator.getNextId(),LOCAL,planWithProperties.getNode(),requiredPartitionColumns.get(),Optional.empty(),requiredProperties.getStreamCount().orElse(getTaskConcurrency(session)));
+    ExchangeNode exchangeNode=partitionedExchange(idAllocator.getNextId(),LOCAL,planWithProperties.getNode(),requiredPartitionColumns.get(),Optional.empty());
     return deriveProperties(exchangeNode,planWithProperties.getProperties());
   }
   ExchangeNode exchangeNode=gatheringExchange(idAllocator.getNextId(),LOCAL,planWithProperties.getNode());
