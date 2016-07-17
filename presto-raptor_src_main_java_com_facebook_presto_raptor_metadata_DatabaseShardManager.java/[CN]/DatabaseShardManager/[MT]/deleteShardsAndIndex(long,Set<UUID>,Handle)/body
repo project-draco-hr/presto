@@ -1,12 +1,18 @@
 {
   String args=Joiner.on(",").join(nCopies(shardUuids.size(),"?"));
   ImmutableSet.Builder<Long> shardIdSet=ImmutableSet.builder();
-  String selectShardNodes=format("SELECT shard_id FROM %s WHERE shard_uuid IN (%s)",shardIndexTable(tableId),args);
-  try (PreparedStatement statement=handle.getConnection().prepareStatement(selectShardNodes)){
+  long rowCount=0;
+  long compressedSize=0;
+  long uncompressedSize=0;
+  String selectShards=format("" + "SELECT shard_id, row_count, compressed_size, uncompressed_size\n" + "FROM shards\n"+ "WHERE shard_uuid IN (%s)",args);
+  try (PreparedStatement statement=handle.getConnection().prepareStatement(selectShards)){
     bindUuids(statement,shardUuids);
     try (ResultSet rs=statement.executeQuery()){
       while (rs.next()) {
         shardIdSet.add(rs.getLong("shard_id"));
+        rowCount+=rs.getLong("row_count");
+        compressedSize+=rs.getLong("compressed_size");
+        uncompressedSize+=rs.getLong("uncompressed_size");
       }
     }
    }
@@ -32,4 +38,5 @@
       }
     }
    }
+  return new ShardStats(rowCount,compressedSize,uncompressedSize);
 }
