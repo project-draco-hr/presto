@@ -7,7 +7,8 @@
     type=((Failure)failure).getType();
   }
  else {
-    type=failure.getClass().getCanonicalName();
+    Class<?> clazz=failure.getClass();
+    type=firstNonNull(clazz.getCanonicalName(),clazz.getName());
   }
   return new ExecutionFailureInfo(type,failure.getMessage(),toFailure(failure.getCause()),toFailures(asList(failure.getSuppressed())),Lists.transform(asList(failure.getStackTrace()),toStringFunction()),getErrorLocation(failure),toErrorCode(failure));
 }
