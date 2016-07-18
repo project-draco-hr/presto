@@ -42,16 +42,7 @@
  else {
       pageBuilder.getBlockBuilder(2).appendNull();
     }
-    if (!sortColumnNames.isEmpty()) {
-      BlockBuilder orderingColumnsBlockBuilder=pageBuilder.getBlockBuilder(3).beginBlockEntry();
-      for (      String sortColumnName : sortColumnNames.values()) {
-        VARCHAR.writeSlice(orderingColumnsBlockBuilder,utf8Slice(sortColumnName));
-      }
-      pageBuilder.getBlockBuilder(3).closeEntry();
-    }
- else {
-      pageBuilder.getBlockBuilder(3).appendNull();
-    }
+    writeArray(pageBuilder.getBlockBuilder(3),sortColumnNames.values());
     Optional<String> distributionName=tableRow.getDistributionName();
     if (distributionName.isPresent()) {
       VARCHAR.writeSlice(pageBuilder.getBlockBuilder(4),utf8Slice(distributionName.get()));
@@ -66,16 +57,7 @@
  else {
       pageBuilder.getBlockBuilder(5).appendNull();
     }
-    if (!bucketColumnNames.isEmpty()) {
-      BlockBuilder bucketColumnsBlockBuilder=pageBuilder.getBlockBuilder(6).beginBlockEntry();
-      for (      String bucketColumnName : bucketColumnNames.values()) {
-        VARCHAR.writeSlice(bucketColumnsBlockBuilder,utf8Slice(bucketColumnName));
-      }
-      pageBuilder.getBlockBuilder(6).closeEntry();
-    }
- else {
-      pageBuilder.getBlockBuilder(6).appendNull();
-    }
+    writeArray(pageBuilder.getBlockBuilder(6),bucketColumnNames.values());
     if (pageBuilder.isFull()) {
       flushPage(pageBuilder,pages);
     }
