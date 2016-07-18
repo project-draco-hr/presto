@@ -1,0 +1,16 @@
+{
+  if (state.getBlock() == null) {
+    state.setBlock(otherState.getBlock());
+    return;
+  }
+  try {
+    if ((boolean)methodHandle.invokeExact(otherState.getBlock(),state.getBlock())) {
+      state.setBlock(otherState.getBlock());
+    }
+  }
+ catch (  Throwable t) {
+    Throwables.propagateIfInstanceOf(t,Error.class);
+    Throwables.propagateIfInstanceOf(t,PrestoException.class);
+    throw new PrestoException(GENERIC_INTERNAL_ERROR,t);
+  }
+}

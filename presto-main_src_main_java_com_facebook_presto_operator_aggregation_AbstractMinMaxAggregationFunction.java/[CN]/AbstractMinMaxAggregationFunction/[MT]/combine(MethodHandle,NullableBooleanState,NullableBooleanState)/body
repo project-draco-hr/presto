@@ -1,0 +1,17 @@
+{
+  if (state.isNull()) {
+    state.setNull(false);
+    state.setBoolean(otherState.getBoolean());
+    return;
+  }
+  try {
+    if ((boolean)methodHandle.invokeExact(otherState.getBoolean(),state.getBoolean())) {
+      state.setBoolean(otherState.getBoolean());
+    }
+  }
+ catch (  Throwable t) {
+    Throwables.propagateIfInstanceOf(t,Error.class);
+    Throwables.propagateIfInstanceOf(t,PrestoException.class);
+    throw new PrestoException(GENERIC_INTERNAL_ERROR,t);
+  }
+}
