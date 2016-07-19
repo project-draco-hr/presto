@@ -1,0 +1,15 @@
+{
+  List<Type> types1=ImmutableList.of(BIGINT);
+  ShardRange range1=ShardRange.of(new Tuple(types1,2L),new Tuple(types1,5L));
+  ShardRange enclosesRange1=ShardRange.of(new Tuple(types1,1L),new Tuple(types1,10L));
+  ShardRange notEnclosesRange1=ShardRange.of(new Tuple(types1,1L),new Tuple(types1,4L));
+  assertTrue(enclosesRange1.encloses(range1));
+  assertFalse(notEnclosesRange1.encloses(range1));
+  List<Type> types2=ImmutableList.of(BIGINT,VARCHAR);
+  ShardRange range2=ShardRange.of(new Tuple(types2,2L,"aaa"),new Tuple(types2,5L,"ccc"));
+  ShardRange enclosesRange2=ShardRange.of(new Tuple(types2,1L,"ccc"),new Tuple(types2,10L,"ccc"));
+  ShardRange notEnclosesRange2=ShardRange.of(new Tuple(types2,2L,"aaa"),new Tuple(types2,5L,"bbb"));
+  assertTrue(range2.encloses(range2));
+  assertTrue(enclosesRange2.encloses(range2));
+  assertFalse(notEnclosesRange2.encloses(range2));
+}

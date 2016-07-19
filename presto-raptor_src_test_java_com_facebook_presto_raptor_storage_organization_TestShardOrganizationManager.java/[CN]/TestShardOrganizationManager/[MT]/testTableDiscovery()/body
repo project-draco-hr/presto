@@ -1,0 +1,18 @@
+{
+  long table1=metadataDao.insertTable("schema","table1",false,true,null,0);
+  metadataDao.insertColumn(table1,1,"foo",1,"bigint",1,null);
+  long table2=metadataDao.insertTable("schema","table2",false,true,null,0);
+  metadataDao.insertColumn(table2,1,"foo",1,"bigint",1,null);
+  metadataDao.insertTable("schema","table3",false,false,null,0);
+  long intervalMillis=100;
+  ShardOrganizationManager organizationManager=createShardOrganizationManager(intervalMillis);
+  Set<Long> actual=organizationManager.discoverAndInitializeTablesToOrganize();
+  assertEquals(actual,ImmutableSet.of(table1,table2));
+  organizerDao.updateLastStartTime("node1",table1,System.currentTimeMillis());
+  organizerDao.updateLastStartTime("node1",table2,System.currentTimeMillis());
+  long start=System.nanoTime();
+  while (organizationManager.discoverAndInitializeTablesToOrganize().isEmpty() && nanosSince(start).toMillis() < intervalMillis + 1000) {
+    MILLISECONDS.sleep(10);
+  }
+  assertEquals(organizationManager.discoverAndInitializeTablesToOrganize(),ImmutableSet.of(table1,table2));
+}
