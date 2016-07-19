@@ -1,0 +1,19 @@
+{
+  this.outputType=requireNonNull(outputType);
+  this.inputMetadata=ImmutableList.copyOf(requireNonNull(inputMetadata,"inputMetadata is null"));
+  this.name=requireNonNull(name,"name is null");
+  this.inputFunction=requireNonNull(inputFunction,"inputFunction is null");
+  this.combineFunction=requireNonNull(combineFunction,"combineFunction is null");
+  this.outputFunction=requireNonNull(outputFunction,"outputFunction is null");
+  this.stateSerializer=requireNonNull(stateSerializer,"stateSerializer is null");
+  this.stateFactory=requireNonNull(stateFactory,"stateFactory is null");
+  this.approximate=approximate;
+  verifyInputFunctionSignature(inputFunction,inputMetadata,stateInterface);
+  verifyCombineFunction(combineFunction,stateInterface);
+  if (approximate) {
+    verifyApproximateOutputFunction(outputFunction,stateInterface);
+  }
+ else {
+    verifyExactOutputFunction(outputFunction,stateInterface);
+  }
+}
