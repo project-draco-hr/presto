@@ -1,6 +1,6 @@
 {
   assertUpdate("" + "CREATE TABLE test_show_columns_partition_key\n" + "(grape bigint, orange bigint, pear varchar(65535), mango integer, lychee smallint, kiwi tinyint, apple varchar, pineapple varchar(65535))\n"+ "WITH (partitioned_by = ARRAY['apple', 'pineapple'])");
   MaterializedResult actual=computeActual("SHOW COLUMNS FROM test_show_columns_partition_key");
-  MaterializedResult expected=resultBuilder(getSession(),createUnboundedVarcharType(),createUnboundedVarcharType(),createUnboundedVarcharType()).row("grape","bigint","").row("orange","bigint","").row("pear","varchar(65535)","").row("mango","integer","").row("lychee","smallint","").row("kiwi","tinyint","").row("apple","varchar","Partition Key").row("pineapple","varchar(65535)","Partition Key").build();
+  MaterializedResult expected=resultBuilder(getSession(),canonicalizeType(createUnboundedVarcharType()),canonicalizeType(createUnboundedVarcharType()),canonicalizeType(createUnboundedVarcharType())).row("grape",canonicalizeTypeName("bigint"),"").row("orange",canonicalizeTypeName("bigint"),"").row("pear",canonicalizeTypeName("varchar(65535)"),"").row("mango",canonicalizeTypeName("integer"),"").row("lychee",canonicalizeTypeName("smallint"),"").row("kiwi",canonicalizeTypeName("tinyint"),"").row("apple",canonicalizeTypeName("varchar"),"Partition Key").row("pineapple",canonicalizeTypeName("varchar(65535)"),"Partition Key").build();
   assertEquals(actual,expected);
 }
