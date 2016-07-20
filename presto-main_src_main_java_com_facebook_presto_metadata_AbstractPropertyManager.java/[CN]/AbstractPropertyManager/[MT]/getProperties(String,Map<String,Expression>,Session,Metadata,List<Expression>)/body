@@ -1,0 +1,39 @@
+{
+  Map<String,PropertyMetadata<?>> supportedProperties=catalogProperties.get(catalog);
+  if (supportedProperties == null) {
+    throw new PrestoException(NOT_FOUND,"Catalog not found: " + catalog);
+  }
+  ImmutableMap.Builder<String,Object> properties=ImmutableMap.builder();
+  for (  Map.Entry<String,Expression> sqlProperty : sqlPropertyValues.entrySet()) {
+    String propertyName=sqlProperty.getKey().toLowerCase(ENGLISH);
+    PropertyMetadata<?> property=supportedProperties.get(propertyName);
+    if (property == null) {
+      throw new PrestoException(propertyError,format("Catalog '%s' does not support %s property '%s'",catalog,propertyType,propertyName));
+    }
+    Object sqlObjectValue;
+    try {
+      sqlObjectValue=evaluatePropertyValue(sqlProperty.getValue(),property.getSqlType(),session,metadata,parameters);
+    }
+ catch (    SemanticException e) {
+      throw new PrestoException(propertyError,format("Invalid value for %s property '%s': Cannot convert '%s' to %s",propertyType,property.getName(),sqlProperty.getValue(),property.getSqlType()),e);
+    }
+    Object value;
+    try {
+      value=property.decode(sqlObjectValue);
+    }
+ catch (    Exception e) {
+      throw new PrestoException(propertyError,format("Unable to set %s property '%s' to '%s': %s",propertyType,property.getName(),sqlProperty.getValue(),e.getMessage()),e);
+    }
+    properties.put(property.getName(),value);
+  }
+  Map<String,Object> userSpecifiedProperties=properties.build();
+  for (  PropertyMetadata<?> propertyMetadata : supportedProperties.values()) {
+    if (!userSpecifiedProperties.containsKey(propertyMetadata.getName())) {
+      Object value=propertyMetadata.getDefaultValue();
+      if (value != null) {
+        properties.put(propertyMetadata.getName(),value);
+      }
+    }
+  }
+  return properties.build();
+}
