@@ -5,10 +5,7 @@
   }
  else {
     DecimalType columnType=(DecimalType)types[column];
-    BigDecimal decimal=new BigDecimal(new String(bytes,start,length,UTF_8));
-    checkState(decimal.scale() <= columnType.getScale(),"Read decimal value scale larger than column scale");
-    decimal=decimal.setScale(columnType.getScale(),ROUND_HALF_UP);
-    checkState(decimal.precision() <= columnType.getPrecision(),"Read decimal precision larger than column precision");
+    BigDecimal decimal=rescale(new BigDecimal(new String(bytes,start,length,UTF_8)),columnType);
     if (columnType.isShort()) {
       longs[column]=decimal.unscaledValue().longValue();
     }
