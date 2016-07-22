@@ -1,0 +1,25 @@
+{
+  ConnectorAccessControl accessControl=createAccessControl("session_property.json");
+  accessControl.checkCanSetCatalogSessionProperty(user("admin"),"dangerous");
+  accessControl.checkCanSetCatalogSessionProperty(user("alice"),"safe");
+  accessControl.checkCanSetCatalogSessionProperty(user("alice"),"unsafe");
+  accessControl.checkCanSetCatalogSessionProperty(user("bob"),"safe");
+  try {
+    accessControl.checkCanSetCatalogSessionProperty(user("bob"),"unsafe");
+    fail();
+  }
+ catch (  AccessDeniedException e) {
+  }
+  try {
+    accessControl.checkCanSetCatalogSessionProperty(user("alice"),"dangerous");
+    fail();
+  }
+ catch (  AccessDeniedException e) {
+  }
+  try {
+    accessControl.checkCanSetCatalogSessionProperty(user("charlie"),"safe");
+    fail();
+  }
+ catch (  AccessDeniedException e) {
+  }
+}

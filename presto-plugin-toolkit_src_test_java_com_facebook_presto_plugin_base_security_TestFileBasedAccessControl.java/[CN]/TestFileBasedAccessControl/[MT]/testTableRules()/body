@@ -1,0 +1,34 @@
+{
+  ConnectorAccessControl accessControl=createAccessControl("table.json");
+  accessControl.checkCanSelectFromTable(TRANSACTION_HANDLE,user("alice"),SchemaTableName.valueOf("test.test"));
+  accessControl.checkCanSelectFromTable(TRANSACTION_HANDLE,user("alice"),SchemaTableName.valueOf("bobschema.bobtable"));
+  accessControl.checkCanSelectFromTable(TRANSACTION_HANDLE,user("bob"),SchemaTableName.valueOf("bobschema.bobtable"));
+  accessControl.checkCanInsertIntoTable(TRANSACTION_HANDLE,user("bob"),SchemaTableName.valueOf("bobschema.bobtable"));
+  accessControl.checkCanDeleteFromTable(TRANSACTION_HANDLE,user("bob"),SchemaTableName.valueOf("bobschema.bobtable"));
+  accessControl.checkCanCreateViewWithSelectFromTable(TRANSACTION_HANDLE,user("bob"),SchemaTableName.valueOf("bobschema.bobtable"));
+  accessControl.checkCanDropTable(TRANSACTION_HANDLE,user("admin"),SchemaTableName.valueOf("bobschema.bobtable"));
+  try {
+    accessControl.checkCanInsertIntoTable(TRANSACTION_HANDLE,user("alice"),SchemaTableName.valueOf("bobschema.bobtable"));
+    fail();
+  }
+ catch (  AccessDeniedException e) {
+  }
+  try {
+    accessControl.checkCanDropTable(TRANSACTION_HANDLE,user("bob"),SchemaTableName.valueOf("bobschema.bobtable"));
+    fail();
+  }
+ catch (  AccessDeniedException e) {
+  }
+  try {
+    accessControl.checkCanInsertIntoTable(TRANSACTION_HANDLE,user("bob"),SchemaTableName.valueOf("test.test"));
+    fail();
+  }
+ catch (  AccessDeniedException e) {
+  }
+  try {
+    accessControl.checkCanSelectFromTable(TRANSACTION_HANDLE,user("admin"),SchemaTableName.valueOf("secret.secret"));
+    fail();
+  }
+ catch (  AccessDeniedException e) {
+  }
+}

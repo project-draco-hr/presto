@@ -1,0 +1,12 @@
+{
+  if (INFORMATION_SCHEMA_NAME.equals(tableName.getSchemaName())) {
+    return true;
+  }
+  for (  TableAccessControlRule rule : tableRules) {
+    Optional<Set<TablePrivilege>> tablePrivileges=rule.match(identity.getUser(),tableName);
+    if (tablePrivileges.isPresent()) {
+      return tablePrivileges.get().containsAll(ImmutableSet.copyOf(requiredPrivileges));
+    }
+  }
+  return false;
+}

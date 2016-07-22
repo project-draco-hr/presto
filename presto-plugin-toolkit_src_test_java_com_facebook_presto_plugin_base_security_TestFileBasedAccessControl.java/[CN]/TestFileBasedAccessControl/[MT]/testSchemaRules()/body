@@ -1,0 +1,17 @@
+{
+  ConnectorAccessControl accessControl=createAccessControl("schema.json");
+  accessControl.checkCanCreateTable(TRANSACTION_HANDLE,user("admin"),SchemaTableName.valueOf("test.test"));
+  accessControl.checkCanCreateTable(TRANSACTION_HANDLE,user("bob"),SchemaTableName.valueOf("bob.test"));
+  try {
+    accessControl.checkCanCreateTable(TRANSACTION_HANDLE,user("bob"),SchemaTableName.valueOf("test.test"));
+    fail();
+  }
+ catch (  AccessDeniedException e) {
+  }
+  try {
+    accessControl.checkCanCreateTable(TRANSACTION_HANDLE,user("admin"),SchemaTableName.valueOf("secret.test"));
+    fail();
+  }
+ catch (  AccessDeniedException e) {
+  }
+}
