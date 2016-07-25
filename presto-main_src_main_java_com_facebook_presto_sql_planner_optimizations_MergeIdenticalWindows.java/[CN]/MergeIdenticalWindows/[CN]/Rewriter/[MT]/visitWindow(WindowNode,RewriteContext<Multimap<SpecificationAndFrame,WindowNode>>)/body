@@ -1,0 +1,7 @@
+{
+  checkState(!node.getHashSymbol().isPresent(),"MergeIdenticalWindows should be run before HashGenerationOptimizer");
+  checkState(node.getPrePartitionedInputs().isEmpty() && node.getPreSortedOrderPrefix() == 0,"MergeIdenticalWindows should be run before AddExchanges");
+  checkState(node.getWindowFunctions().values().stream().distinct().count() == 1,"Frames expected to be identical");
+  SpecificationAndFrame specificationAndFrame=new SpecificationAndFrame(node.getSpecification(),node.getFrames().iterator().next());
+  return context.rewrite(node.getSource(),ImmutableListMultimap.<SpecificationAndFrame,WindowNode>builder().put(specificationAndFrame,node).putAll(context.get()).build());
+}

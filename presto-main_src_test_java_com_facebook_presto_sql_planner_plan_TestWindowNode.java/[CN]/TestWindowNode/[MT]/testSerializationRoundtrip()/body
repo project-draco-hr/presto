@@ -1,0 +1,21 @@
+{
+  Symbol windowSymbol=symbolAllocator.newSymbol("sum",BIGINT);
+  Signature signature=new Signature("sum",FunctionKind.WINDOW,ImmutableList.of(),ImmutableList.of(),BIGINT.getTypeSignature(),ImmutableList.of(BIGINT.getTypeSignature()),false);
+  FunctionCall functionCall=new FunctionCall(QualifiedName.of("sum"),ImmutableList.of(columnC.toSymbolReference()));
+  WindowNode.Frame frame=new WindowNode.Frame(WindowFrame.Type.RANGE,FrameBound.Type.UNBOUNDED_PRECEDING,Optional.empty(),FrameBound.Type.UNBOUNDED_FOLLOWING,Optional.empty());
+  PlanNodeId id=newId();
+  WindowNode.Specification specification=new WindowNode.Specification(ImmutableList.of(columnA),ImmutableList.of(columnB),ImmutableMap.of(columnB,SortOrder.ASC_NULLS_FIRST));
+  Map<Symbol,WindowNode.Function> functions=ImmutableMap.of(windowSymbol,new WindowNode.Function(functionCall,signature,frame));
+  Optional<Symbol> hashSymbol=Optional.of(columnB);
+  Set<Symbol> prePartitionedInputs=ImmutableSet.of(columnA);
+  WindowNode windowNode=new WindowNode(id,sourceNode,specification,functions,hashSymbol,prePartitionedInputs,0);
+  String json=objectMapper.writeValueAsString(windowNode);
+  WindowNode actualNode=objectMapper.readValue(json,WindowNode.class);
+  assertEquals(actualNode.getId(),windowNode.getId());
+  assertEquals(actualNode.getSpecification(),windowNode.getSpecification());
+  assertEquals(actualNode.getWindowFunctions(),windowNode.getWindowFunctions());
+  assertEquals(actualNode.getFrames(),windowNode.getFrames());
+  assertEquals(actualNode.getHashSymbol(),windowNode.getHashSymbol());
+  assertEquals(actualNode.getPrePartitionedInputs(),windowNode.getPrePartitionedInputs());
+  assertEquals(actualNode.getPreSortedOrderPrefix(),windowNode.getPreSortedOrderPrefix());
+}

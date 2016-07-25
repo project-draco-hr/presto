@@ -1,0 +1,15 @@
+{
+  this.pagesIndex=pagesIndex;
+  this.partitionStart=partitionStart;
+  this.partitionEnd=partitionEnd;
+  this.outputChannels=outputChannels;
+  this.windowFunctions=windowFunctions;
+  this.frameInfo=assertSingleFrame(windowFunctions);
+  this.peerGroupHashStrategy=peerGroupHashStrategy;
+  WindowIndex windowIndex=new PagesWindowIndex(pagesIndex,partitionStart,partitionEnd);
+  for (  FramedWindowFunction framedWindowFunction : windowFunctions) {
+    framedWindowFunction.getFunction().reset(windowIndex);
+  }
+  currentPosition=partitionStart;
+  updatePeerGroup();
+}
