@@ -1,19 +1,3 @@
 {
-  execute("CREATE TABLE tpch.mysql_test_parameterized_varchar (" + "text_a tinytext, " + "text_b text, "+ "text_c mediumtext, "+ "text_d longtext, "+ "text_e varchar(32), "+ "text_f varchar(20000)"+ ")");
-  execute("INSERT INTO tpch.mysql_test_parameterized_varchar VALUES('a', 'b', 'c', 'd', 'e', 'f')");
-  MaterializedResult materializedRows=computeActual("SELECT * from mysql_test_parameterized_varchar");
-  assertEquals(materializedRows.getTypes().get(0),createVarcharType(255));
-  assertEquals(materializedRows.getTypes().get(1),createVarcharType(65535));
-  assertEquals(materializedRows.getTypes().get(2),createVarcharType(16777215));
-  assertEquals(materializedRows.getTypes().get(3),createUnboundedVarcharType());
-  assertEquals(materializedRows.getTypes().get(4),createVarcharType(32));
-  assertEquals(materializedRows.getTypes().get(5),createVarcharType(20000));
-  MaterializedRow row=getOnlyElement(materializedRows);
-  assertEquals(row.getField(0),"a");
-  assertEquals(row.getField(1),"b");
-  assertEquals(row.getField(2),"c");
-  assertEquals(row.getField(3),"d");
-  assertEquals(row.getField(4),"e");
-  assertEquals(row.getField(5),"f");
-  assertUpdate("DROP TABLE mysql_test_parameterized_varchar");
+  DataTypeTest.create().addRoundTrip(stringDataType("tinytext",createVarcharType(255)),"a").addRoundTrip(stringDataType("text",createVarcharType(65535)),"b").addRoundTrip(stringDataType("mediumtext",createVarcharType(16777215)),"c").addRoundTrip(stringDataType("longtext",createUnboundedVarcharType()),"d").addRoundTrip(varcharDataType(32),"e").addRoundTrip(varcharDataType(20000),"f").execute(queryRunner,mysqlCreateAndInsert("tpch.mysql_test_parameterized_varchar"));
 }
