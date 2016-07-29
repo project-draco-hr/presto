@@ -1,6 +1,15 @@
 {
   com.facebook.presto.sql.tree.Query createSelectClause=createTableAsSelect.getQuery();
-  com.facebook.presto.sql.tree.Query zeroRowsQuery=new com.facebook.presto.sql.tree.Query(createSelectClause.getWith(),createSelectClause.getQueryBody(),ImmutableList.of(),Optional.of("0"),createSelectClause.getApproximate());
+  QueryBody innerQuery=createSelectClause.getQueryBody();
+  com.facebook.presto.sql.tree.Query zeroRowsQuery;
+  if (innerQuery instanceof QuerySpecification) {
+    QuerySpecification querySpecification=(QuerySpecification)innerQuery;
+    innerQuery=new QuerySpecification(querySpecification.getSelect(),querySpecification.getFrom(),querySpecification.getWhere(),querySpecification.getGroupBy(),querySpecification.getHaving(),querySpecification.getOrderBy(),Optional.of("0"));
+    zeroRowsQuery=new com.facebook.presto.sql.tree.Query(createSelectClause.getWith(),innerQuery,ImmutableList.of(),Optional.empty(),createSelectClause.getApproximate());
+  }
+ else {
+    zeroRowsQuery=new com.facebook.presto.sql.tree.Query(createSelectClause.getWith(),innerQuery,ImmutableList.of(),Optional.of("0"),createSelectClause.getApproximate());
+  }
   ImmutableList.Builder<Column> columns=ImmutableList.builder();
   try (java.sql.Statement jdbcStatement=connection.createStatement()){
     TimeLimiter limiter=new SimpleTimeLimiter();
