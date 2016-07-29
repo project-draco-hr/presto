@@ -1,0 +1,17 @@
+{
+  JobConf conf=new JobConf(hdfsEnvironment.getConfiguration(path));
+  boolean compress=HiveConf.getBoolVar(conf,COMPRESSRESULT);
+  Properties schema;
+  String outputFormat;
+  if (partition.isPresent()) {
+    schema=getHiveSchema(partition.get(),table);
+    outputFormat=partition.get().getStorage().getStorageFormat().getOutputFormat();
+  }
+ else {
+    schema=getHiveSchema(table);
+    outputFormat=table.getStorage().getStorageFormat().getOutputFormat();
+  }
+  for (  String fileName : fileNames) {
+    writeEmptyFile(new Path(path,fileName),conf,compress,schema,outputFormat);
+  }
+}
