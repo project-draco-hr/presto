@@ -1,0 +1,17 @@
+{
+  int variableArityArgumentsCount=actualArity - formalTypeSignatures.size() + 1;
+  if (variableArityArgumentsCount == 0) {
+    return formalTypeSignatures.subList(0,formalTypeSignatures.size() - 1);
+  }
+  if (variableArityArgumentsCount == 1) {
+    return formalTypeSignatures;
+  }
+  checkArgument(variableArityArgumentsCount > 1 && !formalTypeSignatures.isEmpty());
+  ImmutableList.Builder<TypeSignature> builder=ImmutableList.builder();
+  builder.addAll(formalTypeSignatures);
+  TypeSignature lastTypeSignature=formalTypeSignatures.get(formalTypeSignatures.size() - 1);
+  for (int i=1; i < variableArityArgumentsCount; i++) {
+    builder.add(lastTypeSignature);
+  }
+  return builder.build();
+}

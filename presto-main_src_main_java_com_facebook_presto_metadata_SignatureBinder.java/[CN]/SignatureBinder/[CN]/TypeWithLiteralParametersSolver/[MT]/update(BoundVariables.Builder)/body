@@ -1,0 +1,52 @@
+{
+  ImmutableList.Builder<TypeSignatureParameter> originalTypeTypeParametersBuilder=ImmutableList.builder();
+  List<TypeSignatureParameter> parameters=formalTypeSignature.getParameters();
+  for (int i=0; i < parameters.size(); i++) {
+    TypeSignatureParameter typeSignatureParameter=parameters.get(i);
+    if (typeSignatureParameter.getKind() == ParameterKind.VARIABLE) {
+      if (bindings.containsLongVariable(typeSignatureParameter.getVariable())) {
+        originalTypeTypeParametersBuilder.add(TypeSignatureParameter.of(bindings.getLongVariable(typeSignatureParameter.getVariable())));
+      }
+ else {
+        Optional<Type> type=typeManager.coerceTypeBase(actualType,formalTypeSignature.getBase());
+        if (!type.isPresent()) {
+          return SolverReturnStatus.UNSOLVABLE;
+        }
+        TypeSignature typeSignature=type.get().getTypeSignature();
+        originalTypeTypeParametersBuilder.add(TypeSignatureParameter.of(typeSignature.getParameters().get(i).getLongLiteral()));
+      }
+    }
+ else {
+      verify(typeSignatureParameter.getKind() == ParameterKind.LONG);
+      originalTypeTypeParametersBuilder.add(typeSignatureParameter);
+    }
+  }
+  Type originalType=typeManager.getType(new TypeSignature(formalTypeSignature.getBase(),originalTypeTypeParametersBuilder.build()));
+  Optional<Type> commonSuperType=typeManager.getCommonSuperType(originalType,actualType);
+  if (!commonSuperType.isPresent()) {
+    return SolverReturnStatus.UNSOLVABLE;
+  }
+  TypeSignature commonSuperTypeSignature=commonSuperType.get().getTypeSignature();
+  if (!commonSuperTypeSignature.getBase().equals(formalTypeSignature.getBase())) {
+    return SolverReturnStatus.UNSOLVABLE;
+  }
+  SolverReturnStatus result=SolverReturnStatus.UNCHANGED_SATISFIED;
+  for (int i=0; i < parameters.size(); i++) {
+    TypeSignatureParameter typeSignatureParameter=parameters.get(i);
+    long commonSuperLongLiteral=commonSuperTypeSignature.getParameters().get(i).getLongLiteral();
+    if (typeSignatureParameter.getKind() == ParameterKind.VARIABLE) {
+      String variableName=typeSignatureParameter.getVariable();
+      if (!bindings.containsLongVariable(variableName) || !bindings.getLongVariable(variableName).equals(commonSuperLongLiteral)) {
+        bindings.setLongVariable(variableName,commonSuperLongLiteral);
+        result=SolverReturnStatus.CHANGED;
+      }
+    }
+ else {
+      verify(typeSignatureParameter.getKind() == ParameterKind.LONG);
+      if (commonSuperLongLiteral != typeSignatureParameter.getLongLiteral()) {
+        return SolverReturnStatus.UNSOLVABLE;
+      }
+    }
+  }
+  return result;
+}

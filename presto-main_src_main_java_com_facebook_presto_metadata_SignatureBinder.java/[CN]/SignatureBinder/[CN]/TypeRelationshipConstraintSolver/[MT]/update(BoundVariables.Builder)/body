@@ -1,0 +1,19 @@
+{
+  for (  String variable : typeVariables) {
+    if (!bindings.containsTypeVariable(variable)) {
+      return SolverReturnStatus.UNCHANGED_NOT_SATISFIED;
+    }
+  }
+  for (  String variable : longVariables) {
+    if (!bindings.containsLongVariable(variable)) {
+      return SolverReturnStatus.UNCHANGED_NOT_SATISFIED;
+    }
+  }
+  TypeSignature boundSignature=applyBoundVariables(superTypeSignature,bindings.build());
+  if (allowCoercion) {
+    return typeManager.canCoerce(actualType,typeManager.getType(boundSignature)) ? SolverReturnStatus.UNCHANGED_SATISFIED : SolverReturnStatus.UNSOLVABLE;
+  }
+ else {
+    return actualType.getTypeSignature().equals(boundSignature) ? SolverReturnStatus.UNCHANGED_SATISFIED : SolverReturnStatus.UNSOLVABLE;
+  }
+}

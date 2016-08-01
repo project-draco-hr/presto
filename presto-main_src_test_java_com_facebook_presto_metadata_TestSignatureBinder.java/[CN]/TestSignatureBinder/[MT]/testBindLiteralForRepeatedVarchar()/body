@@ -1,0 +1,9 @@
+{
+  Set<String> literalParameters=ImmutableSet.of("x");
+  TypeSignature leftType=parseTypeSignature("varchar(x)",literalParameters);
+  TypeSignature rightType=parseTypeSignature("varchar(x)",literalParameters);
+  TypeSignature returnType=parseTypeSignature("varchar(x)",literalParameters);
+  Signature function=functionSignature().returnType(returnType).argumentTypes(leftType,rightType).build();
+  assertThat(function).withCoercion().boundTo(ImmutableList.of("varchar(3)","varchar(5)"),"varchar(5)").produces(new BoundVariables(ImmutableMap.of(),ImmutableMap.of("x",5L)));
+  assertThat(function).withCoercion().boundTo(ImmutableList.of("varchar(3)","varchar(5)"),"varchar(6)").produces(new BoundVariables(ImmutableMap.of(),ImmutableMap.of("x",6L)));
+}

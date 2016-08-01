@@ -1,0 +1,8 @@
+{
+  Signature function=functionSignature().returnType(BOOLEAN.getTypeSignature()).argumentTypes(parseTypeSignature("row(bigint)")).build();
+  assertThat(function).boundTo("row(bigint)").withCoercion().produces(new BoundVariables(ImmutableMap.of(),ImmutableMap.of()));
+  assertThat(function).boundTo("row(integer)").withCoercion().fails();
+  Signature biFunction=functionSignature().returnType(BOOLEAN.getTypeSignature()).argumentTypes(parseTypeSignature("row(T)"),parseTypeSignature("row(T)")).typeVariableConstraints(ImmutableList.of(typeVariable("T"))).build();
+  assertThat(biFunction).boundTo("row(bigint)","row(bigint)").withCoercion().produces(new BoundVariables(ImmutableMap.of("T",type("bigint")),ImmutableMap.of()));
+  assertThat(biFunction).boundTo("row(integer)","row(bigint)").withCoercion().fails();
+}

@@ -1,0 +1,17 @@
+{
+  boolean variableArity=declaredSignature.isVariableArity();
+  List<TypeSignature> formalTypeSignatures=declaredSignature.getArgumentTypes();
+  if (variableArity) {
+    if (actualTypes.size() < formalTypeSignatures.size() - 1) {
+      return false;
+    }
+    formalTypeSignatures=expandVarargFormalTypeSignature(formalTypeSignatures,actualTypes.size());
+  }
+  if (formalTypeSignatures.size() != actualTypes.size()) {
+    return false;
+  }
+  for (int i=0; i < formalTypeSignatures.size(); i++) {
+    appendTypeRelationshipConstraintSolver(resultBuilder,formalTypeSignatures.get(i),actualTypes.get(i),allowCoercion);
+  }
+  return appendConstraintSolvers(resultBuilder,formalTypeSignatures,actualTypes,allowCoercion);
+}

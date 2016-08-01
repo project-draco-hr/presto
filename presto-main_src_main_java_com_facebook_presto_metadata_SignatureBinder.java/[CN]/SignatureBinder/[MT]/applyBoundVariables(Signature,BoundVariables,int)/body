@@ -1,5 +1,12 @@
 {
-  List<TypeSignature> argumentSignatures=fillInMissingVariableArguments(signature.getArgumentTypes(),arity);
+  List<TypeSignature> argumentSignatures;
+  if (signature.isVariableArity()) {
+    argumentSignatures=expandVarargFormalTypeSignature(signature.getArgumentTypes(),arity);
+  }
+ else {
+    checkArgument(signature.getArgumentTypes().size() == arity);
+    argumentSignatures=signature.getArgumentTypes();
+  }
   List<TypeSignature> boundArgumentSignatures=applyBoundVariables(argumentSignatures,boundVariables);
   TypeSignature boundReturnTypeSignature=applyBoundVariables(signature.getReturnType(),boundVariables);
   return new Signature(signature.getName(),signature.getKind(),ImmutableList.of(),ImmutableList.of(),boundReturnTypeSignature,boundArgumentSignatures,false);

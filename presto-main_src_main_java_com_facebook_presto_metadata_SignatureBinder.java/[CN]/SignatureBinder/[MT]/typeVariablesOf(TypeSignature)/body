@@ -1,0 +1,23 @@
+{
+  if (typeVariableConstraints.containsKey(typeSignature.getBase())) {
+    return ImmutableSet.of(typeSignature.getBase());
+  }
+  Set<String> variables=new HashSet<>();
+  for (  TypeSignatureParameter parameter : typeSignature.getParameters()) {
+switch (parameter.getKind()) {
+case TYPE:
+      variables.addAll(typeVariablesOf(parameter.getTypeSignature()));
+    break;
+case NAMED_TYPE:
+  variables.addAll(typeVariablesOf(parameter.getNamedTypeSignature().getTypeSignature()));
+break;
+case LONG:
+break;
+case VARIABLE:
+break;
+default :
+throw new UnsupportedOperationException();
+}
+}
+return variables;
+}

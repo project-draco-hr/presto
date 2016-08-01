@@ -1,0 +1,9 @@
+{
+  TypeSignature leftType=parseTypeSignature("decimal(p,s)",ImmutableSet.of("p","s"));
+  TypeSignature rightType=parseTypeSignature("decimal(p,s)",ImmutableSet.of("p","s"));
+  Signature function=functionSignature().returnType(parseTypeSignature(StandardTypes.BOOLEAN)).argumentTypes(leftType,rightType).build();
+  assertThat(function).boundTo("decimal(10,5)","decimal(10,5)").produces(new BoundVariables(ImmutableMap.of(),ImmutableMap.of("p",10L,"s",5L)));
+  assertThat(function).boundTo("decimal(10,8)","decimal(9,8)").withCoercion().produces(new BoundVariables(ImmutableMap.of(),ImmutableMap.of("p",10L,"s",8L)));
+  assertThat(function).boundTo("decimal(10,2)","decimal(10,8)").withCoercion().produces(new BoundVariables(ImmutableMap.of(),ImmutableMap.of("p",16L,"s",8L)));
+  assertThat(function).boundTo("unknown","decimal(10,5)").withCoercion().produces(new BoundVariables(ImmutableMap.of(),ImmutableMap.of("p",10L,"s",5L)));
+}

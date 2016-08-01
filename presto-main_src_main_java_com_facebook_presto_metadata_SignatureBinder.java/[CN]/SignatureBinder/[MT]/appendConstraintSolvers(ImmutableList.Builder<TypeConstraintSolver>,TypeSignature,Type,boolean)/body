@@ -1,0 +1,30 @@
+{
+  if (formalTypeSignature.getParameters().isEmpty()) {
+    TypeVariableConstraint typeVariableConstraint=typeVariableConstraints.get(formalTypeSignature.getBase());
+    if (typeVariableConstraint == null) {
+      return true;
+    }
+    resultBuilder.add(new TypeParameterSolver(formalTypeSignature.getBase(),actualType,typeVariableConstraint.isComparableRequired(),typeVariableConstraint.isOrderableRequired(),Optional.ofNullable(typeVariableConstraint.getVariadicBound())));
+    return true;
+  }
+  if (isTypeWithLiteralParameters(formalTypeSignature)) {
+    resultBuilder.add(new TypeWithLiteralParametersSolver(formalTypeSignature,actualType));
+    return true;
+  }
+  List<Type> actualTypeTypeParameters;
+  if (UNKNOWN.equals(actualType)) {
+    actualTypeTypeParameters=Collections.nCopies(formalTypeSignature.getParameters().size(),UNKNOWN);
+  }
+ else {
+    actualTypeTypeParameters=actualType.getTypeParameters();
+  }
+  ImmutableList.Builder<TypeSignature> formalTypeParameterTypeSignatures=ImmutableList.builder();
+  for (  TypeSignatureParameter formalTypeSignatureParameter : formalTypeSignature.getParameters()) {
+    Optional<TypeSignature> typeSignature=formalTypeSignatureParameter.getTypeSignatureOrNamedTypeSignature();
+    if (!typeSignature.isPresent()) {
+      throw new UnsupportedOperationException("Types with both type parameters and literal parameters at the same time are not supported");
+    }
+    formalTypeParameterTypeSignatures.add(typeSignature.get());
+  }
+  return appendConstraintSolvers(resultBuilder,formalTypeParameterTypeSignatures.build(),actualTypeTypeParameters,allowCoercion && isCovariantTypeBase(formalTypeSignature.getBase()));
+}

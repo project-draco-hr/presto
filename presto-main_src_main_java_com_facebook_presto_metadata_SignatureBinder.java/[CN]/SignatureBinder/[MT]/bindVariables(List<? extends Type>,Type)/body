@@ -1,18 +1,10 @@
 {
-  BoundVariables.Builder variableBinder=BoundVariables.builder();
-  TypeSignature expectedReturnTypeSignature=declaredSignature.getReturnType();
-  if (!bind(expectedReturnTypeSignature,actualReturnType,variableBinder)) {
+  ImmutableList.Builder<TypeConstraintSolver> constraintSolvers=ImmutableList.builder();
+  if (!appendConstraintSolversForReturnValue(constraintSolvers,actualReturnType)) {
     return Optional.empty();
   }
-  List<TypeSignature> expectedArgumentSignatures=declaredSignature.getArgumentTypes();
-  boolean variableArity=declaredSignature.isVariableArity();
-  if (!matchArguments(expectedArgumentSignatures,actualArgumentTypes,variableArity,variableBinder)) {
+  if (!appendConstraintSolversForArguments(constraintSolvers,actualArgumentTypes)) {
     return Optional.empty();
   }
-  calculateVariableValuesForLongConstraints(variableBinder);
-  BoundVariables boundVariables=variableBinder.build();
-  if (!allTypeVariablesBound(boundVariables)) {
-    return Optional.empty();
-  }
-  return Optional.of(boundVariables);
+  return iterativeSolve(constraintSolvers.build());
 }

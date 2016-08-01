@@ -1,0 +1,22 @@
+{
+  if (!bindings.containsTypeVariable(typeParameter)) {
+    if (!satisfiesConstraints(actualType)) {
+      return SolverReturnStatus.UNSOLVABLE;
+    }
+    bindings.setTypeVariable(typeParameter,actualType);
+    return SolverReturnStatus.CHANGED;
+  }
+  Type originalType=bindings.getTypeVariable(typeParameter);
+  Optional<Type> commonSuperType=typeManager.getCommonSuperType(originalType,actualType);
+  if (!commonSuperType.isPresent()) {
+    return SolverReturnStatus.UNSOLVABLE;
+  }
+  if (!satisfiesConstraints(commonSuperType.get())) {
+    return SolverReturnStatus.UNSOLVABLE;
+  }
+  if (commonSuperType.get().equals(originalType)) {
+    return SolverReturnStatus.UNCHANGED_SATISFIED;
+  }
+  bindings.setTypeVariable(typeParameter,commonSuperType.get());
+  return SolverReturnStatus.CHANGED;
+}

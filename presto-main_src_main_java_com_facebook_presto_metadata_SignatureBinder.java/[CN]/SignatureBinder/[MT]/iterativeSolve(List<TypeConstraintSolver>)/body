@@ -1,0 +1,34 @@
+{
+  BoundVariables.Builder boundVariablesBuilder=BoundVariables.builder();
+  for (int i=0; true; i++) {
+    if (i == SOLVE_ITERATION_LIMIT) {
+      throw new VerifyException(format("SignatureBinder.iterativeSolve does not converge after %d iterations.",SOLVE_ITERATION_LIMIT));
+    }
+    SolverReturnStatusMerger statusMerger=new SolverReturnStatusMerger();
+    for (    TypeConstraintSolver constraint : constraints) {
+      statusMerger.add(constraint.update(boundVariablesBuilder));
+      if (statusMerger.getCurrent() == SolverReturnStatus.UNSOLVABLE) {
+        return Optional.empty();
+      }
+    }
+switch (statusMerger.getCurrent()) {
+case UNCHANGED_SATISFIED:
+      break;
+case UNCHANGED_NOT_SATISFIED:
+    return Optional.empty();
+case CHANGED:
+  continue;
+case UNSOLVABLE:
+throw new VerifyException();
+default :
+throw new UnsupportedOperationException("unknown status");
+}
+break;
+}
+calculateVariableValuesForLongConstraints(boundVariablesBuilder);
+BoundVariables boundVariables=boundVariablesBuilder.build();
+if (!allTypeVariablesBound(boundVariables)) {
+return Optional.empty();
+}
+return Optional.of(boundVariables);
+}
