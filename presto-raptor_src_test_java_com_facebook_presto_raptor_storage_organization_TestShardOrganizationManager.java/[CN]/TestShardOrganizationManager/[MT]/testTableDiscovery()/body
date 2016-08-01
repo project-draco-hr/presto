@@ -8,8 +8,9 @@
   ShardOrganizationManager organizationManager=createShardOrganizationManager(intervalMillis);
   Set<Long> actual=organizationManager.discoverAndInitializeTablesToOrganize();
   assertEquals(actual,ImmutableSet.of(table1,table2));
-  organizerDao.updateLastStartTime("node1",table1,System.currentTimeMillis());
-  organizerDao.updateLastStartTime("node1",table2,System.currentTimeMillis());
+  long updateTime=System.currentTimeMillis();
+  organizerDao.updateLastStartTime("node1",table1,updateTime);
+  organizerDao.updateLastStartTime("node1",table2,updateTime);
   long start=System.nanoTime();
   while (organizationManager.discoverAndInitializeTablesToOrganize().isEmpty() && nanosSince(start).toMillis() < intervalMillis + 1000) {
     MILLISECONDS.sleep(10);
