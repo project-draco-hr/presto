@@ -1,9 +1,11 @@
 {
-  ConnectorMetadata metadata=newMetadata();
-  ConnectorSession session=newSession();
-  assertNull(metadata.getTableHandle(session,new SchemaTableName(INVALID_DATABASE,INVALID_TABLE)));
-  assertEquals(metadata.listTables(session,INVALID_DATABASE),ImmutableList.of());
-  assertEquals(metadata.listTableColumns(session,new SchemaTablePrefix(INVALID_DATABASE,INVALID_TABLE)),ImmutableMap.of());
-  assertEquals(metadata.listViews(session,INVALID_DATABASE),ImmutableList.of());
-  assertEquals(metadata.getViews(session,new SchemaTablePrefix(INVALID_DATABASE,INVALID_TABLE)),ImmutableMap.of());
-}
+  try (Transaction transaction=newTransaction()){
+    ConnectorMetadata metadata=transaction.getMetadata();
+    ConnectorSession session=newSession();
+    assertNull(metadata.getTableHandle(session,new SchemaTableName(INVALID_DATABASE,INVALID_TABLE)));
+    assertEquals(metadata.listTables(session,INVALID_DATABASE),ImmutableList.of());
+    assertEquals(metadata.listTableColumns(session,new SchemaTablePrefix(INVALID_DATABASE,INVALID_TABLE)),ImmutableMap.of());
+    assertEquals(metadata.listViews(session,INVALID_DATABASE),ImmutableList.of());
+    assertEquals(metadata.getViews(session,new SchemaTablePrefix(INVALID_DATABASE,INVALID_TABLE)),ImmutableMap.of());
+  }
+ }

@@ -3,8 +3,9 @@
     verifyViewCreation();
   }
   finally {
-    try {
-      newMetadata().dropView(newSession(),temporaryCreateView);
+    try (Transaction transaction=newTransaction()){
+      ConnectorMetadata metadata=transaction.getMetadata();
+      metadata.dropView(newSession(),temporaryCreateView);
     }
  catch (    RuntimeException e) {
     }

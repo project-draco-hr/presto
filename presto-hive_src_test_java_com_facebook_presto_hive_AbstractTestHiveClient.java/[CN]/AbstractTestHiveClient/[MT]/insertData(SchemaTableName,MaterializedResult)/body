@@ -1,0 +1,24 @@
+{
+  Path writePath;
+  Path targetPath;
+  String queryId;
+  try (Transaction transaction=newTransaction()){
+    ConnectorMetadata metadata=transaction.getMetadata();
+    ConnectorSession session=newSession();
+    ConnectorTableHandle tableHandle=getTableHandle(metadata,tableName);
+    ConnectorInsertTableHandle insertTableHandle=metadata.beginInsert(session,tableHandle);
+    queryId=session.getQueryId();
+    writePath=getStagingPathRoot(insertTableHandle);
+    targetPath=getTargetPathRoot(insertTableHandle);
+    ConnectorPageSink sink=pageSinkProvider.createPageSink(transaction.getTransactionHandle(),session,insertTableHandle);
+    sink.appendPage(data.toPage(),null);
+    Collection<Slice> fragments=sink.finish();
+    metadata.finishInsert(session,insertTableHandle,fragments);
+    transaction.commit();
+  }
+   if (!writePath.equals(targetPath)) {
+    FileSystem fileSystem=hdfsEnvironment.getFileSystem("user",writePath);
+    assertFalse(fileSystem.exists(writePath));
+  }
+  return queryId;
+}

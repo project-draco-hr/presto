@@ -1,9 +1,14 @@
 {
   String viewData="test data";
-  ConnectorMetadata metadata=newMetadata();
-  metadata.createView(newSession(),viewName,viewData,replace);
-  Map<SchemaTableName,ConnectorViewDefinition> views=metadata.getViews(newSession(),viewName.toSchemaTablePrefix());
-  assertEquals(views.size(),1);
-  assertEquals(views.get(viewName).getViewData(),viewData);
-  assertTrue(metadata.listViews(newSession(),viewName.getSchemaName()).contains(viewName));
-}
+  try (Transaction transaction=newTransaction()){
+    transaction.getMetadata().createView(newSession(),viewName,viewData,replace);
+    transaction.commit();
+  }
+   try (Transaction transaction=newTransaction()){
+    ConnectorMetadata metadata=transaction.getMetadata();
+    Map<SchemaTableName,ConnectorViewDefinition> views=metadata.getViews(newSession(),viewName.toSchemaTablePrefix());
+    assertEquals(views.size(),1);
+    assertEquals(views.get(viewName).getViewData(),viewData);
+    assertTrue(metadata.listViews(newSession(),viewName.getSchemaName()).contains(viewName));
+  }
+ }

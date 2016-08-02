@@ -1,23 +1,31 @@
 {
-  ConnectorSession session=newSession();
-  ConnectorTransactionHandle transaction=newTransaction();
-  ConnectorMetadata metadata=newMetadata();
-  ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(tableName,CREATE_TABLE_COLUMNS,createTableProperties(storageFormat));
-  ConnectorOutputTableHandle outputHandle=metadata.beginCreateTable(session,tableMetadata,Optional.empty());
-  ConnectorPageSink sink=pageSinkProvider.createPageSink(transaction,session,outputHandle);
-  sink.appendPage(CREATE_TABLE_DATA.toPage(),null);
-  Collection<Slice> fragments=sink.finish();
-  for (  String filePath : listAllDataFiles(getStagingPathRoot(outputHandle))) {
-    assertTrue(new Path(filePath).getName().startsWith(getFilePrefix(outputHandle)));
+  String queryId;
+  try (Transaction transaction=newTransaction()){
+    ConnectorSession session=newSession();
+    ConnectorMetadata metadata=transaction.getMetadata();
+    queryId=session.getQueryId();
+    ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(tableName,CREATE_TABLE_COLUMNS,createTableProperties(storageFormat));
+    ConnectorOutputTableHandle outputHandle=metadata.beginCreateTable(session,tableMetadata,Optional.empty());
+    ConnectorPageSink sink=pageSinkProvider.createPageSink(transaction.getTransactionHandle(),session,outputHandle);
+    sink.appendPage(CREATE_TABLE_DATA.toPage(),null);
+    Collection<Slice> fragments=sink.finish();
+    for (    String filePath : listAllDataFiles(getStagingPathRoot(outputHandle))) {
+      assertTrue(new Path(filePath).getName().startsWith(getFilePrefix(outputHandle)));
+    }
+    metadata.finishCreateTable(session,outputHandle,fragments);
+    transaction.commit();
   }
-  metadata.finishCreateTable(session,outputHandle,fragments);
-  ConnectorTableHandle tableHandle=getTableHandle(metadata,tableName);
-  List<ColumnHandle> columnHandles=filterNonHiddenColumnHandles(metadata.getColumnHandles(session,tableHandle).values());
-  tableMetadata=metadata.getTableMetadata(session,getTableHandle(metadata,tableName));
-  assertEquals(filterNonHiddenColumnMetadata(tableMetadata.getColumns()),CREATE_TABLE_COLUMNS);
-  MaterializedResult result=readTable(tableHandle,columnHandles,session,TupleDomain.all(),OptionalInt.empty(),Optional.of(storageFormat));
-  assertEqualsIgnoreOrder(result.getMaterializedRows(),CREATE_TABLE_DATA.getMaterializedRows());
-  Table table=getMetastoreClient(tableName.getSchemaName()).getTable(tableName.getSchemaName(),tableName.getTableName()).get();
-  assertEquals(table.getParameters().get(HiveMetadata.PRESTO_VERSION_NAME),TEST_SERVER_INFO.getVersion());
-  assertEquals(table.getParameters().get(HiveMetadata.PRESTO_QUERY_ID_NAME),session.getQueryId());
-}
+   try (Transaction transaction=newTransaction()){
+    ConnectorSession session=newSession();
+    ConnectorMetadata metadata=transaction.getMetadata();
+    ConnectorTableHandle tableHandle=getTableHandle(metadata,tableName);
+    List<ColumnHandle> columnHandles=filterNonHiddenColumnHandles(metadata.getColumnHandles(session,tableHandle).values());
+    ConnectorTableMetadata tableMetadata=metadata.getTableMetadata(session,getTableHandle(metadata,tableName));
+    assertEquals(filterNonHiddenColumnMetadata(tableMetadata.getColumns()),CREATE_TABLE_COLUMNS);
+    MaterializedResult result=readTable(transaction,tableHandle,columnHandles,session,TupleDomain.all(),OptionalInt.empty(),Optional.of(storageFormat));
+    assertEqualsIgnoreOrder(result.getMaterializedRows(),CREATE_TABLE_DATA.getMaterializedRows());
+    Table table=getMetastoreClient(tableName.getSchemaName()).getTable(tableName.getSchemaName(),tableName.getTableName()).get();
+    assertEquals(table.getParameters().get(HiveMetadata.PRESTO_VERSION_NAME),TEST_SERVER_INFO.getVersion());
+    assertEquals(table.getParameters().get(HiveMetadata.PRESTO_QUERY_ID_NAME),queryId);
+  }
+ }

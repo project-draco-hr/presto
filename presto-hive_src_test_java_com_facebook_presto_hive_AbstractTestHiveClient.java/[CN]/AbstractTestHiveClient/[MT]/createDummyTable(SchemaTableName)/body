@@ -1,8 +1,11 @@
 {
-  ConnectorSession session=newSession();
-  ConnectorMetadata metadata=newMetadata();
-  List<ColumnMetadata> columns=ImmutableList.of(new ColumnMetadata("dummy",createUnboundedVarcharType()));
-  ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(tableName,columns,createTableProperties(TEXTFILE));
-  ConnectorOutputTableHandle handle=metadata.beginCreateTable(session,tableMetadata,Optional.empty());
-  metadata.finishCreateTable(session,handle,ImmutableList.of());
-}
+  try (Transaction transaction=newTransaction()){
+    ConnectorSession session=newSession();
+    ConnectorMetadata metadata=transaction.getMetadata();
+    List<ColumnMetadata> columns=ImmutableList.of(new ColumnMetadata("dummy",createUnboundedVarcharType()));
+    ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(tableName,columns,createTableProperties(TEXTFILE));
+    ConnectorOutputTableHandle handle=metadata.beginCreateTable(session,tableMetadata,Optional.empty());
+    metadata.finishCreateTable(session,handle,ImmutableList.of());
+    transaction.commit();
+  }
+ }

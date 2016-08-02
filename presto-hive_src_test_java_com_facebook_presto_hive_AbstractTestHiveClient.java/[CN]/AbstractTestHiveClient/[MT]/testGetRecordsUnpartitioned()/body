@@ -1,33 +1,35 @@
 {
-  ConnectorMetadata metadata=newMetadata();
-  ConnectorSession session=newSession();
-  ConnectorTableHandle tableHandle=getTableHandle(metadata,tableUnpartitioned);
-  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(session,tableHandle).values());
-  Map<String,Integer> columnIndex=indexColumns(columnHandles);
-  List<ConnectorSplit> splits=getAllSplits(tableHandle,TupleDomain.all());
-  assertEquals(splits.size(),1);
-  for (  ConnectorSplit split : splits) {
-    HiveSplit hiveSplit=(HiveSplit)split;
-    assertEquals(hiveSplit.getPartitionKeys(),ImmutableList.of());
-    long rowNumber=0;
-    try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(newTransaction(),session,split,columnHandles)){
-      assertPageSourceType(pageSource,TEXTFILE);
-      MaterializedResult result=materializeSourceDataStream(session,pageSource,getTypes(columnHandles));
-      assertEquals(pageSource.getTotalBytes(),hiveSplit.getLength());
-      for (      MaterializedRow row : result) {
-        rowNumber++;
-        if (rowNumber % 19 == 0) {
-          assertNull(row.getField(columnIndex.get("t_string")));
-        }
- else         if (rowNumber % 19 == 1) {
-          assertEquals(row.getField(columnIndex.get("t_string")),"");
-        }
+  try (Transaction transaction=newTransaction()){
+    ConnectorMetadata metadata=transaction.getMetadata();
+    ConnectorSession session=newSession();
+    ConnectorTableHandle tableHandle=getTableHandle(metadata,tableUnpartitioned);
+    List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(session,tableHandle).values());
+    Map<String,Integer> columnIndex=indexColumns(columnHandles);
+    List<ConnectorSplit> splits=getAllSplits(tableHandle,TupleDomain.all());
+    assertEquals(splits.size(),1);
+    for (    ConnectorSplit split : splits) {
+      HiveSplit hiveSplit=(HiveSplit)split;
+      assertEquals(hiveSplit.getPartitionKeys(),ImmutableList.of());
+      long rowNumber=0;
+      try (ConnectorPageSource pageSource=pageSourceProvider.createPageSource(transaction.getTransactionHandle(),session,split,columnHandles)){
+        assertPageSourceType(pageSource,TEXTFILE);
+        MaterializedResult result=materializeSourceDataStream(session,pageSource,getTypes(columnHandles));
+        assertEquals(pageSource.getTotalBytes(),hiveSplit.getLength());
+        for (        MaterializedRow row : result) {
+          rowNumber++;
+          if (rowNumber % 19 == 0) {
+            assertNull(row.getField(columnIndex.get("t_string")));
+          }
+ else           if (rowNumber % 19 == 1) {
+            assertEquals(row.getField(columnIndex.get("t_string")),"");
+          }
  else {
-          assertEquals(row.getField(columnIndex.get("t_string")),"unpartitioned");
+            assertEquals(row.getField(columnIndex.get("t_string")),"unpartitioned");
+          }
+          assertEquals(row.getField(columnIndex.get("t_tinyint")),(byte)(1 + rowNumber));
         }
-        assertEquals(row.getField(columnIndex.get("t_tinyint")),(byte)(1 + rowNumber));
       }
+       assertEquals(rowNumber,100);
     }
-     assertEquals(rowNumber,100);
   }
-}
+ }

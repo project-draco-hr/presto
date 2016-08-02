@@ -1,4 +1,7 @@
 {
-  ConnectorTableHandle table=getTableHandle(newMetadata(),tableUnpartitioned);
-  readTable(table,ImmutableList.of(invalidColumnHandle),newSession(),TupleDomain.all(),OptionalInt.empty(),Optional.empty());
-}
+  try (Transaction transaction=newTransaction()){
+    ConnectorMetadata connectorMetadata=transaction.getMetadata();
+    ConnectorTableHandle table=getTableHandle(connectorMetadata,tableUnpartitioned);
+    readTable(transaction,table,ImmutableList.of(invalidColumnHandle),newSession(),TupleDomain.all(),OptionalInt.empty(),Optional.empty());
+  }
+ }

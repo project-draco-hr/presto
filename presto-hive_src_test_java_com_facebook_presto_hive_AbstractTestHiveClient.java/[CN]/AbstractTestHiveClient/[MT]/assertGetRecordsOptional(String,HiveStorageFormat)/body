@@ -1,5 +1,8 @@
 {
-  if (newMetadata().getTableHandle(newSession(),new SchemaTableName(database,tableName)) != null) {
-    assertGetRecords(tableName,hiveStorageFormat);
+  try (Transaction transaction=newTransaction()){
+    ConnectorMetadata metadata=transaction.getMetadata();
+    if (metadata.getTableHandle(newSession(),new SchemaTableName(database,tableName)) != null) {
+      assertGetRecords(tableName,hiveStorageFormat);
+    }
   }
-}
+ }

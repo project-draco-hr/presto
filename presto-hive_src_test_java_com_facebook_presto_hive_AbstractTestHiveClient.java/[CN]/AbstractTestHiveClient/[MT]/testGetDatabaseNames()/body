@@ -1,4 +1,7 @@
 {
-  List<String> databases=newMetadata().listSchemaNames(newSession());
-  assertTrue(databases.contains(database));
-}
+  try (Transaction transaction=newTransaction()){
+    ConnectorMetadata metadata=transaction.getMetadata();
+    List<String> databases=metadata.listSchemaNames(newSession());
+    assertTrue(databases.contains(database));
+  }
+ }

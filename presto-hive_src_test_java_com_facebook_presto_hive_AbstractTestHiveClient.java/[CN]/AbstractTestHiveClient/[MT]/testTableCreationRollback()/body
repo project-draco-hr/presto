@@ -1,18 +1,25 @@
 {
   try {
-    ConnectorSession session=newSession();
-    ConnectorTransactionHandle transaction=newTransaction();
-    ConnectorMetadata metadata=newMetadata();
-    ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(temporaryCreateRollbackTable,CREATE_TABLE_COLUMNS,createTableProperties(RCBINARY));
-    ConnectorOutputTableHandle outputHandle=metadata.beginCreateTable(session,tableMetadata,Optional.empty());
-    ConnectorPageSink sink=pageSinkProvider.createPageSink(transaction,session,outputHandle);
-    sink.appendPage(CREATE_TABLE_DATA.toPage(),null);
-    sink.finish();
-    assertFalse(listAllDataFiles(getStagingPathRoot(outputHandle)).isEmpty());
-    rollback(metadata);
-    assertTrue(listAllDataFiles(getStagingPathRoot(outputHandle)).isEmpty());
-    assertNull(metadata.getTableHandle(session,temporaryCreateRollbackTable));
-  }
+    Path stagingPathRoot;
+    try (Transaction transaction=newTransaction()){
+      ConnectorSession session=newSession();
+      ConnectorMetadata metadata=transaction.getMetadata();
+      ConnectorTableMetadata tableMetadata=new ConnectorTableMetadata(temporaryCreateRollbackTable,CREATE_TABLE_COLUMNS,createTableProperties(RCBINARY));
+      ConnectorOutputTableHandle outputHandle=metadata.beginCreateTable(session,tableMetadata,Optional.empty());
+      ConnectorPageSink sink=pageSinkProvider.createPageSink(transaction.getTransactionHandle(),session,outputHandle);
+      sink.appendPage(CREATE_TABLE_DATA.toPage(),null);
+      sink.finish();
+      stagingPathRoot=getStagingPathRoot(outputHandle);
+      assertFalse(listAllDataFiles(stagingPathRoot).isEmpty());
+      transaction.rollback();
+    }
+     assertTrue(listAllDataFiles(stagingPathRoot).isEmpty());
+    try (Transaction transaction=newTransaction()){
+      ConnectorSession session=newSession();
+      ConnectorMetadata metadata=transaction.getMetadata();
+      assertNull(metadata.getTableHandle(session,temporaryCreateRollbackTable));
+    }
+   }
   finally {
     dropTable(temporaryCreateRollbackTable);
   }

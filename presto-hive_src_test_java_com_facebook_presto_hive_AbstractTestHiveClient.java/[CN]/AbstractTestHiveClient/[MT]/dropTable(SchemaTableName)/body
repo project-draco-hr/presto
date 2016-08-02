@@ -1,6 +1,6 @@
 {
-  try {
-    ConnectorMetadata metadata=newMetadata();
+  try (Transaction transaction=newTransaction()){
+    ConnectorMetadata metadata=transaction.getMetadata();
     ConnectorSession session=newSession();
     ConnectorTableHandle handle=metadata.getTableHandle(session,table);
     if (handle == null) {
@@ -13,6 +13,7 @@
     }
  catch (    TableNotFoundException expected) {
     }
+    transaction.commit();
   }
  catch (  Exception e) {
     Logger.get(getClass()).warn(e,"failed to drop table");

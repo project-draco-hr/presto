@@ -2,43 +2,52 @@
   doCreateEmptyTable(tableName,storageFormat,CREATE_TABLE_COLUMNS);
   MaterializedResult.Builder resultBuilder=MaterializedResult.resultBuilder(SESSION,CREATE_TABLE_DATA.getTypes());
   for (int i=0; i < 3; i++) {
+    insertData(tableName,CREATE_TABLE_DATA);
+    try (Transaction transaction=newTransaction()){
+      ConnectorSession session=newSession();
+      ConnectorMetadata metadata=transaction.getMetadata();
+      ConnectorTableHandle tableHandle=getTableHandle(metadata,tableName);
+      List<ColumnHandle> columnHandles=filterNonHiddenColumnHandles(metadata.getColumnHandles(session,tableHandle).values());
+      ConnectorTableMetadata tableMetadata=metadata.getTableMetadata(session,getTableHandle(metadata,tableName));
+      assertEquals(filterNonHiddenColumnMetadata(tableMetadata.getColumns()),CREATE_TABLE_COLUMNS);
+      resultBuilder.rows(CREATE_TABLE_DATA.getMaterializedRows());
+      MaterializedResult result=readTable(transaction,tableHandle,columnHandles,session,TupleDomain.<ColumnHandle>all(),OptionalInt.empty(),Optional.empty());
+      assertEqualsIgnoreOrder(result.getMaterializedRows(),resultBuilder.build().getMaterializedRows());
+    }
+   }
+  Set<String> existingFiles;
+  try (Transaction transaction=newTransaction()){
+    existingFiles=listAllDataFiles(transaction,tableName.getSchemaName(),tableName.getTableName());
+    assertFalse(existingFiles.isEmpty());
+  }
+   Path stagingPathRoot;
+  try (Transaction transaction=newTransaction()){
     ConnectorSession session=newSession();
-    ConnectorTransactionHandle transaction=newTransaction();
-    ConnectorMetadata metadata=newMetadata();
+    ConnectorMetadata metadata=transaction.getMetadata();
     ConnectorTableHandle tableHandle=getTableHandle(metadata,tableName);
+    List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(session,tableHandle).values());
     ConnectorInsertTableHandle insertTableHandle=metadata.beginInsert(session,tableHandle);
-    ConnectorPageSink sink=pageSinkProvider.createPageSink(transaction,session,insertTableHandle);
+    ConnectorPageSink sink=pageSinkProvider.createPageSink(transaction.getTransactionHandle(),session,insertTableHandle);
     sink.appendPage(CREATE_TABLE_DATA.toPage(),null);
-    Collection<Slice> fragments=sink.finish();
-    metadata.finishInsert(session,insertTableHandle,fragments);
+    sink.appendPage(CREATE_TABLE_DATA.toPage(),null);
+    sink.finish();
+    assertEquals(listAllDataFiles(transaction,tableName.getSchemaName(),tableName.getTableName()),existingFiles);
+    stagingPathRoot=getStagingPathRoot(insertTableHandle);
+    Set<String> tempFiles=listAllDataFiles(stagingPathRoot);
+    assertTrue(!tempFiles.isEmpty());
+    for (    String filePath : tempFiles) {
+      assertTrue(new Path(filePath).getName().startsWith(getFilePrefix(insertTableHandle)));
+    }
+    transaction.rollback();
+  }
+   assertTrue(listAllDataFiles(stagingPathRoot).isEmpty());
+  try (Transaction transaction=newTransaction()){
+    ConnectorSession session=newSession();
+    ConnectorMetadata metadata=transaction.getMetadata();
+    ConnectorTableHandle tableHandle=getTableHandle(metadata,tableName);
     List<ColumnHandle> columnHandles=filterNonHiddenColumnHandles(metadata.getColumnHandles(session,tableHandle).values());
-    ConnectorTableMetadata tableMetadata=metadata.getTableMetadata(session,getTableHandle(metadata,tableName));
-    assertEquals(filterNonHiddenColumnMetadata(tableMetadata.getColumns()),CREATE_TABLE_COLUMNS);
-    resultBuilder.rows(CREATE_TABLE_DATA.getMaterializedRows());
-    MaterializedResult result=readTable(tableHandle,columnHandles,session,TupleDomain.<ColumnHandle>all(),OptionalInt.empty(),Optional.empty());
+    MaterializedResult result=readTable(transaction,tableHandle,columnHandles,session,TupleDomain.all(),OptionalInt.empty(),Optional.empty());
     assertEqualsIgnoreOrder(result.getMaterializedRows(),resultBuilder.build().getMaterializedRows());
+    assertEquals(listAllDataFiles(transaction,tableName.getSchemaName(),tableName.getTableName()),existingFiles);
   }
-  Set<String> existingFiles=listAllDataFiles(tableName.getSchemaName(),tableName.getTableName());
-  assertFalse(existingFiles.isEmpty());
-  ConnectorSession session=newSession();
-  ConnectorTransactionHandle transaction=newTransaction();
-  ConnectorMetadata metadata=newMetadata();
-  ConnectorTableHandle tableHandle=getTableHandle(metadata,tableName);
-  List<ColumnHandle> columnHandles=filterNonHiddenColumnHandles(metadata.getColumnHandles(session,tableHandle).values());
-  ConnectorInsertTableHandle insertTableHandle=metadata.beginInsert(session,tableHandle);
-  ConnectorPageSink sink=pageSinkProvider.createPageSink(transaction,session,insertTableHandle);
-  sink.appendPage(CREATE_TABLE_DATA.toPage(),null);
-  sink.appendPage(CREATE_TABLE_DATA.toPage(),null);
-  sink.finish();
-  assertEquals(listAllDataFiles(tableName.getSchemaName(),tableName.getTableName()),existingFiles);
-  Set<String> tempFiles=listAllDataFiles(getStagingPathRoot(insertTableHandle));
-  assertTrue(!tempFiles.isEmpty());
-  for (  String filePath : tempFiles) {
-    assertTrue(new Path(filePath).getName().startsWith(getFilePrefix(insertTableHandle)));
-  }
-  rollback(metadata);
-  MaterializedResult result=readTable(tableHandle,columnHandles,session,TupleDomain.<ColumnHandle>all(),OptionalInt.empty(),Optional.empty());
-  assertEqualsIgnoreOrder(result.getMaterializedRows(),resultBuilder.build().getMaterializedRows());
-  assertEquals(listAllDataFiles(tableName.getSchemaName(),tableName.getTableName()),existingFiles);
-  assertTrue(listAllDataFiles(getStagingPathRoot(insertTableHandle)).isEmpty());
-}
+ }

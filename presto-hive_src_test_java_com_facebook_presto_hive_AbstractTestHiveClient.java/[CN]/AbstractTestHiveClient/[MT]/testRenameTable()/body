@@ -1,12 +1,19 @@
 {
   try {
     createDummyTable(temporaryRenameTableOld);
-    ConnectorSession session=newSession();
-    ConnectorMetadata metadata=newMetadata();
-    metadata.renameTable(session,getTableHandle(metadata,temporaryRenameTableOld),temporaryRenameTableNew);
-    assertNull(metadata.getTableHandle(session,temporaryRenameTableOld));
-    assertNotNull(metadata.getTableHandle(session,temporaryRenameTableNew));
-  }
+    try (Transaction transaction=newTransaction()){
+      ConnectorSession session=newSession();
+      ConnectorMetadata metadata=transaction.getMetadata();
+      metadata.renameTable(session,getTableHandle(metadata,temporaryRenameTableOld),temporaryRenameTableNew);
+      transaction.commit();
+    }
+     try (Transaction transaction=newTransaction()){
+      ConnectorSession session=newSession();
+      ConnectorMetadata metadata=transaction.getMetadata();
+      assertNull(metadata.getTableHandle(session,temporaryRenameTableOld));
+      assertNotNull(metadata.getTableHandle(session,temporaryRenameTableNew));
+    }
+   }
   finally {
     dropTable(temporaryRenameTableOld);
     dropTable(temporaryRenameTableNew);

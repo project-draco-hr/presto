@@ -1,5 +1,8 @@
 {
-  List<SchemaTableName> tables=newMetadata().listTables(newSession(),database);
-  assertTrue(tables.contains(tablePartitionFormat));
-  assertTrue(tables.contains(tableUnpartitioned));
-}
+  try (Transaction transaction=newTransaction()){
+    ConnectorMetadata metadata=transaction.getMetadata();
+    List<SchemaTableName> tables=metadata.listTables(newSession(),database);
+    assertTrue(tables.contains(tablePartitionFormat));
+    assertTrue(tables.contains(tableUnpartitioned));
+  }
+ }

@@ -2,10 +2,10 @@
   List<Column> columns=ImmutableList.of(new Column("dummy",HiveType.valueOf("uniontype<smallint,tinyint>"),Optional.empty()));
   List<Column> partitionColumns=ImmutableList.of(new Column("name",HIVE_STRING,Optional.empty()));
   createEmptyTable(tableName,storageFormat,columns,partitionColumns);
-  ConnectorMetadata metadata=newMetadata();
-  ConnectorSession session=newSession();
-  ConnectorTableHandle tableHandle=getTableHandle(metadata,tableName);
-  try {
+  try (Transaction transaction=newTransaction()){
+    ConnectorMetadata metadata=transaction.getMetadata();
+    ConnectorSession session=newSession();
+    ConnectorTableHandle tableHandle=getTableHandle(metadata,tableName);
     metadata.beginInsert(session,tableHandle);
     fail("expected failure");
   }

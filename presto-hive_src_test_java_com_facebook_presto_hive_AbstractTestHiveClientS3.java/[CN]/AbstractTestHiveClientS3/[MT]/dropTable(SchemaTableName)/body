@@ -1,6 +1,7 @@
 {
-  try {
-    metastoreClient.dropTable(table.getSchemaName(),table.getTableName(),true);
+  try (Transaction transaction=newTransaction()){
+    transaction.getMetastore(table.getSchemaName()).dropTable(newSession(),table.getSchemaName(),table.getTableName());
+    transaction.commit();
   }
  catch (  RuntimeException e) {
   }

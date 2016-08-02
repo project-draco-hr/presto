@@ -1,11 +1,13 @@
 {
-  ConnectorMetadata metadata=newMetadata();
-  ConnectorSession session=newSession();
-  ConnectorTableHandle tableHandle=getTableHandle(metadata,tableBucketedDoubleFloat);
-  List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(session,tableHandle).values());
-  Map<String,Integer> columnIndex=indexColumns(columnHandles);
-  assertTableIsBucketed(tableHandle);
-  ImmutableMap<ColumnHandle,NullableValue> bindings=ImmutableMap.<ColumnHandle,NullableValue>builder().put(columnHandles.get(columnIndex.get("t_float")),NullableValue.of(REAL,(long)floatToRawIntBits(87.1f))).put(columnHandles.get(columnIndex.get("t_double")),NullableValue.of(DOUBLE,88.2)).build();
-  MaterializedResult result=readTable(tableHandle,columnHandles,session,TupleDomain.fromFixedValues(bindings),OptionalInt.of(32),Optional.empty());
-  assertEquals(result.getRowCount(),100);
-}
+  try (Transaction transaction=newTransaction()){
+    ConnectorMetadata metadata=transaction.getMetadata();
+    ConnectorSession session=newSession();
+    ConnectorTableHandle tableHandle=getTableHandle(metadata,tableBucketedDoubleFloat);
+    List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(session,tableHandle).values());
+    Map<String,Integer> columnIndex=indexColumns(columnHandles);
+    assertTableIsBucketed(tableHandle);
+    ImmutableMap<ColumnHandle,NullableValue> bindings=ImmutableMap.<ColumnHandle,NullableValue>builder().put(columnHandles.get(columnIndex.get("t_float")),NullableValue.of(REAL,(long)floatToRawIntBits(87.1f))).put(columnHandles.get(columnIndex.get("t_double")),NullableValue.of(DOUBLE,88.2)).build();
+    MaterializedResult result=readTable(transaction,tableHandle,columnHandles,session,TupleDomain.fromFixedValues(bindings),OptionalInt.of(32),Optional.empty());
+    assertEquals(result.getRowCount(),100);
+  }
+ }
