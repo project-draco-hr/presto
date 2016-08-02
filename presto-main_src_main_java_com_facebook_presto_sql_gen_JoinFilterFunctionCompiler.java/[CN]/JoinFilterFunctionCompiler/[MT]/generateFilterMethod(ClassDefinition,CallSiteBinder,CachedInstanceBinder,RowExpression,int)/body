@@ -1,0 +1,16 @@
+{
+  Map<CallExpression,MethodDefinition> tryMethodMap=ImmutableMap.of();
+  Parameter leftPosition=arg("leftPosition",int.class);
+  Parameter leftBlocks=arg("leftBlocks",Block[].class);
+  Parameter rightPosition=arg("rightPosition",int.class);
+  Parameter rightBlocks=arg("rightBlocks",Block[].class);
+  MethodDefinition method=classDefinition.declareMethod(a(PUBLIC),"filter",type(boolean.class),ImmutableList.<Parameter>builder().add(leftPosition).add(leftBlocks).add(rightPosition).add(rightBlocks).build());
+  method.comment("filter: %s",filter.toString());
+  BytecodeBlock body=method.getBody();
+  Scope scope=method.getScope();
+  Variable wasNullVariable=scope.declareVariable("wasNull",body,constantFalse());
+  BytecodeExpressionVisitor visitor=new BytecodeExpressionVisitor(callSiteBinder,cachedInstanceBinder,fieldReferenceCompiler(callSiteBinder,leftPosition,leftBlocks,rightPosition,rightBlocks,leftBlocksSize,wasNullVariable),metadata.getFunctionRegistry(),tryMethodMap);
+  BytecodeNode visitorBody=filter.accept(visitor,scope);
+  Variable result=scope.declareVariable(boolean.class,"result");
+  body.append(visitorBody).putVariable(result).append(new IfStatement().condition(wasNullVariable).ifTrue(constantFalse().ret()).ifFalse(result.ret()));
+}
