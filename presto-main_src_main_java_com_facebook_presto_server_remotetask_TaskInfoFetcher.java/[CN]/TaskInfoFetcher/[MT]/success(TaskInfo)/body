@@ -1,7 +1,11 @@
 {
   try (SetThreadName ignored=new SetThreadName("TaskInfoFetcher-%s",taskId)){
     lastUpdateNanos.set(System.nanoTime());
-    updateStats(currentRequestStartNanos.get());
+    long startNanos;
+synchronized (this) {
+      startNanos=this.currentRequestStartNanos.get();
+    }
+    updateStats(startNanos);
     errorTracker.requestSucceeded();
     updateTaskInfo(newValue);
   }
