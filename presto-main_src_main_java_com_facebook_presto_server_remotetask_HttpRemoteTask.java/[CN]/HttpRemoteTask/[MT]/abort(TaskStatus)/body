@@ -3,10 +3,7 @@
   try (SetThreadName ignored=new SetThreadName("HttpRemoteTask-%s",taskId)){
     taskStatusFetcher.updateTaskStatus(status);
     taskInfoFetcher.abort(status);
-    HttpUriBuilder uriBuilder=uriBuilderFrom(getTaskStatus().getSelf());
-    if (summarizeTaskInfo) {
-      uriBuilder.addParameter("summarize");
-    }
+    HttpUriBuilder uriBuilder=getHttpUriBuilder(getTaskStatus());
     Request request=prepareDelete().setUri(uriBuilder.build()).build();
     scheduleAsyncCleanupRequest(new Backoff(MAX_CLEANUP_RETRY_TIME),request,"abort");
   }
