@@ -1,0 +1,29 @@
+{
+  if (!node.getWith().isPresent()) {
+    return scope;
+  }
+  With with=node.getWith().get();
+  if (with.isRecursive()) {
+    throw new SemanticException(NOT_SUPPORTED,with,"Recursive WITH queries are not supported");
+  }
+  Scope.Builder withScopeBuilder=Scope.builder().withParent(scope);
+  for (  WithQuery withQuery : with.getQueries()) {
+    Query query=withQuery.getQuery();
+    process(query,withScopeBuilder.build());
+    String name=withQuery.getName();
+    if (withScopeBuilder.containsNamedQuery(name)) {
+      throw new SemanticException(DUPLICATE_RELATION,withQuery,"WITH query name '%s' specified more than once",name);
+    }
+    if (withQuery.getColumnNames().isPresent()) {
+      List<String> columnNames=withQuery.getColumnNames().get();
+      RelationType queryDescriptor=analysis.getOutputDescriptor(query);
+      if (columnNames.size() != queryDescriptor.getVisibleFieldCount()) {
+        throw new SemanticException(MISMATCHED_COLUMN_ALIASES,withQuery,"WITH column alias list has %s entries but WITH query(%s) has %s columns",columnNames.size(),name,queryDescriptor.getVisibleFieldCount());
+      }
+    }
+    withScopeBuilder.withNamedQuery(name,withQuery);
+  }
+  Scope withScope=withScopeBuilder.build();
+  analysis.setScope(with,withScope);
+  return withScope;
+}

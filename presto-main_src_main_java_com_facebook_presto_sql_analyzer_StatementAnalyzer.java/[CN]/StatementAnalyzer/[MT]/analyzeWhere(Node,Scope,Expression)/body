@@ -1,0 +1,13 @@
+{
+  Analyzer.verifyNoAggregatesOrWindowFunctions(metadata,predicate,"WHERE");
+  ExpressionAnalysis expressionAnalysis=analyzeExpression(predicate,scope);
+  analysis.recordSubqueries(node,expressionAnalysis);
+  Type predicateType=expressionAnalysis.getType(predicate);
+  if (!predicateType.equals(BOOLEAN)) {
+    if (!predicateType.equals(UNKNOWN)) {
+      throw new SemanticException(TYPE_MISMATCH,predicate,"WHERE clause must evaluate to a boolean: actual type %s",predicateType);
+    }
+    analysis.addCoercion(predicate,BOOLEAN,false);
+  }
+  analysis.setWhere(node,predicate);
+}

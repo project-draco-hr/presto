@@ -1,0 +1,29 @@
+{
+  QualifiedName qualifiedName=DereferenceExpression.getQualifiedName(node);
+  if (qualifiedName != null) {
+    Optional<ResolvedField> resolvedField=scope.tryResolveField(node,qualifiedName);
+    if (resolvedField.isPresent()) {
+      return handleResolvedField(node,resolvedField.get());
+    }
+    if (!scope.isColumnReference(qualifiedName)) {
+      throwMissingAttributeException(node,qualifiedName);
+    }
+  }
+  Type baseType=process(node.getBase(),context);
+  if (!(baseType instanceof RowType)) {
+    throw new SemanticException(TYPE_MISMATCH,node.getBase(),"Expression %s is not of type ROW",node.getBase());
+  }
+  RowType rowType=(RowType)baseType;
+  Type rowFieldType=null;
+  for (  RowField rowField : rowType.getFields()) {
+    if (node.getFieldName().equalsIgnoreCase(rowField.getName().orElse(null))) {
+      rowFieldType=rowField.getType();
+      break;
+    }
+  }
+  if (rowFieldType == null) {
+    throwMissingAttributeException(node);
+  }
+  expressionTypes.put(node,rowFieldType);
+  return rowFieldType;
+}

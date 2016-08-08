@@ -1,0 +1,25 @@
+{
+  ImmutableList.Builder<Expression> groupingColumnsBuilder=ImmutableList.builder();
+  for (  Expression groupingColumn : groupingColumns) {
+    Expression groupByExpression;
+    if (groupingColumn instanceof LongLiteral) {
+      long ordinal=((LongLiteral)groupingColumn).getValue();
+      if (ordinal < 1 || ordinal > outputExpressions.size()) {
+        throw new SemanticException(INVALID_ORDINAL,groupingColumn,"GROUP BY position %s is not in select list",ordinal);
+      }
+      groupByExpression=outputExpressions.get(Ints.checkedCast(ordinal - 1));
+    }
+ else {
+      ExpressionAnalysis expressionAnalysis=analyzeExpression(groupingColumn,scope);
+      analysis.recordSubqueries(node,expressionAnalysis);
+      groupByExpression=groupingColumn;
+    }
+    Analyzer.verifyNoAggregatesOrWindowFunctions(metadata,groupByExpression,"GROUP BY");
+    Type type=analysis.getType(groupByExpression);
+    if (!type.isComparable()) {
+      throw new SemanticException(TYPE_MISMATCH,node,"%s is not comparable, and therefore cannot be used in GROUP BY",type);
+    }
+    groupingColumnsBuilder.add(groupByExpression);
+  }
+  return groupingColumnsBuilder.build();
+}

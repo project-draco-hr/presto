@@ -1,7 +1,7 @@
 {
-  RelationType descriptor=analysis.getOutputDescriptor(node);
+  Scope scope=analysis.getScope(node);
   ImmutableList.Builder<Symbol> outputSymbolsBuilder=ImmutableList.builder();
-  for (  Field field : descriptor.getVisibleFields()) {
+  for (  Field field : scope.getRelationType().getVisibleFields()) {
     Symbol symbol=symbolAllocator.newSymbol(field);
     outputSymbolsBuilder.add(symbol);
   }
@@ -30,5 +30,5 @@
   checkState(!unnestedSymbolsIterator.hasNext(),"Not all output symbols were matched with input symbols");
   ValuesNode valuesNode=new ValuesNode(idAllocator.getNextId(),argumentSymbols.build(),ImmutableList.<List<Expression>>of(values.build()));
   UnnestNode unnestNode=new UnnestNode(idAllocator.getNextId(),valuesNode,ImmutableList.<Symbol>of(),unnestSymbols.build(),ordinalitySymbol);
-  return new RelationPlan(unnestNode,descriptor,unnestedSymbols,Optional.empty());
+  return new RelationPlan(unnestNode,scope,unnestedSymbols,Optional.empty());
 }

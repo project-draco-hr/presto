@@ -1,0 +1,42 @@
+{
+  ImmutableList.Builder<Expression> outputExpressionBuilder=ImmutableList.builder();
+  for (  SelectItem item : node.getSelect().getSelectItems()) {
+    if (item instanceof AllColumns) {
+      Optional<QualifiedName> starPrefix=((AllColumns)item).getPrefix();
+      RelationType relationType=scope.getRelationType();
+      List<Field> fields=relationType.resolveFieldsWithPrefix(starPrefix);
+      if (fields.isEmpty()) {
+        if (starPrefix.isPresent()) {
+          throw new SemanticException(MISSING_TABLE,item,"Table '%s' not found",starPrefix.get());
+        }
+        throw new SemanticException(WILDCARD_WITHOUT_FROM,item,"SELECT * not allowed in queries without FROM clause");
+      }
+      for (      Field field : fields) {
+        int fieldIndex=relationType.indexOf(field);
+        FieldReference expression=new FieldReference(fieldIndex);
+        outputExpressionBuilder.add(expression);
+        ExpressionAnalysis expressionAnalysis=analyzeExpression(expression,scope);
+        Type type=expressionAnalysis.getType(expression);
+        if (node.getSelect().isDistinct() && !type.isComparable()) {
+          throw new SemanticException(TYPE_MISMATCH,node.getSelect(),"DISTINCT can only be applied to comparable types (actual: %s)",type);
+        }
+      }
+    }
+ else     if (item instanceof SingleColumn) {
+      SingleColumn column=(SingleColumn)item;
+      ExpressionAnalysis expressionAnalysis=analyzeExpression(column.getExpression(),scope);
+      analysis.recordSubqueries(node,expressionAnalysis);
+      outputExpressionBuilder.add(column.getExpression());
+      Type type=expressionAnalysis.getType(column.getExpression());
+      if (node.getSelect().isDistinct() && !type.isComparable()) {
+        throw new SemanticException(TYPE_MISMATCH,node.getSelect(),"DISTINCT can only be applied to comparable types (actual: %s): %s",type,column.getExpression());
+      }
+    }
+ else {
+      throw new IllegalArgumentException("Unsupported SelectItem type: " + item.getClass().getName());
+    }
+  }
+  ImmutableList<Expression> result=outputExpressionBuilder.build();
+  analysis.setOutputExpressions(node,result);
+  return result;
+}

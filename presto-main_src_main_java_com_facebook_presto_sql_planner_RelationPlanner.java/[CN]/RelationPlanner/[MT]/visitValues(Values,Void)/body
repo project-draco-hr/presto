@@ -1,7 +1,7 @@
 {
-  RelationType descriptor=analysis.getOutputDescriptor(node);
+  Scope scope=analysis.getScope(node);
   ImmutableList.Builder<Symbol> outputSymbolsBuilder=ImmutableList.builder();
-  for (  Field field : descriptor.getVisibleFields()) {
+  for (  Field field : scope.getRelationType().getVisibleFields()) {
     Symbol symbol=symbolAllocator.newSymbol(field);
     outputSymbolsBuilder.add(symbol);
   }
@@ -13,15 +13,15 @@
       for (int i=0; i < items.size(); i++) {
         Expression expression=items.get(i);
         Object constantValue=evaluateConstantExpression(expression,analysis.getCoercions(),metadata,session,analysis.getColumnReferences());
-        values.add(LiteralInterpreter.toExpression(constantValue,descriptor.getFieldByIndex(i).getType()));
+        values.add(LiteralInterpreter.toExpression(constantValue,scope.getRelationType().getFieldByIndex(i).getType()));
       }
     }
  else {
       Object constantValue=evaluateConstantExpression(row,analysis.getCoercions(),metadata,session,analysis.getColumnReferences());
-      values.add(LiteralInterpreter.toExpression(constantValue,descriptor.getFieldByIndex(0).getType()));
+      values.add(LiteralInterpreter.toExpression(constantValue,scope.getRelationType().getFieldByIndex(0).getType()));
     }
     rows.add(values.build());
   }
   ValuesNode valuesNode=new ValuesNode(idAllocator.getNextId(),outputSymbolsBuilder.build(),rows.build());
-  return new RelationPlan(valuesNode,descriptor,outputSymbolsBuilder.build(),Optional.empty());
+  return new RelationPlan(valuesNode,scope,outputSymbolsBuilder.build(),Optional.empty());
 }

@@ -1,0 +1,12 @@
+{
+  Scope relationScope=process(relation.getRelation(),scope);
+  RelationType relationType=relationScope.getRelationType();
+  if (relation.getColumnNames() != null) {
+    int totalColumns=relationType.getVisibleFieldCount();
+    if (totalColumns != relation.getColumnNames().size()) {
+      throw new SemanticException(MISMATCHED_COLUMN_ALIASES,relation,"Column alias list has %s entries but '%s' has %s columns available",relation.getColumnNames().size(),relation.getAlias(),totalColumns);
+    }
+  }
+  RelationType descriptor=relationType.withAlias(relation.getAlias(),relation.getColumnNames());
+  return createScope(relation,scope,descriptor);
+}

@@ -1,0 +1,11 @@
+{
+  Scope withScope=analyzeWith(node,scope);
+  boolean approximate=isApproximate(node);
+  Scope queryScope=Scope.builder().withParent(withScope).withApproximate(approximate).build();
+  Scope queryBodyScope=process(node.getQueryBody(),queryScope);
+  analyzeOrderBy(node,queryBodyScope);
+  analysis.setOutputExpressions(node,descriptorToFields(queryBodyScope));
+  queryScope=Scope.builder().withParent(withScope).withRelationType(queryBodyScope.getRelationType()).withApproximate(approximate).build();
+  analysis.setScope(node,queryScope);
+  return queryScope;
+}

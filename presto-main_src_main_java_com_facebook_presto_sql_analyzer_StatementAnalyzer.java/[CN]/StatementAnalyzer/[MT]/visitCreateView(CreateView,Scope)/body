@@ -1,0 +1,9 @@
+{
+  analysis.setUpdateType("CREATE VIEW");
+  QualifiedObjectName viewName=createQualifiedObjectName(session,node,node.getName());
+  StatementAnalyzer analyzer=new StatementAnalyzer(analysis,metadata,sqlParser,new ViewAccessControl(accessControl),session,experimentalSyntaxEnabled);
+  Scope queryScope=analyzer.process(node.getQuery(),scope);
+  accessControl.checkCanCreateView(session.getRequiredTransactionId(),session.getIdentity(),viewName);
+  validateColumns(node,queryScope.getRelationType());
+  return createScope(node,scope,queryScope.getRelationType());
+}

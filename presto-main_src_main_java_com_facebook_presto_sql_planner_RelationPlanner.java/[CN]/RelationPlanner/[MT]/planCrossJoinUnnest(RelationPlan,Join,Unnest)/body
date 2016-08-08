@@ -1,5 +1,4 @@
 {
-  RelationType outputDescriptor=analysis.getOutputDescriptor(joinNode);
   RelationType unnestOutputDescriptor=analysis.getOutputDescriptor(node);
   ImmutableList.Builder<Symbol> unnestedSymbolsBuilder=ImmutableList.builder();
   for (  Field field : unnestOutputDescriptor.getVisibleFields()) {
@@ -29,5 +28,5 @@
   Optional<Symbol> ordinalitySymbol=node.isWithOrdinality() ? Optional.of(unnestedSymbolsIterator.next()) : Optional.empty();
   checkState(!unnestedSymbolsIterator.hasNext(),"Not all output symbols were matched with input symbols");
   UnnestNode unnestNode=new UnnestNode(idAllocator.getNextId(),projectNode,leftPlan.getOutputSymbols(),unnestSymbols.build(),ordinalitySymbol);
-  return new RelationPlan(unnestNode,outputDescriptor,unnestNode.getOutputSymbols(),Optional.empty());
+  return new RelationPlan(unnestNode,analysis.getScope(joinNode),unnestNode.getOutputSymbols(),Optional.empty());
 }

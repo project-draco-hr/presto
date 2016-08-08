@@ -18,7 +18,8 @@
   columns.put(rowIdSymbol,rowIdHandle);
   fields.add(rowIdField);
   PlanNode tableScan=new TableScanNode(idAllocator.getNextId(),handle,outputSymbols.build(),columns.build(),Optional.empty(),TupleDomain.all(),null);
-  RelationPlan relationPlan=new RelationPlan(tableScan,new RelationType(fields.build()),outputSymbols.build(),Optional.empty());
+  Scope scope=Scope.builder().withRelationType(new RelationType(fields.build())).build();
+  RelationPlan relationPlan=new RelationPlan(tableScan,scope,outputSymbols.build(),Optional.empty());
   TranslationMap translations=new TranslationMap(relationPlan,analysis);
   translations.setFieldMappings(relationPlan.getOutputSymbols());
   PlanBuilder builder=new PlanBuilder(translations,relationPlan.getRoot(),relationPlan.getSampleWeight());

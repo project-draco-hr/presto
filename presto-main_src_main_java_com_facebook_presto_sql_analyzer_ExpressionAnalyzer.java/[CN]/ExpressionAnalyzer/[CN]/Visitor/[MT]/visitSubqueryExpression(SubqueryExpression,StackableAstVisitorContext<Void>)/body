@@ -1,0 +1,19 @@
+{
+  StatementAnalyzer analyzer=statementAnalyzerFactory.apply(node);
+  Scope subqueryScope=createQueryBoundaryScope();
+  analyzer.getAnalysis().setScope(node,subqueryScope);
+  Scope queryScope=analyzer.process(node.getQuery(),subqueryScope);
+  if (queryScope.getRelationType().getVisibleFieldCount() != 1) {
+    throw new SemanticException(MULTIPLE_FIELDS_FROM_SUBQUERY,node,"Multiple columns returned by subquery are not yet supported. Found %s",queryScope.getRelationType().getVisibleFieldCount());
+  }
+  Node previousNode=context.getPreviousNode().orElse(null);
+  if (previousNode instanceof InPredicate && ((InPredicate)previousNode).getValue() != node) {
+    subqueryInPredicates.add((InPredicate)previousNode);
+  }
+ else {
+    scalarSubqueries.add(node);
+  }
+  Type type=getOnlyElement(queryScope.getRelationType().getVisibleFields()).getType();
+  expressionTypes.put(node,type);
+  return type;
+}

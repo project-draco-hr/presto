@@ -16,7 +16,6 @@
   RelationPlan rightPlan=process(node.getRight(),context);
   PlanBuilder leftPlanBuilder=initializePlanBuilder(leftPlan);
   PlanBuilder rightPlanBuilder=initializePlanBuilder(rightPlan);
-  RelationType outputDescriptor=analysis.getOutputDescriptor(node);
   List<Symbol> outputSymbols=ImmutableList.<Symbol>builder().addAll(leftPlan.getOutputSymbols()).addAll(rightPlan.getOutputSymbols()).build();
   ImmutableList.Builder<JoinNode.EquiJoinClause> equiClauses=ImmutableList.builder();
   List<Expression> complexJoinExpressions=new ArrayList<>();
@@ -77,7 +76,7 @@
   }
   PlanNode root=new JoinNode(idAllocator.getNextId(),JoinNode.Type.typeConvert(node.getType()),leftPlanBuilder.getRoot(),rightPlanBuilder.getRoot(),equiClauses.build(),Optional.empty(),Optional.empty(),Optional.empty());
   Optional<Symbol> sampleWeight=Optional.empty();
-  RelationPlan intermediateRootRelationPlan=new RelationPlan(root,outputDescriptor,outputSymbols,sampleWeight);
+  RelationPlan intermediateRootRelationPlan=new RelationPlan(root,analysis.getScope(node),outputSymbols,sampleWeight);
   TranslationMap translationMap=new TranslationMap(intermediateRootRelationPlan,analysis);
   translationMap.setFieldMappings(outputSymbols);
   translationMap.putExpressionMappingsFrom(leftPlanBuilder.getTranslations());
@@ -110,5 +109,5 @@
       root=new FilterNode(idAllocator.getNextId(),root,postInnerJoinCriteria);
     }
   }
-  return new RelationPlan(root,outputDescriptor,outputSymbols,sampleWeight);
+  return new RelationPlan(root,analysis.getScope(node),outputSymbols,sampleWeight);
 }

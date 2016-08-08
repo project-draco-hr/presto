@@ -1,0 +1,27 @@
+{
+  List<Field> matches=relation.resolveFields(name);
+  if (matches.size() > 1) {
+    throwAmbiguousAttributeException(node,name);
+  }
+  if (matches.isEmpty()) {
+    if (isColumnReference(name,relation)) {
+      return Optional.empty();
+    }
+    Scope boundary=this;
+    while (!boundary.queryBoundary) {
+      if (boundary.parent.isPresent()) {
+        boundary=boundary.parent.get();
+      }
+ else {
+        return Optional.empty();
+      }
+    }
+    if (boundary.parent.isPresent()) {
+      return boundary.parent.get().resolveField(node,name,false);
+    }
+    return Optional.empty();
+  }
+ else {
+    return Optional.of(asResolvedField(getOnlyElement(matches),local));
+  }
+}

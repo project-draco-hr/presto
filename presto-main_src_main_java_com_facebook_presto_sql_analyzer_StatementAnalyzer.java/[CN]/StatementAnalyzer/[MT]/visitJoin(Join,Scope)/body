@@ -1,0 +1,96 @@
+{
+  JoinCriteria criteria=node.getCriteria().orElse(null);
+  if (criteria instanceof NaturalJoin) {
+    throw new SemanticException(NOT_SUPPORTED,node,"Natural join not supported");
+  }
+  Scope left=process(node.getLeft(),scope);
+  Scope right=process(node.getRight(),isUnnestRelation(node.getRight()) ? left : scope);
+  Scope output=createScope(node,scope,left.getRelationType().joinWith(right.getRelationType()));
+  if (node.getType() == Join.Type.CROSS || node.getType() == Join.Type.IMPLICIT) {
+    return output;
+  }
+  if (criteria instanceof JoinUsing) {
+    List<String> columns=((JoinUsing)criteria).getColumns();
+    List<Expression> expressions=new ArrayList<>();
+    for (    String column : columns) {
+      Expression leftExpression=new QualifiedNameReference(QualifiedName.of(column));
+      Expression rightExpression=new QualifiedNameReference(QualifiedName.of(column));
+      ExpressionAnalysis leftExpressionAnalysis=analyzeExpression(leftExpression,left);
+      ExpressionAnalysis rightExpressionAnalysis=analyzeExpression(rightExpression,right);
+      checkState(leftExpressionAnalysis.getSubqueryInPredicates().isEmpty(),"INVARIANT");
+      checkState(rightExpressionAnalysis.getSubqueryInPredicates().isEmpty(),"INVARIANT");
+      checkState(leftExpressionAnalysis.getScalarSubqueries().isEmpty(),"INVARIANT");
+      checkState(rightExpressionAnalysis.getScalarSubqueries().isEmpty(),"INVARIANT");
+      addCoercionForJoinCriteria(node,leftExpression,rightExpression);
+      expressions.add(new ComparisonExpression(EQUAL,leftExpression,rightExpression));
+    }
+    analysis.setJoinCriteria(node,ExpressionUtils.and(expressions));
+  }
+ else   if (criteria instanceof JoinOn) {
+    Expression expression=((JoinOn)criteria).getExpression();
+    ExpressionAnalyzer analyzer=ExpressionAnalyzer.create(analysis,session,metadata,sqlParser,accessControl,experimentalSyntaxEnabled);
+    analyzer.analyze(expression,output);
+    Analyzer.verifyNoAggregatesOrWindowFunctions(metadata,expression,"JOIN");
+    Expression canonicalized=CanonicalizeExpressions.canonicalizeExpression(expression);
+    analyzer.analyze(canonicalized,output);
+    Object optimizedExpression=expressionOptimizer(canonicalized,metadata,session,analyzer.getExpressionTypes()).optimize(NoOpSymbolResolver.INSTANCE);
+    if (!(optimizedExpression instanceof Expression) && optimizedExpression instanceof Boolean) {
+      if (optimizedExpression.equals(Boolean.TRUE)) {
+        optimizedExpression=new ComparisonExpression(EQUAL,new LongLiteral("0"),new LongLiteral("0"));
+      }
+ else {
+        optimizedExpression=new ComparisonExpression(EQUAL,new LongLiteral("0"),new LongLiteral("1"));
+      }
+    }
+    if (!(optimizedExpression instanceof Expression)) {
+      throw new SemanticException(TYPE_MISMATCH,node,"Join clause must be a boolean expression");
+    }
+    analyzer=ExpressionAnalyzer.create(analysis,session,metadata,sqlParser,accessControl,experimentalSyntaxEnabled);
+    analyzer.analyze((Expression)optimizedExpression,output);
+    analysis.addCoercions(analyzer.getExpressionCoercions(),analyzer.getTypeOnlyCoercions());
+    Set<Expression> postJoinConjuncts=new HashSet<>();
+    final Set<Expression> leftExpressions=new HashSet<>();
+    final Set<Expression> rightExpressions=new HashSet<>();
+    for (    Expression conjunct : ExpressionUtils.extractConjuncts((Expression)optimizedExpression)) {
+      conjunct=ExpressionUtils.normalize(conjunct);
+      if (conjunct instanceof ComparisonExpression && (((ComparisonExpression)conjunct).getType() == EQUAL || node.getType() == Join.Type.INNER)) {
+        Expression conjunctFirst=((ComparisonExpression)conjunct).getLeft();
+        Expression conjunctSecond=((ComparisonExpression)conjunct).getRight();
+        Set<QualifiedName> firstDependencies=DependencyExtractor.extractNames(conjunctFirst,analyzer.getColumnReferences());
+        Set<QualifiedName> secondDependencies=DependencyExtractor.extractNames(conjunctSecond,analyzer.getColumnReferences());
+        Expression leftExpression=null;
+        Expression rightExpression=null;
+        if (firstDependencies.stream().allMatch(left.getRelationType().canResolvePredicate()) && secondDependencies.stream().allMatch(right.getRelationType().canResolvePredicate())) {
+          leftExpression=conjunctFirst;
+          rightExpression=conjunctSecond;
+        }
+ else         if (firstDependencies.stream().allMatch(right.getRelationType().canResolvePredicate()) && secondDependencies.stream().allMatch(left.getRelationType().canResolvePredicate())) {
+          leftExpression=conjunctSecond;
+          rightExpression=conjunctFirst;
+        }
+        if (rightExpression != null) {
+          ExpressionAnalysis leftExpressionAnalysis=analyzeExpression(leftExpression,left);
+          ExpressionAnalysis rightExpressionAnalysis=analyzeExpression(rightExpression,right);
+          leftExpressions.add(leftExpression);
+          rightExpressions.add(rightExpression);
+          analysis.recordSubqueries(node,leftExpressionAnalysis);
+          analysis.recordSubqueries(node,rightExpressionAnalysis);
+          addCoercionForJoinCriteria(node,leftExpression,rightExpression);
+        }
+ else {
+          postJoinConjuncts.add(conjunct);
+        }
+      }
+ else {
+        postJoinConjuncts.add(conjunct);
+      }
+    }
+    Expression postJoinPredicate=ExpressionUtils.combineConjuncts(postJoinConjuncts);
+    analysis.recordSubqueries(node,analyzeExpression(postJoinPredicate,output));
+    analysis.setJoinCriteria(node,(Expression)optimizedExpression);
+  }
+ else {
+    throw new UnsupportedOperationException("unsupported join criteria: " + criteria.getClass().getName());
+  }
+  return output;
+}
