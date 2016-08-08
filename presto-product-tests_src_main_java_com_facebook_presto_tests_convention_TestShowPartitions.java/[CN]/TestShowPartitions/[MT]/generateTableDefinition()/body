@@ -5,7 +5,7 @@
   createTableDdl.append(") ");
   createTableDdl.append("PARTITIONED BY (part_col INT) ");
   createTableDdl.append(" STORED AS ORC");
-  HiveDataSource dataSource=createResourceDataSource(TABLE_NAME,"" + currentTimeMillis(),"com/facebook/presto/tests/hive/data/single_int_column/data.orc");
-  HiveDataSource invalidData=createStringDataSource(TABLE_NAME,"" + currentTimeMillis(),"INVALID DATA");
+  HiveDataSource dataSource=createResourceDataSource(TABLE_NAME,String.valueOf(ThreadLocalRandom.current().nextLong(Long.MAX_VALUE)),"com/facebook/presto/tests/hive/data/single_int_column/data.orc");
+  HiveDataSource invalidData=createStringDataSource(TABLE_NAME,String.valueOf(ThreadLocalRandom.current().nextLong(Long.MAX_VALUE)),"INVALID DATA");
   return HiveTableDefinition.builder(TABLE_NAME).setCreateTableDDLTemplate(createTableDdl.toString()).addPartition("part_col = 1",invalidData).addPartition("part_col = 2",dataSource).build();
 }

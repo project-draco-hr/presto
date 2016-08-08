@@ -1,6 +1,6 @@
 {
   String tableName=fileFormat.toLowerCase() + "_single_int_column_partitioned";
-  HiveDataSource dataSource=createResourceDataSource(tableName,"" + currentTimeMillis(),"com/facebook/presto/tests/hive/data/single_int_column/data." + fileFormat.toLowerCase());
-  HiveDataSource invalidData=createStringDataSource(tableName,"" + currentTimeMillis(),"INVALID DATA");
+  HiveDataSource dataSource=createResourceDataSource(tableName,String.valueOf(ThreadLocalRandom.current().nextLong(Long.MAX_VALUE)),"com/facebook/presto/tests/hive/data/single_int_column/data." + fileFormat.toLowerCase());
+  HiveDataSource invalidData=createStringDataSource(tableName,String.valueOf(ThreadLocalRandom.current().nextLong(Long.MAX_VALUE)),"INVALID DATA");
   return HiveTableDefinition.builder(tableName).setCreateTableDDLTemplate(buildSingleIntColumnPartitionedTableDDL(fileFormat,serde)).addPartition("part_col = 1",invalidData).addPartition("part_col = 2",dataSource).build();
 }
