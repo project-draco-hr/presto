@@ -1,9 +1,9 @@
 {
   try (Connection connection=createConnection()){
     try (Statement statement=connection.createStatement()){
-      try (ResultSet rs=statement.executeQuery("" + "SELECT " + "  123 _integer"+ ",  12300000000 _bigint"+ ", 'foo' _varchar"+ ", 0.1 _double"+ ", true _boolean"+ ", cast('hello' as varbinary) _varbinary"+ ", DECIMAL '1234567890.1234567' _decimal_short"+ ", DECIMAL '.12345678901234567890123456789012345678' _decimal_long"+ ", approx_set(42) _hll")){
+      try (ResultSet rs=statement.executeQuery("" + "SELECT " + "  123 _integer"+ ",  12300000000 _bigint"+ ", 'foo' _varchar"+ ", 0.1 _double"+ ", true _boolean"+ ", cast('hello' as varbinary) _varbinary"+ ", DECIMAL '1234567890.1234567' _decimal_short"+ ", DECIMAL '.12345678901234567890123456789012345678' _decimal_long"+ ", approx_set(42) _hll"+ ", cast('foo' as char(5)) _char")){
         ResultSetMetaData metadata=rs.getMetaData();
-        assertEquals(metadata.getColumnCount(),9);
+        assertEquals(metadata.getColumnCount(),10);
         assertEquals(metadata.getColumnLabel(1),"_integer");
         assertEquals(metadata.getColumnType(1),Types.INTEGER);
         assertEquals(metadata.getColumnLabel(2),"_bigint");
@@ -22,6 +22,8 @@
         assertEquals(metadata.getColumnType(8),Types.DECIMAL);
         assertEquals(metadata.getColumnLabel(9),"_hll");
         assertEquals(metadata.getColumnType(9),Types.JAVA_OBJECT);
+        assertEquals(metadata.getColumnLabel(10),"_char");
+        assertEquals(metadata.getColumnType(10),Types.CHAR);
         assertTrue(rs.next());
         assertEquals(rs.getObject(1),123);
         assertEquals(rs.getObject("_integer"),123);
@@ -71,6 +73,10 @@
         assertInstanceOf(rs.getObject("_hll"),byte[].class);
         assertInstanceOf(rs.getBytes(9),byte[].class);
         assertInstanceOf(rs.getBytes("_hll"),byte[].class);
+        assertEquals(rs.getObject(10),"foo  ");
+        assertEquals(rs.getObject("_char"),"foo  ");
+        assertEquals(rs.getString(10),"foo  ");
+        assertEquals(rs.getString("_char"),"foo  ");
         assertFalse(rs.next());
       }
      }
