@@ -17,4 +17,6 @@
   assertEquals(filterNonHiddenColumnMetadata(tableMetadata.getColumns()),CREATE_TABLE_COLUMNS);
   MaterializedResult result=readTable(tableHandle,columnHandles,session,TupleDomain.all(),OptionalInt.empty(),Optional.of(storageFormat));
   assertEqualsIgnoreOrder(result.getMaterializedRows(),CREATE_TABLE_DATA.getMaterializedRows());
+  Table table=getMetastoreClient(tableName.getSchemaName()).getTable(tableName.getSchemaName(),tableName.getTableName()).get();
+  assertEquals(table.getParameters().get(HiveMetadata.PRESTO_VERSION_NAME),TEST_SERVER_INFO.getVersion());
 }
