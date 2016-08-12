@@ -1,0 +1,16 @@
+{
+  if (state.get() == null) {
+    out.appendNull();
+  }
+ else {
+    Map<Double,Double> value=state.get().getBuckets();
+    BlockBuilder blockBuilder=REAL.createBlockBuilder(new BlockBuilderStatus(),value.size() * 2);
+    for (    Map.Entry<Double,Double> entry : value.entrySet()) {
+      REAL.writeLong(blockBuilder,floatToRawIntBits(entry.getKey().floatValue()));
+      REAL.writeLong(blockBuilder,floatToRawIntBits(entry.getValue().floatValue()));
+    }
+    Block block=blockBuilder.build();
+    out.writeObject(block);
+    out.closeEntry();
+  }
+}
