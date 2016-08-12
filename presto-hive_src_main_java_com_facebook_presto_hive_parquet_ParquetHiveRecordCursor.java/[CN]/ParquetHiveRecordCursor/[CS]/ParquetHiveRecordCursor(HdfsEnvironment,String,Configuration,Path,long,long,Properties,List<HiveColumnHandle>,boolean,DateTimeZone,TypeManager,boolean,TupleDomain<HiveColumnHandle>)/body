@@ -1,0 +1,22 @@
+{
+  requireNonNull(path,"path is null");
+  checkArgument(length >= 0,"length is negative");
+  requireNonNull(splitSchema,"splitSchema is null");
+  requireNonNull(columns,"columns is null");
+  requireNonNull(hiveStorageTimeZone,"hiveStorageTimeZone is null");
+  this.totalBytes=length;
+  int size=columns.size();
+  this.types=new Type[size];
+  this.booleans=new boolean[size];
+  this.longs=new long[size];
+  this.doubles=new double[size];
+  this.slices=new Slice[size];
+  this.objects=new Object[size];
+  this.nulls=new boolean[size];
+  for (int columnIndex=0; columnIndex < columns.size(); columnIndex++) {
+    HiveColumnHandle column=columns.get(columnIndex);
+    checkState(column.getColumnType() == REGULAR,"column type must be regular");
+    types[columnIndex]=typeManager.getType(column.getTypeSignature());
+  }
+  this.recordReader=createParquetRecordReader(hdfsEnvironment,sessionUser,configuration,path,start,length,columns,useParquetColumnNames,typeManager,predicatePushdownEnabled,effectivePredicate);
+}

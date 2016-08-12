@@ -9,7 +9,7 @@
     ConnectorTableMetadata tableMetadata=metadata.getTableMetadata(session,tableHandle);
     HiveSplit hiveSplit=getHiveSplit(tableHandle);
     List<ColumnHandle> columnHandles=ImmutableList.copyOf(metadata.getColumnHandles(session,tableHandle).values());
-    ConnectorPageSourceProvider pageSourceProvider=new HivePageSourceProvider(new HiveClientConfig().setTimeZone(timeZone.getID()),hdfsEnvironment,ImmutableSet.<HiveRecordCursorProvider>of(new ColumnarBinaryHiveRecordCursorProvider(hdfsEnvironment)),ImmutableSet.<HivePageSourceFactory>of(),TYPE_MANAGER);
+    ConnectorPageSourceProvider pageSourceProvider=new HivePageSourceProvider(new HiveClientConfig().setTimeZone(timeZone.getID()),hdfsEnvironment,ImmutableSet.of(new ColumnarBinaryHiveRecordCursorProvider(hdfsEnvironment)),ImmutableSet.<HivePageSourceFactory>of(),TYPE_MANAGER);
     ConnectorPageSource pageSource=pageSourceProvider.createPageSource(transaction.getTransactionHandle(),session,hiveSplit,columnHandles);
     assertGetRecords(RCBINARY,tableMetadata,hiveSplit,pageSource,columnHandles);
   }

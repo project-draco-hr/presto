@@ -1,0 +1,31 @@
+{
+  requireNonNull(recordReader,"recordReader is null");
+  checkArgument(totalBytes >= 0,"totalBytes is negative");
+  requireNonNull(splitSchema,"splitSchema is null");
+  requireNonNull(columns,"columns is null");
+  this.recordReader=recordReader;
+  this.totalBytes=totalBytes;
+  this.key=recordReader.createKey();
+  this.value=recordReader.createValue();
+  int size=columns.size();
+  this.types=new Type[size];
+  this.hiveTypes=new HiveType[size];
+  this.fieldInspectors=new ObjectInspector[size];
+  this.hiveColumnIndexes=new int[size];
+  this.loaded=new boolean[size];
+  this.booleans=new boolean[size];
+  this.longs=new long[size];
+  this.doubles=new double[size];
+  this.slices=new Slice[size];
+  this.objects=new Object[size];
+  this.nulls=new boolean[size];
+  StructObjectInspector rowInspector=getTableObjectInspector(splitSchema);
+  for (int i=0; i < columns.size(); i++) {
+    HiveColumnHandle column=columns.get(i);
+    checkState(column.getColumnType() == REGULAR,"column type must be regular");
+    types[i]=typeManager.getType(column.getTypeSignature());
+    hiveTypes[i]=column.getHiveType();
+    hiveColumnIndexes[i]=column.getHiveColumnIndex();
+    fieldInspectors[i]=rowInspector.getStructFieldRef(column.getName()).getFieldObjectInspector();
+  }
+}

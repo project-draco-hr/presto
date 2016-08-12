@@ -1,0 +1,37 @@
+{
+  requireNonNull(recordReader,"recordReader is null");
+  checkArgument(totalBytes >= 0,"totalBytes is negative");
+  requireNonNull(splitSchema,"splitSchema is null");
+  requireNonNull(columns,"columns is null");
+  requireNonNull(hiveStorageTimeZone,"hiveStorageTimeZone is null");
+  this.recordReader=recordReader;
+  this.totalBytes=totalBytes;
+  this.key=recordReader.createKey();
+  this.value=recordReader.createValue();
+  this.hiveStorageTimeZone=hiveStorageTimeZone;
+  this.deserializer=getDeserializer(splitSchema);
+  this.rowInspector=getTableObjectInspector(deserializer);
+  int size=columns.size();
+  String[] names=new String[size];
+  this.types=new Type[size];
+  this.hiveTypes=new HiveType[size];
+  this.structFields=new StructField[size];
+  this.fieldInspectors=new ObjectInspector[size];
+  this.loaded=new boolean[size];
+  this.booleans=new boolean[size];
+  this.longs=new long[size];
+  this.doubles=new double[size];
+  this.slices=new Slice[size];
+  this.objects=new Object[size];
+  this.nulls=new boolean[size];
+  for (int i=0; i < columns.size(); i++) {
+    HiveColumnHandle column=columns.get(i);
+    checkState(column.getColumnType() == REGULAR,"column type must be regular");
+    names[i]=column.getName();
+    types[i]=typeManager.getType(column.getTypeSignature());
+    hiveTypes[i]=column.getHiveType();
+    StructField field=rowInspector.getStructFieldRef(column.getName());
+    structFields[i]=field;
+    fieldInspectors[i]=field.getFieldObjectInspector();
+  }
+}
