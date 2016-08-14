@@ -6,7 +6,7 @@
     String schemaName=schemaTableName.getSchemaName();
     String tableName=schemaTableName.getTableName();
     LocationService locationService=getLocationService(schemaName);
-    LocationHandle locationHandle=locationService.forNewTable(session.getUser(),session.getQueryId(),schemaName,tableName);
+    LocationHandle locationHandle=locationService.forNewTable(transaction.getMetastore(schemaName),session.getUser(),session.getQueryId(),schemaName,tableName);
     targetPath=locationService.targetPathRoot(locationHandle);
     Table.Builder tableBuilder=Table.builder().setDatabaseName(schemaName).setTableName(tableName).setOwner(tableOwner).setTableType(TableType.MANAGED_TABLE.name()).setParameters(ImmutableMap.of()).setDataColumns(columns).setPartitionColumns(partitionColumns);
     tableBuilder.getStorageBuilder().setLocation(targetPath.toString()).setStorageFormat(StorageFormat.create(hiveStorageFormat.getSerDe(),hiveStorageFormat.getInputFormat(),hiveStorageFormat.getOutputFormat())).setSerdeParameters(ImmutableMap.of());
