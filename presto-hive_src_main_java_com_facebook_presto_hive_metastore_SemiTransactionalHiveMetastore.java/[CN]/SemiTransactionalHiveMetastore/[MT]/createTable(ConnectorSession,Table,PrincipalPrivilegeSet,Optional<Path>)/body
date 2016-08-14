@@ -1,0 +1,21 @@
+{
+  setShared();
+  checkNoPartitionAction(table.getDatabaseName(),table.getTableName());
+  SchemaTableName schemaTableName=new SchemaTableName(table.getDatabaseName(),table.getTableName());
+  Action<TableAndMore> oldTableAction=tableActions.get(schemaTableName);
+  TableAndMore tableAndMore=new TableAndMore(table,Optional.of(principalPrivilegeSet),currentPath,Optional.empty());
+  if (oldTableAction == null) {
+    tableActions.put(schemaTableName,new Action<>(ActionType.ADD,tableAndMore,session.getUser(),session.getQueryId()));
+    return;
+  }
+switch (oldTableAction.getType()) {
+case DROP:
+    throw new PrestoException(TRANSACTION_CONFLICT,"Dropping and then recreating the same table in a transaction is not supported");
+case ADD:
+case ALTER:
+case INSERT_EXISTING:
+  throw new TableAlreadyExistsException(schemaTableName);
+default :
+throw new IllegalStateException("Unknown action type");
+}
+}

@@ -1,0 +1,23 @@
+{
+  setShared();
+  SchemaTableName schemaTableName=new SchemaTableName(databaseName,tableName);
+  Action<TableAndMore> oldTableAction=tableActions.get(schemaTableName);
+  if (oldTableAction == null) {
+    Optional<Table> table=delegate.getTable(databaseName,tableName);
+    if (!table.isPresent()) {
+      throw new TableNotFoundException(schemaTableName);
+    }
+    tableActions.put(schemaTableName,new Action<>(ActionType.INSERT_EXISTING,new TableAndMore(table.get(),Optional.empty(),Optional.of(currentLocation),Optional.of(fileNames)),session.getUser(),session.getQueryId()));
+    return;
+  }
+switch (oldTableAction.getType()) {
+case DROP:
+    throw new TableNotFoundException(schemaTableName);
+case ADD:
+case ALTER:
+case INSERT_EXISTING:
+  throw new UnsupportedOperationException("Inserting into an unpartitioned table that were added, altered, or inserted into in the same transaction is not supported");
+default :
+throw new IllegalStateException("Unknown action type");
+}
+}

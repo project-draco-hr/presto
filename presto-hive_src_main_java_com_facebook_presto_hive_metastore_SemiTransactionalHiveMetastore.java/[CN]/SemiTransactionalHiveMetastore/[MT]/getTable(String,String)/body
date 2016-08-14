@@ -1,0 +1,17 @@
+{
+  checkReadable();
+  Action<TableAndMore> tableAction=tableActions.get(new SchemaTableName(databaseName,tableName));
+  if (tableAction == null) {
+    return delegate.getTable(databaseName,tableName);
+  }
+switch (tableAction.getType()) {
+case ADD:
+case ALTER:
+case INSERT_EXISTING:
+    return Optional.of(tableAction.getData().getTable());
+case DROP:
+  return Optional.empty();
+default :
+throw new IllegalStateException("Unknown action type");
+}
+}

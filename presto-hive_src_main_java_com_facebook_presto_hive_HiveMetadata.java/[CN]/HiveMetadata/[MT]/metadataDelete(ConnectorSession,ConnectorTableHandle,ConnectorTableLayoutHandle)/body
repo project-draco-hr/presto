@@ -6,18 +6,11 @@
     throw new TableNotFoundException(handle.getSchemaTableName());
   }
   if (table.get().getPartitionColumns().isEmpty()) {
-    if (!table.get().getTableType().equals(TableType.MANAGED_TABLE.toString())) {
-      throw new PrestoException(NOT_SUPPORTED,"Cannot delete from non-managed Hive table");
-    }
-    String location=table.get().getStorage().getLocation();
-    List<String> notDeletedFiles=recursiveDeleteFilesStartingWith(session.getUser(),location,"");
-    if (!notDeletedFiles.isEmpty()) {
-      throw new PrestoException(HIVE_FILESYSTEM_ERROR,"Error deleting from unpartitioned table: " + handle.getSchemaTableName());
-    }
+    metastore.truncateUnpartitionedTable(session,handle.getSchemaName(),handle.getTableName());
   }
  else {
     for (    HivePartition hivePartition : getOrComputePartitions(layoutHandle,session,tableHandle)) {
-      metastore.dropPartition(handle.getSchemaName(),handle.getTableName(),toPartitionValues(hivePartition.getPartitionId()),true);
+      metastore.dropPartition(session,handle.getSchemaName(),handle.getTableName(),toPartitionValues(hivePartition.getPartitionId()));
     }
   }
   return OptionalLong.empty();

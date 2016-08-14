@@ -1,0 +1,15 @@
+{
+  FileSystem fileSystem;
+  try {
+    fileSystem=hdfsEnvironment.getFileSystem(user,directory);
+    if (!fileSystem.exists(directory)) {
+      return new RecursiveDeleteResult(true,ImmutableList.of());
+    }
+  }
+ catch (  IOException e) {
+    ImmutableList.Builder<String> notDeletedItems=ImmutableList.builder();
+    notDeletedItems.add(directory.toString() + "/**");
+    return new RecursiveDeleteResult(false,notDeletedItems.build());
+  }
+  return doRecursiveDeleteFiles(fileSystem,directory,filePrefixes,deleteEmptyDirectories);
+}

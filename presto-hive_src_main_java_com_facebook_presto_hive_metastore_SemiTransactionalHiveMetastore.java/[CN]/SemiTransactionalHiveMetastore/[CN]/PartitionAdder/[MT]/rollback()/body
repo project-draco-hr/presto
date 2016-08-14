@@ -1,0 +1,15 @@
+{
+  List<List<String>> partitionsFailedToRollback=new ArrayList<>();
+  for (  List<String> createdPartitionValue : createdPartitionValues) {
+    try {
+      metastore.dropPartition(schemaName,tableName,createdPartitionValue,false);
+    }
+ catch (    PartitionNotFoundException e) {
+    }
+catch (    Throwable t) {
+      partitionsFailedToRollback.add(createdPartitionValue);
+    }
+  }
+  createdPartitionValues=partitionsFailedToRollback;
+  return partitionsFailedToRollback;
+}

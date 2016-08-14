@@ -1,0 +1,56 @@
+{
+  FileStatus[] allFiles;
+  try {
+    allFiles=fileSystem.listStatus(directory);
+  }
+ catch (  IOException e) {
+    ImmutableList.Builder<String> notDeletedItems=ImmutableList.builder();
+    notDeletedItems.add(directory.toString() + "/**");
+    return new RecursiveDeleteResult(false,notDeletedItems.build());
+  }
+  boolean allDescendentsDeleted=true;
+  ImmutableList.Builder<String> notDeletedEligibleItems=ImmutableList.builder();
+  for (  FileStatus fileStatus : allFiles) {
+    if (HadoopFileStatus.isFile(fileStatus)) {
+      Path filePath=fileStatus.getPath();
+      String fileName=filePath.getName();
+      boolean eligible=false;
+      for (      String filePrefix : filePrefixes) {
+        if (fileName.startsWith(filePrefix)) {
+          eligible=true;
+          break;
+        }
+      }
+      if (eligible) {
+        if (!deleteIfExists(fileSystem,filePath)) {
+          allDescendentsDeleted=false;
+          notDeletedEligibleItems.add(filePath.toString());
+        }
+      }
+ else {
+        allDescendentsDeleted=false;
+      }
+    }
+ else     if (HadoopFileStatus.isDirectory(fileStatus)) {
+      RecursiveDeleteResult subResult=doRecursiveDeleteFiles(fileSystem,fileStatus.getPath(),filePrefixes,deleteEmptyDirectories);
+      if (!subResult.isDirectoryNoLongerExists()) {
+        allDescendentsDeleted=false;
+      }
+      if (!subResult.getNotDeletedEligibleItems().isEmpty()) {
+        notDeletedEligibleItems.addAll(subResult.getNotDeletedEligibleItems());
+      }
+    }
+ else {
+      allDescendentsDeleted=false;
+      notDeletedEligibleItems.add(fileStatus.getPath().toString());
+    }
+  }
+  if (allDescendentsDeleted && deleteEmptyDirectories) {
+    verify(notDeletedEligibleItems.build().isEmpty());
+    if (!deleteIfExists(fileSystem,directory)) {
+      return new RecursiveDeleteResult(false,ImmutableList.of(directory.toString() + "/"));
+    }
+    return new RecursiveDeleteResult(true,ImmutableList.of());
+  }
+  return new RecursiveDeleteResult(false,notDeletedEligibleItems.build());
+}

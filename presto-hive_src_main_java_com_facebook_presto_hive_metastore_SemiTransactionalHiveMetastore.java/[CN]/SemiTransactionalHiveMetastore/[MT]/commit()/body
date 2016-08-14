@@ -1,0 +1,22 @@
+{
+  try {
+switch (state) {
+case EMPTY:
+      break;
+case SHARED_OPERATION_BUFFERED:
+    commitShared();
+  break;
+case EXCLUSIVE_OPERATION_BUFFERED:
+requireNonNull(bufferedExclusiveOperation,"bufferedExclusiveOperation is null");
+bufferedExclusiveOperation.execute(delegate,hdfsEnvironment);
+break;
+case FINISHED:
+throw new IllegalStateException("Tried to commit buffered metastore operations after transaction has been committed/aborted");
+default :
+throw new IllegalStateException("Unknown state");
+}
+}
+  finally {
+state=State.FINISHED;
+}
+}

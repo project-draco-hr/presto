@@ -1,2 +1,18 @@
 {
+  verifyJvmTimeZone();
+  HiveStorageFormat tableStorageFormat=getHiveStorageFormat(tableMetadata.getProperties());
+  List<String> partitionedBy=getPartitionedBy(tableMetadata.getProperties());
+  Optional<HiveBucketProperty> bucketProperty=getBucketProperty(tableMetadata.getProperties());
+  Map<String,String> additionalTableParameters=tableParameterCodec.encode(tableMetadata.getProperties());
+  SchemaTableName schemaTableName=tableMetadata.getTable();
+  String schemaName=schemaTableName.getSchemaName();
+  String tableName=schemaTableName.getTableName();
+  List<HiveColumnHandle> columnHandles=getColumnHandles(connectorId,tableMetadata,ImmutableSet.copyOf(partitionedBy),typeTranslator);
+  LocationHandle locationHandle=locationService.forNewTable(session.getUser(),session.getQueryId(),schemaName,tableName);
+  HiveOutputTableHandle result=new HiveOutputTableHandle(connectorId,schemaName,tableName,columnHandles,session.getQueryId(),locationHandle,tableStorageFormat,respectTableFormat ? tableStorageFormat : defaultStorageFormat,partitionedBy,bucketProperty,session.getUser(),additionalTableParameters);
+  Path writePathRoot=locationService.writePathRoot(locationHandle).get();
+  Path targetPathRoot=locationService.targetPathRoot(locationHandle);
+  WriteMode mode=writePathRoot.equals(targetPathRoot) ? DIRECT_TO_TARGET_NEW_DIRECTORY : STAGE_AND_MOVE_TO_TARGET_DIRECTORY;
+  metastore.declareIntentionToWrite(session,mode,writePathRoot,result.getFilePrefix(),schemaTableName);
+  return result;
 }

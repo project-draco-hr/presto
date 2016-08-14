@@ -1,0 +1,20 @@
+{
+  setShared();
+  checkNoPartitionAction(databaseName,tableName);
+  SchemaTableName schemaTableName=new SchemaTableName(databaseName,tableName);
+  Action<TableAndMore> oldTableAction=tableActions.get(schemaTableName);
+  if (oldTableAction == null || oldTableAction.getType() == ActionType.ALTER) {
+    tableActions.put(schemaTableName,new Action<>(ActionType.DROP,null,session.getUser(),session.getQueryId()));
+    return;
+  }
+switch (oldTableAction.getType()) {
+case DROP:
+    throw new TableNotFoundException(schemaTableName);
+case ADD:
+case ALTER:
+case INSERT_EXISTING:
+  throw new UnsupportedOperationException("dropping a table added/modified in the same transaction is not supported");
+default :
+throw new IllegalStateException("Unknown action type");
+}
+}

@@ -1,0 +1,71 @@
+{
+  checkHoldsLock();
+  Committer committer=new Committer();
+  try {
+    for (    Map.Entry<SchemaTableName,Action<TableAndMore>> entry : tableActions.entrySet()) {
+      SchemaTableName schemaTableName=entry.getKey();
+      Action<TableAndMore> action=entry.getValue();
+switch (action.getType()) {
+case DROP:
+        committer.prepareDropTable(schemaTableName);
+      break;
+case ALTER:
+    committer.prepareAlterTable();
+  break;
+case ADD:
+committer.prepareAddTable(action.getUser(),action.getData());
+break;
+case INSERT_EXISTING:
+committer.prepareInsertExistingTable(action.getUser(),action.getData());
+break;
+default :
+throw new IllegalStateException("Unknown action type");
+}
+}
+for (Map.Entry<SchemaTableName,Map<List<String>,Action<PartitionAndMore>>> tableEntry : partitionActions.entrySet()) {
+SchemaTableName schemaTableName=tableEntry.getKey();
+for (Map.Entry<List<String>,Action<PartitionAndMore>> partitionEntry : tableEntry.getValue().entrySet()) {
+List<String> partitionValues=partitionEntry.getKey();
+Action<PartitionAndMore> action=partitionEntry.getValue();
+switch (action.getType()) {
+case DROP:
+committer.prepareDropPartition(schemaTableName,partitionValues);
+break;
+case ALTER:
+committer.prepareAlterPartition(action.getQueryId(),action.getUser(),action.getData());
+break;
+case ADD:
+committer.prepareAddPartition(action.getUser(),action.getData());
+break;
+case INSERT_EXISTING:
+committer.prepareInsertExistingPartition(action.getUser(),action.getData());
+break;
+default :
+throw new IllegalStateException("Unknown action type");
+}
+}
+}
+committer.waitForAsyncRenames();
+committer.executeAddTableOperations();
+committer.executeAlterPartitionOperations();
+committer.executeAddPartitionOperations();
+}
+ catch (Throwable t) {
+committer.cancelUnstartedAsyncRenames();
+committer.undoAddPartitionOperations();
+committer.undoAddTableOperations();
+committer.waitForAsyncRenamesSuppressThrowables();
+committer.executeCleanupTasksForAbort(committer.extractFilePrefixes(declaredIntentionsToWrite));
+committer.executeRenameTasksForAbort();
+committer.undoAlterPartitionOperations();
+rollbackShared();
+throw t;
+}
+try {
+committer.executeIrreversibleMetastoreOperations();
+}
+  finally {
+committer.executeDeletionTasksForFinish();
+committer.deleteEmptyStagingDirectories(declaredIntentionsToWrite);
+}
+}

@@ -1,0 +1,9 @@
+{
+  RecursiveDeleteResult recursiveDeleteResult=recursiveDeleteFiles(hdfsEnvironment,user,directory,filePrefixes,deleteEmptyDirectories);
+  if (!recursiveDeleteResult.getNotDeletedEligibleItems().isEmpty()) {
+    logCleanupFailure("Error deleting directory %s for %s. Some eligible items can not be deleted: %s.",directory.toString(),reason,recursiveDeleteResult.getNotDeletedEligibleItems());
+  }
+ else   if (deleteEmptyDirectories && !recursiveDeleteResult.isDirectoryNoLongerExists()) {
+    logCleanupFailure("Error deleting directory %s for %s. Can not delete the directory.",directory.toString(),reason);
+  }
+}

@@ -1,0 +1,10 @@
+{
+  setShared();
+  if (writeMode == WriteMode.DIRECT_TO_TARGET_EXISTING_DIRECTORY) {
+    Map<List<String>,Action<PartitionAndMore>> partitionActionsOfTable=partitionActions.get(schemaTableName);
+    if (partitionActionsOfTable != null && !partitionActionsOfTable.isEmpty()) {
+      throw new PrestoException(NOT_SUPPORTED,"Can not insert into a table with a partition that has been modified in the same transaction when Presto is configured to skip temporary directories.");
+    }
+  }
+  declaredIntentionsToWrite.add(new DeclaredIntentionToWrite(writeMode,session.getUser(),stagingPathRoot,filePrefix,schemaTableName));
+}
