@@ -1,0 +1,28 @@
+{
+  MaterializedResult beforeData=MaterializedResult.resultBuilder(SESSION,BIGINT,createUnboundedVarcharType(),createUnboundedVarcharType()).row(110L,"a","alter1").row(120L,"a","insert1").row(140L,"a","drop1").row(210L,"b","drop2").row(310L,"c","alter2").row(320L,"c","alter3").row(510L,"e","drop3").row(610L,"f","insert2").row(620L,"f","insert3").build();
+  Domain domainToDrop=Domain.create(ValueSet.of(createUnboundedVarcharType(),utf8Slice("alter1"),utf8Slice("alter2"),utf8Slice("alter3"),utf8Slice("drop1"),utf8Slice("drop2"),utf8Slice("drop3")),false);
+  List<MaterializedRow> extraRowsForInsertExisting=ImmutableList.of();
+  if (allowInsertExisting) {
+    extraRowsForInsertExisting=MaterializedResult.resultBuilder(SESSION,BIGINT,createUnboundedVarcharType(),createUnboundedVarcharType()).row(121L,"a","insert1").row(611L,"f","insert2").row(621L,"f","insert3").build().getMaterializedRows();
+  }
+  MaterializedResult insertData=MaterializedResult.resultBuilder(SESSION,BIGINT,createUnboundedVarcharType(),createUnboundedVarcharType()).row(111L,"a","alter1").row(131L,"a","add1").row(221L,"b","add2").row(311L,"c","alter2").row(321L,"c","alter3").row(411L,"d","add3").rows(extraRowsForInsertExisting).build();
+  MaterializedResult afterData=MaterializedResult.resultBuilder(SESSION,BIGINT,createUnboundedVarcharType(),createUnboundedVarcharType()).row(120L,"a","insert1").row(610L,"f","insert2").row(620L,"f","insert3").rows(insertData.getMaterializedRows()).build();
+  boolean dirtyState=true;
+  for (  TransactionDeleteInsertTestCase testCase : testCases) {
+    if (dirtyState) {
+      dropTable(tableName);
+      createEmptyTable(tableName,storageFormat,ImmutableList.of(new Column("col1",HIVE_LONG,Optional.empty())),ImmutableList.of(new Column("pk1",HIVE_STRING,Optional.empty()),new Column("pk2",HIVE_STRING,Optional.empty())));
+      insertData(tableName,beforeData);
+      dirtyState=false;
+    }
+    try {
+      doTestTransactionDeleteInsert(storageFormat,tableName,domainToDrop,insertData,testCase.isExpectCommitedData() ? afterData : beforeData,testCase.getTag(),testCase.isExpectQuerySucceed(),testCase.getConflictTrigger());
+    }
+ catch (    AssertionError e) {
+      throw new AssertionError(format("Test case: %s",testCase.toString()),e);
+    }
+    if (testCase.isExpectCommitedData()) {
+      dirtyState=true;
+    }
+  }
+}
