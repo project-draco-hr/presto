@@ -8,10 +8,12 @@
     Table.Builder tableBuilder=Table.builder(table.get());
     tableBuilder.getStorageBuilder().setLocation("/");
     replaceTable(databaseName,tableName,tableBuilder.build(),new PrincipalPrivilegeSet());
-    super.dropTable(databaseName,tableName);
-    for (    String location : locations) {
-      Path path=new Path(location);
-      hdfsEnvironment.getFileSystem("user",path).delete(path,true);
+    delegate.dropTable(databaseName,tableName,false);
+    if (deleteData) {
+      for (      String location : locations) {
+        Path path=new Path(location);
+        hdfsEnvironment.getFileSystem("user",path).delete(path,true);
+      }
     }
   }
  catch (  Exception e) {
