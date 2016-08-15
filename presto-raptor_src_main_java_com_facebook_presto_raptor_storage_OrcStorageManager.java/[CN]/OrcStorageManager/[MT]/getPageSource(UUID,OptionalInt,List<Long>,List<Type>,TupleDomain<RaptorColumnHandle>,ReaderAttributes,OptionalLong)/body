@@ -30,14 +30,11 @@
     return new OrcPageSource(shardRewriter,recordReader,dataSource,columnIds,columnTypes,columnIndexes.build(),shardUuid,bucketNumber,systemMemoryUsage);
   }
  catch (  IOException|RuntimeException e) {
-    try {
-      dataSource.close();
-    }
- catch (    IOException ex) {
-      if (e != ex) {
-        e.addSuppressed(ex);
-      }
-    }
+    closeQuietly(dataSource);
     throw new PrestoException(RAPTOR_ERROR,"Failed to create page source for shard " + shardUuid,e);
+  }
+catch (  Throwable t) {
+    closeQuietly(dataSource);
+    throw t;
   }
 }
