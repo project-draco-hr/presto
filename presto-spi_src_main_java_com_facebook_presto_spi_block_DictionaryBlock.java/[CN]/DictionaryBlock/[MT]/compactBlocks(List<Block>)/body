@@ -5,16 +5,18 @@
   Slice ids=dictionaryBlock.getIds();
   int positionCount=dictionaryBlock.getPositionCount();
   int dictionarySize=dictionary.getPositionCount();
-  boolean[] isReferenced=getReferencedPositions(dictionary,ids,positionCount);
   List<Integer> dictionaryPositionsToCopy=new ArrayList<>(dictionarySize);
   int[] remapIndex=new int[dictionarySize];
   Arrays.fill(remapIndex,-1);
   int newIndex=0;
-  for (int i=0; i < dictionarySize; i++) {
-    if (isReferenced[i]) {
-      dictionaryPositionsToCopy.add(i);
-      remapIndex[i]=newIndex;
+  boolean[] copied=new boolean[dictionarySize];
+  for (int i=0; i < positionCount; i++) {
+    int position=getIndex(ids,i);
+    if (!copied[position]) {
+      dictionaryPositionsToCopy.add(position);
+      remapIndex[position]=newIndex;
       newIndex++;
+      copied[position]=true;
     }
   }
   if (dictionaryPositionsToCopy.size() == dictionarySize) {

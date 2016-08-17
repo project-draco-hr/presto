@@ -19,13 +19,15 @@
  else {
     int sizeInBytes=0;
     int uniqueIds=0;
-    boolean[] isReferenced=getReferencedPositions(dictionary,ids,positionCount);
-    for (int position=0; position < isReferenced.length; position++) {
-      if (isReferenced[position]) {
+    boolean[] seen=new boolean[dictionary.getPositionCount()];
+    for (int i=0; i < positionCount; i++) {
+      int position=getIndex(ids,i);
+      if (!seen[position]) {
         if (!dictionary.isNull(position)) {
           sizeInBytes+=dictionary.getLength(position);
         }
         uniqueIds++;
+        seen[position]=true;
       }
     }
     this.sizeInBytes=sizeInBytes + ids.length();
