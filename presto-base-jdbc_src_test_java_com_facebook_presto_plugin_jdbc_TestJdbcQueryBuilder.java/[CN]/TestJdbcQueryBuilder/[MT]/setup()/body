@@ -1,15 +1,15 @@
 {
   database=new TestingDatabase();
   jdbcClient=database.getJdbcClient();
-  columns=ImmutableList.of(new JdbcColumnHandle("test_id","col_0",BIGINT),new JdbcColumnHandle("test_id","col_1",DOUBLE),new JdbcColumnHandle("test_id","col_2",BOOLEAN),new JdbcColumnHandle("test_id","col_3",VARCHAR),new JdbcColumnHandle("test_id","col_4",DATE),new JdbcColumnHandle("test_id","col_5",TIME),new JdbcColumnHandle("test_id","col_6",TIMESTAMP));
+  columns=ImmutableList.of(new JdbcColumnHandle("test_id","col_0",BIGINT),new JdbcColumnHandle("test_id","col_1",DOUBLE),new JdbcColumnHandle("test_id","col_2",BOOLEAN),new JdbcColumnHandle("test_id","col_3",VARCHAR),new JdbcColumnHandle("test_id","col_4",DATE),new JdbcColumnHandle("test_id","col_5",TIME),new JdbcColumnHandle("test_id","col_6",TIMESTAMP),new JdbcColumnHandle("test_id","col_7",TINYINT),new JdbcColumnHandle("test_id","col_8",SMALLINT),new JdbcColumnHandle("test_id","col_9",INTEGER));
   Connection connection=database.getConnection();
-  try (PreparedStatement preparedStatement=connection.prepareStatement("create table \"test_table\" (" + "" + "\"col_0\" BIGINT, "+ "\"col_1\" DOUBLE, "+ "\"col_2\" BOOLEAN, "+ "\"col_3\" VARCHAR(128), "+ "\"col_4\" DATE, "+ "\"col_5\" TIME, "+ "\"col_6\" TIMESTAMP, "+ ")")){
+  try (PreparedStatement preparedStatement=connection.prepareStatement("create table \"test_table\" (" + "" + "\"col_0\" BIGINT, "+ "\"col_1\" DOUBLE, "+ "\"col_2\" BOOLEAN, "+ "\"col_3\" VARCHAR(128), "+ "\"col_4\" DATE, "+ "\"col_5\" TIME, "+ "\"col_6\" TIMESTAMP, "+ "\"col_7\" TINYINT, "+ "\"col_8\" SMALLINT, "+ "\"col_9\" INTEGER, "+ ")")){
     preparedStatement.execute();
     StringBuilder stringBuilder=new StringBuilder("insert into \"test_table\" values ");
     int len=1000;
     LocalDateTime dateTime=LocalDateTime.of(2016,3,23,12,23,37);
     for (int i=0; i < len; i++) {
-      stringBuilder.append(format(Locale.ENGLISH,"(%d, %f, %b, 'test_str_%d', '%s', '%s', '%s')",i,200000.0 + i / 2.0,i % 2 == 0,i,Date.valueOf(dateTime.toLocalDate()),Time.valueOf(dateTime.toLocalTime()),Timestamp.valueOf(dateTime)));
+      stringBuilder.append(format(Locale.ENGLISH,"(%d, %f, %b, 'test_str_%d', '%s', '%s', '%s', %d, %d, %d)",i,200000.0 + i / 2.0,i % 2 == 0,i,Date.valueOf(dateTime.toLocalDate()),Time.valueOf(dateTime.toLocalTime()),Timestamp.valueOf(dateTime),i % 128,-i,i - 100));
       dateTime=dateTime.plusHours(26);
       if (i != len - 1) {
         stringBuilder.append(",");
