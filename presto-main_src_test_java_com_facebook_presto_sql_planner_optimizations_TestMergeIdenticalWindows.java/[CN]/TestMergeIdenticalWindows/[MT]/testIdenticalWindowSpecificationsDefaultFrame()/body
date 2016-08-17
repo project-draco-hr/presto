@@ -1,0 +1,6 @@
+{
+  Window windowC=new Window(ImmutableList.of(new SymbolReference("suppkey")),ImmutableList.of(new SortItem(new SymbolReference("orderkey"),SortItem.Ordering.ASCENDING,SortItem.NullOrdering.UNDEFINED)),Optional.empty());
+  Window windowD=new Window(ImmutableList.of(new SymbolReference("orderkey")),ImmutableList.of(new SortItem(new SymbolReference("shipdate"),SortItem.Ordering.ASCENDING,SortItem.NullOrdering.UNDEFINED)),Optional.empty());
+  @Language("SQL") String sql="select " + "sum(quantity) over (partition by suppkey order by orderkey), " + "sum(quantity) over (partition by orderkey order by shipdate), "+ "sum(discount) over (partition by suppkey order by orderkey) "+ "from lineitem";
+  assertUnitPlan(sql,anyTree(window(ImmutableList.of(functionCall("sum",windowD,false,"quantity")),window(ImmutableList.of(functionCall("sum",windowC,false,"quantity"),functionCall("sum",windowC,false,"discount")),anyNot(WindowNode.class)))));
+}
