@@ -1,2 +1,72 @@
 {
+  if (value == null) {
+    return null;
+  }
+switch (typeInfo.getCategory()) {
+case PRIMITIVE:
+    PrimitiveObjectInspector.PrimitiveCategory primitiveCategory=((PrimitiveTypeInfo)typeInfo).getPrimitiveCategory();
+switch (primitiveCategory) {
+case BOOLEAN:
+    return value;
+case BYTE:
+  return ((Number)value).byteValue();
+case SHORT:
+return ((Number)value).shortValue();
+case INT:
+return ((Number)value).intValue();
+case LONG:
+return ((Number)value).longValue();
+case FLOAT:
+return ((Number)value).floatValue();
+case DOUBLE:
+return ((Number)value).doubleValue();
+case DECIMAL:
+return HiveDecimal.create(((SqlDecimal)value).toBigDecimal());
+case STRING:
+return value;
+case CHAR:
+return new HiveChar(value.toString(),((CharTypeInfo)typeInfo).getLength());
+case DATE:
+int days=((SqlDate)value).getDays();
+LocalDate localDate=LocalDate.ofEpochDay(days);
+ZonedDateTime zonedDateTime=localDate.atStartOfDay(ZoneId.systemDefault());
+long millis=zonedDateTime.toEpochSecond() * 1000;
+Date date=new Date(0);
+date.setTime(millis);
+return date;
+case TIMESTAMP:
+long millisUtc=(int)((SqlTimestamp)value).getMillisUtc();
+return new Timestamp(millisUtc);
+case BINARY:
+return ((SqlVarbinary)value).getBytes();
+}
+break;
+case MAP:
+MapTypeInfo mapTypeInfo=checkType(typeInfo,MapTypeInfo.class,"fieldInspector");
+TypeInfo keyTypeInfo=mapTypeInfo.getMapKeyTypeInfo();
+TypeInfo valueTypeInfo=mapTypeInfo.getMapValueTypeInfo();
+Map<Object,Object> newMap=new HashMap<>();
+for (Entry<?,?> entry : ((Map<?,?>)value).entrySet()) {
+newMap.put(preprocessWriteValueOld(keyTypeInfo,entry.getKey()),preprocessWriteValueOld(valueTypeInfo,entry.getValue()));
+}
+return newMap;
+case LIST:
+ListTypeInfo listTypeInfo=checkType(typeInfo,ListTypeInfo.class,"fieldInspector");
+TypeInfo elementTypeInfo=listTypeInfo.getListElementTypeInfo();
+List<Object> newList=new ArrayList<>(((Collection<?>)value).size());
+for (Object element : (Iterable<?>)value) {
+newList.add(preprocessWriteValueOld(elementTypeInfo,element));
+}
+return newList;
+case STRUCT:
+StructTypeInfo structTypeInfo=checkType(typeInfo,StructTypeInfo.class,"fieldInspector");
+List<?> fieldValues=(List<?>)value;
+List<TypeInfo> fieldTypeInfos=structTypeInfo.getAllStructFieldTypeInfos();
+List<Object> newStruct=new ArrayList<>();
+for (int fieldId=0; fieldId < fieldValues.size(); fieldId++) {
+newStruct.add(preprocessWriteValueOld(fieldTypeInfos.get(fieldId),fieldValues.get(fieldId)));
+}
+return newStruct;
+}
+throw new PrestoException(NOT_SUPPORTED,format("Unsupported Hive type: %s",typeInfo));
 }
