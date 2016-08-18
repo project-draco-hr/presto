@@ -1,9 +1,9 @@
 {
   try (SetThreadName ignored=new SetThreadName("Query-%s",stateMachine.getQueryId())){
     SqlQueryScheduler scheduler=queryScheduler.get();
-    QueryInfo finalQueryInfo=this.finalQueryInfo.get();
-    if (finalQueryInfo != null) {
-      return finalQueryInfo;
+    Optional<QueryInfo> finalQueryInfo=stateMachine.getFinalQueryInfo();
+    if (finalQueryInfo.isPresent()) {
+      return finalQueryInfo.get();
     }
     return buildQueryInfo(scheduler);
   }

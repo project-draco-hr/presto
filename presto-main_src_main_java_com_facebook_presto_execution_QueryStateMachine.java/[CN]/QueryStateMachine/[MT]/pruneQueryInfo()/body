@@ -1,0 +1,10 @@
+{
+  if (finalQueryInfo.get() == null || !finalQueryInfo.get().getOutputStage().isPresent()) {
+    return;
+  }
+  QueryInfo queryInfo=finalQueryInfo.get();
+  StageInfo outputStage=queryInfo.getOutputStage().get();
+  StageInfo prunedOutputStage=new StageInfo(outputStage.getStageId(),outputStage.getState(),outputStage.getSelf(),null,outputStage.getTypes(),outputStage.getStageStats(),ImmutableList.of(),ImmutableList.of(),outputStage.getFailureCause());
+  QueryInfo prunedQueryInfo=new QueryInfo(queryInfo.getQueryId(),queryInfo.getSession(),queryInfo.getState(),getMemoryPool().getId(),queryInfo.isScheduled(),queryInfo.getSelf(),queryInfo.getFieldNames(),queryInfo.getQuery(),queryInfo.getQueryStats(),queryInfo.getSetSessionProperties(),queryInfo.getResetSessionProperties(),queryInfo.getAddedPreparedStatements(),queryInfo.getDeallocatedPreparedStatements(),queryInfo.getStartedTransactionId(),queryInfo.isClearTransactionId(),queryInfo.getUpdateType(),Optional.of(prunedOutputStage),queryInfo.getFailureInfo(),queryInfo.getErrorCode(),queryInfo.getInputs(),queryInfo.getOutput(),queryInfo.isCompleteInfo());
+  finalQueryInfo.compareAndSet(queryInfo,prunedQueryInfo);
+}
