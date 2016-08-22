@@ -1,13 +1,14 @@
 {
-  EventsBuilder events=generateEvents("SELECT sum(linenumber) FROM lineitem");
-  assertEquals(events.getQueryCreatedEvents().size(),1);
+  EventsBuilder events=generateEvents("SELECT sum(linenumber) FROM lineitem",6);
   QueryCreatedEvent queryCreatedEvent=getOnlyElement(events.getQueryCreatedEvents());
   assertEquals(queryCreatedEvent.getContext().getEnvironment(),"testing");
   assertEquals(queryCreatedEvent.getMetadata().getQuery(),"SELECT sum(linenumber) FROM lineitem");
-  assertEquals(events.getQueryCompletedEvents().size(),1);
   QueryCompletedEvent queryCompletedEvent=getOnlyElement(events.getQueryCompletedEvents());
   assertEquals(queryCompletedEvent.getIoMetadata().getOutput(),Optional.empty());
   assertEquals(queryCompletedEvent.getIoMetadata().getInputs().size(),1);
   assertEquals(getOnlyElement(queryCompletedEvent.getIoMetadata().getInputs()).getConnectorId(),"tpch");
-  assertTrue(events.getSplitCompletedEvents().size() >= queryCompletedEvent.getStatistics().getCompletedSplits());
+  assertEquals(queryCreatedEvent.getMetadata().getQueryId(),queryCompletedEvent.getMetadata().getQueryId());
+  List<SplitCompletedEvent> splitCompletedEvents=events.getSplitCompletedEvents();
+  assertEquals(splitCompletedEvents.size(),4);
+  assertEquals(splitCompletedEvents.get(0).getQueryId(),queryCompletedEvent.getMetadata().getQueryId());
 }
