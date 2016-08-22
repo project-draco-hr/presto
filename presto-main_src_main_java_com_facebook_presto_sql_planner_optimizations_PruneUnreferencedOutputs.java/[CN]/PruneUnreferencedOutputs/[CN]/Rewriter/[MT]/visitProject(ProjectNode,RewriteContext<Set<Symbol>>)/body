@@ -1,6 +1,7 @@
 {
   ImmutableSet.Builder<Symbol> expectedInputs=ImmutableSet.builder();
   ImmutableMap.Builder<Symbol,Expression> builder=ImmutableMap.builder();
+  ImmutableList.Builder<Expression> removedExpressions=ImmutableList.builder();
   for (int i=0; i < node.getOutputSymbols().size(); i++) {
     Symbol output=node.getOutputSymbols().get(i);
     Expression expression=node.getAssignments().get(output);
@@ -8,7 +9,12 @@
       expectedInputs.addAll(DependencyExtractor.extractUnique(expression));
       builder.put(output,expression);
     }
+ else {
+      removedExpressions.add(expression);
+    }
   }
-  PlanNode source=context.rewrite(node.getSource(),expectedInputs.build());
-  return new ProjectNode(node.getId(),source,builder.build());
+  Map<Symbol,Expression> assignments=builder.build();
+  PlanNode rewrittenSource=pruneUnreferencedApplyNodes(removedExpressions.build(),node.getSource(),assignments);
+  rewrittenSource=context.rewrite(rewrittenSource,expectedInputs.build());
+  return new ProjectNode(node.getId(),rewrittenSource,assignments);
 }

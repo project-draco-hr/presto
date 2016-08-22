@@ -1,0 +1,6 @@
+{
+  List<String> subqueries=ImmutableList.of("orderkey IN (SELECT orderkey FROM lineitem WHERE orderkey % 2 = 0)","EXISTS(SELECT orderkey FROM lineitem WHERE orderkey % 2 = 0)","0 = (SELECT orderkey FROM lineitem WHERE orderkey % 2 = 0)");
+  for (  String subquery : subqueries) {
+    assertPlanContainsNoApplyOrJoin("SELECT COUNT(*) FROM (SELECT " + subquery + " FROM orders)");
+  }
+}
