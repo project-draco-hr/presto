@@ -1,0 +1,13 @@
+{
+  PlanNode root=planStatement(analysis,analysis.getStatement());
+  if (stage.ordinal() >= Stage.OPTIMIZED.ordinal()) {
+    for (    PlanOptimizer optimizer : planOptimizers) {
+      root=optimizer.optimize(root,session,symbolAllocator.getTypes(),symbolAllocator,idAllocator);
+      requireNonNull(root,format("%s returned a null plan",optimizer.getClass().getName()));
+    }
+  }
+  if (stage.ordinal() >= Stage.OPTIMIZED_AND_VALIDATED.ordinal()) {
+    PlanSanityChecker.validate(root,session,metadata,sqlParser,symbolAllocator.getTypes());
+  }
+  return new Plan(root,symbolAllocator);
+}
