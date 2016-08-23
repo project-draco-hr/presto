@@ -1,2 +1,12 @@
 {
+  StreamPreferredProperties requiredProperties;
+  StreamPreferredProperties preferredChildProperties;
+  checkState(node.getStep() == AggregationNode.Step.SINGLE,"step of aggregation is expected to be SINGLE, but it is %s",node.getStep());
+  HashSet<Symbol> partitioningRequirement=new HashSet<>(node.getGroupingSets().get(0));
+  for (int i=1; i < node.getGroupingSets().size(); i++) {
+    partitioningRequirement.retainAll(node.getGroupingSets().get(i));
+  }
+  requiredProperties=parentPreferences.withDefaultParallelism(session).withPartitioning(partitioningRequirement);
+  preferredChildProperties=parentPreferences.withDefaultParallelism(session).withPartitioning(partitioningRequirement);
+  return planAndEnforceChildren(node,requiredProperties,preferredChildProperties);
 }
