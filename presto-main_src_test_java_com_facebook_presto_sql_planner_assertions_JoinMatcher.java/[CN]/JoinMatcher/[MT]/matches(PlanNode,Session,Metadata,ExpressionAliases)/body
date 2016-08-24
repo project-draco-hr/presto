@@ -1,0 +1,18 @@
+{
+  if (node instanceof JoinNode) {
+    JoinNode joinNode=(JoinNode)node;
+    if (joinNode.getType() != joinType) {
+      return false;
+    }
+    if (joinNode.getCriteria().size() == equiCriteria.size()) {
+      int i=0;
+      for (      JoinNode.EquiJoinClause equiJoinClause : joinNode.getCriteria()) {
+        AliasPair expectedEquiClause=equiCriteria.get(i++);
+        expressionAliases.put(expectedEquiClause.left,equiJoinClause.getLeft().toSymbolReference());
+        expressionAliases.put(expectedEquiClause.right,equiJoinClause.getRight().toSymbolReference());
+      }
+      return true;
+    }
+  }
+  return false;
+}
