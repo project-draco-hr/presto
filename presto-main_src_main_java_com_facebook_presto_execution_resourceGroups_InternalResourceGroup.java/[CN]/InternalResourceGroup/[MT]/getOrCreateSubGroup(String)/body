@@ -1,0 +1,15 @@
+{
+  requireNonNull(name,"name is null");
+synchronized (root) {
+    checkArgument(runningQueries.isEmpty() && queuedQueries.isEmpty(),"Cannot add sub group to %s while queries are running",id);
+    if (subGroups.containsKey(name)) {
+      return subGroups.get(name);
+    }
+    InternalResourceGroup subGroup=new InternalResourceGroup(Optional.of(this),name,jmxExportListener,executor);
+    if (schedulingPolicy == QUERY_PRIORITY) {
+      subGroup.setSchedulingPolicy(QUERY_PRIORITY);
+    }
+    subGroups.put(name,subGroup);
+    return subGroup;
+  }
+}
