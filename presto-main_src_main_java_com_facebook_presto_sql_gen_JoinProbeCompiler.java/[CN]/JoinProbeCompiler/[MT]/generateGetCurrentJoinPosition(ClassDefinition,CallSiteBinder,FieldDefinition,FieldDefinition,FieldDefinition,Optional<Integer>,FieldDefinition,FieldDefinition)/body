@@ -4,11 +4,12 @@
   BytecodeBlock body=method.getBody().append(new IfStatement().condition(thisVariable.invoke("currentRowContainsNull",boolean.class)).ifTrue(constantLong(-1).ret()));
   BytecodeExpression position=thisVariable.getField(positionField);
   BytecodeExpression hashChannelsPage=thisVariable.getField(probePageField);
+  BytecodeExpression allChannelsPage=thisVariable.getField(pageField);
   BytecodeExpression probeHashBlock=thisVariable.getField(probeHashBlockField);
   if (probeHashChannel.isPresent()) {
-    body.append(thisVariable.getField(lookupSourceField).invoke("getJoinPosition",long.class,position,hashChannelsPage,hashChannelsPage,constantType(callSiteBinder,BigintType.BIGINT).invoke("getLong",long.class,probeHashBlock,position))).retLong();
+    body.append(thisVariable.getField(lookupSourceField).invoke("getJoinPosition",long.class,position,hashChannelsPage,allChannelsPage,constantType(callSiteBinder,BigintType.BIGINT).invoke("getLong",long.class,probeHashBlock,position))).retLong();
   }
  else {
-    body.append(thisVariable.getField(lookupSourceField).invoke("getJoinPosition",long.class,position,hashChannelsPage,hashChannelsPage)).retLong();
+    body.append(thisVariable.getField(lookupSourceField).invoke("getJoinPosition",long.class,position,hashChannelsPage,allChannelsPage)).retLong();
   }
 }

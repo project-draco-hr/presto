@@ -15,15 +15,16 @@
   }
   FieldDefinition probeBlocksArrayField=classDefinition.declareField(a(PRIVATE,FINAL),"probeBlocks",Block[].class);
   FieldDefinition probePageField=classDefinition.declareField(a(PRIVATE,FINAL),"probePage",Page.class);
+  FieldDefinition pageField=classDefinition.declareField(a(PRIVATE,FINAL),"page",Page.class);
   FieldDefinition positionField=classDefinition.declareField(a(PRIVATE),"position",int.class);
   FieldDefinition probeHashBlockField=classDefinition.declareField(a(PRIVATE,FINAL),"probeHashBlock",Block.class);
-  generateConstructor(classDefinition,probeChannels,probeHashChannel,lookupSourceField,blockFields,probeBlockFields,probeBlocksArrayField,probePageField,probeHashBlockField,positionField,positionCountField);
+  generateConstructor(classDefinition,probeChannels,probeHashChannel,lookupSourceField,blockFields,probeBlockFields,probeBlocksArrayField,probePageField,pageField,probeHashBlockField,positionField,positionCountField);
   generateGetChannelCountMethod(classDefinition,blockFields.size());
   generateAppendToMethod(classDefinition,callSiteBinder,types,blockFields,positionField);
   generateAdvanceNextPosition(classDefinition,positionField,positionCountField);
-  generateGetCurrentJoinPosition(classDefinition,callSiteBinder,lookupSourceField,probePageField,probeHashChannel,probeHashBlockField,positionField);
+  generateGetCurrentJoinPosition(classDefinition,callSiteBinder,lookupSourceField,probePageField,pageField,probeHashChannel,probeHashBlockField,positionField);
   generateCurrentRowContainsNull(classDefinition,probeBlockFields,positionField);
-  generateGetPosition(classDefinition);
-  generateGetPage(classDefinition);
+  generateGetPosition(classDefinition,positionField);
+  generateGetPage(classDefinition,pageField);
   return defineClass(classDefinition,JoinProbe.class,callSiteBinder.getBindings(),getClass().getClassLoader());
 }
