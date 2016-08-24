@@ -1,0 +1,16 @@
+{
+  Statement wrapped=sqlParser.createStatement(sql);
+  Statement statement=unwrapExecuteStatement(wrapped,sqlParser,session);
+  List<Expression> parameters=emptyList();
+  if (wrapped instanceof Execute) {
+    parameters=((Execute)wrapped).getParameters();
+  }
+  validateParameters(statement,parameters);
+  assertFormattedSql(sqlParser,statement);
+  PlanNodeIdAllocator idAllocator=new PlanNodeIdAllocator();
+  QueryExplainer queryExplainer=new QueryExplainer(optimizerProvider.get(),metadata,accessControl,sqlParser,dataDefinitionTask,featuresConfig.isExperimentalSyntaxEnabled());
+  Analyzer analyzer=new Analyzer(session,metadata,sqlParser,accessControl,Optional.of(queryExplainer),featuresConfig.isExperimentalSyntaxEnabled(),parameters);
+  LogicalPlanner logicalPlanner=new LogicalPlanner(session,optimizerProvider.get(),idAllocator,metadata,sqlParser);
+  Analysis analysis=analyzer.analyze(statement);
+  return logicalPlanner.plan(analysis,stage);
+}

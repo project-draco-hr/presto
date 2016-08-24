@@ -1,0 +1,4 @@
+{
+  assertPlan("SELECT orderkey FROM orders WHERE 3 = (SELECT orderkey)",LogicalPlanner.Stage.OPTIMIZED,anyTree(filter("3 = X",apply(ImmutableList.of("X"),tableScan("orders").withSymbol("orderkey","X"),node(EnforceSingleRowNode.class,project(node(ValuesNode.class)))))));
+  assertPlan("SELECT orderkey FROM orders o " + "WHERE 3 IN (SELECT o.custkey FROM lineitem l WHERE (SELECT l.orderkey = o.orderkey))",LogicalPlanner.Stage.OPTIMIZED,anyTree(filter("3 IN (C)",apply(ImmutableList.of("C","O"),project(tableScan("orders").withSymbol("orderkey","O").withSymbol("custkey","C")),anyTree(apply(ImmutableList.of("L"),tableScan("lineitem").withSymbol("orderkey","L"),node(EnforceSingleRowNode.class,project(node(ValuesNode.class)))))))));
+}
