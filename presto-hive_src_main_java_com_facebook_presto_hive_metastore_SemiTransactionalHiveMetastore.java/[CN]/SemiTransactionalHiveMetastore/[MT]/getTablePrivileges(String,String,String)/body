@@ -1,4 +1,25 @@
 {
   checkReadable();
+  SchemaTableName schemaTableName=new SchemaTableName(databaseName,tableName);
+  Action<TableAndMore> tableAction=tableActions.get(schemaTableName);
+  if (tableAction == null) {
+    return delegate.getTablePrivileges(user,databaseName,tableName);
+  }
+switch (tableAction.getType()) {
+case ADD:
+case ALTER:
+{
+      if (!user.equals(tableAction.getData().getTable().getOwner())) {
+        throw new PrestoException(NOT_SUPPORTED,"Cannot access a table newly created in the transaction with a different user");
+      }
+      List<PrivilegeGrantInfo> privilegeGrantInfoList=tableAction.getData().getPrincipalPrivilegeSet().getUserPrivileges().get(user);
+      return ImmutableSet.<HivePrivilegeInfo>builder().addAll(toGrants(privilegeGrantInfoList)).add(new HivePrivilegeInfo(OWNERSHIP,true)).build();
+    }
+case INSERT_EXISTING:
   return delegate.getTablePrivileges(user,databaseName,tableName);
+case DROP:
+throw new TableNotFoundException(schemaTableName);
+default :
+throw new IllegalStateException("Unknown action type");
+}
 }
