@@ -1,16 +1,6 @@
 {
-  List<Iterator<URL>> resources=new ArrayList<>();
-  if (!isParentFirstResource(name)) {
-    Iterator<URL> myResources=Iterators.forEnumeration(findResources(name));
-    resources.add(myResources);
+  if (isSpiClass(name)) {
+    return spiClassLoader.getResources(name);
   }
-  if (!isHiddenResource(name)) {
-    Iterator<URL> parentResources=Iterators.forEnumeration(getParent().getResources(name));
-    resources.add(parentResources);
-  }
-  if (isParentFirstResource(name)) {
-    Iterator<URL> myResources=Iterators.forEnumeration(findResources(name));
-    resources.add(myResources);
-  }
-  return Iterators.asEnumeration(Iterators.concat(resources.iterator()));
+  return super.getResources(name);
 }

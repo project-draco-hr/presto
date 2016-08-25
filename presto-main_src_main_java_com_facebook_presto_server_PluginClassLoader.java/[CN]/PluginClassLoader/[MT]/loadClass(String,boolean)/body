@@ -4,26 +4,9 @@ synchronized (getClassLoadingLock(name)) {
     if (cachedClass != null) {
       return resolveClass(cachedClass,resolve);
     }
-    if (!isParentFirstClass(name)) {
-      try {
-        Class<?> clazz=findClass(name);
-        return resolveClass(clazz,resolve);
-      }
- catch (      ClassNotFoundException ignored) {
-      }
+    if (isSpiClass(name)) {
+      return resolveClass(spiClassLoader.loadClass(name),resolve);
     }
-    if (isParentFirstClass(name) || !isHiddenClass(name)) {
-      try {
-        Class<?> clazz=getParent().loadClass(name);
-        return resolveClass(clazz,resolve);
-      }
- catch (      ClassNotFoundException ignored) {
-      }
-    }
-    if (isParentFirstClass(name)) {
-      Class<?> clazz=findClass(name);
-      return resolveClass(clazz,resolve);
-    }
-    throw new ClassNotFoundException(name);
+    return super.loadClass(name,resolve);
   }
 }
