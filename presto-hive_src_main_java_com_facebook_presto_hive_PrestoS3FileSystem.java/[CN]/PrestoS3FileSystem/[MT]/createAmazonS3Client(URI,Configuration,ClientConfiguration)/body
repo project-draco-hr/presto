@@ -2,6 +2,10 @@
   AWSCredentialsProvider credentials=getAwsCredentialsProvider(uri,hadoopConfig);
   Optional<EncryptionMaterialsProvider> emp=createEncryptionMaterialsProvider(hadoopConfig);
   AmazonS3Client client;
+  String signerType=hadoopConfig.get(S3_SIGNER_TYPE);
+  if (signerType != null) {
+    clientConfig.withSignerOverride(signerType);
+  }
   if (emp.isPresent()) {
     client=new AmazonS3EncryptionClient(credentials,emp.get(),clientConfig,new CryptoConfiguration(),METRIC_COLLECTOR);
   }
@@ -13,6 +17,10 @@
     if (region != null) {
       client.setRegion(region);
     }
+  }
+  String endpoint=hadoopConfig.get(S3_ENDPOINT);
+  if (endpoint != null) {
+    client.setEndpoint(endpoint);
   }
   return client;
 }
