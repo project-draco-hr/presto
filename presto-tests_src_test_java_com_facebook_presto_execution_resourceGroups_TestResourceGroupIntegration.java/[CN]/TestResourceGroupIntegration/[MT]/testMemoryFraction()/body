@@ -1,0 +1,14 @@
+{
+  try (DistributedQueryRunner queryRunner=createQueryRunner(ImmutableMap.of(),ImmutableMap.of("experimental.resource-groups-enabled","true"))){
+    queryRunner.installPlugin(new ResourceGroupManagerPlugin());
+    queryRunner.getCoordinator().getResourceGroupManager().get().setConfigurationManager("file",ImmutableMap.of("resource-groups.config-file",getResourceFilePath("resource_groups_memory_percentage.json")));
+    queryRunner.execute("SELECT COUNT(*), clerk FROM orders GROUP BY clerk");
+    while (true) {
+      TimeUnit.SECONDS.sleep(1);
+      ResourceGroupInfo global=queryRunner.getCoordinator().getResourceGroupManager().get().getResourceGroupInfo(ResourceGroupId.fromString("global"));
+      if (global.getSoftMemoryLimit().toBytes() > 0) {
+        break;
+      }
+    }
+  }
+ }
