@@ -76,12 +76,10 @@
   }
   PlanNode root=new JoinNode(idAllocator.getNextId(),JoinNode.Type.typeConvert(node.getType()),leftPlanBuilder.getRoot(),rightPlanBuilder.getRoot(),equiClauses.build(),Optional.empty(),Optional.empty(),Optional.empty());
   if (node.getType() != INNER) {
-    List<InPredicate> inPredicateSubqueries=analysis.getInPredicateSubqueries(node);
     for (    Expression complexExpression : complexJoinExpressions) {
-      for (      InPredicate inPredicate : inPredicateSubqueries) {
-        if (nodeContains(complexExpression,inPredicate)) {
-          throw new SemanticException(NOT_SUPPORTED,inPredicate,"IN with subquery predicate in join condition not supported");
-        }
+      Set<InPredicate> inPredicates=subqueryPlanner.collectInPredicateSubqueries(complexExpression,node);
+      if (!inPredicates.isEmpty()) {
+        throw new SemanticException(NOT_SUPPORTED,Iterables.getLast(inPredicates),"IN with subquery predicate in join condition not supported");
       }
     }
     leftPlanBuilder=subqueryPlanner.handleSubqueries(leftPlanBuilder,complexJoinExpressions,node);
