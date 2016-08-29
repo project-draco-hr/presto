@@ -1,11 +1,10 @@
 {
   Map<String,String> properties=ImmutableMap.<String,String>builder().put("comment","Presto View").put(PRESTO_VIEW_FLAG,"true").build();
   Column dummyColumn=new Column("dummy",HIVE_STRING,Optional.empty());
-  PrivilegeGrantInfo allPrivileges=new PrivilegeGrantInfo("all",0,session.getUser(),PrincipalType.USER,true);
   Table.Builder tableBuilder=Table.builder().setDatabaseName(viewName.getSchemaName()).setTableName(viewName.getTableName()).setOwner(session.getUser()).setTableType(TableType.VIRTUAL_VIEW.name()).setDataColumns(ImmutableList.of(dummyColumn)).setPartitionColumns(ImmutableList.of()).setParameters(properties).setViewOriginalText(Optional.of(encodeViewData(viewData))).setViewExpandedText(Optional.of("/* Presto View */"));
   tableBuilder.getStorageBuilder().setStorageFormat(VIEW_STORAGE_FORMAT).setLocation("");
   Table table=tableBuilder.build();
-  PrincipalPrivilegeSet principalPrivilegeSet=new PrincipalPrivilegeSet(ImmutableMap.of(session.getUser(),ImmutableList.of(allPrivileges)),ImmutableMap.of(),ImmutableMap.of());
+  PrincipalPrivilegeSet principalPrivilegeSet=buildInitialPrivilegeSet(session.getUser());
   Optional<Table> existing=metastore.getTable(viewName.getSchemaName(),viewName.getTableName());
   if (existing.isPresent()) {
     if (!replace || !HiveUtil.isPrestoView(existing.get())) {
