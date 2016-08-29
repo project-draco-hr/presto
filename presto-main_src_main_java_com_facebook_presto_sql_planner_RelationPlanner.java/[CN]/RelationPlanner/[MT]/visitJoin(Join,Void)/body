@@ -9,7 +9,7 @@
       unnest=(Unnest)node.getRight();
     }
     if (node.getType() != Join.Type.CROSS && node.getType() != Join.Type.IMPLICIT) {
-      throw new SemanticException(NOT_SUPPORTED,unnest,"UNNEST only supported on the right side of CROSS JOIN");
+      throwNotSupportedException(unnest,"UNNEST on other than the right side of CROSS JOIN");
     }
     return planCrossJoinUnnest(leftPlan,node,unnest);
   }
@@ -79,7 +79,8 @@
     for (    Expression complexExpression : complexJoinExpressions) {
       Set<InPredicate> inPredicates=subqueryPlanner.collectInPredicateSubqueries(complexExpression,node);
       if (!inPredicates.isEmpty()) {
-        throw new SemanticException(NOT_SUPPORTED,Iterables.getLast(inPredicates),"IN with subquery predicate in join condition not supported");
+        InPredicate inPredicate=Iterables.getLast(inPredicates);
+        throwNotSupportedException(inPredicate,"IN with subquery predicate in join condition");
       }
     }
     leftPlanBuilder=subqueryPlanner.handleSubqueries(leftPlanBuilder,complexJoinExpressions,node);
