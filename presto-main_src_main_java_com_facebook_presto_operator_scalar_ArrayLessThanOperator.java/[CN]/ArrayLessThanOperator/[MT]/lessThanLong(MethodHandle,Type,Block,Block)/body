@@ -1,0 +1,25 @@
+{
+  int len=Math.min(leftArray.getPositionCount(),rightArray.getPositionCount());
+  int index=0;
+  while (index < len) {
+    checkElementNotNull(leftArray.isNull(index),ARRAY_NULL_ELEMENT_MSG);
+    checkElementNotNull(rightArray.isNull(index),ARRAY_NULL_ELEMENT_MSG);
+    long leftElement=type.getLong(leftArray,index);
+    long rightElement=type.getLong(rightArray,index);
+    try {
+      if ((boolean)lessThanFunction.invokeExact(leftElement,rightElement)) {
+        return true;
+      }
+      if ((boolean)lessThanFunction.invokeExact(rightElement,leftElement)) {
+        return false;
+      }
+    }
+ catch (    Throwable t) {
+      Throwables.propagateIfInstanceOf(t,Error.class);
+      Throwables.propagateIfInstanceOf(t,PrestoException.class);
+      throw new PrestoException(GENERIC_INTERNAL_ERROR,t);
+    }
+    index++;
+  }
+  return leftArray.getPositionCount() < rightArray.getPositionCount();
+}
