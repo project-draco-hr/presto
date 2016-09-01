@@ -7,7 +7,7 @@
     DumpBytecodeVisitor dumpBytecode=new DumpBytecodeVisitor(System.out);
     dumpBytecode.visitClass(classDefinition);
   }
-  DynamicClassLoader classLoader=parentClassLoader.isPresent() ? new DynamicClassLoader(parentClassLoader.get()) : new DynamicClassLoader();
+  DynamicClassLoader classLoader=new DynamicClassLoader(parentClassLoader.orElse(BytecodeExpressionAssertions.class.getClassLoader()));
   ClassWriter cw=new SmartClassWriter(ClassInfoLoader.createClassInfoLoader(ImmutableList.of(classDefinition),classLoader));
   classDefinition.visit(cw);
   Class<?> clazz=classLoader.defineClass(classDefinition.getType().getJavaClassName(),cw.toByteArray());
