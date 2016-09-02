@@ -1,2 +1,12 @@
 {
+  QueryTemplate.Parameter type=new QueryTemplate.Parameter("type","");
+  QueryTemplate.Parameter condition=new QueryTemplate.Parameter("condition");
+  QueryTemplate queryTemplate=new QueryTemplate("SELECT * " + "FROM (VALUES 1,2,3,4) t(x) %type% JOIN (VALUES 1,2,3,5) t2(y) ON %condition%",type,condition);
+  QueryTemplate.Parameter multipleScalarJoinCondition=condition.of("(x = (VALUES 1)) AND (y = (VALUES 2)) AND (x in (VALUES 2)) = (y in (VALUES 1))");
+  assertQuery(queryTemplate.replace(multipleScalarJoinCondition),"VALUES (1,2)");
+  assertQuery(queryTemplate.replace(condition.of("(x = (VALUES 2)) = (y > (VALUES 0)) AND (x > (VALUES 1)) = (y < (VALUES 3))")),"VALUES (2,2), (2,1)");
+  assertQuery(queryTemplate.replace(condition.of("(x = (VALUES 1)) = (y = (VALUES 1)) AND (x = (SELECT 2)) != (y = (SELECT 3))")),"VALUES (2,5), (2,2), (3,3), (4,3)");
+  assertQuery(queryTemplate.replace(type.of("left"),multipleScalarJoinCondition),"VALUES (1,2), (2,null), (3, null), (4, null)");
+  assertQuery(queryTemplate.replace(type.of("right"),multipleScalarJoinCondition),"VALUES (1,2), (null,1), (null, 3), (null, 5)");
+  assertQuery(queryTemplate.replace(type.of("full"),multipleScalarJoinCondition),"VALUES (1,2), (2,null), (3, null), (4, null), (null,1), (null, 3), (null, 5)");
 }
