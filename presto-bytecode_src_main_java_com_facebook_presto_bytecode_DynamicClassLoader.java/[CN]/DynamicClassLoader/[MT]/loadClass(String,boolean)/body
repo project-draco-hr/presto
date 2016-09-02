@@ -10,6 +10,13 @@ synchronized (getClassLoadingLock(name)) {
     }
  catch (    ClassNotFoundException ignored) {
     }
+    if (overrideClassLoader.isPresent()) {
+      try {
+        return resolveClass(overrideClassLoader.get().loadClass(name),resolve);
+      }
+ catch (      ClassNotFoundException e) {
+      }
+    }
     Class<?> clazz=getParent().loadClass(name);
     return resolveClass(clazz,resolve);
   }
