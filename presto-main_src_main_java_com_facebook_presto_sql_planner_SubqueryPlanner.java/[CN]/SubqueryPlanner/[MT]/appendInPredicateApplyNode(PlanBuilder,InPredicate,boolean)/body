@@ -3,6 +3,9 @@
   checkState(inPredicate.getValueList() instanceof SubqueryExpression);
   PlanNode subquery=createRelationPlan(((SubqueryExpression)inPredicate.getValueList()).getQuery()).getRoot();
   Map<Expression,Symbol> correlation=extractCorrelation(subPlan,subquery);
+  if (!correlationAllowed && correlation.isEmpty()) {
+    throwNotSupportedException(inPredicate,"Correlated subquery in given context");
+  }
   subPlan=subPlan.appendProjections(correlation.keySet(),symbolAllocator,idAllocator);
   subquery=replaceExpressionsWithSymbols(subquery,correlation);
   TranslationMap translationMap=subPlan.copyTranslations();
