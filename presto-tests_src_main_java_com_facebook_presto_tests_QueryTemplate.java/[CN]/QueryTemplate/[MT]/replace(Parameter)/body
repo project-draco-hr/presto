@@ -1,10 +1,14 @@
 {
   String query=queryTemplate;
   for (  Parameter parameter : parameters) {
-    query=resolve(query,parameter.getKey(),parameter.getValue());
+    query=resolve(query,parameter);
   }
   for (  Parameter parameter : defaultParameters) {
-    query=resolve(query,parameter.getKey(),parameter.getValue());
+    query=resolve(query,parameter);
+  }
+  for (  Parameter parameter : defaultParameters) {
+    String queryParameterKey=asQueryParameterKey(parameter.getKey());
+    checkArgument(!query.contains(queryParameterKey),"Query template parameters was not given: %s",queryParameterKey);
   }
   return query;
 }
