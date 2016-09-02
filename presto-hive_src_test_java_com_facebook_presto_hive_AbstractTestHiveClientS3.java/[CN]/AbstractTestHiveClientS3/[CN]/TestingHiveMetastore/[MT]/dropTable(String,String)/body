@@ -7,8 +7,8 @@
     List<String> locations=listAllDataPaths(this,databaseName,tableName);
     Table.Builder tableBuilder=Table.builder(table.get());
     tableBuilder.getStorageBuilder().setLocation("/");
-    delegate.replaceTable(databaseName,tableName,tableBuilder.build(),new PrincipalPrivilegeSet());
-    delegate.dropTable(databaseName,tableName);
+    replaceTable(databaseName,tableName,tableBuilder.build(),new PrincipalPrivilegeSet());
+    super.dropTable(databaseName,tableName);
     for (    String location : locations) {
       Path path=new Path(location);
       hdfsEnvironment.getFileSystem("user",path).delete(path,true);
