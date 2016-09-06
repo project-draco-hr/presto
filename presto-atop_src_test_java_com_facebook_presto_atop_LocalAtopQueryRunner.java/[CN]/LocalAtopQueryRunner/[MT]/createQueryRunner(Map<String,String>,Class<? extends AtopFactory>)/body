@@ -2,8 +2,8 @@
   Session session=testSessionBuilder().setCatalog("atop").setSchema("default").setTimeZoneKey(TimeZoneKey.getTimeZoneKey(TimeZone.getDefault().getID())).build();
   LocalQueryRunner queryRunner=new LocalQueryRunner(session);
   try {
-    NodeConfig nodeConfig=new NodeConfig().setEnvironment("test");
-    AtopConnectorFactory connectorFactory=new AtopConnectorFactory(factoryClass,ImmutableMap.of(),LocalAtopQueryRunner.class.getClassLoader(),queryRunner.getTypeManager(),queryRunner.getNodeManager(),nodeConfig);
+    ServerInfo serverInfo=new ServerInfo("testnode","testenv","testversion");
+    AtopConnectorFactory connectorFactory=new AtopConnectorFactory(factoryClass,LocalAtopQueryRunner.class.getClassLoader(),queryRunner.getTypeManager(),queryRunner.getNodeManager(),serverInfo);
     ImmutableMap.Builder<String,String> properties=ImmutableMap.<String,String>builder().putAll(catalogProperties).put("atop.max-history-days","1");
     queryRunner.createCatalog("atop",connectorFactory,properties.build());
     return queryRunner;
