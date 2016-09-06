@@ -1,5 +1,5 @@
 {
-  TestingTransactionHandle transactionHandle=TestingTransactionHandle.create("foo");
+  TestingTransactionHandle transactionHandle=TestingTransactionHandle.create();
   NodeTaskMap nodeTaskMap=new NodeTaskMap(finalizerService);
   InMemoryNodeManager nodeManager=new InMemoryNodeManager();
   ImmutableList.Builder<Node> nodeBuilder=ImmutableList.builder();
@@ -7,7 +7,7 @@
   nodeBuilder.add(new PrestoNode("node2",URI.create("http://host2.rack1:12"),NodeVersion.UNKNOWN,false));
   nodeBuilder.add(new PrestoNode("node3",URI.create("http://host3.rack2:13"),NodeVersion.UNKNOWN,false));
   ImmutableList<Node> nodes=nodeBuilder.build();
-  nodeManager.addNode("foo",nodes);
+  nodeManager.addNode(CONNECTOR_ID,nodes);
   Map<Node,RemoteTask> taskMap=new HashMap<>();
   NodeSchedulerConfig nodeSchedulerConfig=new NodeSchedulerConfig().setMaxSplitsPerNode(20).setIncludeCoordinator(false).setNetworkTopology("test").setMaxPendingSplitsPerNodePerStage(15);
   TestNetworkTopology topology=new TestNetworkTopology();
@@ -23,10 +23,10 @@
   }
 ;
   NodeScheduler nodeScheduler=new NodeScheduler(locationCache,topology,nodeManager,nodeSchedulerConfig,nodeTaskMap);
-  NodeSelector nodeSelector=nodeScheduler.createNodeSelector("foo");
+  NodeSelector nodeSelector=nodeScheduler.createNodeSelector(CONNECTOR_ID);
   ImmutableSet.Builder<Split> nonRackLocalBuilder=ImmutableSet.builder();
   for (int i=0; i < 26 * 3; i++) {
-    nonRackLocalBuilder.add(new Split("foo",transactionHandle,new TestSplitRemote(HostAddress.fromParts("data.other_rack",1))));
+    nonRackLocalBuilder.add(new Split(CONNECTOR_ID,transactionHandle,new TestSplitRemote(HostAddress.fromParts("data.other_rack",1))));
   }
   Set<Split> nonRackLocalSplits=nonRackLocalBuilder.build();
   Multimap<Node,Split> assignments=nodeSelector.computeAssignments(nonRackLocalSplits,ImmutableList.copyOf(taskMap.values()));
@@ -52,10 +52,10 @@
   HostAddress dataHost1=HostAddress.fromParts("data.rack1",1);
   HostAddress dataHost2=HostAddress.fromParts("data.rack2",1);
   for (int i=0; i < 6 * 2; i++) {
-    rackLocalSplits.add(new Split("foo",transactionHandle,new TestSplitRemote(dataHost1)));
+    rackLocalSplits.add(new Split(CONNECTOR_ID,transactionHandle,new TestSplitRemote(dataHost1)));
   }
   for (int i=0; i < 6; i++) {
-    rackLocalSplits.add(new Split("foo",transactionHandle,new TestSplitRemote(dataHost2)));
+    rackLocalSplits.add(new Split(CONNECTOR_ID,transactionHandle,new TestSplitRemote(dataHost2)));
   }
   assignments=nodeSelector.computeAssignments(rackLocalSplits.build(),ImmutableList.copyOf(taskMap.values()));
   for (  Node node : assignments.keySet()) {
@@ -99,9 +99,9 @@ fail();
 assertEquals(rack1,2);
 assertEquals(rack2,1);
 ImmutableSet.Builder<Split> localSplits=ImmutableSet.builder();
-localSplits.add(new Split("foo",transactionHandle,new TestSplitRemote(HostAddress.fromParts("host1.rack1",1))));
-localSplits.add(new Split("foo",transactionHandle,new TestSplitRemote(HostAddress.fromParts("host2.rack1",1))));
-localSplits.add(new Split("foo",transactionHandle,new TestSplitRemote(HostAddress.fromParts("host3.rack2",1))));
+localSplits.add(new Split(CONNECTOR_ID,transactionHandle,new TestSplitRemote(HostAddress.fromParts("host1.rack1",1))));
+localSplits.add(new Split(CONNECTOR_ID,transactionHandle,new TestSplitRemote(HostAddress.fromParts("host2.rack1",1))));
+localSplits.add(new Split(CONNECTOR_ID,transactionHandle,new TestSplitRemote(HostAddress.fromParts("host3.rack2",1))));
 assignments=nodeSelector.computeAssignments(localSplits.build(),ImmutableList.copyOf(taskMap.values()));
 assertEquals(assignments.size(),3);
 assertEquals(assignments.keySet().size(),3);

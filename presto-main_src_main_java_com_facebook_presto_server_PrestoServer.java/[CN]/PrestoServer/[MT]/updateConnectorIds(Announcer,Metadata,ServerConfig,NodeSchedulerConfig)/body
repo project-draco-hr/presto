@@ -1,26 +1,2 @@
 {
-  ServiceAnnouncement announcement=getPrestoAnnouncement(announcer.getServiceAnnouncements());
-  String property=nullToEmpty(announcement.getProperties().get("connectorIds"));
-  List<String> values=Splitter.on(',').trimResults().omitEmptyStrings().splitToList(property);
-  Set<String> connectorIds=new LinkedHashSet<>(values);
-  if (connectorIds.isEmpty()) {
-    Set<String> catalogs=metadata.getCatalogNames().keySet();
-    if (serverConfig.isCoordinator() && !schedulerConfig.isIncludeCoordinator()) {
-      if (catalogs.contains("jmx")) {
-        connectorIds.add("jmx");
-      }
-    }
- else {
-      connectorIds.addAll(catalogs);
-    }
-  }
-  ServiceAnnouncementBuilder builder=serviceAnnouncement(announcement.getType());
-  for (  Map.Entry<String,String> entry : announcement.getProperties().entrySet()) {
-    if (!entry.getKey().equals("connectorIds")) {
-      builder.addProperty(entry.getKey(),entry.getValue());
-    }
-  }
-  builder.addProperty("connectorIds",Joiner.on(',').join(connectorIds));
-  announcer.removeServiceAnnouncement(announcement.getId());
-  announcer.addServiceAnnouncement(builder.build());
 }

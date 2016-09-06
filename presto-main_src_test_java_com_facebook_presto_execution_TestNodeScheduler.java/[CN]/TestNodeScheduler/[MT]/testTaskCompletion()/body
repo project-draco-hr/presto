@@ -1,8 +1,8 @@
 {
   MockRemoteTaskFactory remoteTaskFactory=new MockRemoteTaskFactory(remoteTaskExecutor);
-  Node chosenNode=Iterables.get(nodeManager.getActiveConnectorNodes("foo"),0);
+  Node chosenNode=Iterables.get(nodeManager.getActiveConnectorNodes(CONNECTOR_ID),0);
   TaskId taskId=new TaskId("test",1,1);
-  RemoteTask remoteTask=remoteTaskFactory.createTableScanTask(taskId,chosenNode,ImmutableList.of(new Split("foo",TestingTransactionHandle.create("foo"),new TestSplitRemote())),nodeTaskMap.createPartitionedSplitCountTracker(chosenNode,taskId));
+  RemoteTask remoteTask=remoteTaskFactory.createTableScanTask(taskId,chosenNode,ImmutableList.of(new Split(CONNECTOR_ID,TestingTransactionHandle.create(),new TestSplitRemote())),nodeTaskMap.createPartitionedSplitCountTracker(chosenNode,taskId));
   nodeTaskMap.addTask(chosenNode,remoteTask);
   assertEquals(nodeTaskMap.getPartitionedSplitsOnNode(chosenNode),1);
   remoteTask.abort();

@@ -1,14 +1,14 @@
 {
-  TestingTransactionHandle transactionHandle=TestingTransactionHandle.create("foo");
+  TestingTransactionHandle transactionHandle=TestingTransactionHandle.create();
   Node newNode=new PrestoNode("other4",URI.create("http://127.0.0.1:14"),NodeVersion.UNKNOWN,false);
-  nodeManager.addNode("foo",newNode);
+  nodeManager.addNode(CONNECTOR_ID,newNode);
   ImmutableList.Builder<Split> initialSplits=ImmutableList.builder();
   for (int i=0; i < 20; i++) {
-    initialSplits.add(new Split("foo",transactionHandle,new TestSplitRemote()));
+    initialSplits.add(new Split(CONNECTOR_ID,transactionHandle,new TestSplitRemote()));
   }
   List<RemoteTask> tasks=new ArrayList<>();
   MockRemoteTaskFactory remoteTaskFactory=new MockRemoteTaskFactory(remoteTaskExecutor);
-  for (  Node node : nodeManager.getActiveConnectorNodes("foo")) {
+  for (  Node node : nodeManager.getActiveConnectorNodes(CONNECTOR_ID)) {
     TaskId taskId=new TaskId("test",1,1);
     RemoteTask remoteTask=remoteTaskFactory.createTableScanTask(taskId,node,initialSplits.build(),nodeTaskMap.createPartitionedSplitCountTracker(node,taskId));
     nodeTaskMap.addTask(node,remoteTask);
@@ -21,7 +21,7 @@
   tasks.add(newRemoteTask);
   Set<Split> splits=new HashSet<>();
   for (int i=0; i < 5; i++) {
-    splits.add(new Split("foo",transactionHandle,new TestSplitRemote()));
+    splits.add(new Split(CONNECTOR_ID,transactionHandle,new TestSplitRemote()));
   }
   Multimap<Node,Split> assignments=nodeSelector.computeAssignments(splits,ImmutableList.copyOf(taskMap.values()));
   assertEquals(assignments.keySet().size(),3);

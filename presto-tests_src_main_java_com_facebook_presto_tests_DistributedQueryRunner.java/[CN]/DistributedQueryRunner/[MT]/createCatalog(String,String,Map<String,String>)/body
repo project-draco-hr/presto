@@ -1,12 +1,14 @@
 {
   long start=System.nanoTime();
+  Set<ConnectorId> connectorIds=new HashSet<>();
   for (  TestingPrestoServer server : servers) {
-    server.createCatalog(catalogName,connectorName,properties);
+    connectorIds.add(server.createCatalog(catalogName,connectorName,properties));
   }
-  log.info("Created catalog %s in %s",catalogName,nanosSince(start).convertToMostSuccinctTimeUnit());
+  ConnectorId connectorId=getOnlyElement(connectorIds);
+  log.info("Created catalog %s (%s) in %s",catalogName,connectorId,nanosSince(start).convertToMostSuccinctTimeUnit());
   start=System.nanoTime();
-  while (!isConnectionVisibleToAllNodes(catalogName)) {
-    Assertions.assertLessThan(nanosSince(start),new Duration(100,SECONDS),"waiting form connector " + connectorName + " to be initialized in every node");
+  while (!isConnectionVisibleToAllNodes(connectorId)) {
+    Assertions.assertLessThan(nanosSince(start),new Duration(100,SECONDS),"waiting for connector " + connectorId + " to be initialized in every node");
     try {
       MILLISECONDS.sleep(10);
     }
@@ -15,5 +17,5 @@
       throw Throwables.propagate(e);
     }
   }
-  log.info("Announced catalog %s in %s",catalogName,nanosSince(start).convertToMostSuccinctTimeUnit());
+  log.info("Announced catalog %s (%s) in %s",catalogName,connectorId,succinctNanos(start));
 }
