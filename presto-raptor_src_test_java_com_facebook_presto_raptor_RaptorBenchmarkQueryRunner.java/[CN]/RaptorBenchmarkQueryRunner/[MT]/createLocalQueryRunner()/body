@@ -3,8 +3,9 @@
   LocalQueryRunner localQueryRunner=new LocalQueryRunner(session);
   InMemoryNodeManager nodeManager=localQueryRunner.getNodeManager();
   localQueryRunner.createCatalog("tpch",new TpchConnectorFactory(nodeManager,1),ImmutableMap.<String,String>of());
-  ConnectorFactory raptorConnectorFactory=createRaptorConnectorFactory(TPCH_CACHE_DIR,nodeManager);
-  localQueryRunner.createCatalog("raptor",raptorConnectorFactory,ImmutableMap.of());
+  ConnectorFactory raptorConnectorFactory=createRaptorConnectorFactory(nodeManager);
+  Map<String,String> config=createRaptorConfig(TPCH_CACHE_DIR);
+  localQueryRunner.createCatalog("raptor",raptorConnectorFactory,config);
   if (!localQueryRunner.tableExists(session,"orders")) {
     localQueryRunner.execute("CREATE TABLE orders AS SELECT * FROM tpch.sf1.orders");
   }
