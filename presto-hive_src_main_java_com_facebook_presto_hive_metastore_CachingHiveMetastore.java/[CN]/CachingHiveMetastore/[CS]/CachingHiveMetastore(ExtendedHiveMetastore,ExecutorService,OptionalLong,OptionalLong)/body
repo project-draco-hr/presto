@@ -1,0 +1,66 @@
+{
+  this.delegate=delegate;
+  databaseNamesCache=newCacheBuilder(expiresAfterWriteMillis,refreshMills).build(asyncReloading(new CacheLoader<String,List<String>>(){
+    @Override public List<String> load(    String key) throws Exception {
+      return loadAllDatabases();
+    }
+  }
+,executor));
+  databaseCache=newCacheBuilder(expiresAfterWriteMillis,refreshMills).build(asyncReloading(new CacheLoader<String,Optional<Database>>(){
+    @Override public Optional<Database> load(    String databaseName) throws Exception {
+      return loadDatabase(databaseName);
+    }
+  }
+,executor));
+  tableNamesCache=newCacheBuilder(expiresAfterWriteMillis,refreshMills).build(asyncReloading(new CacheLoader<String,Optional<List<String>>>(){
+    @Override public Optional<List<String>> load(    String databaseName) throws Exception {
+      return loadAllTables(databaseName);
+    }
+  }
+,executor));
+  tableCache=newCacheBuilder(expiresAfterWriteMillis,refreshMills).build(asyncReloading(new CacheLoader<HiveTableName,Optional<Table>>(){
+    @Override public Optional<Table> load(    HiveTableName hiveTableName) throws Exception {
+      return loadTable(hiveTableName);
+    }
+  }
+,executor));
+  viewNamesCache=newCacheBuilder(expiresAfterWriteMillis,refreshMills).build(asyncReloading(new CacheLoader<String,Optional<List<String>>>(){
+    @Override public Optional<List<String>> load(    String databaseName) throws Exception {
+      return loadAllViews(databaseName);
+    }
+  }
+,executor));
+  partitionNamesCache=newCacheBuilder(expiresAfterWriteMillis,refreshMills).build(asyncReloading(new CacheLoader<HiveTableName,Optional<List<String>>>(){
+    @Override public Optional<List<String>> load(    HiveTableName hiveTableName) throws Exception {
+      return loadPartitionNames(hiveTableName);
+    }
+  }
+,executor));
+  partitionFilterCache=newCacheBuilder(expiresAfterWriteMillis,refreshMills).build(asyncReloading(new CacheLoader<PartitionFilter,Optional<List<String>>>(){
+    @Override public Optional<List<String>> load(    PartitionFilter partitionFilter) throws Exception {
+      return loadPartitionNamesByParts(partitionFilter);
+    }
+  }
+,executor));
+  partitionCache=newCacheBuilder(expiresAfterWriteMillis,refreshMills).build(asyncReloading(new CacheLoader<HivePartitionName,Optional<Partition>>(){
+    @Override public Optional<Partition> load(    HivePartitionName partitionName) throws Exception {
+      return loadPartitionByName(partitionName);
+    }
+    @Override public Map<HivePartitionName,Optional<Partition>> loadAll(    Iterable<? extends HivePartitionName> partitionNames) throws Exception {
+      return loadPartitionsByNames(partitionNames);
+    }
+  }
+,executor));
+  userRolesCache=newCacheBuilder(expiresAfterWriteMillis,refreshMills).build(asyncReloading(new CacheLoader<String,Set<String>>(){
+    @Override public Set<String> load(    String user) throws Exception {
+      return loadRoles(user);
+    }
+  }
+,executor));
+  userTablePrivileges=newCacheBuilder(expiresAfterWriteMillis,refreshMills).build(asyncReloading(new CacheLoader<UserTableKey,Set<HivePrivilegeInfo>>(){
+    @Override public Set<HivePrivilegeInfo> load(    UserTableKey key) throws Exception {
+      return loadTablePrivileges(key.getUser(),key.getDatabase(),key.getTable());
+    }
+  }
+,executor));
+}
