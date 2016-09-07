@@ -1,0 +1,21 @@
+{
+  TryExpressionExtractor tryExtractor=new TryExpressionExtractor();
+  filter.accept(tryExtractor,null);
+  List<CallExpression> tryExpressions=tryExtractor.getTryExpressionsPreOrder();
+  ImmutableMap.Builder<CallExpression,MethodDefinition> tryMethodMap=ImmutableMap.builder();
+  int methodId=0;
+  for (  CallExpression tryExpression : tryExpressions) {
+    Parameter session=arg("session",ConnectorSession.class);
+    Parameter leftPosition=arg("leftPosition",int.class);
+    Parameter leftBlocks=arg("leftBlocks",Block[].class);
+    Parameter rightPosition=arg("rightPosition",int.class);
+    Parameter rightBlocks=arg("rightBlocks",Block[].class);
+    Parameter wasNullVariable=arg("wasNull",boolean.class);
+    BytecodeExpressionVisitor innerExpressionVisitor=new BytecodeExpressionVisitor(callSiteBinder,cachedInstanceBinder,fieldReferenceCompiler(callSiteBinder,leftPosition,leftBlocks,rightPosition,rightBlocks,leftBlocksSize,wasNullVariable),metadata.getFunctionRegistry(),tryMethodMap.build());
+    List<Parameter> inputParameters=ImmutableList.<Parameter>builder().add(session).add(leftPosition).add(leftBlocks).add(rightPosition).add(rightBlocks).add(wasNullVariable).build();
+    MethodDefinition tryMethod=defineTryMethod(innerExpressionVisitor,containerClassDefinition,"try_" + methodId,inputParameters,Primitives.wrap(tryExpression.getType().getJavaType()),tryExpression,callSiteBinder);
+    tryMethodMap.put(tryExpression,tryMethod);
+    methodId++;
+  }
+  return tryMethodMap.build();
+}
