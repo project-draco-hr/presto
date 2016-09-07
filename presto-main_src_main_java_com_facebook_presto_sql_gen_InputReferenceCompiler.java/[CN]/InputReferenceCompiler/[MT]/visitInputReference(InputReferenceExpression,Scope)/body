@@ -1,0 +1,16 @@
+{
+  int field=node.getField();
+  Type type=node.getType();
+  BytecodeExpression block=blockResolver.apply(scope,field);
+  BytecodeExpression position=positionResolver.apply(scope,field);
+  Class<?> javaType=type.getJavaType();
+  if (!javaType.isPrimitive() && javaType != Slice.class) {
+    javaType=Object.class;
+  }
+  IfStatement ifStatement=new IfStatement();
+  ifStatement.condition(block.invoke("isNull",boolean.class,position));
+  ifStatement.ifTrue().putVariable(wasNullVariable,true).pushJavaDefault(javaType);
+  String methodName="get" + Primitives.wrap(javaType).getSimpleName();
+  ifStatement.ifFalse(constantType(callSiteBinder,type).invoke(methodName,javaType,block,position));
+  return ifStatement;
+}
