@@ -1,0 +1,11 @@
+{
+  Map<Type,Object> testValues=ImmutableMap.<Type,Object>builder().put(BOOLEAN,true).put(INTEGER,1234L).put(BIGINT,4321L).put(DOUBLE,0.123).put(VARCHAR,utf8Slice(TEST_STRING)).build();
+  for (  Map.Entry<Type,Object> testValue : testValues.entrySet()) {
+    Domain predicateDomain=Domain.singleValue(testValue.getKey(),testValue.getValue());
+    Optional<Collection<Object>> discreteValues=extractDiscreteValues(predicateDomain.getValues());
+    assertTrue(discreteValues.isPresent());
+    Collection<Object> objects=discreteValues.get();
+    assertEquals(objects.size(),1);
+    assertEquals(objects.iterator().next(),testValue.getValue());
+  }
+}

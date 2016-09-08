@@ -1,0 +1,11 @@
+{
+  ImmutableMap.Builder<Integer,List<HiveBloomFilter>> bloomFilters=ImmutableMap.builder();
+  for (  Entry<StreamId,Stream> entry : streams.entrySet()) {
+    Stream stream=entry.getValue();
+    if (stream.getStreamKind() == BLOOM_FILTER) {
+      OrcInputStream inputStream=streamsData.get(entry.getKey());
+      bloomFilters.put(stream.getColumn(),metadataReader.readBloomFilterIndexes(inputStream));
+    }
+  }
+  return bloomFilters.build();
+}

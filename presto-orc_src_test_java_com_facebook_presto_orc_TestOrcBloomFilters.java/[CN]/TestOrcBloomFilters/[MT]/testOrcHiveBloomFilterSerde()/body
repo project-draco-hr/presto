@@ -1,0 +1,28 @@
+{
+  BloomFilter bloomFilterWrite=new BloomFilter(1000L,0.05);
+  bloomFilterWrite.addString(TEST_STRING);
+  assertTrue(bloomFilterWrite.testString(TEST_STRING));
+  OrcProto.BloomFilter.Builder bloomFilterBuilder=OrcProto.BloomFilter.newBuilder();
+  bloomFilterBuilder.addAllBitset(Longs.asList(bloomFilterWrite.getBitSet()));
+  bloomFilterBuilder.setNumHashFunctions(bloomFilterWrite.getNumHashFunctions());
+  OrcProto.BloomFilter bloomFilter=bloomFilterBuilder.build();
+  OrcProto.BloomFilterIndex bloomFilterIndex=OrcProto.BloomFilterIndex.getDefaultInstance();
+  byte[] bytes=serializeBloomFilterToIndex(bloomFilter,bloomFilterIndex);
+  InputStream inputStream=new ByteArrayInputStream(bytes);
+  OrcMetadataReader metadataReader=new OrcMetadataReader();
+  List<HiveBloomFilter> bloomFilters=metadataReader.readBloomFilterIndexes(inputStream);
+  assertEquals(bloomFilters.size(),1);
+  assertTrue(bloomFilters.get(0).testString(TEST_STRING));
+  assertFalse(bloomFilters.get(0).testString(TEST_STRING_NOT_WRITTEN));
+  assertEquals(bloomFilterWrite.getBitSize(),bloomFilters.get(0).getBitSize());
+  assertEquals(bloomFilterWrite.getNumHashFunctions(),bloomFilters.get(0).getNumHashFunctions());
+  assertTrue(Arrays.equals(bloomFilters.get(0).getBitSet(),bloomFilterWrite.getBitSet()));
+  CodedInputStream input=CodedInputStream.newInstance(bytes);
+  OrcProto.BloomFilterIndex deserializedBloomFilterIndex=OrcProto.BloomFilterIndex.parseFrom(input);
+  List<OrcProto.BloomFilter> bloomFilterList=deserializedBloomFilterIndex.getBloomFilterList();
+  assertEquals(bloomFilterList.size(),1);
+  OrcProto.BloomFilter bloomFilterRead=bloomFilterList.get(0);
+  assertTrue(Arrays.equals(Longs.toArray(bloomFilterRead.getBitsetList()),bloomFilterWrite.getBitSet()));
+  assertEquals(bloomFilterWrite.getNumHashFunctions(),bloomFilterRead.getNumHashFunctions());
+  assertEquals(bloomFilterWrite.getBitSet().length,bloomFilterRead.getBitsetCount());
+}

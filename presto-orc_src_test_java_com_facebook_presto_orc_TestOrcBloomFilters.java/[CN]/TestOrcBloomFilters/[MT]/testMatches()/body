@@ -1,0 +1,20 @@
+{
+  Domain testingColumnHandleDomain=Domain.singleValue(BIGINT,1234L);
+  TupleDomain.ColumnDomain<String> column0=new TupleDomain.ColumnDomain<>(COLUMN_0,testingColumnHandleDomain);
+  TupleDomain<String> effectivePredicate=TupleDomain.fromColumnDomains(Optional.of(ImmutableList.of(column0)));
+  TupleDomain<String> emptyEffectivePredicate=TupleDomain.none();
+  List<ColumnReference<String>> columnReferences=ImmutableList.<ColumnReference<String>>builder().add(new ColumnReference<>(COLUMN_0,0,BIGINT)).add(new ColumnReference<>(COLUMN_1,1,BIGINT)).build();
+  TupleDomainOrcPredicate<String> predicate=new TupleDomainOrcPredicate<>(effectivePredicate,columnReferences,true);
+  TupleDomainOrcPredicate<String> emptyPredicate=new TupleDomainOrcPredicate<>(emptyEffectivePredicate,columnReferences,true);
+  HiveBloomFilter hiveBloomFilter=new HiveBloomFilter(new BloomFilter(1000,0.01));
+  OrcProto.BloomFilter emptyOrcBloomFilter=toOrcBloomFilter(hiveBloomFilter);
+  hiveBloomFilter.addLong(1234);
+  OrcProto.BloomFilter orcBloomFilter=toOrcBloomFilter(hiveBloomFilter);
+  Map<Integer,ColumnStatistics> matchingStatisticsByColumnIndex=ImmutableMap.of(0,new ColumnStatistics(null,null,new IntegerStatistics(10L,2000L),null,null,null,null,toHiveBloomFilter(orcBloomFilter)));
+  Map<Integer,ColumnStatistics> nonMatchingStatisticsByColumnIndex=ImmutableMap.of(0,new ColumnStatistics(null,null,new IntegerStatistics(10L,2000L),null,null,null,null,toHiveBloomFilter(emptyOrcBloomFilter)));
+  Map<Integer,ColumnStatistics> withoutBloomFilterStatisticsByColumnIndex=ImmutableMap.of(0,new ColumnStatistics(null,null,new IntegerStatistics(10L,2000L),null,null,null,null,null));
+  assertTrue(predicate.matches(1L,matchingStatisticsByColumnIndex));
+  assertTrue(predicate.matches(1L,withoutBloomFilterStatisticsByColumnIndex));
+  assertFalse(predicate.matches(1L,nonMatchingStatisticsByColumnIndex));
+  assertTrue(emptyPredicate.matches(1L,matchingStatisticsByColumnIndex));
+}

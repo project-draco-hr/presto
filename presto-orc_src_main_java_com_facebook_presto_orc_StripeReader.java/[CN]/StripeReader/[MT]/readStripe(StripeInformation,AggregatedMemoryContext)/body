@@ -16,7 +16,8 @@
     Map<StreamId,DiskRange> diskRanges=getDiskRanges(stripeFooter.getStreams());
     diskRanges=Maps.filterKeys(diskRanges,Predicates.in(streams.keySet()));
     Map<StreamId,OrcInputStream> streamsData=readDiskRanges(stripe.getOffset(),diskRanges,systemMemoryUsage);
-    Map<Integer,List<RowGroupIndex>> columnIndexes=readColumnIndexes(streams,streamsData);
+    Map<Integer,List<HiveBloomFilter>> bloomFilterIndexes=readBloomFilterIndexes(streams,streamsData);
+    Map<Integer,List<RowGroupIndex>> columnIndexes=readColumnIndexes(streams,streamsData,bloomFilterIndexes);
     Set<Integer> selectedRowGroups=selectRowGroups(stripe,columnIndexes);
     if (selectedRowGroups.isEmpty()) {
       systemMemoryUsage.close();

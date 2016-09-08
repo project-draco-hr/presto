@@ -1,0 +1,34 @@
+{
+  BloomFilter bloomFilter=new BloomFilter(TEST_VALUES.size() * 10,0.01);
+  for (  Object o : TEST_VALUES.keySet()) {
+    if (o instanceof Long) {
+      bloomFilter.addLong((Long)o);
+    }
+ else     if (o instanceof Integer) {
+      bloomFilter.addLong((Integer)o);
+    }
+ else     if (o instanceof String) {
+      bloomFilter.addString((String)o);
+    }
+ else     if (o instanceof BigDecimal) {
+      bloomFilter.addString(o.toString());
+    }
+ else     if (o instanceof Slice) {
+      bloomFilter.addString(((Slice)o).toStringUtf8());
+    }
+ else     if (o instanceof Timestamp) {
+      bloomFilter.addLong(((Timestamp)o).getTime());
+    }
+ else     if (o instanceof Double) {
+      bloomFilter.addDouble((Double)o);
+    }
+ else {
+      fail("Unsupported type " + o.getClass());
+    }
+  }
+  for (  Map.Entry<Object,Type> testValue : TEST_VALUES.entrySet()) {
+    boolean matched=checkInBloomFilter(bloomFilter,testValue.getKey(),testValue.getValue());
+    assertTrue(matched,"type " + testValue.getClass());
+  }
+  assertTrue(checkInBloomFilter(bloomFilter,new Date(),DATE),"unsupported type DATE should always return true");
+}

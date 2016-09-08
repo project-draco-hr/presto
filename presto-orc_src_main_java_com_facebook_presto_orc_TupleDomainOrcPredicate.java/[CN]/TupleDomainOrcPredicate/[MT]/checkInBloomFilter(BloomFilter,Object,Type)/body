@@ -1,0 +1,12 @@
+{
+  if (sqlType == TINYINT || sqlType == SMALLINT || sqlType == INTEGER || sqlType == BIGINT) {
+    return bloomFilter.testLong(((Number)predicateValue).longValue());
+  }
+  if (sqlType == DOUBLE) {
+    return bloomFilter.testDouble((Double)predicateValue);
+  }
+  if (sqlType instanceof VarcharType || sqlType instanceof VarbinaryType) {
+    return bloomFilter.test(((Slice)predicateValue).getBytes());
+  }
+  return true;
+}

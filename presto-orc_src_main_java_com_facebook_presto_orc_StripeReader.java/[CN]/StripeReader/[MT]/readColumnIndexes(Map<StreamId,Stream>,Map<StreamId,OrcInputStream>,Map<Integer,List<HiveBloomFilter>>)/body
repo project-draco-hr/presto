@@ -1,0 +1,22 @@
+{
+  ImmutableMap.Builder<Integer,List<RowGroupIndex>> columnIndexes=ImmutableMap.builder();
+  for (  Entry<StreamId,Stream> entry : streams.entrySet()) {
+    Stream stream=entry.getValue();
+    if (stream.getStreamKind() == ROW_INDEX) {
+      OrcInputStream inputStream=streamsData.get(entry.getKey());
+      List<HiveBloomFilter> bloomFilters=bloomFilterIndexes.get(stream.getColumn());
+      List<RowGroupIndex> rowGroupIndexes=metadataReader.readRowIndexes(inputStream);
+      if (bloomFilters != null && !bloomFilters.isEmpty()) {
+        ImmutableList.Builder<RowGroupIndex> newRowGroupIndexes=ImmutableList.builder();
+        for (int i=0; i < rowGroupIndexes.size(); i++) {
+          RowGroupIndex rowGroupIndex=rowGroupIndexes.get(i);
+          ColumnStatistics columnStatistics=rowGroupIndex.getColumnStatistics().withBloomFilter(bloomFilters.get(i));
+          newRowGroupIndexes.add(new RowGroupIndex(rowGroupIndex.getPositions(),columnStatistics));
+        }
+        rowGroupIndexes=newRowGroupIndexes.build();
+      }
+      columnIndexes.put(stream.getColumn(),rowGroupIndexes);
+    }
+  }
+  return columnIndexes.build();
+}
