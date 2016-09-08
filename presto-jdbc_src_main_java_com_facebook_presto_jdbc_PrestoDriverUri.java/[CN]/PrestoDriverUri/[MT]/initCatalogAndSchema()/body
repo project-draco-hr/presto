@@ -1,0 +1,27 @@
+{
+  String path=uri.getPath();
+  if (isNullOrEmpty(uri.getPath()) || path.equals("/")) {
+    return;
+  }
+  if (!path.startsWith("/")) {
+    throw new SQLException("Path does not start with a slash: " + uri);
+  }
+  path=path.substring(1);
+  List<String> parts=Splitter.on("/").splitToList(path);
+  if (parts.get(parts.size() - 1).isEmpty()) {
+    parts=parts.subList(0,parts.size() - 1);
+  }
+  if (parts.size() > 2) {
+    throw new SQLException("Invalid path segments in URL: " + uri);
+  }
+  if (parts.get(0).isEmpty()) {
+    throw new SQLException("Catalog name is empty: " + uri);
+  }
+  catalog=parts.get(0);
+  if (parts.size() > 1) {
+    if (parts.get(1).isEmpty()) {
+      throw new SQLException("Schema name is empty: " + uri);
+    }
+    schema=parts.get(1);
+  }
+}
