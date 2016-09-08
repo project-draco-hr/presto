@@ -1,0 +1,12 @@
+{
+  HiveClientConfig defaults=new HiveClientConfig();
+  try (PrestoS3FileSystem fs=new PrestoS3FileSystem()){
+    fs.initialize(new URI("s3n://test-bucket/"),new Configuration());
+    ClientConfiguration config=getFieldValue(fs.getS3Client(),AmazonWebServiceClient.class,"clientConfiguration",ClientConfiguration.class);
+    assertEquals(config.getMaxErrorRetry(),defaults.getS3MaxErrorRetries());
+    assertEquals(config.getConnectionTimeout(),defaults.getS3ConnectTimeout().toMillis());
+    assertEquals(config.getSocketTimeout(),defaults.getS3SocketTimeout().toMillis());
+    assertEquals(config.getMaxConnections(),defaults.getS3MaxConnections());
+    assertEquals(config.getUserAgentSuffix(),S3_USER_AGENT);
+  }
+ }
