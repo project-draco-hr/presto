@@ -1,0 +1,15 @@
+{
+  if (num == 0 || inputPrecision - inputScale + roundScale <= 0) {
+    return 0;
+  }
+  if (roundScale >= inputScale) {
+    return num;
+  }
+  if (num < 0) {
+    return -roundNShortShortDecimal(-num,roundScale,inputPrecision,inputScale);
+  }
+  long rescaleFactor=longTenToNth((int)(inputScale - roundScale));
+  long remainder=num % rescaleFactor;
+  int roundUp=(remainder >= rescaleFactor >> 1) ? 1 : 0;
+  return (num / rescaleFactor + roundUp) * rescaleFactor;
+}
