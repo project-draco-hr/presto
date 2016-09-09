@@ -1,0 +1,14 @@
+{
+  BigInteger unscaledVal=decodeUnscaledValue(num);
+  if (unscaledVal.signum() == 0 || inputPrecision - inputScale + roundScale <= 0) {
+    return encodeUnscaledValue(0);
+  }
+  if (roundScale >= inputScale) {
+    return num;
+  }
+  BigInteger rescaleFactor=bigIntegerTenToNth((int)(inputScale - roundScale));
+  if (unscaledVal.signum() < 0) {
+    return encodeUnscaledValue(truncateNLongDecimal(unscaledVal.negate(),rescaleFactor).negate());
+  }
+  return encodeUnscaledValue(truncateNLongDecimal(unscaledVal,rescaleFactor));
+}
