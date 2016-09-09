@@ -1,7 +1,7 @@
 {
   String tableName="test_create_partitioned_bucketed_table_as";
   @Language("SQL") String createTable="" + "CREATE TABLE " + tableName + " "+ "WITH ("+ "format = '"+ storageFormat+ "', "+ "partitioned_by = ARRAY[ 'orderstatus' ], "+ "bucketed_by = ARRAY[ 'custkey' ], "+ "bucket_count = 11 "+ ") "+ "AS "+ "SELECT custkey, comment, orderstatus "+ "FROM tpch.tiny.orders";
-  assertUpdate(getSession().withSystemProperty("task_writer_count","3"),createTable,"SELECT count(*) from orders");
+  assertUpdate(getSession().withSystemProperty("task_writer_count","4"),createTable,"SELECT count(*) from orders");
   verifyPartitionedBucketedTable(storageFormat,tableName);
   assertUpdate("DROP TABLE " + tableName);
   assertFalse(queryRunner.tableExists(getSession(),tableName));
