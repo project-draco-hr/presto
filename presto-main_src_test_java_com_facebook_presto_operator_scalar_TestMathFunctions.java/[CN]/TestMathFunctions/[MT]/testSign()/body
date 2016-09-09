@@ -1,9 +1,12 @@
 {
+  DecimalType expectedDecimalReturnType=createDecimalType(1,0);
   assertFunction("sign(CAST(NULL as TINYINT))",TINYINT,null);
   assertFunction("sign(CAST(NULL as SMALLINT))",SMALLINT,null);
   assertFunction("sign(CAST(NULL as INTEGER))",INTEGER,null);
   assertFunction("sign(CAST(NULL as BIGINT))",BIGINT,null);
   assertFunction("sign(CAST(NULL as DOUBLE))",DOUBLE,null);
+  assertFunction("sign(CAST(NULL as DECIMAL(2,1)))",expectedDecimalReturnType,null);
+  assertFunction("sign(CAST(NULL as DECIMAL(38,0)))",expectedDecimalReturnType,null);
   for (  int intValue : intLefts) {
     Float signum=Math.signum(intValue);
     assertFunction("sign(TINYINT '" + intValue + "')",TINYINT,signum.byteValue());
@@ -21,10 +24,16 @@
     assertFunction("sign(BIGINT '" + intValue + "')",BIGINT,signum.longValue());
   }
   for (  double doubleValue : DOUBLE_VALUES) {
-    assertFunction("sign(" + doubleValue + ")",DOUBLE,Math.signum(doubleValue));
+    assertFunction("sign(DOUBLE '" + doubleValue + "')",DOUBLE,Math.signum(doubleValue));
     assertFunction("sign(REAL '" + (float)doubleValue + "')",REAL,Math.signum(((float)doubleValue)));
   }
   assertFunction("sign(DOUBLE 'NaN')",DOUBLE,Double.NaN);
   assertFunction("sign(DOUBLE '+Infinity')",DOUBLE,1.0);
   assertFunction("sign(DOUBLE '-Infinity')",DOUBLE,-1.0);
+  assertFunction("sign(DECIMAL '0')",expectedDecimalReturnType,SqlDecimal.of("0"));
+  assertFunction("sign(DECIMAL '123')",expectedDecimalReturnType,SqlDecimal.of("1"));
+  assertFunction("sign(DECIMAL '-123')",expectedDecimalReturnType,SqlDecimal.of("-1"));
+  assertFunction("sign(DECIMAL '0.000000000000000000')",expectedDecimalReturnType,SqlDecimal.of("0"));
+  assertFunction("sign(DECIMAL '123.000000000000000')",expectedDecimalReturnType,SqlDecimal.of("1"));
+  assertFunction("sign(DECIMAL '-123.000000000000000')",expectedDecimalReturnType,SqlDecimal.of("-1"));
 }
