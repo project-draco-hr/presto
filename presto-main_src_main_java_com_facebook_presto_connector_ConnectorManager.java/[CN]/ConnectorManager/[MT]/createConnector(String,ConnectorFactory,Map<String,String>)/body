@@ -3,9 +3,8 @@
   if (factory instanceof LegacyTransactionConnectorFactory) {
     factoryClass=((LegacyTransactionConnectorFactory)factory).getConnectorFactory().getClass();
   }
+  ConnectorContext context=new ConnectorContextInstance(new ConnectorAwareNodeManager(nodeManager,nodeInfo.getEnvironment(),connectorId));
   try (ThreadContextClassLoader ignored=new ThreadContextClassLoader(factoryClass.getClassLoader())){
-    return factory.create(connectorId,properties,new ConnectorContext(){
-    }
-);
+    return factory.create(connectorId,properties,context);
   }
  }

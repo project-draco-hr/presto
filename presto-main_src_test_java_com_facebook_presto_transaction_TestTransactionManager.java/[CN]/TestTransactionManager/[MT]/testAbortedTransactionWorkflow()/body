@@ -1,9 +1,7 @@
 {
   try (IdleCheckExecutor executor=new IdleCheckExecutor()){
     TransactionManager transactionManager=TransactionManager.create(new TransactionManagerConfig(),executor.getExecutor(),finishingExecutor);
-    Connector c1=new TpchConnectorFactory(new TestingNodeManager()).create("c1",ImmutableMap.of(),new ConnectorContext(){
-    }
-);
+    Connector c1=new TpchConnectorFactory().create("c1",ImmutableMap.of(),new TestingConnectorContext());
     transactionManager.addConnector("c1",c1);
     TransactionId transactionId=transactionManager.beginTransaction(false);
     assertEquals(transactionManager.getAllTransactionInfos().size(),1);

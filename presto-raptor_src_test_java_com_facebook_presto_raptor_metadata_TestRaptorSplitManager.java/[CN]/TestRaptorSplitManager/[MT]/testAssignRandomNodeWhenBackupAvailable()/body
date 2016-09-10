@@ -1,13 +1,2 @@
 {
-  TestingNodeManager nodeManager=new TestingNodeManager();
-  RaptorConnectorId connectorId=new RaptorConnectorId("raptor");
-  NodeSupplier nodeSupplier=new RaptorNodeSupplier(nodeManager,connectorId);
-  PrestoNode node=new PrestoNode(UUID.randomUUID().toString(),new URI("http://127.0.0.1/"),NodeVersion.UNKNOWN,false);
-  nodeManager.addNode(node);
-  RaptorSplitManager raptorSplitManagerWithBackup=new RaptorSplitManager(connectorId,nodeSupplier,shardManager,true);
-  deleteShardNodes();
-  ConnectorTableLayoutResult layout=getOnlyElement(metadata.getTableLayouts(SESSION,tableHandle,Constraint.alwaysTrue(),Optional.empty()));
-  ConnectorSplitSource partitionSplit=getSplits(raptorSplitManagerWithBackup,layout);
-  List<ConnectorSplit> batch=getFutureValue(partitionSplit.getNextBatch(1),PrestoException.class);
-  assertEquals(getOnlyElement(getOnlyElement(batch).getAddresses()),node.getHostAndPort());
 }

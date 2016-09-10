@@ -1,6 +1,7 @@
 {
   requireNonNull(properties,"properties is null");
   int splitsPerNode=getSplitsPerNode(properties);
+  NodeManager nodeManager=context.getNodeManager();
   return new Connector(){
     @Override public ConnectorTransactionHandle beginTransaction(    IsolationLevel isolationLevel,    boolean readOnly){
       return TpchTransactionHandle.INSTANCE;
@@ -9,13 +10,13 @@
       return new SampledTpchMetadata(connectorId);
     }
     @Override public ConnectorSplitManager getSplitManager(){
-      return new TpchSplitManager(connectorId,nodeManager,splitsPerNode);
+      return new TpchSplitManager(nodeManager,splitsPerNode);
     }
     @Override public ConnectorRecordSetProvider getRecordSetProvider(){
       return new SampledTpchRecordSetProvider(connectorId,sampleWeight);
     }
     @Override public ConnectorNodePartitioningProvider getNodePartitioningProvider(){
-      return new TpchNodePartitioningProvider(connectorId,nodeManager,splitsPerNode);
+      return new TpchNodePartitioningProvider(nodeManager,splitsPerNode);
     }
   }
 ;
