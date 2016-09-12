@@ -1,9 +1,31 @@
 {
   List<List<Partition>> batchedPartitions=Lists.partition(partitions,batchSize);
   for (  List<Partition> batch : batchedPartitions) {
-    metastore.addPartitions(schemaName,tableName,batch);
-    for (    Partition partition : batch) {
-      createdPartitionValues.add(partition.getValues());
+    try {
+      metastore.addPartitions(schemaName,tableName,batch);
+      for (      Partition partition : batch) {
+        createdPartitionValues.add(partition.getValues());
+      }
+    }
+ catch (    Throwable t) {
+      boolean batchCompletelyAdded=true;
+      for (      Partition partition : batch) {
+        try {
+          Optional<Partition> remotePartition=metastore.getPartition(schemaName,tableName,partition.getValues());
+          if (remotePartition.isPresent() && getPrestoQueryId(remotePartition.get()).equals(getPrestoQueryId(partition))) {
+            createdPartitionValues.add(partition.getValues());
+          }
+ else {
+            batchCompletelyAdded=false;
+          }
+        }
+ catch (        Throwable ignored) {
+          batchCompletelyAdded=false;
+        }
+      }
+      if (!batchCompletelyAdded) {
+        throw t;
+      }
     }
   }
   partitions.clear();
