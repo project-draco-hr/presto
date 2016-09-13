@@ -8,7 +8,7 @@
     atopColumns.add(atopColumn);
     types.add(typeManager.getType(atopColumn.getType()));
   }
-  DateTime date=atopSplit.getDate().withZone(timeZone);
-  checkState(date.equals(date.withTimeAtStartOfDay()),"Expected date to be at beginning of day");
+  ZonedDateTime date=atopSplit.getDate();
+  checkArgument(date.equals(date.withHour(0).withMinute(0).withSecond(0).withNano(0)),"Expected date to be at beginning of day");
   return new AtopPageSource(readerPermits,atopFactory,session,utf8Slice(atopSplit.getHost().getHostText()),atopSplit.getTable(),date,atopColumns.build(),types.build());
 }
