@@ -1,0 +1,28 @@
+{
+  this.recordReader=requireNonNull(recordReader,"recordReader is null");
+  this.orcDataSource=requireNonNull(orcDataSource,"orcDataSource is null");
+  int size=requireNonNull(columns,"columns is null").size();
+  this.constantBlocks=new Block[size];
+  this.hiveColumnIndexes=new int[size];
+  ImmutableList.Builder<String> namesBuilder=ImmutableList.builder();
+  ImmutableList.Builder<Type> typesBuilder=ImmutableList.builder();
+  for (int columnIndex=0; columnIndex < columns.size(); columnIndex++) {
+    HiveColumnHandle column=columns.get(columnIndex);
+    checkState(column.getColumnType() == REGULAR,"column type must be regular");
+    String name=column.getName();
+    Type type=typeManager.getType(column.getTypeSignature());
+    namesBuilder.add(name);
+    typesBuilder.add(type);
+    hiveColumnIndexes[columnIndex]=column.getHiveColumnIndex();
+    if (!recordReader.isColumnPresent(column.getHiveColumnIndex())) {
+      BlockBuilder blockBuilder=type.createBlockBuilder(new BlockBuilderStatus(),MAX_BATCH_SIZE,NULL_ENTRY_SIZE);
+      for (int i=0; i < MAX_BATCH_SIZE; i++) {
+        blockBuilder.appendNull();
+      }
+      constantBlocks[columnIndex]=blockBuilder.build();
+    }
+  }
+  types=typesBuilder.build();
+  columnNames=namesBuilder.build();
+  this.systemMemoryContext=requireNonNull(systemMemoryContext,"systemMemoryContext is null");
+}

@@ -1,0 +1,27 @@
+{
+  try {
+    Block[] blocks=new Block[columnMappings.size()];
+    Page dataPage=delegate.getNextPage();
+    if (dataPage == null) {
+      return null;
+    }
+    int batchSize=dataPage.getPositionCount();
+    for (int fieldId=0; fieldId < blocks.length; fieldId++) {
+      if (columnMappings.get(fieldId).isPrefilled()) {
+        blocks[fieldId]=RunLengthEncodedBlock.create(types[fieldId],prefilledValues[fieldId],batchSize);
+      }
+ else {
+        blocks[fieldId]=dataPage.getBlock(columnMappings.get(fieldId).getIndex());
+      }
+    }
+    return new Page(batchSize,blocks);
+  }
+ catch (  PrestoException e) {
+    closeWithSuppression(e);
+    throw e;
+  }
+catch (  RuntimeException e) {
+    closeWithSuppression(e);
+    throw new PrestoException(HIVE_CURSOR_ERROR,e);
+  }
+}

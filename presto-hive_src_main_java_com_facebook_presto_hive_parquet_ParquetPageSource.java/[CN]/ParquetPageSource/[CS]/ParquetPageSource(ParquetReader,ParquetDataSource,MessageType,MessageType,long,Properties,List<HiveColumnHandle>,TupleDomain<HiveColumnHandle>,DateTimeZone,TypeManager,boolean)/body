@@ -1,0 +1,33 @@
+{
+  checkArgument(totalBytes >= 0,"totalBytes is negative");
+  requireNonNull(splitSchema,"splitSchema is null");
+  requireNonNull(columns,"columns is null");
+  requireNonNull(effectivePredicate,"effectivePredicate is null");
+  this.parquetReader=parquetReader;
+  this.dataSource=dataSource;
+  this.requestedSchema=requestedSchema;
+  this.totalBytes=totalBytes;
+  int size=columns.size();
+  this.constantBlocks=new Block[size];
+  this.hiveColumnIndexes=new int[size];
+  ImmutableList.Builder<String> namesBuilder=ImmutableList.builder();
+  ImmutableList.Builder<Type> typesBuilder=ImmutableList.builder();
+  for (int columnIndex=0; columnIndex < size; columnIndex++) {
+    HiveColumnHandle column=columns.get(columnIndex);
+    checkState(column.getColumnType() == REGULAR,"column type must be regular");
+    String name=column.getName();
+    Type type=typeManager.getType(column.getTypeSignature());
+    namesBuilder.add(name);
+    typesBuilder.add(type);
+    hiveColumnIndexes[columnIndex]=column.getHiveColumnIndex();
+    if (getParquetType(column,fileSchema,useParquetColumnNames) == null) {
+      BlockBuilder blockBuilder=type.createBlockBuilder(new BlockBuilderStatus(),MAX_VECTOR_LENGTH);
+      for (int i=0; i < MAX_VECTOR_LENGTH; i++) {
+        blockBuilder.appendNull();
+      }
+      constantBlocks[columnIndex]=blockBuilder.build();
+    }
+  }
+  types=typesBuilder.build();
+  columnNames=namesBuilder.build();
+}

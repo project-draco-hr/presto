@@ -1,0 +1,47 @@
+{
+  OrcDataSource orcDataSource;
+  try {
+    FileSystem fileSystem=hdfsEnvironment.getFileSystem(sessionUser,path,configuration);
+    long size=fileSystem.getFileStatus(path).getLen();
+    FSDataInputStream inputStream=fileSystem.open(path);
+    orcDataSource=new HdfsOrcDataSource(path.toString(),size,maxMergeDistance,maxBufferSize,streamBufferSize,inputStream);
+  }
+ catch (  Exception e) {
+    if (nullToEmpty(e.getMessage()).trim().equals("Filesystem closed") || e instanceof FileNotFoundException) {
+      throw new PrestoException(HIVE_CANNOT_OPEN_SPLIT,e);
+    }
+    throw new PrestoException(HIVE_CANNOT_OPEN_SPLIT,splitError(e,path,start,length),e);
+  }
+  AggregatedMemoryContext systemMemoryUsage=new AggregatedMemoryContext();
+  try {
+    OrcReader reader=new OrcReader(orcDataSource,metadataReader,maxMergeDistance,maxBufferSize);
+    List<HiveColumnHandle> physicalColumns=getPhysicalHiveColumnHandles(columns,useOrcColumnNames,reader,path);
+    ImmutableMap.Builder<Integer,Type> includedColumns=ImmutableMap.builder();
+    ImmutableList.Builder<ColumnReference<HiveColumnHandle>> columnReferences=ImmutableList.builder();
+    for (    HiveColumnHandle column : physicalColumns) {
+      if (column.getColumnType() == REGULAR) {
+        Type type=typeManager.getType(column.getTypeSignature());
+        includedColumns.put(column.getHiveColumnIndex(),type);
+        columnReferences.add(new ColumnReference<>(column,column.getHiveColumnIndex(),type));
+      }
+    }
+    OrcPredicate predicate=new TupleDomainOrcPredicate<>(effectivePredicate,columnReferences.build(),orcBloomFiltersEnabled);
+    OrcRecordReader recordReader=reader.createRecordReader(includedColumns.build(),predicate,start,length,hiveStorageTimeZone,systemMemoryUsage);
+    return new OrcPageSource(recordReader,orcDataSource,physicalColumns,hiveStorageTimeZone,typeManager,systemMemoryUsage);
+  }
+ catch (  Exception e) {
+    try {
+      orcDataSource.close();
+    }
+ catch (    IOException ignored) {
+    }
+    if (e instanceof PrestoException) {
+      throw (PrestoException)e;
+    }
+    String message=splitError(e,path,start,length);
+    if (e.getClass().getSimpleName().equals("BlockMissingException")) {
+      throw new PrestoException(HIVE_MISSING_DATA,message,e);
+    }
+    throw new PrestoException(HIVE_CANNOT_OPEN_SPLIT,message,e);
+  }
+}
