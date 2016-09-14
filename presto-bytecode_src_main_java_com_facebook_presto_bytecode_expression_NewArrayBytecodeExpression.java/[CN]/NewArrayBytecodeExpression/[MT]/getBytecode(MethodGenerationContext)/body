@@ -1,8 +1,16 @@
 {
-  if (type.getArrayComponentType().isPrimitive()) {
-    return new BytecodeBlock().append(length).append(TypeInstruction.newPrimitiveArray(type.getArrayComponentType()));
+  BytecodeBlock bytecodeBlock;
+  if (elementType.isPrimitive()) {
+    bytecodeBlock=new BytecodeBlock().append(length).append(TypeInstruction.newPrimitiveArray(elementType));
   }
  else {
-    return new BytecodeBlock().append(length).append(TypeInstruction.newObjectArray(type.getArrayComponentType()));
+    bytecodeBlock=new BytecodeBlock().append(length).append(TypeInstruction.newObjectArray(elementType));
   }
+  if (elements != null) {
+    for (int i=0; i < elements.size(); i++) {
+      BytecodeExpression element=elements.get(i);
+      bytecodeBlock.dup().append(constantInt(i)).append(element).append(getArrayOpCode(elementType).getStore());
+    }
+  }
+  return bytecodeBlock;
 }
