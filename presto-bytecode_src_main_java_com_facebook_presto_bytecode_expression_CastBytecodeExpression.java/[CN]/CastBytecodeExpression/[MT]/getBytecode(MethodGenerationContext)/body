@@ -1,20 +1,3 @@
 {
-  BytecodeBlock block=new BytecodeBlock().append(instance.getBytecode(generationContext));
-  if (instance.getType().isPrimitive()) {
-    Class<?> sourceType=instance.getType().getPrimitiveType();
-    castPrimitiveToPrimitive(block,sourceType,unwrapPrimitiveType(getType()));
-    if (!getType().isPrimitive()) {
-      Class<?> primitiveTargetType=unwrapPrimitiveType(getType());
-      return block.invokeStatic(getType(),"valueOf",getType(),type(primitiveTargetType));
-    }
-    return block;
-  }
- else   if (getType().isPrimitive()) {
-    Class<?> targetType=getType().getPrimitiveType();
-    return block.invokeVirtual(wrap(targetType),targetType.getSimpleName() + "Value",targetType);
-  }
- else {
-    block.checkCast(getType());
-  }
-  return block;
+  return new BytecodeBlock().append(instance.getBytecode(generationContext)).append(generateBytecode(instance.getType(),getType()));
 }

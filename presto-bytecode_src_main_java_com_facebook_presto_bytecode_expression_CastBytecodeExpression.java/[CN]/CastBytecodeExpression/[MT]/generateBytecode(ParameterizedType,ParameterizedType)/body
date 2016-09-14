@@ -1,0 +1,39 @@
+{
+  BytecodeBlock block=new BytecodeBlock();
+switch (getTypeKind(sourceType)) {
+case PRIMITIVE:
+switch (getTypeKind(targetType)) {
+case PRIMITIVE:
+      castPrimitiveToPrimitive(block,sourceType.getPrimitiveType(),targetType.getPrimitiveType());
+    return block;
+case BOXED_PRIMITVE:
+  checkArgument(sourceType.getPrimitiveType() == unwrapPrimitiveType(targetType),"Type %s can not be cast to %s",sourceType,targetType);
+return block.invokeStatic(targetType,"valueOf",targetType,sourceType);
+case OTHER:
+checkArgument(OBJECT_TYPE.equals(targetType),"Type %s can not be cast to %s",sourceType,targetType);
+Class<?> sourceClass=sourceType.getPrimitiveType();
+return block.invokeStatic(wrap(sourceClass),"valueOf",wrap(sourceClass),sourceClass).checkCast(targetType);
+}
+case BOXED_PRIMITVE:
+switch (getTypeKind(targetType)) {
+case PRIMITIVE:
+checkArgument(unwrapPrimitiveType(sourceType) == targetType.getPrimitiveType(),"Type %s can not be cast to %s",sourceType,targetType);
+return block.invokeVirtual(sourceType,targetType.getPrimitiveType().getSimpleName() + "Value",targetType);
+case BOXED_PRIMITVE:
+checkArgument(sourceType.equals(targetType),"Type %s can not be cast to %s",sourceType,targetType);
+return block;
+case OTHER:
+return block.checkCast(targetType);
+}
+case OTHER:
+switch (getTypeKind(targetType)) {
+case PRIMITIVE:
+checkArgument(OBJECT_TYPE.equals(sourceType),"Type %s can not be cast to %s",sourceType,targetType);
+return block.checkCast(wrap(targetType.getPrimitiveType())).invokeVirtual(wrap(targetType.getPrimitiveType()),targetType.getPrimitiveType().getSimpleName() + "Value",targetType.getPrimitiveType());
+case BOXED_PRIMITVE:
+case OTHER:
+return block.checkCast(targetType);
+}
+}
+throw new UnsupportedOperationException("unexpected enum value");
+}
