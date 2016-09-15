@@ -15,10 +15,13 @@
     LocalExchangeSourceOperatorFactory sourceOperatorFactory=new LocalExchangeSourceOperatorFactory(0,new PlanNodeId("source"),localExchange);
     ParallelHashBuildOperatorFactory buildOperatorFactory=new ParallelHashBuildOperatorFactory(1,new PlanNodeId("build"),buildPages.getTypes(),ImmutableMap.of(),hashChannels,buildPages.getHashChannel(),false,filterFunction,100,PARTITION_COUNT);
     PipelineContext buildPipeline=taskContext.addPipelineContext(true,true);
+    Driver[] buildDrivers=new Driver[PARTITION_COUNT];
     for (int i=0; i < PARTITION_COUNT; i++) {
       DriverContext buildDriverContext=buildPipeline.addDriverContext();
-      Driver buildDriver=new Driver(buildDriverContext,sourceOperatorFactory.createOperator(buildDriverContext),buildOperatorFactory.createOperator(buildDriverContext));
-      while (!buildDriver.isFinished()) {
+      buildDrivers[i]=new Driver(buildDriverContext,sourceOperatorFactory.createOperator(buildDriverContext),buildOperatorFactory.createOperator(buildDriverContext));
+    }
+    while (!buildOperatorFactory.getLookupSourceSupplier().getLookupSource().isDone()) {
+      for (      Driver buildDriver : buildDrivers) {
         buildDriver.process();
       }
     }
