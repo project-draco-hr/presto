@@ -1,6 +1,8 @@
 {
-  assertProperAllDatatypesSchema("rcfile_all_types");
-  QueryResult queryResult=query("SELECT * " + "FROM rcfile_all_types");
+  String tableName=mutableTableInstanceOf(ALL_HIVE_SIMPLE_TYPES_RCFILE).getNameInDatabase();
+  populateDataToHiveTable(tableName);
+  assertProperAllDatatypesSchema(tableName);
+  QueryResult queryResult=query(format("SELECT * FROM %s",tableName));
   assertColumnTypes(queryResult);
   assertThat(queryResult).containsOnly(row(127,32767,2147483647,9223372036854775807L,123.345f,234.567,new BigDecimal("346"),new BigDecimal("345.67800"),parseTimestampInUTC("2015-05-10 12:15:35.123"),Date.valueOf("2015-05-10"),"ala ma kota","ala ma kot","ala ma    ",true,"kot binarny".getBytes()));
 }

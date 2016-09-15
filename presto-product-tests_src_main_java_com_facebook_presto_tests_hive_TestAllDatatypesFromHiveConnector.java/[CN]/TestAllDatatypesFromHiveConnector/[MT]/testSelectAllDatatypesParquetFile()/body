@@ -1,6 +1,8 @@
 {
-  assertThat(query("SHOW COLUMNS FROM parquet_all_types",QueryType.SELECT).project(1,2)).containsExactly(row("c_tinyint","tinyint"),row("c_smallint","smallint"),row("c_int","integer"),row("c_bigint","bigint"),row("c_float","real"),row("c_double","double"),row("c_decimal","decimal(10,0)"),row("c_decimal_w_params","decimal(10,5)"),row("c_timestamp","timestamp"),row("c_string","varchar"),row("c_varchar","varchar(10)"),row("c_char","char(10)"),row("c_boolean","boolean"),row("c_binary","varbinary"));
-  QueryResult queryResult=query("SELECT * FROM parquet_all_types");
+  String tableName=mutableTableInstanceOf(ALL_HIVE_SIMPLE_TYPES_PARQUET).getNameInDatabase();
+  onHive().executeQuery(format("INSERT INTO %s VALUES(" + "127," + "32767,"+ "2147483647,"+ "9223372036854775807,"+ "123.345,"+ "234.567,"+ "346,"+ "345.67800,"+ "'" + parseTimestampInUTC("2015-05-10 12:15:35.123").toString() + "',"+ "'ala ma kota',"+ "'ala ma kot',"+ "'ala ma    ',"+ "true,"+ "'kot binarny'"+ ")",tableName));
+  assertThat(query(format("SHOW COLUMNS FROM %s",tableName),QueryType.SELECT).project(1,2)).containsExactly(row("c_tinyint","tinyint"),row("c_smallint","smallint"),row("c_int","integer"),row("c_bigint","bigint"),row("c_float","real"),row("c_double","double"),row("c_decimal","decimal(10,0)"),row("c_decimal_w_params","decimal(10,5)"),row("c_timestamp","timestamp"),row("c_string","varchar"),row("c_varchar","varchar(10)"),row("c_char","char(10)"),row("c_boolean","boolean"),row("c_binary","varbinary"));
+  QueryResult queryResult=query(format("SELECT * FROM %s",tableName));
   assertThat(queryResult).hasColumns(TINYINT,SMALLINT,INTEGER,BIGINT,REAL,DOUBLE,DECIMAL,DECIMAL,TIMESTAMP,LONGNVARCHAR,LONGNVARCHAR,CHAR,BOOLEAN,LONGVARBINARY);
   assertThat(queryResult).containsOnly(row(127,32767,2147483647,9223372036854775807L,123.345f,234.567,new BigDecimal("346"),new BigDecimal("345.67800"),parseTimestampInUTC("2015-05-10 12:15:35.123"),"ala ma kota","ala ma kot","ala ma    ",true,"kot binarny".getBytes()));
 }
