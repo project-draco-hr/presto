@@ -7,9 +7,10 @@
   assertThatFileFormat(RCTEXT).withColumns(columns).isFailingForRecordCursor(new ColumnarTextHiveRecordCursorProvider(HDFS_ENVIRONMENT),expectedErrorCode,expectedMessage).isFailingForRecordCursor(new GenericHiveRecordCursorProvider(HDFS_ENVIRONMENT),expectedErrorCode,expectedMessage);
   assertThatFileFormat(RCBINARY).withColumns(columns).isFailingForRecordCursor(new ColumnarBinaryHiveRecordCursorProvider(HDFS_ENVIRONMENT),expectedErrorCode,expectedMessage).isFailingForRecordCursor(new GenericHiveRecordCursorProvider(HDFS_ENVIRONMENT),expectedErrorCode,expectedMessage);
   assertThatFileFormat(ORC).withColumns(columns).isFailingForPageSource(new OrcPageSourceFactory(TYPE_MANAGER,false,HDFS_ENVIRONMENT),expectedErrorCode,expectedMessage);
-  assertThatFileFormat(PARQUET).withColumns(columns).isFailingForRecordCursor(new ParquetRecordCursorProvider(false,HDFS_ENVIRONMENT),expectedErrorCode,expectedMessage);
-  TestingConnectorSession session=new TestingConnectorSession(new HiveSessionProperties(new HiveClientConfig().setParquetOptimizedReaderEnabled(true)).getSessionProperties());
-  assertThatFileFormat(PARQUET).withColumns(columns).withSession(session).isFailingForPageSource(new ParquetPageSourceFactory(TYPE_MANAGER,false,HDFS_ENVIRONMENT),expectedErrorCode,expectedMessage);
+  assertThatFileFormat(PARQUET).withColumns(columns).withSession(parquetCursorSession).isFailingForRecordCursor(new ParquetRecordCursorProvider(false,HDFS_ENVIRONMENT),expectedErrorCode,expectedMessage);
+  assertThatFileFormat(PARQUET).withColumns(columns).withSession(parquetCursorPushdownSession).isFailingForRecordCursor(new ParquetRecordCursorProvider(false,HDFS_ENVIRONMENT),expectedErrorCode,expectedMessage);
+  assertThatFileFormat(PARQUET).withColumns(columns).withSession(parquetPageSourceSession).isFailingForPageSource(new ParquetPageSourceFactory(TYPE_MANAGER,false,HDFS_ENVIRONMENT),expectedErrorCode,expectedMessage);
+  assertThatFileFormat(PARQUET).withColumns(columns).withSession(parquetPageSourcePushdown).isFailingForPageSource(new ParquetPageSourceFactory(TYPE_MANAGER,false,HDFS_ENVIRONMENT),expectedErrorCode,expectedMessage);
   assertThatFileFormat(SEQUENCEFILE).withColumns(columns).isFailingForRecordCursor(new GenericHiveRecordCursorProvider(HDFS_ENVIRONMENT),expectedErrorCode,expectedMessage);
   assertThatFileFormat(TEXTFILE).withColumns(columns).isFailingForRecordCursor(new GenericHiveRecordCursorProvider(HDFS_ENVIRONMENT),expectedErrorCode,expectedMessage);
 }
