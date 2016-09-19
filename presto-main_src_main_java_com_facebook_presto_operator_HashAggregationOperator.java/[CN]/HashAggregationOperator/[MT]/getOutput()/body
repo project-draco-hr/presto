@@ -1,10 +1,20 @@
 {
+  if (finished) {
+    return null;
+  }
   if (outputIterator == null || !outputIterator.hasNext()) {
     outputIterator=null;
-    if (aggregationBuilder == null) {
-      return null;
+    if (finishing) {
+      if (!inputProcessed && !step.isOutputPartial()) {
+        finished=true;
+        return getGlobalAggregationOutput();
+      }
+      if (aggregationBuilder == null) {
+        finished=true;
+        return null;
+      }
     }
-    if (!finishing && !aggregationBuilder.isFull()) {
+    if (!finishing && (aggregationBuilder == null || !aggregationBuilder.isFull())) {
       return null;
     }
     outputIterator=aggregationBuilder.build();
