@@ -1,5 +1,5 @@
 {
-  ImmutableSet.Builder<Symbol> expectedInputs=ImmutableSet.<Symbol>builder().addAll(node.getGroupBy());
+  ImmutableSet.Builder<Symbol> expectedInputs=ImmutableSet.<Symbol>builder().addAll(node.getGroupingKeys());
   if (node.getHashSymbol().isPresent()) {
     expectedInputs.add(node.getHashSymbol().get());
   }
@@ -23,5 +23,5 @@
     expectedInputs.add(node.getSampleWeight().get());
   }
   PlanNode source=context.rewrite(node.getSource(),expectedInputs.build());
-  return new AggregationNode(node.getId(),source,node.getGroupBy(),functionCalls.build(),functions.build(),masks.build(),node.getGroupingSets(),node.getStep(),node.getSampleWeight(),node.getConfidence(),node.getHashSymbol());
+  return new AggregationNode(node.getId(),source,functionCalls.build(),functions.build(),masks.build(),node.getGroupingSets(),node.getStep(),node.getSampleWeight(),node.getConfidence(),node.getHashSymbol(),node.getGroupIdSymbol());
 }
