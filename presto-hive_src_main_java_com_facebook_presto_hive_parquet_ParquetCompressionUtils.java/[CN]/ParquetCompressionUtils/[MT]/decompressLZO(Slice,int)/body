@@ -1,0 +1,22 @@
+{
+  LzoDecompressor lzoDecompressor=new LzoDecompressor();
+  long totalDecompressedCount=0;
+  byte[] output=new byte[uncompressedSize + SIZE_OF_LONG];
+  int outputOffset=0;
+  int inputOffset=0;
+  int cumulativeUncompressedBlockLength=0;
+  while (totalDecompressedCount < uncompressedSize) {
+    if (totalDecompressedCount == cumulativeUncompressedBlockLength) {
+      cumulativeUncompressedBlockLength+=Integer.reverseBytes(input.getInt(inputOffset));
+      inputOffset+=SIZE_OF_INT;
+    }
+    int compressedChunkLength=Integer.reverseBytes(input.getInt(inputOffset));
+    inputOffset+=SIZE_OF_INT;
+    int decompressionSize=decompress(lzoDecompressor,input,inputOffset,compressedChunkLength,output,outputOffset);
+    totalDecompressedCount+=decompressionSize;
+    outputOffset+=decompressionSize;
+    inputOffset+=compressedChunkLength;
+  }
+  checkArgument(outputOffset == uncompressedSize);
+  return wrappedBuffer(output,0,uncompressedSize);
+}

@@ -13,7 +13,8 @@
       if (!dataPageV2.isCompressed()) {
         return dataPageV2;
       }
-      return new ParquetDataPageV2(dataPageV2.getRowCount(),dataPageV2.getNullCount(),dataPageV2.getValueCount(),dataPageV2.getRepetitionLevels(),dataPageV2.getDefinitionLevels(),dataPageV2.getDataEncoding(),decompress(codec,dataPageV2.getSlice(),dataPageV2.getUncompressedSize()),dataPageV2.getUncompressedSize(),dataPageV2.getStatistics(),false);
+      int uncompressedSize=Ints.checkedCast(dataPageV2.getUncompressedSize() - dataPageV2.getDefinitionLevels().length() - dataPageV2.getRepetitionLevels().length());
+      return new ParquetDataPageV2(dataPageV2.getRowCount(),dataPageV2.getNullCount(),dataPageV2.getValueCount(),dataPageV2.getRepetitionLevels(),dataPageV2.getDefinitionLevels(),dataPageV2.getDataEncoding(),decompress(codec,dataPageV2.getSlice(),uncompressedSize),dataPageV2.getUncompressedSize(),dataPageV2.getStatistics(),false);
     }
   }
  catch (  IOException e) {
