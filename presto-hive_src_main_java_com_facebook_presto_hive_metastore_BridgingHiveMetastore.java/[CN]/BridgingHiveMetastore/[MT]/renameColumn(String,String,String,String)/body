@@ -4,6 +4,11 @@
     throw new TableNotFoundException(new SchemaTableName(databaseName,tableName));
   }
   org.apache.hadoop.hive.metastore.api.Table table=source.get();
+  for (  FieldSchema fieldSchema : table.getPartitionKeys()) {
+    if (fieldSchema.getName().equals(oldColumnName)) {
+      throw new PrestoException(NOT_SUPPORTED,"Renaming partition columns is not supported");
+    }
+  }
   for (  FieldSchema fieldSchema : table.getSd().getCols()) {
     if (fieldSchema.getName().equals(oldColumnName)) {
       fieldSchema.setName(newColumnName);
