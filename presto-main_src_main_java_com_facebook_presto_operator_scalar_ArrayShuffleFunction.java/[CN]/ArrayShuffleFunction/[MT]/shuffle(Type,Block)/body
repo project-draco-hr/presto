@@ -1,0 +1,24 @@
+{
+  int length=block.getPositionCount();
+  if (positions.length < length) {
+    positions=new int[length];
+  }
+  for (int i=0; i < length; i++) {
+    positions[i]=i;
+  }
+  for (int i=length - 1; i > 0; i--) {
+    int index=ThreadLocalRandom.current().nextInt(i + 1);
+    int swap=positions[i];
+    positions[i]=positions[index];
+    positions[index]=swap;
+  }
+  if (pageBuilder.isFull()) {
+    pageBuilder.reset();
+  }
+  BlockBuilder blockBuilder=pageBuilder.getBlockBuilder(0);
+  for (int i=0; i < length; i++) {
+    type.appendTo(block,positions[i],blockBuilder);
+  }
+  pageBuilder.declarePositions(length);
+  return blockBuilder.getRegion(blockBuilder.getPositionCount() - length,length);
+}
