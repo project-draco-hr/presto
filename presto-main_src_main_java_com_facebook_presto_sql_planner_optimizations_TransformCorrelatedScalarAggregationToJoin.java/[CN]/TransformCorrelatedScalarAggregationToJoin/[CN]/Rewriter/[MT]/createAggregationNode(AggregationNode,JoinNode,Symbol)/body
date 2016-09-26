@@ -1,0 +1,21 @@
+{
+  ImmutableMap.Builder<Symbol,FunctionCall> aggregations=ImmutableMap.builder();
+  ImmutableMap.Builder<Symbol,Signature> functions=ImmutableMap.builder();
+  FunctionRegistry functionRegistry=metadata.getFunctionRegistry();
+  for (  Map.Entry<Symbol,FunctionCall> entry : scalarAggregation.getAggregations().entrySet()) {
+    FunctionCall call=entry.getValue();
+    QualifiedName count=QualifiedName.of("count");
+    Symbol symbol=entry.getKey();
+    if (call.getName().equals(count)) {
+      aggregations.put(symbol,new FunctionCall(count,ImmutableList.of(nonNullableAggregationSourceSymbol.toSymbolReference())));
+      List<TypeSignature> scalarAggregationSourceTypeSignatures=ImmutableList.of(symbolAllocator.getTypes().get(nonNullableAggregationSourceSymbol).getTypeSignature());
+      functions.put(symbol,functionRegistry.resolveFunction(count,scalarAggregationSourceTypeSignatures,false));
+    }
+ else {
+      aggregations.put(symbol,entry.getValue());
+      functions.put(symbol,scalarAggregation.getFunctions().get(symbol));
+    }
+  }
+  List<Symbol> groupBySymbols=leftOuterJoin.getLeft().getOutputSymbols();
+  return Optional.of(new AggregationNode(idAllocator.getNextId(),leftOuterJoin,aggregations.build(),functions.build(),scalarAggregation.getMasks(),ImmutableList.of(groupBySymbols),scalarAggregation.getStep(),scalarAggregation.getSampleWeight(),scalarAggregation.getConfidence(),scalarAggregation.getHashSymbol(),Optional.empty()));
+}

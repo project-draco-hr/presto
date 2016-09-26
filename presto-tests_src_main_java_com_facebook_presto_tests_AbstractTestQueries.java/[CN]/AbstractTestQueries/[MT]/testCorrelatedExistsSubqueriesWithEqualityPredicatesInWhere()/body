@@ -1,0 +1,14 @@
+{
+  assertQuery("SELECT EXISTS(SELECT 1 WHERE o.orderkey = 1) FROM orders o");
+  assertQuery("SELECT EXISTS(SELECT null WHERE o.orderkey = 1) FROM orders o");
+  assertQuery("SELECT count(*) FROM orders o WHERE EXISTS(SELECT 1 WHERE o.orderkey = 0)");
+  assertQuery("SELECT * FROM orders o ORDER BY EXISTS(SELECT 1 WHERE o.orderkey = 0)");
+  assertQueryFails("SELECT count(*) FROM orders " + "WHERE EXISTS (SELECT count(*) FROM lineitem WHERE orders.orderkey = lineitem.orderkey)","Unsupported correlated subquery type");
+  assertQuery("SELECT EXISTS(SELECT 1 WHERE a = 1) FROM (VALUES 1, 1, 2, 3) t(a)","VALUES true, true, false, false");
+  assertQuery("SELECT max(o.totalprice), o.orderkey, EXISTS(SELECT 1 WHERE o.orderkey = 0) " + "FROM orders o GROUP BY o.orderkey");
+  assertQuery("SELECT max(o.totalprice), o.orderkey " + "FROM orders o GROUP BY o.orderkey HAVING EXISTS (SELECT 1 WHERE o.orderkey = 0)");
+  assertQuery("SELECT max(o.totalprice), o.orderkey " + "FROM orders o GROUP BY o.orderkey, EXISTS (SELECT 1 WHERE o.orderkey = 0)");
+  assertQuery("SELECT count(*) " + "FROM (SELECT * FROM orders ORDER BY orderkey LIMIT 10) o1 " + "JOIN (SELECT * FROM orders ORDER BY orderkey LIMIT 5) o2 "+ "ON NOT EXISTS(SELECT 1 WHERE o1.orderkey = o2.orderkey)");
+  assertQueryFails("SELECT count(*) FROM orders o1 LEFT JOIN orders o2 " + "ON NOT EXISTS(SELECT 1 WHERE o1.orderkey = o2.orderkey)","line .*: Correlated subquery in given context is not supported");
+  assertQuery("SELECT count(*) FROM orders o WHERE (SELECT * FROM (SELECT EXISTS(SELECT 1 WHERE o.orderkey = 0)))","SELECT count(*) FROM orders o WHERE o.orderkey = 0");
+}

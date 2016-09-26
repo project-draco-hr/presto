@@ -1,0 +1,11 @@
+{
+  List<Symbol> correlation=apply.getCorrelation();
+  Optional<DecorrelatedNode> source=decorrelateFilters(aggregation.getSource(),correlation);
+  if (!source.isPresent()) {
+    return apply;
+  }
+  Symbol nonNull=symbolAllocator.newSymbol("non_null",BooleanType.BOOLEAN);
+  Map<Symbol,Expression> scalarAggregationSourceAssignments=ImmutableMap.<Symbol,Expression>builder().putAll(toAssignments(source.get().getNode().getOutputSymbols())).put(nonNull,TRUE_LITERAL).build();
+  ProjectNode scalarAggregationSourceWithNonNullableSymbol=new ProjectNode(idAllocator.getNextId(),source.get().getNode(),scalarAggregationSourceAssignments);
+  return rewriteScalarAggregation(apply,aggregation,scalarAggregationSourceWithNonNullableSymbol,source.get().getCorrelatedPredicates(),nonNull);
+}
