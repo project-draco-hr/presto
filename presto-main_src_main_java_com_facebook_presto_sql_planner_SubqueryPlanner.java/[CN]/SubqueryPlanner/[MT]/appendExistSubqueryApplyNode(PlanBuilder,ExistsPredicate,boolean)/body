@@ -3,12 +3,16 @@
     return subPlan;
   }
   PlanNode subqueryPlan=createRelationPlan(existsPredicate.getSubquery()).getRoot();
+  Symbol exists=symbolAllocator.newSymbol("exists",BOOLEAN);
+  if (isAggregationWithEmptyGroupBy(subqueryPlan)) {
+    subPlan.getTranslations().put(existsPredicate,BooleanLiteral.TRUE_LITERAL);
+    return subPlan;
+  }
   subqueryPlan=new LimitNode(idAllocator.getNextId(),subqueryPlan,1,false);
   FunctionRegistry functionRegistry=metadata.getFunctionRegistry();
   QualifiedName countFunction=QualifiedName.of("count");
   Symbol count=symbolAllocator.newSymbol(countFunction.toString(),BIGINT);
   subqueryPlan=new AggregationNode(idAllocator.getNextId(),subqueryPlan,ImmutableMap.of(count,new FunctionCall(countFunction,ImmutableList.of())),ImmutableMap.of(count,functionRegistry.resolveFunction(countFunction,ImmutableList.of(),false)),ImmutableMap.of(),ImmutableList.of(ImmutableList.of()),AggregationNode.Step.SINGLE,Optional.empty(),1.0,Optional.empty(),Optional.empty());
-  Symbol exists=symbolAllocator.newSymbol("exists",BOOLEAN);
   ComparisonExpression countGreaterThanZero=new ComparisonExpression(GREATER_THAN,count.toSymbolReference(),new Cast(new LongLiteral("0"),BIGINT.toString()));
   subqueryPlan=new EnforceSingleRowNode(idAllocator.getNextId(),new ProjectNode(idAllocator.getNextId(),subqueryPlan,ImmutableMap.of(exists,countGreaterThanZero)));
   return appendSubqueryApplyNode(subPlan,existsPredicate,existsPredicate.getSubquery(),subqueryPlan,correlationAllowed);

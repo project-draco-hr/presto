@@ -6,7 +6,7 @@
   assertQuery(queryTemplate.replace(condition.of("(x+y in (VALUES 4)) AND (x*y in (VALUES 4,5))")),"VALUES (2,2)");
   assertQuery(queryTemplate.replace(condition.of("(x+y in (VALUES 4,5)) AND (x*y IN (VALUES 4,5))")),"VALUES (4,1), (2,2)");
   assertQuery(queryTemplate.replace(condition.of("(x+y in (VALUES 4,5)) AND (x in (VALUES 4,5)) != (y in (VALUES 4,5))")),"VALUES (4,1)");
-  for (  QueryTemplate.Parameter joinType : ImmutableList.of(type.of("left"),type.of("right"),type.of("full"))) {
+  for (  QueryTemplate.Parameter joinType : type.of("left","right","full")) {
     assertQueryFails(queryTemplate.replace(joinType,condition.of("(x+y in (VALUES 4,5)) AND (x in (VALUES 4,5)) != (y in (VALUES 4,5))")),".*IN with subquery predicate in join condition is not supported");
   }
 }
