@@ -1,0 +1,19 @@
+{
+  if (where.test(node)) {
+    checkArgument(node.getSources().size() == 1,"Unable to remove plan node as it contains 0 or more than 1 children");
+    return node.getSources().get(0);
+  }
+  if (skipOnly.test(node)) {
+    List<PlanNode> sources=node.getSources();
+    if (sources.isEmpty()) {
+      return node;
+    }
+ else     if (sources.size() == 1) {
+      return replaceChildren(node,ImmutableList.of(removeFirstRecursive(sources.get(0))));
+    }
+ else {
+      throw new IllegalArgumentException("Unable to remove first node when a node has multiple children, use removeAll instead");
+    }
+  }
+  return node;
+}
