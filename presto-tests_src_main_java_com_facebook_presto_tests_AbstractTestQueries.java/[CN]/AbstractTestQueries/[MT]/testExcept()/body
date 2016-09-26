@@ -1,13 +1,13 @@
 {
-  assertQuery("SELECT regionkey FROM nation WHERE nationkey < 7 EXCEPT select regionkey FROM nation WHERE nationkey > 21","VALUES 0, 4");
-  assertQuery("SELECT regionkey FROM nation WHERE nationkey < 7 EXCEPT DISTINCT SELECT regionkey FROM nation WHERE nationkey > 21","VALUES 0, 4");
-  assertQuery("WITH wnation AS (SELECT nationkey, regionkey FROM nation) SELECT regionkey FROM wnation WHERE nationkey < 7 EXCEPT SELECT regionkey FROM wnation WHERE nationkey > 21","VALUES 0, 4");
-  assertQuery("SELECT num FROM (SELECT 1 as num FROM nation WHERE nationkey=10 EXCEPT SELECT 2 FROM nation WHERE nationkey=20) T","SELECT 1");
-  assertQuery("SELECT nationkey, nationkey / 2 FROM (SELECT nationkey FROM nation WHERE nationkey < 10 EXCEPT SELECT nationkey FROM nation WHERE nationkey > 4) T WHERE nationkey % 2 = 0","VALUES (0,0), (2, 1), (4, 2)");
-  assertQuery("SELECT regionkey FROM (SELECT regionkey FROM nation WHERE nationkey < 7 EXCEPT SELECT regionkey FROM nation WHERE nationkey > 21) UNION SELECT 3","VALUES 0, 4, 3");
-  assertQuery("SELECT regionkey FROM (SELECT regionkey FROM nation WHERE nationkey < 7 UNION SELECT regionkey FROM nation WHERE nationkey > 21) EXCEPT SELECT 1","VALUES 0, 3, 4");
-  assertQuery("SELECT regionkey FROM (SELECT regionkey FROM nation WHERE nationkey < 7 EXCEPT SELECT regionkey FROM nation WHERE nationkey > 21) UNION ALL SELECT 4","VALUES 4, 0, 4");
-  assertQuery("SELECT * FROM (VALUES 1, 2) EXCEPT SELECT * FROM (VALUES 3.0, 2)","VALUES 1.0");
+  assertQuery("SELECT regionkey FROM nation WHERE nationkey < 7 EXCEPT select regionkey FROM nation WHERE nationkey > 21");
+  assertQuery("SELECT regionkey FROM nation WHERE nationkey < 7 EXCEPT DISTINCT SELECT regionkey FROM nation WHERE nationkey > 21");
+  assertQuery("WITH wnation AS (SELECT nationkey, regionkey FROM nation) SELECT regionkey FROM wnation WHERE nationkey < 7 EXCEPT SELECT regionkey FROM wnation WHERE nationkey > 21");
+  assertQuery("SELECT num FROM (SELECT 1 as num FROM nation WHERE nationkey=10 EXCEPT SELECT 2 FROM nation WHERE nationkey=20) T");
+  assertQuery("SELECT nationkey, nationkey / 2 FROM (SELECT nationkey FROM nation WHERE nationkey < 10 EXCEPT SELECT nationkey FROM nation WHERE nationkey > 4) T WHERE nationkey % 2 = 0");
+  assertQuery("SELECT regionkey FROM (SELECT regionkey FROM nation WHERE nationkey < 7 EXCEPT SELECT regionkey FROM nation WHERE nationkey > 21) UNION SELECT 3");
+  assertQuery("SELECT regionkey FROM (SELECT regionkey FROM nation WHERE nationkey < 7 UNION SELECT regionkey FROM nation WHERE nationkey > 21) EXCEPT SELECT 1");
+  assertQuery("SELECT regionkey FROM (SELECT regionkey FROM nation WHERE nationkey < 7 EXCEPT SELECT regionkey FROM nation WHERE nationkey > 21) UNION ALL SELECT 4");
+  assertQuery("SELECT * FROM (VALUES 1, 2) EXCEPT SELECT * FROM (VALUES 3.0, 2)");
   MaterializedResult emptyResult=computeActual("SELECT 0 EXCEPT (SELECT regionkey FROM nation WHERE nationkey <10)");
   assertEquals(emptyResult.getMaterializedRows().size(),0);
 }
